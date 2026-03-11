@@ -16,30 +16,54 @@ const RUN_STATUS = {
   COMPLETED: 'completed',
 };
 
+const DECISION_INBOX_KIND = {
+  REVIEW: 'review',
+  DECISION: 'decision',
+  APPROVAL: 'approval',
+};
+
+const DECISION_INBOX_STATUS = {
+  PENDING: 'pending',
+  RESOLVED: 'resolved',
+};
+
 const REVIEW_STATUS = {
   PENDING: 'pending',
   PASSED: 'passed',
   CHANGES_REQUESTED: 'changes_requested',
 };
 
+const APPROVAL_STATUS = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+};
+
 function createEmptyState() {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     activeProjectId: null,
     sequences: {
       project: 0,
       task: 0,
       run: 0,
       artifact: 0,
+      decisionInboxItem: 0,
+      approval: 0,
     },
     projects: {},
     tasks: {},
     runs: {},
     artifacts: {},
+    decisionInboxItems: {},
+    approvals: {},
   };
 }
 
 module.exports = {
+  APPROVAL_STATUS,
+  DECISION_INBOX_KIND,
+  DECISION_INBOX_STATUS,
   PACKS,
   REVIEW_STATUS,
   RUN_STATUS,

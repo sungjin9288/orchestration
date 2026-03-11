@@ -3,13 +3,53 @@
 const fs = require('fs');
 const path = require('path');
 
-const { createEmptyState } = require('./contracts');
+const { REVIEW_STATUS, createEmptyState } = require('./contracts');
 
 function createFileStore(options = {}) {
   const runtimeRoot = options.runtimeRoot || path.join(process.cwd(), 'var', 'runtime');
   const statePath = path.join(runtimeRoot, 'state.json');
   const logsDir = path.join(runtimeRoot, 'logs');
   const artifactsDir = path.join(runtimeRoot, 'artifacts');
+
+  function normalizeState(state) {
+    const emptyState = createEmptyState();
+    const normalizedState = {
+      ...emptyState,
+      ...state,
+      sequences: {
+        ...emptyState.sequences,
+        ...(state.sequences || {}),
+      },
+      projects: state.projects || {},
+      tasks: state.tasks || {},
+      runs: state.runs || {},
+      artifacts: state.artifacts || {},
+      decisionInboxItems: state.decisionInboxItems || {},
+      approvals: state.approvals || {},
+    };
+
+    for (const task of Object.values(normalizedState.tasks)) {
+      task.flags = {
+        blocked: false,
+        waitingApproval: false,
+        waitingDecision: false,
+        ...(task.flags || {}),
+      };
+      task.review = {
+        required: true,
+        status: REVIEW_STATUS.PENDING,
+        ...(task.review || {}),
+      };
+      task.artifactIds = task.artifactIds || [];
+
+      if (task.worktreeRef === undefined) {
+        task.worktreeRef = null;
+      }
+    }
+
+    normalizedState.schemaVersion = emptyState.schemaVersion;
+    return normalizedState;
+  }
 
   function ensureDirs() {
     fs.mkdirSync(logsDir, { recursive: true });
@@ -26,12 +66,12 @@ function createFileStore(options = {}) {
 
   function loadState() {
     ensureStateFile();
-    return JSON.parse(fs.readFileSync(statePath, 'utf8'));
+    return normalizeState(JSON.parse(fs.readFileSync(statePath, 'utf8')));
   }
 
   function saveState(state) {
     ensureDirs();
-    fs.writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`);
+    fs.writeFileSync(statePath, `${JSON.stringify(normalizeState(state), null, 2)}\n`);
   }
 
   function appendLogRecord(runId, record) {

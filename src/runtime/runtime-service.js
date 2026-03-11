@@ -4,6 +4,9 @@ const fs = require('fs');
 const path = require('path');
 
 const {
+  APPROVAL_STATUS,
+  DECISION_INBOX_KIND,
+  DECISION_INBOX_STATUS,
   PACKS,
   REVIEW_STATUS,
   RUN_STATUS,
@@ -47,6 +50,80 @@ function createRuntimeService(options = {}) {
     }
 
     return run;
+  }
+
+  function assertDecisionInboxItem(itemId, state) {
+    const item = state.decisionInboxItems[itemId];
+
+    if (!item) {
+      throw new Error(`Decision inbox item not found: ${itemId}`);
+    }
+
+    return item;
+  }
+
+  function assertApproval(approvalId, state) {
+    const approval = state.approvals[approvalId];
+
+    if (!approval) {
+      throw new Error(`Approval not found: ${approvalId}`);
+    }
+
+    return approval;
+  }
+
+  function recalculateTaskFlags(task, state) {
+    const pendingDecisionItems = Object.values(state.decisionInboxItems).filter(
+      (item) =>
+        item.taskId === task.id &&
+        item.kind === DECISION_INBOX_KIND.DECISION &&
+        item.status === DECISION_INBOX_STATUS.PENDING,
+    );
+    const pendingApprovals = Object.values(state.approvals).filter(
+      (approval) => approval.taskId === task.id && approval.status === APPROVAL_STATUS.PENDING,
+    );
+
+    task.flags.blocked = pendingDecisionItems.some((item) => item.blocksTask);
+    task.flags.waitingDecision = pendingDecisionItems.length > 0;
+    task.flags.waitingApproval = pendingApprovals.length > 0;
+  }
+
+  function createDecisionInboxItemRecord(state, input) {
+    const task = assertTask(input.taskId, state);
+    const kind = input.kind || DECISION_INBOX_KIND.DECISION;
+    const id = input.id || nextId(state, 'decisionInboxItem');
+    const now = input.now || new Date().toISOString();
+
+    if (!input.title) {
+      throw new Error('Decision inbox item title is required');
+    }
+
+    state.decisionInboxItems[id] = {
+      id,
+      projectId: task.projectId,
+      taskId: task.id,
+      kind,
+      status: DECISION_INBOX_STATUS.PENDING,
+      title: input.title,
+      prompt: input.prompt || '',
+      blocksTask: Boolean(input.blocksTask),
+      sourceType: input.sourceType || kind,
+      sourceId: input.sourceId || null,
+      resolution: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    return state.decisionInboxItems[id];
+  }
+
+  function findPendingReviewItem(taskId, state) {
+    return Object.values(state.decisionInboxItems).find(
+      (item) =>
+        item.taskId === taskId &&
+        item.kind === DECISION_INBOX_KIND.REVIEW &&
+        item.status === DECISION_INBOX_STATUS.PENDING,
+    );
   }
 
   function createProject(input) {
@@ -128,6 +205,140 @@ function createRuntimeService(options = {}) {
   function getTask(taskId) {
     const state = store.loadState();
     return assertTask(taskId, state);
+  }
+
+  function createDecisionInboxItem(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const now = new Date().toISOString();
+    const item = createDecisionInboxItemRecord(state, {
+      ...input,
+      taskId: task.id,
+      kind: DECISION_INBOX_KIND.DECISION,
+      now,
+    });
+
+    recalculateTaskFlags(task, state);
+    task.updatedAt = now;
+    store.saveState(state);
+
+    return item;
+  }
+
+  function getDecisionInboxItem(itemId) {
+    const state = store.loadState();
+    return assertDecisionInboxItem(itemId, state);
+  }
+
+  function listDecisionInboxItems(input = {}) {
+    const state = store.loadState();
+    let items = Object.values(state.decisionInboxItems);
+
+    if (input.projectId) {
+      items = items.filter((item) => item.projectId === input.projectId);
+    }
+
+    if (input.taskId) {
+      items = items.filter((item) => item.taskId === input.taskId);
+    }
+
+    if (input.kind) {
+      items = items.filter((item) => item.kind === input.kind);
+    }
+
+    if (input.status) {
+      items = items.filter((item) => item.status === input.status);
+    }
+
+    return items.sort((left, right) => {
+      if (left.createdAt === right.createdAt) {
+        return left.id.localeCompare(right.id);
+      }
+
+      return left.createdAt.localeCompare(right.createdAt);
+    });
+  }
+
+  function resolveDecisionInboxItem(input) {
+    const state = store.loadState();
+    const item = assertDecisionInboxItem(input.itemId, state);
+    const task = assertTask(item.taskId, state);
+    const now = new Date().toISOString();
+
+    if (!input.action) {
+      throw new Error('Resolution action is required');
+    }
+
+    item.status = DECISION_INBOX_STATUS.RESOLVED;
+    item.resolution = {
+      action: input.action,
+      note: input.note || '',
+      resolvedAt: now,
+    };
+    item.updatedAt = now;
+
+    if (item.kind === DECISION_INBOX_KIND.APPROVAL) {
+      const approval = assertApproval(item.sourceId, state);
+
+      if (
+        input.action !== APPROVAL_STATUS.APPROVED &&
+        input.action !== APPROVAL_STATUS.REJECTED
+      ) {
+        throw new Error('Approval items must resolve to approved or rejected');
+      }
+
+      approval.status = input.action;
+      approval.updatedAt = now;
+      approval.resolvedAt = now;
+    }
+
+    recalculateTaskFlags(task, state);
+    task.updatedAt = now;
+    store.saveState(state);
+
+    return item;
+  }
+
+  function createApprovalPlaceholder(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const now = new Date().toISOString();
+    const approvalId = nextId(state, 'approval');
+    const inboxItemId = nextId(state, 'decisionInboxItem');
+
+    state.approvals[approvalId] = {
+      id: approvalId,
+      projectId: task.projectId,
+      taskId: task.id,
+      scope: input.scope || 'commit',
+      status: APPROVAL_STATUS.PENDING,
+      placeholder: true,
+      allowedNextAction: input.allowedNextAction || 'commit',
+      inboxItemId,
+      createdAt: now,
+      updatedAt: now,
+      resolvedAt: null,
+    };
+
+    createDecisionInboxItemRecord(state, {
+      id: inboxItemId,
+      taskId: task.id,
+      kind: DECISION_INBOX_KIND.APPROVAL,
+      title: input.title || `Approval required: ${state.approvals[approvalId].scope}`,
+      prompt:
+        input.prompt ||
+        `Approval required before ${state.approvals[approvalId].allowedNextAction}.`,
+      sourceType: DECISION_INBOX_KIND.APPROVAL,
+      sourceId: approvalId,
+      blocksTask: false,
+      now,
+    });
+
+    recalculateTaskFlags(task, state);
+    task.updatedAt = now;
+    store.saveState(state);
+
+    return state.approvals[approvalId];
   }
 
   function startPlaceholderRun(input) {
@@ -231,11 +442,30 @@ function createRuntimeService(options = {}) {
     const run = assertRun(input.runId, state);
     const task = assertTask(run.taskId, state);
     const now = new Date().toISOString();
+    const pendingReviewItem = findPendingReviewItem(task.id, state);
 
     run.status = RUN_STATUS.COMPLETED;
     run.finishedAt = now;
     task.lifecycleState = TASK_LIFECYCLE.REVIEW;
     task.review.status = REVIEW_STATUS.PENDING;
+    task.review.inboxItemId = pendingReviewItem ? pendingReviewItem.id : null;
+
+    if (!pendingReviewItem) {
+      const reviewItem = createDecisionInboxItemRecord(state, {
+        taskId: task.id,
+        kind: DECISION_INBOX_KIND.REVIEW,
+        title: `Review pending: ${task.title}`,
+        prompt: 'Review is required before the task can be considered done.',
+        sourceType: DECISION_INBOX_KIND.REVIEW,
+        sourceId: task.id,
+        blocksTask: false,
+        now,
+      });
+
+      task.review.inboxItemId = reviewItem.id;
+    }
+
+    recalculateTaskFlags(task, state);
     task.updatedAt = now;
 
     store.saveState(state);
@@ -256,16 +486,21 @@ function createRuntimeService(options = {}) {
 
   return {
     appendLog,
+    createApprovalPlaceholder,
+    createDecisionInboxItem,
     createProject,
     createTask,
     finishRunWithReviewPending,
     getArtifact,
+    getDecisionInboxItem,
     getLogs,
     getProject,
     getRun,
     getSnapshot,
     getTask,
+    listDecisionInboxItems,
     recordArtifact,
+    resolveDecisionInboxItem,
     resetRuntime,
     startPlaceholderRun,
   };
