@@ -1,14 +1,14 @@
 # todo
 
 ## now
-- [ ] fill baseline docs
-- [ ] complete claw-empire audit
-- [ ] decide accepted / rejected / [OPEN]
-- [ ] define runtime first slice
-- [ ] define ops-first UI first slice
+- [x] runtime-slice-01
+- [x] runtime-slice-02
+- [x] runtime-slice-03
+- [x] runtime-slice-04
+- [x] authoring-slice-01
+- [ ] ui-slice-01
 
 ## later
+- [ ] provider adapter
+- [ ] report/content packs
 - [ ] office/radar view
-- [ ] additional packs
-- [ ] provider adapter expansion
-- [ ] export/report surfaces
