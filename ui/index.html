@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Orchestration 1.0 Ops Shell</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="shell-header">
+        <div>
+          <p class="eyebrow">Orchestration 1.0</p>
+          <h1>Read-Only Ops Shell</h1>
+        </div>
+        <div class="header-actions">
+          <button id="refresh-button" class="refresh-button" type="button">Refresh</button>
+          <p id="refresh-status" class="refresh-status">Connecting…</p>
+        </div>
+      </header>
+
+      <section class="shell-summary" id="shell-summary">
+        <article class="summary-card">
+          <p class="summary-label">Active Project</p>
+          <strong id="active-project-name">No project selected</strong>
+          <p id="active-project-path" class="summary-value"></p>
+        </article>
+        <article class="summary-card">
+          <p class="summary-label">Runtime</p>
+          <strong id="runtime-root">Unavailable</strong>
+          <p class="summary-value">Provider health: deferred</p>
+        </article>
+        <article class="summary-card">
+          <p class="summary-label">Runs</p>
+          <strong id="active-run-count">0</strong>
+          <p class="summary-value">active</p>
+        </article>
+        <article class="summary-card">
+          <p class="summary-label">Pending Gates</p>
+          <strong id="pending-gate-count">0</strong>
+          <p class="summary-value">review, approval, decision</p>
+        </article>
+      </section>
+
+      <nav class="primary-nav" aria-label="Primary surfaces">
+        <button class="nav-button is-active" data-surface="taskboard" type="button">Taskboard</button>
+        <button class="nav-button" data-surface="logs" type="button">Logs</button>
+        <button class="nav-button" data-surface="artifacts" type="button">Artifacts</button>
+        <button class="nav-button" data-surface="decision-inbox" type="button">Decision Inbox</button>
+      </nav>
+
+      <main class="surface-stack">
+        <section id="surface-taskboard" class="surface is-active" aria-label="Taskboard"></section>
+        <section id="surface-logs" class="surface" aria-label="Logs"></section>
+        <section id="surface-artifacts" class="surface" aria-label="Artifacts"></section>
+        <section id="surface-decision-inbox" class="surface" aria-label="Decision Inbox"></section>
+      </main>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

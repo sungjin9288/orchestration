@@ -5,3 +5,6 @@
 - flags 모델(blocked / waitingApproval / waitingDecision)은 상태 확장보다 단순하고 유지보수에 유리했다.
 - 다음 병목은 runtime이 아니라 role/authoring layer 부재다.
 - role prompt contract는 pack 내부 계약을 그대로 반영하고 handoff/escalation을 명시해야 runtime 수정 없이도 drift를 줄일 수 있다.
+- ui-slice-01은 runtime snapshot/log/artifact read surface만으로도 4개 1급 화면의 read-only ops shell을 닫을 수 있었다.
+- 초기 UI는 write action 없이 gate/status visibility에 집중하는 편이 pack 제약과 구조 안정성에 더 맞았다.
+- localhost 기반 UI smoke는 sandbox listen 제약을 받으므로 브라우저 검증 경로는 승인 가능한 로컬 서버 smoke로 정리하는 편이 실용적이었다.

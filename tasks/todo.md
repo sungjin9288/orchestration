@@ -6,7 +6,7 @@
 - [x] runtime-slice-03
 - [x] runtime-slice-04
 - [x] authoring-slice-01
-- [ ] ui-slice-01
+- [x] ui-slice-01
 
 ## later
 - [ ] provider adapter
