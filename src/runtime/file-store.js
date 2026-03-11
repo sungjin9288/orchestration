@@ -38,8 +38,12 @@ function createFileStore(options = {}) {
       task.review = {
         required: true,
         status: REVIEW_STATUS.PENDING,
+        inboxItemId: null,
+        resolution: null,
+        verificationArtifactIds: [],
         ...(task.review || {}),
       };
+      task.review.verificationArtifactIds = task.review.verificationArtifactIds || [];
       task.artifactIds = task.artifactIds || [];
 
       if (task.worktreeRef === undefined) {

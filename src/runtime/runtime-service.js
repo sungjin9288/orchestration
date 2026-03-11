@@ -5,6 +5,7 @@ const path = require('path');
 
 const {
   APPROVAL_STATUS,
+  COMMIT_ACTION,
   DECISION_INBOX_KIND,
   DECISION_INBOX_STATUS,
   PACKS,
@@ -52,6 +53,16 @@ function createRuntimeService(options = {}) {
     return run;
   }
 
+  function assertArtifact(artifactId, state) {
+    const artifact = state.artifacts[artifactId];
+
+    if (!artifact) {
+      throw new Error(`Artifact not found: ${artifactId}`);
+    }
+
+    return artifact;
+  }
+
   function assertDecisionInboxItem(itemId, state) {
     const item = state.decisionInboxItems[itemId];
 
@@ -72,20 +83,122 @@ function createRuntimeService(options = {}) {
     return approval;
   }
 
-  function recalculateTaskFlags(task, state) {
+  function isCommitAction(action) {
+    return action === COMMIT_ACTION.COMMIT_INTENT || action === COMMIT_ACTION.COMMIT_READY;
+  }
+
+  function resolveInboxItemRecord(item, action, note, now) {
+    item.status = DECISION_INBOX_STATUS.RESOLVED;
+    item.resolution = {
+      action,
+      note,
+      resolvedAt: now,
+    };
+    item.updatedAt = now;
+  }
+
+  function normalizeVerificationArtifactIds(task, artifactIds, state) {
+    if (!artifactIds) {
+      return [];
+    }
+
+    if (!Array.isArray(artifactIds)) {
+      throw new Error('verificationArtifactIds must be an array');
+    }
+
+    return artifactIds.map((artifactId) => {
+      const artifact = assertArtifact(artifactId, state);
+
+      if (artifact.taskId !== task.id) {
+        throw new Error(`Artifact ${artifactId} is not linked to task ${task.id}`);
+      }
+
+      return artifact.id;
+    });
+  }
+
+  function applyReviewResolution(task, item, input, now, state) {
+    if (input.action !== REVIEW_STATUS.PASSED && input.action !== REVIEW_STATUS.CHANGES_REQUESTED) {
+      throw new Error('Review items must resolve to passed or changes_requested');
+    }
+
+    const verificationArtifactIds = normalizeVerificationArtifactIds(
+      task,
+      input.verificationArtifactIds,
+      state,
+    );
+
+    resolveInboxItemRecord(item, input.action, input.note || '', now);
+    task.review.status = input.action;
+    task.review.inboxItemId = null;
+    task.review.resolution = {
+      action: input.action,
+      note: input.note || '',
+      resolvedAt: now,
+    };
+    task.review.verificationArtifactIds = verificationArtifactIds;
+  }
+
+  function computeTaskGateState(task, state) {
     const pendingDecisionItems = Object.values(state.decisionInboxItems).filter(
       (item) =>
         item.taskId === task.id &&
         item.kind === DECISION_INBOX_KIND.DECISION &&
         item.status === DECISION_INBOX_STATUS.PENDING,
     );
-    const pendingApprovals = Object.values(state.approvals).filter(
+    const taskApprovals = Object.values(state.approvals).filter(
+      (approval) => approval.taskId === task.id,
+    );
+    const pendingApprovals = taskApprovals.filter(
       (approval) => approval.taskId === task.id && approval.status === APPROVAL_STATUS.PENDING,
     );
+    const commitApprovals = taskApprovals.filter((approval) => approval.scope === 'commit');
+    const pendingCommitApprovals = commitApprovals.filter(
+      (approval) => approval.status === APPROVAL_STATUS.PENDING,
+    );
+    const approvedCommitApprovals = commitApprovals.filter(
+      (approval) => approval.status === APPROVAL_STATUS.APPROVED,
+    );
 
-    task.flags.blocked = pendingDecisionItems.some((item) => item.blocksTask);
-    task.flags.waitingDecision = pendingDecisionItems.length > 0;
-    task.flags.waitingApproval = pendingApprovals.length > 0;
+    return {
+      pendingDecisionItems,
+      pendingApprovals,
+      pendingCommitApprovals,
+      approvedCommitApprovals,
+      flags: {
+        blocked: pendingDecisionItems.some((item) => item.blocksTask),
+        waitingDecision: pendingDecisionItems.length > 0,
+        waitingApproval: pendingApprovals.length > 0,
+      },
+    };
+  }
+
+  function applyTaskGateFlags(task, gateState) {
+    task.flags.blocked = gateState.flags.blocked;
+    task.flags.waitingDecision = gateState.flags.waitingDecision;
+    task.flags.waitingApproval = gateState.flags.waitingApproval;
+  }
+
+  function recalculateTaskFlags(task, state) {
+    applyTaskGateFlags(task, computeTaskGateState(task, state));
+  }
+
+  function listActiveTaskGates(gateState) {
+    const activeGates = [];
+
+    if (gateState.flags.blocked) {
+      activeGates.push('blocked');
+    }
+
+    if (gateState.flags.waitingDecision) {
+      activeGates.push('waitingDecision');
+    }
+
+    if (gateState.flags.waitingApproval) {
+      activeGates.push('waitingApproval');
+    }
+
+    return activeGates;
   }
 
   function createDecisionInboxItemRecord(state, input) {
@@ -190,6 +303,9 @@ function createRuntimeService(options = {}) {
       review: {
         required: true,
         status: REVIEW_STATUS.PENDING,
+        inboxItemId: null,
+        resolution: null,
+        verificationArtifactIds: [],
       },
       latestRunId: null,
       artifactIds: [],
@@ -230,6 +346,46 @@ function createRuntimeService(options = {}) {
     return assertDecisionInboxItem(itemId, state);
   }
 
+  function getApproval(approvalId) {
+    const state = store.loadState();
+    return assertApproval(approvalId, state);
+  }
+
+  function listApprovals(input = {}) {
+    const state = store.loadState();
+    let approvals = Object.values(state.approvals);
+
+    if (input.projectId) {
+      approvals = approvals.filter((approval) => approval.projectId === input.projectId);
+    }
+
+    if (input.taskId) {
+      approvals = approvals.filter((approval) => approval.taskId === input.taskId);
+    }
+
+    if (input.status) {
+      approvals = approvals.filter((approval) => approval.status === input.status);
+    }
+
+    if (input.scope) {
+      approvals = approvals.filter((approval) => approval.scope === input.scope);
+    }
+
+    if (input.allowedNextAction) {
+      approvals = approvals.filter(
+        (approval) => approval.allowedNextAction === input.allowedNextAction,
+      );
+    }
+
+    return approvals.sort((left, right) => {
+      if (left.createdAt === right.createdAt) {
+        return left.id.localeCompare(right.id);
+      }
+
+      return left.createdAt.localeCompare(right.createdAt);
+    });
+  }
+
   function listDecisionInboxItems(input = {}) {
     const state = store.loadState();
     let items = Object.values(state.decisionInboxItems);
@@ -259,6 +415,30 @@ function createRuntimeService(options = {}) {
     });
   }
 
+  function resolveReview(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const item = input.itemId
+      ? assertDecisionInboxItem(input.itemId, state)
+      : findPendingReviewItem(task.id, state);
+    const now = new Date().toISOString();
+
+    if (!item) {
+      throw new Error(`Pending review item not found for task ${task.id}`);
+    }
+
+    if (item.taskId !== task.id || item.kind !== DECISION_INBOX_KIND.REVIEW) {
+      throw new Error(`Review item does not match task ${task.id}`);
+    }
+
+    applyReviewResolution(task, item, input, now, state);
+    recalculateTaskFlags(task, state);
+    task.updatedAt = now;
+    store.saveState(state);
+
+    return task.review;
+  }
+
   function resolveDecisionInboxItem(input) {
     const state = store.loadState();
     const item = assertDecisionInboxItem(input.itemId, state);
@@ -269,13 +449,16 @@ function createRuntimeService(options = {}) {
       throw new Error('Resolution action is required');
     }
 
-    item.status = DECISION_INBOX_STATUS.RESOLVED;
-    item.resolution = {
-      action: input.action,
-      note: input.note || '',
-      resolvedAt: now,
-    };
-    item.updatedAt = now;
+    if (item.kind === DECISION_INBOX_KIND.REVIEW) {
+      applyReviewResolution(task, item, input, now, state);
+      recalculateTaskFlags(task, state);
+      task.updatedAt = now;
+      store.saveState(state);
+
+      return item;
+    }
+
+    resolveInboxItemRecord(item, input.action, input.note || '', now);
 
     if (item.kind === DECISION_INBOX_KIND.APPROVAL) {
       const approval = assertApproval(item.sourceId, state);
@@ -339,6 +522,73 @@ function createRuntimeService(options = {}) {
     store.saveState(state);
 
     return state.approvals[approvalId];
+  }
+
+  function transitionTaskLifecycle(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const nextLifecycleState = input.to;
+    const now = new Date().toISOString();
+    const gateState = computeTaskGateState(task, state);
+
+    if (!Object.values(TASK_LIFECYCLE).includes(nextLifecycleState)) {
+      throw new Error(`Unsupported task lifecycle transition target: ${nextLifecycleState}`);
+    }
+
+    if (
+      nextLifecycleState === TASK_LIFECYCLE.DONE &&
+      task.review.required &&
+      task.review.status !== REVIEW_STATUS.PASSED
+    ) {
+      throw new Error(`Task ${task.id} cannot move to Done while review is unresolved`);
+    }
+
+    if (nextLifecycleState === TASK_LIFECYCLE.DONE) {
+      const activeGates = listActiveTaskGates(gateState);
+
+      if (activeGates.length > 0) {
+        throw new Error(
+          `Task ${task.id} cannot move to Done while gates remain active: ${activeGates.join(', ')}`,
+        );
+      }
+    }
+
+    applyTaskGateFlags(task, gateState);
+    task.lifecycleState = nextLifecycleState;
+    task.updatedAt = now;
+    store.saveState(state);
+
+    return task;
+  }
+
+  function ensureCommitActionAllowed(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const action = input.action;
+    const gateState = computeTaskGateState(task, state);
+    const approvedCommitApproval = gateState.approvedCommitApprovals.find(
+      (approval) => approval.allowedNextAction === action,
+    );
+
+    if (!isCommitAction(action)) {
+      throw new Error('Commit action must be commit-intent or commit-ready');
+    }
+
+    if (gateState.pendingCommitApprovals.length > 0) {
+      throw new Error(`Task ${task.id} cannot transition to ${action} while approval is unresolved`);
+    }
+
+    if (!approvedCommitApproval) {
+      throw new Error(
+        `Task ${task.id} cannot transition to ${action} without an approved commit approval record`,
+      );
+    }
+
+    return {
+      taskId: task.id,
+      action,
+      allowed: true,
+    };
   }
 
   function startPlaceholderRun(input) {
@@ -449,6 +699,8 @@ function createRuntimeService(options = {}) {
     task.lifecycleState = TASK_LIFECYCLE.REVIEW;
     task.review.status = REVIEW_STATUS.PENDING;
     task.review.inboxItemId = pendingReviewItem ? pendingReviewItem.id : null;
+    task.review.resolution = null;
+    task.review.verificationArtifactIds = [];
 
     if (!pendingReviewItem) {
       const reviewItem = createDecisionInboxItemRecord(state, {
@@ -490,19 +742,24 @@ function createRuntimeService(options = {}) {
     createDecisionInboxItem,
     createProject,
     createTask,
+    ensureCommitActionAllowed,
     finishRunWithReviewPending,
     getArtifact,
+    getApproval,
     getDecisionInboxItem,
     getLogs,
     getProject,
     getRun,
     getSnapshot,
     getTask,
+    listApprovals,
     listDecisionInboxItems,
     recordArtifact,
+    resolveReview,
     resolveDecisionInboxItem,
     resetRuntime,
     startPlaceholderRun,
+    transitionTaskLifecycle,
   };
 }
 

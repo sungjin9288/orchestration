@@ -39,6 +39,11 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
+const COMMIT_ACTION = {
+  COMMIT_INTENT: 'commit-intent',
+  COMMIT_READY: 'commit-ready',
+};
+
 function createEmptyState() {
   return {
     schemaVersion: 2,
@@ -62,6 +67,7 @@ function createEmptyState() {
 
 module.exports = {
   APPROVAL_STATUS,
+  COMMIT_ACTION,
   DECISION_INBOX_KIND,
   DECISION_INBOX_STATUS,
   PACKS,
