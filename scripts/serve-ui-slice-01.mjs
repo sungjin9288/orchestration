@@ -268,6 +268,154 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const architectRunMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)\/run-architect$/);
+
+  if (method === 'POST' && architectRunMatch) {
+    try {
+      const taskId = decodeURIComponent(architectRunMatch[1]);
+      const task = runtime.getTask(taskId);
+      const result = await executionCoordinator.runArchitect({
+        taskId: task.id,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          artifactDetail: getArtifactPayload(result.artifact.id)?.artifact || null,
+          mutation: {
+            artifactId: result.artifact.id,
+            inboxItemId: result.decisionInboxItem?.id || null,
+            inputArtifactId: result.inputArtifact.id,
+            kind: 'run-architect',
+            normalizedResult: result.normalizedResult,
+            runId: result.run.id,
+            taskId: task.id,
+          },
+          runLogs: getRunLogsPayload(result.run.id),
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Architect run failed' });
+      return;
+    }
+  }
+
+  const taskBreakerRunMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)\/run-task-breaker$/);
+
+  if (method === 'POST' && taskBreakerRunMatch) {
+    try {
+      const taskId = decodeURIComponent(taskBreakerRunMatch[1]);
+      const task = runtime.getTask(taskId);
+      const result = await executionCoordinator.runTaskBreaker({
+        taskId: task.id,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          artifactDetail: getArtifactPayload(result.artifact.id)?.artifact || null,
+          mutation: {
+            artifactId: result.artifact.id,
+            inboxItemId: result.decisionInboxItem?.id || null,
+            inputArtifactIds: result.inputArtifacts.map((artifact) => artifact.id),
+            kind: 'run-task-breaker',
+            normalizedResult: result.normalizedResult,
+            runId: result.run.id,
+            taskId: task.id,
+          },
+          runLogs: getRunLogsPayload(result.run.id),
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Task-breaker run failed' });
+      return;
+    }
+  }
+
+  const inboxActionMatch = url.pathname.match(/^\/api\/decision-inbox\/([^/]+)\/actions$/);
+
+  if (method === 'POST' && inboxActionMatch) {
+    try {
+      const itemId = decodeURIComponent(inboxActionMatch[1]);
+      const input = await readJsonBody(request);
+      const item = runtime.getDecisionInboxItem(itemId);
+      const verb = String(input.verb || '').trim();
+      let resolvedItem = null;
+
+      if (!['approve', 'reject', 'resolve'].includes(verb)) {
+        json(response, 400, { error: 'verb must be approve, reject, or resolve' });
+        return;
+      }
+
+      if (item.status !== 'pending') {
+        json(response, 409, { error: `Decision inbox item ${item.id} is already ${item.status}` });
+        return;
+      }
+
+      if (verb === 'approve') {
+        if (item.kind !== 'approval') {
+          json(response, 400, { error: 'approve is only allowed for approval items' });
+          return;
+        }
+
+        resolvedItem = runtime.resolveDecisionInboxItem({
+          action: 'approved',
+          itemId: item.id,
+        });
+      }
+
+      if (verb === 'reject') {
+        if (item.kind !== 'approval') {
+          json(response, 400, { error: 'reject is only allowed for approval items' });
+          return;
+        }
+
+        resolvedItem = runtime.resolveDecisionInboxItem({
+          action: 'rejected',
+          itemId: item.id,
+        });
+      }
+
+      if (verb === 'resolve') {
+        if (item.kind !== 'decision') {
+          json(response, 400, { error: 'resolve is only allowed for decision items' });
+          return;
+        }
+
+        resolvedItem = runtime.resolveDecisionInboxItem({
+          action: 'resolved',
+          itemId: item.id,
+        });
+      }
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          item: runtime.getDecisionInboxItem(item.id),
+          mutation: {
+            itemId: item.id,
+            kind: 'decision-inbox-action',
+            taskId: item.taskId,
+            verb,
+          },
+          resolvedItem,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Decision inbox action failed' });
+      return;
+    }
+  }
+
   if (method !== 'GET') {
     text(response, 405, 'Method Not Allowed', 'text/plain; charset=utf-8');
     return;

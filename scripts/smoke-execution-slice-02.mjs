@@ -59,50 +59,111 @@ assert.equal(readyResult.nextStage, 'architect');
 assert.equal(readyLogs.length, 5);
 assert.equal(readyArtifact.type, 'plan');
 
-const blockedTask = runtime.createTask({
-  projectId: project.id,
-  title: 'Planner blocked smoke',
-  intent: 'Verify planner-only blocking output routes into the decision inbox.',
+const readyArchitectResult = await coordinator.runArchitect({
+  taskId: readyTask.id,
 });
 
-const blockedResult = await coordinator.runPlanner({
+const readyArchitectTaskAfter = runtime.getTask(readyTask.id);
+const readyArchitectLogs = runtime.getLogs(readyArchitectResult.run.id);
+const readyArchitectureArtifact = runtime.getArtifact(readyArchitectResult.artifact.id);
+
+assert.equal(readyArchitectTaskAfter.lifecycleState, 'In Progress');
+assert.equal(readyArchitectTaskAfter.latestRunId, readyArchitectResult.run.id);
+assert.deepEqual(readyArchitectTaskAfter.flags, {
+  blocked: false,
+  waitingApproval: false,
+  waitingDecision: false,
+});
+assert.deepEqual(readyArchitectTaskAfter.artifactIds, [
+  readyResult.artifact.id,
+  readyArchitectResult.artifact.id,
+]);
+assert.equal(readyArchitectResult.inputArtifact.id, readyResult.artifact.id);
+assert.equal(readyArchitectResult.decisionInboxItem, null);
+assert.equal(readyArchitectResult.nextStage, 'task-breaker');
+assert.equal(readyArchitectLogs.length, 6);
+assert.match(readyArchitectLogs[0].message, /architect run started/);
+assert.match(readyArchitectLogs[1].message, /loaded architect prompt contract/);
+assert.match(readyArchitectLogs[2].message, /loaded planner artifact/);
+assert.match(readyArchitectLogs[5].message, /saved architecture note artifact/);
+assert.equal(readyArchitectureArtifact.type, 'architecture');
+assert.match(readyArchitectureArtifact.content, /^# Architecture Note:/m);
+assert.match(
+  readyArchitectureArtifact.content,
+  new RegExp(`source artifact: ${readyResult.artifact.id}`),
+);
+
+const blockedTask = runtime.createTask({
+  projectId: project.id,
+  title: 'Architect blocked smoke',
+  intent:
+    'Verify architect-only blocking output routes into the decision inbox when the plan implies a provider strategy change.',
+});
+
+const blockedPlannerResult = await coordinator.runPlanner({
   taskId: blockedTask.id,
   routingOutcome: {
     classification: 'new task',
-    scopeStatement: 'Plan a slice that still has missing context and needs a human decision.',
-    missingContext: ['acceptance target'],
-    decisionNote: 'Choose the exact artifact preview format before architect handoff.',
+    scopeStatement:
+      'Change provider strategy for the execution runtime while preserving the current shell and runtime state model.',
+    missingContext: [],
+    decisionNote: '',
   },
 });
 
+const blockedPlannerTaskAfter = runtime.getTask(blockedTask.id);
+const blockedPlannerLogs = runtime.getLogs(blockedPlannerResult.run.id);
+const blockedPlanArtifact = runtime.getArtifact(blockedPlannerResult.artifact.id);
+
+assert.equal(blockedPlannerTaskAfter.lifecycleState, 'In Progress');
+assert.equal(blockedPlannerTaskAfter.latestRunId, blockedPlannerResult.run.id);
+assert.deepEqual(blockedPlannerTaskAfter.flags, {
+  blocked: false,
+  waitingApproval: false,
+  waitingDecision: false,
+});
+assert.equal(blockedPlannerResult.decisionInboxItem, null);
+assert.equal(blockedPlannerResult.nextStage, 'architect');
+assert.equal(blockedPlannerLogs.length, 5);
+assert.equal(blockedPlanArtifact.type, 'plan');
+
+const blockedArchitectResult = await coordinator.runArchitect({
+  taskId: blockedTask.id,
+});
+
 const blockedTaskAfter = runtime.getTask(blockedTask.id);
-const blockedLogs = runtime.getLogs(blockedResult.run.id);
-const blockedArtifact = runtime.getArtifact(blockedResult.artifact.id);
+const blockedLogs = runtime.getLogs(blockedArchitectResult.run.id);
+const blockedArtifact = runtime.getArtifact(blockedArchitectResult.artifact.id);
 const blockedInboxItems = runtime.listDecisionInboxItems({
   status: 'pending',
   taskId: blockedTask.id,
 });
 
 assert.equal(blockedTaskAfter.lifecycleState, 'In Progress');
-assert.equal(blockedTaskAfter.latestRunId, blockedResult.run.id);
+assert.equal(blockedTaskAfter.latestRunId, blockedArchitectResult.run.id);
 assert.equal(blockedTaskAfter.flags.blocked, true);
 assert.equal(blockedTaskAfter.flags.waitingDecision, true);
 assert.equal(blockedTaskAfter.flags.waitingApproval, false);
-assert.ok(blockedResult.decisionInboxItem);
-assert.equal(blockedResult.decisionInboxItem.id, blockedInboxItems[0].id);
-assert.equal(blockedResult.decisionInboxItem.blocksTask, true);
-assert.equal(blockedResult.normalizedResult.needsDecision, true);
-assert.equal(blockedResult.normalizedResult.blockers.length, 1);
-assert.equal(blockedResult.nextStage, 'human gate');
-assert.match(blockedLogs[blockedLogs.length - 1].message, /created planner decision inbox item/);
-assert.equal(blockedArtifact.type, 'plan');
-assert.match(blockedArtifact.content, /^## Dependencies and Blockers$/m);
+assert.deepEqual(blockedTaskAfter.artifactIds, [
+  blockedPlannerResult.artifact.id,
+  blockedArchitectResult.artifact.id,
+]);
+assert.ok(blockedArchitectResult.decisionInboxItem);
+assert.equal(blockedArchitectResult.inputArtifact.id, blockedPlannerResult.artifact.id);
+assert.equal(blockedArchitectResult.decisionInboxItem.id, blockedInboxItems[0].id);
+assert.equal(blockedArchitectResult.decisionInboxItem.blocksTask, true);
+assert.equal(blockedArchitectResult.normalizedResult.needsDecision, true);
+assert.equal(blockedArchitectResult.normalizedResult.blockers.length, 1);
+assert.equal(blockedArchitectResult.nextStage, 'human gate');
+assert.match(blockedLogs[blockedLogs.length - 1].message, /created architect decision inbox item/);
+assert.equal(blockedArtifact.type, 'architecture');
+assert.match(blockedArtifact.content, /^## Blocking Architecture Issues$/m);
 
 const snapshot = runtime.getSnapshot();
 
 assert.equal(Object.keys(snapshot.tasks).length, 2);
-assert.equal(Object.keys(snapshot.runs).length, 2);
-assert.equal(Object.keys(snapshot.artifacts).length, 2);
+assert.equal(Object.keys(snapshot.runs).length, 4);
+assert.equal(Object.keys(snapshot.artifacts).length, 4);
 assert.equal(Object.keys(snapshot.decisionInboxItems).length, 1);
 
 console.log(
@@ -110,14 +171,22 @@ console.log(
     {
       ok: true,
       runtimeRoot,
-      readyRun: {
+      readyPlannerRun: {
         id: readyResult.run.id,
         nextStage: readyResult.nextStage,
       },
-      blockedRun: {
-        id: blockedResult.run.id,
-        nextStage: blockedResult.nextStage,
-        inboxItemId: blockedResult.decisionInboxItem.id,
+      readyArchitectRun: {
+        id: readyArchitectResult.run.id,
+        nextStage: readyArchitectResult.nextStage,
+      },
+      blockedPlannerRun: {
+        id: blockedPlannerResult.run.id,
+        nextStage: blockedPlannerResult.nextStage,
+      },
+      blockedArchitectRun: {
+        id: blockedArchitectResult.run.id,
+        nextStage: blockedArchitectResult.nextStage,
+        inboxItemId: blockedArchitectResult.decisionInboxItem.id,
       },
       counts: {
         tasks: Object.keys(snapshot.tasks).length,

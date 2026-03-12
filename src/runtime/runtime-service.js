@@ -201,6 +201,45 @@ function createRuntimeService(options = {}) {
     return activeGates;
   }
 
+  function assertTaskCanRunTaskBreaker(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const pendingBlockingDecisionItems = Object.values(state.decisionInboxItems).filter(
+      (item) =>
+        item.taskId === task.id &&
+        item.status === DECISION_INBOX_STATUS.PENDING &&
+        item.kind === DECISION_INBOX_KIND.DECISION &&
+        item.blocksTask,
+    );
+    const pendingApprovals = Object.values(state.approvals).filter(
+      (approval) => approval.taskId === task.id && approval.status === APPROVAL_STATUS.PENDING,
+    );
+
+    if (pendingBlockingDecisionItems.length === 0 && pendingApprovals.length === 0) {
+      return {
+        pendingApprovals: [],
+        pendingBlockingDecisionItems: [],
+        task,
+      };
+    }
+
+    const gateSummary = [];
+
+    if (pendingBlockingDecisionItems.length > 0) {
+      gateSummary.push(
+        `blocking decision items: ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
+      );
+    }
+
+    if (pendingApprovals.length > 0) {
+      gateSummary.push(`pending approvals: ${pendingApprovals.map((item) => item.id).join(', ')}`);
+    }
+
+    throw new Error(
+      `Task ${task.id} cannot run task-breaker while gates remain active: ${gateSummary.join('; ')}`,
+    );
+  }
+
   function createDecisionInboxItemRecord(state, input) {
     const task = assertTask(input.taskId, state);
     const kind = input.kind || DECISION_INBOX_KIND.DECISION;
@@ -770,6 +809,7 @@ function createRuntimeService(options = {}) {
 
   return {
     appendLog,
+    assertTaskCanRunTaskBreaker,
     completeRun,
     createApprovalPlaceholder,
     createDecisionInboxItem,

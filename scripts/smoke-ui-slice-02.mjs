@@ -140,37 +140,137 @@ async function main() {
     assert.equal(Object.keys(runPayload.snapshot.artifacts).length, 1);
     assert.equal(Object.keys(runPayload.snapshot.decisionInboxItems).length, 0);
 
-    const persistedSnapshot = await fetchJson(`${baseUrl}/api/snapshot`);
-    const persistedLogs = await fetchJson(
-      `${baseUrl}/api/runs/${encodeURIComponent(runPayload.mutation.runId)}/logs`,
-    );
-    const persistedArtifact = await fetchJson(
-      `${baseUrl}/api/artifacts/${encodeURIComponent(runPayload.mutation.artifactId)}`,
+    const architectPayload = await fetchJson(
+      `${baseUrl}/api/tasks/${encodeURIComponent(task.id)}/run-architect`,
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      },
     );
 
-    assert.equal(persistedSnapshot.snapshot.tasks[task.id].latestRunId, runPayload.mutation.runId);
-    assert.equal(persistedLogs.logs.length, runPayload.runLogs.logs.length);
-    assert.equal(persistedArtifact.artifact.id, runPayload.mutation.artifactId);
-    assert.match(persistedArtifact.artifact.content, /^## Slice Goal$/m);
+    const taskAfterArchitect = architectPayload.snapshot.tasks[task.id];
+
+    assert.equal(architectPayload.mutation.kind, 'run-architect');
+    assert.equal(architectPayload.mutation.taskId, task.id);
+    assert.equal(architectPayload.mutation.inputArtifactId, runPayload.mutation.artifactId);
+    assert.equal(architectPayload.mutation.inboxItemId, null);
+    assert.equal(architectPayload.mutation.normalizedResult.needsDecision, false);
+    assert.equal(architectPayload.mutation.normalizedResult.blockers.length, 0);
+    assert.equal(taskAfterArchitect.lifecycleState, 'In Progress');
+    assert.equal(taskAfterArchitect.latestRunId, architectPayload.mutation.runId);
+    assert.deepEqual(taskAfterArchitect.artifactIds, [
+      runPayload.mutation.artifactId,
+      architectPayload.mutation.artifactId,
+    ]);
+    assert.equal(architectPayload.runLogs.run.id, architectPayload.mutation.runId);
+    assert.equal(architectPayload.runLogs.logs.length, 6);
+    assert.match(architectPayload.runLogs.logs[0].message, /architect run started/);
+    assert.equal(architectPayload.artifactDetail.type, 'architecture');
+    assert.match(architectPayload.artifactDetail.content, /^# Architecture Note:/m);
+    assert.equal(Object.keys(architectPayload.snapshot.runs).length, 2);
+    assert.equal(Object.keys(architectPayload.snapshot.artifacts).length, 2);
+    assert.equal(Object.keys(architectPayload.snapshot.decisionInboxItems).length, 0);
+
+    const blockedCreatePayload = await fetchJson(`${baseUrl}/api/tasks`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: 'Architect block smoke',
+        intent:
+          'Plan a provider strategy change for the execution runtime so architect must raise a blocking decision item.',
+      }),
+    });
+
+    const blockedTask = blockedCreatePayload.task;
+
+    const blockedPlannerPayload = await fetchJson(
+      `${baseUrl}/api/tasks/${encodeURIComponent(blockedTask.id)}/run-planner`,
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      },
+    );
+
+    assert.equal(blockedPlannerPayload.mutation.kind, 'run-planner');
+    assert.equal(blockedPlannerPayload.mutation.inboxItemId, null);
+    assert.equal(blockedPlannerPayload.mutation.normalizedResult.needsDecision, false);
+
+    const blockedArchitectPayload = await fetchJson(
+      `${baseUrl}/api/tasks/${encodeURIComponent(blockedTask.id)}/run-architect`,
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      },
+    );
+
+    const blockedTaskAfterArchitect = blockedArchitectPayload.snapshot.tasks[blockedTask.id];
+
+    const persistedSnapshot = await fetchJson(`${baseUrl}/api/snapshot`);
+    const persistedLogs = await fetchJson(
+      `${baseUrl}/api/runs/${encodeURIComponent(architectPayload.mutation.runId)}/logs`,
+    );
+    const persistedArtifact = await fetchJson(
+      `${baseUrl}/api/artifacts/${encodeURIComponent(architectPayload.mutation.artifactId)}`,
+    );
+
+    assert.equal(blockedArchitectPayload.mutation.kind, 'run-architect');
+    assert.equal(
+      blockedArchitectPayload.mutation.inputArtifactId,
+      blockedPlannerPayload.mutation.artifactId,
+    );
+    assert.equal(blockedArchitectPayload.mutation.normalizedResult.needsDecision, true);
+    assert.equal(blockedArchitectPayload.mutation.normalizedResult.blockers.length, 1);
+    assert.ok(blockedArchitectPayload.mutation.inboxItemId);
+    assert.equal(blockedTaskAfterArchitect.latestRunId, blockedArchitectPayload.mutation.runId);
+    assert.equal(blockedTaskAfterArchitect.flags.blocked, true);
+    assert.equal(blockedTaskAfterArchitect.flags.waitingDecision, true);
+    assert.equal(Object.keys(blockedArchitectPayload.snapshot.decisionInboxItems).length, 1);
+
+    assert.equal(
+      persistedSnapshot.snapshot.tasks[task.id].latestRunId,
+      architectPayload.mutation.runId,
+    );
+    assert.equal(persistedLogs.logs.length, architectPayload.runLogs.logs.length);
+    assert.equal(persistedArtifact.artifact.id, architectPayload.mutation.artifactId);
+    assert.match(persistedArtifact.artifact.content, /^## Boundary Fit Assessment$/m);
 
     console.log(
       JSON.stringify(
         {
           ok: true,
           runtimeRoot,
-          task: {
+          readyTask: {
             id: task.id,
-            lifecycleState: taskAfterRun.lifecycleState,
+            lifecycleState: taskAfterArchitect.lifecycleState,
           },
-          run: {
-            id: runPayload.mutation.runId,
-            logCount: runPayload.runLogs.logs.length,
+          readyArchitectRun: {
+            id: architectPayload.mutation.runId,
+            logCount: architectPayload.runLogs.logs.length,
           },
-          artifact: {
-            id: runPayload.mutation.artifactId,
-            type: runPayload.artifactDetail.type,
+          readyArchitectureArtifact: {
+            id: architectPayload.mutation.artifactId,
+            type: architectPayload.artifactDetail.type,
           },
-          decisionInboxItems: Object.keys(runPayload.snapshot.decisionInboxItems).length,
+          blockedArchitectRun: {
+            id: blockedArchitectPayload.mutation.runId,
+            inboxItemId: blockedArchitectPayload.mutation.inboxItemId,
+          },
+          decisionInboxItems: Object.keys(blockedArchitectPayload.snapshot.decisionInboxItems).length,
         },
         null,
         2,

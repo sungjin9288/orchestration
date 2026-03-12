@@ -13,6 +13,7 @@ const state = {
   selectedInboxItemId: null,
   selectedRunLogs: null,
   selectedArtifact: null,
+  selectedTaskBreakdownArtifact: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
   timerId: null,
@@ -176,6 +177,32 @@ function getTaskRuns(taskId, runs) {
   return runs.filter((run) => run.taskId === taskId).sort(sortByCreatedDesc);
 }
 
+function getLatestTaskArtifact(task, data, type = null) {
+  const artifactIds = Array.isArray(task?.artifactIds) ? [...task.artifactIds].reverse() : [];
+
+  for (const artifactId of artifactIds) {
+    const artifact = data.artifactMap.get(artifactId);
+
+    if (!artifact) {
+      continue;
+    }
+
+    if (!type || artifact.type === type) {
+      return artifact;
+    }
+  }
+
+  return null;
+}
+
+function getPreferredTaskArtifact(task, data) {
+  return (
+    getLatestTaskArtifact(task, data, 'breakdown') ||
+    getLatestTaskArtifact(task, data, 'architecture') ||
+    getLatestTaskArtifact(task, data)
+  );
+}
+
 function getTaskApprovalSummary(task, approvals) {
   const taskApprovals = getTaskApprovals(task.id, approvals);
 
@@ -199,6 +226,207 @@ function getTaskDecisionSummary(task, inboxItems) {
     pendingDecision: pending.filter((item) => item.kind === 'decision').length,
     pendingApproval: pending.filter((item) => item.kind === 'approval').length,
   };
+}
+
+function getPendingTaskBreakerApprovals(taskId, approvals) {
+  return getTaskApprovals(taskId, approvals).filter((approval) => approval.status === 'pending');
+}
+
+function getPendingTaskBreakerDecisionItems(taskId, inboxItems) {
+  return getTaskInboxItems(taskId, inboxItems).filter(
+    (item) => item.status === 'pending' && item.kind === 'decision' && item.blocksTask,
+  );
+}
+
+function getTaskBreakerAvailability(task, data) {
+  const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
+  const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
+  const latestBreakdownArtifact = getLatestTaskArtifact(task, data, 'breakdown');
+  const pendingApprovals = task ? getPendingTaskBreakerApprovals(task.id, data.approvals) : [];
+  const pendingBlockingDecisionItems = task
+    ? getPendingTaskBreakerDecisionItems(task.id, data.inboxItems)
+    : [];
+  const reasons = [];
+
+  if (!task) {
+    reasons.push('select a task');
+  }
+
+  if (!latestPlanArtifact) {
+    reasons.push('latest plan artifact required');
+  }
+
+  if (!latestArchitectureArtifact) {
+    reasons.push('latest architecture artifact required');
+  }
+
+  if (pendingBlockingDecisionItems.length > 0) {
+    reasons.push(
+      `resolve blocking decision ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
+    );
+  }
+
+  if (pendingApprovals.length > 0) {
+    reasons.push(`resolve pending approval ${pendingApprovals.map((item) => item.id).join(', ')}`);
+  }
+
+  if (state.loading || state.mutating) {
+    reasons.push('wait for the current action to finish');
+  }
+
+  return {
+    disabled: reasons.length > 0,
+    latestArchitectureArtifact,
+    latestBreakdownArtifact,
+    latestPlanArtifact,
+    pendingApprovals,
+    pendingBlockingDecisionItems,
+    reasons,
+  };
+}
+
+function stripMarkdownBullet(line) {
+  return String(line || '')
+    .trim()
+    .replace(/^[-*]\s+/, '')
+    .trim();
+}
+
+function parseMarkdownBullets(content) {
+  return String(content || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => /^[-*]\s+/.test(line))
+    .map(stripMarkdownBullet)
+    .filter(Boolean);
+}
+
+function parseMarkdownLines(content) {
+  return String(content || '')
+    .split('\n')
+    .map((line) => stripMarkdownBullet(line))
+    .filter(Boolean);
+}
+
+function parseMarkdownSections(content) {
+  const text = String(content || '');
+  const matches = [...text.matchAll(/^##\s+(.+)$/gm)];
+
+  if (matches.length === 0) {
+    return null;
+  }
+
+  const sections = {};
+
+  for (let index = 0; index < matches.length; index += 1) {
+    const heading = matches[index][1].trim();
+    const sectionStart = matches[index].index + matches[index][0].length;
+    const sectionEnd = index + 1 < matches.length ? matches[index + 1].index : text.length;
+    sections[heading] = text.slice(sectionStart, sectionEnd).trim();
+  }
+
+  return sections;
+}
+
+function parseBreakdownArtifact(content) {
+  const text = String(content || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const sections = parseMarkdownSections(text);
+
+  if (!sections) {
+    return null;
+  }
+
+  const parsed = {
+    executionBoundarySummary: parseMarkdownBullets(sections['Execution Boundary Summary']),
+    checkpoints: parseMarkdownBullets(sections.Checkpoints),
+    expectedArtifacts: parseMarkdownBullets(sections['Expected Artifacts Per Checkpoint']),
+    orderedSubTasks: parseMarkdownBullets(sections['Ordered Sub-Tasks']),
+    reviewTriggerPoints: parseMarkdownLines(sections['Review Trigger Point']),
+    stopAndEscalateConditions: parseMarkdownBullets(sections['Stop-And-Escalate Conditions']),
+    title: text.match(/^#\s+Task Breakdown:\s*(.+)$/m)?.[1]?.trim() || '',
+    verificationCheckpoints: parseMarkdownBullets(sections['Verification Checkpoints']),
+  };
+  const hasStructuredContent = [
+    parsed.orderedSubTasks,
+    parsed.checkpoints,
+    parsed.expectedArtifacts,
+    parsed.verificationCheckpoints,
+    parsed.reviewTriggerPoints,
+    parsed.stopAndEscalateConditions,
+    parsed.executionBoundarySummary,
+  ].some((items) => items.length > 0);
+
+  return hasStructuredContent ? parsed : null;
+}
+
+function renderBreakdownList(title, items, options = {}) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return '';
+  }
+
+  const tagName = options.ordered ? 'ol' : 'ul';
+
+  return `
+    <section class="breakdown-section">
+      <p class="detail-key">${escapeHtml(title)}</p>
+      <${tagName} class="breakdown-list">
+        ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+      </${tagName}>
+    </section>
+  `;
+}
+
+function renderStructuredBreakdown(parsed, options = {}) {
+  if (!parsed) {
+    return '';
+  }
+
+  const includeCheckpoints = options.includeCheckpoints !== false;
+  const includeExpectedArtifacts = options.includeExpectedArtifacts !== false;
+  const includeExecutionBoundary = options.includeExecutionBoundary !== false;
+  const includeStopConditions = options.includeStopConditions !== false;
+  const includeVerification = options.includeVerification !== false;
+  const includeReviewTrigger = options.includeReviewTrigger !== false;
+  const sections = [
+    renderBreakdownList('Ordered Sub-Tasks', parsed.orderedSubTasks, { ordered: true }),
+    includeCheckpoints ? renderBreakdownList('Checkpoints', parsed.checkpoints) : '',
+    includeExpectedArtifacts
+      ? renderBreakdownList('Expected Artifacts Per Checkpoint', parsed.expectedArtifacts)
+      : '',
+    includeVerification
+      ? renderBreakdownList('Verification Checkpoints', parsed.verificationCheckpoints)
+      : '',
+    includeReviewTrigger
+      ? renderBreakdownList('Review Trigger Point', parsed.reviewTriggerPoints)
+      : '',
+    includeStopConditions
+      ? renderBreakdownList(
+          'Stop-And-Escalate Conditions',
+          parsed.stopAndEscalateConditions,
+        )
+      : '',
+    includeExecutionBoundary
+      ? renderBreakdownList('Execution Boundary Summary', parsed.executionBoundarySummary)
+      : '',
+  ]
+    .filter(Boolean)
+    .join('');
+
+  if (!sections) {
+    return '';
+  }
+
+  return `
+    <div class="breakdown-structured">
+      ${parsed.title ? `<p class="breakdown-title">${escapeHtml(parsed.title)}</p>` : ''}
+      ${sections}
+    </div>
+  `;
 }
 
 function createToken(label, tone = 'neutral') {
@@ -266,12 +494,11 @@ function ensureSelection(data) {
   }
 
   if (activeTask) {
-    const taskArtifactIds = activeTask.artifactIds || [];
-    const firstTaskArtifactId = taskArtifactIds.find((artifactId) => data.artifactMap.has(artifactId));
     const selectedArtifact = data.artifactMap.get(state.selectedArtifactId) || null;
+    const preferredTaskArtifact = getPreferredTaskArtifact(activeTask, data);
 
     if (!selectedArtifact || selectedArtifact.taskId !== activeTask.id) {
-      state.selectedArtifactId = firstTaskArtifactId || null;
+      state.selectedArtifactId = preferredTaskArtifact?.id || null;
     }
   } else if (!data.artifactMap.has(state.selectedArtifactId)) {
     state.selectedArtifactId = data.artifacts[0]?.id || null;
@@ -330,17 +557,42 @@ function applySnapshotPayload(payload) {
 async function hydrateSelectedDetails() {
   const runId = state.selectedRunId;
   const artifactId = state.selectedArtifactId;
+  const data = getDerived();
+  const selectedTask = data.taskMap.get(state.selectedTaskId) || null;
+  const latestBreakdownArtifact = selectedTask
+    ? getLatestTaskArtifact(selectedTask, data, 'breakdown')
+    : null;
 
   state.selectedRunLogs = null;
   state.selectedArtifact = null;
+  state.selectedTaskBreakdownArtifact = null;
+  let selectedArtifactDetail = null;
 
-  if (runId) {
-    state.selectedRunLogs = await fetchJson(`/api/runs/${encodeURIComponent(runId)}/logs`);
-  }
+  await Promise.all([
+    runId
+      ? fetchJson(`/api/runs/${encodeURIComponent(runId)}/logs`).then((payload) => {
+          state.selectedRunLogs = payload;
+        })
+      : Promise.resolve(),
+    artifactId
+      ? fetchJson(`/api/artifacts/${encodeURIComponent(artifactId)}`).then((artifactPayload) => {
+          selectedArtifactDetail = artifactPayload.artifact;
+          state.selectedArtifact = artifactPayload.artifact;
+        })
+      : Promise.resolve(),
+  ]);
 
-  if (artifactId) {
-    const artifactPayload = await fetchJson(`/api/artifacts/${encodeURIComponent(artifactId)}`);
-    state.selectedArtifact = artifactPayload.artifact;
+  if (latestBreakdownArtifact) {
+    if (selectedArtifactDetail?.id === latestBreakdownArtifact.id) {
+      state.selectedTaskBreakdownArtifact = selectedArtifactDetail;
+      return;
+    }
+
+    const breakdownPayload = await fetchJson(
+      `/api/artifacts/${encodeURIComponent(latestBreakdownArtifact.id)}`,
+    );
+
+    state.selectedTaskBreakdownArtifact = breakdownPayload.artifact;
   }
 }
 
@@ -369,32 +621,49 @@ async function refreshData() {
   }
 }
 
-function syncSelectionsFromTask(taskId) {
+function syncSelectionsFromTask(taskId, options = {}) {
   const data = getDerived();
   const task = data.taskMap.get(taskId);
+  const preferredRun =
+    options.preferredRunId && data.runMap.has(options.preferredRunId)
+      ? data.runMap.get(options.preferredRunId)
+      : null;
+  const preferredArtifact =
+    options.preferredArtifactId && data.artifactMap.has(options.preferredArtifactId)
+      ? data.artifactMap.get(options.preferredArtifactId)
+      : null;
+  const preferredInboxItem =
+    options.preferredInboxItemId && data.inboxItemMap.has(options.preferredInboxItemId)
+      ? data.inboxItemMap.get(options.preferredInboxItemId)
+      : null;
 
   state.selectedTaskId = taskId;
 
-  if (task?.latestRunId && data.runMap.has(task.latestRunId)) {
+  if (preferredRun && preferredRun.taskId === taskId) {
+    state.selectedRunId = preferredRun.id;
+  } else if (task?.latestRunId && data.runMap.has(task.latestRunId)) {
     state.selectedRunId = task.latestRunId;
   } else {
     state.selectedRunId = null;
   }
 
-  const taskArtifactId = (task?.artifactIds || []).find((artifactId) => data.artifactMap.has(artifactId));
-
-  if (taskArtifactId) {
-    state.selectedArtifactId = taskArtifactId;
+  if (preferredArtifact && preferredArtifact.taskId === taskId) {
+    state.selectedArtifactId = preferredArtifact.id;
   } else {
-    state.selectedArtifactId = null;
+    const taskArtifact = getPreferredTaskArtifact(task, data);
+    state.selectedArtifactId = taskArtifact?.id || null;
   }
 
   const pendingItem =
     data.inboxItems.find((item) => item.taskId === taskId && item.status === 'pending') ||
     data.inboxItems.find((item) => item.taskId === taskId);
 
-  if (pendingItem) {
+  if (preferredInboxItem && preferredInboxItem.taskId === taskId) {
+    state.selectedInboxItemId = preferredInboxItem.id;
+  } else if (pendingItem) {
     state.selectedInboxItemId = pendingItem.id;
+  } else {
+    state.selectedInboxItemId = null;
   }
 }
 
@@ -510,14 +779,115 @@ async function runPlanner(taskId) {
 
     applySnapshotPayload(payload);
     state.error = null;
-    state.selectedTaskId = taskId;
-    state.selectedRunId = payload.mutation.runId;
-    state.selectedArtifactId = payload.mutation.artifactId;
-    state.selectedInboxItemId = payload.mutation.inboxItemId || state.selectedInboxItemId;
-    state.selectedRunLogs = payload.runLogs || null;
-    state.selectedArtifact = payload.artifactDetail || null;
+    syncSelectionsFromTask(taskId, {
+      preferredArtifactId: payload.mutation.artifactId,
+      preferredInboxItemId: payload.mutation.inboxItemId || null,
+      preferredRunId: payload.mutation.runId,
+    });
+    await hydrateSelectedDetails();
     render();
     elements.refreshStatus.textContent = `Planner run ${payload.mutation.runId} completed`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function runArchitect(taskId) {
+  const data = getDerived();
+
+  if (!taskId || !data.taskMap.has(taskId)) {
+    throw new Error('Select a task before starting architect run');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Starting architect run for ${taskId}…`;
+  render();
+
+  try {
+    const payload = await postJson(`/api/tasks/${encodeURIComponent(taskId)}/run-architect`);
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromTask(taskId, {
+      preferredArtifactId: payload.mutation.artifactId,
+      preferredInboxItemId: payload.mutation.inboxItemId || null,
+      preferredRunId: payload.mutation.runId,
+    });
+    await hydrateSelectedDetails();
+    state.surface = 'artifacts';
+    render();
+    elements.refreshStatus.textContent = `Architect run ${payload.mutation.runId} completed`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function runTaskBreaker(taskId) {
+  const data = getDerived();
+
+  if (!taskId || !data.taskMap.has(taskId)) {
+    throw new Error('Select a task before starting task-breaker run');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Starting task-breaker run for ${taskId}…`;
+  render();
+
+  try {
+    const payload = await postJson(`/api/tasks/${encodeURIComponent(taskId)}/run-task-breaker`);
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromTask(taskId, {
+      preferredArtifactId: payload.mutation.artifactId,
+      preferredInboxItemId: payload.mutation.inboxItemId || null,
+      preferredRunId: payload.mutation.runId,
+    });
+    await hydrateSelectedDetails();
+    state.surface = 'artifacts';
+    render();
+    elements.refreshStatus.textContent = `Task-breaker run ${payload.mutation.runId} completed`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function runInboxAction(itemId, verb) {
+  const data = getDerived();
+  const item = data.inboxItemMap.get(itemId);
+  const previousRunId = state.selectedRunId;
+  const previousArtifactId = state.selectedArtifactId;
+
+  if (!item) {
+    throw new Error('Select a pending inbox item before taking action');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `${verb} ${itemId}…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/decision-inbox/${encodeURIComponent(itemId)}/actions`,
+      { verb },
+    );
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromTask(payload.mutation.taskId, {
+      preferredArtifactId: previousArtifactId,
+      preferredInboxItemId: payload.mutation.itemId,
+      preferredRunId: previousRunId,
+    });
+    await hydrateSelectedDetails();
+    render();
+    elements.refreshStatus.textContent = `${verb} ${payload.mutation.itemId} completed`;
   } finally {
     state.mutating = false;
     render();
@@ -632,7 +1002,7 @@ function renderTaskboard(data) {
             <h2>Taskboard</h2>
             <p class="panel-copy">Lifecycle, flags, review state, and gate visibility by task.</p>
           </div>
-          <p class="runtime-note">Planner write enabled</p>
+          <p class="runtime-note">Planner + architect + task-breaker write enabled</p>
         </div>
         <form class="task-create-form" data-form="create-task">
           <div class="field-grid">
@@ -701,7 +1071,21 @@ function renderTaskDetail(task, data) {
   const taskApprovals = getTaskApprovals(task.id, data.approvals);
   const taskInboxItems = getTaskInboxItems(task.id, data.inboxItems);
   const latestRun = task.latestRunId ? data.runMap.get(task.latestRunId) : null;
+  const taskBreakerState = getTaskBreakerAvailability(task, data);
+  const latestPlanArtifact = taskBreakerState.latestPlanArtifact;
+  const latestArchitectureArtifact = taskBreakerState.latestArchitectureArtifact;
+  const latestBreakdownArtifact = taskBreakerState.latestBreakdownArtifact;
+  const latestBreakdownDetail =
+    state.selectedTaskBreakdownArtifact?.id === latestBreakdownArtifact?.id
+      ? state.selectedTaskBreakdownArtifact
+      : null;
+  const parsedBreakdown = latestBreakdownDetail
+    ? parseBreakdownArtifact(latestBreakdownDetail.content)
+    : null;
+  const selectedInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
   const plannerDisabled = state.loading || state.mutating;
+  const architectDisabled = state.loading || state.mutating || !latestPlanArtifact;
+  const taskBreakerDisabled = taskBreakerState.disabled;
 
   return `
     <aside class="detail-card">
@@ -737,7 +1121,37 @@ function renderTaskDetail(task, data) {
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">Planner Run</p>
+        <p class="detail-key">Role Runs</p>
+        <div class="token-row">
+          ${
+            latestPlanArtifact
+              ? createToken(`plan:${latestPlanArtifact.id}`, 'success')
+              : createToken('plan:missing', 'warning')
+          }
+          ${
+            latestArchitectureArtifact
+              ? createToken(`architecture:${latestArchitectureArtifact.id}`, 'success')
+              : createToken('architecture:missing', 'warning')
+          }
+          ${
+            latestBreakdownArtifact
+              ? createToken(`breakdown:${latestBreakdownArtifact.id}`, 'neutral')
+              : createToken('breakdown:none', 'neutral')
+          }
+          ${
+            taskBreakerState.pendingBlockingDecisionItems.length > 0
+              ? createToken(
+                  `blocking decision:${taskBreakerState.pendingBlockingDecisionItems.length}`,
+                  'danger',
+                )
+              : ''
+          }
+          ${
+            taskBreakerState.pendingApprovals.length > 0
+              ? createToken(`pending approval:${taskBreakerState.pendingApprovals.length}`, 'accent')
+              : ''
+          }
+        </div>
         <div class="form-actions form-actions-inline">
           <button
             class="primary-button"
@@ -748,8 +1162,61 @@ function renderTaskDetail(task, data) {
           >
             Run Planner
           </button>
-          <p class="form-help">Starts a planner-only run and updates task, log, and artifact links immediately.</p>
+          <button
+            class="primary-button"
+            type="button"
+            data-action="run-architect"
+            data-id="${escapeHtml(task.id)}"
+            ${architectDisabled ? 'disabled' : ''}
+          >
+            Run Architect
+          </button>
+          <button
+            class="primary-button"
+            type="button"
+            data-action="run-task-breaker"
+            data-id="${escapeHtml(task.id)}"
+            ${taskBreakerDisabled ? 'disabled' : ''}
+          >
+            Run Task-Breaker
+          </button>
+          <p class="form-help">
+            ${
+              taskBreakerDisabled
+                ? `Task-Breaker stays disabled until ${escapeHtml(taskBreakerState.reasons.join('; '))}.`
+                : `Task-Breaker reads ${escapeHtml(latestPlanArtifact.id)} and ${escapeHtml(latestArchitectureArtifact.id)}, writes a breakdown artifact, and only preselects a blocking Decision Inbox item without leaving Artifacts.`
+            }
+          </p>
         </div>
+      </div>
+
+      <div class="detail-block">
+        <p class="detail-key">Generated Subtasks</p>
+        ${
+          latestBreakdownArtifact && parsedBreakdown
+            ? `
+              <div class="token-row">
+                ${createToken(`source:${latestBreakdownArtifact.id}`, 'neutral')}
+                ${createToken('derived view', 'neutral')}
+                ${selectedInboxItem?.taskId === task.id && selectedInboxItem.status === 'pending' ? createToken(`preselected inbox:${selectedInboxItem.id}`, 'warning') : ''}
+              </div>
+              <p class="detail-copy">Best-effort parsing of the latest breakdown artifact. Raw markdown remains available on Artifacts.</p>
+              ${renderStructuredBreakdown(parsedBreakdown, {
+                includeExecutionBoundary: false,
+                includeExpectedArtifacts: false,
+                includeStopConditions: false,
+              })}
+            `
+            : latestBreakdownArtifact
+              ? `
+                <div class="token-row">
+                  ${createToken(`source:${latestBreakdownArtifact.id}`, 'neutral')}
+                  ${createToken('raw fallback only', 'warning')}
+                </div>
+                <p class="detail-copy">The latest breakdown artifact could not be structured. Open the raw markdown from Artifacts for the full content.</p>
+              `
+              : '<p class="detail-copy">No breakdown artifact yet. Run task-breaker after plan and architecture artifacts are ready.</p>'
+        }
       </div>
 
       <div class="detail-block">
@@ -796,6 +1263,7 @@ function renderTaskDetail(task, data) {
                         ${createToken(item.kind, getInboxTone(item))}
                         ${createToken(item.status, item.status === 'pending' ? 'warning' : 'success')}
                         ${item.blocksTask ? createToken('blocksTask', 'danger') : ''}
+                        ${item.id === selectedInboxItem?.id ? createToken('preselected', 'accent') : ''}
                       </div>
                       <p class="detail-copy">${escapeHtml(item.prompt || item.resolution?.note || 'No prompt recorded.')}</p>
                     </div>
@@ -917,6 +1385,18 @@ function renderLogs(data) {
 function renderArtifacts(data) {
   const selectedArtifactMeta = data.artifactMap.get(state.selectedArtifactId) || null;
   const selectedArtifactTask = selectedArtifactMeta ? data.taskMap.get(selectedArtifactMeta.taskId) : null;
+  const selectedInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
+  const parsedBreakdown =
+    selectedArtifactMeta?.type === 'breakdown' && state.selectedArtifact?.content
+      ? parseBreakdownArtifact(state.selectedArtifact.content)
+      : null;
+  const preselectedPendingItem =
+    selectedArtifactTask &&
+    selectedInboxItem &&
+    selectedInboxItem.taskId === selectedArtifactTask.id &&
+    selectedInboxItem.status === 'pending'
+      ? selectedInboxItem
+      : null;
   const artifactList = data.artifacts.length
     ? data.artifacts
         .map(
@@ -972,6 +1452,31 @@ function renderArtifacts(data) {
               </div>
               <div class="detail-block">
                 <p class="detail-key">Preview</p>
+                ${
+                  selectedArtifactMeta.type === 'breakdown' && parsedBreakdown
+                    ? `
+                      <p class="detail-copy">Best-effort structured view of the stored breakdown artifact. Raw markdown remains below.</p>
+                      ${renderStructuredBreakdown(parsedBreakdown)}
+                    `
+                    : selectedArtifactMeta.type === 'breakdown'
+                      ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                      : ''
+                }
+                ${
+                  preselectedPendingItem
+                    ? `
+                      <div class="breakdown-inbox-hint">
+                        <div class="token-row">
+                          ${createToken(`preselected inbox:${preselectedPendingItem.id}`, 'warning')}
+                          ${createToken(preselectedPendingItem.kind, getInboxTone(preselectedPendingItem))}
+                          ${preselectedPendingItem.blocksTask ? createToken('blocksTask', 'danger') : ''}
+                        </div>
+                        <p class="detail-copy">${escapeHtml(preselectedPendingItem.title)}</p>
+                      </div>
+                    `
+                    : ''
+                }
+                <p class="detail-key">${selectedArtifactMeta.type === 'breakdown' ? 'Raw Markdown' : 'Raw Preview'}</p>
                 <pre class="artifact-preview">${escapeHtml(state.selectedArtifact?.content || 'No preview content available.')}</pre>
               </div>
             `
@@ -995,6 +1500,65 @@ function renderDecisionInbox(data) {
   const selectedApproval = selectedItem?.sourceId
     ? data.approvals.find((approval) => approval.id === selectedItem.sourceId) || null
     : null;
+  const inboxActionDisabled = state.loading || state.mutating;
+  let actionSurface = '';
+
+  if (selectedItem?.status === 'pending' && selectedItem.kind === 'approval') {
+    actionSurface = `
+      <div class="detail-block">
+        <p class="detail-key">Actions</p>
+        <div class="form-actions form-actions-inline">
+          <button
+            class="primary-button"
+            type="button"
+            data-action="run-inbox-action"
+            data-id="${escapeHtml(selectedItem.id)}"
+            data-verb="approve"
+            ${inboxActionDisabled ? 'disabled' : ''}
+          >
+            Approve
+          </button>
+          <button
+            class="danger-button"
+            type="button"
+            data-action="run-inbox-action"
+            data-id="${escapeHtml(selectedItem.id)}"
+            data-verb="reject"
+            ${inboxActionDisabled ? 'disabled' : ''}
+          >
+            Reject
+          </button>
+          <p class="form-help">Approval items only allow approve or reject in this slice.</p>
+        </div>
+      </div>
+    `;
+  } else if (selectedItem?.status === 'pending' && selectedItem.kind === 'decision') {
+    actionSurface = `
+      <div class="detail-block">
+        <p class="detail-key">Actions</p>
+        <div class="form-actions form-actions-inline">
+          <button
+            class="secondary-button"
+            type="button"
+            data-action="run-inbox-action"
+            data-id="${escapeHtml(selectedItem.id)}"
+            data-verb="resolve"
+            ${inboxActionDisabled ? 'disabled' : ''}
+          >
+            Resolve
+          </button>
+          <p class="form-help">Decision items only allow resolve in this slice.</p>
+        </div>
+      </div>
+    `;
+  } else if (selectedItem?.status === 'pending') {
+    actionSurface = `
+      <div class="detail-block">
+        <p class="detail-key">Actions</p>
+        <p class="detail-copy">No write action is available for this inbox item in ui-slice-03.</p>
+      </div>
+    `;
+  }
 
   const renderInboxList = (items, title, emptyCopy) => `
     <section class="surface-panel">
@@ -1091,6 +1655,7 @@ function renderDecisionInbox(data) {
                   ${createToken(`updated:${formatDate(selectedItem.updatedAt)}`, 'neutral')}
                 </div>
               </div>
+              ${actionSurface}
             `
             : `
               <div class="empty-state">
@@ -1151,6 +1716,21 @@ document.addEventListener('click', async (event) => {
     try {
       if (actionButton.dataset.action === 'run-planner') {
         await runPlanner(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'run-architect') {
+        await runArchitect(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'run-task-breaker') {
+        await runTaskBreaker(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'run-inbox-action') {
+        await runInboxAction(actionButton.dataset.id, actionButton.dataset.verb);
         return;
       }
 

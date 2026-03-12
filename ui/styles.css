@@ -114,7 +114,9 @@ h3 {
 }
 
 .refresh-button:disabled,
-.primary-button:disabled {
+.primary-button:disabled,
+.secondary-button:disabled,
+.danger-button:disabled {
   opacity: 0.58;
   cursor: not-allowed;
   box-shadow: none;
@@ -420,6 +422,26 @@ h3 {
   box-shadow: var(--shadow);
 }
 
+.secondary-button,
+.danger-button {
+  border-radius: var(--radius-sm);
+  padding: 11px 16px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.secondary-button {
+  border: 1px solid rgba(33, 57, 49, 0.18);
+  background: rgba(255, 251, 243, 0.94);
+  color: var(--text);
+}
+
+.danger-button {
+  border: 1px solid rgba(154, 59, 47, 0.2);
+  background: linear-gradient(135deg, rgba(154, 59, 47, 0.96), rgba(122, 42, 34, 0.96));
+  color: #fff7f4;
+}
+
 .form-help {
   margin: 0;
   color: var(--muted);
@@ -490,6 +512,49 @@ h3 {
 
 .artifact-preview {
   min-height: 320px;
+}
+
+.breakdown-structured {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: rgba(255, 251, 243, 0.76);
+}
+
+.breakdown-title {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.02rem;
+  color: var(--text);
+}
+
+.breakdown-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.breakdown-list {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text);
+}
+
+.breakdown-list li + li {
+  margin-top: 6px;
+}
+
+.breakdown-inbox-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(163, 100, 42, 0.18);
+  background: rgba(163, 100, 42, 0.08);
 }
 
 .empty-state {
