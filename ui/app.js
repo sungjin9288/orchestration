@@ -76,6 +76,7 @@ function getActivePayload() {
   return (
     state.payload || {
       derived: {
+        reviewerReadinessSummaries: {},
         taskGuardSummaries: {},
       },
       snapshot: {
@@ -136,7 +137,7 @@ function getDerived() {
   const inboxItemMap = new Map(projectInboxItems.map((item) => [item.id, item]));
 
   return {
-    derived: payload.derived || { taskGuardSummaries: {} },
+    derived: payload.derived || { reviewerReadinessSummaries: {}, taskGuardSummaries: {} },
     snapshot,
     activeProject,
     projects,
@@ -352,6 +353,34 @@ function getBuilderLiveMutationSummaries(task, data) {
   };
 }
 
+function getReviewerAvailability(task, data) {
+  const summary = task ? data.derived?.reviewerReadinessSummaries?.[task.id] || null : null;
+  const reasons = [];
+
+  if (!task) {
+    reasons.push('select a task');
+  }
+
+  if (!summary) {
+    reasons.push('reviewer readiness unavailable');
+  } else if (!summary.allowed && summary.reasons?.length) {
+    reasons.push(...summary.reasons);
+  }
+
+  if (state.loading || state.mutating) {
+    reasons.push('wait for the current action to finish');
+  }
+
+  return {
+    disabled: !summary?.allowed || reasons.length > 0,
+    summary: summary || {
+      allowed: false,
+      reasons: ['reviewer readiness unavailable'],
+    },
+    reasons: [...new Set(reasons)],
+  };
+}
+
 function stripMarkdownBullet(line) {
   return String(line || '')
     .trim()
@@ -421,6 +450,20 @@ function parseMarkdownKeyValueLines(content) {
 function parseIntegerValue(value) {
   const parsed = Number.parseInt(String(value || '').trim(), 10);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseYesNoValue(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+
+  if (normalized === 'yes') {
+    return true;
+  }
+
+  if (normalized === 'no') {
+    return false;
+  }
+
+  return null;
 }
 
 function parseBreakdownArtifact(content) {
@@ -528,6 +571,65 @@ function parseChangeSummaryArtifact(content) {
     parsed.risks,
     parsed.verificationNotes,
   ].some((items) => items.length > 0);
+
+  return hasStructuredContent ? parsed : null;
+}
+
+function parseReviewArtifact(content) {
+  const text = String(content || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const sections = parseMarkdownSections(text);
+
+  if (!sections) {
+    return null;
+  }
+
+  const verdictValues = parseMarkdownKeyValueLines(sections['Review Verdict']);
+  const followUpValues = parseMarkdownKeyValueLines(sections['Follow-Up Gate']);
+  const verdict = String(verdictValues.verdict || '').trim().toLowerCase();
+  const parsed = {
+    acceptedRisks: parseMarkdownBullets(sections['Accepted Risks']),
+    changeSummaryArtifactId: verdictValues['change-summary artifact'] || null,
+    contractCompliance: parseMarkdownBullets(sections['Contract Compliance']),
+    decisionRequired: parseYesNoValue(followUpValues['decision required']),
+    diffArtifactId: verdictValues['diff artifact'] || null,
+    evidence: parseMarkdownBullets(sections['Evidence Reviewed']),
+    findings: parseMarkdownBullets(sections.Findings),
+    mappedReviewStatus:
+      verdict === 'pass'
+        ? 'passed'
+        : verdict === 'fail' || verdict === 'changes_requested'
+          ? 'changes_requested'
+          : null,
+    nextAction: parseMarkdownBullets(sections['Next Action']),
+    patchArtifactId: verdictValues['patch artifact'] || null,
+    preflightArtifactId: verdictValues['preflight artifact'] || null,
+    sourceBuilderRunId: verdictValues['source builder run'] || null,
+    title: text.match(/^#\s+Reviewer Report:\s*(.+)$/m)?.[1]?.trim() || '',
+    verificationEvidence: parseMarkdownBullets(sections['Verification Evidence']),
+    verdict: ['pass', 'fail', 'changes_requested'].includes(verdict) ? verdict : null,
+    blockingIssue: parseYesNoValue(followUpValues['blocking issue']),
+  };
+  const hasStructuredContent = [
+    parsed.verdict,
+    parsed.evidence,
+    parsed.findings,
+    parsed.contractCompliance,
+    parsed.verificationEvidence,
+    parsed.nextAction,
+    parsed.acceptedRisks,
+    parsed.sourceBuilderRunId,
+    parsed.preflightArtifactId,
+    parsed.changeSummaryArtifactId,
+    parsed.patchArtifactId,
+    parsed.diffArtifactId,
+    parsed.blockingIssue,
+    parsed.decisionRequired,
+  ].some((value) => (Array.isArray(value) ? value.length > 0 : value !== null && value !== ''));
 
   return hasStructuredContent ? parsed : null;
 }
@@ -700,6 +802,65 @@ function renderStructuredChangeSummary(parsed) {
   `;
 }
 
+function renderStructuredReview(parsed, taskReviewStatus = null) {
+  if (!parsed) {
+    return '';
+  }
+
+  return `
+    <div class="breakdown-structured review-structured">
+      ${parsed.title ? `<p class="breakdown-title">${escapeHtml(parsed.title)}</p>` : ''}
+      <div class="token-row">
+        ${parsed.verdict ? createToken(`verdict:${parsed.verdict}`, getReviewerVerdictTone(parsed.verdict)) : ''}
+        ${
+          parsed.mappedReviewStatus
+            ? createToken(
+                `mapped review:${parsed.mappedReviewStatus}`,
+                getReviewTone(parsed.mappedReviewStatus),
+              )
+            : ''
+        }
+        ${
+          taskReviewStatus
+            ? createToken(`task review:${taskReviewStatus}`, getReviewTone(taskReviewStatus))
+            : ''
+        }
+        ${
+          parsed.sourceBuilderRunId
+            ? createToken(`source run:${parsed.sourceBuilderRunId}`, 'neutral')
+            : ''
+        }
+        ${createToken(`evidence:${parsed.evidence.length}`, 'neutral')}
+        ${
+          parsed.findings.length > 0
+            ? createToken(`findings:${parsed.findings.length}`, 'danger')
+            : createToken('findings:0', 'success')
+        }
+        ${
+          parsed.blockingIssue === true
+            ? createToken('blocking issue:yes', 'danger')
+            : parsed.blockingIssue === false
+              ? createToken('blocking issue:no', 'success')
+              : ''
+        }
+        ${
+          parsed.decisionRequired === true
+            ? createToken('decision required:yes', 'warning')
+            : parsed.decisionRequired === false
+              ? createToken('decision required:no', 'success')
+              : ''
+        }
+      </div>
+      ${renderBreakdownList('Evidence Reviewed', parsed.evidence)}
+      ${renderBreakdownList('Findings', parsed.findings)}
+      ${renderBreakdownList('Contract Compliance', parsed.contractCompliance)}
+      ${renderBreakdownList('Verification Evidence', parsed.verificationEvidence)}
+      ${renderBreakdownList('Next Action', parsed.nextAction)}
+      ${renderBreakdownList('Accepted Risks', parsed.acceptedRisks)}
+    </div>
+  `;
+}
+
 function renderStructuredUnifiedDiff(parsed, label) {
   if (!parsed) {
     return '';
@@ -749,6 +910,22 @@ function getReviewTone(status) {
   }
 
   return 'warning';
+}
+
+function getReviewerVerdictTone(verdict) {
+  if (verdict === 'pass') {
+    return 'success';
+  }
+
+  if (verdict === 'fail') {
+    return 'danger';
+  }
+
+  if (verdict === 'changes_requested') {
+    return 'warning';
+  }
+
+  return 'neutral';
 }
 
 function getRunTone(status) {
@@ -846,6 +1023,14 @@ function getRunArtifactBundle(run, data) {
       (summary.preflightArtifactId && data.artifactMap.get(summary.preflightArtifactId)) ||
       inputArtifacts.find((artifact) => artifact.type === 'preflight') ||
       null,
+    rawVerdict: summary.rawVerdict || null,
+    reviewArtifact:
+      (summary.reviewArtifactId && data.artifactMap.get(summary.reviewArtifactId)) ||
+      sameRunArtifacts.find((artifact) => artifact.type === 'review') ||
+      null,
+    sourceRun:
+      (summary.sourceRunId && data.runMap.get(summary.sourceRunId)) ||
+      null,
     run,
   };
 }
@@ -854,6 +1039,7 @@ function getPreferredArtifactForRun(run, data) {
   const bundle = getRunArtifactBundle(run, data);
 
   return (
+    bundle?.reviewArtifact ||
     bundle?.changeSummaryArtifact ||
     bundle?.diffArtifact ||
     bundle?.patchArtifact ||
@@ -868,8 +1054,43 @@ function getArtifactRelationContext(artifact, data, options = {}) {
   }
 
   const parsedChangeSummary = options.parsedChangeSummary || null;
+  const parsedReview = options.parsedReview || null;
   let run = data.runMap.get(artifact.runId) || null;
   let bundle = run ? getRunArtifactBundle(run, data) : null;
+
+  if (artifact.type === 'review') {
+    const sourceRun =
+      bundle?.sourceRun ||
+      (parsedReview?.sourceBuilderRunId
+        ? data.runMap.get(parsedReview.sourceBuilderRunId) || null
+        : null);
+    const sourceBundle = sourceRun ? getRunArtifactBundle(sourceRun, data) : null;
+
+    return {
+      approvalId: sourceBundle?.approvalId || null,
+      changeSummaryArtifact:
+        sourceBundle?.changeSummaryArtifact ||
+        (parsedReview?.changeSummaryArtifactId
+          ? data.artifactMap.get(parsedReview.changeSummaryArtifactId) || null
+          : null),
+      changedFiles: sourceBundle?.changedFiles || [],
+      diffArtifact:
+        sourceBundle?.diffArtifact ||
+        (parsedReview?.diffArtifactId ? data.artifactMap.get(parsedReview.diffArtifactId) || null : null),
+      executionMode: sourceBundle?.executionMode || null,
+      patchArtifact:
+        sourceBundle?.patchArtifact ||
+        (parsedReview?.patchArtifactId ? data.artifactMap.get(parsedReview.patchArtifactId) || null : null),
+      preflightArtifact:
+        sourceBundle?.preflightArtifact ||
+        (parsedReview?.preflightArtifactId
+          ? data.artifactMap.get(parsedReview.preflightArtifactId) || null
+          : null),
+      rawVerdict: bundle?.rawVerdict || parsedReview?.verdict || null,
+      run: sourceRun,
+      runLabel: sourceRun ? 'builder run' : 'run',
+    };
+  }
 
   if (!bundle && artifact.type === 'preflight') {
     run = findLatestRunForPreflightArtifact(artifact, data);
@@ -890,7 +1111,9 @@ function getArtifactRelationContext(artifact, data, options = {}) {
         ? data.artifactMap.get(parsedChangeSummary.preflightArtifactId) || null
         : null) ||
       (artifact.type === 'preflight' ? artifact : null),
+    rawVerdict: bundle?.rawVerdict || null,
     run,
+    runLabel: 'run',
   };
 }
 
@@ -919,7 +1142,7 @@ function renderRelationStrip(context) {
   const relationButtons = [
     context.run
       ? renderRelationButton(
-          `run:${context.run.id}`,
+          `${context.runLabel || 'run'}:${context.run.id}`,
           'select-run',
           context.run.id,
           'neutral',
@@ -968,6 +1191,7 @@ function renderRelationStrip(context) {
   const contextTokens = [
     context.executionMode ? createToken(`mode:${context.executionMode}`, 'neutral') : '',
     context.approvalId ? createToken(`approval:${context.approvalId}`, 'neutral') : '',
+    context.rawVerdict ? createToken(`verdict:${context.rawVerdict}`, getReviewerVerdictTone(context.rawVerdict)) : '',
     context.changedFiles.length > 0
       ? createToken(`changed files:${context.changedFiles.length}`, 'neutral')
       : '',
@@ -1223,7 +1447,7 @@ async function postJson(url, body) {
 
 function applySnapshotPayload(payload) {
   state.payload = {
-    derived: payload.derived || { taskGuardSummaries: {} },
+    derived: payload.derived || { reviewerReadinessSummaries: {}, taskGuardSummaries: {} },
     generatedAt: payload.generatedAt,
     runtimeRoot: payload.runtimeRoot,
     snapshot: payload.snapshot,
@@ -1668,6 +1892,38 @@ async function runBuilderLiveMutation(taskId) {
   }
 }
 
+async function runReviewer(taskId) {
+  const data = getDerived();
+
+  if (!taskId || !data.taskMap.has(taskId)) {
+    throw new Error('Select a task before running reviewer');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Running reviewer for ${taskId}…`;
+  render();
+
+  try {
+    const payload = await postJson(`/api/tasks/${encodeURIComponent(taskId)}/run-reviewer`);
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromTask(taskId, {
+      preferredArtifactId: payload.mutation.artifactId,
+      preferredInboxItemId: payload.mutation.inboxItemId || null,
+      preferredRunId: payload.mutation.runId,
+    });
+    await hydrateSelectedDetails();
+    state.surface = 'artifacts';
+    render();
+    elements.refreshStatus.textContent = `Reviewer run ${payload.mutation.runId} completed`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 async function runInboxAction(itemId, verb) {
   const data = getDerived();
   const item = data.inboxItemMap.get(itemId);
@@ -1915,6 +2171,7 @@ function renderTaskDetail(task, data) {
   const architectDisabled = state.loading || state.mutating || !latestPlanArtifact;
   const taskBreakerDisabled = taskBreakerState.disabled;
   const builderPreflightDisabled = builderPreflightState.disabled;
+  const reviewerState = getReviewerAvailability(task, data);
 
   return `
     <aside class="detail-card">
@@ -2164,8 +2421,70 @@ function renderTaskDetail(task, data) {
           ${createToken(`required:${task.review?.required ? 'yes' : 'no'}`, task.review?.required ? 'warning' : 'neutral')}
           ${createToken(`status:${task.review?.status || 'pending'}`, getReviewTone(task.review?.status))}
           ${createToken(`verification:${task.review?.verificationArtifactIds?.length || 0}`, 'neutral')}
+          ${
+            reviewerState.summary.sourceBuilderRunId
+              ? createToken(`source run:${reviewerState.summary.sourceBuilderRunId}`, 'neutral')
+              : ''
+          }
         </div>
         <p class="detail-copy">${escapeHtml(task.review?.resolution?.note || 'No review resolution note recorded.')}</p>
+        <div class="guard-summary">
+          <div class="token-row">
+            ${
+              reviewerState.summary.allowed
+                ? createToken('reviewer:ready', 'success')
+                : createToken('reviewer:blocked', 'warning')
+            }
+            ${
+              reviewerState.summary.preflightArtifactId
+                ? createToken(`preflight:${reviewerState.summary.preflightArtifactId}`, 'neutral')
+                : ''
+            }
+            ${
+              reviewerState.summary.changeSummaryArtifactId
+                ? createToken(`change-summary:${reviewerState.summary.changeSummaryArtifactId}`, 'neutral')
+                : ''
+            }
+            ${
+              reviewerState.summary.patchArtifactId
+                ? createToken(`patch:${reviewerState.summary.patchArtifactId}`, 'neutral')
+                : ''
+            }
+            ${
+              reviewerState.summary.diffArtifactId
+                ? createToken(`diff:${reviewerState.summary.diffArtifactId}`, 'neutral')
+                : ''
+            }
+            ${
+              reviewerState.summary.existingReviewerRunId
+                ? createToken(`existing reviewer:${reviewerState.summary.existingReviewerRunId}`, 'warning')
+                : ''
+            }
+          </div>
+          ${
+            reviewerState.reasons.length > 0
+              ? renderReasonList('Reviewer Disabled By', reviewerState.reasons)
+              : '<p class="detail-copy">Reviewer can inspect the latest builder live mutation bundle without any new code mutation.</p>'
+          }
+          <div class="form-actions form-actions-inline">
+            <button
+              class="primary-button"
+              type="button"
+              data-action="run-reviewer"
+              data-id="${escapeHtml(task.id)}"
+              ${reviewerState.disabled ? 'disabled' : ''}
+            >
+              Run Reviewer
+            </button>
+            <p class="form-help">
+              ${
+                reviewerState.disabled
+                  ? `Run Reviewer stays disabled until ${escapeHtml(reviewerState.reasons.join('; '))}.`
+                  : `Run Reviewer reads builder run ${escapeHtml(reviewerState.summary.sourceBuilderRunId)} and writes a terminal review artifact without commit or release actions.`
+              }
+            </p>
+          </div>
+        </div>
       </div>
 
       <div class="detail-block">
@@ -2352,6 +2671,10 @@ function renderArtifacts(data) {
     selectedArtifactMeta?.type === 'change-summary' && state.selectedArtifact?.content
       ? parseChangeSummaryArtifact(state.selectedArtifact.content)
       : null;
+  const parsedReview =
+    selectedArtifactMeta?.type === 'review' && state.selectedArtifact?.content
+      ? parseReviewArtifact(state.selectedArtifact.content)
+      : null;
   const parsedUnifiedDiff =
     (selectedArtifactMeta?.type === 'patch' || selectedArtifactMeta?.type === 'diff') &&
     state.selectedArtifact?.content
@@ -2360,6 +2683,7 @@ function renderArtifacts(data) {
   const artifactRelationContext = selectedArtifactMeta
     ? getArtifactRelationContext(selectedArtifactMeta, data, {
         parsedChangeSummary,
+        parsedReview,
       })
     : null;
   const preselectedPendingItem =
@@ -2458,11 +2782,18 @@ function renderArtifacts(data) {
                           `
                           : selectedArtifactMeta.type === 'change-summary'
                             ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
-                          : selectedArtifactMeta.type === 'patch' && parsedUnifiedDiff
+                          : selectedArtifactMeta.type === 'review' && parsedReview
                             ? `
-                              <p class="detail-copy">Best-effort summary of the stored planned patch. Raw patch text remains below.</p>
-                              ${renderStructuredUnifiedDiff(parsedUnifiedDiff, 'planned patch')}
+                              <p class="detail-copy">Best-effort structured view of the stored reviewer artifact. Raw markdown remains below.</p>
+                              ${renderStructuredReview(parsedReview, selectedArtifactTask?.review?.status || null)}
                             `
+                            : selectedArtifactMeta.type === 'review'
+                              ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                            : selectedArtifactMeta.type === 'patch' && parsedUnifiedDiff
+                              ? `
+                                <p class="detail-copy">Best-effort summary of the stored planned patch. Raw patch text remains below.</p>
+                                ${renderStructuredUnifiedDiff(parsedUnifiedDiff, 'planned patch')}
+                              `
                             : selectedArtifactMeta.type === 'patch'
                               ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw patch fallback.</p>'
                             : selectedArtifactMeta.type === 'diff' && parsedUnifiedDiff
@@ -2531,7 +2862,8 @@ function renderArtifacts(data) {
                 <p class="detail-key">${
                   selectedArtifactMeta.type === 'breakdown' ||
                   selectedArtifactMeta.type === 'preflight' ||
-                  selectedArtifactMeta.type === 'change-summary'
+                  selectedArtifactMeta.type === 'change-summary' ||
+                  selectedArtifactMeta.type === 'review'
                     ? 'Raw Markdown'
                     : 'Raw Preview'
                 }</p>
@@ -2810,6 +3142,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'run-builder-live-mutation') {
         await runBuilderLiveMutation(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'run-reviewer') {
+        await runReviewer(actionButton.dataset.id);
         return;
       }
 

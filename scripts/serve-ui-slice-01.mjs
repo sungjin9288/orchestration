@@ -81,6 +81,13 @@ function readSnapshotReadonly() {
   return store.loadState();
 }
 
+function buildDerivedSnapshotData(snapshot) {
+  return {
+    reviewerReadinessSummaries: executionCoordinator.listReviewerReadinessSummaries(),
+    taskGuardSummaries: runtime.listTaskGuardSummaries(),
+  };
+}
+
 function buildSnapshotResponse(extra = {}) {
   const snapshot = readSnapshotReadonly();
 
@@ -88,9 +95,7 @@ function buildSnapshotResponse(extra = {}) {
     generatedAt: new Date().toISOString(),
     runtimeRoot: options.runtimeRoot,
     snapshot,
-    derived: {
-      taskGuardSummaries: runtime.listTaskGuardSummaries(),
-    },
+    derived: buildDerivedSnapshotData(snapshot),
     ...extra,
   };
 }
@@ -456,6 +461,43 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
       json(response, statusCode, { error: error.message || 'Builder live mutation run failed' });
+      return;
+    }
+  }
+
+  const reviewerRunMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)\/run-reviewer$/);
+
+  if (method === 'POST' && reviewerRunMatch) {
+    try {
+      const taskId = decodeURIComponent(reviewerRunMatch[1]);
+      const task = runtime.getTask(taskId);
+      const result = await executionCoordinator.runReviewer({
+        taskId: task.id,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          artifactDetail: getArtifactPayload(result.artifact.id)?.artifact || null,
+          mutation: {
+            artifactId: result.artifact.id,
+            inboxItemId: result.decisionInboxItem?.id || null,
+            inputArtifactIds: result.inputArtifacts.map((artifact) => artifact.id),
+            kind: 'run-reviewer',
+            mappedReviewStatus: result.run.summary?.mappedReviewStatus || null,
+            rawVerdict: result.run.summary?.rawVerdict || null,
+            runId: result.run.id,
+            sourceRunId: result.run.summary?.sourceRunId || null,
+            taskId: task.id,
+          },
+          runLogs: getRunLogsPayload(result.run.id),
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, { error: error.message || 'Reviewer run failed' });
       return;
     }
   }

@@ -715,6 +715,29 @@ function shouldCreateBlockingDecision(normalizedResult) {
   return normalizedResult.needsDecision || normalizedResult.nextStage === 'human gate';
 }
 
+function buildReviewerReadinessSummary(input) {
+  const reasons = Array.isArray(input.reasons) ? [...new Set(input.reasons.filter(Boolean))] : [];
+  const anchor = input.anchor || null;
+  const existingReviewerRun = input.existingReviewerRun || null;
+  const existingReviewerSummary =
+    existingReviewerRun?.summary && typeof existingReviewerRun.summary === 'object'
+      ? existingReviewerRun.summary
+      : null;
+
+  return {
+    allowed: reasons.length === 0,
+    approvalId: anchor?.approval?.id || null,
+    changeSummaryArtifactId: anchor?.changeSummaryArtifact?.id || null,
+    diffArtifactId: anchor?.diffArtifact?.id || null,
+    existingReviewArtifactId: existingReviewerSummary?.reviewArtifactId || null,
+    existingReviewerRunId: existingReviewerRun?.id || null,
+    patchArtifactId: anchor?.patchArtifact?.id || null,
+    preflightArtifactId: anchor?.preflightArtifact?.id || null,
+    reasons,
+    sourceBuilderRunId: anchor?.builderRun?.id || null,
+  };
+}
+
 function createExecutionCoordinator(options = {}) {
   if (!options.runtimeService) {
     throw new Error('runtimeService is required');
@@ -768,35 +791,93 @@ function createExecutionCoordinator(options = {}) {
     };
   }
 
-  function assertReviewerReady(input) {
+  function resolveReviewerReadiness(input) {
     if (!input || !input.taskId) {
       throw new Error('taskId is required');
     }
 
     const task = runtime.getTask(input.taskId);
     const project = runtime.getProject(task.projectId);
+    const reasons = [];
 
     if (!project.projectPath) {
-      throw new Error('project_path is required');
+      reasons.push('project_path is required');
     }
 
-    const anchor = resolveReviewerAnchorBundle(runtime, task);
-    const existingReviewerRun = findTerminalReviewerRun(runtime, task, anchor.builderRun.id);
+    let anchor = null;
 
-    if (existingReviewerRun) {
-      const error = new Error(
-        `Terminal reviewer run ${existingReviewerRun.id} already exists for builder live mutation run ${anchor.builderRun.id}`,
+    if (project.projectPath) {
+      try {
+        anchor = resolveReviewerAnchorBundle(runtime, task);
+      } catch (error) {
+        reasons.push(error.message);
+      }
+    }
+
+    return {
+      anchor,
+      existingReviewerRun:
+        anchor ? findTerminalReviewerRun(runtime, task, anchor.builderRun.id) : null,
+      project,
+      reasons,
+      task,
+    };
+  }
+
+  function getReviewerReadiness(input) {
+    const ready = resolveReviewerReadiness(input);
+    const reasons = [...ready.reasons];
+
+    if (ready.anchor && ready.existingReviewerRun) {
+      reasons.push(
+        `Terminal reviewer run ${ready.existingReviewerRun.id} already exists for builder live mutation run ${ready.anchor.builderRun.id}`,
       );
+    }
+
+    return buildReviewerReadinessSummary({
+      anchor: ready.anchor,
+      existingReviewerRun: ready.existingReviewerRun,
+      reasons,
+    });
+  }
+
+  function assertReviewerReady(input) {
+    const ready = resolveReviewerReadiness(input);
+    const summary = getReviewerReadiness(input);
+
+    if (summary.allowed) {
+      return {
+        ...ready.anchor,
+        project: ready.project,
+        task: ready.task,
+      };
+    }
+
+    if (ready.existingReviewerRun) {
+      const error = new Error(summary.reasons[0]);
 
       error.statusCode = 409;
       throw error;
     }
 
-    return {
-      ...anchor,
-      project,
-      task,
-    };
+    throw new Error(summary.reasons[0] || 'reviewer is not ready');
+  }
+
+  function listReviewerReadinessSummaries(input = {}) {
+    const snapshot = runtime.getSnapshot();
+    const summaries = {};
+
+    for (const task of Object.values(snapshot.tasks)) {
+      if (input.projectId && task.projectId !== input.projectId) {
+        continue;
+      }
+
+      summaries[task.id] = getReviewerReadiness({
+        taskId: task.id,
+      });
+    }
+
+    return summaries;
   }
 
   async function runPlanner(input) {
@@ -1904,6 +1985,8 @@ function createExecutionCoordinator(options = {}) {
   return {
     assertBuilderLiveMutationReady,
     assertReviewerReady,
+    getReviewerReadiness,
+    listReviewerReadinessSummaries,
     runArchitect,
     runBuilderLiveMutation,
     runBuilderPreflight,
@@ -1916,3 +1999,4 @@ function createExecutionCoordinator(options = {}) {
 module.exports = {
   createExecutionCoordinator,
 };
+// builder-live-mutation approval-0001 src/execution/execution-coordinator.js

@@ -531,6 +531,14 @@ h3 {
   color: var(--text);
 }
 
+.review-structured {
+  gap: 12px;
+}
+
+.review-structured .breakdown-section {
+  gap: 6px;
+}
+
 .breakdown-section {
   display: flex;
   flex-direction: column;
