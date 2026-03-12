@@ -157,6 +157,39 @@ function buildBuilderLiveMutationExecutionRequest(input) {
   };
 }
 
+function buildReviewerExecutionRequest(input) {
+  return {
+    role: 'reviewer',
+    task: toExecutionTask(input.task),
+    project: toExecutionProject(input.project),
+    builderRun: {
+      id: input.builderRun.id,
+      summary: input.builderRun.summary || null,
+      startedAt: input.builderRun.startedAt,
+      finishedAt: input.builderRun.finishedAt,
+    },
+    approval: input.approval
+      ? {
+          id: input.approval.id,
+          status: input.approval.status,
+          targetArtifactId: input.approval.targetArtifactId,
+          targetRunId: input.approval.targetRunId,
+        }
+      : null,
+    planArtifact: toExecutionArtifact(input.planArtifact),
+    architectureArtifact: toExecutionArtifact(input.architectureArtifact),
+    breakdownArtifact: toExecutionArtifact(input.breakdownArtifact),
+    preflightArtifact: toExecutionArtifact(input.preflightArtifact),
+    changeSummaryArtifact: toExecutionArtifact(input.changeSummaryArtifact),
+    patchArtifact: toExecutionArtifact(input.patchArtifact),
+    diffArtifact: toExecutionArtifact(input.diffArtifact),
+    builderLogs: input.builderLogs || [],
+    promptContract: input.promptContract,
+    sourceOfTruth: input.sourceOfTruth,
+    expectedArtifactType: 'review',
+  };
+}
+
 function getMarkdownSection(content, heading) {
   const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const pattern = new RegExp(
@@ -197,6 +230,44 @@ function parseMarkdownList(content, heading) {
         .filter(Boolean),
     ),
   ];
+}
+
+function parseMarkdownKeyValueLines(content) {
+  const result = {};
+
+  for (const line of String(content || '').split('\n')) {
+    const normalizedLine = line.replace(/^[-*]\s+/, '').trim();
+    const separatorIndex = normalizedLine.indexOf(':');
+
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = normalizedLine.slice(0, separatorIndex).trim().toLowerCase();
+    const value = normalizedLine.slice(separatorIndex + 1).trim();
+
+    if (!key || !value) {
+      continue;
+    }
+
+    result[key] = value;
+  }
+
+  return result;
+}
+
+function parseYesNoValue(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+
+  if (normalized === 'yes') {
+    return true;
+  }
+
+  if (normalized === 'no') {
+    return false;
+  }
+
+  return null;
 }
 
 function parseBase64FileUpdates(content) {
@@ -315,6 +386,17 @@ function buildCombinedDiff(relativePaths, beforeContents, afterContents) {
     )
     .filter(Boolean)
     .join('\n');
+}
+
+function compareRunsByStartedDesc(left, right) {
+  const leftValue = left.startedAt || '';
+  const rightValue = right.startedAt || '';
+
+  if (leftValue === rightValue) {
+    return String(right.id || '').localeCompare(String(left.id || ''));
+  }
+
+  return rightValue.localeCompare(leftValue);
 }
 
 function sameStringSets(left, right) {
@@ -454,6 +536,37 @@ function buildBuilderDecisionInput(task, normalizedResult) {
   };
 }
 
+function buildReviewerDecisionInput(task, parsedReview, normalizedResult, reviewArtifact) {
+  const lines = [];
+
+  if (normalizedResult.summary) {
+    lines.push(normalizedResult.summary);
+  }
+
+  if (parsedReview.findings.length > 0) {
+    lines.push(...parsedReview.findings.map((finding) => `- ${finding}`));
+  }
+
+  if (normalizedResult.blockers.length > 0) {
+    lines.push(...normalizedResult.blockers.map((blocker) => `- ${blocker}`));
+  }
+
+  if (parsedReview.decisionRequired && lines.length === 0) {
+    lines.push(`- review artifact ${reviewArtifact.id} requires a human decision`);
+  }
+
+  return {
+    title: normalizedResult.decisionTitle || `Review follow-up: ${task.title}`,
+    prompt:
+      normalizedResult.decisionPrompt ||
+      lines.join('\n') ||
+      `Review artifact ${reviewArtifact.id} requires a human decision before work may proceed.`,
+    blocksTask: Boolean(parsedReview.blockingIssue || normalizedResult.blockers.length > 0),
+    sourceId: reviewArtifact.id,
+    sourceType: 'review',
+  };
+}
+
 function findLatestTaskArtifact(runtime, task, type) {
   const snapshot = runtime.getSnapshot();
   const artifactIds = Array.isArray(task.artifactIds) ? [...task.artifactIds].reverse() : [];
@@ -467,6 +580,135 @@ function findLatestTaskArtifact(runtime, task, type) {
   }
 
   return null;
+}
+
+function findLatestBuilderLiveMutationRun(runtime, task) {
+  const snapshot = runtime.getSnapshot();
+
+  return (
+    Object.values(snapshot.runs)
+      .filter((run) => {
+        const summary = run.summary && typeof run.summary === 'object' ? run.summary : null;
+        const metadata = run.metadata && typeof run.metadata === 'object' ? run.metadata : null;
+
+        return (
+          run.taskId === task.id &&
+          run.role === 'builder' &&
+          (summary?.executionMode === 'live-mutation' ||
+            metadata?.executionMode === 'live-mutation')
+        );
+      })
+      .sort(compareRunsByStartedDesc)[0] || null
+  );
+}
+
+function resolveReviewerAnchorBundle(runtime, task) {
+  const builderRun = findLatestBuilderLiveMutationRun(runtime, task);
+
+  if (!builderRun) {
+    throw new Error(`Latest builder live mutation run is required before reviewer run for task ${task.id}`);
+  }
+
+  const summary = builderRun.summary && typeof builderRun.summary === 'object' ? builderRun.summary : {};
+  const artifactIds = summary.artifactIds && typeof summary.artifactIds === 'object' ? summary.artifactIds : {};
+  const inputArtifactIds = Array.isArray(summary.inputArtifactIds) ? summary.inputArtifactIds : [];
+
+  if (inputArtifactIds.length === 0) {
+    throw new Error(`Builder live mutation run ${builderRun.id} input bundle is missing`);
+  }
+
+  if (!summary.preflightArtifactId) {
+    throw new Error(`Builder live mutation run ${builderRun.id} preflight artifact is missing`);
+  }
+
+  if (!artifactIds.changeSummary || !artifactIds.patch || !artifactIds.diff) {
+    throw new Error(`Builder live mutation run ${builderRun.id} artifact bundle is incomplete`);
+  }
+
+  if (!summary.approvalId) {
+    throw new Error(`Builder live mutation run ${builderRun.id} approval linkage is missing`);
+  }
+
+  const inputArtifacts = inputArtifactIds.map((artifactId) => runtime.getArtifact(artifactId));
+  const planArtifact = inputArtifacts.find((artifact) => artifact.type === 'plan') || null;
+  const architectureArtifact =
+    inputArtifacts.find((artifact) => artifact.type === 'architecture') || null;
+  const breakdownArtifact = inputArtifacts.find((artifact) => artifact.type === 'breakdown') || null;
+
+  if (!planArtifact || !architectureArtifact || !breakdownArtifact) {
+    throw new Error(`Builder live mutation run ${builderRun.id} input bundle is incomplete`);
+  }
+
+  return {
+    approval: runtime.getApproval(summary.approvalId),
+    architectureArtifact,
+    breakdownArtifact,
+    builderLogs: runtime.getLogs(builderRun.id),
+    builderRun,
+    changeSummaryArtifact: runtime.getArtifact(artifactIds.changeSummary),
+    diffArtifact: runtime.getArtifact(artifactIds.diff),
+    inputArtifacts,
+    patchArtifact: runtime.getArtifact(artifactIds.patch),
+    planArtifact,
+    preflightArtifact: runtime.getArtifact(summary.preflightArtifactId),
+  };
+}
+
+function findTerminalReviewerRun(runtime, task, sourceRunId) {
+  const snapshot = runtime.getSnapshot();
+
+  return (
+    Object.values(snapshot.runs)
+      .filter((run) => {
+        const summary = run.summary && typeof run.summary === 'object' ? run.summary : null;
+
+        return (
+          run.taskId === task.id &&
+          run.role === 'reviewer' &&
+          summary?.sourceRunId === sourceRunId &&
+          summary?.reviewArtifactId
+        );
+      })
+      .sort(compareRunsByStartedDesc)[0] || null
+  );
+}
+
+function parseReviewerArtifactContent(content) {
+  const verdictValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Review Verdict'));
+  const followUpValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Follow-Up Gate'));
+  const verdict = String(verdictValues.verdict || '').trim().toLowerCase();
+
+  if (!['pass', 'fail', 'changes_requested'].includes(verdict)) {
+    throw new Error('Reviewer artifact verdict must be pass, fail, or changes_requested');
+  }
+
+  return {
+    blockingIssue: parseYesNoValue(followUpValues['blocking issue']) === true,
+    changeSummaryArtifactId: verdictValues['change-summary artifact'] || null,
+    contractCompliance: parseMarkdownList(content, 'Contract Compliance'),
+    decisionRequired: parseYesNoValue(followUpValues['decision required']) === true,
+    diffArtifactId: verdictValues['diff artifact'] || null,
+    evidence: parseMarkdownList(content, 'Evidence Reviewed'),
+    findings: parseMarkdownList(content, 'Findings'),
+    nextAction: parseMarkdownList(content, 'Next Action')[0] || null,
+    patchArtifactId: verdictValues['patch artifact'] || null,
+    preflightArtifactId: verdictValues['preflight artifact'] || null,
+    sourceBuilderRunId: verdictValues['source builder run'] || null,
+    verificationEvidence: parseMarkdownList(content, 'Verification Evidence'),
+    verdict,
+  };
+}
+
+function mapReviewerVerdictToReviewStatus(verdict) {
+  return verdict === 'pass' ? 'passed' : 'changes_requested';
+}
+
+function buildReviewerResolutionNote(parsedReview, reviewArtifact) {
+  if (parsedReview.verdict === 'pass') {
+    return `Review passed. See ${reviewArtifact.id} for evidence.`;
+  }
+
+  return `Review follow-up is required. See ${reviewArtifact.id} for evidence and findings.`;
 }
 
 function shouldCreateBlockingDecision(normalizedResult) {
@@ -485,6 +727,7 @@ function createExecutionCoordinator(options = {}) {
   const architectPromptPath = options.architectPromptPath || 'prompts/architect.md';
   const taskBreakerPromptPath = options.taskBreakerPromptPath || 'prompts/task-breaker.md';
   const builderPromptPath = options.builderPromptPath || 'prompts/builder.md';
+  const reviewerPromptPath = options.reviewerPromptPath || 'prompts/reviewer.md';
   const sourceOfTruthPaths = options.sourceOfTruthPaths || DEFAULT_SOURCE_OF_TRUTH_PATHS;
   const architectCodeContextPaths =
     options.architectCodeContextPaths || DEFAULT_ARCHITECT_CODE_CONTEXT_PATHS;
@@ -520,6 +763,37 @@ function createExecutionCoordinator(options = {}) {
       guardSummary,
       preflightArtifact,
       preflightRun: preflightArtifact.runId ? runtime.getRun(preflightArtifact.runId) : null,
+      project,
+      task,
+    };
+  }
+
+  function assertReviewerReady(input) {
+    if (!input || !input.taskId) {
+      throw new Error('taskId is required');
+    }
+
+    const task = runtime.getTask(input.taskId);
+    const project = runtime.getProject(task.projectId);
+
+    if (!project.projectPath) {
+      throw new Error('project_path is required');
+    }
+
+    const anchor = resolveReviewerAnchorBundle(runtime, task);
+    const existingReviewerRun = findTerminalReviewerRun(runtime, task, anchor.builderRun.id);
+
+    if (existingReviewerRun) {
+      const error = new Error(
+        `Terminal reviewer run ${existingReviewerRun.id} already exists for builder live mutation run ${anchor.builderRun.id}`,
+      );
+
+      error.statusCode = 409;
+      throw error;
+    }
+
+    return {
+      ...anchor,
       project,
       task,
     };
@@ -1452,12 +1726,189 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runReviewer(input) {
+    const readyContext = assertReviewerReady(input);
+    let task = readyContext.task;
+    const project = readyContext.project;
+    const builderRun = readyContext.builderRun;
+    const approval = readyContext.approval;
+    const promptContract = readContextFile(repoRoot, reviewerPromptPath);
+    const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
+      readContextFile(repoRoot, relativePath),
+    );
+    const reviewGate = runtime.openReviewGate({
+      taskId: task.id,
+    });
+    const inputArtifacts = [
+      readyContext.planArtifact,
+      readyContext.architectureArtifact,
+      readyContext.breakdownArtifact,
+      readyContext.preflightArtifact,
+      readyContext.changeSummaryArtifact,
+      readyContext.patchArtifact,
+      readyContext.diffArtifact,
+    ];
+
+    task = runtime.getTask(task.id);
+
+    const request = buildReviewerExecutionRequest({
+      approval,
+      architectureArtifact: readyContext.architectureArtifact,
+      breakdownArtifact: readyContext.breakdownArtifact,
+      builderLogs: readyContext.builderLogs,
+      builderRun,
+      changeSummaryArtifact: readyContext.changeSummaryArtifact,
+      diffArtifact: readyContext.diffArtifact,
+      patchArtifact: readyContext.patchArtifact,
+      planArtifact: readyContext.planArtifact,
+      preflightArtifact: readyContext.preflightArtifact,
+      project,
+      promptContract,
+      sourceOfTruth,
+      task,
+    });
+    const run = runtime.startRun({
+      taskId: task.id,
+      kind: 'role',
+      role: 'reviewer',
+      metadata: {
+        approvalId: approval.id,
+        inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+        promptPath: promptContract.path,
+        sourceOfTruthPaths,
+        sourceRunId: builderRun.id,
+      },
+    });
+
+    runtime.appendLog({
+      runId: run.id,
+      message: `reviewer run started for task ${task.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded reviewer prompt contract from ${promptContract.path}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `anchored reviewer input to builder live mutation run ${builderRun.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded builder bundle artifacts ${inputArtifacts.map((artifact) => artifact.id).join(', ')}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded ${readyContext.builderLogs.length} builder log records as reviewer evidence`,
+    });
+
+    try {
+      runtime.appendLog({
+        runId: run.id,
+        message: `invoking provider adapter ${providerAdapter.name || 'unknown-adapter'}`,
+      });
+
+      const response = await executeWithAdapter(providerAdapter, request);
+      const normalizedResult = normalizeRoleResult(response.normalizedResult, {
+        allowedNextStages: ['builder', 'architect', 'human gate'],
+        defaultNextStage: 'builder',
+        role: 'reviewer',
+      });
+      const reviewArtifact = runtime.recordArtifact({
+        taskId: task.id,
+        runId: run.id,
+        type: 'review',
+        content: response.outputText,
+      });
+      const parsedReview = parseReviewerArtifactContent(response.outputText);
+      const mappedReviewStatus = mapReviewerVerdictToReviewStatus(parsedReview.verdict);
+      let decisionInboxItem = null;
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `saved reviewer artifact ${reviewArtifact.id}`,
+      });
+
+      runtime.resolveReview({
+        taskId: task.id,
+        itemId: reviewGate.reviewItem.id,
+        action: mappedReviewStatus,
+        note: buildReviewerResolutionNote(parsedReview, reviewArtifact),
+        verificationArtifactIds: [],
+      });
+
+      if (parsedReview.decisionRequired || normalizedResult.needsDecision) {
+        decisionInboxItem = runtime.createDecisionInboxItem({
+          taskId: task.id,
+          ...buildReviewerDecisionInput(task, parsedReview, normalizedResult, reviewArtifact),
+        });
+
+        runtime.appendLog({
+          runId: run.id,
+          message: `created reviewer decision inbox item ${decisionInboxItem.id}`,
+        });
+      }
+
+      const completedRun = runtime.completeRun({
+        runId: run.id,
+        summary: {
+          adapter: response.adapterName,
+          approvalId: approval.id,
+          decisionCreated: Boolean(decisionInboxItem),
+          evidenceCount: parsedReview.evidence.length,
+          findingsCount: parsedReview.findings.length,
+          inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+          mappedReviewStatus,
+          model: response.model,
+          nextStage: normalizedResult.nextStage,
+          preflightArtifactId: readyContext.preflightArtifact.id,
+          providerRunId: response.providerRunId,
+          rawVerdict: parsedReview.verdict,
+          reviewArtifactId: reviewArtifact.id,
+          sourceRunId: builderRun.id,
+          terminal: true,
+        },
+      });
+
+      return {
+        artifact: reviewArtifact,
+        builderRun,
+        decisionInboxItem,
+        inputArtifacts,
+        normalizedResult,
+        parsedReview,
+        review: runtime.getTask(task.id).review,
+        run: completedRun,
+      };
+    } catch (error) {
+      runtime.appendLog({
+        runId: run.id,
+        level: 'error',
+        message: `reviewer execution failed: ${error.message}`,
+      });
+
+      runtime.completeRun({
+        runId: run.id,
+        summary: {
+          approvalId: approval.id,
+          error: error.message,
+          inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+          nextStage: null,
+          sourceRunId: builderRun.id,
+        },
+      });
+
+      throw error;
+    }
+  }
+
   return {
     assertBuilderLiveMutationReady,
+    assertReviewerReady,
     runArchitect,
     runBuilderLiveMutation,
     runBuilderPreflight,
     runPlanner,
+    runReviewer,
     runTaskBreaker,
   };
 }

@@ -630,10 +630,158 @@ ${renderList(
 `;
 }
 
+function getReviewerDirective(request) {
+  const directiveText = [request.task?.intent, request.changeSummaryArtifact?.content]
+    .filter(Boolean)
+    .join('\n');
+  let verdict = 'pass';
+
+  if (/review verdict:\s*fail|review fail/i.test(directiveText)) {
+    verdict = 'fail';
+  } else if (
+    /review verdict:\s*changes_requested|review changes requested|request changes/i.test(
+      directiveText,
+    )
+  ) {
+    verdict = 'changes_requested';
+  }
+
+  return {
+    blockingIssue: /blocking review issue/i.test(directiveText),
+    decisionRequired: /review decision required/i.test(directiveText),
+    verdict,
+  };
+}
+
+function buildNormalizedReviewerResult(request) {
+  const directive = getReviewerDirective(request);
+  const blockers = [];
+  let nextStage = directive.verdict === 'pass' ? 'human gate' : 'builder';
+
+  if (directive.decisionRequired) {
+    nextStage = 'human gate';
+  }
+
+  if (directive.blockingIssue) {
+    blockers.push(
+      'Reviewer found a blocking follow-up that requires a human decision before work may proceed.',
+    );
+  }
+
+  return {
+    blockers,
+    needsDecision: directive.decisionRequired,
+    nextStage,
+    summary:
+      directive.verdict === 'pass'
+        ? 'Reviewer found the latest builder live mutation bundle acceptable for review handoff.'
+        : directive.verdict === 'fail'
+          ? 'Reviewer found a terminal failure and mapped the result to review follow-up.'
+          : 'Reviewer requested changes before work may proceed.',
+    decisionTitle: `Review follow-up: ${request.task.title}`,
+    decisionPrompt: renderList(
+      blockers,
+      'Review follow-up requires a human decision before work may proceed.',
+    ),
+  };
+}
+
+function renderReviewerOutput(request) {
+  const directive = getReviewerDirective(request);
+  const normalizedResult = buildNormalizedReviewerResult(request);
+  const changedFiles = Array.isArray(request.builderRun?.summary?.changedFiles)
+    ? request.builderRun.summary.changedFiles
+    : [];
+  const evidenceReviewed = [
+    `source builder run: ${request.builderRun.id}`,
+    `plan artifact: ${request.planArtifact.id}`,
+    `architecture artifact: ${request.architectureArtifact.id}`,
+    `breakdown artifact: ${request.breakdownArtifact.id}`,
+    `preflight artifact: ${request.preflightArtifact.id}`,
+    `change-summary artifact: ${request.changeSummaryArtifact.id}`,
+    `patch artifact: ${request.patchArtifact.id}`,
+    `diff artifact: ${request.diffArtifact.id}`,
+    `builder logs reviewed: ${request.builderLogs.length}`,
+  ];
+  const findings =
+    directive.verdict === 'pass'
+      ? ['No blocking findings in the anchored builder live mutation bundle.']
+      : directive.verdict === 'fail'
+        ? ['Observed live mutation output requires correction before the task may proceed.']
+        : ['A follow-up implementation pass is required before the task may proceed.'];
+  const contractCompliance =
+    directive.verdict === 'pass'
+      ? [
+          'Review stayed anchored to the latest builder live mutation run bundle.',
+          'No commit, merge, or release action was reviewed as executed.',
+        ]
+      : [
+          'Review stayed anchored to the latest builder live mutation run bundle.',
+          'The task remains inside the review gate until follow-up is completed.',
+        ];
+  const verificationEvidence = [
+    `changed files reviewed: ${changedFiles.length}`,
+    `approval linkage reviewed: ${request.approval?.id || 'missing'}`,
+    `builder execution mode reviewed: ${request.builderRun.summary?.executionMode || 'unknown'}`,
+  ];
+  const nextAction =
+    normalizedResult.nextStage === 'human gate'
+      ? ['Route to human gate after review.']
+      : normalizedResult.nextStage === 'architect'
+        ? ['Return to architect with the review artifact and builder bundle context.']
+        : ['Return to builder with the review artifact and builder bundle context.'];
+
+  return `# Reviewer Report: ${request.task.title}
+
+## Review Verdict
+- verdict: ${directive.verdict}
+- source builder run: ${request.builderRun.id}
+- preflight artifact: ${request.preflightArtifact.id}
+- change-summary artifact: ${request.changeSummaryArtifact.id}
+- patch artifact: ${request.patchArtifact.id}
+- diff artifact: ${request.diffArtifact.id}
+
+## Evidence Reviewed
+${renderList(evidenceReviewed, 'none')}
+
+## Findings
+${renderList(findings, 'none')}
+
+## Contract Compliance
+${renderList(contractCompliance, 'none')}
+
+## Verification Evidence
+${renderList(verificationEvidence, 'none')}
+
+## Accepted Risks
+- none
+
+## Next Action
+${renderList(nextAction, 'none')}
+
+## Follow-Up Gate
+- blocking issue: ${directive.blockingIssue ? 'yes' : 'no'}
+- decision required: ${directive.decisionRequired ? 'yes' : 'no'}
+`;
+}
+
 function createLocalStubProviderAdapter() {
   return {
     name: 'local-stub',
     async execute(request) {
+      if (request.role === 'reviewer') {
+        return {
+          providerRunId: `local-stub-reviewer-${request.task.id}`,
+          model: 'local-stub-reviewer-v1',
+          normalizedResult: buildNormalizedReviewerResult(request),
+          outputText: renderReviewerOutput(request),
+          usage: {
+            inputTokens: 0,
+            outputTokens: 0,
+          },
+        };
+      }
+
       if (request.role === 'builder') {
         if (request.executionMode === 'live-mutation') {
           return {

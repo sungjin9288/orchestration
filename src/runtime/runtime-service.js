@@ -688,6 +688,40 @@ function createRuntimeService(options = {}) {
     );
   }
 
+  function ensurePendingReviewGateRecord(state, task, now) {
+    const pendingReviewItem = findPendingReviewItem(task.id, state);
+    let reviewItem = pendingReviewItem || null;
+
+    task.lifecycleState = TASK_LIFECYCLE.REVIEW;
+    task.review.status = REVIEW_STATUS.PENDING;
+    task.review.inboxItemId = pendingReviewItem ? pendingReviewItem.id : null;
+    task.review.resolution = null;
+    task.review.verificationArtifactIds = [];
+
+    if (!pendingReviewItem) {
+      reviewItem = createDecisionInboxItemRecord(state, {
+        taskId: task.id,
+        kind: DECISION_INBOX_KIND.REVIEW,
+        title: `Review pending: ${task.title}`,
+        prompt: 'Review is required before the task can be considered done.',
+        sourceType: DECISION_INBOX_KIND.REVIEW,
+        sourceId: task.id,
+        blocksTask: false,
+        now,
+      });
+
+      task.review.inboxItemId = reviewItem.id;
+    }
+
+    recalculateTaskFlags(task, state);
+    task.updatedAt = now;
+
+    return {
+      reviewItem,
+      task,
+    };
+  }
+
   function createProject(input) {
     const state = store.loadState();
     const projectPath = path.resolve(input.projectPath || '');
@@ -886,6 +920,21 @@ function createRuntimeService(options = {}) {
     store.saveState(state);
 
     return task.review;
+  }
+
+  function openReviewGate(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const now = new Date().toISOString();
+    const result = ensurePendingReviewGateRecord(state, task, now);
+
+    store.saveState(state);
+
+    return {
+      review: task.review,
+      reviewItem: result.reviewItem,
+      task,
+    };
   }
 
   function resolveDecisionInboxItem(input) {
@@ -1276,39 +1325,17 @@ function createRuntimeService(options = {}) {
     const run = assertRun(input.runId, state);
     const task = assertTask(run.taskId, state);
     const now = new Date().toISOString();
-    const pendingReviewItem = findPendingReviewItem(task.id, state);
 
     run.status = RUN_STATUS.COMPLETED;
     run.finishedAt = now;
-    task.lifecycleState = TASK_LIFECYCLE.REVIEW;
-    task.review.status = REVIEW_STATUS.PENDING;
-    task.review.inboxItemId = pendingReviewItem ? pendingReviewItem.id : null;
-    task.review.resolution = null;
-    task.review.verificationArtifactIds = [];
-
-    if (!pendingReviewItem) {
-      const reviewItem = createDecisionInboxItemRecord(state, {
-        taskId: task.id,
-        kind: DECISION_INBOX_KIND.REVIEW,
-        title: `Review pending: ${task.title}`,
-        prompt: 'Review is required before the task can be considered done.',
-        sourceType: DECISION_INBOX_KIND.REVIEW,
-        sourceId: task.id,
-        blocksTask: false,
-        now,
-      });
-
-      task.review.inboxItemId = reviewItem.id;
-    }
-
-    recalculateTaskFlags(task, state);
-    task.updatedAt = now;
+    const result = ensurePendingReviewGateRecord(state, task, now);
 
     store.saveState(state);
 
     return {
       run,
       task,
+      reviewItem: result.reviewItem,
     };
   }
 
@@ -1344,6 +1371,7 @@ function createRuntimeService(options = {}) {
     listApprovals,
     listDecisionInboxItems,
     listTaskGuardSummaries,
+    openReviewGate,
     recordArtifact,
     requestBuilderLiveMutationApproval,
     resolveReview,

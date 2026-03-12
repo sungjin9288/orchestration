@@ -21,3 +21,5 @@
 - limited live mutation은 preflight target allowlist 기준 사전 검증과 apply 후 actual changed files 재검증을 둘 다 가져가야 patch drift나 숨은 파일 변경을 확실히 막을 수 있다.
 - markdown artifact section parser는 PCRE식 EOF 토큰에 기대면 base64/patch payload에서 잘릴 수 있으므로, JS에서는 lookahead 기반 section 종료 규칙으로 고정하는 편이 안전하다.
 - live mutation 결과는 Artifacts list를 전면 개편하기보다 Logs-first landing + run summary linkage + artifact detail relation strip으로 읽게 만드는 편이 thin slice와 selection 안정성에 더 맞았다.
+- reviewer 입력을 task 전체의 latest artifact type 조합이 아니라 latest builder live mutation run summary bundle에 고정하면 cross-run artifact 혼합 없이 review provenance를 안정적으로 유지할 수 있다.
+- reviewer terminal artifact는 source builder run 기준 1회만 허용하고 rerun을 409로 막는 편이 review verdict provenance와 runtime gate 해석을 단순하게 유지한다.
