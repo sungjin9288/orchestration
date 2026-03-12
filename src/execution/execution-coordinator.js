@@ -109,6 +109,25 @@ function buildTaskBreakerExecutionRequest(input) {
   };
 }
 
+function buildBuilderPreflightExecutionRequest(input) {
+  return {
+    role: 'builder',
+    executionMode: 'preflight',
+    mutationAllowed: false,
+    task: toExecutionTask(input.task),
+    project: toExecutionProject(input.project),
+    planArtifact: toExecutionArtifact(input.planArtifact),
+    architectureArtifact: toExecutionArtifact(input.architectureArtifact),
+    breakdownArtifact: toExecutionArtifact(input.breakdownArtifact),
+    plannerRunSummary: input.plannerRunSummary || null,
+    architectRunSummary: input.architectRunSummary || null,
+    taskBreakerRunSummary: input.taskBreakerRunSummary || null,
+    promptContract: input.promptContract,
+    sourceOfTruth: input.sourceOfTruth,
+    expectedArtifactType: 'preflight',
+  };
+}
+
 function normalizeRoleResult(result, options = {}) {
   const normalizedResult = result && typeof result === 'object' ? result : {};
   const blockers = Array.isArray(normalizedResult.blockers)
@@ -211,6 +230,31 @@ function buildTaskBreakerDecisionInput(task, normalizedResult) {
   };
 }
 
+function buildBuilderDecisionInput(task, normalizedResult) {
+  const lines = [];
+
+  if (normalizedResult.summary) {
+    lines.push(normalizedResult.summary);
+  }
+
+  if (normalizedResult.blockers.length > 0) {
+    lines.push(...normalizedResult.blockers.map((blocker) => `- ${blocker}`));
+  }
+
+  if (normalizedResult.needsDecision && normalizedResult.blockers.length === 0) {
+    lines.push('- builder preflight requires a human decision before any live execution');
+  }
+
+  return {
+    title: normalizedResult.decisionTitle || `Builder preflight risk: ${task.title}`,
+    prompt:
+      normalizedResult.decisionPrompt ||
+      lines.join('\n') ||
+      'Builder preflight requires human follow-up before any live execution.',
+    blocksTask: true,
+  };
+}
+
 function findLatestTaskArtifact(runtime, task, type) {
   const snapshot = runtime.getSnapshot();
   const artifactIds = Array.isArray(task.artifactIds) ? [...task.artifactIds].reverse() : [];
@@ -241,6 +285,7 @@ function createExecutionCoordinator(options = {}) {
   const plannerPromptPath = options.plannerPromptPath || 'prompts/planner.md';
   const architectPromptPath = options.architectPromptPath || 'prompts/architect.md';
   const taskBreakerPromptPath = options.taskBreakerPromptPath || 'prompts/task-breaker.md';
+  const builderPromptPath = options.builderPromptPath || 'prompts/builder.md';
   const sourceOfTruthPaths = options.sourceOfTruthPaths || DEFAULT_SOURCE_OF_TRUTH_PATHS;
   const architectCodeContextPaths =
     options.architectCodeContextPaths || DEFAULT_ARCHITECT_CODE_CONTEXT_PATHS;
@@ -696,8 +741,192 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runBuilderPreflight(input) {
+    if (!input || !input.taskId) {
+      throw new Error('taskId is required');
+    }
+
+    runtime.assertTaskCanRunBuilderPreflight({
+      taskId: input.taskId,
+    });
+
+    let task = runtime.getTask(input.taskId);
+    const project = runtime.getProject(task.projectId);
+
+    if (!project.projectPath) {
+      throw new Error('project_path is required');
+    }
+
+    const planArtifact = findLatestTaskArtifact(runtime, task, 'plan');
+    const architectureArtifact = findLatestTaskArtifact(runtime, task, 'architecture');
+    const breakdownArtifact = findLatestTaskArtifact(runtime, task, 'breakdown');
+
+    if (!planArtifact) {
+      throw new Error(`Plan artifact is required before builder preflight run for task ${task.id}`);
+    }
+
+    if (!architectureArtifact) {
+      throw new Error(
+        `Architecture artifact is required before builder preflight run for task ${task.id}`,
+      );
+    }
+
+    if (!breakdownArtifact) {
+      throw new Error(
+        `Breakdown artifact is required before builder preflight run for task ${task.id}`,
+      );
+    }
+
+    const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
+    const architectRun = architectureArtifact.runId ? runtime.getRun(architectureArtifact.runId) : null;
+    const taskBreakerRun = breakdownArtifact.runId ? runtime.getRun(breakdownArtifact.runId) : null;
+
+    if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
+      task = runtime.transitionTaskLifecycle({
+        taskId: task.id,
+        to: TASK_LIFECYCLE.IN_PROGRESS,
+      });
+    }
+
+    const promptContract = readContextFile(repoRoot, builderPromptPath);
+    const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
+      readContextFile(repoRoot, relativePath),
+    );
+    const request = buildBuilderPreflightExecutionRequest({
+      architectureArtifact,
+      architectRunSummary: architectRun?.summary || null,
+      breakdownArtifact,
+      planArtifact,
+      plannerRunSummary: plannerRun?.summary || null,
+      project,
+      promptContract,
+      sourceOfTruth,
+      task,
+      taskBreakerRunSummary: taskBreakerRun?.summary || null,
+    });
+    const run = runtime.startRun({
+      taskId: task.id,
+      kind: 'role',
+      role: 'builder',
+      metadata: {
+        executionMode: 'preflight',
+        inputArtifactIds: [planArtifact.id, architectureArtifact.id, breakdownArtifact.id],
+        mutationAllowed: false,
+        promptPath: promptContract.path,
+        sourceOfTruthPaths,
+      },
+    });
+
+    runtime.appendLog({
+      runId: run.id,
+      message: `builder preflight run started for task ${task.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded builder prompt contract from ${promptContract.path}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded planner artifact ${planArtifact.id} as builder preflight input`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded architecture artifact ${architectureArtifact.id} as builder preflight input`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded breakdown artifact ${breakdownArtifact.id} as builder preflight input`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `built builder preflight execution request with ${sourceOfTruth.length} source-of-truth files`,
+    });
+
+    try {
+      runtime.appendLog({
+        runId: run.id,
+        message: `invoking provider adapter ${providerAdapter.name || 'unknown-adapter'}`,
+      });
+
+      const response = await executeWithAdapter(providerAdapter, request);
+      const normalizedResult = normalizeRoleResult(response.normalizedResult, {
+        allowedNextStages: ['reviewer', 'task-breaker', 'architect', 'human gate'],
+        defaultNextStage: 'reviewer',
+        role: 'builder',
+      });
+      const artifact = runtime.recordArtifact({
+        taskId: task.id,
+        runId: run.id,
+        type: 'preflight',
+        content: response.outputText,
+      });
+      let decisionInboxItem = null;
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `saved builder preflight artifact ${artifact.id}`,
+      });
+
+      if (shouldCreateBlockingDecision(normalizedResult)) {
+        decisionInboxItem = runtime.createDecisionInboxItem({
+          taskId: task.id,
+          ...buildBuilderDecisionInput(task, normalizedResult),
+        });
+
+        runtime.appendLog({
+          runId: run.id,
+          message: `created builder preflight decision inbox item ${decisionInboxItem.id}`,
+        });
+      }
+
+      const completedRun = runtime.completeRun({
+        runId: run.id,
+        summary: {
+          adapter: response.adapterName,
+          decisionCreated: Boolean(decisionInboxItem),
+          executionMode: 'preflight',
+          inputArtifactIds: [planArtifact.id, architectureArtifact.id, breakdownArtifact.id],
+          model: response.model,
+          blockers: normalizedResult.blockers.length,
+          mutationAllowed: false,
+          needsDecision: normalizedResult.needsDecision,
+          nextStage: normalizedResult.nextStage,
+          providerRunId: response.providerRunId,
+        },
+      });
+
+      return {
+        artifact,
+        decisionInboxItem,
+        inputArtifacts: [planArtifact, architectureArtifact, breakdownArtifact],
+        nextStage: normalizedResult.nextStage,
+        normalizedResult,
+        run: completedRun,
+      };
+    } catch (error) {
+      runtime.appendLog({
+        runId: run.id,
+        level: 'error',
+        message: `builder preflight execution failed: ${error.message}`,
+      });
+
+      runtime.completeRun({
+        runId: run.id,
+        summary: {
+          error: error.message,
+          executionMode: 'preflight',
+          inputArtifactIds: [planArtifact.id, architectureArtifact.id, breakdownArtifact.id],
+          nextStage: null,
+        },
+      });
+
+      throw error;
+    }
+  }
+
   return {
     runArchitect,
+    runBuilderPreflight,
     runPlanner,
     runTaskBreaker,
   };

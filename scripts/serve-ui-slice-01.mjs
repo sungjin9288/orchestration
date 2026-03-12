@@ -338,6 +338,43 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const builderPreflightRunMatch = url.pathname.match(
+    /^\/api\/tasks\/([^/]+)\/run-builder-preflight$/,
+  );
+
+  if (method === 'POST' && builderPreflightRunMatch) {
+    try {
+      const taskId = decodeURIComponent(builderPreflightRunMatch[1]);
+      const task = runtime.getTask(taskId);
+      const result = await executionCoordinator.runBuilderPreflight({
+        taskId: task.id,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          artifactDetail: getArtifactPayload(result.artifact.id)?.artifact || null,
+          mutation: {
+            artifactId: result.artifact.id,
+            inboxItemId: result.decisionInboxItem?.id || null,
+            inputArtifactIds: result.inputArtifacts.map((artifact) => artifact.id),
+            kind: 'run-builder-preflight',
+            normalizedResult: result.normalizedResult,
+            runId: result.run.id,
+            taskId: task.id,
+          },
+          runLogs: getRunLogsPayload(result.run.id),
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Builder preflight run failed' });
+      return;
+    }
+  }
+
   const inboxActionMatch = url.pathname.match(/^\/api\/decision-inbox\/([^/]+)\/actions$/);
 
   if (method === 'POST' && inboxActionMatch) {

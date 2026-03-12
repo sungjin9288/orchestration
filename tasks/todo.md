@@ -10,6 +10,7 @@
 - [x] execution-slice-01
 - [x] execution-slice-02
 - [x] execution-slice-03
+- [x] execution-slice-04
 - [x] ui-slice-02
 - [x] ui-slice-03
 - [x] ui-slice-04

@@ -19,6 +19,24 @@ function getMarkdownSection(content, heading) {
   return match ? match[1].trim() : '';
 }
 
+function normalizeListItem(line) {
+  return String(line || '')
+    .trim()
+    .replace(/^[-*]\s+/, '')
+    .trim();
+}
+
+function parseMarkdownList(content, heading) {
+  return getMarkdownSection(content, heading)
+    .split('\n')
+    .map((line) => normalizeListItem(line))
+    .filter(Boolean);
+}
+
+function uniqueList(items) {
+  return [...new Set((items || []).map((item) => String(item || '').trim()).filter(Boolean))];
+}
+
 function buildNormalizedPlannerResult(request) {
   const missingContext = request.routingOutcome.missingContext || [];
   const blockers = [];
@@ -307,10 +325,163 @@ ${renderList(
 `;
 }
 
+function buildNormalizedBuilderPreflightResult(request) {
+  const sliceGoal = getMarkdownSection(request.planArtifact?.content, 'Slice Goal');
+  const acceptanceTarget = getMarkdownSection(request.planArtifact?.content, 'Acceptance Target');
+  const riskSignalText = [request.task?.intent, sliceGoal, acceptanceTarget]
+    .filter(Boolean)
+    .join('\n');
+  const blockers = [];
+  let nextStage = 'reviewer';
+
+  if (/(blocking risk|preflight risk|human approval before live execution)/i.test(riskSignalText)) {
+    blockers.push(
+      'Builder preflight found a blocking risk that requires a human decision before any live execution may begin.',
+    );
+    nextStage = 'human gate';
+  }
+
+  const needsDecision = blockers.length > 0;
+
+  return {
+    blockers,
+    needsDecision,
+    nextStage,
+    summary: needsDecision
+      ? 'Builder preflight captured a blocking risk that must route through the human gate.'
+      : 'Builder preflight artifact is ready for reviewer-facing inspection without mutating code.',
+    decisionTitle: `Builder preflight risk: ${request.task.title}`,
+    decisionPrompt: renderList(
+      blockers,
+      'Builder preflight is ready for reviewer-facing inspection.',
+    ),
+  };
+}
+
+function renderBuilderPreflightOutput(request) {
+  const normalizedResult = buildNormalizedBuilderPreflightResult(request);
+  const sliceGoal = getMarkdownSection(request.planArtifact?.content, 'Slice Goal');
+  const acceptanceTarget = getMarkdownSection(request.planArtifact?.content, 'Acceptance Target');
+  const verificationApproach = getMarkdownSection(
+    request.planArtifact?.content,
+    'Verification Approach',
+  );
+  const approvedAssumptions = getMarkdownSection(
+    request.architectureArtifact?.content,
+    'Approved Assumptions',
+  );
+  const orderedSubTasks = parseMarkdownList(request.breakdownArtifact?.content, 'Ordered Sub-Tasks');
+  const stopConditions = parseMarkdownList(
+    request.breakdownArtifact?.content,
+    'Stop-And-Escalate Conditions',
+  );
+  const targetFiles = uniqueList([
+    ...parseMarkdownList(
+      request.architectureArtifact?.content,
+      'Affected Components or Contracts',
+    ),
+    'src/runtime/runtime-service.js',
+    request.promptContract?.path || 'prompts/builder.md',
+    'scripts/smoke-execution-slice-04.mjs',
+    'scripts/serve-ui-slice-01.mjs',
+    'ui/app.js',
+  ]);
+  const intendedChanges = uniqueList([
+    'Add a coordinator path that reads the latest plan, architecture, and breakdown artifacts as builder preflight inputs.',
+    'Keep builder in no-write mode and save a preflight artifact instead of mutating project files.',
+    'Reuse pending blocking decision and approval guards before builder preflight can start.',
+    'Emit a blocking Decision Inbox item only when builder preflight identifies a blocking risk.',
+    'Add a minimal smoke path that verifies artifact creation, no-write behavior, and blocking-risk routing.',
+  ]);
+  const risks = normalizedResult.blockers.length > 0
+    ? normalizedResult.blockers
+    : [
+        'Target file selection can drift if the latest architecture and breakdown artifacts stop reflecting the intended slice.',
+        'Preflight remains advisory until a later slice wires live builder execution and reviewer evidence capture.',
+      ];
+  const verificationPlan = uniqueList([
+    ...verificationApproach
+      .split('\n')
+      .map((line) => normalizeListItem(line))
+      .filter(Boolean),
+    'Run a dedicated execution smoke for planner -> architect -> task-breaker -> builder preflight.',
+    'Compare selected repo file hashes before and after builder preflight to confirm no source mutation occurred.',
+    'Verify the runtime snapshot stores exactly one new preflight artifact for the builder run.',
+  ]);
+  const reviewEvidenceExpectations = uniqueList([
+    'The saved preflight artifact must list target files, intended changes, risks, verification plan, review evidence expectations, and escalation triggers.',
+    'Run logs must show builder preflight input artifacts and the saved preflight artifact id.',
+    orderedSubTasks.length > 0
+      ? `Breakdown alignment should remain visible through ${orderedSubTasks.length} ordered sub-task references.`
+      : 'Breakdown alignment should remain visible through the latest breakdown artifact.',
+    approvedAssumptions
+      ? 'Review should confirm the preflight plan stays inside the approved architecture assumptions.'
+      : 'Review should confirm the preflight plan stays inside the approved architecture boundary.',
+  ]);
+  const escalationTriggers = uniqueList([
+    ...stopConditions,
+    'Escalate to architect if target files or intended changes would cross the approved architecture boundary.',
+    'Escalate to task-breaker if the latest breakdown artifact is missing the execution checkpoint needed to proceed safely.',
+    'Escalate to human gate if builder preflight finds a blocking risk that cannot be resolved as an implementation assumption.',
+  ]);
+
+  return `# Builder Preflight: ${request.task.title}
+
+## Target Files
+${renderList(targetFiles, 'none identified')}
+
+## Intended Changes
+${renderList(
+  intendedChanges.map((item) => {
+    if (/latest plan, architecture, and breakdown/i.test(item)) {
+      return `${item} Inputs: ${request.planArtifact.id}, ${request.architectureArtifact.id}, ${request.breakdownArtifact.id}.`;
+    }
+
+    return item;
+  }),
+  'none',
+)}
+
+## Risks
+${renderList(risks, 'none')}
+
+## Verification Plan
+${renderList(verificationPlan, 'none')}
+
+## Review Evidence Expectations
+${renderList(reviewEvidenceExpectations, 'none')}
+
+## Escalation Triggers
+${renderList(escalationTriggers, 'none')}
+
+## Input Summary
+- plan artifact: ${request.planArtifact.id}
+- architecture artifact: ${request.architectureArtifact.id}
+- breakdown artifact: ${request.breakdownArtifact.id}
+- slice goal: ${sliceGoal || 'not stated'}
+- acceptance target: ${acceptanceTarget || 'not stated'}
+- execution mode: ${request.executionMode || 'unspecified'}
+- mutation allowed: ${request.mutationAllowed === false ? 'no' : 'yes'}
+`;
+}
+
 function createLocalStubProviderAdapter() {
   return {
     name: 'local-stub',
     async execute(request) {
+      if (request.role === 'builder') {
+        return {
+          providerRunId: `local-stub-builder-${request.task.id}`,
+          model: 'local-stub-builder-preflight-v1',
+          normalizedResult: buildNormalizedBuilderPreflightResult(request),
+          outputText: renderBuilderPreflightOutput(request),
+          usage: {
+            inputTokens: 0,
+            outputTokens: 0,
+          },
+        };
+      }
+
       if (request.role === 'task-breaker') {
         return {
           providerRunId: `local-stub-${request.role}-${request.task.id}`,
