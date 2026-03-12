@@ -16,3 +16,4 @@
 - ui-slice-04는 breakdown markdown을 best-effort parse하고 raw fallback을 항상 남기면 artifact contract를 바꾸지 않고도 generated subtasks read surface를 붙일 수 있다.
 - task-breaker UI disable은 pending approval / blocksTask decision 실데이터 기준으로 계산하고 최종 판정은 server/coordinator에 남기는 편이 drift를 줄인다.
 - ui-slice-05는 approval-first preselect를 task context change와 mutation completion에만 적용해야 polling refresh가 사용자의 현재 inbox 선택을 덮어쓰지 않는다.
+- approval authorization은 최신 approval record만 보면 부족하고, 해당 record가 최신 builder preflight target을 가리키는지도 함께 봐야 stale allow를 막을 수 있다.

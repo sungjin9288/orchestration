@@ -72,19 +72,27 @@ function sortByCreatedDesc(left, right) {
 }
 
 function getActivePayload() {
-  return state.payload?.snapshot || {
-    activeProjectId: null,
-    projects: {},
-    tasks: {},
-    runs: {},
-    artifacts: {},
-    decisionInboxItems: {},
-    approvals: {},
-  };
+  return (
+    state.payload || {
+      derived: {
+        taskGuardSummaries: {},
+      },
+      snapshot: {
+        activeProjectId: null,
+        projects: {},
+        tasks: {},
+        runs: {},
+        artifacts: {},
+        decisionInboxItems: {},
+        approvals: {},
+      },
+    }
+  );
 }
 
 function getDerived() {
-  const snapshot = getActivePayload();
+  const payload = getActivePayload();
+  const snapshot = payload.snapshot;
 
   const projects = Object.values(snapshot.projects).sort(sortByCreatedDesc);
   const tasks = Object.values(snapshot.tasks).sort(sortByCreatedDesc);
@@ -127,6 +135,7 @@ function getDerived() {
   const inboxItemMap = new Map(projectInboxItems.map((item) => [item.id, item]));
 
   return {
+    derived: payload.derived || { taskGuardSummaries: {} },
     snapshot,
     activeProject,
     projects,
@@ -230,16 +239,6 @@ function getTaskDecisionSummary(task, inboxItems) {
   };
 }
 
-function getPendingExecutionApprovals(taskId, approvals) {
-  return getTaskApprovals(taskId, approvals).filter((approval) => approval.status === 'pending');
-}
-
-function getPendingBlockingExecutionDecisionItems(taskId, inboxItems) {
-  return getTaskInboxItems(taskId, inboxItems).filter(
-    (item) => item.status === 'pending' && item.kind === 'decision' && item.blocksTask,
-  );
-}
-
 function getPreferredTaskInboxItem(taskId, data) {
   const taskItems = getTaskInboxItems(taskId, data.inboxItems);
   const pendingApprovals = taskItems.filter(
@@ -268,35 +267,18 @@ function getPreferredTaskInboxItem(taskId, data) {
 }
 
 function getTaskBreakerAvailability(task, data) {
+  const guardSummary = task ? data.derived?.taskGuardSummaries?.[task.id]?.taskBreaker || null : null;
   const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
   const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
   const latestBreakdownArtifact = getLatestTaskArtifact(task, data, 'breakdown');
-  const pendingApprovals = task ? getPendingExecutionApprovals(task.id, data.approvals) : [];
-  const pendingBlockingDecisionItems = task
-    ? getPendingBlockingExecutionDecisionItems(task.id, data.inboxItems)
-    : [];
   const reasons = [];
 
   if (!task) {
     reasons.push('select a task');
   }
 
-  if (!latestPlanArtifact) {
-    reasons.push('latest plan artifact required');
-  }
-
-  if (!latestArchitectureArtifact) {
-    reasons.push('latest architecture artifact required');
-  }
-
-  if (pendingBlockingDecisionItems.length > 0) {
-    reasons.push(
-      `resolve blocking decision ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
-    );
-  }
-
-  if (pendingApprovals.length > 0) {
-    reasons.push(`resolve pending approval ${pendingApprovals.map((item) => item.id).join(', ')}`);
+  if (guardSummary?.reasons?.length) {
+    reasons.push(...guardSummary.reasons);
   }
 
   if (state.loading || state.mutating) {
@@ -308,47 +290,28 @@ function getTaskBreakerAvailability(task, data) {
     latestArchitectureArtifact,
     latestBreakdownArtifact,
     latestPlanArtifact,
-    pendingApprovals,
-    pendingBlockingDecisionItems,
-    reasons,
+    pendingApprovalIds: guardSummary?.pendingApprovalIds || [],
+    pendingBlockingDecisionItemIds: guardSummary?.pendingBlockingDecisionItemIds || [],
+    reasons: [...new Set(reasons)],
   };
 }
 
 function getBuilderPreflightAvailability(task, data) {
+  const guardSummary = task
+    ? data.derived?.taskGuardSummaries?.[task.id]?.builderPreflight || null
+    : null;
   const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
   const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
   const latestBreakdownArtifact = getLatestTaskArtifact(task, data, 'breakdown');
   const latestPreflightArtifact = getLatestTaskArtifact(task, data, 'preflight');
-  const pendingApprovals = task ? getPendingExecutionApprovals(task.id, data.approvals) : [];
-  const pendingBlockingDecisionItems = task
-    ? getPendingBlockingExecutionDecisionItems(task.id, data.inboxItems)
-    : [];
   const reasons = [];
 
   if (!task) {
     reasons.push('select a task');
   }
 
-  if (!latestPlanArtifact) {
-    reasons.push('latest plan artifact required');
-  }
-
-  if (!latestArchitectureArtifact) {
-    reasons.push('latest architecture artifact required');
-  }
-
-  if (!latestBreakdownArtifact) {
-    reasons.push('latest breakdown artifact required');
-  }
-
-  if (pendingBlockingDecisionItems.length > 0) {
-    reasons.push(
-      `resolve blocking decision ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
-    );
-  }
-
-  if (pendingApprovals.length > 0) {
-    reasons.push(`resolve pending approval ${pendingApprovals.map((item) => item.id).join(', ')}`);
+  if (guardSummary?.reasons?.length) {
+    reasons.push(...guardSummary.reasons);
   }
 
   if (state.loading || state.mutating) {
@@ -361,9 +324,9 @@ function getBuilderPreflightAvailability(task, data) {
     latestBreakdownArtifact,
     latestPlanArtifact,
     latestPreflightArtifact,
-    pendingApprovals,
-    pendingBlockingDecisionItems,
-    reasons,
+    pendingApprovalIds: guardSummary?.pendingApprovalIds || [],
+    pendingBlockingDecisionItemIds: guardSummary?.pendingBlockingDecisionItemIds || [],
+    reasons: [...new Set(reasons)],
   };
 }
 
@@ -716,6 +679,7 @@ async function postJson(url, body) {
 
 function applySnapshotPayload(payload) {
   state.payload = {
+    derived: payload.derived || { taskGuardSummaries: {} },
     generatedAt: payload.generatedAt,
     runtimeRoot: payload.runtimeRoot,
     snapshot: payload.snapshot,
@@ -1329,6 +1293,11 @@ function renderTaskDetail(task, data) {
     preselectedPendingItem?.kind === 'approval' && preselectedPendingItem.sourceId
       ? data.approvals.find((approval) => approval.id === preselectedPendingItem.sourceId) || null
       : null;
+  const builderLiveMutationState =
+    data.derived?.taskGuardSummaries?.[task.id]?.builderLiveMutation || {
+      allowed: false,
+      reasons: ['runtime guard unavailable'],
+    };
   const plannerDisabled = state.loading || state.mutating;
   const architectDisabled = state.loading || state.mutating || !latestPlanArtifact;
   const taskBreakerDisabled = taskBreakerState.disabled;
@@ -1391,16 +1360,16 @@ function renderTaskDetail(task, data) {
               : createToken('preflight:none', 'neutral')
           }
           ${
-            taskBreakerState.pendingBlockingDecisionItems.length > 0
+            taskBreakerState.pendingBlockingDecisionItemIds.length > 0
               ? createToken(
-                  `blocking decision:${taskBreakerState.pendingBlockingDecisionItems.length}`,
+                  `blocking decision:${taskBreakerState.pendingBlockingDecisionItemIds.length}`,
                   'danger',
                 )
               : ''
           }
           ${
-            taskBreakerState.pendingApprovals.length > 0
-              ? createToken(`pending approval:${taskBreakerState.pendingApprovals.length}`, 'accent')
+            taskBreakerState.pendingApprovalIds.length > 0
+              ? createToken(`pending approval:${taskBreakerState.pendingApprovalIds.length}`, 'accent')
               : ''
           }
         </div>
@@ -1569,6 +1538,43 @@ function renderTaskDetail(task, data) {
             `
             : ''
         }
+        <div class="breakdown-inbox-hint">
+          <div class="token-row">
+            ${
+              builderLiveMutationState.allowed
+                ? createToken('live mutation:ready', 'success')
+                : createToken('live mutation:blocked', 'danger')
+            }
+            ${
+              builderLiveMutationState.latestApprovalStatus
+                ? createToken(
+                    `approval:${builderLiveMutationState.latestApprovalStatus}`,
+                    getApprovalTone(builderLiveMutationState.latestApprovalStatus),
+                  )
+                : createToken('approval:none', 'neutral')
+            }
+            ${
+              builderLiveMutationState.currentPreflightArtifactId
+                ? createToken(
+                    `target:${builderLiveMutationState.currentPreflightArtifactId}`,
+                    'neutral',
+                  )
+                : ''
+            }
+            ${
+              builderLiveMutationState.approvalStale
+                ? createToken('approval:stale', 'warning')
+                : ''
+            }
+          </div>
+          <p class="detail-copy">
+            ${
+              builderLiveMutationState.allowed
+                ? 'Runtime marks builder live mutation as ready for the latest preflight target.'
+                : `Runtime keeps builder live mutation blocked until ${escapeHtml((builderLiveMutationState.reasons || []).join('; ') || 'required guards are satisfied')}.`
+            }
+          </p>
+        </div>
       </div>
 
       <div class="detail-block">

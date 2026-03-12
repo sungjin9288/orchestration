@@ -10,6 +10,7 @@ Prepare a no-write builder preflight artifact from the approved slice inside the
 - Active project context exists
 - A valid `project_path` exists
 - Any blocking decision or approval required before implementation has been resolved
+- Live mutation approval, when required later, must target the latest saved builder preflight artifact and run
 
 ## required inputs
 - Task breakdown
@@ -38,6 +39,7 @@ Prepare a no-write builder preflight artifact from the approved slice inside the
 - Capture a builder preflight artifact without mutating source files
 - Stop work and route back upstream when an unapproved structural issue is discovered
 - Record explicit unresolved items instead of hiding them
+- Treat builder preflight as a no-write planning step, not as approval to begin live mutation
 
 ## forbidden actions
 - Starting preflight without a valid `project_path`

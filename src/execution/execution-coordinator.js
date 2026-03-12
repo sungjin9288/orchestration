@@ -290,6 +290,35 @@ function createExecutionCoordinator(options = {}) {
   const architectCodeContextPaths =
     options.architectCodeContextPaths || DEFAULT_ARCHITECT_CODE_CONTEXT_PATHS;
 
+  async function assertBuilderLiveMutationReady(input) {
+    if (!input || !input.taskId) {
+      throw new Error('taskId is required');
+    }
+
+    const { guardSummary, task } = runtime.assertTaskCanRunBuilderLiveMutation({
+      taskId: input.taskId,
+    });
+    const project = runtime.getProject(task.projectId);
+
+    if (!project.projectPath) {
+      throw new Error('project_path is required');
+    }
+
+    const preflightArtifact = findLatestTaskArtifact(runtime, task, 'preflight');
+
+    if (!preflightArtifact) {
+      throw new Error(`Preflight artifact is required before builder live mutation for task ${task.id}`);
+    }
+
+    return {
+      guardSummary,
+      preflightArtifact,
+      preflightRun: preflightArtifact.runId ? runtime.getRun(preflightArtifact.runId) : null,
+      project,
+      task,
+    };
+  }
+
   async function runPlanner(input) {
     if (!input || !input.taskId) {
       throw new Error('taskId is required');
@@ -746,10 +775,6 @@ function createExecutionCoordinator(options = {}) {
       throw new Error('taskId is required');
     }
 
-    runtime.assertTaskCanRunBuilderPreflight({
-      taskId: input.taskId,
-    });
-
     let task = runtime.getTask(input.taskId);
     const project = runtime.getProject(task.projectId);
 
@@ -776,6 +801,10 @@ function createExecutionCoordinator(options = {}) {
         `Breakdown artifact is required before builder preflight run for task ${task.id}`,
       );
     }
+
+    runtime.assertTaskCanRunBuilderPreflight({
+      taskId: input.taskId,
+    });
 
     const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
     const architectRun = architectureArtifact.runId ? runtime.getRun(architectureArtifact.runId) : null;
@@ -925,6 +954,7 @@ function createExecutionCoordinator(options = {}) {
   }
 
   return {
+    assertBuilderLiveMutationReady,
     runArchitect,
     runBuilderPreflight,
     runPlanner,

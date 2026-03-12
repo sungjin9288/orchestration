@@ -4,8 +4,10 @@ import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
+import contractsModule from '../src/runtime/contracts.js';
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
 
+const { BUILDER_ACTION } = contractsModule;
 const { createRuntimeService } = runtimeServiceModule;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -117,6 +119,8 @@ async function main() {
     assert.match(appJs, /Latest Builder Preflight/);
     assert.match(appJs, /renderStructuredPreflight/);
     assert.match(appJs, /compact summary/);
+    assert.match(appJs, /taskGuardSummaries/);
+    assert.match(appJs, /live mutation:blocked/);
     assert.equal((appJs.match(/applyTaskInboxPreselect: true/g) || []).length, 3);
     assert.match(stylesCss, /\.compact-list/);
 
@@ -149,6 +153,20 @@ async function main() {
     assert.equal(
       readyBuilderPayload.snapshot.artifacts[readyBuilderPayload.mutation.artifactId].type,
       'preflight',
+    );
+    assert.equal(
+      readyBuilderPayload.derived.taskGuardSummaries[readyTask.id].builderPreflight.allowed,
+      true,
+    );
+    assert.equal(
+      readyBuilderPayload.derived.taskGuardSummaries[readyTask.id].builderLiveMutation.allowed,
+      false,
+    );
+    assert.match(
+      readyBuilderPayload.derived.taskGuardSummaries[readyTask.id].builderLiveMutation.reasons.join(
+        '; ',
+      ),
+      /latest approval for builder-live-mutation is missing/i,
     );
     assert.match(readyArtifact.artifact.content, /^# Builder Preflight:/m);
     assert.match(readyArtifact.artifact.content, /^## Target Files$/m);
@@ -248,6 +266,76 @@ async function main() {
     assert.equal(rejectedPayload.snapshot.approvals[rejectedApproval.id].status, 'rejected');
     assert.equal(rejectedPayload.snapshot.tasks[rejectTask.id].flags.waitingApproval, false);
 
+    const liveMutationTask = runtime.createTask({
+      projectId: runtime.getSnapshot().activeProjectId,
+      title: 'Builder live mutation runtime-derived summary',
+      intent: 'Expose live mutation readiness only through runtime-derived guard summaries.',
+    });
+    await runThroughTaskBreaker(liveMutationTask.id);
+    const livePreflightPayload = await postJson(
+      `/api/tasks/${encodeURIComponent(liveMutationTask.id)}/run-builder-preflight`,
+    );
+    const livePendingApproval = runtime.createApprovalPlaceholder({
+      taskId: liveMutationTask.id,
+      scope: 'builder',
+      allowedNextAction: BUILDER_ACTION.LIVE_MUTATION,
+      targetArtifactId: livePreflightPayload.mutation.artifactId,
+      targetRunId: livePreflightPayload.mutation.runId,
+      title: 'Approval required: builder live mutation',
+    });
+    const pendingLiveSnapshot = await fetchJson(`${baseUrl}/api/snapshot`);
+
+    assert.equal(
+      pendingLiveSnapshot.derived.taskGuardSummaries[liveMutationTask.id].builderLiveMutation
+        .latestApprovalStatus,
+      'pending',
+    );
+    assert.match(
+      pendingLiveSnapshot.derived.taskGuardSummaries[liveMutationTask.id].builderLiveMutation.reasons.join(
+        '; ',
+      ),
+      /is pending/i,
+    );
+
+    const rejectedLivePayload = await postJson(
+      `/api/decision-inbox/${encodeURIComponent(livePendingApproval.inboxItemId)}/actions`,
+      { verb: 'reject' },
+    );
+
+    assert.equal(rejectedLivePayload.snapshot.tasks[liveMutationTask.id].flags.waitingApproval, false);
+    assert.equal(
+      rejectedLivePayload.derived.taskGuardSummaries[liveMutationTask.id].builderLiveMutation
+        .latestApprovalStatus,
+      'rejected',
+    );
+    assert.equal(
+      rejectedLivePayload.derived.taskGuardSummaries[liveMutationTask.id].builderLiveMutation.allowed,
+      false,
+    );
+
+    const approvedLiveApproval = runtime.createApprovalPlaceholder({
+      taskId: liveMutationTask.id,
+      scope: 'builder',
+      allowedNextAction: BUILDER_ACTION.LIVE_MUTATION,
+      targetArtifactId: livePreflightPayload.mutation.artifactId,
+      targetRunId: livePreflightPayload.mutation.runId,
+      title: 'Approval required: builder live mutation',
+    });
+    const approvedLivePayload = await postJson(
+      `/api/decision-inbox/${encodeURIComponent(approvedLiveApproval.inboxItemId)}/actions`,
+      { verb: 'approve' },
+    );
+
+    assert.equal(
+      approvedLivePayload.derived.taskGuardSummaries[liveMutationTask.id].builderLiveMutation.allowed,
+      true,
+    );
+    assert.equal(
+      approvedLivePayload.derived.taskGuardSummaries[liveMutationTask.id].builderLiveMutation
+        .latestApprovalStatus,
+      'approved',
+    );
+
     console.log(
       JSON.stringify(
         {
@@ -265,6 +353,7 @@ async function main() {
             approvedInboxItemId: approvalRecord.inboxItemId,
             rejectedInboxItemId: rejectedApproval.inboxItemId,
           },
+          liveMutationSummaryTaskId: liveMutationTask.id,
         },
         null,
         2,

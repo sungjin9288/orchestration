@@ -39,6 +39,10 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
+const BUILDER_ACTION = {
+  LIVE_MUTATION: 'builder-live-mutation',
+};
+
 const COMMIT_ACTION = {
   COMMIT_INTENT: 'commit-intent',
   COMMIT_READY: 'commit-ready',
@@ -67,6 +71,7 @@ function createEmptyState() {
 
 module.exports = {
   APPROVAL_STATUS,
+  BUILDER_ACTION,
   COMMIT_ACTION,
   DECISION_INBOX_KIND,
   DECISION_INBOX_STATUS,

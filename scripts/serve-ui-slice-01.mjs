@@ -82,10 +82,15 @@ function readSnapshotReadonly() {
 }
 
 function buildSnapshotResponse(extra = {}) {
+  const snapshot = readSnapshotReadonly();
+
   return {
     generatedAt: new Date().toISOString(),
     runtimeRoot: options.runtimeRoot,
-    snapshot: readSnapshotReadonly(),
+    snapshot,
+    derived: {
+      taskGuardSummaries: runtime.listTaskGuardSummaries(),
+    },
     ...extra,
   };
 }

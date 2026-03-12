@@ -5,6 +5,7 @@ const path = require('path');
 
 const {
   APPROVAL_STATUS,
+  BUILDER_ACTION,
   COMMIT_ACTION,
   DECISION_INBOX_KIND,
   DECISION_INBOX_STATUS,
@@ -139,6 +140,59 @@ function createRuntimeService(options = {}) {
     task.review.verificationArtifactIds = verificationArtifactIds;
   }
 
+  function compareRecordsByCreatedDesc(left, right) {
+    const leftValue = left.createdAt || '';
+    const rightValue = right.createdAt || '';
+
+    if (leftValue === rightValue) {
+      return String(right.id || '').localeCompare(String(left.id || ''));
+    }
+
+    return rightValue.localeCompare(leftValue);
+  }
+
+  function listTaskApprovals(taskId, state) {
+    return Object.values(state.approvals).filter((approval) => approval.taskId === taskId);
+  }
+
+  function listPendingBlockingDecisionItems(taskId, state) {
+    return Object.values(state.decisionInboxItems).filter(
+      (item) =>
+        item.taskId === taskId &&
+        item.status === DECISION_INBOX_STATUS.PENDING &&
+        item.kind === DECISION_INBOX_KIND.DECISION &&
+        item.blocksTask,
+    );
+  }
+
+  function findLatestTaskArtifactMeta(task, state, type) {
+    const artifactIds = Array.isArray(task.artifactIds) ? [...task.artifactIds].reverse() : [];
+
+    for (const artifactId of artifactIds) {
+      const artifact = state.artifacts[artifactId];
+
+      if (artifact && artifact.type === type) {
+        return artifact;
+      }
+    }
+
+    return null;
+  }
+
+  function getLatestPreflightContext(task, state) {
+    const artifact = findLatestTaskArtifactMeta(task, state, 'preflight');
+    const run = artifact?.runId ? assertRun(artifact.runId, state) : null;
+
+    return {
+      artifact,
+      run,
+    };
+  }
+
+  function uniqueReasons(reasons) {
+    return [...new Set(reasons.filter(Boolean))];
+  }
+
   function computeTaskGateState(task, state) {
     const pendingDecisionItems = Object.values(state.decisionInboxItems).filter(
       (item) =>
@@ -146,25 +200,15 @@ function createRuntimeService(options = {}) {
         item.kind === DECISION_INBOX_KIND.DECISION &&
         item.status === DECISION_INBOX_STATUS.PENDING,
     );
-    const taskApprovals = Object.values(state.approvals).filter(
-      (approval) => approval.taskId === task.id,
-    );
+    const taskApprovals = listTaskApprovals(task.id, state);
     const pendingApprovals = taskApprovals.filter(
-      (approval) => approval.taskId === task.id && approval.status === APPROVAL_STATUS.PENDING,
-    );
-    const commitApprovals = taskApprovals.filter((approval) => approval.scope === 'commit');
-    const pendingCommitApprovals = commitApprovals.filter(
       (approval) => approval.status === APPROVAL_STATUS.PENDING,
-    );
-    const approvedCommitApprovals = commitApprovals.filter(
-      (approval) => approval.status === APPROVAL_STATUS.APPROVED,
     );
 
     return {
       pendingDecisionItems,
       pendingApprovals,
-      pendingCommitApprovals,
-      approvedCommitApprovals,
+      taskApprovals,
       flags: {
         blocked: pendingDecisionItems.some((item) => item.blocksTask),
         waitingDecision: pendingDecisionItems.length > 0,
@@ -201,81 +245,278 @@ function createRuntimeService(options = {}) {
     return activeGates;
   }
 
-  function assertTaskCanRunTaskBreaker(input) {
-    const state = store.loadState();
-    const task = assertTask(input.taskId, state);
-    const pendingBlockingDecisionItems = Object.values(state.decisionInboxItems).filter(
-      (item) =>
-        item.taskId === task.id &&
-        item.status === DECISION_INBOX_STATUS.PENDING &&
-        item.kind === DECISION_INBOX_KIND.DECISION &&
-        item.blocksTask,
-    );
-    const pendingApprovals = Object.values(state.approvals).filter(
-      (approval) => approval.taskId === task.id && approval.status === APPROVAL_STATUS.PENDING,
-    );
+  function evaluateLatestApprovalForAction(input) {
+    const task = input.task;
+    const state = input.state;
+    const action = input.action;
+    const currentPreflight = input.currentPreflight || null;
+    const requireCurrentPreflightTarget = Boolean(input.requireCurrentPreflightTarget);
+    const latestApproval =
+      listTaskApprovals(task.id, state)
+        .filter((approval) => approval.allowedNextAction === action)
+        .sort(compareRecordsByCreatedDesc)[0] || null;
+    const reasons = [];
+    let stale = false;
 
-    if (pendingBlockingDecisionItems.length === 0 && pendingApprovals.length === 0) {
-      return {
-        pendingApprovals: [],
-        pendingBlockingDecisionItems: [],
-        task,
-      };
+    if (!latestApproval) {
+      reasons.push(`latest approval for ${action} is missing`);
+    } else {
+      if (latestApproval.status === APPROVAL_STATUS.PENDING) {
+        reasons.push(`latest approval ${latestApproval.id} for ${action} is pending`);
+      }
+
+      if (latestApproval.status === APPROVAL_STATUS.REJECTED) {
+        reasons.push(`latest approval ${latestApproval.id} for ${action} is rejected`);
+      }
+
+      if (requireCurrentPreflightTarget && currentPreflight?.artifact) {
+        const targetArtifactId = latestApproval.targetArtifactId || null;
+        const targetRunId = latestApproval.targetRunId || null;
+        const currentArtifactId = currentPreflight.artifact.id;
+        const currentRunId = currentPreflight.run?.id || null;
+
+        if (targetArtifactId !== currentArtifactId || targetRunId !== currentRunId) {
+          stale = true;
+          reasons.push(
+            `latest approval ${latestApproval.id} for ${action} is stale for preflight ${currentArtifactId}`,
+          );
+        }
+      }
     }
 
-    const gateSummary = [];
+    return {
+      action,
+      allowed:
+        Boolean(latestApproval) &&
+        latestApproval.status === APPROVAL_STATUS.APPROVED &&
+        (!requireCurrentPreflightTarget || !stale),
+      currentPreflightArtifactId: currentPreflight?.artifact?.id || null,
+      currentPreflightRunId: currentPreflight?.run?.id || null,
+      latestApproval: latestApproval || null,
+      reasons: uniqueReasons(reasons),
+      stale,
+    };
+  }
+
+  function buildTaskBreakerGuardSummary(task, state) {
+    const latestPlanArtifact = findLatestTaskArtifactMeta(task, state, 'plan');
+    const latestArchitectureArtifact = findLatestTaskArtifactMeta(task, state, 'architecture');
+    const pendingBlockingDecisionItems = listPendingBlockingDecisionItems(task.id, state);
+    const pendingApprovals = computeTaskGateState(task, state).pendingApprovals;
+    const reasons = [];
+
+    if (!latestPlanArtifact) {
+      reasons.push('latest plan artifact required');
+    }
+
+    if (!latestArchitectureArtifact) {
+      reasons.push('latest architecture artifact required');
+    }
 
     if (pendingBlockingDecisionItems.length > 0) {
-      gateSummary.push(
+      reasons.push(
         `blocking decision items: ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
       );
     }
 
     if (pendingApprovals.length > 0) {
-      gateSummary.push(`pending approvals: ${pendingApprovals.map((item) => item.id).join(', ')}`);
+      reasons.push(`pending approvals: ${pendingApprovals.map((item) => item.id).join(', ')}`);
+    }
+
+    return {
+      allowed: reasons.length === 0,
+      latestArchitectureArtifactId: latestArchitectureArtifact?.id || null,
+      latestPlanArtifactId: latestPlanArtifact?.id || null,
+      pendingApprovalIds: pendingApprovals.map((approval) => approval.id),
+      pendingBlockingDecisionItemIds: pendingBlockingDecisionItems.map((item) => item.id),
+      reasons: uniqueReasons(reasons),
+    };
+  }
+
+  function buildBuilderPreflightGuardSummary(task, state) {
+    const latestPlanArtifact = findLatestTaskArtifactMeta(task, state, 'plan');
+    const latestArchitectureArtifact = findLatestTaskArtifactMeta(task, state, 'architecture');
+    const latestBreakdownArtifact = findLatestTaskArtifactMeta(task, state, 'breakdown');
+    const latestPreflightArtifact = findLatestTaskArtifactMeta(task, state, 'preflight');
+    const pendingBlockingDecisionItems = listPendingBlockingDecisionItems(task.id, state);
+    const pendingApprovals = computeTaskGateState(task, state).pendingApprovals;
+    const reasons = [];
+
+    if (!latestPlanArtifact) {
+      reasons.push('latest plan artifact required');
+    }
+
+    if (!latestArchitectureArtifact) {
+      reasons.push('latest architecture artifact required');
+    }
+
+    if (!latestBreakdownArtifact) {
+      reasons.push('latest breakdown artifact required');
+    }
+
+    if (pendingBlockingDecisionItems.length > 0) {
+      reasons.push(
+        `blocking decision items: ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
+      );
+    }
+
+    if (pendingApprovals.length > 0) {
+      reasons.push(`pending approvals: ${pendingApprovals.map((item) => item.id).join(', ')}`);
+    }
+
+    return {
+      allowed: reasons.length === 0,
+      latestArchitectureArtifactId: latestArchitectureArtifact?.id || null,
+      latestBreakdownArtifactId: latestBreakdownArtifact?.id || null,
+      latestPlanArtifactId: latestPlanArtifact?.id || null,
+      latestPreflightArtifactId: latestPreflightArtifact?.id || null,
+      pendingApprovalIds: pendingApprovals.map((approval) => approval.id),
+      pendingBlockingDecisionItemIds: pendingBlockingDecisionItems.map((item) => item.id),
+      reasons: uniqueReasons(reasons),
+    };
+  }
+
+  function buildBuilderLiveMutationGuardSummary(task, state) {
+    const currentPreflight = getLatestPreflightContext(task, state);
+    const pendingBlockingDecisionItems = listPendingBlockingDecisionItems(task.id, state);
+    const approvalEvaluation = evaluateLatestApprovalForAction({
+      action: BUILDER_ACTION.LIVE_MUTATION,
+      currentPreflight,
+      requireCurrentPreflightTarget: true,
+      state,
+      task,
+    });
+    const latestPlanArtifact = findLatestTaskArtifactMeta(task, state, 'plan');
+    const latestArchitectureArtifact = findLatestTaskArtifactMeta(task, state, 'architecture');
+    const latestBreakdownArtifact = findLatestTaskArtifactMeta(task, state, 'breakdown');
+    const reasons = [];
+
+    if (!currentPreflight.artifact) {
+      reasons.push('latest preflight artifact required');
+    }
+
+    if (pendingBlockingDecisionItems.length > 0) {
+      reasons.push(
+        `blocking decision items: ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
+      );
+    }
+
+    if (
+      currentPreflight.artifact &&
+      latestPlanArtifact &&
+      latestPlanArtifact.createdAt > currentPreflight.artifact.createdAt
+    ) {
+      reasons.push(`latest preflight ${currentPreflight.artifact.id} is stale for current plan`);
+    }
+
+    if (
+      currentPreflight.artifact &&
+      latestArchitectureArtifact &&
+      latestArchitectureArtifact.createdAt > currentPreflight.artifact.createdAt
+    ) {
+      reasons.push(
+        `latest preflight ${currentPreflight.artifact.id} is stale for current architecture`,
+      );
+    }
+
+    if (
+      currentPreflight.artifact &&
+      latestBreakdownArtifact &&
+      latestBreakdownArtifact.createdAt > currentPreflight.artifact.createdAt
+    ) {
+      reasons.push(`latest preflight ${currentPreflight.artifact.id} is stale for current breakdown`);
+    }
+
+    reasons.push(...approvalEvaluation.reasons);
+
+    return {
+      allowed: reasons.length === 0 && approvalEvaluation.allowed,
+      approvalStale: approvalEvaluation.stale,
+      currentPreflightArtifactId: approvalEvaluation.currentPreflightArtifactId,
+      currentPreflightRunId: approvalEvaluation.currentPreflightRunId,
+      latestApprovalId: approvalEvaluation.latestApproval?.id || null,
+      latestApprovalStatus: approvalEvaluation.latestApproval?.status || null,
+      pendingBlockingDecisionItemIds: pendingBlockingDecisionItems.map((item) => item.id),
+      reasons: uniqueReasons(reasons),
+      targetPreflightArtifactId: approvalEvaluation.latestApproval?.targetArtifactId || null,
+      targetPreflightRunId: approvalEvaluation.latestApproval?.targetRunId || null,
+    };
+  }
+
+  function getTaskGuardSummary(taskId, state = null) {
+    const loadedState = state || store.loadState();
+    const task = assertTask(taskId, loadedState);
+
+    return {
+      builderLiveMutation: buildBuilderLiveMutationGuardSummary(task, loadedState),
+      builderPreflight: buildBuilderPreflightGuardSummary(task, loadedState),
+      taskBreaker: buildTaskBreakerGuardSummary(task, loadedState),
+    };
+  }
+
+  function listTaskGuardSummaries(input = {}) {
+    const state = store.loadState();
+    const summaries = {};
+
+    for (const task of Object.values(state.tasks)) {
+      if (input.projectId && task.projectId !== input.projectId) {
+        continue;
+      }
+
+      summaries[task.id] = getTaskGuardSummary(task.id, state);
+    }
+
+    return summaries;
+  }
+
+  function assertTaskCanRunTaskBreaker(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const guardSummary = buildTaskBreakerGuardSummary(task, state);
+
+    if (guardSummary.allowed) {
+      return {
+        guardSummary,
+        task,
+      };
     }
 
     throw new Error(
-      `Task ${task.id} cannot run task-breaker while gates remain active: ${gateSummary.join('; ')}`,
+      `Task ${task.id} cannot run task-breaker while gates remain active: ${guardSummary.reasons.join('; ')}`,
     );
   }
 
   function assertTaskCanRunBuilderPreflight(input) {
     const state = store.loadState();
     const task = assertTask(input.taskId, state);
-    const pendingBlockingDecisionItems = Object.values(state.decisionInboxItems).filter(
-      (item) =>
-        item.taskId === task.id &&
-        item.status === DECISION_INBOX_STATUS.PENDING &&
-        item.kind === DECISION_INBOX_KIND.DECISION &&
-        item.blocksTask,
-    );
-    const pendingApprovals = Object.values(state.approvals).filter(
-      (approval) => approval.taskId === task.id && approval.status === APPROVAL_STATUS.PENDING,
-    );
+    const guardSummary = buildBuilderPreflightGuardSummary(task, state);
 
-    if (pendingBlockingDecisionItems.length === 0 && pendingApprovals.length === 0) {
+    if (guardSummary.allowed) {
       return {
-        pendingApprovals: [],
-        pendingBlockingDecisionItems: [],
+        guardSummary,
         task,
       };
     }
 
-    const gateSummary = [];
+    throw new Error(
+      `Task ${task.id} cannot run builder preflight while gates remain active: ${guardSummary.reasons.join('; ')}`,
+    );
+  }
 
-    if (pendingBlockingDecisionItems.length > 0) {
-      gateSummary.push(
-        `blocking decision items: ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
-      );
-    }
+  function assertTaskCanRunBuilderLiveMutation(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const guardSummary = buildBuilderLiveMutationGuardSummary(task, state);
 
-    if (pendingApprovals.length > 0) {
-      gateSummary.push(`pending approvals: ${pendingApprovals.map((item) => item.id).join(', ')}`);
+    if (guardSummary.allowed) {
+      return {
+        guardSummary,
+        task,
+      };
     }
 
     throw new Error(
-      `Task ${task.id} cannot run builder preflight while gates remain active: ${gateSummary.join('; ')}`,
+      `Task ${task.id} cannot run builder live mutation while guards remain active: ${guardSummary.reasons.join('; ')}`,
     );
   }
 
@@ -566,6 +807,39 @@ function createRuntimeService(options = {}) {
     const now = new Date().toISOString();
     const approvalId = nextId(state, 'approval');
     const inboxItemId = nextId(state, 'decisionInboxItem');
+    let targetArtifactId = null;
+    let targetRunId = null;
+
+    if (input.targetArtifactId || input.targetRunId) {
+      if (!input.targetArtifactId || !input.targetRunId) {
+        throw new Error('targetArtifactId and targetRunId must be provided together');
+      }
+
+      const artifact = assertArtifact(input.targetArtifactId, state);
+      const run = assertRun(input.targetRunId, state);
+
+      if (artifact.taskId !== task.id) {
+        throw new Error(`Artifact ${artifact.id} is not linked to task ${task.id}`);
+      }
+
+      if (artifact.type !== 'preflight') {
+        throw new Error('Approval targets must reference a preflight artifact');
+      }
+
+      if (artifact.runId !== run.id) {
+        throw new Error(`Approval target run ${run.id} does not match artifact ${artifact.id}`);
+      }
+
+      targetArtifactId = artifact.id;
+      targetRunId = run.id;
+    }
+
+    if (
+      (input.allowedNextAction || 'commit') === BUILDER_ACTION.LIVE_MUTATION &&
+      (!targetArtifactId || !targetRunId)
+    ) {
+      throw new Error('Builder live mutation approvals require targetArtifactId and targetRunId');
+    }
 
     state.approvals[approvalId] = {
       id: approvalId,
@@ -576,6 +850,8 @@ function createRuntimeService(options = {}) {
       placeholder: true,
       allowedNextAction: input.allowedNextAction || 'commit',
       inboxItemId,
+      targetArtifactId,
+      targetRunId,
       createdAt: now,
       updatedAt: now,
       resolvedAt: null,
@@ -643,26 +919,49 @@ function createRuntimeService(options = {}) {
     const state = store.loadState();
     const task = assertTask(input.taskId, state);
     const action = input.action;
-    const gateState = computeTaskGateState(task, state);
-    const approvedCommitApproval = gateState.approvedCommitApprovals.find(
-      (approval) => approval.allowedNextAction === action,
-    );
+    const currentPreflight = getLatestPreflightContext(task, state);
+    const approvalEvaluation = evaluateLatestApprovalForAction({
+      action,
+      currentPreflight,
+      requireCurrentPreflightTarget: Boolean(currentPreflight.artifact),
+      state,
+      task,
+    });
 
     if (!isCommitAction(action)) {
       throw new Error('Commit action must be commit-intent or commit-ready');
     }
 
-    if (gateState.pendingCommitApprovals.length > 0) {
+    if (approvalEvaluation.latestApproval?.status === APPROVAL_STATUS.PENDING) {
       throw new Error(`Task ${task.id} cannot transition to ${action} while approval is unresolved`);
     }
 
-    if (!approvedCommitApproval) {
+    if (!approvalEvaluation.latestApproval) {
+      throw new Error(
+        `Task ${task.id} cannot transition to ${action} without an approved commit approval record`,
+      );
+    }
+
+    if (approvalEvaluation.stale) {
+      throw new Error(
+        `Task ${task.id} cannot transition to ${action} because approval ${approvalEvaluation.latestApproval.id} is stale for the latest preflight`,
+      );
+    }
+
+    if (approvalEvaluation.latestApproval.status === APPROVAL_STATUS.REJECTED) {
+      throw new Error(
+        `Task ${task.id} cannot transition to ${action} because approval ${approvalEvaluation.latestApproval.id} was rejected`,
+      );
+    }
+
+    if (!approvalEvaluation.allowed) {
       throw new Error(
         `Task ${task.id} cannot transition to ${action} without an approved commit approval record`,
       );
     }
 
     return {
+      approvalId: approvalEvaluation.latestApproval.id,
       taskId: task.id,
       action,
       allowed: true,
@@ -848,6 +1147,7 @@ function createRuntimeService(options = {}) {
 
   return {
     appendLog,
+    assertTaskCanRunBuilderLiveMutation,
     assertTaskCanRunBuilderPreflight,
     assertTaskCanRunTaskBreaker,
     completeRun,
@@ -865,8 +1165,10 @@ function createRuntimeService(options = {}) {
     getRun,
     getSnapshot,
     getTask,
+    getTaskGuardSummary,
     listApprovals,
     listDecisionInboxItems,
+    listTaskGuardSummaries,
     recordArtifact,
     resolveReview,
     resolveDecisionInboxItem,
