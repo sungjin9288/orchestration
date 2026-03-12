@@ -5,6 +5,7 @@ const state = {
   surface: 'taskboard',
   payload: null,
   loading: false,
+  mutating: false,
   error: null,
   selectedTaskId: null,
   selectedRunId: null,
@@ -12,6 +13,8 @@ const state = {
   selectedInboxItemId: null,
   selectedRunLogs: null,
   selectedArtifact: null,
+  taskDraftTitle: '',
+  taskDraftIntent: '',
   timerId: null,
 };
 
@@ -66,8 +69,8 @@ function sortByCreatedDesc(left, right) {
   return rightValue.localeCompare(leftValue);
 }
 
-function getDerived() {
-  const snapshot = state.payload?.snapshot || {
+function getActivePayload() {
+  return state.payload?.snapshot || {
     activeProjectId: null,
     projects: {},
     tasks: {},
@@ -76,6 +79,10 @@ function getDerived() {
     decisionInboxItems: {},
     approvals: {},
   };
+}
+
+function getDerived() {
+  const snapshot = getActivePayload();
 
   const projects = Object.values(snapshot.projects).sort(sortByCreatedDesc);
   const tasks = Object.values(snapshot.tasks).sort(sortByCreatedDesc);
@@ -250,18 +257,21 @@ function ensureSelection(data) {
   }
 
   const activeTask = data.taskMap.get(state.selectedTaskId) || null;
-  const preferredRunId = activeTask?.latestRunId || data.runs[0]?.id || null;
+  const preferredRunId =
+    activeTask?.latestRunId && data.runMap.has(activeTask.latestRunId) ? activeTask.latestRunId : null;
+  const selectedRun = data.runMap.get(state.selectedRunId) || null;
 
-  if (!data.runMap.has(state.selectedRunId)) {
+  if (!selectedRun || (activeTask && selectedRun.taskId !== activeTask.id)) {
     state.selectedRunId = preferredRunId;
   }
 
   if (activeTask) {
     const taskArtifactIds = activeTask.artifactIds || [];
     const firstTaskArtifactId = taskArtifactIds.find((artifactId) => data.artifactMap.has(artifactId));
+    const selectedArtifact = data.artifactMap.get(state.selectedArtifactId) || null;
 
-    if (!data.artifactMap.has(state.selectedArtifactId)) {
-      state.selectedArtifactId = firstTaskArtifactId || data.artifacts[0]?.id || null;
+    if (!selectedArtifact || selectedArtifact.taskId !== activeTask.id) {
+      state.selectedArtifactId = firstTaskArtifactId || null;
     }
   } else if (!data.artifactMap.has(state.selectedArtifactId)) {
     state.selectedArtifactId = data.artifacts[0]?.id || null;
@@ -291,6 +301,32 @@ async function fetchJson(url) {
   return response.json();
 }
 
+async function postJson(url, body) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body || {}),
+  });
+  const payload = await response.json();
+
+  if (!response.ok) {
+    throw new Error(payload.error || `Request failed: ${response.status} ${response.statusText}`);
+  }
+
+  return payload;
+}
+
+function applySnapshotPayload(payload) {
+  state.payload = {
+    generatedAt: payload.generatedAt,
+    runtimeRoot: payload.runtimeRoot,
+    snapshot: payload.snapshot,
+  };
+}
+
 async function hydrateSelectedDetails() {
   const runId = state.selectedRunId;
   const artifactId = state.selectedArtifactId;
@@ -303,12 +339,13 @@ async function hydrateSelectedDetails() {
   }
 
   if (artifactId) {
-    state.selectedArtifact = await fetchJson(`/api/artifacts/${encodeURIComponent(artifactId)}`);
+    const artifactPayload = await fetchJson(`/api/artifacts/${encodeURIComponent(artifactId)}`);
+    state.selectedArtifact = artifactPayload.artifact;
   }
 }
 
 async function refreshData() {
-  if (state.loading) {
+  if (state.loading || state.mutating) {
     return;
   }
 
@@ -317,12 +354,12 @@ async function refreshData() {
   elements.refreshStatus.textContent = 'Refreshing runtime snapshot…';
 
   try {
-    state.payload = await fetchJson('/api/snapshot');
+    applySnapshotPayload(await fetchJson('/api/snapshot'));
     const data = getDerived();
     ensureSelection(data);
     await hydrateSelectedDetails();
     render();
-    elements.refreshStatus.textContent = `Updated ${formatDate(state.payload.generatedAt)}`;
+    elements.refreshStatus.textContent = `Updated ${formatDate(state.payload?.generatedAt)}`;
   } catch (error) {
     state.error = error;
     render();
@@ -340,12 +377,16 @@ function syncSelectionsFromTask(taskId) {
 
   if (task?.latestRunId && data.runMap.has(task.latestRunId)) {
     state.selectedRunId = task.latestRunId;
+  } else {
+    state.selectedRunId = null;
   }
 
   const taskArtifactId = (task?.artifactIds || []).find((artifactId) => data.artifactMap.has(artifactId));
 
   if (taskArtifactId) {
     state.selectedArtifactId = taskArtifactId;
+  } else {
+    state.selectedArtifactId = null;
   }
 
   const pendingItem =
@@ -408,6 +449,81 @@ async function handleSelection(action, id) {
   render();
 }
 
+async function submitCreateTask() {
+  const data = getDerived();
+
+  if (!data.activeProject) {
+    throw new Error('Active project is required before creating tasks');
+  }
+
+  const title = state.taskDraftTitle.trim();
+  const intent = state.taskDraftIntent.trim();
+
+  if (!title) {
+    throw new Error('Task title is required');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = 'Creating task…';
+  render();
+
+  try {
+    const payload = await postJson('/api/tasks', {
+      intent,
+      title,
+    });
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    state.selectedTaskId = payload.task.id;
+    state.selectedRunId = null;
+    state.selectedArtifactId = null;
+    state.selectedInboxItemId = null;
+    state.selectedRunLogs = null;
+    state.selectedArtifact = null;
+    state.taskDraftTitle = '';
+    state.taskDraftIntent = '';
+    state.surface = 'taskboard';
+    render();
+    elements.refreshStatus.textContent = `Created task ${payload.task.id}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function runPlanner(taskId) {
+  const data = getDerived();
+
+  if (!taskId || !data.taskMap.has(taskId)) {
+    throw new Error('Select a task before starting planner run');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Starting planner run for ${taskId}…`;
+  render();
+
+  try {
+    const payload = await postJson(`/api/tasks/${encodeURIComponent(taskId)}/run-planner`);
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    state.selectedTaskId = taskId;
+    state.selectedRunId = payload.mutation.runId;
+    state.selectedArtifactId = payload.mutation.artifactId;
+    state.selectedInboxItemId = payload.mutation.inboxItemId || state.selectedInboxItemId;
+    state.selectedRunLogs = payload.runLogs || null;
+    state.selectedArtifact = payload.artifactDetail || null;
+    render();
+    elements.refreshStatus.textContent = `Planner run ${payload.mutation.runId} completed`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 function renderSummary(data) {
   const activeProject = data.activeProject;
   const activeRuns = data.runs.filter((run) => run.status === 'running').length;
@@ -418,6 +534,7 @@ function renderSummary(data) {
   elements.runtimeRoot.textContent = state.payload?.runtimeRoot || 'Unavailable';
   elements.activeRunCount.textContent = String(activeRuns);
   elements.pendingGateCount.textContent = String(pendingGates);
+  elements.refreshButton.disabled = state.loading || state.mutating;
 }
 
 function renderNav(data) {
@@ -451,6 +568,7 @@ function renderNav(data) {
 
 function renderTaskboard(data) {
   const selectedTask = data.taskMap.get(state.selectedTaskId) || null;
+  const createDisabled = !data.activeProject || state.loading || state.mutating;
   const lanes = groupTasksByLifecycle(data.tasks)
     .map(([laneName, tasks]) => {
       const cards = tasks.length
@@ -514,8 +632,41 @@ function renderTaskboard(data) {
             <h2>Taskboard</h2>
             <p class="panel-copy">Lifecycle, flags, review state, and gate visibility by task.</p>
           </div>
-          <p class="runtime-note">Read-only</p>
+          <p class="runtime-note">Planner write enabled</p>
         </div>
+        <form class="task-create-form" data-form="create-task">
+          <div class="field-grid">
+            <label class="field">
+              <span class="field-label">Title</span>
+              <input
+                type="text"
+                name="title"
+                value="${escapeHtml(state.taskDraftTitle)}"
+                placeholder="Thin-slice task title"
+                ${createDisabled ? 'disabled' : ''}
+              >
+            </label>
+            <label class="field">
+              <span class="field-label">Intent</span>
+              <textarea
+                name="intent"
+                rows="3"
+                placeholder="Optional intended outcome and acceptance hint"
+                ${createDisabled ? 'disabled' : ''}
+              >${escapeHtml(state.taskDraftIntent)}</textarea>
+            </label>
+          </div>
+          <div class="form-actions">
+            <button class="primary-button" type="submit" ${createDisabled ? 'disabled' : ''}>Create Task</button>
+            <p class="form-help">
+              ${
+                data.activeProject
+                  ? `Creates a task in ${escapeHtml(data.activeProject.name)}.`
+                  : 'Active project required before creating tasks.'
+              }
+            </p>
+          </div>
+        </form>
         ${
           data.tasks.length > 0
             ? `<div class="lane-grid">${lanes}</div>`
@@ -550,6 +701,7 @@ function renderTaskDetail(task, data) {
   const taskApprovals = getTaskApprovals(task.id, data.approvals);
   const taskInboxItems = getTaskInboxItems(task.id, data.inboxItems);
   const latestRun = task.latestRunId ? data.runMap.get(task.latestRunId) : null;
+  const plannerDisabled = state.loading || state.mutating;
 
   return `
     <aside class="detail-card">
@@ -579,8 +731,24 @@ function renderTaskDetail(task, data) {
           <div class="kv-item">
             <p class="detail-key">Worktree</p>
             <strong>${escapeHtml(task.worktreeRef || 'Not linked')}</strong>
-            <p class="detail-copy">No worktree-specific UI in slice 01.</p>
+            <p class="detail-copy">No worktree-specific UI in slice 02.</p>
           </div>
+        </div>
+      </div>
+
+      <div class="detail-block">
+        <p class="detail-key">Planner Run</p>
+        <div class="form-actions form-actions-inline">
+          <button
+            class="primary-button"
+            type="button"
+            data-action="run-planner"
+            data-id="${escapeHtml(task.id)}"
+            ${plannerDisabled ? 'disabled' : ''}
+          >
+            Run Planner
+          </button>
+          <p class="form-help">Starts a planner-only run and updates task, log, and artifact links immediately.</p>
         </div>
       </div>
 
@@ -980,7 +1148,50 @@ document.addEventListener('click', async (event) => {
   }
 
   if (actionButton) {
-    await handleSelection(actionButton.dataset.action, actionButton.dataset.id);
+    try {
+      if (actionButton.dataset.action === 'run-planner') {
+        await runPlanner(actionButton.dataset.id);
+        return;
+      }
+
+      await handleSelection(actionButton.dataset.action, actionButton.dataset.id);
+    } catch (error) {
+      elements.refreshStatus.textContent = error.message || 'Action failed';
+      render();
+    }
+  }
+});
+
+document.addEventListener('input', (event) => {
+  const createTaskForm = event.target.closest('[data-form="create-task"]');
+
+  if (!createTaskForm) {
+    return;
+  }
+
+  if (event.target.name === 'title') {
+    state.taskDraftTitle = event.target.value;
+  }
+
+  if (event.target.name === 'intent') {
+    state.taskDraftIntent = event.target.value;
+  }
+});
+
+document.addEventListener('submit', async (event) => {
+  const createTaskForm = event.target.closest('[data-form="create-task"]');
+
+  if (!createTaskForm) {
+    return;
+  }
+
+  event.preventDefault();
+
+  try {
+    await submitCreateTask();
+  } catch (error) {
+    elements.refreshStatus.textContent = error.message || 'Task creation failed';
+    render();
   }
 });
 

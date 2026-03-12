@@ -591,7 +591,7 @@ function createRuntimeService(options = {}) {
     };
   }
 
-  function startPlaceholderRun(input) {
+  function startRun(input) {
     const state = store.loadState();
     const task = assertTask(input.taskId, state);
 
@@ -602,20 +602,51 @@ function createRuntimeService(options = {}) {
     state.runs[id] = {
       id,
       taskId: task.id,
-      kind: 'placeholder',
+      kind: input.kind || 'placeholder',
+      role: input.role || null,
       status: RUN_STATUS.RUNNING,
+      metadata: input.metadata || null,
+      summary: null,
       startedAt: now,
       finishedAt: null,
       logPath,
     };
 
     task.latestRunId = id;
-    task.lifecycleState = TASK_LIFECYCLE.IN_PROGRESS;
+
+    if (input.lifecycleState) {
+      task.lifecycleState = input.lifecycleState;
+    }
+
     task.updatedAt = now;
 
     store.saveState(state);
 
     return state.runs[id];
+  }
+
+  function startPlaceholderRun(input) {
+    return startRun({
+      ...input,
+      kind: 'placeholder',
+      lifecycleState: TASK_LIFECYCLE.IN_PROGRESS,
+    });
+  }
+
+  function completeRun(input) {
+    const state = store.loadState();
+    const run = assertRun(input.runId, state);
+    const task = assertTask(run.taskId, state);
+    const now = new Date().toISOString();
+
+    run.status = input.status || RUN_STATUS.COMPLETED;
+    run.finishedAt = now;
+    run.summary = input.summary || run.summary || null;
+
+    task.updatedAt = now;
+    store.saveState(state);
+
+    return run;
   }
 
   function getRun(runId) {
@@ -653,7 +684,8 @@ function createRuntimeService(options = {}) {
 
     const id = nextId(state, 'artifact');
     const createdAt = new Date().toISOString();
-    const filename = `${id}.md`;
+    const extension = input.extension || 'md';
+    const filename = `${id}.${extension}`;
     const content = input.content || `# ${id}\n`;
     const artifactPath = store.writeArtifact(filename, content);
 
@@ -661,7 +693,7 @@ function createRuntimeService(options = {}) {
       id,
       taskId: task.id,
       runId: run.id,
-      type: 'output',
+      type: input.type || 'output',
       path: artifactPath,
       createdAt,
     };
@@ -738,6 +770,7 @@ function createRuntimeService(options = {}) {
 
   return {
     appendLog,
+    completeRun,
     createApprovalPlaceholder,
     createDecisionInboxItem,
     createProject,
@@ -758,6 +791,7 @@ function createRuntimeService(options = {}) {
     resolveReview,
     resolveDecisionInboxItem,
     resetRuntime,
+    startRun,
     startPlaceholderRun,
     transitionTaskLifecycle,
   };

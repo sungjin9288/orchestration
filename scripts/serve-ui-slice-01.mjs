@@ -1,14 +1,18 @@
 import { createServer } from 'node:http';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import contractsModule from '../src/runtime/contracts.js';
+import executionCoordinatorModule from '../src/execution/execution-coordinator.js';
 import fileStoreModule from '../src/runtime/file-store.js';
+import runtimeServiceModule from '../src/runtime/runtime-service.js';
 
 const { createEmptyState } = contractsModule;
+const { createExecutionCoordinator } = executionCoordinatorModule;
 const { createFileStore } = fileStoreModule;
+const { createRuntimeService } = runtimeServiceModule;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,6 +51,11 @@ function parseArgs(argv) {
 
 const options = parseArgs(process.argv.slice(2));
 const store = createFileStore({ runtimeRoot: options.runtimeRoot });
+const runtime = createRuntimeService({ runtimeRoot: options.runtimeRoot });
+const executionCoordinator = createExecutionCoordinator({
+  repoRoot,
+  runtimeService: runtime,
+});
 
 function json(response, statusCode, payload) {
   response.writeHead(statusCode, {
@@ -70,6 +79,54 @@ function readSnapshotReadonly() {
   }
 
   return store.loadState();
+}
+
+function buildSnapshotResponse(extra = {}) {
+  return {
+    generatedAt: new Date().toISOString(),
+    runtimeRoot: options.runtimeRoot,
+    snapshot: readSnapshotReadonly(),
+    ...extra,
+  };
+}
+
+function getActiveProject(snapshot = readSnapshotReadonly()) {
+  if (!snapshot.activeProjectId) {
+    return null;
+  }
+
+  return snapshot.projects[snapshot.activeProjectId] || null;
+}
+
+function buildTaskRoutingOutcome(task) {
+  const scopeStatement = (task.intent || task.title || '').trim();
+
+  return {
+    classification: task.latestRunId ? 'task continuation' : 'new task',
+    scopeStatement: scopeStatement || `Plan the next thin slice for ${task.id}.`,
+    missingContext: [],
+    decisionNote: '',
+  };
+}
+
+async function readJsonBody(request) {
+  const chunks = [];
+
+  for await (const chunk of request) {
+    chunks.push(chunk);
+  }
+
+  if (chunks.length === 0) {
+    return {};
+  }
+
+  const rawBody = Buffer.concat(chunks).toString('utf8').trim();
+
+  if (!rawBody) {
+    return {};
+  }
+
+  return JSON.parse(rawBody);
 }
 
 async function serveStaticAsset(response, assetPath) {
@@ -134,17 +191,90 @@ const server = createServer(async (request, response) => {
   const method = request.method || 'GET';
   const url = new URL(request.url || '/', `http://${request.headers.host || '127.0.0.1'}`);
 
+  if (method === 'POST' && url.pathname === '/api/tasks') {
+    try {
+      const input = await readJsonBody(request);
+      const snapshot = readSnapshotReadonly();
+      const activeProject = getActiveProject(snapshot);
+      const title = String(input.title || '').trim();
+      const intent = String(input.intent || '').trim();
+
+      if (!activeProject) {
+        json(response, 400, { error: 'Active project is required before creating tasks' });
+        return;
+      }
+
+      if (!title) {
+        json(response, 400, { error: 'Task title is required' });
+        return;
+      }
+
+      const task = runtime.createTask({
+        projectId: activeProject.id,
+        title,
+        intent,
+      });
+
+      json(
+        response,
+        201,
+        buildSnapshotResponse({
+          mutation: {
+            kind: 'create-task',
+            taskId: task.id,
+          },
+          task,
+        }),
+      );
+      return;
+    } catch (error) {
+      json(response, 400, { error: error.message || 'Invalid request body' });
+      return;
+    }
+  }
+
+  const plannerRunMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)\/run-planner$/);
+
+  if (method === 'POST' && plannerRunMatch) {
+    try {
+      const taskId = decodeURIComponent(plannerRunMatch[1]);
+      const task = runtime.getTask(taskId);
+      const result = await executionCoordinator.runPlanner({
+        taskId: task.id,
+        routingOutcome: buildTaskRoutingOutcome(task),
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          artifactDetail: getArtifactPayload(result.artifact.id)?.artifact || null,
+          mutation: {
+            artifactId: result.artifact.id,
+            inboxItemId: result.decisionInboxItem?.id || null,
+            kind: 'run-planner',
+            normalizedResult: result.normalizedResult,
+            runId: result.run.id,
+            taskId: task.id,
+          },
+          runLogs: getRunLogsPayload(result.run.id),
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Planner run failed' });
+      return;
+    }
+  }
+
   if (method !== 'GET') {
     text(response, 405, 'Method Not Allowed', 'text/plain; charset=utf-8');
     return;
   }
 
   if (url.pathname === '/api/snapshot') {
-    json(response, 200, {
-      generatedAt: new Date().toISOString(),
-      runtimeRoot: options.runtimeRoot,
-      snapshot: readSnapshotReadonly(),
-    });
+    json(response, 200, buildSnapshotResponse());
     return;
   }
 
@@ -196,7 +326,7 @@ const server = createServer(async (request, response) => {
 
 server.listen(options.port, options.host, () => {
   console.log(
-    `ui-slice-01 listening on http://${options.host}:${options.port} (runtime root: ${options.runtimeRoot})`,
+    `ops shell listening on http://${options.host}:${options.port} (runtime root: ${options.runtimeRoot})`,
   );
 });
 
