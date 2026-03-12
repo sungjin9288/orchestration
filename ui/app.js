@@ -6,6 +6,7 @@ const state = {
   payload: null,
   loading: false,
   mutating: false,
+  selectionSeeded: false,
   error: null,
   selectedTaskId: null,
   selectedRunId: null,
@@ -207,6 +208,9 @@ function getLatestTaskArtifact(task, data, type = null) {
 
 function getPreferredTaskArtifact(task, data) {
   return (
+    getLatestTaskArtifact(task, data, 'change-summary') ||
+    getLatestTaskArtifact(task, data, 'diff') ||
+    getLatestTaskArtifact(task, data, 'patch') ||
     getLatestTaskArtifact(task, data, 'preflight') ||
     getLatestTaskArtifact(task, data, 'breakdown') ||
     getLatestTaskArtifact(task, data, 'architecture') ||
@@ -391,6 +395,34 @@ function parseMarkdownSections(content) {
   return sections;
 }
 
+function parseMarkdownKeyValueLines(content) {
+  const result = {};
+
+  for (const line of parseMarkdownBullets(content)) {
+    const separatorIndex = line.indexOf(':');
+
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex).trim().toLowerCase();
+    const value = line.slice(separatorIndex + 1).trim();
+
+    if (!key || !value) {
+      continue;
+    }
+
+    result[key] = value;
+  }
+
+  return result;
+}
+
+function parseIntegerValue(value) {
+  const parsed = Number.parseInt(String(value || '').trim(), 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function parseBreakdownArtifact(content) {
   const text = String(content || '').trim();
 
@@ -461,6 +493,70 @@ function parsePreflightArtifact(content) {
   ].some((items) => items.length > 0);
 
   return hasStructuredContent ? parsed : null;
+}
+
+function parseChangeSummaryArtifact(content) {
+  const text = String(content || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const sections = parseMarkdownSections(text);
+
+  if (!sections) {
+    return null;
+  }
+
+  const summaryValues = parseMarkdownKeyValueLines(sections['Change Summary']);
+  const parsed = {
+    approvalId: summaryValues['approval id'] || null,
+    changeSummary: parseMarkdownBullets(sections['Change Summary']),
+    commitOrReleaseExecuted: summaryValues['commit or release executed'] || null,
+    preparedFileUpdates: parseIntegerValue(summaryValues['prepared file updates']),
+    preflightArtifactId: summaryValues['preflight artifact'] || null,
+    reviewerExecuted: summaryValues['reviewer executed'] || null,
+    risks: parseMarkdownBullets(sections.Risks),
+    targetFileAllowlistCount: parseIntegerValue(summaryValues['target file allowlist count']),
+    targetFiles: parseMarkdownBullets(sections['Target Files']),
+    title: text.match(/^#\s+Builder Live Mutation:\s*(.+)$/m)?.[1]?.trim() || '',
+    verificationNotes: parseMarkdownBullets(sections['Verification Notes']),
+  };
+  const hasStructuredContent = [
+    parsed.changeSummary,
+    parsed.targetFiles,
+    parsed.risks,
+    parsed.verificationNotes,
+  ].some((items) => items.length > 0);
+
+  return hasStructuredContent ? parsed : null;
+}
+
+function parseUnifiedDiffArtifact(content) {
+  const text = String(content || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const filePaths = [
+    ...[...text.matchAll(/^diff --git a\/(.+?) b\/(.+)$/gm)].map((match) => match[2].trim()),
+    ...[...text.matchAll(/^\+\+\+ b\/(.+)$/gm)].map((match) => match[1].trim()),
+    ...[...text.matchAll(/^--- a\/(.+)$/gm)].map((match) => match[1].trim()),
+  ]
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const files = [...new Set(filePaths)];
+  const hunkCount = (text.match(/^@@/gm) || []).length;
+
+  if (files.length === 0 && hunkCount === 0) {
+    return null;
+  }
+
+  return {
+    files,
+    hunkCount,
+  };
 }
 
 function renderBreakdownList(title, items, options = {}) {
@@ -560,6 +656,67 @@ function renderStructuredPreflight(parsed) {
   `;
 }
 
+function renderStructuredChangeSummary(parsed) {
+  if (!parsed) {
+    return '';
+  }
+
+  return `
+    <div class="breakdown-structured">
+      ${parsed.title ? `<p class="breakdown-title">${escapeHtml(parsed.title)}</p>` : ''}
+      <div class="token-row">
+        ${
+          parsed.preflightArtifactId
+            ? createToken(`preflight:${parsed.preflightArtifactId}`, 'neutral')
+            : ''
+        }
+        ${parsed.approvalId ? createToken(`approval:${parsed.approvalId}`, 'neutral') : ''}
+        ${
+          parsed.targetFileAllowlistCount !== null
+            ? createToken(`allowlist:${parsed.targetFileAllowlistCount}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.preparedFileUpdates !== null
+            ? createToken(`updates:${parsed.preparedFileUpdates}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.reviewerExecuted
+            ? createToken(`reviewer:${parsed.reviewerExecuted}`, 'warning')
+            : ''
+        }
+        ${
+          parsed.commitOrReleaseExecuted
+            ? createToken(`commit/release:${parsed.commitOrReleaseExecuted}`, 'warning')
+            : ''
+        }
+      </div>
+      ${renderBreakdownList('Change Summary', parsed.changeSummary)}
+      ${renderBreakdownList('Target Files', parsed.targetFiles)}
+      ${renderBreakdownList('Risks', parsed.risks)}
+      ${renderBreakdownList('Verification Notes', parsed.verificationNotes)}
+    </div>
+  `;
+}
+
+function renderStructuredUnifiedDiff(parsed, label) {
+  if (!parsed) {
+    return '';
+  }
+
+  return `
+    <div class="breakdown-structured">
+      <div class="token-row">
+        ${createToken(label, 'neutral')}
+        ${createToken(`files:${parsed.files.length}`, 'neutral')}
+        ${createToken(`hunks:${parsed.hunkCount}`, 'neutral')}
+      </div>
+      ${renderBreakdownList('Files', parsed.files)}
+    </div>
+  `;
+}
+
 function renderCompactList(title, items, limit = 2) {
   if (!Array.isArray(items) || items.length === 0) {
     return '';
@@ -628,6 +785,207 @@ function getApprovalDisplayTone(status) {
   }
 
   return 'neutral';
+}
+
+function getArtifactsForRun(runId, data) {
+  return data.artifacts
+    .filter((artifact) => artifact.runId === runId)
+    .sort(sortByCreatedDesc);
+}
+
+function findLatestRunForPreflightArtifact(artifact, data) {
+  if (!artifact || artifact.type !== 'preflight') {
+    return null;
+  }
+
+  return (
+    data.runs
+      .filter((run) => {
+        const summary = run.summary && typeof run.summary === 'object' ? run.summary : null;
+        return (
+          summary?.executionMode === 'live-mutation' &&
+          summary?.preflightArtifactId === artifact.id
+        );
+      })
+      .sort(sortByCreatedDesc)[0] || null
+  );
+}
+
+function getRunArtifactBundle(run, data) {
+  if (!run) {
+    return null;
+  }
+
+  const summary = run.summary && typeof run.summary === 'object' ? run.summary : {};
+  const artifactIds =
+    summary.artifactIds && typeof summary.artifactIds === 'object' ? summary.artifactIds : {};
+  const inputArtifactIds = Array.isArray(summary.inputArtifactIds) ? summary.inputArtifactIds : [];
+  const sameRunArtifacts = getArtifactsForRun(run.id, data);
+  const inputArtifacts = inputArtifactIds
+    .map((artifactId) => data.artifactMap.get(artifactId))
+    .filter(Boolean);
+
+  return {
+    approvalId: summary.approvalId || null,
+    changeSummaryArtifact:
+      (artifactIds.changeSummary && data.artifactMap.get(artifactIds.changeSummary)) ||
+      sameRunArtifacts.find((artifact) => artifact.type === 'change-summary') ||
+      null,
+    changedFiles: Array.isArray(summary.changedFiles) ? summary.changedFiles : [],
+    diffArtifact:
+      (artifactIds.diff && data.artifactMap.get(artifactIds.diff)) ||
+      sameRunArtifacts.find((artifact) => artifact.type === 'diff') ||
+      null,
+    executionMode: summary.executionMode || run.metadata?.executionMode || null,
+    inputArtifacts,
+    patchArtifact:
+      (artifactIds.patch && data.artifactMap.get(artifactIds.patch)) ||
+      sameRunArtifacts.find((artifact) => artifact.type === 'patch') ||
+      null,
+    preflightArtifact:
+      (summary.preflightArtifactId && data.artifactMap.get(summary.preflightArtifactId)) ||
+      inputArtifacts.find((artifact) => artifact.type === 'preflight') ||
+      null,
+    run,
+  };
+}
+
+function getPreferredArtifactForRun(run, data) {
+  const bundle = getRunArtifactBundle(run, data);
+
+  return (
+    bundle?.changeSummaryArtifact ||
+    bundle?.diffArtifact ||
+    bundle?.patchArtifact ||
+    getArtifactsForRun(run.id, data)[0] ||
+    null
+  );
+}
+
+function getArtifactRelationContext(artifact, data, options = {}) {
+  if (!artifact) {
+    return null;
+  }
+
+  const parsedChangeSummary = options.parsedChangeSummary || null;
+  let run = data.runMap.get(artifact.runId) || null;
+  let bundle = run ? getRunArtifactBundle(run, data) : null;
+
+  if (!bundle && artifact.type === 'preflight') {
+    run = findLatestRunForPreflightArtifact(artifact, data);
+    bundle = run ? getRunArtifactBundle(run, data) : null;
+  }
+
+  return {
+    approvalId: bundle?.approvalId || parsedChangeSummary?.approvalId || null,
+    changeSummaryArtifact:
+      bundle?.changeSummaryArtifact || (artifact.type === 'change-summary' ? artifact : null),
+    changedFiles: bundle?.changedFiles || [],
+    diffArtifact: bundle?.diffArtifact || (artifact.type === 'diff' ? artifact : null),
+    executionMode: bundle?.executionMode || null,
+    patchArtifact: bundle?.patchArtifact || (artifact.type === 'patch' ? artifact : null),
+    preflightArtifact:
+      bundle?.preflightArtifact ||
+      (parsedChangeSummary?.preflightArtifactId
+        ? data.artifactMap.get(parsedChangeSummary.preflightArtifactId) || null
+        : null) ||
+      (artifact.type === 'preflight' ? artifact : null),
+    run,
+  };
+}
+
+function renderRelationButton(label, action, id, tone = 'neutral', isSelected = false) {
+  if (!id) {
+    return '';
+  }
+
+  return `
+    <button
+      class="token-button token token-${tone} ${isSelected ? 'is-selected' : ''}"
+      type="button"
+      data-action="${escapeHtml(action)}"
+      data-id="${escapeHtml(id)}"
+    >
+      ${escapeHtml(label)}
+    </button>
+  `;
+}
+
+function renderRelationStrip(context) {
+  if (!context) {
+    return '';
+  }
+
+  const relationButtons = [
+    context.run
+      ? renderRelationButton(
+          `run:${context.run.id}`,
+          'select-run',
+          context.run.id,
+          'neutral',
+          state.selectedRunId === context.run.id,
+        )
+      : '',
+    context.preflightArtifact
+      ? renderRelationButton(
+          `preflight:${context.preflightArtifact.id}`,
+          'select-artifact',
+          context.preflightArtifact.id,
+          'neutral',
+          state.selectedArtifactId === context.preflightArtifact.id,
+        )
+      : '',
+    context.changeSummaryArtifact
+      ? renderRelationButton(
+          `change-summary:${context.changeSummaryArtifact.id}`,
+          'select-artifact',
+          context.changeSummaryArtifact.id,
+          'neutral',
+          state.selectedArtifactId === context.changeSummaryArtifact.id,
+        )
+      : '',
+    context.patchArtifact
+      ? renderRelationButton(
+          `patch:${context.patchArtifact.id}`,
+          'select-artifact',
+          context.patchArtifact.id,
+          'neutral',
+          state.selectedArtifactId === context.patchArtifact.id,
+        )
+      : '',
+    context.diffArtifact
+      ? renderRelationButton(
+          `diff:${context.diffArtifact.id}`,
+          'select-artifact',
+          context.diffArtifact.id,
+          'neutral',
+          state.selectedArtifactId === context.diffArtifact.id,
+        )
+      : '',
+  ]
+    .filter(Boolean)
+    .join('');
+  const contextTokens = [
+    context.executionMode ? createToken(`mode:${context.executionMode}`, 'neutral') : '',
+    context.approvalId ? createToken(`approval:${context.approvalId}`, 'neutral') : '',
+    context.changedFiles.length > 0
+      ? createToken(`changed files:${context.changedFiles.length}`, 'neutral')
+      : '',
+  ]
+    .filter(Boolean)
+    .join('');
+
+  if (!relationButtons && !contextTokens && context.changedFiles.length === 0) {
+    return '';
+  }
+
+  return `
+    <div class="relation-strip">
+      ${contextTokens ? `<div class="token-row">${contextTokens}</div>` : ''}
+      ${relationButtons ? `<div class="relation-button-row">${relationButtons}</div>` : ''}
+      ${renderCompactList('Changed Files', context.changedFiles, 4)}
+    </div>
+  `;
 }
 
 function getInboxTone(item) {
@@ -755,43 +1113,83 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
 }
 
 function ensureSelection(data) {
-  const selectedTask = data.taskMap.get(state.selectedTaskId);
+  const selectedRun = data.runMap.get(state.selectedRunId) || null;
+  const selectedArtifact = data.artifactMap.get(state.selectedArtifactId) || null;
+  const selectedInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
 
-  if (!selectedTask) {
-    state.selectedTaskId = data.tasks[0]?.id || null;
+  if (!state.selectionSeeded) {
+    state.selectedTaskId =
+      selectedArtifact?.taskId ||
+      selectedRun?.taskId ||
+      selectedInboxItem?.taskId ||
+      data.tasks[0]?.id ||
+      null;
+
+    const initialTask = data.taskMap.get(state.selectedTaskId) || null;
+    const initialRun =
+      selectedRun ||
+      (initialTask?.latestRunId && data.runMap.has(initialTask.latestRunId)
+        ? data.runMap.get(initialTask.latestRunId)
+        : null);
+    const initialArtifact =
+      selectedArtifact ||
+      (initialRun ? getPreferredArtifactForRun(initialRun, data) : null) ||
+      (initialTask ? getPreferredTaskArtifact(initialTask, data) : null) ||
+      data.artifacts[0] ||
+      null;
+
+    state.selectedRunId = initialRun?.id || null;
+    state.selectedArtifactId = initialArtifact?.id || null;
+    state.selectedInboxItemId =
+      selectedInboxItem?.id ||
+      (initialTask ? getPreferredTaskInboxItem(initialTask.id, data)?.id || null : null) ||
+      data.inboxItems.find((item) => item.status === 'pending')?.id ||
+      data.inboxItems[0]?.id ||
+      null;
+    state.selectionSeeded = true;
+    return;
+  }
+
+  if (state.selectedRunId && !selectedRun) {
+    state.selectedRunId = null;
+  }
+
+  if (state.selectedArtifactId && !selectedArtifact) {
+    state.selectedArtifactId = null;
+  }
+
+  if (state.selectedInboxItemId && !selectedInboxItem) {
+    state.selectedInboxItemId = null;
+  }
+
+  if (!state.selectedTaskId || !data.taskMap.has(state.selectedTaskId)) {
+    state.selectedTaskId =
+      (state.selectedArtifactId && data.artifactMap.get(state.selectedArtifactId)?.taskId) ||
+      (state.selectedRunId && data.runMap.get(state.selectedRunId)?.taskId) ||
+      (state.selectedInboxItemId && data.inboxItemMap.get(state.selectedInboxItemId)?.taskId) ||
+      data.tasks[0]?.id ||
+      null;
   }
 
   const activeTask = data.taskMap.get(state.selectedTaskId) || null;
-  const preferredRunId =
-    activeTask?.latestRunId && data.runMap.has(activeTask.latestRunId) ? activeTask.latestRunId : null;
-  const selectedRun = data.runMap.get(state.selectedRunId) || null;
+  const currentRun = state.selectedRunId ? data.runMap.get(state.selectedRunId) || null : null;
+  const currentArtifact = state.selectedArtifactId
+    ? data.artifactMap.get(state.selectedArtifactId) || null
+    : null;
+  const currentInboxItem = state.selectedInboxItemId
+    ? data.inboxItemMap.get(state.selectedInboxItemId) || null
+    : null;
 
-  if (!selectedRun || (activeTask && selectedRun.taskId !== activeTask.id)) {
-    state.selectedRunId = preferredRunId;
+  if (currentRun && activeTask && currentRun.taskId !== activeTask.id) {
+    state.selectedRunId = null;
   }
 
-  if (activeTask) {
-    const selectedArtifact = data.artifactMap.get(state.selectedArtifactId) || null;
-    const preferredTaskArtifact = getPreferredTaskArtifact(activeTask, data);
-
-    if (!selectedArtifact || selectedArtifact.taskId !== activeTask.id) {
-      state.selectedArtifactId = preferredTaskArtifact?.id || null;
-    }
-  } else if (!data.artifactMap.has(state.selectedArtifactId)) {
-    state.selectedArtifactId = data.artifacts[0]?.id || null;
+  if (currentArtifact && activeTask && currentArtifact.taskId !== activeTask.id) {
+    state.selectedArtifactId = null;
   }
 
-  const pendingForTask = activeTask
-    ? data.inboxItems.filter((item) => item.taskId === activeTask.id && item.status === 'pending')
-    : [];
-  const nextInboxItem =
-    pendingForTask[0]?.id ||
-    data.inboxItems.find((item) => item.status === 'pending')?.id ||
-    data.inboxItems[0]?.id ||
-    null;
-
-  if (!data.inboxItemMap.has(state.selectedInboxItemId)) {
-    state.selectedInboxItemId = nextInboxItem;
+  if (currentInboxItem && activeTask && currentInboxItem.taskId !== activeTask.id) {
+    state.selectedInboxItemId = null;
   }
 }
 
@@ -932,6 +1330,7 @@ function syncSelectionsFromTask(taskId, options = {}) {
   const currentInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
 
   state.selectedTaskId = taskId;
+  state.selectionSeeded = true;
 
   if (preferredRun && preferredRun.taskId === taskId) {
     state.selectedRunId = preferredRun.id;
@@ -987,7 +1386,11 @@ async function handleSelection(action, id) {
     state.selectedRunId = id;
 
     if (run) {
-      syncSelectionsFromTask(run.taskId);
+      const preferredArtifact = getPreferredArtifactForRun(run, data);
+
+      syncSelectionsFromTask(run.taskId, {
+        preferredArtifactId: preferredArtifact?.id || null,
+      });
       state.selectedRunId = id;
     }
   }
@@ -1058,6 +1461,7 @@ async function submitCreateTask() {
     state.selectedTaskPreflightArtifact = null;
     state.taskDraftTitle = '';
     state.taskDraftIntent = '';
+    state.selectionSeeded = true;
     state.surface = 'taskboard';
     render();
     elements.refreshStatus.textContent = `Created task ${payload.task.id}`;
@@ -1255,7 +1659,7 @@ async function runBuilderLiveMutation(taskId) {
       preferredRunId: payload.mutation.runId,
     });
     await hydrateSelectedDetails();
-    state.surface = 'artifacts';
+    state.surface = 'logs';
     render();
     elements.refreshStatus.textContent = `Builder live mutation run ${payload.mutation.runId} completed`;
   } finally {
@@ -1822,7 +2226,10 @@ function renderTaskDetail(task, data) {
 
 function renderLogs(data) {
   const selectedRun = data.runMap.get(state.selectedRunId) || null;
-  const selectedTask = selectedRun ? data.taskMap.get(selectedRun.taskId) : data.taskMap.get(state.selectedTaskId) || null;
+  const selectedTask = selectedRun
+    ? data.taskMap.get(selectedRun.taskId)
+    : data.taskMap.get(state.selectedTaskId) || null;
+  const runBundle = selectedRun ? getRunArtifactBundle(selectedRun, data) : null;
   const logs = state.selectedRunLogs?.logs || [];
   const logText =
     logs.length > 0
@@ -1901,6 +2308,16 @@ function renderLogs(data) {
                 </div>
               </div>
               <div class="detail-block">
+                <p class="detail-key">Run Linkage</p>
+                <p class="detail-copy">Client-first links from the selected run to its input preflight and saved mutation artifacts.</p>
+                ${
+                  runBundle
+                    ? renderRelationStrip(runBundle) ||
+                      '<p class="detail-copy">No direct artifact linkage recorded for this run.</p>'
+                    : '<p class="detail-copy">No direct artifact linkage recorded for this run.</p>'
+                }
+              </div>
+              <div class="detail-block">
                 <p class="detail-key">Output</p>
                 <pre class="log-viewer">${escapeHtml(logText)}</pre>
               </div>
@@ -1919,7 +2336,9 @@ function renderLogs(data) {
 
 function renderArtifacts(data) {
   const selectedArtifactMeta = data.artifactMap.get(state.selectedArtifactId) || null;
-  const selectedArtifactTask = selectedArtifactMeta ? data.taskMap.get(selectedArtifactMeta.taskId) : null;
+  const selectedArtifactTask = selectedArtifactMeta
+    ? data.taskMap.get(selectedArtifactMeta.taskId)
+    : null;
   const selectedInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
   const parsedBreakdown =
     selectedArtifactMeta?.type === 'breakdown' && state.selectedArtifact?.content
@@ -1929,6 +2348,20 @@ function renderArtifacts(data) {
     selectedArtifactMeta?.type === 'preflight' && state.selectedArtifact?.content
       ? parsePreflightArtifact(state.selectedArtifact.content)
       : null;
+  const parsedChangeSummary =
+    selectedArtifactMeta?.type === 'change-summary' && state.selectedArtifact?.content
+      ? parseChangeSummaryArtifact(state.selectedArtifact.content)
+      : null;
+  const parsedUnifiedDiff =
+    (selectedArtifactMeta?.type === 'patch' || selectedArtifactMeta?.type === 'diff') &&
+    state.selectedArtifact?.content
+      ? parseUnifiedDiffArtifact(state.selectedArtifact.content)
+      : null;
+  const artifactRelationContext = selectedArtifactMeta
+    ? getArtifactRelationContext(selectedArtifactMeta, data, {
+        parsedChangeSummary,
+      })
+    : null;
   const preselectedPendingItem =
     selectedArtifactTask &&
     selectedInboxItem &&
@@ -1994,6 +2427,14 @@ function renderArtifacts(data) {
                 <p class="detail-copy mono">${escapeHtml(selectedArtifactMeta.path)}</p>
               </div>
               <div class="detail-block">
+                <p class="detail-key">Relation Strip</p>
+                <p class="detail-copy">Client-first linkage only. If run or artifact metadata is incomplete, the raw detail remains the source of truth.</p>
+                ${
+                  renderRelationStrip(artifactRelationContext) ||
+                  '<p class="detail-copy">No direct run or artifact linkage recorded for this artifact.</p>'
+                }
+              </div>
+              <div class="detail-block">
                 <p class="detail-key">Preview</p>
                 ${
                   selectedArtifactMeta.type === 'breakdown' && parsedBreakdown
@@ -2010,6 +2451,27 @@ function renderArtifacts(data) {
                         `
                         : selectedArtifactMeta.type === 'preflight'
                           ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                        : selectedArtifactMeta.type === 'change-summary' && parsedChangeSummary
+                          ? `
+                            <p class="detail-copy">Best-effort structured view of the stored builder live mutation change summary. Raw markdown remains below.</p>
+                            ${renderStructuredChangeSummary(parsedChangeSummary)}
+                          `
+                          : selectedArtifactMeta.type === 'change-summary'
+                            ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                          : selectedArtifactMeta.type === 'patch' && parsedUnifiedDiff
+                            ? `
+                              <p class="detail-copy">Best-effort summary of the stored planned patch. Raw patch text remains below.</p>
+                              ${renderStructuredUnifiedDiff(parsedUnifiedDiff, 'planned patch')}
+                            `
+                            : selectedArtifactMeta.type === 'patch'
+                              ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw patch fallback.</p>'
+                            : selectedArtifactMeta.type === 'diff' && parsedUnifiedDiff
+                              ? `
+                                <p class="detail-copy">Best-effort summary of the stored observed diff. Raw diff text remains below.</p>
+                                ${renderStructuredUnifiedDiff(parsedUnifiedDiff, 'observed diff')}
+                              `
+                              : selectedArtifactMeta.type === 'diff'
+                                ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw diff fallback.</p>'
                       : ''
                 }
                 ${
@@ -2067,7 +2529,9 @@ function renderArtifacts(data) {
                     : ''
                 }
                 <p class="detail-key">${
-                  selectedArtifactMeta.type === 'breakdown' || selectedArtifactMeta.type === 'preflight'
+                  selectedArtifactMeta.type === 'breakdown' ||
+                  selectedArtifactMeta.type === 'preflight' ||
+                  selectedArtifactMeta.type === 'change-summary'
                     ? 'Raw Markdown'
                     : 'Raw Preview'
                 }</p>

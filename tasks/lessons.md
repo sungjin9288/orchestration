@@ -20,3 +20,4 @@
 - live mutation approval request도 클라이언트 추정 target이 아니라 서버가 latest preflight를 다시 잡고, same-target pending/approved만 disable/409로 막고, rejected/stale는 새 요청을 허용하는 편이 drift와 duplicate를 줄인다.
 - limited live mutation은 preflight target allowlist 기준 사전 검증과 apply 후 actual changed files 재검증을 둘 다 가져가야 patch drift나 숨은 파일 변경을 확실히 막을 수 있다.
 - markdown artifact section parser는 PCRE식 EOF 토큰에 기대면 base64/patch payload에서 잘릴 수 있으므로, JS에서는 lookahead 기반 section 종료 규칙으로 고정하는 편이 안전하다.
+- live mutation 결과는 Artifacts list를 전면 개편하기보다 Logs-first landing + run summary linkage + artifact detail relation strip으로 읽게 만드는 편이 thin slice와 selection 안정성에 더 맞았다.

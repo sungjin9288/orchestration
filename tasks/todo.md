@@ -18,6 +18,7 @@
 - [x] ui-slice-04
 - [x] ui-slice-05
 - [x] ui-slice-06
+- [x] ui-slice-07
 
 ## later
 - [ ] provider adapter
