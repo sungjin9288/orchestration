@@ -120,7 +120,7 @@ async function main() {
     assert.match(appJs, /renderStructuredPreflight/);
     assert.match(appJs, /compact summary/);
     assert.match(appJs, /taskGuardSummaries/);
-    assert.match(appJs, /live mutation:blocked/);
+    assert.match(appJs, /live mutation guard:blocked/);
     assert.equal((appJs.match(/applyTaskInboxPreselect: true/g) || []).length, 3);
     assert.match(stylesCss, /\.compact-list/);
 

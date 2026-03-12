@@ -380,6 +380,46 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const builderLiveApprovalRequestMatch = url.pathname.match(
+    /^\/api\/tasks\/([^/]+)\/request-builder-live-mutation-approval$/,
+  );
+
+  if (method === 'POST' && builderLiveApprovalRequestMatch) {
+    try {
+      const taskId = decodeURIComponent(builderLiveApprovalRequestMatch[1]);
+      const approval = runtime.requestBuilderLiveMutationApproval({
+        taskId,
+      });
+
+      json(
+        response,
+        201,
+        buildSnapshotResponse({
+          approval: runtime.getApproval(approval.id),
+          item: runtime.getDecisionInboxItem(approval.inboxItemId),
+          mutation: {
+            approvalId: approval.id,
+            inboxItemId: approval.inboxItemId,
+            kind: 'request-builder-live-mutation-approval',
+            targetArtifactId: approval.targetArtifactId,
+            targetRunId: approval.targetRunId,
+            taskId,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(
+        response,
+        statusCode,
+        { error: error.message || 'Builder live mutation approval request failed' },
+      );
+      return;
+    }
+  }
+
   const inboxActionMatch = url.pathname.match(/^\/api\/decision-inbox\/([^/]+)\/actions$/);
 
   if (method === 'POST' && inboxActionMatch) {

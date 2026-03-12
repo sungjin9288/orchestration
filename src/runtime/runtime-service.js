@@ -298,6 +298,14 @@ function createRuntimeService(options = {}) {
     };
   }
 
+  function buildLatestApprovalDisplayStatus(approvalEvaluation) {
+    if (approvalEvaluation.stale) {
+      return 'stale';
+    }
+
+    return approvalEvaluation.latestApproval?.status || 'none';
+  }
+
   function buildTaskBreakerGuardSummary(task, state) {
     const latestPlanArtifact = findLatestTaskArtifactMeta(task, state, 'plan');
     const latestArchitectureArtifact = findLatestTaskArtifactMeta(task, state, 'architecture');
@@ -434,6 +442,62 @@ function createRuntimeService(options = {}) {
       approvalStale: approvalEvaluation.stale,
       currentPreflightArtifactId: approvalEvaluation.currentPreflightArtifactId,
       currentPreflightRunId: approvalEvaluation.currentPreflightRunId,
+      latestApprovalDisplayStatus: buildLatestApprovalDisplayStatus(approvalEvaluation),
+      latestApprovalId: approvalEvaluation.latestApproval?.id || null,
+      latestApprovalStatus: approvalEvaluation.latestApproval?.status || null,
+      pendingBlockingDecisionItemIds: pendingBlockingDecisionItems.map((item) => item.id),
+      reasons: uniqueReasons(reasons),
+      targetPreflightArtifactId: approvalEvaluation.latestApproval?.targetArtifactId || null,
+      targetPreflightRunId: approvalEvaluation.latestApproval?.targetRunId || null,
+    };
+  }
+
+  function buildBuilderLiveMutationApprovalRequestSummary(task, state) {
+    const currentPreflight = getLatestPreflightContext(task, state);
+    const pendingBlockingDecisionItems = listPendingBlockingDecisionItems(task.id, state);
+    const approvalEvaluation = evaluateLatestApprovalForAction({
+      action: BUILDER_ACTION.LIVE_MUTATION,
+      currentPreflight,
+      requireCurrentPreflightTarget: true,
+      state,
+      task,
+    });
+    const reasons = [];
+    let conflict = false;
+
+    if (!currentPreflight.artifact || !currentPreflight.run) {
+      reasons.push('latest preflight artifact required');
+    }
+
+    if (pendingBlockingDecisionItems.length > 0) {
+      reasons.push(
+        `blocking decision items: ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
+      );
+    }
+
+    if (approvalEvaluation.latestApproval && !approvalEvaluation.stale) {
+      if (approvalEvaluation.latestApproval.status === APPROVAL_STATUS.PENDING) {
+        conflict = true;
+        reasons.push(
+          `latest approval ${approvalEvaluation.latestApproval.id} for ${BUILDER_ACTION.LIVE_MUTATION} is already pending for preflight ${approvalEvaluation.currentPreflightArtifactId}`,
+        );
+      }
+
+      if (approvalEvaluation.latestApproval.status === APPROVAL_STATUS.APPROVED) {
+        conflict = true;
+        reasons.push(
+          `latest approval ${approvalEvaluation.latestApproval.id} for ${BUILDER_ACTION.LIVE_MUTATION} already covers preflight ${approvalEvaluation.currentPreflightArtifactId}`,
+        );
+      }
+    }
+
+    return {
+      allowed: reasons.length === 0,
+      approvalStale: approvalEvaluation.stale,
+      conflict,
+      currentPreflightArtifactId: approvalEvaluation.currentPreflightArtifactId,
+      currentPreflightRunId: approvalEvaluation.currentPreflightRunId,
+      latestApprovalDisplayStatus: buildLatestApprovalDisplayStatus(approvalEvaluation),
       latestApprovalId: approvalEvaluation.latestApproval?.id || null,
       latestApprovalStatus: approvalEvaluation.latestApproval?.status || null,
       pendingBlockingDecisionItemIds: pendingBlockingDecisionItems.map((item) => item.id),
@@ -448,6 +512,10 @@ function createRuntimeService(options = {}) {
     const task = assertTask(taskId, loadedState);
 
     return {
+      builderLiveMutationApprovalRequest: buildBuilderLiveMutationApprovalRequestSummary(
+        task,
+        loadedState,
+      ),
       builderLiveMutation: buildBuilderLiveMutationGuardSummary(task, loadedState),
       builderPreflight: buildBuilderPreflightGuardSummary(task, loadedState),
       taskBreaker: buildTaskBreakerGuardSummary(task, loadedState),
@@ -801,10 +869,8 @@ function createRuntimeService(options = {}) {
     return item;
   }
 
-  function createApprovalPlaceholder(input) {
-    const state = store.loadState();
+  function createApprovalPlaceholderRecord(state, input, now) {
     const task = assertTask(input.taskId, state);
-    const now = new Date().toISOString();
     const approvalId = nextId(state, 'approval');
     const inboxItemId = nextId(state, 'decisionInboxItem');
     let targetArtifactId = null;
@@ -871,11 +937,58 @@ function createRuntimeService(options = {}) {
       now,
     });
 
+    return state.approvals[approvalId];
+  }
+
+  function createApprovalPlaceholder(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const now = new Date().toISOString();
+    const approval = createApprovalPlaceholderRecord(state, input, now);
+
     recalculateTaskFlags(task, state);
     task.updatedAt = now;
     store.saveState(state);
 
-    return state.approvals[approvalId];
+    return approval;
+  }
+
+  function requestBuilderLiveMutationApproval(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const summary = buildBuilderLiveMutationApprovalRequestSummary(task, state);
+
+    if (!summary.allowed) {
+      const error = new Error(
+        `Task ${task.id} cannot request builder live mutation approval: ${summary.reasons.join('; ')}`,
+      );
+
+      error.statusCode = summary.conflict ? 409 : 400;
+      throw error;
+    }
+
+    const now = new Date().toISOString();
+    const approval = createApprovalPlaceholderRecord(
+      state,
+      {
+        taskId: task.id,
+        scope: input.scope || 'builder',
+        allowedNextAction: BUILDER_ACTION.LIVE_MUTATION,
+        targetArtifactId: summary.currentPreflightArtifactId,
+        targetRunId: summary.currentPreflightRunId,
+        title: input.title || 'Approval required: builder live mutation',
+        prompt:
+          input.prompt ||
+          `Approval required before builder live mutation for preflight ${summary.currentPreflightArtifactId}.`,
+      },
+      now,
+    );
+
+    recalculateTaskFlags(task, state);
+    task.updatedAt = now;
+    store.saveState(state);
+
+    return approval;
   }
 
   function transitionTaskLifecycle(input) {
@@ -1170,6 +1283,7 @@ function createRuntimeService(options = {}) {
     listDecisionInboxItems,
     listTaskGuardSummaries,
     recordArtifact,
+    requestBuilderLiveMutationApproval,
     resolveReview,
     resolveDecisionInboxItem,
     resetRuntime,

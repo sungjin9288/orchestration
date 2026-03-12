@@ -330,6 +330,24 @@ function getBuilderPreflightAvailability(task, data) {
   };
 }
 
+function getBuilderLiveMutationSummaries(task, data) {
+  const summaries = task ? data.derived?.taskGuardSummaries?.[task.id] || null : null;
+
+  return {
+    guardSummary: summaries?.builderLiveMutation || {
+      allowed: false,
+      latestApprovalDisplayStatus: 'none',
+      reasons: ['runtime guard unavailable'],
+    },
+    requestSummary: summaries?.builderLiveMutationApprovalRequest || {
+      allowed: false,
+      conflict: false,
+      latestApprovalDisplayStatus: 'none',
+      reasons: ['runtime request summary unavailable'],
+    },
+  };
+}
+
 function stripMarkdownBullet(line) {
   return String(line || '')
     .trim()
@@ -592,6 +610,26 @@ function getApprovalTone(status) {
   return 'warning';
 }
 
+function getApprovalDisplayTone(status) {
+  if (status === 'approved') {
+    return 'success';
+  }
+
+  if (status === 'rejected') {
+    return 'danger';
+  }
+
+  if (status === 'stale') {
+    return 'warning';
+  }
+
+  if (status === 'pending') {
+    return 'accent';
+  }
+
+  return 'neutral';
+}
+
 function getInboxTone(item) {
   if (item.status === 'resolved') {
     return 'success';
@@ -606,6 +644,86 @@ function getInboxTone(item) {
   }
 
   return 'warning';
+}
+
+function renderReasonList(title, items) {
+  return renderCompactList(title, items, Array.isArray(items) ? items.length : 0);
+}
+
+function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
+  if (!task) {
+    return '';
+  }
+
+  const { guardSummary, requestSummary } = getBuilderLiveMutationSummaries(task, data);
+  const requestDisabled = state.loading || state.mutating || !requestSummary.allowed;
+  const requestHelp = requestSummary.allowed
+    ? `Creates a new approval inbox item for ${requestSummary.currentPreflightArtifactId}.`
+    : `Approval request stays disabled until ${
+        (requestSummary.reasons || []).join('; ') || 'the latest preflight is ready'
+      }.`;
+
+  return `
+    <div class="guard-summary">
+      <div class="token-row">
+        ${
+          guardSummary.allowed
+            ? createToken('live mutation guard:ready', 'success')
+            : createToken('live mutation guard:blocked', 'danger')
+        }
+        ${createToken(
+          `latest approval:${guardSummary.latestApprovalDisplayStatus || 'none'}`,
+          getApprovalDisplayTone(guardSummary.latestApprovalDisplayStatus || 'none'),
+        )}
+        ${
+          requestSummary.currentPreflightArtifactId
+            ? createToken(`current preflight:${requestSummary.currentPreflightArtifactId}`, 'neutral')
+            : createToken('current preflight:none', 'warning')
+        }
+        ${
+          guardSummary.targetPreflightArtifactId
+            ? createToken(`approval target:${guardSummary.targetPreflightArtifactId}`, 'neutral')
+            : ''
+        }
+        ${
+          requestSummary.allowed
+            ? createToken('request:available', 'success')
+            : createToken('request:disabled', requestSummary.conflict ? 'danger' : 'warning')
+        }
+      </div>
+      <p class="detail-copy">
+        Runtime-derived summary for future builder live mutation. This slice only requests approval; it does not execute live mutation.
+      </p>
+      ${
+        guardSummary.reasons?.length
+          ? renderReasonList('Live Mutation Guard Reasons', guardSummary.reasons)
+          : '<p class="detail-copy">No live mutation guard reasons remain for the latest preflight target.</p>'
+      }
+      ${
+        requestSummary.reasons?.length
+          ? renderReasonList('Approval Request Disabled By', requestSummary.reasons)
+          : '<p class="detail-copy">Approval request is available for the latest preflight target.</p>'
+      }
+      ${
+        options.includeRequestAction === false
+          ? ''
+          : `
+            <div class="form-actions form-actions-inline">
+              <button
+                class="secondary-button"
+                type="button"
+                data-action="request-builder-live-mutation-approval"
+                data-id="${escapeHtml(task.id)}"
+                ${requestDisabled ? 'disabled' : ''}
+              >
+                Request Live Mutation Approval
+              </button>
+              <p class="form-help">${escapeHtml(requestHelp)}</p>
+            </div>
+          `
+      }
+    </div>
+  `;
 }
 
 function ensureSelection(data) {
@@ -1050,6 +1168,41 @@ async function runBuilderPreflight(taskId) {
   }
 }
 
+async function requestBuilderLiveMutationApproval(taskId) {
+  const data = getDerived();
+  const currentSurface = state.surface;
+
+  if (!taskId || !data.taskMap.has(taskId)) {
+    throw new Error('Select a task before requesting builder live mutation approval');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Requesting live mutation approval for ${taskId}…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/tasks/${encodeURIComponent(taskId)}/request-builder-live-mutation-approval`,
+    );
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromTask(taskId, {
+      preferredArtifactId: payload.mutation.targetArtifactId || null,
+      preferredInboxItemId: payload.mutation.inboxItemId || null,
+      preferredRunId: payload.mutation.targetRunId || null,
+    });
+    await hydrateSelectedDetails();
+    state.surface = currentSurface;
+    render();
+    elements.refreshStatus.textContent = `Requested live mutation approval ${payload.mutation.approvalId}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 async function runInboxAction(itemId, verb) {
   const data = getDerived();
   const item = data.inboxItemMap.get(itemId);
@@ -1195,7 +1348,7 @@ function renderTaskboard(data) {
             <h2>Taskboard</h2>
             <p class="panel-copy">Lifecycle, flags, review state, and gate visibility by task.</p>
           </div>
-          <p class="runtime-note">Planner + architect + task-breaker + builder preflight write enabled</p>
+          <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval request write enabled</p>
         </div>
         <form class="task-create-form" data-form="create-task">
           <div class="field-grid">
@@ -1293,11 +1446,6 @@ function renderTaskDetail(task, data) {
     preselectedPendingItem?.kind === 'approval' && preselectedPendingItem.sourceId
       ? data.approvals.find((approval) => approval.id === preselectedPendingItem.sourceId) || null
       : null;
-  const builderLiveMutationState =
-    data.derived?.taskGuardSummaries?.[task.id]?.builderLiveMutation || {
-      allowed: false,
-      reasons: ['runtime guard unavailable'],
-    };
   const plannerDisabled = state.loading || state.mutating;
   const architectDisabled = state.loading || state.mutating || !latestPlanArtifact;
   const taskBreakerDisabled = taskBreakerState.disabled;
@@ -1475,6 +1623,7 @@ function renderTaskDetail(task, data) {
               ${renderCompactList('Target Files', parsedPreflight.targetFiles)}
               ${renderCompactList('Risks', parsedPreflight.risks)}
               ${renderCompactList('Verification Plan', parsedPreflight.verificationPlan)}
+              ${renderBuilderLiveMutationApprovalPanel(task, data)}
             `
             : latestPreflightArtifact
               ? `
@@ -1483,8 +1632,12 @@ function renderTaskDetail(task, data) {
                   ${createToken('raw fallback only', 'warning')}
                 </div>
                 <p class="detail-copy">Structured parsing failed. Open Artifacts for the raw markdown fallback.</p>
+                ${renderBuilderLiveMutationApprovalPanel(task, data)}
               `
-              : '<p class="detail-copy">No builder preflight artifact yet. Run builder preflight after plan, architecture, and breakdown artifacts are ready.</p>'
+              : `
+                <p class="detail-copy">No builder preflight artifact yet. Run builder preflight after plan, architecture, and breakdown artifacts are ready.</p>
+                ${renderBuilderLiveMutationApprovalPanel(task, data)}
+              `
         }
         ${
           preselectedPendingItem
@@ -1538,43 +1691,6 @@ function renderTaskDetail(task, data) {
             `
             : ''
         }
-        <div class="breakdown-inbox-hint">
-          <div class="token-row">
-            ${
-              builderLiveMutationState.allowed
-                ? createToken('live mutation:ready', 'success')
-                : createToken('live mutation:blocked', 'danger')
-            }
-            ${
-              builderLiveMutationState.latestApprovalStatus
-                ? createToken(
-                    `approval:${builderLiveMutationState.latestApprovalStatus}`,
-                    getApprovalTone(builderLiveMutationState.latestApprovalStatus),
-                  )
-                : createToken('approval:none', 'neutral')
-            }
-            ${
-              builderLiveMutationState.currentPreflightArtifactId
-                ? createToken(
-                    `target:${builderLiveMutationState.currentPreflightArtifactId}`,
-                    'neutral',
-                  )
-                : ''
-            }
-            ${
-              builderLiveMutationState.approvalStale
-                ? createToken('approval:stale', 'warning')
-                : ''
-            }
-          </div>
-          <p class="detail-copy">
-            ${
-              builderLiveMutationState.allowed
-                ? 'Runtime marks builder live mutation as ready for the latest preflight target.'
-                : `Runtime keeps builder live mutation blocked until ${escapeHtml((builderLiveMutationState.reasons || []).join('; ') || 'required guards are satisfied')}.`
-            }
-          </p>
-        </div>
       </div>
 
       <div class="detail-block">
@@ -1836,6 +1952,11 @@ function renderArtifacts(data) {
                       : ''
                 }
                 ${
+                  selectedArtifactMeta.type === 'preflight' && selectedArtifactTask
+                    ? renderBuilderLiveMutationApprovalPanel(selectedArtifactTask, data)
+                    : ''
+                }
+                ${
                   preselectedPendingItem
                     ? `
                       <div class="breakdown-inbox-hint">
@@ -2059,6 +2180,17 @@ function renderDecisionInbox(data) {
                   `
                   : ''
               }
+              ${
+                selectedTask &&
+                selectedApproval?.allowedNextAction === 'builder-live-mutation'
+                  ? `
+                    <div class="detail-block">
+                      <p class="detail-key">Live Mutation Approval</p>
+                      ${renderBuilderLiveMutationApprovalPanel(selectedTask, data)}
+                    </div>
+                  `
+                  : ''
+              }
               <div class="detail-block">
                 <p class="detail-key">Resolution</p>
                 <p class="detail-copy">${escapeHtml(selectedItem.resolution?.note || 'Still pending or no resolution note recorded.')}</p>
@@ -2143,6 +2275,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'run-builder-preflight') {
         await runBuilderPreflight(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'request-builder-live-mutation-approval') {
+        await requestBuilderLiveMutationApproval(actionButton.dataset.id);
         return;
       }
 
