@@ -420,6 +420,46 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const builderLiveMutationRunMatch = url.pathname.match(
+    /^\/api\/tasks\/([^/]+)\/run-builder-live-mutation$/,
+  );
+
+  if (method === 'POST' && builderLiveMutationRunMatch) {
+    try {
+      const taskId = decodeURIComponent(builderLiveMutationRunMatch[1]);
+      const task = runtime.getTask(taskId);
+      const result = await executionCoordinator.runBuilderLiveMutation({
+        taskId: task.id,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          artifactDetail: getArtifactPayload(result.artifacts.changeSummary.id)?.artifact || null,
+          mutation: {
+            approvalId: result.run.summary?.approvalId || null,
+            artifactId: result.artifacts.changeSummary.id,
+            changedFiles: result.changedFiles,
+            diffArtifactId: result.artifacts.diff.id,
+            inputArtifactIds: result.inputArtifacts.map((artifact) => artifact.id),
+            kind: 'run-builder-live-mutation',
+            normalizedResult: result.normalizedResult,
+            patchArtifactId: result.artifacts.patch.id,
+            runId: result.run.id,
+            taskId: task.id,
+          },
+          runLogs: getRunLogsPayload(result.run.id),
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Builder live mutation run failed' });
+      return;
+    }
+  }
+
   const inboxActionMatch = url.pathname.match(/^\/api\/decision-inbox\/([^/]+)\/actions$/);
 
   if (method === 'POST' && inboxActionMatch) {

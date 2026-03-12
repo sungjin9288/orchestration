@@ -193,6 +193,54 @@ function createRuntimeService(options = {}) {
     return [...new Set(reasons.filter(Boolean))];
   }
 
+  function readStoredArtifactContent(artifact) {
+    if (!artifact) {
+      return '';
+    }
+
+    return store.readArtifact(path.basename(artifact.path));
+  }
+
+  function getMarkdownSection(content, heading) {
+    const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(
+      `^## ${escapedHeading}\\n([\\s\\S]*?)(?=^## [^\\n]+\\n|(?![\\s\\S]))`,
+      'm',
+    );
+    const match = String(content || '').match(pattern);
+
+    return match ? match[1].trim() : '';
+  }
+
+  function normalizeRelativeArtifactPath(value) {
+    const normalized = String(value || '')
+      .trim()
+      .replace(/\\/g, '/')
+      .replace(/^\.\//, '');
+
+    if (
+      !normalized ||
+      path.posix.isAbsolute(normalized) ||
+      normalized === '..' ||
+      normalized.startsWith('../') ||
+      normalized.includes('/../')
+    ) {
+      return null;
+    }
+
+    return normalized;
+  }
+
+  function parseArtifactPathList(artifact, heading) {
+    return uniqueReasons(
+      getMarkdownSection(readStoredArtifactContent(artifact), heading)
+        .split('\n')
+        .map((line) => line.replace(/^[-*]\s+/, '').trim())
+        .map((line) => normalizeRelativeArtifactPath(line))
+        .filter(Boolean),
+    );
+  }
+
   function computeTaskGateState(task, state) {
     const pendingDecisionItems = Object.values(state.decisionInboxItems).filter(
       (item) =>
@@ -387,6 +435,7 @@ function createRuntimeService(options = {}) {
   function buildBuilderLiveMutationGuardSummary(task, state) {
     const currentPreflight = getLatestPreflightContext(task, state);
     const pendingBlockingDecisionItems = listPendingBlockingDecisionItems(task.id, state);
+    const pendingApprovals = computeTaskGateState(task, state).pendingApprovals;
     const approvalEvaluation = evaluateLatestApprovalForAction({
       action: BUILDER_ACTION.LIVE_MUTATION,
       currentPreflight,
@@ -397,16 +446,27 @@ function createRuntimeService(options = {}) {
     const latestPlanArtifact = findLatestTaskArtifactMeta(task, state, 'plan');
     const latestArchitectureArtifact = findLatestTaskArtifactMeta(task, state, 'architecture');
     const latestBreakdownArtifact = findLatestTaskArtifactMeta(task, state, 'breakdown');
+    const targetFiles = currentPreflight.artifact
+      ? parseArtifactPathList(currentPreflight.artifact, 'Target Files')
+      : [];
     const reasons = [];
 
     if (!currentPreflight.artifact) {
       reasons.push('latest preflight artifact required');
     }
 
+    if (currentPreflight.artifact && targetFiles.length === 0) {
+      reasons.push(`latest preflight ${currentPreflight.artifact.id} target files required`);
+    }
+
     if (pendingBlockingDecisionItems.length > 0) {
       reasons.push(
         `blocking decision items: ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
       );
+    }
+
+    if (pendingApprovals.length > 0) {
+      reasons.push(`pending approvals: ${pendingApprovals.map((item) => item.id).join(', ')}`);
     }
 
     if (
@@ -445,7 +505,9 @@ function createRuntimeService(options = {}) {
       latestApprovalDisplayStatus: buildLatestApprovalDisplayStatus(approvalEvaluation),
       latestApprovalId: approvalEvaluation.latestApproval?.id || null,
       latestApprovalStatus: approvalEvaluation.latestApproval?.status || null,
+      pendingApprovalIds: pendingApprovals.map((approval) => approval.id),
       pendingBlockingDecisionItemIds: pendingBlockingDecisionItems.map((item) => item.id),
+      targetFileCount: targetFiles.length,
       reasons: uniqueReasons(reasons),
       targetPreflightArtifactId: approvalEvaluation.latestApproval?.targetArtifactId || null,
       targetPreflightRunId: approvalEvaluation.latestApproval?.targetRunId || null,

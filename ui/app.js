@@ -657,10 +657,16 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
 
   const { guardSummary, requestSummary } = getBuilderLiveMutationSummaries(task, data);
   const requestDisabled = state.loading || state.mutating || !requestSummary.allowed;
+  const runDisabled = state.loading || state.mutating || !guardSummary.allowed;
   const requestHelp = requestSummary.allowed
     ? `Creates a new approval inbox item for ${requestSummary.currentPreflightArtifactId}.`
     : `Approval request stays disabled until ${
         (requestSummary.reasons || []).join('; ') || 'the latest preflight is ready'
+      }.`;
+  const runHelp = guardSummary.allowed
+    ? `Runs limited live mutation for ${guardSummary.currentPreflightArtifactId} and stores change-summary, patch, and diff artifacts.`
+    : `Live mutation stays disabled until ${
+        (guardSummary.reasons || []).join('; ') || 'the latest approved preflight pair is ready'
       }.`;
 
   return `
@@ -686,13 +692,23 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
             : ''
         }
         ${
+          guardSummary.targetFileCount
+            ? createToken(`target files:${guardSummary.targetFileCount}`, 'neutral')
+            : createToken('target files:none', 'warning')
+        }
+        ${
           requestSummary.allowed
             ? createToken('request:available', 'success')
             : createToken('request:disabled', requestSummary.conflict ? 'danger' : 'warning')
         }
+        ${
+          guardSummary.allowed
+            ? createToken('run:available', 'success')
+            : createToken('run:disabled', 'warning')
+        }
       </div>
       <p class="detail-copy">
-        Runtime-derived summary for future builder live mutation. This slice only requests approval; it does not execute live mutation.
+        Runtime-derived summary for limited builder live mutation. Execution stays bounded to the latest preflight target files and never runs reviewer or commit paths.
       </p>
       ${
         guardSummary.reasons?.length
@@ -719,6 +735,18 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
                 Request Live Mutation Approval
               </button>
               <p class="form-help">${escapeHtml(requestHelp)}</p>
+            </div>
+            <div class="form-actions form-actions-inline">
+              <button
+                class="primary-button"
+                type="button"
+                data-action="run-builder-live-mutation"
+                data-id="${escapeHtml(task.id)}"
+                ${runDisabled ? 'disabled' : ''}
+              >
+                Run Live Mutation
+              </button>
+              <p class="form-help">${escapeHtml(runHelp)}</p>
             </div>
           `
       }
@@ -1203,6 +1231,39 @@ async function requestBuilderLiveMutationApproval(taskId) {
   }
 }
 
+async function runBuilderLiveMutation(taskId) {
+  const data = getDerived();
+
+  if (!taskId || !data.taskMap.has(taskId)) {
+    throw new Error('Select a task before running builder live mutation');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Running live mutation for ${taskId}…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/tasks/${encodeURIComponent(taskId)}/run-builder-live-mutation`,
+    );
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromTask(taskId, {
+      preferredArtifactId: payload.mutation.artifactId,
+      preferredRunId: payload.mutation.runId,
+    });
+    await hydrateSelectedDetails();
+    state.surface = 'artifacts';
+    render();
+    elements.refreshStatus.textContent = `Builder live mutation run ${payload.mutation.runId} completed`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 async function runInboxAction(itemId, verb) {
   const data = getDerived();
   const item = data.inboxItemMap.get(itemId);
@@ -1348,7 +1409,7 @@ function renderTaskboard(data) {
             <h2>Taskboard</h2>
             <p class="panel-copy">Lifecycle, flags, review state, and gate visibility by task.</p>
           </div>
-          <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval request write enabled</p>
+          <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval + limited live mutation write enabled</p>
         </div>
         <form class="task-create-form" data-form="create-task">
           <div class="field-grid">
@@ -2280,6 +2341,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'request-builder-live-mutation-approval') {
         await requestBuilderLiveMutationApproval(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'run-builder-live-mutation') {
+        await runBuilderLiveMutation(actionButton.dataset.id);
         return;
       }
 

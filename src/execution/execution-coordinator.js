@@ -1,6 +1,8 @@
 'use strict';
 
+const { execFileSync } = require('child_process');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const { executeWithAdapter } = require('./provider-adapter');
@@ -126,6 +128,203 @@ function buildBuilderPreflightExecutionRequest(input) {
     sourceOfTruth: input.sourceOfTruth,
     expectedArtifactType: 'preflight',
   };
+}
+
+function buildBuilderLiveMutationExecutionRequest(input) {
+  return {
+    role: 'builder',
+    executionMode: 'live-mutation',
+    mutationAllowed: true,
+    task: toExecutionTask(input.task),
+    project: toExecutionProject(input.project),
+    planArtifact: toExecutionArtifact(input.planArtifact),
+    architectureArtifact: toExecutionArtifact(input.architectureArtifact),
+    breakdownArtifact: toExecutionArtifact(input.breakdownArtifact),
+    preflightArtifact: toExecutionArtifact(input.preflightArtifact),
+    approval: {
+      id: input.approval.id,
+      status: input.approval.status,
+      targetArtifactId: input.approval.targetArtifactId,
+      targetRunId: input.approval.targetRunId,
+    },
+    plannerRunSummary: input.plannerRunSummary || null,
+    architectRunSummary: input.architectRunSummary || null,
+    taskBreakerRunSummary: input.taskBreakerRunSummary || null,
+    preflightRunSummary: input.preflightRunSummary || null,
+    promptContract: input.promptContract,
+    sourceOfTruth: input.sourceOfTruth,
+    expectedArtifactType: 'change-summary',
+  };
+}
+
+function getMarkdownSection(content, heading) {
+  const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(
+    `^## ${escapedHeading}\\n([\\s\\S]*?)(?=^## [^\\n]+\\n|(?![\\s\\S]))`,
+    'm',
+  );
+  const match = String(content || '').match(pattern);
+
+  return match ? match[1].trim() : '';
+}
+
+function normalizeRelativePath(value) {
+  const normalized = String(value || '')
+    .trim()
+    .replace(/\\/g, '/')
+    .replace(/^\.\//, '');
+
+  if (
+    !normalized ||
+    path.posix.isAbsolute(normalized) ||
+    normalized === '..' ||
+    normalized.startsWith('../') ||
+    normalized.includes('/../')
+  ) {
+    return null;
+  }
+
+  return normalized;
+}
+
+function parseMarkdownList(content, heading) {
+  return [
+    ...new Set(
+      getMarkdownSection(content, heading)
+        .split('\n')
+        .map((line) => line.replace(/^[-*]\s+/, '').trim())
+        .map((line) => normalizeRelativePath(line))
+        .filter(Boolean),
+    ),
+  ];
+}
+
+function parseBase64FileUpdates(content) {
+  const section = getMarkdownSection(content, 'File Updates');
+  const fileUpdates = [];
+
+  for (const block of section.split(/^###\s+/m).filter(Boolean)) {
+    const newlineIndex = block.indexOf('\n');
+    const relativePath = normalizeRelativePath(block.slice(0, newlineIndex).trim());
+    const fenceMatch = block.match(/```base64\n([\s\S]*?)\n```/);
+
+    if (!relativePath) {
+      throw new Error(`Unsupported file update path: ${block.slice(0, newlineIndex).trim()}`);
+    }
+
+    if (!fenceMatch) {
+      throw new Error(`Missing base64 file update block for ${relativePath}`);
+    }
+
+    fileUpdates.push({
+      path: relativePath,
+      content: Buffer.from(fenceMatch[1].replace(/\s+/g, ''), 'base64').toString('utf8'),
+    });
+  }
+
+  return fileUpdates;
+}
+
+function resolveProjectFilePath(projectPath, relativePath) {
+  const resolvedProjectPath = path.resolve(projectPath);
+  const filePath = path.resolve(resolvedProjectPath, relativePath);
+
+  if (filePath !== resolvedProjectPath && !filePath.startsWith(`${resolvedProjectPath}${path.sep}`)) {
+    throw new Error(`Resolved file path escapes project_path: ${relativePath}`);
+  }
+
+  return filePath;
+}
+
+function captureFileContents(projectPath, relativePaths) {
+  const contents = new Map();
+
+  for (const relativePath of [...new Set(relativePaths)]) {
+    const filePath = resolveProjectFilePath(projectPath, relativePath);
+
+    contents.set(relativePath, fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null);
+  }
+
+  return contents;
+}
+
+function restoreFileContents(projectPath, fileContents) {
+  for (const [relativePath, content] of fileContents.entries()) {
+    const filePath = resolveProjectFilePath(projectPath, relativePath);
+
+    if (content === null) {
+      if (fs.existsSync(filePath)) {
+        fs.rmSync(filePath, { force: true });
+      }
+      continue;
+    }
+
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content);
+  }
+}
+
+function buildUnifiedDiff(relativePath, beforeContent, afterContent) {
+  if ((beforeContent || '') === (afterContent || '')) {
+    return '';
+  }
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-live-mutation-'));
+  const beforePath = path.join(tempDir, 'before');
+  const afterPath = path.join(tempDir, 'after');
+
+  fs.writeFileSync(beforePath, beforeContent || '', 'utf8');
+  fs.writeFileSync(afterPath, afterContent || '', 'utf8');
+
+  try {
+    let diffOutput = '';
+
+    try {
+      diffOutput = execFileSync(
+        'git',
+        ['diff', '--no-index', '--no-ext-diff', '--', beforePath, afterPath],
+        {
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'pipe'],
+        },
+      );
+    } catch (error) {
+      if (error.status !== 1) {
+        throw error;
+      }
+
+      diffOutput = String(error.stdout || '');
+    }
+
+    return diffOutput
+      .replaceAll(beforePath, `a/${relativePath}`)
+      .replaceAll(afterPath, `b/${relativePath}`);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+function buildCombinedDiff(relativePaths, beforeContents, afterContents) {
+  return relativePaths
+    .map((relativePath) =>
+      buildUnifiedDiff(
+        relativePath,
+        beforeContents.get(relativePath) || '',
+        afterContents.get(relativePath) || '',
+      ),
+    )
+    .filter(Boolean)
+    .join('\n');
+}
+
+function sameStringSets(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  const leftSet = new Set(left);
+
+  return right.every((value) => leftSet.has(value));
 }
 
 function normalizeRoleResult(result, options = {}) {
@@ -310,7 +509,14 @@ function createExecutionCoordinator(options = {}) {
       throw new Error(`Preflight artifact is required before builder live mutation for task ${task.id}`);
     }
 
+    if (!guardSummary.latestApprovalId) {
+      throw new Error(`Approved builder live mutation approval is required for task ${task.id}`);
+    }
+
+    const approval = runtime.getApproval(guardSummary.latestApprovalId);
+
     return {
+      approval,
       guardSummary,
       preflightArtifact,
       preflightRun: preflightArtifact.runId ? runtime.getRun(preflightArtifact.runId) : null,
@@ -953,9 +1159,303 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runBuilderLiveMutation(input) {
+    if (!input || !input.taskId) {
+      throw new Error('taskId is required');
+    }
+
+    let run = null;
+    let backupContents = null;
+    let inputArtifactIds = [];
+
+    const readyContext = await assertBuilderLiveMutationReady({
+      taskId: input.taskId,
+    });
+    const task = readyContext.task;
+    const project = readyContext.project;
+    const approval = readyContext.approval;
+    const preflightArtifact = readyContext.preflightArtifact;
+    const preflightRun = readyContext.preflightRun;
+    const planArtifact = findLatestTaskArtifact(runtime, task, 'plan');
+    const architectureArtifact = findLatestTaskArtifact(runtime, task, 'architecture');
+    const breakdownArtifact = findLatestTaskArtifact(runtime, task, 'breakdown');
+
+    if (!planArtifact || !architectureArtifact || !breakdownArtifact) {
+      throw new Error(`Latest plan, architecture, and breakdown artifacts are required for task ${task.id}`);
+    }
+
+    const targetFiles = parseMarkdownList(preflightArtifact.content, 'Target Files');
+    const architectureAllowlist = parseMarkdownList(
+      architectureArtifact.content,
+      'Affected Components or Contracts',
+    );
+
+    if (targetFiles.length === 0) {
+      throw new Error(`Latest preflight ${preflightArtifact.id} target files are required`);
+    }
+
+    const targetFilesOutsideArchitecture = targetFiles.filter(
+      (relativePath) => !architectureAllowlist.includes(relativePath),
+    );
+
+    if (targetFilesOutsideArchitecture.length > 0) {
+      throw new Error(
+        `Latest preflight ${preflightArtifact.id} target files exceed the approved architecture boundary: ${targetFilesOutsideArchitecture.join(', ')}`,
+      );
+    }
+
+    inputArtifactIds = [
+      planArtifact.id,
+      architectureArtifact.id,
+      breakdownArtifact.id,
+      preflightArtifact.id,
+    ];
+
+    const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
+    const architectRun = architectureArtifact.runId ? runtime.getRun(architectureArtifact.runId) : null;
+    const taskBreakerRun = breakdownArtifact.runId ? runtime.getRun(breakdownArtifact.runId) : null;
+    const promptContract = readContextFile(repoRoot, builderPromptPath);
+    const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
+      readContextFile(repoRoot, relativePath),
+    );
+    const request = buildBuilderLiveMutationExecutionRequest({
+      approval,
+      architectureArtifact,
+      architectRunSummary: architectRun?.summary || null,
+      breakdownArtifact,
+      planArtifact,
+      plannerRunSummary: plannerRun?.summary || null,
+      preflightArtifact,
+      preflightRunSummary: preflightRun?.summary || null,
+      project,
+      promptContract,
+      sourceOfTruth,
+      task,
+      taskBreakerRunSummary: taskBreakerRun?.summary || null,
+    });
+    const baselineTargetContents = captureFileContents(project.projectPath, targetFiles);
+
+    run = runtime.startRun({
+      taskId: task.id,
+      kind: 'role',
+      role: 'builder',
+      metadata: {
+        approvalId: approval.id,
+        executionMode: 'live-mutation',
+        inputArtifactIds,
+        mutationAllowed: true,
+        preflightArtifactId: preflightArtifact.id,
+        promptPath: promptContract.path,
+        sourceOfTruthPaths,
+        targetFiles,
+      },
+    });
+
+    runtime.appendLog({
+      runId: run.id,
+      message: `builder live mutation run started for task ${task.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded builder prompt contract from ${promptContract.path}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded latest preflight artifact ${preflightArtifact.id} as builder live mutation input`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded approved live mutation approval ${approval.id} targeting preflight ${approval.targetArtifactId}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `validated ${targetFiles.length} preflight target files inside the approved architecture boundary`,
+    });
+
+    try {
+      runtime.appendLog({
+        runId: run.id,
+        message: `invoking provider adapter ${providerAdapter.name || 'unknown-adapter'}`,
+      });
+
+      const response = await executeWithAdapter(providerAdapter, request);
+      const normalizedResult = normalizeRoleResult(response.normalizedResult, {
+        allowedNextStages: ['reviewer', 'architect', 'human gate'],
+        defaultNextStage: 'reviewer',
+        role: 'builder',
+      });
+      const changeSummaryArtifact = runtime.recordArtifact({
+        taskId: task.id,
+        runId: run.id,
+        type: 'change-summary',
+        content: response.outputText,
+      });
+      const fileUpdates = parseBase64FileUpdates(response.outputText);
+      const updatedFiles = [...new Set(fileUpdates.map((fileUpdate) => fileUpdate.path))];
+      const outOfScopeFiles = updatedFiles.filter((relativePath) => !targetFiles.includes(relativePath));
+      const outsideArchitectureFiles = updatedFiles.filter(
+        (relativePath) => !architectureAllowlist.includes(relativePath),
+      );
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `saved builder live mutation change-summary artifact ${changeSummaryArtifact.id}`,
+      });
+
+      if (normalizedResult.blockers.length > 0 || normalizedResult.needsDecision) {
+        throw new Error(
+          `Builder live mutation must stop before file writes: ${normalizedResult.blockers.join('; ') || normalizedResult.summary || 'provider requested follow-up'}`,
+        );
+      }
+
+      if (fileUpdates.length === 0) {
+        throw new Error('Builder live mutation returned no bounded file updates');
+      }
+
+      if (outOfScopeFiles.length > 0) {
+        throw new Error(
+          `Builder live mutation attempted to update files outside the latest preflight target files: ${outOfScopeFiles.join(', ')}`,
+        );
+      }
+
+      if (outsideArchitectureFiles.length > 0) {
+        throw new Error(
+          `Builder live mutation attempted to update files outside the approved architecture boundary: ${outsideArchitectureFiles.join(', ')}`,
+        );
+      }
+
+      backupContents = captureFileContents(project.projectPath, updatedFiles);
+
+      if ([...backupContents.values()].some((content) => content === null)) {
+        const missingFiles = [...backupContents.entries()]
+          .filter(([, content]) => content === null)
+          .map(([relativePath]) => relativePath);
+
+        throw new Error(
+          `Builder live mutation only supports existing files in this slice: ${missingFiles.join(', ')}`,
+        );
+      }
+
+      const plannedAfterContents = new Map(fileUpdates.map((fileUpdate) => [fileUpdate.path, fileUpdate.content]));
+      const patchText = buildCombinedDiff(updatedFiles, backupContents, plannedAfterContents);
+
+      if (!patchText.trim()) {
+        throw new Error('Builder live mutation produced no patch after validation');
+      }
+
+      const patchArtifact = runtime.recordArtifact({
+        taskId: task.id,
+        runId: run.id,
+        type: 'patch',
+        extension: 'patch',
+        content: patchText,
+      });
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `saved builder live mutation patch artifact ${patchArtifact.id}`,
+      });
+
+      for (const fileUpdate of fileUpdates) {
+        const filePath = resolveProjectFilePath(project.projectPath, fileUpdate.path);
+
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
+        fs.writeFileSync(filePath, fileUpdate.content);
+      }
+
+      const afterTargetContents = captureFileContents(project.projectPath, targetFiles);
+      const actualChangedFiles = targetFiles.filter(
+        (relativePath) => baselineTargetContents.get(relativePath) !== afterTargetContents.get(relativePath),
+      );
+
+      if (!sameStringSets(actualChangedFiles, updatedFiles)) {
+        restoreFileContents(project.projectPath, backupContents);
+        throw new Error(
+          `Actual changed files do not match the validated file updates. expected=${updatedFiles.join(', ')} actual=${actualChangedFiles.join(', ')}`,
+        );
+      }
+
+      const diffText = buildCombinedDiff(actualChangedFiles, baselineTargetContents, afterTargetContents);
+      const diffArtifact = runtime.recordArtifact({
+        taskId: task.id,
+        runId: run.id,
+        type: 'diff',
+        extension: 'diff',
+        content: diffText,
+      });
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `applied limited live mutation to ${actualChangedFiles.join(', ')}`,
+      });
+      runtime.appendLog({
+        runId: run.id,
+        message: `saved builder live mutation diff artifact ${diffArtifact.id}`,
+      });
+
+      const completedRun = runtime.completeRun({
+        runId: run.id,
+        summary: {
+          adapter: response.adapterName,
+          approvalId: approval.id,
+          artifactIds: {
+            changeSummary: changeSummaryArtifact.id,
+            diff: diffArtifact.id,
+            patch: patchArtifact.id,
+          },
+          changedFiles: actualChangedFiles,
+          executionMode: 'live-mutation',
+          inputArtifactIds,
+          model: response.model,
+          mutationAllowed: true,
+          nextStage: normalizedResult.nextStage,
+          preflightArtifactId: preflightArtifact.id,
+          providerRunId: response.providerRunId,
+        },
+      });
+
+      return {
+        artifacts: {
+          changeSummary: changeSummaryArtifact,
+          diff: diffArtifact,
+          patch: patchArtifact,
+        },
+        changedFiles: actualChangedFiles,
+        inputArtifacts: [planArtifact, architectureArtifact, breakdownArtifact, preflightArtifact],
+        normalizedResult,
+        run: completedRun,
+      };
+    } catch (error) {
+      if (backupContents) {
+        restoreFileContents(project.projectPath, backupContents);
+      }
+
+      runtime.appendLog({
+        runId: run.id,
+        level: 'error',
+        message: `builder live mutation execution failed: ${error.message}`,
+      });
+
+      runtime.completeRun({
+        runId: run.id,
+        summary: {
+          approvalId: approval.id,
+          error: error.message,
+          executionMode: 'live-mutation',
+          inputArtifactIds,
+          nextStage: null,
+          preflightArtifactId: preflightArtifact.id,
+        },
+      });
+
+      throw error;
+    }
+  }
+
   return {
     assertBuilderLiveMutationReady,
     runArchitect,
+    runBuilderLiveMutation,
     runBuilderPreflight,
     runPlanner,
     runTaskBreaker,
