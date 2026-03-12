@@ -14,6 +14,7 @@ const state = {
   selectedRunLogs: null,
   selectedArtifact: null,
   selectedTaskBreakdownArtifact: null,
+  selectedTaskPreflightArtifact: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
   timerId: null,
@@ -197,6 +198,7 @@ function getLatestTaskArtifact(task, data, type = null) {
 
 function getPreferredTaskArtifact(task, data) {
   return (
+    getLatestTaskArtifact(task, data, 'preflight') ||
     getLatestTaskArtifact(task, data, 'breakdown') ||
     getLatestTaskArtifact(task, data, 'architecture') ||
     getLatestTaskArtifact(task, data)
@@ -228,23 +230,50 @@ function getTaskDecisionSummary(task, inboxItems) {
   };
 }
 
-function getPendingTaskBreakerApprovals(taskId, approvals) {
+function getPendingExecutionApprovals(taskId, approvals) {
   return getTaskApprovals(taskId, approvals).filter((approval) => approval.status === 'pending');
 }
 
-function getPendingTaskBreakerDecisionItems(taskId, inboxItems) {
+function getPendingBlockingExecutionDecisionItems(taskId, inboxItems) {
   return getTaskInboxItems(taskId, inboxItems).filter(
     (item) => item.status === 'pending' && item.kind === 'decision' && item.blocksTask,
   );
+}
+
+function getPreferredTaskInboxItem(taskId, data) {
+  const taskItems = getTaskInboxItems(taskId, data.inboxItems);
+  const pendingApprovals = taskItems.filter(
+    (item) => item.status === 'pending' && item.kind === 'approval',
+  );
+
+  if (pendingApprovals.length > 0) {
+    return pendingApprovals[0];
+  }
+
+  const pendingBlockingDecisions = taskItems.filter(
+    (item) => item.status === 'pending' && item.kind === 'decision' && item.blocksTask,
+  );
+
+  if (pendingBlockingDecisions.length > 0) {
+    return pendingBlockingDecisions[0];
+  }
+
+  const pendingItems = taskItems.filter((item) => item.status === 'pending');
+
+  if (pendingItems.length > 0) {
+    return pendingItems[0];
+  }
+
+  return taskItems[0] || null;
 }
 
 function getTaskBreakerAvailability(task, data) {
   const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
   const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
   const latestBreakdownArtifact = getLatestTaskArtifact(task, data, 'breakdown');
-  const pendingApprovals = task ? getPendingTaskBreakerApprovals(task.id, data.approvals) : [];
+  const pendingApprovals = task ? getPendingExecutionApprovals(task.id, data.approvals) : [];
   const pendingBlockingDecisionItems = task
-    ? getPendingTaskBreakerDecisionItems(task.id, data.inboxItems)
+    ? getPendingBlockingExecutionDecisionItems(task.id, data.inboxItems)
     : [];
   const reasons = [];
 
@@ -279,6 +308,59 @@ function getTaskBreakerAvailability(task, data) {
     latestArchitectureArtifact,
     latestBreakdownArtifact,
     latestPlanArtifact,
+    pendingApprovals,
+    pendingBlockingDecisionItems,
+    reasons,
+  };
+}
+
+function getBuilderPreflightAvailability(task, data) {
+  const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
+  const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
+  const latestBreakdownArtifact = getLatestTaskArtifact(task, data, 'breakdown');
+  const latestPreflightArtifact = getLatestTaskArtifact(task, data, 'preflight');
+  const pendingApprovals = task ? getPendingExecutionApprovals(task.id, data.approvals) : [];
+  const pendingBlockingDecisionItems = task
+    ? getPendingBlockingExecutionDecisionItems(task.id, data.inboxItems)
+    : [];
+  const reasons = [];
+
+  if (!task) {
+    reasons.push('select a task');
+  }
+
+  if (!latestPlanArtifact) {
+    reasons.push('latest plan artifact required');
+  }
+
+  if (!latestArchitectureArtifact) {
+    reasons.push('latest architecture artifact required');
+  }
+
+  if (!latestBreakdownArtifact) {
+    reasons.push('latest breakdown artifact required');
+  }
+
+  if (pendingBlockingDecisionItems.length > 0) {
+    reasons.push(
+      `resolve blocking decision ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
+    );
+  }
+
+  if (pendingApprovals.length > 0) {
+    reasons.push(`resolve pending approval ${pendingApprovals.map((item) => item.id).join(', ')}`);
+  }
+
+  if (state.loading || state.mutating) {
+    reasons.push('wait for the current action to finish');
+  }
+
+  return {
+    disabled: reasons.length > 0,
+    latestArchitectureArtifact,
+    latestBreakdownArtifact,
+    latestPlanArtifact,
+    latestPreflightArtifact,
     pendingApprovals,
     pendingBlockingDecisionItems,
     reasons,
@@ -364,6 +446,42 @@ function parseBreakdownArtifact(content) {
   return hasStructuredContent ? parsed : null;
 }
 
+function parsePreflightArtifact(content) {
+  const text = String(content || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const sections = parseMarkdownSections(text);
+
+  if (!sections) {
+    return null;
+  }
+
+  const parsed = {
+    escalationTriggers: parseMarkdownBullets(sections['Escalation Triggers']),
+    inputSummary: parseMarkdownLines(sections['Input Summary']),
+    intendedChanges: parseMarkdownBullets(sections['Intended Changes']),
+    reviewEvidenceExpectations: parseMarkdownBullets(sections['Review Evidence Expectations']),
+    risks: parseMarkdownBullets(sections.Risks),
+    targetFiles: parseMarkdownBullets(sections['Target Files']),
+    title: text.match(/^#\s+Builder Preflight:\s*(.+)$/m)?.[1]?.trim() || '',
+    verificationPlan: parseMarkdownBullets(sections['Verification Plan']),
+  };
+  const hasStructuredContent = [
+    parsed.targetFiles,
+    parsed.intendedChanges,
+    parsed.risks,
+    parsed.verificationPlan,
+    parsed.reviewEvidenceExpectations,
+    parsed.escalationTriggers,
+    parsed.inputSummary,
+  ].some((items) => items.length > 0);
+
+  return hasStructuredContent ? parsed : null;
+}
+
 function renderBreakdownList(title, items, options = {}) {
   if (!Array.isArray(items) || items.length === 0) {
     return '';
@@ -426,6 +544,56 @@ function renderStructuredBreakdown(parsed, options = {}) {
       ${parsed.title ? `<p class="breakdown-title">${escapeHtml(parsed.title)}</p>` : ''}
       ${sections}
     </div>
+  `;
+}
+
+function renderStructuredPreflight(parsed) {
+  if (!parsed) {
+    return '';
+  }
+
+  const sections = [
+    renderBreakdownList('Target Files', parsed.targetFiles),
+    renderBreakdownList('Intended Changes', parsed.intendedChanges),
+    renderBreakdownList('Risks', parsed.risks),
+    renderBreakdownList('Verification Plan', parsed.verificationPlan),
+    renderBreakdownList(
+      'Review Evidence Expectations',
+      parsed.reviewEvidenceExpectations,
+    ),
+    renderBreakdownList('Escalation Triggers', parsed.escalationTriggers),
+    renderBreakdownList('Input Summary', parsed.inputSummary),
+  ]
+    .filter(Boolean)
+    .join('');
+
+  if (!sections) {
+    return '';
+  }
+
+  return `
+    <div class="breakdown-structured">
+      ${parsed.title ? `<p class="breakdown-title">${escapeHtml(parsed.title)}</p>` : ''}
+      ${sections}
+    </div>
+  `;
+}
+
+function renderCompactList(title, items, limit = 2) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return '';
+  }
+
+  return `
+    <section class="breakdown-section">
+      <p class="detail-key">${escapeHtml(title)}</p>
+      <ul class="compact-list">
+        ${items
+          .slice(0, limit)
+          .map((item) => `<li>${escapeHtml(item)}</li>`)
+          .join('')}
+      </ul>
+    </section>
   `;
 }
 
@@ -562,10 +730,14 @@ async function hydrateSelectedDetails() {
   const latestBreakdownArtifact = selectedTask
     ? getLatestTaskArtifact(selectedTask, data, 'breakdown')
     : null;
+  const latestPreflightArtifact = selectedTask
+    ? getLatestTaskArtifact(selectedTask, data, 'preflight')
+    : null;
 
   state.selectedRunLogs = null;
   state.selectedArtifact = null;
   state.selectedTaskBreakdownArtifact = null;
+  state.selectedTaskPreflightArtifact = null;
   let selectedArtifactDetail = null;
 
   await Promise.all([
@@ -585,14 +757,25 @@ async function hydrateSelectedDetails() {
   if (latestBreakdownArtifact) {
     if (selectedArtifactDetail?.id === latestBreakdownArtifact.id) {
       state.selectedTaskBreakdownArtifact = selectedArtifactDetail;
-      return;
+    } else {
+      const breakdownPayload = await fetchJson(
+        `/api/artifacts/${encodeURIComponent(latestBreakdownArtifact.id)}`,
+      );
+
+      state.selectedTaskBreakdownArtifact = breakdownPayload.artifact;
     }
+  }
 
-    const breakdownPayload = await fetchJson(
-      `/api/artifacts/${encodeURIComponent(latestBreakdownArtifact.id)}`,
-    );
+  if (latestPreflightArtifact) {
+    if (selectedArtifactDetail?.id === latestPreflightArtifact.id) {
+      state.selectedTaskPreflightArtifact = selectedArtifactDetail;
+    } else {
+      const preflightPayload = await fetchJson(
+        `/api/artifacts/${encodeURIComponent(latestPreflightArtifact.id)}`,
+      );
 
-    state.selectedTaskBreakdownArtifact = breakdownPayload.artifact;
+      state.selectedTaskPreflightArtifact = preflightPayload.artifact;
+    }
   }
 }
 
@@ -636,6 +819,7 @@ function syncSelectionsFromTask(taskId, options = {}) {
     options.preferredInboxItemId && data.inboxItemMap.has(options.preferredInboxItemId)
       ? data.inboxItemMap.get(options.preferredInboxItemId)
       : null;
+  const currentInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
 
   state.selectedTaskId = taskId;
 
@@ -654,16 +838,23 @@ function syncSelectionsFromTask(taskId, options = {}) {
     state.selectedArtifactId = taskArtifact?.id || null;
   }
 
-  const pendingItem =
-    data.inboxItems.find((item) => item.taskId === taskId && item.status === 'pending') ||
-    data.inboxItems.find((item) => item.taskId === taskId);
-
-  if (preferredInboxItem && preferredInboxItem.taskId === taskId) {
+  if (
+    preferredInboxItem &&
+    preferredInboxItem.taskId === taskId &&
+    preferredInboxItem.status === 'pending'
+  ) {
     state.selectedInboxItemId = preferredInboxItem.id;
-  } else if (pendingItem) {
-    state.selectedInboxItemId = pendingItem.id;
+  } else if (options.applyTaskInboxPreselect) {
+    state.selectedInboxItemId = getPreferredTaskInboxItem(taskId, data)?.id || null;
+  } else if (currentInboxItem && currentInboxItem.taskId === taskId) {
+    state.selectedInboxItemId = currentInboxItem.id;
+  } else if (preferredInboxItem && preferredInboxItem.taskId === taskId) {
+    state.selectedInboxItemId = preferredInboxItem.id;
   } else {
-    state.selectedInboxItemId = null;
+    state.selectedInboxItemId =
+      data.inboxItems.find((item) => item.taskId === taskId && item.status === 'pending')?.id ||
+      data.inboxItems.find((item) => item.taskId === taskId)?.id ||
+      null;
   }
 }
 
@@ -674,7 +865,9 @@ async function handleSurfaceChange(surface) {
 
 async function handleSelection(action, id) {
   if (action === 'select-task') {
-    syncSelectionsFromTask(id);
+    syncSelectionsFromTask(id, {
+      applyTaskInboxPreselect: true,
+    });
   }
 
   if (action === 'select-run') {
@@ -751,6 +944,8 @@ async function submitCreateTask() {
     state.selectedInboxItemId = null;
     state.selectedRunLogs = null;
     state.selectedArtifact = null;
+    state.selectedTaskBreakdownArtifact = null;
+    state.selectedTaskPreflightArtifact = null;
     state.taskDraftTitle = '';
     state.taskDraftIntent = '';
     state.surface = 'taskboard';
@@ -857,6 +1052,40 @@ async function runTaskBreaker(taskId) {
   }
 }
 
+async function runBuilderPreflight(taskId) {
+  const data = getDerived();
+
+  if (!taskId || !data.taskMap.has(taskId)) {
+    throw new Error('Select a task before starting builder preflight');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Starting builder preflight for ${taskId}…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/tasks/${encodeURIComponent(taskId)}/run-builder-preflight`,
+    );
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromTask(taskId, {
+      applyTaskInboxPreselect: true,
+      preferredArtifactId: payload.mutation.artifactId,
+      preferredRunId: payload.mutation.runId,
+    });
+    await hydrateSelectedDetails();
+    state.surface = 'artifacts';
+    render();
+    elements.refreshStatus.textContent = `Builder preflight run ${payload.mutation.runId} completed`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 async function runInboxAction(itemId, verb) {
   const data = getDerived();
   const item = data.inboxItemMap.get(itemId);
@@ -881,8 +1110,8 @@ async function runInboxAction(itemId, verb) {
     applySnapshotPayload(payload);
     state.error = null;
     syncSelectionsFromTask(payload.mutation.taskId, {
+      applyTaskInboxPreselect: true,
       preferredArtifactId: previousArtifactId,
-      preferredInboxItemId: payload.mutation.itemId,
       preferredRunId: previousRunId,
     });
     await hydrateSelectedDetails();
@@ -1002,7 +1231,7 @@ function renderTaskboard(data) {
             <h2>Taskboard</h2>
             <p class="panel-copy">Lifecycle, flags, review state, and gate visibility by task.</p>
           </div>
-          <p class="runtime-note">Planner + architect + task-breaker write enabled</p>
+          <p class="runtime-note">Planner + architect + task-breaker + builder preflight write enabled</p>
         </div>
         <form class="task-create-form" data-form="create-task">
           <div class="field-grid">
@@ -1072,20 +1301,38 @@ function renderTaskDetail(task, data) {
   const taskInboxItems = getTaskInboxItems(task.id, data.inboxItems);
   const latestRun = task.latestRunId ? data.runMap.get(task.latestRunId) : null;
   const taskBreakerState = getTaskBreakerAvailability(task, data);
+  const builderPreflightState = getBuilderPreflightAvailability(task, data);
   const latestPlanArtifact = taskBreakerState.latestPlanArtifact;
   const latestArchitectureArtifact = taskBreakerState.latestArchitectureArtifact;
   const latestBreakdownArtifact = taskBreakerState.latestBreakdownArtifact;
+  const latestPreflightArtifact = builderPreflightState.latestPreflightArtifact;
   const latestBreakdownDetail =
     state.selectedTaskBreakdownArtifact?.id === latestBreakdownArtifact?.id
       ? state.selectedTaskBreakdownArtifact
       : null;
+  const latestPreflightDetail =
+    state.selectedTaskPreflightArtifact?.id === latestPreflightArtifact?.id
+      ? state.selectedTaskPreflightArtifact
+      : null;
   const parsedBreakdown = latestBreakdownDetail
     ? parseBreakdownArtifact(latestBreakdownDetail.content)
     : null;
+  const parsedPreflight = latestPreflightDetail
+    ? parsePreflightArtifact(latestPreflightDetail.content)
+    : null;
   const selectedInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
+  const preselectedPendingItem =
+    selectedInboxItem?.taskId === task.id && selectedInboxItem.status === 'pending'
+      ? selectedInboxItem
+      : null;
+  const preselectedApproval =
+    preselectedPendingItem?.kind === 'approval' && preselectedPendingItem.sourceId
+      ? data.approvals.find((approval) => approval.id === preselectedPendingItem.sourceId) || null
+      : null;
   const plannerDisabled = state.loading || state.mutating;
   const architectDisabled = state.loading || state.mutating || !latestPlanArtifact;
   const taskBreakerDisabled = taskBreakerState.disabled;
+  const builderPreflightDisabled = builderPreflightState.disabled;
 
   return `
     <aside class="detail-card">
@@ -1139,6 +1386,11 @@ function renderTaskDetail(task, data) {
               : createToken('breakdown:none', 'neutral')
           }
           ${
+            latestPreflightArtifact
+              ? createToken(`preflight:${latestPreflightArtifact.id}`, 'neutral')
+              : createToken('preflight:none', 'neutral')
+          }
+          ${
             taskBreakerState.pendingBlockingDecisionItems.length > 0
               ? createToken(
                   `blocking decision:${taskBreakerState.pendingBlockingDecisionItems.length}`,
@@ -1180,11 +1432,27 @@ function renderTaskDetail(task, data) {
           >
             Run Task-Breaker
           </button>
+          <button
+            class="primary-button"
+            type="button"
+            data-action="run-builder-preflight"
+            data-id="${escapeHtml(task.id)}"
+            ${builderPreflightDisabled ? 'disabled' : ''}
+          >
+            Run Builder Preflight
+          </button>
           <p class="form-help">
             ${
               taskBreakerDisabled
                 ? `Task-Breaker stays disabled until ${escapeHtml(taskBreakerState.reasons.join('; '))}.`
                 : `Task-Breaker reads ${escapeHtml(latestPlanArtifact.id)} and ${escapeHtml(latestArchitectureArtifact.id)}, writes a breakdown artifact, and only preselects a blocking Decision Inbox item without leaving Artifacts.`
+            }
+          </p>
+          <p class="form-help">
+            ${
+              builderPreflightDisabled
+                ? `Builder preflight stays disabled until ${escapeHtml(builderPreflightState.reasons.join('; '))}.`
+                : `Builder preflight reads ${escapeHtml(builderPreflightState.latestPlanArtifact.id)}, ${escapeHtml(builderPreflightState.latestArchitectureArtifact.id)}, and ${escapeHtml(builderPreflightState.latestBreakdownArtifact.id)}, then writes a no-write preflight artifact without running reviewer live.`
             }
           </p>
         </div>
@@ -1198,7 +1466,11 @@ function renderTaskDetail(task, data) {
               <div class="token-row">
                 ${createToken(`source:${latestBreakdownArtifact.id}`, 'neutral')}
                 ${createToken('derived view', 'neutral')}
-                ${selectedInboxItem?.taskId === task.id && selectedInboxItem.status === 'pending' ? createToken(`preselected inbox:${selectedInboxItem.id}`, 'warning') : ''}
+                ${
+                  preselectedPendingItem
+                    ? createToken(`preselected inbox:${preselectedPendingItem.id}`, 'warning')
+                    : ''
+                }
               </div>
               <p class="detail-copy">Best-effort parsing of the latest breakdown artifact. Raw markdown remains available on Artifacts.</p>
               ${renderStructuredBreakdown(parsedBreakdown, {
@@ -1216,6 +1488,86 @@ function renderTaskDetail(task, data) {
                 <p class="detail-copy">The latest breakdown artifact could not be structured. Open the raw markdown from Artifacts for the full content.</p>
               `
               : '<p class="detail-copy">No breakdown artifact yet. Run task-breaker after plan and architecture artifacts are ready.</p>'
+        }
+      </div>
+
+      <div class="detail-block">
+        <p class="detail-key">Latest Builder Preflight</p>
+        ${
+          latestPreflightArtifact && parsedPreflight
+            ? `
+              <div class="token-row">
+                ${createToken(`source:${latestPreflightArtifact.id}`, 'neutral')}
+                ${createToken('compact summary', 'neutral')}
+                ${createToken(`target files:${parsedPreflight.targetFiles.length}`, 'neutral')}
+                ${createToken(`risks:${parsedPreflight.risks.length}`, parsedPreflight.risks.length > 0 ? 'warning' : 'success')}
+              </div>
+              <p class="detail-copy">Best-effort compact summary only. Open Artifacts for the full structured preview and raw markdown.</p>
+              ${renderCompactList('Target Files', parsedPreflight.targetFiles)}
+              ${renderCompactList('Risks', parsedPreflight.risks)}
+              ${renderCompactList('Verification Plan', parsedPreflight.verificationPlan)}
+            `
+            : latestPreflightArtifact
+              ? `
+                <div class="token-row">
+                  ${createToken(`source:${latestPreflightArtifact.id}`, 'neutral')}
+                  ${createToken('raw fallback only', 'warning')}
+                </div>
+                <p class="detail-copy">Structured parsing failed. Open Artifacts for the raw markdown fallback.</p>
+              `
+              : '<p class="detail-copy">No builder preflight artifact yet. Run builder preflight after plan, architecture, and breakdown artifacts are ready.</p>'
+        }
+        ${
+          preselectedPendingItem
+            ? `
+              <div class="breakdown-inbox-hint">
+                <div class="token-row">
+                  ${createToken(`preselected inbox:${preselectedPendingItem.id}`, 'warning')}
+                  ${createToken(preselectedPendingItem.kind, getInboxTone(preselectedPendingItem))}
+                  ${preselectedPendingItem.blocksTask ? createToken('blocksTask', 'danger') : ''}
+                  ${
+                    preselectedApproval
+                      ? createToken(
+                          `scope:${preselectedApproval.scope}`,
+                          'neutral',
+                        )
+                      : ''
+                  }
+                </div>
+                <p class="detail-copy">${escapeHtml(preselectedPendingItem.title)}</p>
+                <p class="detail-copy">${escapeHtml(preselectedPendingItem.prompt || 'No prompt recorded.')}</p>
+                ${
+                  preselectedPendingItem.kind === 'approval'
+                    ? `
+                      <div class="form-actions form-actions-inline">
+                        <button
+                          class="primary-button"
+                          type="button"
+                          data-action="run-inbox-action"
+                          data-id="${escapeHtml(preselectedPendingItem.id)}"
+                          data-verb="approve"
+                          ${state.loading || state.mutating ? 'disabled' : ''}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          class="danger-button"
+                          type="button"
+                          data-action="run-inbox-action"
+                          data-id="${escapeHtml(preselectedPendingItem.id)}"
+                          data-verb="reject"
+                          ${state.loading || state.mutating ? 'disabled' : ''}
+                        >
+                          Reject
+                        </button>
+                        <p class="form-help">Approval actions stay on the current surface and mirror the server snapshot as-is.</p>
+                      </div>
+                    `
+                    : '<p class="form-help">Decision resolution remains in Decision Inbox for this slice.</p>'
+                }
+              </div>
+            `
+            : ''
         }
       </div>
 
@@ -1390,12 +1742,20 @@ function renderArtifacts(data) {
     selectedArtifactMeta?.type === 'breakdown' && state.selectedArtifact?.content
       ? parseBreakdownArtifact(state.selectedArtifact.content)
       : null;
+  const parsedPreflight =
+    selectedArtifactMeta?.type === 'preflight' && state.selectedArtifact?.content
+      ? parsePreflightArtifact(state.selectedArtifact.content)
+      : null;
   const preselectedPendingItem =
     selectedArtifactTask &&
     selectedInboxItem &&
     selectedInboxItem.taskId === selectedArtifactTask.id &&
     selectedInboxItem.status === 'pending'
       ? selectedInboxItem
+      : null;
+  const preselectedApproval =
+    preselectedPendingItem?.kind === 'approval' && preselectedPendingItem.sourceId
+      ? data.approvals.find((approval) => approval.id === preselectedPendingItem.sourceId) || null
       : null;
   const artifactList = data.artifacts.length
     ? data.artifacts
@@ -1460,6 +1820,13 @@ function renderArtifacts(data) {
                     `
                     : selectedArtifactMeta.type === 'breakdown'
                       ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                      : selectedArtifactMeta.type === 'preflight' && parsedPreflight
+                        ? `
+                          <p class="detail-copy">Best-effort structured view of the stored builder preflight artifact. Raw markdown remains below.</p>
+                          ${renderStructuredPreflight(parsedPreflight)}
+                        `
+                        : selectedArtifactMeta.type === 'preflight'
+                          ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
                       : ''
                 }
                 ${
@@ -1470,13 +1837,52 @@ function renderArtifacts(data) {
                           ${createToken(`preselected inbox:${preselectedPendingItem.id}`, 'warning')}
                           ${createToken(preselectedPendingItem.kind, getInboxTone(preselectedPendingItem))}
                           ${preselectedPendingItem.blocksTask ? createToken('blocksTask', 'danger') : ''}
+                          ${
+                            preselectedApproval
+                              ? createToken(`scope:${preselectedApproval.scope}`, 'neutral')
+                              : ''
+                          }
                         </div>
                         <p class="detail-copy">${escapeHtml(preselectedPendingItem.title)}</p>
+                        <p class="detail-copy">${escapeHtml(preselectedPendingItem.prompt || 'No prompt recorded.')}</p>
+                        ${
+                          preselectedPendingItem.kind === 'approval'
+                            ? `
+                              <div class="form-actions form-actions-inline">
+                                <button
+                                  class="primary-button"
+                                  type="button"
+                                  data-action="run-inbox-action"
+                                  data-id="${escapeHtml(preselectedPendingItem.id)}"
+                                  data-verb="approve"
+                                  ${state.loading || state.mutating ? 'disabled' : ''}
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  class="danger-button"
+                                  type="button"
+                                  data-action="run-inbox-action"
+                                  data-id="${escapeHtml(preselectedPendingItem.id)}"
+                                  data-verb="reject"
+                                  ${state.loading || state.mutating ? 'disabled' : ''}
+                                >
+                                  Reject
+                                </button>
+                                <p class="form-help">Approval actions stay on Artifacts and mirror the server snapshot as-is.</p>
+                              </div>
+                            `
+                            : '<p class="form-help">Decision resolution remains in Decision Inbox for this slice.</p>'
+                        }
                       </div>
                     `
                     : ''
                 }
-                <p class="detail-key">${selectedArtifactMeta.type === 'breakdown' ? 'Raw Markdown' : 'Raw Preview'}</p>
+                <p class="detail-key">${
+                  selectedArtifactMeta.type === 'breakdown' || selectedArtifactMeta.type === 'preflight'
+                    ? 'Raw Markdown'
+                    : 'Raw Preview'
+                }</p>
                 <pre class="artifact-preview">${escapeHtml(state.selectedArtifact?.content || 'No preview content available.')}</pre>
               </div>
             `
@@ -1726,6 +2132,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'run-task-breaker') {
         await runTaskBreaker(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'run-builder-preflight') {
+        await runBuilderPreflight(actionButton.dataset.id);
         return;
       }
 

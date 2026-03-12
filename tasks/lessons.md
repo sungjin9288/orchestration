@@ -15,3 +15,4 @@
 - task-breaker는 pending blocking decision/approval를 run 시작 전에 거절하면 builder 전 단계 gate enforcement를 UI 없이도 안정적으로 유지할 수 있다.
 - ui-slice-04는 breakdown markdown을 best-effort parse하고 raw fallback을 항상 남기면 artifact contract를 바꾸지 않고도 generated subtasks read surface를 붙일 수 있다.
 - task-breaker UI disable은 pending approval / blocksTask decision 실데이터 기준으로 계산하고 최종 판정은 server/coordinator에 남기는 편이 drift를 줄인다.
+- ui-slice-05는 approval-first preselect를 task context change와 mutation completion에만 적용해야 polling refresh가 사용자의 현재 inbox 선택을 덮어쓰지 않는다.

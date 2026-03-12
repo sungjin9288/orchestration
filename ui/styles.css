@@ -547,6 +547,16 @@ h3 {
   margin-top: 6px;
 }
 
+.compact-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text);
+}
+
+.compact-list li + li {
+  margin-top: 4px;
+}
+
 .breakdown-inbox-hint {
   display: flex;
   flex-direction: column;
