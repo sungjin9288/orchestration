@@ -984,6 +984,8 @@ function createRuntimeService(options = {}) {
     const task = assertTask(input.taskId, state);
     const approvalId = nextId(state, 'approval');
     const inboxItemId = nextId(state, 'decisionInboxItem');
+    const metadata =
+      input.metadata && typeof input.metadata === 'object' ? { ...input.metadata } : null;
     let targetArtifactId = null;
     let targetRunId = null;
 
@@ -1026,7 +1028,12 @@ function createRuntimeService(options = {}) {
       status: APPROVAL_STATUS.PENDING,
       placeholder: true,
       allowedNextAction: input.allowedNextAction || 'commit',
+      metadata,
       inboxItemId,
+      title: input.title || `Approval required: ${input.scope || 'commit'}`,
+      prompt:
+        input.prompt ||
+        `Approval required before ${input.allowedNextAction || 'commit'}.`,
       targetArtifactId,
       targetRunId,
       createdAt: now,
@@ -1038,10 +1045,8 @@ function createRuntimeService(options = {}) {
       id: inboxItemId,
       taskId: task.id,
       kind: DECISION_INBOX_KIND.APPROVAL,
-      title: input.title || `Approval required: ${state.approvals[approvalId].scope}`,
-      prompt:
-        input.prompt ||
-        `Approval required before ${state.approvals[approvalId].allowedNextAction}.`,
+      title: state.approvals[approvalId].title,
+      prompt: state.approvals[approvalId].prompt,
       sourceType: DECISION_INBOX_KIND.APPROVAL,
       sourceId: approvalId,
       blocksTask: false,

@@ -7,7 +7,7 @@ const path = require('path');
 
 const { executeWithAdapter } = require('./provider-adapter');
 const { createLocalStubProviderAdapter } = require('./providers/local-stub-adapter');
-const { TASK_LIFECYCLE } = require('../runtime/contracts');
+const { COMMIT_ACTION, TASK_LIFECYCLE } = require('../runtime/contracts');
 
 const DEFAULT_SOURCE_OF_TRUTH_PATHS = [
   'AGENTS.md',
@@ -399,6 +399,17 @@ function compareRunsByStartedDesc(left, right) {
   return rightValue.localeCompare(leftValue);
 }
 
+function compareRecordsByCreatedDesc(left, right) {
+  const leftValue = left.createdAt || '';
+  const rightValue = right.createdAt || '';
+
+  if (leftValue === rightValue) {
+    return String(right.id || '').localeCompare(String(left.id || ''));
+  }
+
+  return rightValue.localeCompare(leftValue);
+}
+
 function sameStringSets(left, right) {
   if (left.length !== right.length) {
     return false;
@@ -738,6 +749,68 @@ function buildReviewerReadinessSummary(input) {
   };
 }
 
+function buildCommitApprovalTitle(metadata) {
+  return `Approval required: ${COMMIT_ACTION.COMMIT_INTENT} | commitPackageArtifactId=${metadata.commitPackageArtifactId} | sourceReviewerRunId=${metadata.sourceReviewerRunId} | sourceBuilderRunId=${metadata.sourceBuilderRunId} | targetPreflightArtifactId=${metadata.targetPreflightArtifactId}`;
+}
+
+function buildCommitApprovalPrompt(metadata) {
+  return [
+    `Approval required before ${COMMIT_ACTION.COMMIT_INTENT}.`,
+    `commitPackageArtifactId: ${metadata.commitPackageArtifactId}`,
+    `sourceReviewerRunId: ${metadata.sourceReviewerRunId}`,
+    `sourceBuilderRunId: ${metadata.sourceBuilderRunId}`,
+    `targetPreflightArtifactId: ${metadata.targetPreflightArtifactId}`,
+  ].join('\n');
+}
+
+function renderMarkdownList(items, fallback) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return `- ${fallback}`;
+  }
+
+  return items.map((item) => `- ${item}`).join('\n');
+}
+
+function renderCommitPackageArtifact(input) {
+  const changedFiles = Array.isArray(input.builderRun.summary?.changedFiles)
+    ? input.builderRun.summary.changedFiles
+    : [];
+
+  return `# Commit Package: ${input.task.title}
+
+## Source Reviewer Bundle
+- source reviewer run: ${input.reviewerRun.id}
+- review artifact: ${input.reviewArtifact.id}
+- source builder run: ${input.builderRun.id}
+- builder live mutation approval: ${input.builderApproval?.id || 'none'}
+- target preflight artifact: ${input.preflightArtifact.id}
+
+## Source Builder Bundle
+- plan artifact: ${input.planArtifact.id}
+- architecture artifact: ${input.architectureArtifact.id}
+- breakdown artifact: ${input.breakdownArtifact.id}
+- change-summary artifact: ${input.changeSummaryArtifact.id}
+- patch artifact: ${input.patchArtifact.id}
+- diff artifact: ${input.diffArtifact.id}
+
+## Changed Files
+${renderMarkdownList(changedFiles, 'none')}
+
+## Verification Evidence
+- reviewer mapped status: passed
+- reviewer raw verdict: pass
+- review artifact: ${input.reviewArtifact.id}
+- diff artifact: ${input.diffArtifact.id}
+- patch artifact: ${input.patchArtifact.id}
+- builder logs reviewed: ${input.builderLogs.length}
+
+## Execution Safety
+- git commit executed: no
+- merge executed: no
+- release executed: no
+`;
+}
+
 function createExecutionCoordinator(options = {}) {
   if (!options.runtimeService) {
     throw new Error('runtimeService is required');
@@ -873,6 +946,191 @@ function createExecutionCoordinator(options = {}) {
       }
 
       summaries[task.id] = getReviewerReadiness({
+        taskId: task.id,
+      });
+    }
+
+    return summaries;
+  }
+
+  function findLatestCommitPackageContext(task) {
+    const artifact = findLatestTaskArtifact(runtime, task, 'commit-package');
+    const run = artifact?.runId ? runtime.getRun(artifact.runId) : null;
+    const summary = run?.summary && typeof run.summary === 'object' ? run.summary : null;
+
+    return {
+      artifact,
+      run,
+      summary,
+    };
+  }
+
+  function resolveCommitPackageReadiness(input) {
+    if (!input || !input.taskId) {
+      throw new Error('taskId is required');
+    }
+
+    const task = runtime.getTask(input.taskId);
+    const project = runtime.getProject(task.projectId);
+    const reasons = [];
+    const pendingBlockingDecisionItems = runtime
+      .listDecisionInboxItems({
+        taskId: task.id,
+        kind: 'decision',
+        status: 'pending',
+      })
+      .filter((item) => item.blocksTask);
+    let anchor = null;
+    let reviewerRun = null;
+    let reviewArtifact = null;
+
+    if (!project.projectPath) {
+      reasons.push('project_path is required');
+    }
+
+    if (project.projectPath) {
+      try {
+        anchor = resolveReviewerAnchorBundle(runtime, task);
+      } catch (error) {
+        reasons.push(error.message);
+      }
+    }
+
+    if (anchor) {
+      reviewerRun = findTerminalReviewerRun(runtime, task, anchor.builderRun.id);
+
+      if (!reviewerRun) {
+        reasons.push(
+          `Latest successful terminal reviewer pass bundle is required before commit package for task ${task.id}`,
+        );
+      } else {
+        const reviewerSummary =
+          reviewerRun.summary && typeof reviewerRun.summary === 'object' ? reviewerRun.summary : {};
+
+        if (
+          reviewerSummary.mappedReviewStatus !== 'passed' ||
+          reviewerSummary.rawVerdict !== 'pass'
+        ) {
+          reasons.push(
+            `Latest terminal reviewer run ${reviewerRun.id} for builder live mutation run ${anchor.builderRun.id} must pass before commit package`,
+          );
+        } else if (!reviewerSummary.reviewArtifactId) {
+          reasons.push(`Terminal reviewer run ${reviewerRun.id} review artifact is missing`);
+        } else {
+          reviewArtifact = runtime.getArtifact(reviewerSummary.reviewArtifactId);
+        }
+      }
+    }
+
+    if (pendingBlockingDecisionItems.length > 0) {
+      reasons.push(
+        `blocking decision items: ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
+      );
+    }
+
+    const latestCommitPackage = findLatestCommitPackageContext(task);
+    const currentCommitPackage =
+      latestCommitPackage.summary &&
+      reviewerRun &&
+      anchor &&
+      latestCommitPackage.summary.sourceReviewerRunId === reviewerRun.id &&
+      latestCommitPackage.summary.sourceBuilderRunId === anchor.builderRun.id &&
+      latestCommitPackage.summary.targetPreflightArtifactId === anchor.preflightArtifact.id
+        ? latestCommitPackage
+        : null;
+    const latestCommitApproval =
+      runtime
+        .listApprovals({
+          taskId: task.id,
+          allowedNextAction: COMMIT_ACTION.COMMIT_INTENT,
+        })
+        .sort(compareRecordsByCreatedDesc)[0] || null;
+    const approvalTargetsCurrentSource =
+      Boolean(latestCommitApproval) &&
+      Boolean(anchor?.preflightArtifact) &&
+      latestCommitApproval.targetArtifactId === anchor.preflightArtifact.id &&
+      latestCommitApproval.targetRunId === anchor.preflightArtifact.runId;
+    const approvalStale = Boolean(latestCommitApproval) && Boolean(anchor?.preflightArtifact)
+      ? !approvalTargetsCurrentSource
+      : false;
+    const packageStale = Boolean(latestCommitPackage.artifact) &&
+      Boolean(reviewerRun) &&
+      Boolean(anchor) &&
+      !currentCommitPackage;
+    let conflict = false;
+
+    if (
+      latestCommitApproval &&
+      approvalTargetsCurrentSource &&
+      (latestCommitApproval.status === 'pending' || latestCommitApproval.status === 'approved')
+    ) {
+      conflict = true;
+      reasons.push(
+        `latest approval ${latestCommitApproval.id} for ${COMMIT_ACTION.COMMIT_INTENT} is already ${latestCommitApproval.status} for source reviewer run ${reviewerRun.id}`,
+      );
+    }
+
+    return {
+      anchor,
+      currentCommitPackage,
+      latestCommitApproval,
+      latestCommitPackage,
+      pendingBlockingDecisionItems,
+      project,
+      reviewArtifact,
+      reviewerRun,
+      summary: {
+        allowed: reasons.length === 0,
+        approvalStale,
+        conflict,
+        currentCommitPackageArtifactId: currentCommitPackage?.artifact?.id || null,
+        latestApprovalId: latestCommitApproval?.id || null,
+        latestApprovalStatus: latestCommitApproval?.status || null,
+        latestCommitPackageArtifactId: latestCommitPackage.artifact?.id || null,
+        packageStale,
+        reasons: [...new Set(reasons.filter(Boolean))],
+        sourceBuilderRunId: anchor?.builderRun?.id || null,
+        sourceReviewArtifactId: reviewArtifact?.id || null,
+        sourceReviewerRunId: reviewerRun?.id || null,
+        targetPreflightArtifactId: anchor?.preflightArtifact?.id || null,
+        targetPreflightRunId: anchor?.preflightArtifact?.runId || null,
+      },
+      task,
+    };
+  }
+
+  function getCommitPackageReadiness(input) {
+    return resolveCommitPackageReadiness(input).summary;
+  }
+
+  function assertCommitPackageReady(input) {
+    const ready = resolveCommitPackageReadiness(input);
+
+    if (ready.summary.allowed) {
+      return ready;
+    }
+
+    const error = new Error(
+      ready.summary.reasons[0] || 'commit-package is not ready',
+    );
+
+    if (ready.summary.conflict) {
+      error.statusCode = 409;
+    }
+
+    throw error;
+  }
+
+  function listCommitPackageReadinessSummaries(input = {}) {
+    const snapshot = runtime.getSnapshot();
+    const summaries = {};
+
+    for (const task of Object.values(snapshot.tasks)) {
+      if (input.projectId && task.projectId !== input.projectId) {
+        continue;
+      }
+
+      summaries[task.id] = getCommitPackageReadiness({
         taskId: task.id,
       });
     }
@@ -1982,14 +2240,173 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runCommitPackage(input) {
+    const readyContext = assertCommitPackageReady(input);
+    const task = readyContext.task;
+    const reviewArtifact = readyContext.reviewArtifact;
+    const reviewerRun = readyContext.reviewerRun;
+    const inputArtifacts = [
+      readyContext.anchor.planArtifact,
+      readyContext.anchor.architectureArtifact,
+      readyContext.anchor.breakdownArtifact,
+      readyContext.anchor.preflightArtifact,
+      readyContext.anchor.changeSummaryArtifact,
+      readyContext.anchor.patchArtifact,
+      readyContext.anchor.diffArtifact,
+      reviewArtifact,
+    ];
+    const run = runtime.startRun({
+      taskId: task.id,
+      kind: 'system',
+      role: 'commit-packager',
+      metadata: {
+        inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+        sourceBuilderRunId: readyContext.anchor.builderRun.id,
+        sourceReviewerRunId: reviewerRun.id,
+        targetPreflightArtifactId: readyContext.anchor.preflightArtifact.id,
+      },
+    });
+    let commitPackageArtifact = readyContext.currentCommitPackage?.artifact || null;
+
+    runtime.appendLog({
+      runId: run.id,
+      message: `commit-package run started for task ${task.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `anchored commit-package input to reviewer run ${reviewerRun.id} and builder run ${readyContext.anchor.builderRun.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded commit-package bundle artifacts ${inputArtifacts.map((artifact) => artifact.id).join(', ')}`,
+    });
+
+    try {
+      if (commitPackageArtifact) {
+        runtime.appendLog({
+          runId: run.id,
+          message: `reusing current commit-package artifact ${commitPackageArtifact.id} for source reviewer run ${reviewerRun.id}`,
+        });
+      } else {
+        commitPackageArtifact = runtime.recordArtifact({
+          taskId: task.id,
+          runId: run.id,
+          type: 'commit-package',
+          content: renderCommitPackageArtifact({
+            architectureArtifact: readyContext.anchor.architectureArtifact,
+            breakdownArtifact: readyContext.anchor.breakdownArtifact,
+            builderApproval: readyContext.anchor.approval,
+            builderLogs: readyContext.anchor.builderLogs,
+            builderRun: readyContext.anchor.builderRun,
+            changeSummaryArtifact: readyContext.anchor.changeSummaryArtifact,
+            diffArtifact: readyContext.anchor.diffArtifact,
+            patchArtifact: readyContext.anchor.patchArtifact,
+            planArtifact: readyContext.anchor.planArtifact,
+            preflightArtifact: readyContext.anchor.preflightArtifact,
+            reviewArtifact,
+            reviewerRun,
+            task,
+          }),
+        });
+
+        runtime.appendLog({
+          runId: run.id,
+          message: `saved commit-package artifact ${commitPackageArtifact.id}`,
+        });
+      }
+
+      const approvalMetadata = {
+        commitPackageArtifactId: commitPackageArtifact.id,
+        sourceBuilderRunId: readyContext.anchor.builderRun.id,
+        sourceReviewerRunId: reviewerRun.id,
+        targetPreflightArtifactId: readyContext.anchor.preflightArtifact.id,
+      };
+      const approval = runtime.createApprovalPlaceholder({
+        taskId: task.id,
+        scope: 'commit',
+        allowedNextAction: COMMIT_ACTION.COMMIT_INTENT,
+        targetArtifactId: readyContext.anchor.preflightArtifact.id,
+        targetRunId: readyContext.anchor.preflightArtifact.runId,
+        title: buildCommitApprovalTitle(approvalMetadata),
+        prompt: buildCommitApprovalPrompt(approvalMetadata),
+        metadata: approvalMetadata,
+      });
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `created commit approval placeholder ${approval.id} for commit-package artifact ${commitPackageArtifact.id}`,
+      });
+      runtime.appendLog({
+        runId: run.id,
+        message: 'actual git commit, merge, and release remained disabled',
+      });
+
+      const completedRun = runtime.completeRun({
+        runId: run.id,
+        summary: {
+          approvalId: approval.id,
+          commitPackageArtifactId: commitPackageArtifact.id,
+          executionMode: 'commit-package',
+          gitCommitExecuted: false,
+          inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+          mergeExecuted: false,
+          nextStage: 'human gate',
+          releaseExecuted: false,
+          reusedCommitPackageArtifact: Boolean(readyContext.currentCommitPackage?.artifact),
+          sourceBuilderRunId: readyContext.anchor.builderRun.id,
+          sourceReviewArtifactId: reviewArtifact.id,
+          sourceReviewerRunId: reviewerRun.id,
+          targetPreflightArtifactId: readyContext.anchor.preflightArtifact.id,
+          targetPreflightRunId: readyContext.anchor.preflightArtifact.runId,
+        },
+      });
+
+      return {
+        approval,
+        artifact: commitPackageArtifact,
+        inboxItem: runtime.getDecisionInboxItem(approval.inboxItemId),
+        inputArtifacts,
+        run: completedRun,
+      };
+    } catch (error) {
+      runtime.appendLog({
+        runId: run.id,
+        level: 'error',
+        message: `commit-package execution failed: ${error.message}`,
+      });
+
+      runtime.completeRun({
+        runId: run.id,
+        summary: {
+          commitPackageArtifactId: commitPackageArtifact?.id || null,
+          error: error.message,
+          executionMode: 'commit-package',
+          inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+          nextStage: null,
+          sourceBuilderRunId: readyContext.anchor.builderRun.id,
+          sourceReviewArtifactId: reviewArtifact.id,
+          sourceReviewerRunId: reviewerRun.id,
+          targetPreflightArtifactId: readyContext.anchor.preflightArtifact.id,
+          targetPreflightRunId: readyContext.anchor.preflightArtifact.runId,
+        },
+      });
+
+      throw error;
+    }
+  }
+
   return {
     assertBuilderLiveMutationReady,
+    assertCommitPackageReady,
     assertReviewerReady,
+    getCommitPackageReadiness,
     getReviewerReadiness,
+    listCommitPackageReadinessSummaries,
     listReviewerReadinessSummaries,
     runArchitect,
     runBuilderLiveMutation,
     runBuilderPreflight,
+    runCommitPackage,
     runPlanner,
     runReviewer,
     runTaskBreaker,
