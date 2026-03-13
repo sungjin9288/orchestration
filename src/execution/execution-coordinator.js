@@ -749,6 +749,93 @@ function buildReviewerReadinessSummary(input) {
   };
 }
 
+function buildDefaultCommitMessage(task) {
+  return [task?.id, String(task?.title || task?.intent || 'local commit').replace(/\s+/g, ' ').trim()]
+    .filter(Boolean)
+    .join(': ');
+}
+
+function parseCommitPackageArtifactContent(content) {
+  const sourceReviewerValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Source Reviewer Bundle'));
+  const sourceBuilderValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Source Builder Bundle'));
+  const verificationValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Verification Evidence'));
+  const safetyValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Execution Safety'));
+  const commitMessage = getMarkdownSection(content, 'Commit Message').trim();
+
+  return {
+    architectureArtifactId: sourceBuilderValues['architecture artifact'] || null,
+    breakdownArtifactId: sourceBuilderValues['breakdown artifact'] || null,
+    builderLiveMutationApprovalId: sourceReviewerValues['builder live mutation approval'] || null,
+    changeSummaryArtifactId: sourceBuilderValues['change-summary artifact'] || null,
+    changedFiles: parseMarkdownList(content, 'Changed Files'),
+    commitMessage: commitMessage || null,
+    diffArtifactId: sourceBuilderValues['diff artifact'] || null,
+    gitCommitExecuted: parseYesNoValue(safetyValues['git commit executed']),
+    patchArtifactId: sourceBuilderValues['patch artifact'] || null,
+    planArtifactId: sourceBuilderValues['plan artifact'] || null,
+    preflightArtifactId: sourceReviewerValues['target preflight artifact'] || null,
+    reviewArtifactId: sourceReviewerValues['review artifact'] || null,
+    reviewerMappedStatus: verificationValues['reviewer mapped status'] || null,
+    reviewerRawVerdict: verificationValues['reviewer raw verdict'] || null,
+    sourceBuilderRunId: sourceReviewerValues['source builder run'] || null,
+    sourceReviewerRunId: sourceReviewerValues['source reviewer run'] || null,
+  };
+}
+
+function parseGitPathLines(output) {
+  return [
+    ...new Set(
+      String(output || '')
+        .split('\n')
+        .map((line) => normalizeRelativePath(line.trim()))
+        .filter(Boolean),
+    ),
+  ];
+}
+
+function runGit(projectPath, args) {
+  try {
+    return execFileSync('git', args, {
+      cwd: projectPath,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (error) {
+    const stderr = String(error.stderr || '').trim();
+    const stdout = String(error.stdout || '').trim();
+    const detail = stderr || stdout || error.message;
+
+    throw new Error(`git ${args.join(' ')} failed: ${detail}`);
+  }
+}
+
+function collectRepoChangeSet(projectPath) {
+  const dirtyFiles = parseGitPathLines(runGit(projectPath, ['diff', '--name-only']));
+  const stagedFiles = parseGitPathLines(runGit(projectPath, ['diff', '--cached', '--name-only']));
+  const untrackedFiles = parseGitPathLines(
+    runGit(projectPath, ['ls-files', '--others', '--exclude-standard']),
+  );
+
+  return {
+    allFiles: [...new Set([...dirtyFiles, ...stagedFiles, ...untrackedFiles])],
+    dirtyFiles,
+    stagedFiles,
+    untrackedFiles,
+  };
+}
+
+function ensureGitCommitEnvironment(projectPath) {
+  const insideWorkTree = runGit(projectPath, ['rev-parse', '--is-inside-work-tree']).trim();
+
+  if (insideWorkTree !== 'true') {
+    throw new Error(`project_path is not a git worktree: ${projectPath}`);
+  }
+
+  runGit(projectPath, ['rev-parse', '--verify', 'HEAD']);
+  runGit(projectPath, ['config', '--get', 'user.name']);
+  runGit(projectPath, ['config', '--get', 'user.email']);
+}
+
 function buildCommitApprovalTitle(metadata) {
   return `Approval required: ${COMMIT_ACTION.COMMIT_INTENT} | commitPackageArtifactId=${metadata.commitPackageArtifactId} | sourceReviewerRunId=${metadata.sourceReviewerRunId} | sourceBuilderRunId=${metadata.sourceBuilderRunId} | targetPreflightArtifactId=${metadata.targetPreflightArtifactId}`;
 }
@@ -775,6 +862,7 @@ function renderCommitPackageArtifact(input) {
   const changedFiles = Array.isArray(input.builderRun.summary?.changedFiles)
     ? input.builderRun.summary.changedFiles
     : [];
+  const commitMessage = String(input.commitMessage || '').trim();
 
   return `# Commit Package: ${input.task.title}
 
@@ -793,6 +881,9 @@ function renderCommitPackageArtifact(input) {
 - patch artifact: ${input.patchArtifact.id}
 - diff artifact: ${input.diffArtifact.id}
 
+## Commit Message
+${commitMessage}
+
 ## Changed Files
 ${renderMarkdownList(changedFiles, 'none')}
 
@@ -806,6 +897,46 @@ ${renderMarkdownList(changedFiles, 'none')}
 
 ## Execution Safety
 - git commit executed: no
+- push executed: no
+- merge executed: no
+- release executed: no
+`;
+}
+
+function renderCommitResultArtifact(input) {
+  return `# Commit Result: ${input.task.title}
+
+## Source Commit Package
+- source commit-package artifact: ${input.commitPackageArtifact.id}
+- commit approval: ${input.commitApproval.id}
+- source reviewer run: ${input.reviewerRun.id}
+- source review artifact: ${input.reviewArtifact.id}
+- source builder run: ${input.builderRun.id}
+- source builder approval: ${input.builderApproval?.id || 'none'}
+- target preflight artifact: ${input.preflightArtifact.id}
+
+## Commit
+- commit sha: ${input.commitSha}
+- commit message: ${input.commitMessage}
+
+## Committed Files
+${renderMarkdownList(input.committedFiles, 'none')}
+
+## Validation
+- scope file count: ${input.scopeFiles.length}
+- repo changed file count before commit: ${input.repoStatusBefore.allFiles.length}
+- dirty file count before commit: ${input.repoStatusBefore.dirtyFiles.length}
+- staged file count before commit: ${input.repoStatusBefore.stagedFiles.length}
+- untracked file count before commit: ${input.repoStatusBefore.untrackedFiles.length}
+- staged file count after git add: ${input.repoStatusAfterAdd.stagedFiles.length}
+- dirty file count after git add: ${input.repoStatusAfterAdd.dirtyFiles.length}
+- untracked file count after git add: ${input.repoStatusAfterAdd.untrackedFiles.length}
+- committed files matched scope: yes
+- repo clean after commit: yes
+
+## Safety
+- git commit executed: yes
+- push executed: no
 - merge executed: no
 - release executed: no
 `;
@@ -1136,6 +1267,208 @@ function createExecutionCoordinator(options = {}) {
     }
 
     return summaries;
+  }
+
+  function findLatestLocalCommitRun(task) {
+    const snapshot = runtime.getSnapshot();
+
+    return (
+      Object.values(snapshot.runs)
+        .filter((run) => {
+          const summary = run.summary && typeof run.summary === 'object' ? run.summary : null;
+          const metadata = run.metadata && typeof run.metadata === 'object' ? run.metadata : null;
+
+          return (
+            run.taskId === task.id &&
+            run.role === 'commit-executor' &&
+            (summary?.executionMode === 'local-commit' ||
+              metadata?.executionMode === 'local-commit')
+          );
+        })
+        .sort(compareRunsByStartedDesc)[0] || null
+    );
+  }
+
+  function resolveLocalCommitReadiness(input) {
+    if (!input || !input.taskId) {
+      throw new Error('taskId is required');
+    }
+
+    const ready = resolveCommitPackageReadiness(input);
+    const task = ready.task;
+    const project = ready.project;
+    const reasons = [];
+    let conflict = false;
+    let parsedCommitPackage = null;
+    let repoStatusBefore = null;
+
+    if (!project.projectPath) {
+      reasons.push('project_path is required');
+    }
+
+    if (project.projectPath) {
+      try {
+        ensureGitCommitEnvironment(project.projectPath);
+      } catch (error) {
+        reasons.push(error.message);
+      }
+    }
+
+    const commitPackageArtifact = ready.currentCommitPackage?.artifact || null;
+    const latestApproval = ready.latestCommitApproval || null;
+    const existingLocalCommitRun = findLatestLocalCommitRun(task);
+    const sourceChangedFiles = Array.isArray(ready.anchor?.builderRun?.summary?.changedFiles)
+      ? ready.anchor.builderRun.summary.changedFiles
+      : [];
+
+    if (!commitPackageArtifact) {
+      reasons.push(`Latest valid commit-package artifact is required before local commit for task ${task.id}`);
+    } else {
+      parsedCommitPackage = parseCommitPackageArtifactContent(commitPackageArtifact.content);
+
+      if (!parsedCommitPackage.commitMessage) {
+        reasons.push(
+          `Commit package artifact ${commitPackageArtifact.id} is missing required Commit Message section`,
+        );
+      }
+
+      if (parsedCommitPackage.changedFiles.length === 0) {
+        reasons.push(`Commit package artifact ${commitPackageArtifact.id} changed files are required`);
+      }
+
+      if (
+        parsedCommitPackage.sourceReviewerRunId &&
+        ready.reviewerRun &&
+        parsedCommitPackage.sourceReviewerRunId !== ready.reviewerRun.id
+      ) {
+        reasons.push(
+          `Commit package artifact ${commitPackageArtifact.id} is stale for reviewer run ${ready.reviewerRun.id}`,
+        );
+      }
+
+      if (
+        parsedCommitPackage.sourceBuilderRunId &&
+        ready.anchor?.builderRun &&
+        parsedCommitPackage.sourceBuilderRunId !== ready.anchor.builderRun.id
+      ) {
+        reasons.push(
+          `Commit package artifact ${commitPackageArtifact.id} is stale for builder run ${ready.anchor.builderRun.id}`,
+        );
+      }
+
+      if (
+        parsedCommitPackage.preflightArtifactId &&
+        ready.anchor?.preflightArtifact &&
+        parsedCommitPackage.preflightArtifactId !== ready.anchor.preflightArtifact.id
+      ) {
+        reasons.push(
+          `Commit package artifact ${commitPackageArtifact.id} is stale for preflight ${ready.anchor.preflightArtifact.id}`,
+        );
+      }
+
+      if (
+        parsedCommitPackage.reviewArtifactId &&
+        ready.reviewArtifact &&
+        parsedCommitPackage.reviewArtifactId !== ready.reviewArtifact.id
+      ) {
+        reasons.push(
+          `Commit package artifact ${commitPackageArtifact.id} is stale for review artifact ${ready.reviewArtifact.id}`,
+        );
+      }
+
+      if (sourceChangedFiles.length > 0 && !sameStringSets(parsedCommitPackage.changedFiles, sourceChangedFiles)) {
+        reasons.push(
+          `Commit package artifact ${commitPackageArtifact.id} changed files do not match source builder run ${ready.anchor.builderRun.id}`,
+        );
+      }
+    }
+
+    try {
+      runtime.ensureCommitActionAllowed({
+        taskId: task.id,
+        action: COMMIT_ACTION.COMMIT_INTENT,
+      });
+    } catch (error) {
+      reasons.push(error.message);
+    }
+
+    const approvalMatchesCurrentCommitPackage =
+      Boolean(latestApproval) &&
+      Boolean(commitPackageArtifact) &&
+      Boolean(ready.reviewerRun) &&
+      Boolean(ready.anchor?.builderRun) &&
+      Boolean(ready.anchor?.preflightArtifact) &&
+      latestApproval.metadata?.commitPackageArtifactId === commitPackageArtifact.id &&
+      latestApproval.metadata?.sourceReviewerRunId === ready.reviewerRun.id &&
+      latestApproval.metadata?.sourceBuilderRunId === ready.anchor.builderRun.id &&
+      latestApproval.metadata?.targetPreflightArtifactId === ready.anchor.preflightArtifact.id &&
+      latestApproval.targetArtifactId === ready.anchor.preflightArtifact.id &&
+      latestApproval.targetRunId === ready.anchor.preflightArtifact.runId;
+
+    if (latestApproval && latestApproval.status === 'approved' && !approvalMatchesCurrentCommitPackage) {
+      reasons.push(
+        `latest approval ${latestApproval.id} for ${COMMIT_ACTION.COMMIT_INTENT} is stale for commit-package ${commitPackageArtifact?.id || 'missing'}`,
+      );
+    }
+
+    if (
+      existingLocalCommitRun &&
+      latestApproval &&
+      commitPackageArtifact &&
+      existingLocalCommitRun.summary?.approvalId === latestApproval.id &&
+      existingLocalCommitRun.summary?.commitPackageArtifactId === commitPackageArtifact.id &&
+      existingLocalCommitRun.summary?.commitResultArtifactId &&
+      !existingLocalCommitRun.summary?.error
+    ) {
+      conflict = true;
+      reasons.push(
+        `Local commit run ${existingLocalCommitRun.id} already executed approval ${latestApproval.id} for commit-package ${commitPackageArtifact.id}`,
+      );
+    }
+
+    if (!conflict && project.projectPath && parsedCommitPackage?.changedFiles?.length) {
+      try {
+        runGit(project.projectPath, ['ls-files', '--error-unmatch', '--', ...parsedCommitPackage.changedFiles]);
+        repoStatusBefore = collectRepoChangeSet(project.projectPath);
+
+        if (!sameStringSets(repoStatusBefore.allFiles, parsedCommitPackage.changedFiles)) {
+          reasons.push(
+            `repo dirty/staged/untracked files must exactly match commit-package scope: expected=${parsedCommitPackage.changedFiles.join(', ') || 'none'} actual=${repoStatusBefore.allFiles.join(', ') || 'none'}`,
+          );
+        }
+      } catch (error) {
+        reasons.push(error.message);
+      }
+    }
+
+    return {
+      commitPackageArtifact,
+      conflict,
+      existingLocalCommitRun,
+      latestApproval,
+      parsedCommitPackage,
+      project,
+      ready,
+      repoStatusBefore,
+      reasons: [...new Set(reasons.filter(Boolean))],
+      task,
+    };
+  }
+
+  function assertLocalCommitReady(input) {
+    const ready = resolveLocalCommitReadiness(input);
+
+    if (ready.reasons.length === 0) {
+      return ready;
+    }
+
+    const error = new Error(ready.reasons[0] || 'local commit is not ready');
+
+    if (ready.conflict) {
+      error.statusCode = 409;
+    }
+
+    throw error;
   }
 
   async function runPlanner(input) {
@@ -2245,6 +2578,7 @@ function createExecutionCoordinator(options = {}) {
     const task = readyContext.task;
     const reviewArtifact = readyContext.reviewArtifact;
     const reviewerRun = readyContext.reviewerRun;
+    const commitMessage = buildDefaultCommitMessage(task);
     const inputArtifacts = [
       readyContext.anchor.planArtifact,
       readyContext.anchor.architectureArtifact,
@@ -2267,6 +2601,7 @@ function createExecutionCoordinator(options = {}) {
       },
     });
     let commitPackageArtifact = readyContext.currentCommitPackage?.artifact || null;
+    let reusedCommitPackageArtifact = false;
 
     runtime.appendLog({
       runId: run.id,
@@ -2283,10 +2618,21 @@ function createExecutionCoordinator(options = {}) {
 
     try {
       if (commitPackageArtifact) {
-        runtime.appendLog({
-          runId: run.id,
-          message: `reusing current commit-package artifact ${commitPackageArtifact.id} for source reviewer run ${reviewerRun.id}`,
-        });
+        const currentCommitPackage = parseCommitPackageArtifactContent(commitPackageArtifact.content);
+
+        if (!currentCommitPackage.commitMessage) {
+          runtime.appendLog({
+            runId: run.id,
+            message: `current commit-package artifact ${commitPackageArtifact.id} is missing Commit Message; regenerating`,
+          });
+          commitPackageArtifact = null;
+        } else {
+          reusedCommitPackageArtifact = true;
+          runtime.appendLog({
+            runId: run.id,
+            message: `reusing current commit-package artifact ${commitPackageArtifact.id} for source reviewer run ${reviewerRun.id}`,
+          });
+        }
       } else {
         commitPackageArtifact = runtime.recordArtifact({
           taskId: task.id,
@@ -2299,6 +2645,36 @@ function createExecutionCoordinator(options = {}) {
             builderLogs: readyContext.anchor.builderLogs,
             builderRun: readyContext.anchor.builderRun,
             changeSummaryArtifact: readyContext.anchor.changeSummaryArtifact,
+            commitMessage,
+            diffArtifact: readyContext.anchor.diffArtifact,
+            patchArtifact: readyContext.anchor.patchArtifact,
+            planArtifact: readyContext.anchor.planArtifact,
+            preflightArtifact: readyContext.anchor.preflightArtifact,
+            reviewArtifact,
+            reviewerRun,
+            task,
+          }),
+        });
+
+        runtime.appendLog({
+          runId: run.id,
+          message: `saved commit-package artifact ${commitPackageArtifact.id}`,
+        });
+      }
+
+      if (!commitPackageArtifact) {
+        commitPackageArtifact = runtime.recordArtifact({
+          taskId: task.id,
+          runId: run.id,
+          type: 'commit-package',
+          content: renderCommitPackageArtifact({
+            architectureArtifact: readyContext.anchor.architectureArtifact,
+            breakdownArtifact: readyContext.anchor.breakdownArtifact,
+            builderApproval: readyContext.anchor.approval,
+            builderLogs: readyContext.anchor.builderLogs,
+            builderRun: readyContext.anchor.builderRun,
+            changeSummaryArtifact: readyContext.anchor.changeSummaryArtifact,
+            commitMessage,
             diffArtifact: readyContext.anchor.diffArtifact,
             patchArtifact: readyContext.anchor.patchArtifact,
             planArtifact: readyContext.anchor.planArtifact,
@@ -2351,8 +2727,9 @@ function createExecutionCoordinator(options = {}) {
           inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
           mergeExecuted: false,
           nextStage: 'human gate',
+          pushExecuted: false,
           releaseExecuted: false,
-          reusedCommitPackageArtifact: Boolean(readyContext.currentCommitPackage?.artifact),
+          reusedCommitPackageArtifact,
           sourceBuilderRunId: readyContext.anchor.builderRun.id,
           sourceReviewArtifactId: reviewArtifact.id,
           sourceReviewerRunId: reviewerRun.id,
@@ -2383,6 +2760,7 @@ function createExecutionCoordinator(options = {}) {
           executionMode: 'commit-package',
           inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
           nextStage: null,
+          pushExecuted: false,
           sourceBuilderRunId: readyContext.anchor.builderRun.id,
           sourceReviewArtifactId: reviewArtifact.id,
           sourceReviewerRunId: reviewerRun.id,
@@ -2392,6 +2770,213 @@ function createExecutionCoordinator(options = {}) {
       });
 
       throw error;
+    }
+  }
+
+  async function runLocalCommit(input) {
+    const readyContext = assertLocalCommitReady(input);
+    const task = readyContext.task;
+    const project = readyContext.project;
+    const commitPackageArtifact = readyContext.commitPackageArtifact;
+    const commitApproval = readyContext.latestApproval;
+    const parsedCommitPackage = readyContext.parsedCommitPackage;
+    const reviewArtifact = readyContext.ready.reviewArtifact;
+    const reviewerRun = readyContext.ready.reviewerRun;
+    const anchor = readyContext.ready.anchor;
+    const inputArtifacts = [
+      anchor.planArtifact,
+      anchor.architectureArtifact,
+      anchor.breakdownArtifact,
+      anchor.preflightArtifact,
+      anchor.changeSummaryArtifact,
+      anchor.patchArtifact,
+      anchor.diffArtifact,
+      reviewArtifact,
+      commitPackageArtifact,
+    ];
+    const scopeFiles = parsedCommitPackage.changedFiles;
+    const run = runtime.startRun({
+      taskId: task.id,
+      kind: 'system',
+      role: 'commit-executor',
+      metadata: {
+        approvalId: commitApproval.id,
+        commitPackageArtifactId: commitPackageArtifact.id,
+        executionMode: 'local-commit',
+        inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+        sourceBuilderRunId: anchor.builderRun.id,
+        sourceReviewerRunId: reviewerRun.id,
+        targetPreflightArtifactId: anchor.preflightArtifact.id,
+      },
+    });
+    let commitResultArtifact = null;
+    let commitSha = null;
+    let repoStatusAfterAdd = null;
+
+    runtime.appendLog({
+      runId: run.id,
+      message: `local commit run started for task ${task.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `validated latest commit-package ${commitPackageArtifact.id} and approved commit approval ${commitApproval.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `validated exact repo dirty/staged/untracked set match for scope ${scopeFiles.join(', ')}`,
+    });
+
+    const messageDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-commit-message-'));
+    const messagePath = path.join(messageDir, 'COMMIT_EDITMSG');
+
+    try {
+      fs.writeFileSync(messagePath, `${parsedCommitPackage.commitMessage}\n`, 'utf8');
+
+      const headBefore = runGit(project.projectPath, ['rev-parse', 'HEAD']).trim();
+
+      runGit(project.projectPath, ['add', '-A', '--', ...scopeFiles]);
+      repoStatusAfterAdd = collectRepoChangeSet(project.projectPath);
+
+      if (
+        !sameStringSets(repoStatusAfterAdd.stagedFiles, scopeFiles) ||
+        repoStatusAfterAdd.dirtyFiles.length > 0 ||
+        repoStatusAfterAdd.untrackedFiles.length > 0
+      ) {
+        throw new Error(
+          `git add -A did not produce an exact staged scope match. staged=${repoStatusAfterAdd.stagedFiles.join(', ') || 'none'} dirty=${repoStatusAfterAdd.dirtyFiles.join(', ') || 'none'} untracked=${repoStatusAfterAdd.untrackedFiles.join(', ') || 'none'}`,
+        );
+      }
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `staged exact commit scope with git add -A -- ${scopeFiles.join(' ')}`,
+      });
+
+      runGit(project.projectPath, ['commit', '-F', messagePath]);
+      commitSha = runGit(project.projectPath, ['rev-parse', 'HEAD']).trim();
+
+      if (!commitSha || commitSha === headBefore) {
+        throw new Error('git commit did not create a new commit');
+      }
+
+      const committedFiles = parseGitPathLines(
+        runGit(project.projectPath, ['diff-tree', '--no-commit-id', '--name-only', '-r', commitSha]),
+      );
+
+      if (!sameStringSets(committedFiles, scopeFiles)) {
+        throw new Error(
+          `Committed files do not match commit-package scope. expected=${scopeFiles.join(', ')} actual=${committedFiles.join(', ') || 'none'}`,
+        );
+      }
+
+      const repoStatusAfterCommit = collectRepoChangeSet(project.projectPath);
+
+      if (repoStatusAfterCommit.allFiles.length > 0) {
+        throw new Error(
+          `Repo must be clean after local commit execution. remaining=${repoStatusAfterCommit.allFiles.join(', ')}`,
+        );
+      }
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `created local git commit ${commitSha} for scope ${committedFiles.join(', ')}`,
+      });
+
+      commitResultArtifact = runtime.recordArtifact({
+        taskId: task.id,
+        runId: run.id,
+        type: 'commit-result',
+        content: renderCommitResultArtifact({
+          builderApproval: anchor.approval,
+          builderRun: anchor.builderRun,
+          commitApproval,
+          commitMessage: parsedCommitPackage.commitMessage,
+          commitPackageArtifact,
+          commitSha,
+          committedFiles,
+          preflightArtifact: anchor.preflightArtifact,
+          repoStatusAfterAdd,
+          repoStatusBefore: readyContext.repoStatusBefore,
+          reviewArtifact,
+          reviewerRun,
+          scopeFiles,
+          task,
+        }),
+      });
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `saved commit-result artifact ${commitResultArtifact.id}`,
+      });
+      runtime.appendLog({
+        runId: run.id,
+        message: 'actual push, merge, and release remained disabled',
+      });
+
+      const completedRun = runtime.completeRun({
+        runId: run.id,
+        summary: {
+          approvalId: commitApproval.id,
+          commitPackageArtifactId: commitPackageArtifact.id,
+          commitResultArtifactId: commitResultArtifact.id,
+          commitSha,
+          committedFiles,
+          executionMode: 'local-commit',
+          gitCommitExecuted: true,
+          inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+          mergeExecuted: false,
+          nextStage: null,
+          pushExecuted: false,
+          releaseExecuted: false,
+          sourceBuilderRunId: anchor.builderRun.id,
+          sourceReviewArtifactId: reviewArtifact.id,
+          sourceReviewerRunId: reviewerRun.id,
+          targetPreflightArtifactId: anchor.preflightArtifact.id,
+          targetPreflightRunId: anchor.preflightArtifact.runId,
+        },
+      });
+
+      return {
+        artifact: commitResultArtifact,
+        approval: commitApproval,
+        commitSha,
+        committedFiles,
+        inputArtifacts,
+        run: completedRun,
+      };
+    } catch (error) {
+      runtime.appendLog({
+        runId: run.id,
+        level: 'error',
+        message: `local commit execution failed: ${error.message}`,
+      });
+
+      runtime.completeRun({
+        runId: run.id,
+        summary: {
+          approvalId: commitApproval.id,
+          commitPackageArtifactId: commitPackageArtifact.id,
+          commitResultArtifactId: commitResultArtifact?.id || null,
+          commitSha,
+          error: error.message,
+          executionMode: 'local-commit',
+          gitCommitExecuted: Boolean(commitSha),
+          inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+          mergeExecuted: false,
+          nextStage: null,
+          pushExecuted: false,
+          releaseExecuted: false,
+          sourceBuilderRunId: anchor.builderRun.id,
+          sourceReviewArtifactId: reviewArtifact.id,
+          sourceReviewerRunId: reviewerRun.id,
+          targetPreflightArtifactId: anchor.preflightArtifact.id,
+          targetPreflightRunId: anchor.preflightArtifact.runId,
+        },
+      });
+
+      throw error;
+    } finally {
+      fs.rmSync(messageDir, { recursive: true, force: true });
     }
   }
 
@@ -2407,6 +2992,7 @@ function createExecutionCoordinator(options = {}) {
     runBuilderLiveMutation,
     runBuilderPreflight,
     runCommitPackage,
+    runLocalCommit,
     runPlanner,
     runReviewer,
     runTaskBreaker,
@@ -2417,3 +3003,6 @@ module.exports = {
   createExecutionCoordinator,
 };
 // builder-live-mutation approval-0001 src/execution/execution-coordinator.js
+// builder-live-mutation approval-0002 src/execution/execution-coordinator.js
+// builder-live-mutation approval-0003 src/execution/execution-coordinator.js
+// builder-live-mutation approval-0004 src/execution/execution-coordinator.js

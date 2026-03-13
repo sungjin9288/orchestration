@@ -26,3 +26,4 @@
 - reviewer readiness는 runtime에 복제하지 않고 execution coordinator에서만 계산한 뒤 UI가 그대로 소비하게 두는 편이 enable/disable drift를 막고 slice 경계를 덜 흔든다.
 - commit-package readiness도 runtime 전역 latest artifact 조합이 아니라 latest successful terminal reviewer pass bundle 하나에만 고정하고, rejected approval 재요청에서는 current commit-package artifact를 재사용하는 편이 provenance와 duplicate 제어를 단순하게 유지한다.
 - commit-package UI도 gating은 coordinator readiness를 그대로 읽고, commit-package artifact 강제 selection은 commit mutation 직후나 commit approval inbox 선택 시에만 적용해야 기존 artifact 우선순위와 surface 안정성을 해치지 않는다.
+- limited local git commit은 `git add -A -- <scope>` 전에 전체 repo dirty/staged/untracked 집합이 commit-package Changed Files와 exact match인지 먼저 확인하고, commit-package의 Commit Message를 필수 입력으로 강제하는 편이 scope drift와 승인 provenance 해석을 단순하게 유지한다.
