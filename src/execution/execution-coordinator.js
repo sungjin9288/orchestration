@@ -1269,6 +1269,32 @@ function createExecutionCoordinator(options = {}) {
     return summaries;
   }
 
+  function buildCommitExecutionReadinessSummary(input) {
+    return {
+      allowed: input.reasons.length === 0,
+      approvalStale: Boolean(input.approvalStale),
+      changedFileCount: input.parsedCommitPackage?.changedFiles?.length || 0,
+      commitMessagePresent: Boolean(input.parsedCommitPackage?.commitMessage),
+      commitPackageArtifactId: input.commitPackageArtifact?.id || null,
+      conflict: Boolean(input.conflict),
+      existingCommitResultArtifactId:
+        input.existingLocalCommitRun?.summary?.commitResultArtifactId || null,
+      existingLocalCommitRunId: input.existingLocalCommitRun?.id || null,
+      latestApprovalDisplayStatus: input.approvalStale
+        ? 'stale'
+        : input.latestApproval?.status || 'none',
+      latestApprovalId: input.latestApproval?.id || null,
+      latestApprovalStatus: input.latestApproval?.status || null,
+      reasons: [...new Set(input.reasons.filter(Boolean))],
+      repoChangeCountBeforeCommit: input.repoStatusBefore?.allFiles?.length ?? null,
+      sourceBuilderRunId: input.ready.anchor?.builderRun?.id || null,
+      sourceReviewArtifactId: input.ready.reviewArtifact?.id || null,
+      sourceReviewerRunId: input.ready.reviewerRun?.id || null,
+      targetPreflightArtifactId: input.ready.anchor?.preflightArtifact?.id || null,
+      targetPreflightRunId: input.ready.anchor?.preflightArtifact?.runId || null,
+    };
+  }
+
   function findLatestLocalCommitRun(task) {
     const snapshot = runtime.getSnapshot();
 
@@ -1404,8 +1430,12 @@ function createExecutionCoordinator(options = {}) {
       latestApproval.metadata?.targetPreflightArtifactId === ready.anchor.preflightArtifact.id &&
       latestApproval.targetArtifactId === ready.anchor.preflightArtifact.id &&
       latestApproval.targetRunId === ready.anchor.preflightArtifact.runId;
+    const approvalStale =
+      Boolean(latestApproval) &&
+      latestApproval.status === 'approved' &&
+      !approvalMatchesCurrentCommitPackage;
 
-    if (latestApproval && latestApproval.status === 'approved' && !approvalMatchesCurrentCommitPackage) {
+    if (approvalStale) {
       reasons.push(
         `latest approval ${latestApproval.id} for ${COMMIT_ACTION.COMMIT_INTENT} is stale for commit-package ${commitPackageArtifact?.id || 'missing'}`,
       );
@@ -1451,6 +1481,17 @@ function createExecutionCoordinator(options = {}) {
       ready,
       repoStatusBefore,
       reasons: [...new Set(reasons.filter(Boolean))],
+      summary: buildCommitExecutionReadinessSummary({
+        approvalStale,
+        commitPackageArtifact,
+        conflict,
+        existingLocalCommitRun,
+        latestApproval,
+        parsedCommitPackage,
+        ready,
+        reasons,
+        repoStatusBefore,
+      }),
       task,
     };
   }
@@ -1469,6 +1510,27 @@ function createExecutionCoordinator(options = {}) {
     }
 
     throw error;
+  }
+
+  function getCommitExecutionReadiness(input) {
+    return resolveLocalCommitReadiness(input).summary;
+  }
+
+  function listCommitExecutionReadinessSummaries(input = {}) {
+    const snapshot = runtime.getSnapshot();
+    const summaries = {};
+
+    for (const task of Object.values(snapshot.tasks)) {
+      if (input.projectId && task.projectId !== input.projectId) {
+        continue;
+      }
+
+      summaries[task.id] = getCommitExecutionReadiness({
+        taskId: task.id,
+      });
+    }
+
+    return summaries;
   }
 
   async function runPlanner(input) {
@@ -2984,8 +3046,10 @@ function createExecutionCoordinator(options = {}) {
     assertBuilderLiveMutationReady,
     assertCommitPackageReady,
     assertReviewerReady,
+    getCommitExecutionReadiness,
     getCommitPackageReadiness,
     getReviewerReadiness,
+    listCommitExecutionReadinessSummaries,
     listCommitPackageReadinessSummaries,
     listReviewerReadinessSummaries,
     runArchitect,

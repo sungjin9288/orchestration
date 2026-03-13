@@ -76,6 +76,7 @@ function getActivePayload() {
   return (
     state.payload || {
       derived: {
+        commitExecutionReadinessSummaries: {},
         commitPackageReadinessSummaries: {},
         reviewerReadinessSummaries: {},
         taskGuardSummaries: {},
@@ -139,6 +140,7 @@ function getDerived() {
 
   return {
     derived: payload.derived || {
+      commitExecutionReadinessSummaries: {},
       commitPackageReadinessSummaries: {},
       reviewerReadinessSummaries: {},
       taskGuardSummaries: {},
@@ -408,6 +410,34 @@ function getCommitPackageAvailability(task, data) {
       latestCommitPackageArtifactId: null,
       packageStale: false,
       reasons: ['commit-package readiness unavailable'],
+      sourceBuilderRunId: null,
+      sourceReviewArtifactId: null,
+      sourceReviewerRunId: null,
+      targetPreflightArtifactId: null,
+      targetPreflightRunId: null,
+    },
+  };
+}
+
+function getCommitExecutionAvailability(task, data) {
+  const summary = task ? data.derived?.commitExecutionReadinessSummaries?.[task.id] || null : null;
+
+  return {
+    disabled: state.loading || state.mutating || !summary?.allowed,
+    summary: summary || {
+      allowed: false,
+      approvalStale: false,
+      changedFileCount: 0,
+      commitMessagePresent: false,
+      commitPackageArtifactId: null,
+      conflict: false,
+      existingCommitResultArtifactId: null,
+      existingLocalCommitRunId: null,
+      latestApprovalDisplayStatus: 'none',
+      latestApprovalId: null,
+      latestApprovalStatus: null,
+      reasons: ['commit execution readiness unavailable'],
+      repoChangeCountBeforeCommit: null,
       sourceBuilderRunId: null,
       sourceReviewArtifactId: null,
       sourceReviewerRunId: null,
@@ -719,6 +749,91 @@ function parseCommitPackageArtifact(content) {
     parsed.reviewerMappedStatus,
     parsed.reviewerRawVerdict,
     parsed.gitCommitExecuted,
+    parsed.mergeExecuted,
+    parsed.releaseExecuted,
+  ].some((value) => (Array.isArray(value) ? value.length > 0 : value !== null && value !== ''));
+
+  return hasStructuredContent ? parsed : null;
+}
+
+function parseCommitResultArtifact(content) {
+  const text = String(content || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const sections = parseMarkdownSections(text);
+
+  if (!sections) {
+    return null;
+  }
+
+  const sourceValues = parseMarkdownKeyValueLines(sections['Source Commit Package']);
+  const commitValues = parseMarkdownKeyValueLines(sections.Commit);
+  const validationValues = parseMarkdownKeyValueLines(sections.Validation);
+  const safetyValues = parseMarkdownKeyValueLines(sections.Safety);
+  const parsed = {
+    commitApprovalId: sourceValues['commit approval'] || null,
+    commitMessage: commitValues['commit message'] || null,
+    commitPackageArtifactId: sourceValues['source commit-package artifact'] || null,
+    commitSha: commitValues['commit sha'] || null,
+    committedFiles: parseMarkdownBullets(sections['Committed Files']),
+    committedFilesMatchedScope: parseYesNoValue(
+      validationValues['committed files matched scope'],
+    ),
+    dirtyFileCountAfterGitAdd: parseIntegerValue(
+      validationValues['dirty file count after git add'],
+    ),
+    dirtyFileCountBeforeCommit: parseIntegerValue(
+      validationValues['dirty file count before commit'],
+    ),
+    gitCommitExecuted: parseYesNoValue(safetyValues['git commit executed']),
+    mergeExecuted: parseYesNoValue(safetyValues['merge executed']),
+    preflightArtifactId: sourceValues['target preflight artifact'] || null,
+    pushExecuted: parseYesNoValue(safetyValues['push executed']),
+    releaseExecuted: parseYesNoValue(safetyValues['release executed']),
+    repoChangedFileCountBeforeCommit: parseIntegerValue(
+      validationValues['repo changed file count before commit'],
+    ),
+    repoCleanAfterCommit: parseYesNoValue(validationValues['repo clean after commit']),
+    reviewArtifactId: sourceValues['source review artifact'] || null,
+    scopeFileCount: parseIntegerValue(validationValues['scope file count']),
+    sourceBuilderApprovalId: sourceValues['source builder approval'] || null,
+    sourceBuilderRunId: sourceValues['source builder run'] || null,
+    sourceReviewerRunId: sourceValues['source reviewer run'] || null,
+    stagedFileCountAfterGitAdd: parseIntegerValue(
+      validationValues['staged file count after git add'],
+    ),
+    stagedFileCountBeforeCommit: parseIntegerValue(
+      validationValues['staged file count before commit'],
+    ),
+    title: text.match(/^#\s+Commit Result:\s*(.+)$/m)?.[1]?.trim() || '',
+    untrackedFileCountAfterGitAdd: parseIntegerValue(
+      validationValues['untracked file count after git add'],
+    ),
+    untrackedFileCountBeforeCommit: parseIntegerValue(
+      validationValues['untracked file count before commit'],
+    ),
+  };
+  const hasStructuredContent = [
+    parsed.commitPackageArtifactId,
+    parsed.commitApprovalId,
+    parsed.sourceReviewerRunId,
+    parsed.reviewArtifactId,
+    parsed.sourceBuilderRunId,
+    parsed.sourceBuilderApprovalId,
+    parsed.preflightArtifactId,
+    parsed.commitSha,
+    parsed.commitMessage,
+    parsed.committedFiles,
+    parsed.scopeFileCount,
+    parsed.repoChangedFileCountBeforeCommit,
+    parsed.stagedFileCountBeforeCommit,
+    parsed.committedFilesMatchedScope,
+    parsed.repoCleanAfterCommit,
+    parsed.gitCommitExecuted,
+    parsed.pushExecuted,
     parsed.mergeExecuted,
     parsed.releaseExecuted,
   ].some((value) => (Array.isArray(value) ? value.length > 0 : value !== null && value !== ''));
@@ -1072,6 +1187,154 @@ function renderStructuredCommitPackage(parsed) {
   `;
 }
 
+function renderStructuredCommitResult(parsed) {
+  if (!parsed) {
+    return '';
+  }
+
+  return `
+    <div class="breakdown-structured">
+      ${parsed.title ? `<p class="breakdown-title">${escapeHtml(parsed.title)}</p>` : ''}
+      <div class="token-row">
+        ${parsed.commitSha ? createToken(`sha:${parsed.commitSha}`, 'success') : ''}
+        ${
+          parsed.commitApprovalId
+            ? createToken(`commit approval:${parsed.commitApprovalId}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.commitPackageArtifactId
+            ? createToken(`commit-package:${parsed.commitPackageArtifactId}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.sourceReviewerRunId
+            ? createToken(`reviewer:${parsed.sourceReviewerRunId}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.sourceBuilderRunId
+            ? createToken(`builder:${parsed.sourceBuilderRunId}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.preflightArtifactId
+            ? createToken(`preflight:${parsed.preflightArtifactId}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.gitCommitExecuted !== null
+            ? createToken(
+                `git commit:${parsed.gitCommitExecuted ? 'yes' : 'no'}`,
+                parsed.gitCommitExecuted ? 'success' : 'warning',
+              )
+            : ''
+        }
+        ${
+          parsed.pushExecuted !== null
+            ? createToken(
+                `push:${parsed.pushExecuted ? 'yes' : 'no'}`,
+                parsed.pushExecuted ? 'danger' : 'success',
+              )
+            : ''
+        }
+        ${
+          parsed.mergeExecuted !== null
+            ? createToken(
+                `merge:${parsed.mergeExecuted ? 'yes' : 'no'}`,
+                parsed.mergeExecuted ? 'danger' : 'success',
+              )
+            : ''
+        }
+        ${
+          parsed.releaseExecuted !== null
+            ? createToken(
+                `release:${parsed.releaseExecuted ? 'yes' : 'no'}`,
+                parsed.releaseExecuted ? 'danger' : 'success',
+              )
+            : ''
+        }
+      </div>
+      ${renderBreakdownList(
+        'Provenance',
+        [
+          parsed.commitPackageArtifactId
+            ? `source commit-package artifact: ${parsed.commitPackageArtifactId}`
+            : null,
+          parsed.commitApprovalId ? `commit approval: ${parsed.commitApprovalId}` : null,
+          parsed.sourceReviewerRunId ? `source reviewer run: ${parsed.sourceReviewerRunId}` : null,
+          parsed.reviewArtifactId ? `source review artifact: ${parsed.reviewArtifactId}` : null,
+          parsed.sourceBuilderRunId ? `source builder run: ${parsed.sourceBuilderRunId}` : null,
+          parsed.sourceBuilderApprovalId
+            ? `source builder approval: ${parsed.sourceBuilderApprovalId}`
+            : null,
+          parsed.preflightArtifactId
+            ? `target preflight artifact: ${parsed.preflightArtifactId}`
+            : null,
+        ].filter(Boolean),
+      )}
+      ${renderBreakdownList(
+        'Commit',
+        [
+          parsed.commitSha ? `commit sha: ${parsed.commitSha}` : null,
+          parsed.commitMessage ? `commit message: ${parsed.commitMessage}` : null,
+        ].filter(Boolean),
+      )}
+      ${renderBreakdownList('Committed Files', parsed.committedFiles)}
+      ${renderBreakdownList(
+        'Validation',
+        [
+          parsed.scopeFileCount !== null ? `scope file count: ${parsed.scopeFileCount}` : null,
+          parsed.repoChangedFileCountBeforeCommit !== null
+            ? `repo changed file count before commit: ${parsed.repoChangedFileCountBeforeCommit}`
+            : null,
+          parsed.dirtyFileCountBeforeCommit !== null
+            ? `dirty file count before commit: ${parsed.dirtyFileCountBeforeCommit}`
+            : null,
+          parsed.stagedFileCountBeforeCommit !== null
+            ? `staged file count before commit: ${parsed.stagedFileCountBeforeCommit}`
+            : null,
+          parsed.untrackedFileCountBeforeCommit !== null
+            ? `untracked file count before commit: ${parsed.untrackedFileCountBeforeCommit}`
+            : null,
+          parsed.stagedFileCountAfterGitAdd !== null
+            ? `staged file count after git add: ${parsed.stagedFileCountAfterGitAdd}`
+            : null,
+          parsed.dirtyFileCountAfterGitAdd !== null
+            ? `dirty file count after git add: ${parsed.dirtyFileCountAfterGitAdd}`
+            : null,
+          parsed.untrackedFileCountAfterGitAdd !== null
+            ? `untracked file count after git add: ${parsed.untrackedFileCountAfterGitAdd}`
+            : null,
+          parsed.committedFilesMatchedScope !== null
+            ? `committed files matched scope: ${parsed.committedFilesMatchedScope ? 'yes' : 'no'}`
+            : null,
+          parsed.repoCleanAfterCommit !== null
+            ? `repo clean after commit: ${parsed.repoCleanAfterCommit ? 'yes' : 'no'}`
+            : null,
+        ].filter(Boolean),
+      )}
+      ${renderBreakdownList(
+        'Safety',
+        [
+          parsed.gitCommitExecuted !== null
+            ? `git commit executed: ${parsed.gitCommitExecuted ? 'yes' : 'no'}`
+            : null,
+          parsed.pushExecuted !== null
+            ? `push executed: ${parsed.pushExecuted ? 'yes' : 'no'}`
+            : null,
+          parsed.mergeExecuted !== null
+            ? `merge executed: ${parsed.mergeExecuted ? 'yes' : 'no'}`
+            : null,
+          parsed.releaseExecuted !== null
+            ? `release executed: ${parsed.releaseExecuted ? 'yes' : 'no'}`
+            : null,
+        ].filter(Boolean),
+      )}
+    </div>
+  `;
+}
+
 function renderStructuredUnifiedDiff(parsed, label) {
   if (!parsed) {
     return '';
@@ -1278,10 +1541,18 @@ function getRunArtifactBundle(run, data) {
       sameRunArtifacts.find((artifact) => artifact.type === 'change-summary') ||
       inputArtifacts.find((artifact) => artifact.type === 'change-summary') ||
       null,
-    changedFiles: Array.isArray(summary.changedFiles) ? summary.changedFiles : [],
+    changedFiles: Array.isArray(summary.changedFiles)
+      ? summary.changedFiles
+      : Array.isArray(summary.committedFiles)
+        ? summary.committedFiles
+        : [],
     commitPackageArtifact:
       (summary.commitPackageArtifactId && data.artifactMap.get(summary.commitPackageArtifactId)) ||
       sameRunArtifacts.find((artifact) => artifact.type === 'commit-package') ||
+      null,
+    commitResultArtifact:
+      (summary.commitResultArtifactId && data.artifactMap.get(summary.commitResultArtifactId)) ||
+      sameRunArtifacts.find((artifact) => artifact.type === 'commit-result') ||
       null,
     diffArtifact:
       (artifactIds.diff && data.artifactMap.get(artifactIds.diff)) ||
@@ -1337,10 +1608,50 @@ function getArtifactRelationContext(artifact, data, options = {}) {
   }
 
   const parsedChangeSummary = options.parsedChangeSummary || null;
+  const parsedCommitResult = options.parsedCommitResult || null;
   const parsedCommitPackage = options.parsedCommitPackage || null;
   const parsedReview = options.parsedReview || null;
   let run = data.runMap.get(artifact.runId) || null;
   let bundle = run ? getRunArtifactBundle(run, data) : null;
+
+  if (artifact.type === 'commit-result') {
+    return {
+      approvalId: bundle?.approvalId || parsedCommitResult?.commitApprovalId || null,
+      builderRun:
+        bundle?.sourceBuilderRun ||
+        (parsedCommitResult?.sourceBuilderRunId
+          ? data.runMap.get(parsedCommitResult.sourceBuilderRunId) || null
+          : null),
+      changeSummaryArtifact: bundle?.changeSummaryArtifact || null,
+      changedFiles: parsedCommitResult?.committedFiles || bundle?.changedFiles || [],
+      commitPackageArtifact:
+        bundle?.commitPackageArtifact ||
+        (parsedCommitResult?.commitPackageArtifactId
+          ? data.artifactMap.get(parsedCommitResult.commitPackageArtifactId) || null
+          : null),
+      diffArtifact: bundle?.diffArtifact || null,
+      executionMode: bundle?.executionMode || null,
+      patchArtifact: bundle?.patchArtifact || null,
+      preflightArtifact:
+        bundle?.preflightArtifact ||
+        (parsedCommitResult?.preflightArtifactId
+          ? data.artifactMap.get(parsedCommitResult.preflightArtifactId) || null
+          : null),
+      rawVerdict: bundle?.rawVerdict || null,
+      run,
+      runLabel: 'commit-executor run',
+      reviewArtifact:
+        bundle?.reviewArtifact ||
+        (parsedCommitResult?.reviewArtifactId
+          ? data.artifactMap.get(parsedCommitResult.reviewArtifactId) || null
+          : null),
+      reviewerRun:
+        bundle?.sourceReviewerRun ||
+        (parsedCommitResult?.sourceReviewerRunId
+          ? data.runMap.get(parsedCommitResult.sourceReviewerRunId) || null
+          : null),
+    };
+  }
 
   if (artifact.type === 'commit-package') {
     const builderRun =
@@ -1682,6 +1993,7 @@ function renderCommitPackagePanel(task, data, options = {}) {
   }
 
   const { disabled, summary } = getCommitPackageAvailability(task, data);
+  const commitExecutionState = getCommitExecutionAvailability(task, data);
   const currentSurface = options.currentSurface || state.surface;
   const displayStatus = getCommitApprovalDisplayStatus(summary);
   const packageStatus = summary.currentCommitPackageArtifactId
@@ -1696,6 +2008,14 @@ function renderCommitPackagePanel(task, data, options = {}) {
     ? `Creates or reuses a commit-package artifact for ${summary.sourceReviewerRunId || 'the latest passing reviewer bundle'} and opens a commit approval inbox item without running git commit, merge, or release.`
     : `Prepare Commit Package stays disabled until ${
         (summary.reasons || []).join('; ') || 'the latest passing reviewer bundle is ready'
+      }.`;
+  const localCommitDisplayStatus =
+    commitExecutionState.summary.latestApprovalDisplayStatus ||
+    getCommitApprovalDisplayStatus(commitExecutionState.summary);
+  const localCommitHelp = commitExecutionState.summary.allowed
+    ? `Runs a local git commit from commit-package ${commitExecutionState.summary.commitPackageArtifactId || 'the current package'} and lands on the saved commit-result artifact. Push, merge, and release remain disabled.`
+    : `Run Local Commit stays disabled until ${
+        (commitExecutionState.summary.reasons || []).join('; ') || 'the approved local commit bundle is ready'
       }.`;
   const actionSurface =
     options.includeAction === false
@@ -1712,6 +2032,94 @@ function renderCommitPackagePanel(task, data, options = {}) {
             Prepare Commit Package
           </button>
           <p class="form-help">${escapeHtml(actionHelp)}</p>
+        </div>
+      `;
+  const localCommitActionSurface =
+    options.includeLocalCommitAction === false
+      ? ''
+      : `
+        <div class="guard-summary">
+          <div class="token-row">
+            ${
+              commitExecutionState.summary.allowed
+                ? createToken('local commit:ready', 'success')
+                : createToken('local commit:blocked', 'warning')
+            }
+            ${createToken(
+              `commit approval:${localCommitDisplayStatus}`,
+              getApprovalDisplayTone(localCommitDisplayStatus),
+            )}
+            ${
+              commitExecutionState.summary.commitPackageArtifactId
+                ? createToken(
+                    `package:${commitExecutionState.summary.commitPackageArtifactId}`,
+                    'neutral',
+                  )
+                : ''
+            }
+            ${
+              commitExecutionState.summary.existingCommitResultArtifactId
+                ? createToken(
+                    `existing result:${commitExecutionState.summary.existingCommitResultArtifactId}`,
+                    commitExecutionState.summary.conflict ? 'warning' : 'neutral',
+                  )
+                : ''
+            }
+            ${
+              commitExecutionState.summary.sourceReviewerRunId
+                ? createToken(`reviewer:${commitExecutionState.summary.sourceReviewerRunId}`, 'neutral')
+                : ''
+            }
+            ${
+              commitExecutionState.summary.sourceBuilderRunId
+                ? createToken(`builder:${commitExecutionState.summary.sourceBuilderRunId}`, 'neutral')
+                : ''
+            }
+            ${
+              commitExecutionState.summary.targetPreflightArtifactId
+                ? createToken(
+                    `preflight:${commitExecutionState.summary.targetPreflightArtifactId}`,
+                    'neutral',
+                  )
+                : ''
+            }
+            ${
+              commitExecutionState.summary.changedFileCount
+                ? createToken(
+                    `changed files:${commitExecutionState.summary.changedFileCount}`,
+                    'neutral',
+                  )
+                : ''
+            }
+            ${
+              commitExecutionState.summary.commitMessagePresent
+                ? createToken('commit message:present', 'success')
+                : createToken('commit message:missing', 'warning')
+            }
+          </div>
+          <p class="detail-copy">
+            Local commit enablement comes directly from commitExecutionReadiness. The UI does not infer commit semantics beyond loading and mutation state, and push, merge, and release remain disabled.
+          </p>
+          ${
+            commitExecutionState.summary.reasons?.length
+              ? renderReasonList(
+                  'Local Commit Disabled By',
+                  commitExecutionState.summary.reasons,
+                )
+              : '<p class="detail-copy">Local commit is ready for the current approved commit-package bundle.</p>'
+          }
+          <div class="form-actions form-actions-inline">
+            <button
+              class="primary-button"
+              type="button"
+              data-action="run-local-commit"
+              data-id="${escapeHtml(task.id)}"
+              ${commitExecutionState.disabled ? 'disabled' : ''}
+            >
+              Run Local Commit
+            </button>
+            <p class="form-help">${escapeHtml(localCommitHelp)}</p>
+          </div>
         </div>
       `;
 
@@ -1777,6 +2185,7 @@ function renderCommitPackagePanel(task, data, options = {}) {
         '<p class="detail-copy">No commit-package relation context is available yet.</p>'
       }
       ${actionSurface}
+      ${localCommitActionSurface}
     </div>
   `;
 }
@@ -1997,6 +2406,7 @@ async function postJson(url, body) {
 function applySnapshotPayload(payload) {
   state.payload = {
     derived: payload.derived || {
+      commitExecutionReadinessSummaries: {},
       commitPackageReadinessSummaries: {},
       reviewerReadinessSummaries: {},
       taskGuardSummaries: {},
@@ -2528,6 +2938,37 @@ async function runCommitPackage(taskId) {
   }
 }
 
+async function runLocalCommit(taskId) {
+  const data = getDerived();
+
+  if (!taskId || !data.taskMap.has(taskId)) {
+    throw new Error('Select a task before running local commit');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Running local commit for ${taskId}…`;
+  render();
+
+  try {
+    const payload = await postJson(`/api/tasks/${encodeURIComponent(taskId)}/run-local-commit`);
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromTask(taskId, {
+      preferredArtifactId: payload.mutation.artifactId,
+      preferredRunId: payload.mutation.runId,
+    });
+    await hydrateSelectedDetails();
+    state.surface = 'artifacts';
+    render();
+    elements.refreshStatus.textContent = `Local commit run ${payload.mutation.runId} completed`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 async function runInboxAction(itemId, verb) {
   const data = getDerived();
   const item = data.inboxItemMap.get(itemId);
@@ -2673,7 +3114,7 @@ function renderTaskboard(data) {
             <h2>Taskboard</h2>
             <p class="panel-copy">Lifecycle, flags, review state, and gate visibility by task.</p>
           </div>
-          <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval + limited live mutation write + commit-package prepare enabled</p>
+          <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval + limited live mutation write + commit-package prepare + local commit enabled</p>
         </div>
         <form class="task-create-form" data-form="create-task">
           <div class="field-grid">
@@ -3278,14 +3719,19 @@ function renderArtifacts(data) {
     selectedArtifactMeta?.type === 'commit-package' && state.selectedArtifact?.content
       ? parseCommitPackageArtifact(state.selectedArtifact.content)
       : null;
+  const parsedCommitResult =
+    selectedArtifactMeta?.type === 'commit-result' && state.selectedArtifact?.content
+      ? parseCommitResultArtifact(state.selectedArtifact.content)
+      : null;
   const parsedUnifiedDiff =
     (selectedArtifactMeta?.type === 'patch' || selectedArtifactMeta?.type === 'diff') &&
     state.selectedArtifact?.content
       ? parseUnifiedDiffArtifact(state.selectedArtifact.content)
       : null;
   const artifactRelationContext = selectedArtifactMeta
-    ? getArtifactRelationContext(selectedArtifactMeta, data, {
+      ? getArtifactRelationContext(selectedArtifactMeta, data, {
         parsedChangeSummary,
+        parsedCommitResult,
         parsedCommitPackage,
         parsedReview,
       })
@@ -3407,6 +3853,13 @@ function renderArtifacts(data) {
                               `
                               : selectedArtifactMeta.type === 'commit-package'
                                 ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                            : selectedArtifactMeta.type === 'commit-result' && parsedCommitResult
+                              ? `
+                                <p class="detail-copy">Best-effort structured view of the stored commit-result artifact. Raw markdown remains below.</p>
+                                ${renderStructuredCommitResult(parsedCommitResult)}
+                              `
+                              : selectedArtifactMeta.type === 'commit-result'
+                                ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
                             : selectedArtifactMeta.type === 'patch' && parsedUnifiedDiff
                               ? `
                                 <p class="detail-copy">Best-effort summary of the stored planned patch. Raw patch text remains below.</p>
@@ -3431,7 +3884,8 @@ function renderArtifacts(data) {
                 ${
                   selectedArtifactTask &&
                   (selectedArtifactMeta.type === 'review' ||
-                    selectedArtifactMeta.type === 'commit-package')
+                    selectedArtifactMeta.type === 'commit-package' ||
+                    selectedArtifactMeta.type === 'commit-result')
                     ? renderCommitPackagePanel(selectedArtifactTask, data, {
                         currentSurface: 'artifacts',
                       })
@@ -3449,7 +3903,8 @@ function renderArtifacts(data) {
                   showCommitApprovalHint &&
                   selectedArtifactTask &&
                   (selectedArtifactMeta.type === 'review' ||
-                    selectedArtifactMeta.type === 'commit-package')
+                    selectedArtifactMeta.type === 'commit-package' ||
+                    selectedArtifactMeta.type === 'commit-result')
                     ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
                         helpText: 'Approval actions stay on Artifacts and mirror the server snapshot as-is.',
                       })
@@ -3460,7 +3915,8 @@ function renderArtifacts(data) {
                   selectedArtifactMeta.type === 'preflight' ||
                   selectedArtifactMeta.type === 'change-summary' ||
                   selectedArtifactMeta.type === 'review' ||
-                  selectedArtifactMeta.type === 'commit-package'
+                  selectedArtifactMeta.type === 'commit-package' ||
+                  selectedArtifactMeta.type === 'commit-result'
                     ? 'Raw Markdown'
                     : 'Raw Preview'
                 }</p>
@@ -3645,6 +4101,19 @@ function renderDecisionInbox(data) {
                   `
                   : ''
               }
+              ${
+                selectedTask &&
+                selectedApproval?.allowedNextAction === 'commit-intent'
+                  ? `
+                    <div class="detail-block">
+                      <p class="detail-key">Commit Execution</p>
+                      ${renderCommitPackagePanel(selectedTask, data, {
+                        currentSurface: 'decision-inbox',
+                      })}
+                    </div>
+                  `
+                  : ''
+              }
               <div class="detail-block">
                 <p class="detail-key">Resolution</p>
                 <p class="detail-copy">${escapeHtml(selectedItem.resolution?.note || 'Still pending or no resolution note recorded.')}</p>
@@ -3749,6 +4218,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'run-commit-package') {
         await runCommitPackage(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'run-local-commit') {
+        await runLocalCommit(actionButton.dataset.id);
         return;
       }
 
