@@ -83,6 +83,7 @@ function readSnapshotReadonly() {
 
 function buildDerivedSnapshotData(snapshot) {
   return {
+    commitPackageReadinessSummaries: executionCoordinator.listCommitPackageReadinessSummaries(),
     reviewerReadinessSummaries: executionCoordinator.listReviewerReadinessSummaries(),
     taskGuardSummaries: runtime.listTaskGuardSummaries(),
   };
@@ -498,6 +499,46 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, { error: error.message || 'Reviewer run failed' });
+      return;
+    }
+  }
+
+  const commitPackageRunMatch = url.pathname.match(
+    /^\/api\/tasks\/([^/]+)\/run-commit-package$/,
+  );
+
+  if (method === 'POST' && commitPackageRunMatch) {
+    try {
+      const taskId = decodeURIComponent(commitPackageRunMatch[1]);
+      const task = runtime.getTask(taskId);
+      const result = await executionCoordinator.runCommitPackage({
+        taskId: task.id,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          artifactDetail: getArtifactPayload(result.artifact.id)?.artifact || null,
+          mutation: {
+            approvalId: result.approval.id,
+            artifactId: result.artifact.id,
+            inboxItemId: result.inboxItem.id,
+            inputArtifactIds: result.inputArtifacts.map((artifact) => artifact.id),
+            kind: 'run-commit-package',
+            runId: result.run.id,
+            sourceBuilderRunId: result.run.summary?.sourceBuilderRunId || null,
+            sourceReviewerRunId: result.run.summary?.sourceReviewerRunId || null,
+            targetPreflightArtifactId: result.run.summary?.targetPreflightArtifactId || null,
+            taskId: task.id,
+          },
+          runLogs: getRunLogsPayload(result.run.id),
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, { error: error.message || 'Commit package run failed' });
       return;
     }
   }

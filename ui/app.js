@@ -76,6 +76,7 @@ function getActivePayload() {
   return (
     state.payload || {
       derived: {
+        commitPackageReadinessSummaries: {},
         reviewerReadinessSummaries: {},
         taskGuardSummaries: {},
       },
@@ -137,7 +138,11 @@ function getDerived() {
   const inboxItemMap = new Map(projectInboxItems.map((item) => [item.id, item]));
 
   return {
-    derived: payload.derived || { reviewerReadinessSummaries: {}, taskGuardSummaries: {} },
+    derived: payload.derived || {
+      commitPackageReadinessSummaries: {},
+      reviewerReadinessSummaries: {},
+      taskGuardSummaries: {},
+    },
     snapshot,
     activeProject,
     projects,
@@ -378,6 +383,37 @@ function getReviewerAvailability(task, data) {
       reasons: ['reviewer readiness unavailable'],
     },
     reasons: [...new Set(reasons)],
+  };
+}
+
+function getCommitApprovalDisplayStatus(summary) {
+  if (summary?.approvalStale) {
+    return 'stale';
+  }
+
+  return summary?.latestApprovalStatus || 'none';
+}
+
+function getCommitPackageAvailability(task, data) {
+  const summary = task ? data.derived?.commitPackageReadinessSummaries?.[task.id] || null : null;
+
+  return {
+    disabled: state.loading || state.mutating || !summary?.allowed,
+    summary: summary || {
+      allowed: false,
+      approvalStale: false,
+      currentCommitPackageArtifactId: null,
+      latestApprovalId: null,
+      latestApprovalStatus: null,
+      latestCommitPackageArtifactId: null,
+      packageStale: false,
+      reasons: ['commit-package readiness unavailable'],
+      sourceBuilderRunId: null,
+      sourceReviewArtifactId: null,
+      sourceReviewerRunId: null,
+      targetPreflightArtifactId: null,
+      targetPreflightRunId: null,
+    },
   };
 }
 
@@ -634,6 +670,62 @@ function parseReviewArtifact(content) {
   return hasStructuredContent ? parsed : null;
 }
 
+function parseCommitPackageArtifact(content) {
+  const text = String(content || '').trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const sections = parseMarkdownSections(text);
+
+  if (!sections) {
+    return null;
+  }
+
+  const sourceReviewerValues = parseMarkdownKeyValueLines(sections['Source Reviewer Bundle']);
+  const sourceBuilderValues = parseMarkdownKeyValueLines(sections['Source Builder Bundle']);
+  const verificationValues = parseMarkdownKeyValueLines(sections['Verification Evidence']);
+  const safetyValues = parseMarkdownKeyValueLines(sections['Execution Safety']);
+  const parsed = {
+    architectureArtifactId: sourceBuilderValues['architecture artifact'] || null,
+    breakdownArtifactId: sourceBuilderValues['breakdown artifact'] || null,
+    builderLiveMutationApprovalId: sourceReviewerValues['builder live mutation approval'] || null,
+    changeSummaryArtifactId: sourceBuilderValues['change-summary artifact'] || null,
+    changedFiles: parseMarkdownBullets(sections['Changed Files']),
+    diffArtifactId: sourceBuilderValues['diff artifact'] || null,
+    gitCommitExecuted: parseYesNoValue(safetyValues['git commit executed']),
+    mergeExecuted: parseYesNoValue(safetyValues['merge executed']),
+    patchArtifactId: sourceBuilderValues['patch artifact'] || null,
+    planArtifactId: sourceBuilderValues['plan artifact'] || null,
+    preflightArtifactId: sourceReviewerValues['target preflight artifact'] || null,
+    releaseExecuted: parseYesNoValue(safetyValues['release executed']),
+    reviewArtifactId: sourceReviewerValues['review artifact'] || null,
+    reviewerMappedStatus: verificationValues['reviewer mapped status'] || null,
+    reviewerRawVerdict: verificationValues['reviewer raw verdict'] || null,
+    sourceBuilderRunId: sourceReviewerValues['source builder run'] || null,
+    sourceReviewerRunId: sourceReviewerValues['source reviewer run'] || null,
+    title: text.match(/^#\s+Commit Package:\s*(.+)$/m)?.[1]?.trim() || '',
+  };
+  const hasStructuredContent = [
+    parsed.sourceReviewerRunId,
+    parsed.reviewArtifactId,
+    parsed.sourceBuilderRunId,
+    parsed.preflightArtifactId,
+    parsed.changeSummaryArtifactId,
+    parsed.patchArtifactId,
+    parsed.diffArtifactId,
+    parsed.changedFiles,
+    parsed.reviewerMappedStatus,
+    parsed.reviewerRawVerdict,
+    parsed.gitCommitExecuted,
+    parsed.mergeExecuted,
+    parsed.releaseExecuted,
+  ].some((value) => (Array.isArray(value) ? value.length > 0 : value !== null && value !== ''));
+
+  return hasStructuredContent ? parsed : null;
+}
+
 function parseUnifiedDiffArtifact(content) {
   const text = String(content || '').trim();
 
@@ -861,6 +953,125 @@ function renderStructuredReview(parsed, taskReviewStatus = null) {
   `;
 }
 
+function renderStructuredCommitPackage(parsed) {
+  if (!parsed) {
+    return '';
+  }
+
+  return `
+    <div class="breakdown-structured">
+      ${parsed.title ? `<p class="breakdown-title">${escapeHtml(parsed.title)}</p>` : ''}
+      <div class="token-row">
+        ${
+          parsed.sourceReviewerRunId
+            ? createToken(`reviewer:${parsed.sourceReviewerRunId}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.sourceBuilderRunId
+            ? createToken(`builder:${parsed.sourceBuilderRunId}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.preflightArtifactId
+            ? createToken(`preflight:${parsed.preflightArtifactId}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.builderLiveMutationApprovalId
+            ? createToken(`builder approval:${parsed.builderLiveMutationApprovalId}`, 'neutral')
+            : ''
+        }
+        ${
+          parsed.reviewerMappedStatus
+            ? createToken(`mapped review:${parsed.reviewerMappedStatus}`, 'success')
+            : ''
+        }
+        ${
+          parsed.reviewerRawVerdict
+            ? createToken(
+                `raw verdict:${parsed.reviewerRawVerdict}`,
+                getReviewerVerdictTone(parsed.reviewerRawVerdict),
+              )
+            : ''
+        }
+        ${
+          parsed.gitCommitExecuted !== null
+            ? createToken(
+                `git commit:${parsed.gitCommitExecuted ? 'yes' : 'no'}`,
+                parsed.gitCommitExecuted ? 'warning' : 'success',
+              )
+            : ''
+        }
+        ${
+          parsed.mergeExecuted !== null
+            ? createToken(
+                `merge:${parsed.mergeExecuted ? 'yes' : 'no'}`,
+                parsed.mergeExecuted ? 'warning' : 'success',
+              )
+            : ''
+        }
+        ${
+          parsed.releaseExecuted !== null
+            ? createToken(
+                `release:${parsed.releaseExecuted ? 'yes' : 'no'}`,
+                parsed.releaseExecuted ? 'warning' : 'success',
+              )
+            : ''
+        }
+      </div>
+      ${renderBreakdownList(
+        'Source Reviewer Bundle',
+        [
+          parsed.sourceReviewerRunId ? `source reviewer run: ${parsed.sourceReviewerRunId}` : null,
+          parsed.reviewArtifactId ? `review artifact: ${parsed.reviewArtifactId}` : null,
+          parsed.sourceBuilderRunId ? `source builder run: ${parsed.sourceBuilderRunId}` : null,
+          parsed.builderLiveMutationApprovalId
+            ? `builder live mutation approval: ${parsed.builderLiveMutationApprovalId}`
+            : null,
+          parsed.preflightArtifactId ? `target preflight artifact: ${parsed.preflightArtifactId}` : null,
+        ].filter(Boolean),
+      )}
+      ${renderBreakdownList(
+        'Source Builder Bundle',
+        [
+          parsed.planArtifactId ? `plan artifact: ${parsed.planArtifactId}` : null,
+          parsed.architectureArtifactId ? `architecture artifact: ${parsed.architectureArtifactId}` : null,
+          parsed.breakdownArtifactId ? `breakdown artifact: ${parsed.breakdownArtifactId}` : null,
+          parsed.changeSummaryArtifactId ? `change-summary artifact: ${parsed.changeSummaryArtifactId}` : null,
+          parsed.patchArtifactId ? `patch artifact: ${parsed.patchArtifactId}` : null,
+          parsed.diffArtifactId ? `diff artifact: ${parsed.diffArtifactId}` : null,
+        ].filter(Boolean),
+      )}
+      ${renderBreakdownList('Changed Files', parsed.changedFiles)}
+      ${renderBreakdownList(
+        'Verification Evidence',
+        [
+          parsed.reviewerMappedStatus ? `reviewer mapped status: ${parsed.reviewerMappedStatus}` : null,
+          parsed.reviewerRawVerdict ? `reviewer raw verdict: ${parsed.reviewerRawVerdict}` : null,
+          parsed.reviewArtifactId ? `review artifact: ${parsed.reviewArtifactId}` : null,
+          parsed.diffArtifactId ? `diff artifact: ${parsed.diffArtifactId}` : null,
+          parsed.patchArtifactId ? `patch artifact: ${parsed.patchArtifactId}` : null,
+        ].filter(Boolean),
+      )}
+      ${renderBreakdownList(
+        'Execution Safety',
+        [
+          parsed.gitCommitExecuted !== null
+            ? `git commit executed: ${parsed.gitCommitExecuted ? 'yes' : 'no'}`
+            : null,
+          parsed.mergeExecuted !== null
+            ? `merge executed: ${parsed.mergeExecuted ? 'yes' : 'no'}`
+            : null,
+          parsed.releaseExecuted !== null
+            ? `release executed: ${parsed.releaseExecuted ? 'yes' : 'no'}`
+            : null,
+        ].filter(Boolean),
+      )}
+    </div>
+  `;
+}
+
 function renderStructuredUnifiedDiff(parsed, label) {
   if (!parsed) {
     return '';
@@ -964,6 +1175,60 @@ function getApprovalDisplayTone(status) {
   return 'neutral';
 }
 
+function getCommitPackageArtifactForTask(task, data, summary = null) {
+  if (!task) {
+    return null;
+  }
+
+  const artifactId =
+    summary?.currentCommitPackageArtifactId || summary?.latestCommitPackageArtifactId || null;
+
+  if (artifactId && data.artifactMap.has(artifactId)) {
+    return data.artifactMap.get(artifactId);
+  }
+
+  return getLatestTaskArtifact(task, data, 'commit-package');
+}
+
+function buildCommitPackageRelationContext(task, data, summary) {
+  if (!task || !summary) {
+    return null;
+  }
+
+  const commitPackageArtifact = getCommitPackageArtifactForTask(task, data, summary);
+  const reviewerRun = summary.sourceReviewerRunId
+    ? data.runMap.get(summary.sourceReviewerRunId) || null
+    : null;
+  const builderRun = summary.sourceBuilderRunId
+    ? data.runMap.get(summary.sourceBuilderRunId) || null
+    : null;
+  const builderBundle = builderRun ? getRunArtifactBundle(builderRun, data) : null;
+  const reviewerSummary =
+    reviewerRun?.summary && typeof reviewerRun.summary === 'object' ? reviewerRun.summary : null;
+
+  return {
+    approvalId: summary.latestApprovalId || null,
+    builderRun,
+    changedFiles: builderBundle?.changedFiles || [],
+    commitPackageArtifact,
+    changeSummaryArtifact: builderBundle?.changeSummaryArtifact || null,
+    diffArtifact: builderBundle?.diffArtifact || null,
+    executionMode: 'commit-package',
+    patchArtifact: builderBundle?.patchArtifact || null,
+    preflightArtifact:
+      (summary.targetPreflightArtifactId &&
+        data.artifactMap.get(summary.targetPreflightArtifactId)) ||
+      builderBundle?.preflightArtifact ||
+      null,
+    rawVerdict: reviewerSummary?.rawVerdict || null,
+    reviewArtifact:
+      (summary.sourceReviewArtifactId &&
+        data.artifactMap.get(summary.sourceReviewArtifactId)) ||
+      null,
+    reviewerRun,
+  };
+}
+
 function getArtifactsForRun(runId, data) {
   return data.artifacts
     .filter((artifact) => artifact.runId === runId)
@@ -1001,33 +1266,50 @@ function getRunArtifactBundle(run, data) {
   const inputArtifacts = inputArtifactIds
     .map((artifactId) => data.artifactMap.get(artifactId))
     .filter(Boolean);
+  const sourceBuilderRun =
+    (summary.sourceBuilderRunId && data.runMap.get(summary.sourceBuilderRunId)) || null;
+  const sourceReviewerRun =
+    (summary.sourceReviewerRunId && data.runMap.get(summary.sourceReviewerRunId)) || null;
 
   return {
     approvalId: summary.approvalId || null,
     changeSummaryArtifact:
       (artifactIds.changeSummary && data.artifactMap.get(artifactIds.changeSummary)) ||
       sameRunArtifacts.find((artifact) => artifact.type === 'change-summary') ||
+      inputArtifacts.find((artifact) => artifact.type === 'change-summary') ||
       null,
     changedFiles: Array.isArray(summary.changedFiles) ? summary.changedFiles : [],
+    commitPackageArtifact:
+      (summary.commitPackageArtifactId && data.artifactMap.get(summary.commitPackageArtifactId)) ||
+      sameRunArtifacts.find((artifact) => artifact.type === 'commit-package') ||
+      null,
     diffArtifact:
       (artifactIds.diff && data.artifactMap.get(artifactIds.diff)) ||
       sameRunArtifacts.find((artifact) => artifact.type === 'diff') ||
+      inputArtifacts.find((artifact) => artifact.type === 'diff') ||
       null,
     executionMode: summary.executionMode || run.metadata?.executionMode || null,
     inputArtifacts,
     patchArtifact:
       (artifactIds.patch && data.artifactMap.get(artifactIds.patch)) ||
       sameRunArtifacts.find((artifact) => artifact.type === 'patch') ||
+      inputArtifacts.find((artifact) => artifact.type === 'patch') ||
       null,
     preflightArtifact:
       (summary.preflightArtifactId && data.artifactMap.get(summary.preflightArtifactId)) ||
+      (summary.targetPreflightArtifactId &&
+        data.artifactMap.get(summary.targetPreflightArtifactId)) ||
       inputArtifacts.find((artifact) => artifact.type === 'preflight') ||
       null,
     rawVerdict: summary.rawVerdict || null,
     reviewArtifact:
       (summary.reviewArtifactId && data.artifactMap.get(summary.reviewArtifactId)) ||
+      (summary.sourceReviewArtifactId && data.artifactMap.get(summary.sourceReviewArtifactId)) ||
       sameRunArtifacts.find((artifact) => artifact.type === 'review') ||
+      inputArtifacts.find((artifact) => artifact.type === 'review') ||
       null,
+    sourceBuilderRun,
+    sourceReviewerRun,
     sourceRun:
       (summary.sourceRunId && data.runMap.get(summary.sourceRunId)) ||
       null,
@@ -1039,6 +1321,7 @@ function getPreferredArtifactForRun(run, data) {
   const bundle = getRunArtifactBundle(run, data);
 
   return (
+    bundle?.commitPackageArtifact ||
     bundle?.reviewArtifact ||
     bundle?.changeSummaryArtifact ||
     bundle?.diffArtifact ||
@@ -1054,9 +1337,63 @@ function getArtifactRelationContext(artifact, data, options = {}) {
   }
 
   const parsedChangeSummary = options.parsedChangeSummary || null;
+  const parsedCommitPackage = options.parsedCommitPackage || null;
   const parsedReview = options.parsedReview || null;
   let run = data.runMap.get(artifact.runId) || null;
   let bundle = run ? getRunArtifactBundle(run, data) : null;
+
+  if (artifact.type === 'commit-package') {
+    const builderRun =
+      (parsedCommitPackage?.sourceBuilderRunId &&
+        data.runMap.get(parsedCommitPackage.sourceBuilderRunId)) ||
+      bundle?.sourceBuilderRun ||
+      null;
+    const reviewerRun =
+      (parsedCommitPackage?.sourceReviewerRunId &&
+        data.runMap.get(parsedCommitPackage.sourceReviewerRunId)) ||
+      bundle?.sourceReviewerRun ||
+      null;
+    const builderBundle = builderRun ? getRunArtifactBundle(builderRun, data) : null;
+
+    return {
+      approvalId: bundle?.approvalId || null,
+      builderRun,
+      changedFiles: parsedCommitPackage?.changedFiles || builderBundle?.changedFiles || [],
+      commitPackageArtifact: artifact,
+      changeSummaryArtifact:
+        builderBundle?.changeSummaryArtifact ||
+        (parsedCommitPackage?.changeSummaryArtifactId
+          ? data.artifactMap.get(parsedCommitPackage.changeSummaryArtifactId) || null
+          : null),
+      diffArtifact:
+        builderBundle?.diffArtifact ||
+        (parsedCommitPackage?.diffArtifactId
+          ? data.artifactMap.get(parsedCommitPackage.diffArtifactId) || null
+          : null),
+      executionMode: 'commit-package',
+      patchArtifact:
+        builderBundle?.patchArtifact ||
+        (parsedCommitPackage?.patchArtifactId
+          ? data.artifactMap.get(parsedCommitPackage.patchArtifactId) || null
+          : null),
+      preflightArtifact:
+        builderBundle?.preflightArtifact ||
+        (parsedCommitPackage?.preflightArtifactId
+          ? data.artifactMap.get(parsedCommitPackage.preflightArtifactId) || null
+          : null),
+      rawVerdict:
+        parsedCommitPackage?.reviewerRawVerdict ||
+        reviewerRun?.summary?.rawVerdict ||
+        null,
+      run,
+      runLabel: 'commit-packager run',
+      reviewArtifact:
+        (parsedCommitPackage?.reviewArtifactId
+          ? data.artifactMap.get(parsedCommitPackage.reviewArtifactId) || null
+          : null) || bundle?.reviewArtifact,
+      reviewerRun,
+    };
+  }
 
   if (artifact.type === 'review') {
     const sourceRun =
@@ -1068,12 +1405,14 @@ function getArtifactRelationContext(artifact, data, options = {}) {
 
     return {
       approvalId: sourceBundle?.approvalId || null,
+      builderRun: sourceRun,
       changeSummaryArtifact:
         sourceBundle?.changeSummaryArtifact ||
         (parsedReview?.changeSummaryArtifactId
           ? data.artifactMap.get(parsedReview.changeSummaryArtifactId) || null
           : null),
       changedFiles: sourceBundle?.changedFiles || [],
+      commitPackageArtifact: null,
       diffArtifact:
         sourceBundle?.diffArtifact ||
         (parsedReview?.diffArtifactId ? data.artifactMap.get(parsedReview.diffArtifactId) || null : null),
@@ -1087,8 +1426,10 @@ function getArtifactRelationContext(artifact, data, options = {}) {
           ? data.artifactMap.get(parsedReview.preflightArtifactId) || null
           : null),
       rawVerdict: bundle?.rawVerdict || parsedReview?.verdict || null,
-      run: sourceRun,
-      runLabel: sourceRun ? 'builder run' : 'run',
+      run,
+      runLabel: 'reviewer run',
+      reviewArtifact: artifact,
+      reviewerRun: run,
     };
   }
 
@@ -1099,9 +1440,13 @@ function getArtifactRelationContext(artifact, data, options = {}) {
 
   return {
     approvalId: bundle?.approvalId || parsedChangeSummary?.approvalId || null,
+    builderRun:
+      bundle?.sourceBuilderRun || (run?.role === 'builder' ? run : null),
     changeSummaryArtifact:
       bundle?.changeSummaryArtifact || (artifact.type === 'change-summary' ? artifact : null),
     changedFiles: bundle?.changedFiles || [],
+    commitPackageArtifact:
+      bundle?.commitPackageArtifact || (artifact.type === 'commit-package' ? artifact : null),
     diffArtifact: bundle?.diffArtifact || (artifact.type === 'diff' ? artifact : null),
     executionMode: bundle?.executionMode || null,
     patchArtifact: bundle?.patchArtifact || (artifact.type === 'patch' ? artifact : null),
@@ -1114,6 +1459,9 @@ function getArtifactRelationContext(artifact, data, options = {}) {
     rawVerdict: bundle?.rawVerdict || null,
     run,
     runLabel: 'run',
+    reviewArtifact: bundle?.reviewArtifact || (artifact.type === 'review' ? artifact : null),
+    reviewerRun:
+      bundle?.sourceReviewerRun || (run?.role === 'reviewer' ? run : null),
   };
 }
 
@@ -1139,14 +1487,53 @@ function renderRelationStrip(context) {
     return '';
   }
 
-  const relationButtons = [
-    context.run
+  const legacyRunButton =
+    context.run &&
+    context.run.id !== context.builderRun?.id &&
+    context.run.id !== context.reviewerRun?.id
       ? renderRelationButton(
           `${context.runLabel || 'run'}:${context.run.id}`,
           'select-run',
           context.run.id,
           'neutral',
           state.selectedRunId === context.run.id,
+        )
+      : '';
+  const relationButtons = [
+    context.commitPackageArtifact
+      ? renderRelationButton(
+          `commit-package:${context.commitPackageArtifact.id}`,
+          'select-artifact',
+          context.commitPackageArtifact.id,
+          'neutral',
+          state.selectedArtifactId === context.commitPackageArtifact.id,
+        )
+      : '',
+    context.reviewerRun
+      ? renderRelationButton(
+          `reviewer:${context.reviewerRun.id}`,
+          'select-run',
+          context.reviewerRun.id,
+          'neutral',
+          state.selectedRunId === context.reviewerRun.id,
+        )
+      : '',
+    context.reviewArtifact
+      ? renderRelationButton(
+          `review:${context.reviewArtifact.id}`,
+          'select-artifact',
+          context.reviewArtifact.id,
+          'neutral',
+          state.selectedArtifactId === context.reviewArtifact.id,
+        )
+      : '',
+    context.builderRun
+      ? renderRelationButton(
+          `builder:${context.builderRun.id}`,
+          'select-run',
+          context.builderRun.id,
+          'neutral',
+          state.selectedRunId === context.builderRun.id,
         )
       : '',
     context.preflightArtifact
@@ -1185,6 +1572,7 @@ function renderRelationStrip(context) {
           state.selectedArtifactId === context.diffArtifact.id,
         )
       : '',
+    legacyRunButton,
   ]
     .filter(Boolean)
     .join('');
@@ -1230,6 +1618,167 @@ function getInboxTone(item) {
 
 function renderReasonList(title, items) {
   return renderCompactList(title, items, Array.isArray(items) ? items.length : 0);
+}
+
+function renderPreselectedPendingItemHint(item, approval, options = {}) {
+  if (!item) {
+    return '';
+  }
+
+  const helpText =
+    options.helpText || 'Approval actions stay on the current surface and mirror the server snapshot as-is.';
+
+  return `
+    <div class="breakdown-inbox-hint">
+      <div class="token-row">
+        ${createToken(`preselected inbox:${item.id}`, 'warning')}
+        ${createToken(item.kind, getInboxTone(item))}
+        ${item.blocksTask ? createToken('blocksTask', 'danger') : ''}
+        ${approval ? createToken(`scope:${approval.scope}`, 'neutral') : ''}
+        ${
+          approval?.allowedNextAction
+            ? createToken(`action:${approval.allowedNextAction}`, 'neutral')
+            : ''
+        }
+      </div>
+      <p class="detail-copy">${escapeHtml(item.title)}</p>
+      <p class="detail-copy">${escapeHtml(item.prompt || 'No prompt recorded.')}</p>
+      ${
+        item.kind === 'approval'
+          ? `
+            <div class="form-actions form-actions-inline">
+              <button
+                class="primary-button"
+                type="button"
+                data-action="run-inbox-action"
+                data-id="${escapeHtml(item.id)}"
+                data-verb="approve"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                Approve
+              </button>
+              <button
+                class="danger-button"
+                type="button"
+                data-action="run-inbox-action"
+                data-id="${escapeHtml(item.id)}"
+                data-verb="reject"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                Reject
+              </button>
+              <p class="form-help">${escapeHtml(helpText)}</p>
+            </div>
+          `
+          : '<p class="form-help">Decision resolution remains in Decision Inbox for this slice.</p>'
+      }
+    </div>
+  `;
+}
+
+function renderCommitPackagePanel(task, data, options = {}) {
+  if (!task) {
+    return '';
+  }
+
+  const { disabled, summary } = getCommitPackageAvailability(task, data);
+  const currentSurface = options.currentSurface || state.surface;
+  const displayStatus = getCommitApprovalDisplayStatus(summary);
+  const packageStatus = summary.currentCommitPackageArtifactId
+    ? 'current'
+    : summary.packageStale
+      ? 'stale'
+      : summary.latestCommitPackageArtifactId
+        ? 'latest'
+        : 'missing';
+  const relationContext = buildCommitPackageRelationContext(task, data, summary);
+  const actionHelp = summary.allowed
+    ? `Creates or reuses a commit-package artifact for ${summary.sourceReviewerRunId || 'the latest passing reviewer bundle'} and opens a commit approval inbox item without running git commit, merge, or release.`
+    : `Prepare Commit Package stays disabled until ${
+        (summary.reasons || []).join('; ') || 'the latest passing reviewer bundle is ready'
+      }.`;
+  const actionSurface =
+    options.includeAction === false
+      ? ''
+      : `
+        <div class="form-actions form-actions-inline">
+          <button
+            class="primary-button"
+            type="button"
+            data-action="run-commit-package"
+            data-id="${escapeHtml(task.id)}"
+            ${disabled ? 'disabled' : ''}
+          >
+            Prepare Commit Package
+          </button>
+          <p class="form-help">${escapeHtml(actionHelp)}</p>
+        </div>
+      `;
+
+  return `
+    <div class="guard-summary">
+      <div class="token-row">
+        ${
+          summary.allowed
+            ? createToken('commit-package:ready', 'success')
+            : createToken('commit-package:blocked', 'warning')
+        }
+        ${createToken(
+          `commit approval:${displayStatus}`,
+          getApprovalDisplayTone(displayStatus),
+        )}
+        ${createToken(
+          `package:${packageStatus}`,
+          packageStatus === 'current'
+            ? 'success'
+            : packageStatus === 'stale'
+              ? 'warning'
+              : 'neutral',
+        )}
+        ${
+          summary.latestApprovalId
+            ? createToken(`approval:${summary.latestApprovalId}`, 'neutral')
+            : ''
+        }
+        ${
+          summary.currentCommitPackageArtifactId
+            ? createToken(`current package:${summary.currentCommitPackageArtifactId}`, 'neutral')
+            : summary.latestCommitPackageArtifactId
+              ? createToken(`latest package:${summary.latestCommitPackageArtifactId}`, 'neutral')
+              : ''
+        }
+        ${
+          summary.sourceReviewerRunId
+            ? createToken(`reviewer:${summary.sourceReviewerRunId}`, 'neutral')
+            : ''
+        }
+        ${
+          summary.sourceBuilderRunId
+            ? createToken(`builder:${summary.sourceBuilderRunId}`, 'neutral')
+            : ''
+        }
+        ${
+          summary.targetPreflightArtifactId
+            ? createToken(`preflight:${summary.targetPreflightArtifactId}`, 'neutral')
+            : ''
+        }
+        ${createToken(`surface:${currentSurface}`, 'neutral')}
+      </div>
+      <p class="detail-copy">
+        Commit-package readiness comes directly from the coordinator. This panel only reflects that summary and keeps actual git commit, merge, and release disabled.
+      </p>
+      ${
+        summary.reasons?.length
+          ? renderReasonList('Commit Package Guard Reasons', summary.reasons)
+          : '<p class="detail-copy">No commit-package guard reasons remain for the latest passing reviewer bundle.</p>'
+      }
+      ${
+        renderRelationStrip(relationContext) ||
+        '<p class="detail-copy">No commit-package relation context is available yet.</p>'
+      }
+      ${actionSurface}
+    </div>
+  `;
 }
 
 function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
@@ -1447,7 +1996,11 @@ async function postJson(url, body) {
 
 function applySnapshotPayload(payload) {
   state.payload = {
-    derived: payload.derived || { reviewerReadinessSummaries: {}, taskGuardSummaries: {} },
+    derived: payload.derived || {
+      commitPackageReadinessSummaries: {},
+      reviewerReadinessSummaries: {},
+      taskGuardSummaries: {},
+    },
     generatedAt: payload.generatedAt,
     runtimeRoot: payload.runtimeRoot,
     snapshot: payload.snapshot,
@@ -1639,7 +2192,23 @@ async function handleSelection(action, id) {
     state.selectedInboxItemId = id;
 
     if (item) {
-      syncSelectionsFromTask(item.taskId);
+      const approval =
+        item.kind === 'approval' && item.sourceId
+          ? data.approvals.find((candidate) => candidate.id === item.sourceId) || null
+          : null;
+      const commitPackageArtifactId =
+        approval?.allowedNextAction === 'commit-intent'
+          ? approval.metadata?.commitPackageArtifactId || null
+          : null;
+      const commitPackageArtifact =
+        commitPackageArtifactId && data.artifactMap.has(commitPackageArtifactId)
+          ? data.artifactMap.get(commitPackageArtifactId)
+          : null;
+
+      syncSelectionsFromTask(item.taskId, {
+        preferredArtifactId: commitPackageArtifact?.id || null,
+        preferredRunId: commitPackageArtifact?.runId || null,
+      });
       state.selectedInboxItemId = id;
     }
   }
@@ -1924,6 +2493,41 @@ async function runReviewer(taskId) {
   }
 }
 
+async function runCommitPackage(taskId) {
+  const data = getDerived();
+  const currentSurface = state.surface;
+
+  if (!taskId || !data.taskMap.has(taskId)) {
+    throw new Error('Select a task before preparing a commit package');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Preparing commit package for ${taskId}…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/tasks/${encodeURIComponent(taskId)}/run-commit-package`,
+    );
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromTask(taskId, {
+      preferredArtifactId: payload.mutation.artifactId,
+      preferredInboxItemId: payload.mutation.inboxItemId || null,
+      preferredRunId: payload.mutation.runId,
+    });
+    await hydrateSelectedDetails();
+    state.surface = currentSurface;
+    render();
+    elements.refreshStatus.textContent = `Commit package run ${payload.mutation.runId} completed`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 async function runInboxAction(itemId, verb) {
   const data = getDerived();
   const item = data.inboxItemMap.get(itemId);
@@ -2069,7 +2673,7 @@ function renderTaskboard(data) {
             <h2>Taskboard</h2>
             <p class="panel-copy">Lifecycle, flags, review state, and gate visibility by task.</p>
           </div>
-          <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval + limited live mutation write enabled</p>
+          <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval + limited live mutation write + commit-package prepare enabled</p>
         </div>
         <form class="task-create-form" data-form="create-task">
           <div class="field-grid">
@@ -2172,6 +2776,14 @@ function renderTaskDetail(task, data) {
   const taskBreakerDisabled = taskBreakerState.disabled;
   const builderPreflightDisabled = builderPreflightState.disabled;
   const reviewerState = getReviewerAvailability(task, data);
+  const commitPackageState = getCommitPackageAvailability(task, data);
+  const showBuilderApprovalHint =
+    Boolean(preselectedPendingItem) &&
+    (preselectedPendingItem.kind !== 'approval' ||
+      preselectedApproval?.allowedNextAction === 'builder-live-mutation');
+  const showCommitApprovalHint =
+    preselectedPendingItem?.kind === 'approval' &&
+    preselectedApproval?.allowedNextAction === 'commit-intent';
 
   return `
     <aside class="detail-card">
@@ -2362,55 +2974,11 @@ function renderTaskDetail(task, data) {
               `
         }
         ${
-          preselectedPendingItem
-            ? `
-              <div class="breakdown-inbox-hint">
-                <div class="token-row">
-                  ${createToken(`preselected inbox:${preselectedPendingItem.id}`, 'warning')}
-                  ${createToken(preselectedPendingItem.kind, getInboxTone(preselectedPendingItem))}
-                  ${preselectedPendingItem.blocksTask ? createToken('blocksTask', 'danger') : ''}
-                  ${
-                    preselectedApproval
-                      ? createToken(
-                          `scope:${preselectedApproval.scope}`,
-                          'neutral',
-                        )
-                      : ''
-                  }
-                </div>
-                <p class="detail-copy">${escapeHtml(preselectedPendingItem.title)}</p>
-                <p class="detail-copy">${escapeHtml(preselectedPendingItem.prompt || 'No prompt recorded.')}</p>
-                ${
-                  preselectedPendingItem.kind === 'approval'
-                    ? `
-                      <div class="form-actions form-actions-inline">
-                        <button
-                          class="primary-button"
-                          type="button"
-                          data-action="run-inbox-action"
-                          data-id="${escapeHtml(preselectedPendingItem.id)}"
-                          data-verb="approve"
-                          ${state.loading || state.mutating ? 'disabled' : ''}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          class="danger-button"
-                          type="button"
-                          data-action="run-inbox-action"
-                          data-id="${escapeHtml(preselectedPendingItem.id)}"
-                          data-verb="reject"
-                          ${state.loading || state.mutating ? 'disabled' : ''}
-                        >
-                          Reject
-                        </button>
-                        <p class="form-help">Approval actions stay on the current surface and mirror the server snapshot as-is.</p>
-                      </div>
-                    `
-                    : '<p class="form-help">Decision resolution remains in Decision Inbox for this slice.</p>'
-                }
-              </div>
-            `
+          showBuilderApprovalHint
+            ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
+                helpText:
+                  'Approval actions stay on the current surface and mirror the server snapshot as-is.',
+              })
             : ''
         }
       </div>
@@ -2485,6 +3053,37 @@ function renderTaskDetail(task, data) {
             </p>
           </div>
         </div>
+      </div>
+
+      <div class="detail-block">
+        <p class="detail-key">Commit Package</p>
+        <div class="pill-list">
+          ${createToken(
+            `ready:${commitPackageState.summary.allowed ? 'yes' : 'no'}`,
+            commitPackageState.summary.allowed ? 'success' : 'warning',
+          )}
+          ${createToken(
+            `commit approval:${getCommitApprovalDisplayStatus(commitPackageState.summary)}`,
+            getApprovalDisplayTone(getCommitApprovalDisplayStatus(commitPackageState.summary)),
+          )}
+          ${
+            commitPackageState.summary.currentCommitPackageArtifactId
+              ? createToken(
+                  `current package:${commitPackageState.summary.currentCommitPackageArtifactId}`,
+                  'neutral',
+                )
+              : ''
+          }
+        </div>
+        ${renderCommitPackagePanel(task, data, { currentSurface: 'taskboard' })}
+        ${
+          showCommitApprovalHint
+            ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
+                helpText:
+                  'Approval actions stay on the current surface and mirror the server snapshot as-is.',
+              })
+            : ''
+        }
       </div>
 
       <div class="detail-block">
@@ -2675,6 +3274,10 @@ function renderArtifacts(data) {
     selectedArtifactMeta?.type === 'review' && state.selectedArtifact?.content
       ? parseReviewArtifact(state.selectedArtifact.content)
       : null;
+  const parsedCommitPackage =
+    selectedArtifactMeta?.type === 'commit-package' && state.selectedArtifact?.content
+      ? parseCommitPackageArtifact(state.selectedArtifact.content)
+      : null;
   const parsedUnifiedDiff =
     (selectedArtifactMeta?.type === 'patch' || selectedArtifactMeta?.type === 'diff') &&
     state.selectedArtifact?.content
@@ -2683,6 +3286,7 @@ function renderArtifacts(data) {
   const artifactRelationContext = selectedArtifactMeta
     ? getArtifactRelationContext(selectedArtifactMeta, data, {
         parsedChangeSummary,
+        parsedCommitPackage,
         parsedReview,
       })
     : null;
@@ -2697,6 +3301,13 @@ function renderArtifacts(data) {
     preselectedPendingItem?.kind === 'approval' && preselectedPendingItem.sourceId
       ? data.approvals.find((approval) => approval.id === preselectedPendingItem.sourceId) || null
       : null;
+  const showBuilderApprovalHint =
+    Boolean(preselectedPendingItem) &&
+    (preselectedPendingItem.kind !== 'approval' ||
+      preselectedApproval?.allowedNextAction === 'builder-live-mutation');
+  const showCommitApprovalHint =
+    preselectedPendingItem?.kind === 'approval' &&
+    preselectedApproval?.allowedNextAction === 'commit-intent';
   const artifactList = data.artifacts.length
     ? data.artifacts
         .map(
@@ -2789,6 +3400,13 @@ function renderArtifacts(data) {
                             `
                             : selectedArtifactMeta.type === 'review'
                               ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                            : selectedArtifactMeta.type === 'commit-package' && parsedCommitPackage
+                              ? `
+                                <p class="detail-copy">Best-effort structured view of the stored commit-package artifact. Raw markdown remains below.</p>
+                                ${renderStructuredCommitPackage(parsedCommitPackage)}
+                              `
+                              : selectedArtifactMeta.type === 'commit-package'
+                                ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
                             : selectedArtifactMeta.type === 'patch' && parsedUnifiedDiff
                               ? `
                                 <p class="detail-copy">Best-effort summary of the stored planned patch. Raw patch text remains below.</p>
@@ -2811,59 +3429,38 @@ function renderArtifacts(data) {
                     : ''
                 }
                 ${
-                  preselectedPendingItem
-                    ? `
-                      <div class="breakdown-inbox-hint">
-                        <div class="token-row">
-                          ${createToken(`preselected inbox:${preselectedPendingItem.id}`, 'warning')}
-                          ${createToken(preselectedPendingItem.kind, getInboxTone(preselectedPendingItem))}
-                          ${preselectedPendingItem.blocksTask ? createToken('blocksTask', 'danger') : ''}
-                          ${
-                            preselectedApproval
-                              ? createToken(`scope:${preselectedApproval.scope}`, 'neutral')
-                              : ''
-                          }
-                        </div>
-                        <p class="detail-copy">${escapeHtml(preselectedPendingItem.title)}</p>
-                        <p class="detail-copy">${escapeHtml(preselectedPendingItem.prompt || 'No prompt recorded.')}</p>
-                        ${
-                          preselectedPendingItem.kind === 'approval'
-                            ? `
-                              <div class="form-actions form-actions-inline">
-                                <button
-                                  class="primary-button"
-                                  type="button"
-                                  data-action="run-inbox-action"
-                                  data-id="${escapeHtml(preselectedPendingItem.id)}"
-                                  data-verb="approve"
-                                  ${state.loading || state.mutating ? 'disabled' : ''}
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  class="danger-button"
-                                  type="button"
-                                  data-action="run-inbox-action"
-                                  data-id="${escapeHtml(preselectedPendingItem.id)}"
-                                  data-verb="reject"
-                                  ${state.loading || state.mutating ? 'disabled' : ''}
-                                >
-                                  Reject
-                                </button>
-                                <p class="form-help">Approval actions stay on Artifacts and mirror the server snapshot as-is.</p>
-                              </div>
-                            `
-                            : '<p class="form-help">Decision resolution remains in Decision Inbox for this slice.</p>'
-                        }
-                      </div>
-                    `
+                  selectedArtifactTask &&
+                  (selectedArtifactMeta.type === 'review' ||
+                    selectedArtifactMeta.type === 'commit-package')
+                    ? renderCommitPackagePanel(selectedArtifactTask, data, {
+                        currentSurface: 'artifacts',
+                      })
+                    : ''
+                }
+                ${
+                  showBuilderApprovalHint &&
+                  selectedArtifactMeta.type === 'preflight'
+                    ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
+                        helpText: 'Approval actions stay on Artifacts and mirror the server snapshot as-is.',
+                      })
+                    : ''
+                }
+                ${
+                  showCommitApprovalHint &&
+                  selectedArtifactTask &&
+                  (selectedArtifactMeta.type === 'review' ||
+                    selectedArtifactMeta.type === 'commit-package')
+                    ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
+                        helpText: 'Approval actions stay on Artifacts and mirror the server snapshot as-is.',
+                      })
                     : ''
                 }
                 <p class="detail-key">${
                   selectedArtifactMeta.type === 'breakdown' ||
                   selectedArtifactMeta.type === 'preflight' ||
                   selectedArtifactMeta.type === 'change-summary' ||
-                  selectedArtifactMeta.type === 'review'
+                  selectedArtifactMeta.type === 'review' ||
+                  selectedArtifactMeta.type === 'commit-package'
                     ? 'Raw Markdown'
                     : 'Raw Preview'
                 }</p>
@@ -3147,6 +3744,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'run-reviewer') {
         await runReviewer(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'run-commit-package') {
+        await runCommitPackage(actionButton.dataset.id);
         return;
       }
 
