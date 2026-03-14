@@ -16,6 +16,8 @@ const state = {
   selectedArtifact: null,
   selectedTaskBreakdownArtifact: null,
   selectedTaskPreflightArtifact: null,
+  projectDraftName: '',
+  projectDraftPath: '',
   taskDraftTitle: '',
   taskDraftIntent: '',
   timerId: null,
@@ -107,33 +109,31 @@ function getDerived() {
   const inboxItems = Object.values(snapshot.decisionInboxItems).sort(sortByCreatedDesc);
   const approvals = Object.values(snapshot.approvals).sort(sortByCreatedDesc);
 
-  const activeProject =
-    snapshot.projects[snapshot.activeProjectId] ||
-    (tasks.length > 0 ? snapshot.projects[tasks[0].projectId] : null) ||
-    projects[0] ||
-    null;
+  const activeProject = snapshot.activeProjectId
+    ? snapshot.projects[snapshot.activeProjectId] || null
+    : null;
 
   const projectTasks = activeProject
     ? tasks.filter((task) => task.projectId === activeProject.id)
-    : tasks;
+    : [];
   const projectRuns = activeProject
     ? runs.filter((run) => {
         const task = snapshot.tasks[run.taskId];
         return task && task.projectId === activeProject.id;
       })
-    : runs;
+    : [];
   const projectArtifacts = activeProject
     ? artifacts.filter((artifact) => {
         const task = snapshot.tasks[artifact.taskId];
         return task && task.projectId === activeProject.id;
       })
-    : artifacts;
+    : [];
   const projectInboxItems = activeProject
     ? inboxItems.filter((item) => item.projectId === activeProject.id)
-    : inboxItems;
+    : [];
   const projectApprovals = activeProject
     ? approvals.filter((approval) => approval.projectId === activeProject.id)
-    : approvals;
+    : [];
 
   const taskMap = new Map(projectTasks.map((task) => [task.id, task]));
   const runMap = new Map(projectRuns.map((run) => [run.id, run]));
@@ -162,6 +162,46 @@ function getDerived() {
     artifactMap,
     inboxItemMap,
   };
+}
+
+function getProjectBootstrapState(data) {
+  if (data.projects.length === 0) {
+    return {
+      copy: 'Register the first project before task creation or execution.',
+      title: 'First-Run Bootstrap',
+    };
+  }
+
+  if (!data.activeProject) {
+    return {
+      copy: 'Select the current project before task creation or execution.',
+      title: 'Project Selection Required',
+    };
+  }
+
+  return {
+    copy: 'The bootstrap path closes once a project is active. The next step is the first task.',
+    title: 'Project Registry',
+  };
+}
+
+function getProjectGateCopy(data, surfaceName) {
+  if (data.projects.length === 0) {
+    return `Register a project on Taskboard before using ${surfaceName}.`;
+  }
+
+  return `Select the current project on Taskboard before using ${surfaceName}.`;
+}
+
+function renderProjectGateSurface(title, copy) {
+  return `
+    <div class="surface-panel">
+      <div class="empty-state empty-state-strong">
+        <strong>${escapeHtml(title)}</strong>
+        <p>${escapeHtml(copy)}</p>
+      </div>
+    </div>
+  `;
 }
 
 function groupTasksByLifecycle(tasks) {
@@ -3652,6 +3692,11 @@ async function handleSurfaceChange(surface) {
 }
 
 async function handleSelection(action, id) {
+  if (action === 'select-project') {
+    await submitSelectProject(id);
+    return;
+  }
+
   if (action === 'select-task') {
     syncSelectionsFromTask(id, {
       applyTaskInboxPreselect: true,
@@ -3753,6 +3798,92 @@ async function handleSelection(action, id) {
 
   await hydrateSelectedDetails();
   render();
+}
+
+async function submitCreateProject() {
+  const name = state.projectDraftName.trim();
+  const projectPath = state.projectDraftPath.trim();
+
+  if (!name) {
+    throw new Error('Project name is required');
+  }
+
+  if (!projectPath) {
+    throw new Error('project_path is required');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = 'Registering project…';
+  render();
+
+  try {
+    const payload = await postJson('/api/projects', {
+      name,
+      projectPath,
+    });
+
+    applySnapshotPayload(payload);
+    const data = getDerived();
+    state.projectDraftName = '';
+    state.projectDraftPath = '';
+    state.selectedTaskId = null;
+    state.selectedRunId = null;
+    state.selectedArtifactId = null;
+    state.selectedInboxItemId = null;
+    state.selectedRunLogs = null;
+    state.selectedArtifact = null;
+    state.selectedTaskBreakdownArtifact = null;
+    state.selectedTaskPreflightArtifact = null;
+    state.selectionSeeded = false;
+    ensureSelection(data);
+    await hydrateSelectedDetails();
+    render();
+    elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitSelectProject(projectId) {
+  const dataBefore = getDerived();
+
+  if (!projectId || !dataBefore.snapshot.projects[projectId]) {
+    throw new Error('Select a registered project');
+  }
+
+  if (projectId === dataBefore.activeProject?.id) {
+    return;
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Switching active project to ${projectId}…`;
+  render();
+
+  try {
+    const payload = await postJson(`/api/projects/${encodeURIComponent(projectId)}/select`);
+
+    applySnapshotPayload(payload);
+    const data = getDerived();
+    state.selectedTaskId = null;
+    state.selectedRunId = null;
+    state.selectedArtifactId = null;
+    state.selectedInboxItemId = null;
+    state.selectedRunLogs = null;
+    state.selectedArtifact = null;
+    state.selectedTaskBreakdownArtifact = null;
+    state.selectedTaskPreflightArtifact = null;
+    state.selectionSeeded = false;
+    ensureSelection(data);
+    await hydrateSelectedDetails();
+    render();
+    elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
 }
 
 async function submitCreateTask() {
@@ -4246,9 +4377,102 @@ function renderNav(data) {
   }
 }
 
+function renderProjectBootstrapPanel(data) {
+  const bootstrapState = getProjectBootstrapState(data);
+  const projectActionDisabled = state.loading || state.mutating;
+  const projectList = data.projects.length
+    ? `
+        <div class="project-list">
+          ${data.projects
+            .map(
+              (project) => `
+                <button
+                  class="list-button ${project.id === data.activeProject?.id ? 'is-selected' : ''}"
+                  type="button"
+                  data-action="select-project"
+                  data-id="${escapeHtml(project.id)}"
+                  ${projectActionDisabled ? 'disabled' : ''}
+                >
+                  <div class="card-title-row">
+                    <strong>${escapeHtml(project.name)}</strong>
+                    ${
+                      project.id === data.activeProject?.id
+                        ? createToken('active', 'success')
+                        : createToken('registered', 'neutral')
+                    }
+                  </div>
+                  <p class="list-copy">${escapeHtml(project.projectPath)}</p>
+                  <div class="token-row">
+                    ${createToken(project.pack || 'development', 'neutral')}
+                    ${createToken(`readiness:${project.readiness || 'unknown'}`, 'neutral')}
+                  </div>
+                </button>
+              `,
+            )
+            .join('')}
+        </div>
+      `
+    : `
+        <div class="empty-state">
+          <strong>No registered projects</strong>
+          <p>Start by registering a local project path.</p>
+        </div>
+      `;
+
+  return `
+    <section class="project-bootstrap">
+      <div class="panel-header">
+        <div>
+          <h3>${escapeHtml(bootstrapState.title)}</h3>
+          <p class="panel-copy">${escapeHtml(bootstrapState.copy)}</p>
+        </div>
+        ${
+          data.activeProject
+            ? `<div class="token-row">
+                ${createToken(`active:${data.activeProject.name}`, 'success')}
+              </div>`
+            : ''
+        }
+      </div>
+      ${projectList}
+      <form class="task-create-form project-create-form" data-form="create-project">
+        <div class="field-grid">
+          <label class="field">
+            <span class="field-label">Project Name</span>
+            <input
+              type="text"
+              name="projectName"
+              value="${escapeHtml(state.projectDraftName)}"
+              placeholder="orchestration"
+              ${projectActionDisabled ? 'disabled' : ''}
+            >
+          </label>
+          <label class="field">
+            <span class="field-label">project_path</span>
+            <input
+              type="text"
+              name="projectPath"
+              value="${escapeHtml(state.projectDraftPath)}"
+              placeholder="/absolute/path/to/project"
+              ${projectActionDisabled ? 'disabled' : ''}
+            >
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="secondary-button" type="submit" ${projectActionDisabled ? 'disabled' : ''}>
+            Register Project
+          </button>
+          <p class="form-help">Registration stores the project and makes it the active project for the shell.</p>
+        </div>
+      </form>
+    </section>
+  `;
+}
+
 function renderTaskboard(data) {
   const selectedTask = data.taskMap.get(state.selectedTaskId) || null;
   const createDisabled = !data.activeProject || state.loading || state.mutating;
+  const bootstrapPanel = renderProjectBootstrapPanel(data);
   const lanes = groupTasksByLifecycle(data.tasks)
     .map(([laneName, tasks]) => {
       const cards = tasks.length
@@ -4314,46 +4538,54 @@ function renderTaskboard(data) {
           </div>
           <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval + limited live mutation write + commit-package prepare + local commit + release-package prepare + close-out enabled</p>
         </div>
-        <form class="task-create-form" data-form="create-task">
-          <div class="field-grid">
-            <label class="field">
-              <span class="field-label">Title</span>
-              <input
-                type="text"
-                name="title"
-                value="${escapeHtml(state.taskDraftTitle)}"
-                placeholder="Thin-slice task title"
-                ${createDisabled ? 'disabled' : ''}
-              >
-            </label>
-            <label class="field">
-              <span class="field-label">Intent</span>
-              <textarea
-                name="intent"
-                rows="3"
-                placeholder="Optional intended outcome and acceptance hint"
-                ${createDisabled ? 'disabled' : ''}
-              >${escapeHtml(state.taskDraftIntent)}</textarea>
-            </label>
-          </div>
-          <div class="form-actions">
-            <button class="primary-button" type="submit" ${createDisabled ? 'disabled' : ''}>Create Task</button>
-            <p class="form-help">
-              ${
-                data.activeProject
-                  ? `Creates a task in ${escapeHtml(data.activeProject.name)}.`
-                  : 'Active project required before creating tasks.'
-              }
-            </p>
-          </div>
-        </form>
+        ${bootstrapPanel}
         ${
-          data.tasks.length > 0
+          data.activeProject
+            ? `
+              <form class="task-create-form" data-form="create-task">
+                <div class="field-grid">
+                  <label class="field">
+                    <span class="field-label">Title</span>
+                    <input
+                      type="text"
+                      name="title"
+                      value="${escapeHtml(state.taskDraftTitle)}"
+                      placeholder="Thin-slice task title"
+                      ${createDisabled ? 'disabled' : ''}
+                    >
+                  </label>
+                  <label class="field">
+                    <span class="field-label">Intent</span>
+                    <textarea
+                      name="intent"
+                      rows="3"
+                      placeholder="Optional intended outcome and acceptance hint"
+                      ${createDisabled ? 'disabled' : ''}
+                    >${escapeHtml(state.taskDraftIntent)}</textarea>
+                  </label>
+                </div>
+                <div class="form-actions">
+                  <button class="primary-button" type="submit" ${createDisabled ? 'disabled' : ''}>Create Task</button>
+                  <p class="form-help">Creates a task in ${escapeHtml(data.activeProject.name)}.</p>
+                </div>
+              </form>
+            `
+            : ''
+        }
+        ${
+          !data.activeProject
+            ? `
+              <div class="empty-state">
+                <strong>No active project</strong>
+                <p>Register or select a project above before creating the first task.</p>
+              </div>
+            `
+            : data.tasks.length > 0
             ? `<div class="lane-grid">${lanes}</div>`
             : `
               <div class="empty-state">
                 <strong>No tasks yet</strong>
-                <p>Create a task through the runtime flow before using the Taskboard.</p>
+                <p>The active project is ready. Create the first thin-slice task to enter the core loop.</p>
               </div>
             `
         }
@@ -4822,6 +5054,14 @@ function renderTaskDetail(task, data) {
 }
 
 function renderLogs(data) {
+  if (!data.activeProject) {
+    elements.surfaces.logs.innerHTML = renderProjectGateSurface(
+      'Logs Unavailable',
+      getProjectGateCopy(data, 'Logs'),
+    );
+    return;
+  }
+
   const selectedRun = data.runMap.get(state.selectedRunId) || null;
   const selectedTask = selectedRun
     ? data.taskMap.get(selectedRun.taskId)
@@ -4932,6 +5172,14 @@ function renderLogs(data) {
 }
 
 function renderArtifacts(data) {
+  if (!data.activeProject) {
+    elements.surfaces.artifacts.innerHTML = renderProjectGateSurface(
+      'Artifacts Unavailable',
+      getProjectGateCopy(data, 'Artifacts'),
+    );
+    return;
+  }
+
   const selectedArtifactMeta = data.artifactMap.get(state.selectedArtifactId) || null;
   const selectedArtifactTask = selectedArtifactMeta
     ? data.taskMap.get(selectedArtifactMeta.taskId)
@@ -5233,6 +5481,14 @@ function renderArtifacts(data) {
 }
 
 function renderDecisionInbox(data) {
+  if (!data.activeProject) {
+    elements.surfaces['decision-inbox'].innerHTML = renderProjectGateSurface(
+      'Decision Inbox Unavailable',
+      getProjectGateCopy(data, 'Decision Inbox'),
+    );
+    return;
+  }
+
   const pendingItems = data.inboxItems.filter((item) => item.status === 'pending');
   const resolvedItems = data.inboxItems.filter((item) => item.status === 'resolved');
   const selectedItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
@@ -5574,7 +5830,20 @@ document.addEventListener('click', async (event) => {
 });
 
 document.addEventListener('input', (event) => {
+  const createProjectForm = event.target.closest('[data-form="create-project"]');
   const createTaskForm = event.target.closest('[data-form="create-task"]');
+
+  if (createProjectForm) {
+    if (event.target.name === 'projectName') {
+      state.projectDraftName = event.target.value;
+    }
+
+    if (event.target.name === 'projectPath') {
+      state.projectDraftPath = event.target.value;
+    }
+
+    return;
+  }
 
   if (!createTaskForm) {
     return;
@@ -5590,7 +5859,20 @@ document.addEventListener('input', (event) => {
 });
 
 document.addEventListener('submit', async (event) => {
+  const createProjectForm = event.target.closest('[data-form="create-project"]');
   const createTaskForm = event.target.closest('[data-form="create-task"]');
+
+  if (createProjectForm) {
+    event.preventDefault();
+
+    try {
+      await submitCreateProject();
+    } catch (error) {
+      elements.refreshStatus.textContent = error.message || 'Project registration failed';
+      render();
+    }
+    return;
+  }
 
   if (!createTaskForm) {
     return;

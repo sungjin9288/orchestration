@@ -357,6 +357,25 @@ h3 {
   gap: 12px;
 }
 
+.project-bootstrap,
+.project-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-bootstrap {
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 251, 243, 0.76);
+}
+
+.project-list {
+  gap: 10px;
+}
+
 .task-create-form,
 .field-grid,
 .field,
@@ -446,6 +465,10 @@ h3 {
   margin: 0;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.project-create-form {
+  margin-bottom: 0;
 }
 
 .list-button {
@@ -617,6 +640,10 @@ h3 {
 
 .empty-state {
   padding: 24px;
+}
+
+.empty-state-strong {
+  min-height: 220px;
 }
 
 .empty-state p {

@@ -207,6 +207,72 @@ const server = createServer(async (request, response) => {
   const method = request.method || 'GET';
   const url = new URL(request.url || '/', `http://${request.headers.host || '127.0.0.1'}`);
 
+  if (method === 'POST' && url.pathname === '/api/projects') {
+    try {
+      const input = await readJsonBody(request);
+      const name = String(input.name || '').trim();
+      const projectPath = String(input.projectPath || '').trim();
+
+      if (!name) {
+        json(response, 400, { error: 'Project name is required' });
+        return;
+      }
+
+      if (!projectPath) {
+        json(response, 400, { error: 'project_path is required' });
+        return;
+      }
+
+      const project = runtime.createProject({
+        name,
+        projectPath,
+      });
+
+      json(
+        response,
+        201,
+        buildSnapshotResponse({
+          mutation: {
+            kind: 'create-project',
+            projectId: project.id,
+          },
+          project,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Project creation failed' });
+      return;
+    }
+  }
+
+  const projectSelectMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/select$/);
+
+  if (method === 'POST' && projectSelectMatch) {
+    try {
+      const projectId = decodeURIComponent(projectSelectMatch[1]);
+      const project = runtime.selectProject(projectId);
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          mutation: {
+            kind: 'select-project',
+            projectId: project.id,
+          },
+          project,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Project selection failed' });
+      return;
+    }
+  }
+
   if (method === 'POST' && url.pathname === '/api/tasks') {
     try {
       const input = await readJsonBody(request);

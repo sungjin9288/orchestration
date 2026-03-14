@@ -738,6 +738,16 @@ function createRuntimeService(options = {}) {
       throw new Error(`project_path does not exist: ${projectPath}`);
     }
 
+    const existingProject = Object.values(state.projects).find(
+      (project) => project.projectPath === projectPath,
+    );
+
+    if (existingProject) {
+      state.activeProjectId = existingProject.id;
+      store.saveState(state);
+      return state.projects[existingProject.id];
+    }
+
     const id = nextId(state, 'project');
     const now = new Date().toISOString();
 
@@ -759,6 +769,16 @@ function createRuntimeService(options = {}) {
   function getProject(projectId) {
     const state = store.loadState();
     return assertProject(projectId, state);
+  }
+
+  function selectProject(projectId) {
+    const state = store.loadState();
+    const project = assertProject(projectId, state);
+
+    state.activeProjectId = project.id;
+    store.saveState(state);
+
+    return state.projects[project.id];
   }
 
   function createTask(input) {
@@ -1382,6 +1402,7 @@ function createRuntimeService(options = {}) {
     resolveReview,
     resolveDecisionInboxItem,
     resetRuntime,
+    selectProject,
     startRun,
     startPlaceholderRun,
     transitionTaskLifecycle,
