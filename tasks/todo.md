@@ -10,6 +10,7 @@
 - [x] `commit-package` and limited local git commit are wired behind explicit human approval
 - [x] `release-package` is anchored to the latest successful local commit bundle and only prepares a local/demo-only release artifact plus `human/release` approval
 - [x] `Taskboard / Logs / Artifacts / Decision Inbox` operate as the primary ops shell surfaces
+- [x] `Task Detail / Artifacts` can prepare a `release-package`, show structured release provenance and guard reasons, and preselect the matching `human/release` inbox item without forcing a surface change
 - [x] stale smoke expectations and live-mutation fixture assumptions were consolidated around the current guard and preflight contract
 - [x] a real-path end-to-end development loop smoke now covers planner through local commit on a clean temp repo
 
@@ -49,6 +50,7 @@
 - [x] ui-slice-08
 - [x] ui-slice-09
 - [x] ui-slice-10
+- [x] ui-slice-11
 
 ### deferred / rejected
 - [ ] provider adapter

@@ -86,6 +86,8 @@ function buildDerivedSnapshotData(snapshot) {
     commitExecutionReadinessSummaries:
       executionCoordinator.listCommitExecutionReadinessSummaries(),
     commitPackageReadinessSummaries: executionCoordinator.listCommitPackageReadinessSummaries(),
+    releasePackageReadinessSummaries:
+      executionCoordinator.listReleasePackageReadinessSummaries(),
     reviewerReadinessSummaries: executionCoordinator.listReviewerReadinessSummaries(),
     taskGuardSummaries: runtime.listTaskGuardSummaries(),
   };
@@ -580,6 +582,47 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, { error: error.message || 'Local commit run failed' });
+      return;
+    }
+  }
+
+  const releasePackageRunMatch = url.pathname.match(
+    /^\/api\/tasks\/([^/]+)\/run-release-package$/,
+  );
+
+  if (method === 'POST' && releasePackageRunMatch) {
+    try {
+      const taskId = decodeURIComponent(releasePackageRunMatch[1]);
+      const task = runtime.getTask(taskId);
+      const result = await executionCoordinator.runReleasePackage({
+        taskId: task.id,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          artifactDetail: getArtifactPayload(result.artifact.id)?.artifact || null,
+          mutation: {
+            approvalId: result.approval.id,
+            artifactId: result.artifact.id,
+            commitPackageArtifactId: result.run.summary?.commitPackageArtifactId || null,
+            commitResultArtifactId: result.run.summary?.commitResultArtifactId || null,
+            inboxItemId: result.inboxItem.id,
+            kind: 'run-release-package',
+            runId: result.run.id,
+            sourceBuilderRunId: result.run.summary?.sourceBuilderRunId || null,
+            sourceReviewerRunId: result.run.summary?.sourceReviewerRunId || null,
+            targetPreflightArtifactId: result.run.summary?.targetPreflightArtifactId || null,
+            taskId: task.id,
+          },
+          runLogs: getRunLogsPayload(result.run.id),
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, { error: error.message || 'Release package run failed' });
       return;
     }
   }

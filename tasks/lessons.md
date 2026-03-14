@@ -19,6 +19,9 @@
 - live mutation, reviewer, commit-package, local commit enablement는 UI 추정보다 runtime/coordinator readiness를 그대로 읽는 편이 drift를 줄였다.
 - release-ready approval도 preflight target만으로는 충분하지 않고 `releasePackageArtifactId / commitResultArtifactId / commitPackageArtifactId / sourceReviewerRunId / sourceBuilderRunId / targetPreflightArtifactId / commitSha / deliveryStance`를 metadata에 모두 고정해야 stale allow를 막을 수 있었다.
 - same source commit bundle에 대한 release approval은 pending/approved를 409로 닫고 rejected만 재요청 허용하는 편이 duplicate 제어와 human gate 재시도를 함께 단순하게 유지했다.
+- release-package enable/disable과 approval status(`none / pending / approved / rejected / stale`)는 UI에서 별도 semantics를 다시 계산하지 말고 `releasePackageReadiness` summary를 그대로 읽어야 polling과 stale handling drift를 막을 수 있었다.
+- release approval inbox item preselect는 surface 전환 없이 background selection만 갱신해야 Task Detail / Artifacts 중심 shell을 유지하면서 human gate follow-up을 연결할 수 있었다.
+- global artifact default priority는 유지하고 release mutation 직후에만 새 `release-package` artifact를 명시적으로 선택해야 일반 refresh가 사용자의 현재 selection을 덮어쓰지 않았다.
 
 ## smoke / fixtures
 
