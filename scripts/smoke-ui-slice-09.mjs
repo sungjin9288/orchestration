@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import executionCoordinatorModule from '../src/execution/execution-coordinator.js';
@@ -12,6 +13,20 @@ const { createRuntimeService } = runtimeServiceModule;
 
 const repoRoot = process.cwd();
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-09');
+
+function createFixtureProject() {
+  const projectPath = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-09-'));
+  const fixturePath = path.join(projectPath, 'prompts', 'builder.md');
+
+  fs.mkdirSync(path.dirname(fixturePath), { recursive: true });
+  fs.writeFileSync(
+    fixturePath,
+    '# Builder Prompt Contract\n\nUI slice 09 commit-package fixture.\n',
+    'utf8',
+  );
+
+  return projectPath;
+}
 
 function buildTaskRoutingOutcome(task) {
   const scopeStatement = (task.intent || task.title || '').trim();
@@ -53,6 +68,7 @@ async function runThroughReviewerPass(runtime, coordinator, taskId) {
 
 const runtime = createRuntimeService({ runtimeRoot });
 runtime.resetRuntime();
+const fixtureProjectPath = createFixtureProject();
 
 const coordinator = createExecutionCoordinator({
   providerAdapter: createLocalStubProviderAdapter(),
@@ -66,119 +82,123 @@ const serveUiSource = fs.readFileSync(
 );
 const appJsSource = fs.readFileSync(path.join(repoRoot, 'ui', 'app.js'), 'utf8');
 
-assert.match(serveUiSource, /commitPackageReadinessSummaries/);
-assert.match(serveUiSource, /run-commit-package/);
-assert.match(appJsSource, /Prepare Commit Package/);
-assert.match(appJsSource, /run-commit-package/);
-assert.match(appJsSource, /commitPackageReadinessSummaries/);
-assert.match(appJsSource, /parseCommitPackageArtifact/);
-assert.match(appJsSource, /renderCommitPackagePanel/);
-assert.match(appJsSource, /Best-effort structured view of the stored commit-package artifact/);
-assert.match(appJsSource, /approval\?\.allowedNextAction === 'commit-intent'/);
-assert.match(appJsSource, /state\.surface = currentSurface;/);
-assert.match(
-  appJsSource,
-  /state\.loading \|\| state\.mutating \|\| !summary\?\.allowed/,
-);
+try {
+  assert.match(serveUiSource, /commitPackageReadinessSummaries/);
+  assert.match(serveUiSource, /run-commit-package/);
+  assert.match(appJsSource, /Prepare Commit Package/);
+  assert.match(appJsSource, /run-commit-package/);
+  assert.match(appJsSource, /commitPackageReadinessSummaries/);
+  assert.match(appJsSource, /parseCommitPackageArtifact/);
+  assert.match(appJsSource, /renderCommitPackagePanel/);
+  assert.match(appJsSource, /Best-effort structured view of the stored commit-package artifact/);
+  assert.match(appJsSource, /approval\?\.allowedNextAction === 'commit-intent'/);
+  assert.match(appJsSource, /state\.surface = currentSurface;/);
+  assert.match(
+    appJsSource,
+    /state\.loading \|\| state\.mutating \|\| !summary\?\.allowed/,
+  );
 
-const project = runtime.createProject({
-  name: 'orchestration',
-  projectPath: repoRoot,
-});
+  const project = runtime.createProject({
+    name: 'orchestration',
+    projectPath: fixtureProjectPath,
+  });
 
-const task = runtime.createTask({
-  projectId: project.id,
-  title: 'ui-slice-09 commit package smoke',
-  intent: 'Review the latest builder live mutation bundle and pass it.',
-});
+  const task = runtime.createTask({
+    projectId: project.id,
+    title: 'ui-slice-09 commit package smoke',
+    intent: 'Review the latest builder live mutation bundle and pass it.',
+  });
 
-const firstReview = await runThroughReviewerPass(runtime, coordinator, task.id);
-const readinessBefore = coordinator.getCommitPackageReadiness({ taskId: task.id });
+  const firstReview = await runThroughReviewerPass(runtime, coordinator, task.id);
+  const readinessBefore = coordinator.getCommitPackageReadiness({ taskId: task.id });
 
-assert.equal(firstReview.artifact.type, 'review');
-assert.equal(readinessBefore.allowed, true);
-assert.equal(readinessBefore.latestApprovalId, null);
-assert.equal(readinessBefore.latestApprovalStatus, null);
-assert.equal(readinessBefore.approvalStale, false);
+  assert.equal(firstReview.artifact.type, 'review');
+  assert.equal(readinessBefore.allowed, true);
+  assert.equal(readinessBefore.latestApprovalId, null);
+  assert.equal(readinessBefore.latestApprovalStatus, null);
+  assert.equal(readinessBefore.approvalStale, false);
 
-const firstCommitPackage = await coordinator.runCommitPackage({ taskId: task.id });
-const firstCommitArtifact = runtime.getArtifact(firstCommitPackage.artifact.id);
-const firstCommitApproval = runtime.getApproval(firstCommitPackage.approval.id);
-const readinessAfterFirst = coordinator.getCommitPackageReadiness({ taskId: task.id });
+  const firstCommitPackage = await coordinator.runCommitPackage({ taskId: task.id });
+  const firstCommitArtifact = runtime.getArtifact(firstCommitPackage.artifact.id);
+  const firstCommitApproval = runtime.getApproval(firstCommitPackage.approval.id);
+  const readinessAfterFirst = coordinator.getCommitPackageReadiness({ taskId: task.id });
 
-assert.equal(firstCommitArtifact.type, 'commit-package');
-assert.equal(firstCommitApproval.allowedNextAction, 'commit-intent');
-assert.equal(firstCommitApproval.metadata.commitPackageArtifactId, firstCommitArtifact.id);
-assert.equal(firstCommitApproval.metadata.sourceReviewerRunId, firstReview.run.id);
-assert.match(firstCommitArtifact.content, /^## Source Reviewer Bundle$/m);
-assert.match(firstCommitArtifact.content, /^## Source Builder Bundle$/m);
-assert.match(firstCommitArtifact.content, /^## Execution Safety$/m);
-assert.match(firstCommitArtifact.content, /- git commit executed: no/);
-assert.equal(readinessAfterFirst.allowed, false);
-assert.equal(readinessAfterFirst.latestApprovalStatus, 'pending');
-assert.equal(readinessAfterFirst.approvalStale, false);
-assert.equal(readinessAfterFirst.currentCommitPackageArtifactId, firstCommitArtifact.id);
+  assert.equal(firstCommitArtifact.type, 'commit-package');
+  assert.equal(firstCommitApproval.allowedNextAction, 'commit-intent');
+  assert.equal(firstCommitApproval.metadata.commitPackageArtifactId, firstCommitArtifact.id);
+  assert.equal(firstCommitApproval.metadata.sourceReviewerRunId, firstReview.run.id);
+  assert.match(firstCommitArtifact.content, /^## Source Reviewer Bundle$/m);
+  assert.match(firstCommitArtifact.content, /^## Source Builder Bundle$/m);
+  assert.match(firstCommitArtifact.content, /^## Execution Safety$/m);
+  assert.match(firstCommitArtifact.content, /- git commit executed: no/);
+  assert.equal(readinessAfterFirst.allowed, false);
+  assert.equal(readinessAfterFirst.latestApprovalStatus, 'pending');
+  assert.equal(readinessAfterFirst.approvalStale, false);
+  assert.equal(readinessAfterFirst.currentCommitPackageArtifactId, firstCommitArtifact.id);
 
-runtime.resolveDecisionInboxItem({
-  itemId: firstCommitApproval.inboxItemId,
-  action: 'rejected',
-  note: 'Reject the first commit approval in ui-slice-09 smoke.',
-});
+  runtime.resolveDecisionInboxItem({
+    itemId: firstCommitApproval.inboxItemId,
+    action: 'rejected',
+    note: 'Reject the first commit approval in ui-slice-09 smoke.',
+  });
 
-const readinessAfterReject = coordinator.getCommitPackageReadiness({ taskId: task.id });
+  const readinessAfterReject = coordinator.getCommitPackageReadiness({ taskId: task.id });
 
-assert.equal(readinessAfterReject.allowed, true);
-assert.equal(readinessAfterReject.latestApprovalStatus, 'rejected');
-assert.equal(readinessAfterReject.currentCommitPackageArtifactId, firstCommitArtifact.id);
+  assert.equal(readinessAfterReject.allowed, true);
+  assert.equal(readinessAfterReject.latestApprovalStatus, 'rejected');
+  assert.equal(readinessAfterReject.currentCommitPackageArtifactId, firstCommitArtifact.id);
 
-const retryCommitPackage = await coordinator.runCommitPackage({ taskId: task.id });
-const retryCommitApproval = runtime.getApproval(retryCommitPackage.approval.id);
+  const retryCommitPackage = await coordinator.runCommitPackage({ taskId: task.id });
+  const retryCommitApproval = runtime.getApproval(retryCommitPackage.approval.id);
 
-assert.equal(retryCommitPackage.artifact.id, firstCommitArtifact.id);
-assert.notEqual(retryCommitApproval.id, firstCommitApproval.id);
+  assert.equal(retryCommitPackage.artifact.id, firstCommitArtifact.id);
+  assert.notEqual(retryCommitApproval.id, firstCommitApproval.id);
 
-runtime.resolveDecisionInboxItem({
-  itemId: retryCommitApproval.inboxItemId,
-  action: 'approved',
-  note: 'Approve the second commit approval in ui-slice-09 smoke.',
-});
+  runtime.resolveDecisionInboxItem({
+    itemId: retryCommitApproval.inboxItemId,
+    action: 'approved',
+    note: 'Approve the second commit approval in ui-slice-09 smoke.',
+  });
 
-const secondReview = await runThroughReviewerPass(runtime, coordinator, task.id);
-const staleReadiness = coordinator.getCommitPackageReadiness({ taskId: task.id });
+  const secondReview = await runThroughReviewerPass(runtime, coordinator, task.id);
+  const staleReadiness = coordinator.getCommitPackageReadiness({ taskId: task.id });
 
-assert.equal(secondReview.artifact.type, 'review');
-assert.equal(staleReadiness.allowed, true);
-assert.equal(staleReadiness.latestApprovalStatus, 'approved');
-assert.equal(staleReadiness.approvalStale, true);
-assert.equal(staleReadiness.currentCommitPackageArtifactId, null);
-assert.equal(staleReadiness.latestCommitPackageArtifactId, firstCommitArtifact.id);
+  assert.equal(secondReview.artifact.type, 'review');
+  assert.equal(staleReadiness.allowed, true);
+  assert.equal(staleReadiness.latestApprovalStatus, 'approved');
+  assert.equal(staleReadiness.approvalStale, true);
+  assert.equal(staleReadiness.currentCommitPackageArtifactId, null);
+  assert.equal(staleReadiness.latestCommitPackageArtifactId, firstCommitArtifact.id);
 
-const staleCommitPackage = await coordinator.runCommitPackage({ taskId: task.id });
-const staleCommitApproval = runtime.getApproval(staleCommitPackage.approval.id);
+  const staleCommitPackage = await coordinator.runCommitPackage({ taskId: task.id });
+  const staleCommitApproval = runtime.getApproval(staleCommitPackage.approval.id);
 
-assert.notEqual(staleCommitPackage.artifact.id, firstCommitArtifact.id);
-assert.equal(
-  staleCommitApproval.metadata.commitPackageArtifactId,
-  staleCommitPackage.artifact.id,
-);
-assert.equal(
-  staleCommitApproval.metadata.sourceReviewerRunId,
-  secondReview.run.id,
-);
+  assert.notEqual(staleCommitPackage.artifact.id, firstCommitArtifact.id);
+  assert.equal(
+    staleCommitApproval.metadata.commitPackageArtifactId,
+    staleCommitPackage.artifact.id,
+  );
+  assert.equal(
+    staleCommitApproval.metadata.sourceReviewerRunId,
+    secondReview.run.id,
+  );
 
-console.log(
-  JSON.stringify(
-    {
-      ok: true,
-      runtimeRoot,
-      taskId: task.id,
-      firstReviewRunId: firstReview.run.id,
-      firstCommitArtifactId: firstCommitArtifact.id,
-      retryCommitApprovalId: retryCommitApproval.id,
-      secondReviewRunId: secondReview.run.id,
-      staleCommitArtifactId: staleCommitPackage.artifact.id,
-    },
-    null,
-    2,
-  ),
-);
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        runtimeRoot,
+        taskId: task.id,
+        firstReviewRunId: firstReview.run.id,
+        firstCommitArtifactId: firstCommitArtifact.id,
+        retryCommitApprovalId: retryCommitApproval.id,
+        secondReviewRunId: secondReview.run.id,
+        staleCommitArtifactId: staleCommitPackage.artifact.id,
+      },
+      null,
+      2,
+    ),
+  );
+} finally {
+  fs.rmSync(fixtureProjectPath, { recursive: true, force: true });
+}
