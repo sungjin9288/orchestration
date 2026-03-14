@@ -63,6 +63,36 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: Local-first operation requires inspectable, versioned rules.
 - Impact: `AGENTS.md`, docs, and pack definitions shape runtime behavior and review expectations.
 
+### DEC-021
+- Status: `Accepted`
+- Decision: The current core-loop lifecycle is `Inbox -> In Progress -> Review -> Done`.
+- Why: This is the implemented lifecycle that preserves review-before-done without adding extra status churn during v1 consolidation.
+- Impact: Any additional lifecycle column such as `Planned` stays deferred until a later explicit decision.
+
+### DEC-022
+- Status: `Accepted`
+- Decision: `Blocked`, `Waiting Approval`, and `Waiting Decision` are task flags, not lifecycle statuses.
+- Why: Gate state must stay visible across surfaces without multiplying lifecycle states or drifting from the development-pack contract.
+- Impact: Runtime, coordinator, and UI derive readiness from flags plus inbox and approval records.
+
+### DEC-023
+- Status: `Accepted`
+- Decision: Builder execution is split into explicit `preflight` and `live-mutation` modes.
+- Why: No-write planning and bounded file mutation need distinct guardrails, artifacts, and approval semantics.
+- Impact: The latest approved preflight plus targeted approval are required before live mutation may proceed.
+
+### DEC-024
+- Status: `Accepted`
+- Decision: Reviewer input is anchored to the latest builder live-mutation bundle only.
+- Why: Review provenance becomes unreliable when artifacts are mixed across runs by type instead of by source bundle.
+- Impact: Reviewer, commit-package, and local commit flows all trace back to one builder bundle.
+
+### DEC-025
+- Status: `Accepted`
+- Decision: Commit flow is split into `commit-package` and `local commit`, while push, merge, and release stay out of scope.
+- Why: Approval-before-commit can be enforced locally without widening into release automation during v1.
+- Impact: Human gate approves the current commit-package bundle first; local commit executes only after that approval.
+
 ## Rejected
 
 ### DEC-010
@@ -105,33 +135,39 @@ This file records product and architecture decisions that shape v1. Add a new en
 
 ### DEC-016
 - Status: `[OPEN]`
-- Decision: Choose the initial provider for the single-provider-first adapter.
-- Why It Is Open: The strategy is set, but the concrete provider is still unspecified.
-- Needed Before: runtime adapter implementation starts.
-
-### DEC-017
-- Status: `[OPEN]`
-- Decision: Finalize the initial task state machine.
-- Why It Is Open: It is not yet settled whether `Blocked`, `Waiting Approval`, and `Waiting Decision` are states, flags, or queues.
-- Needed Before: `Taskboard` interaction and task contract implementation.
+- Decision: Choose the initial live provider or explicitly ship `local-stub` as demo-only for the release gate.
+- Why It Is Open: Single-provider-first is accepted, but the release stance is still ambiguous because the implemented default path remains `local-stub`.
+- Needed Before: release or human-gate sign-off.
 
 ### DEC-018
 - Status: `[OPEN]`
-- Decision: Define the artifact taxonomy for reports, evidence, runbooks, and generated outputs.
-- Why It Is Open: `Artifacts` cannot be implemented well without stable types and retention rules.
-- Needed Before: artifact storage and browsing flows.
+- Decision: Finalize artifact retention, preview, and browse rules for the current taxonomy.
+- Why It Is Open: The baseline types now exist in the core loop, but retention behavior and preview guarantees are still incomplete.
+- Needed Before: release hardening of `Artifacts`.
 
 ### DEC-019
 - Status: `[OPEN]`
-- Decision: Define the exact scope of bootstrap.
-- Why It Is Open: It is not yet decided whether bootstrap stops at scaffold and checks or also seeds example project setup.
-- Needed Before: first-run flow design.
+- Decision: Define the first-run project registration, selection, and bootstrap path for the shell.
+- Why It Is Open: The runtime can create projects, but the current shell still depends on pre-seeded runtime state instead of a user-facing first-run path.
+- Needed Before: release or human-gate sign-off.
 
 ### DEC-020
 - Status: `[OPEN]`
-- Decision: Define `Decision Inbox` item types and escalation rules.
-- Why It Is Open: Decision, review, and approval may share one queue or require distinct subtypes and actions.
-- Needed Before: inbox UI and runtime gate wiring.
+- Decision: Finalize `Decision Inbox` item taxonomy and escalation rules.
+- Why It Is Open: Approval, decision, and review-follow-up now share one queue, but the release rules for routing, escalation, and operator expectations are still incomplete.
+- Needed Before: release or human-gate sign-off.
+
+### DEC-026
+- Status: `[OPEN]`
+- Decision: Decide whether worktree-aware execution is required before release.
+- Why It Is Open: Worktree metadata exists in contracts, but no actual worktree orchestration path is wired into the current core loop.
+- Needed Before: release or human-gate sign-off.
+
+### DEC-027
+- Status: `[OPEN]`
+- Decision: Define the close-out path from review and approval completion into explicit task completion in the shell.
+- Why It Is Open: Runtime lifecycle guards for `Done` exist, but the current shell does not provide a complete close-out interaction after human gate resolution.
+- Needed Before: release or human-gate sign-off.
 
 ## New Decision Template
 Use this template for future entries:

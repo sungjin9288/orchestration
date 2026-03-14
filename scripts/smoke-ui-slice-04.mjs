@@ -194,7 +194,10 @@ async function main() {
     );
     const noArchitectureAfter = await fetchJson(`${baseUrl}/api/snapshot`);
 
-    assert.match(noArchitectureError.error, /Architecture artifact is required before task-breaker run/i);
+    assert.match(
+      noArchitectureError.error,
+      /latest architecture artifact required|Architecture artifact is required before task-breaker run/i,
+    );
     assert.equal(
       Object.keys(noArchitectureAfter.snapshot.runs).length,
       Object.keys(noArchitectureBefore.snapshot.runs).length,

@@ -16,7 +16,6 @@ const repoRoot = process.cwd();
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-execution-slice-05');
 const projectRoot = path.join(runtimeRoot, 'project');
 const fixtureRelativePath = 'prompts/builder.md';
-const fixtureRepoPath = path.join(repoRoot, fixtureRelativePath);
 const fixtureProjectPath = path.join(projectRoot, fixtureRelativePath);
 
 function createRoutingOutcome(scopeStatement) {
@@ -31,7 +30,11 @@ function createRoutingOutcome(scopeStatement) {
 function ensureFixtureProject() {
   fs.rmSync(projectRoot, { recursive: true, force: true });
   fs.mkdirSync(path.dirname(fixtureProjectPath), { recursive: true });
-  fs.copyFileSync(fixtureRepoPath, fixtureProjectPath);
+  fs.writeFileSync(
+    fixtureProjectPath,
+    '# Builder Prompt Contract\n\nSynthetic live-mutation fixture.\n',
+    'utf8',
+  );
 }
 
 function buildOutOfScopeOutput() {
@@ -133,7 +136,6 @@ const approvalTask = runtime.createTask({
 
 const setup = await runThroughBuilderPreflight(coordinator, approvalTask);
 const preflightArtifact = runtime.getArtifact(setup.builderPreflightResult.artifact.id);
-const repoFixtureBefore = fs.readFileSync(fixtureRepoPath, 'utf8');
 const projectFixtureBefore = fs.readFileSync(fixtureProjectPath, 'utf8');
 
 assert.match(preflightArtifact.content, /^## Target Files$/m);
@@ -192,7 +194,6 @@ const changeSummaryArtifact = runtime.getArtifact(successResult.artifacts.change
 const patchArtifact = runtime.getArtifact(successResult.artifacts.patch.id);
 const diffArtifact = runtime.getArtifact(successResult.artifacts.diff.id);
 const projectFixtureAfter = fs.readFileSync(fixtureProjectPath, 'utf8');
-const repoFixtureAfter = fs.readFileSync(fixtureRepoPath, 'utf8');
 const approvalTaskAfter = runtime.getTask(approvalTask.id);
 const reviewInboxItems = runtime.listDecisionInboxItems({
   kind: 'review',
@@ -208,7 +209,6 @@ assert.equal(diffArtifact.type, 'diff');
 assert.match(changeSummaryArtifact.content, /^# Builder Live Mutation:/m);
 assert.match(patchArtifact.content, new RegExp(`a/${fixtureRelativePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
 assert.match(diffArtifact.content, new RegExp(`b/${fixtureRelativePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-assert.equal(repoFixtureAfter, repoFixtureBefore);
 assert.notEqual(projectFixtureAfter, projectFixtureBefore);
 assert.match(projectFixtureAfter, new RegExp(`builder-live-mutation ${approvedApproval.id}`));
 assert.equal(approvalTaskAfter.lifecycleState, 'In Progress');
@@ -307,3 +307,4 @@ console.log(
     2,
   ),
 );
+// builder-live-mutation approval-0001 scripts/smoke-execution-slice-05.mjs

@@ -1,6 +1,28 @@
 # todo
 
-## now
+## milestone-m2-consolidation
+
+### current core loop [accepted]
+- [x] `project_path` gate is enforced before task execution and task creation in the shell
+- [x] `planner -> architect -> task-breaker -> builder preflight` stores logs and artifacts through the coordinator
+- [x] builder live mutation requires a targeted approval for the latest preflight and saves `change-summary`, `patch`, and `diff`
+- [x] reviewer is anchored to the latest builder live-mutation bundle and records a terminal review artifact
+- [x] `commit-package` and limited local git commit are wired behind explicit human approval
+- [x] `Taskboard / Logs / Artifacts / Decision Inbox` operate as the primary ops shell surfaces
+- [x] stale smoke expectations and live-mutation fixture assumptions were consolidated around the current guard and preflight contract
+- [x] a real-path end-to-end development loop smoke now covers planner through local commit on a clean temp repo
+
+### now [OPEN]
+- [ ] decide release stance for provider choice: initial live provider vs `local-stub` demo-only
+- [ ] decide whether worktree support, first-run project registration/select UX, and task close-out to `Done` are required before release
+
+### next phase entry conditions
+- [x] real-path smoke coverage is green for planner through local commit, including the end-to-end dev loop smoke
+- [x] red or stale smoke debt is either fixed or replaced with current coverage
+- [x] `accepted / rejected / [OPEN]` docs match the implemented core loop and remaining release gate
+- [ ] remaining release or human-gate scope is explicitly approved instead of implied
+
+### completed slices [archive]
 - [x] runtime-slice-01
 - [x] runtime-slice-02
 - [x] runtime-slice-03
@@ -26,7 +48,7 @@
 - [x] ui-slice-09
 - [x] ui-slice-10
 
-## later
+### deferred / rejected
 - [ ] provider adapter
 - [ ] report/content packs
 - [ ] office/radar view

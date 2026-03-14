@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -14,6 +16,20 @@ const repoRoot = path.resolve(__dirname, '..');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-07');
 const port = 4319;
 const baseUrl = `http://127.0.0.1:${port}`;
+
+function createFixtureProject() {
+  const projectPath = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-07-'));
+  const fixturePath = path.join(projectPath, 'prompts', 'builder.md');
+
+  fs.mkdirSync(path.dirname(fixturePath), { recursive: true });
+  fs.writeFileSync(
+    fixturePath,
+    '# Builder Prompt Contract\n\nUI slice 07 live-mutation fixture.\n',
+    'utf8',
+  );
+
+  return projectPath;
+}
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -64,6 +80,7 @@ async function runThroughTaskBreaker(taskId) {
 async function main() {
   const runtime = createRuntimeService({ runtimeRoot });
   runtime.resetRuntime();
+  const fixtureProjectPath = createFixtureProject();
 
   const server = spawn(
     process.execPath,
@@ -85,7 +102,7 @@ async function main() {
 
     runtime.createProject({
       name: 'orchestration',
-      projectPath: repoRoot,
+      projectPath: fixtureProjectPath,
     });
 
     const appJsResponse = await fetch(`${baseUrl}/app.js`);
@@ -194,6 +211,7 @@ async function main() {
   } finally {
     server.kill('SIGTERM');
     await delay(150);
+    fs.rmSync(fixtureProjectPath, { recursive: true, force: true });
 
     if (stderr.trim()) {
       process.stderr.write(stderr);

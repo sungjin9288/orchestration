@@ -10,6 +10,32 @@ const { createRuntimeService } = runtimeServiceModule;
 const runtimeRoot = path.join(process.cwd(), 'var', 'runtime-slice-05');
 const runtime = createRuntimeService({ runtimeRoot });
 
+function buildPreflightContent(label) {
+  return `# Builder Preflight: ${label}
+
+## Target Files
+- prompts/builder.md
+
+## Intended Changes
+- keep live mutation bounded to the latest approved preflight target
+
+## Risks
+- none
+
+## Verification Plan
+- validate approval and stale-target semantics in runtime guards
+
+## Review Evidence Expectations
+- latest preflight remains the anchor for live mutation approval
+
+## Escalation Triggers
+- escalate when approval target and latest preflight drift
+
+## Input Summary
+- runtime-slice-05 synthetic preflight fixture
+`;
+}
+
 function createArtifact(taskId, type, label) {
   const role = type === 'preflight' ? 'builder' : 'smoke';
   const run = runtime.startRun({
@@ -21,7 +47,10 @@ function createArtifact(taskId, type, label) {
     taskId,
     runId: run.id,
     type,
-    content: `# ${type}: ${label}\n\n${label}\n`,
+    content:
+      type === 'preflight'
+        ? buildPreflightContent(label)
+        : `# ${type}: ${label}\n\n${label}\n`,
   });
   const completedRun = runtime.completeRun({ runId: run.id });
 

@@ -1,30 +1,32 @@
 # lessons
 
+## core loop
+
 - runtime core는 file-based thin slice로 닫는 접근이 유효했다.
 - gate enforcement는 UI보다 먼저 닫는 편이 구조적으로 안정적이었다.
-- flags 모델(blocked / waitingApproval / waitingDecision)은 상태 확장보다 단순하고 유지보수에 유리했다.
-- 다음 병목은 runtime이 아니라 role/authoring layer 부재다.
-- role prompt contract는 pack 내부 계약을 그대로 반영하고 handoff/escalation을 명시해야 runtime 수정 없이도 drift를 줄일 수 있다.
-- ui-slice-01은 runtime snapshot/log/artifact read surface만으로도 4개 1급 화면의 read-only ops shell을 닫을 수 있었다.
-- 초기 UI는 write action 없이 gate/status visibility에 집중하는 편이 pack 제약과 구조 안정성에 더 맞았다.
-- localhost 기반 UI smoke는 sandbox listen 제약을 받으므로 브라우저 검증 경로는 승인 가능한 로컬 서버 smoke로 정리하는 편이 실용적이었다.
-- execution coordinator를 runtime 위에 얇게 올리고 planner만 먼저 연결하면 role 실행 경로를 broad refactor 없이 검증할 수 있다.
+- flags 모델(`blocked / waitingApproval / waitingDecision`)은 상태 확장보다 단순하고 유지보수에 유리했다.
+- planner -> architect -> task-breaker -> builder preflight를 runtime/coordinator 위에 얇게 쌓는 방식은 broad refactor 없이 core loop를 닫는 데 유효했다.
+- reviewer provenance는 task 전체의 latest artifact 조합이 아니라 latest builder live-mutation bundle 하나에 고정해야 drift를 막을 수 있었다.
+- commit-package readiness와 local commit readiness도 latest passing reviewer bundle 하나에 고정하는 편이 provenance와 duplicate 제어를 단순하게 유지했다.
+
+## shell / gate handling
+
+- 초기 UI는 write action보다 gate/status visibility에 집중하는 편이 pack 제약과 구조 안정성에 더 맞았다.
 - shell server 안의 최소 mutation route + snapshot echo만으로도 write UI를 generic API layer 없이 붙일 수 있었다.
-- planner artifact를 architect input으로 직접 handoff하면 runtime contract 확장 없이 role chaining과 blocking decision 생성 규칙을 얇게 검증할 수 있다.
-- ui-slice-03은 pending inbox action route 하나와 snapshot 기반 selection 갱신만으로 human gate loop를 닫을 수 있었다.
-- task-breaker는 pending blocking decision/approval를 run 시작 전에 거절하면 builder 전 단계 gate enforcement를 UI 없이도 안정적으로 유지할 수 있다.
-- ui-slice-04는 breakdown markdown을 best-effort parse하고 raw fallback을 항상 남기면 artifact contract를 바꾸지 않고도 generated subtasks read surface를 붙일 수 있다.
-- task-breaker UI disable은 pending approval / blocksTask decision 실데이터 기준으로 계산하고 최종 판정은 server/coordinator에 남기는 편이 drift를 줄인다.
-- ui-slice-05는 approval-first preselect를 task context change와 mutation completion에만 적용해야 polling refresh가 사용자의 현재 inbox 선택을 덮어쓰지 않는다.
-- approval authorization은 최신 approval record만 보면 부족하고, 해당 record가 최신 builder preflight target을 가리키는지도 함께 봐야 stale allow를 막을 수 있다.
-- live mutation approval request도 클라이언트 추정 target이 아니라 서버가 latest preflight를 다시 잡고, same-target pending/approved만 disable/409로 막고, rejected/stale는 새 요청을 허용하는 편이 drift와 duplicate를 줄인다.
-- limited live mutation은 preflight target allowlist 기준 사전 검증과 apply 후 actual changed files 재검증을 둘 다 가져가야 patch drift나 숨은 파일 변경을 확실히 막을 수 있다.
-- markdown artifact section parser는 PCRE식 EOF 토큰에 기대면 base64/patch payload에서 잘릴 수 있으므로, JS에서는 lookahead 기반 section 종료 규칙으로 고정하는 편이 안전하다.
-- live mutation 결과는 Artifacts list를 전면 개편하기보다 Logs-first landing + run summary linkage + artifact detail relation strip으로 읽게 만드는 편이 thin slice와 selection 안정성에 더 맞았다.
-- reviewer 입력을 task 전체의 latest artifact type 조합이 아니라 latest builder live mutation run summary bundle에 고정하면 cross-run artifact 혼합 없이 review provenance를 안정적으로 유지할 수 있다.
-- reviewer terminal artifact는 source builder run 기준 1회만 허용하고 rerun을 409로 막는 편이 review verdict provenance와 runtime gate 해석을 단순하게 유지한다.
-- reviewer readiness는 runtime에 복제하지 않고 execution coordinator에서만 계산한 뒤 UI가 그대로 소비하게 두는 편이 enable/disable drift를 막고 slice 경계를 덜 흔든다.
-- commit-package readiness도 runtime 전역 latest artifact 조합이 아니라 latest successful terminal reviewer pass bundle 하나에만 고정하고, rejected approval 재요청에서는 current commit-package artifact를 재사용하는 편이 provenance와 duplicate 제어를 단순하게 유지한다.
-- commit-package UI도 gating은 coordinator readiness를 그대로 읽고, commit-package artifact 강제 selection은 commit mutation 직후나 commit approval inbox 선택 시에만 적용해야 기존 artifact 우선순위와 surface 안정성을 해치지 않는다.
-- limited local git commit은 `git add -A -- <scope>` 전에 전체 repo dirty/staged/untracked 집합이 commit-package Changed Files와 exact match인지 먼저 확인하고, commit-package의 Commit Message를 필수 입력으로 강제하는 편이 scope drift와 승인 provenance 해석을 단순하게 유지한다.
-- local commit UI도 전역 artifact 우선순위를 바꾸지 말고 mutation 성공 직후에만 commit-result artifact를 명시 선택하는 편이 polling 안정성과 기존 surface selection 규칙을 동시에 지킨다.
+- pending inbox action route 하나와 snapshot 기반 selection 갱신만으로 human gate loop를 닫을 수 있었다.
+- approval authorization은 최신 approval record만 보는 것으로는 부족하고, 해당 record가 최신 preflight 또는 commit-package target을 가리키는지까지 확인해야 stale allow를 막을 수 있었다.
+- live mutation, reviewer, commit-package, local commit enablement는 UI 추정보다 runtime/coordinator readiness를 그대로 읽는 편이 drift를 줄였다.
+
+## smoke / fixtures
+
+- localhost 기반 UI smoke는 sandbox listen 제약을 받으므로 승인 가능한 로컬 서버 smoke로 정리하는 편이 실용적이었다.
+- limited live mutation smoke는 repo root 파일을 직접 fixture로 쓰면 기존 mutation marker가 누적되어 no-op write를 숨길 수 있으므로, clean fixture project를 따로 만들어야 안정적이다.
+- synthetic downstream bundle smoke는 reviewer, commit-package, local commit의 provenance 규칙을 빠르게 검증하는 데 유효했지만, upstream live-mutation path를 대체할 수는 없었다.
+- release gate 근거로는 synthetic smoke만으로 부족하고, planner부터 local commit까지 한 번에 도는 real-path dev loop smoke가 필요했다.
+- stale smoke assertion은 과거 route-specific 에러 문구보다 현재 runtime/coordinator guard를 source of truth로 따라가는 편이 유지보수에 유리했다.
+
+## next phase
+
+- 다음 병목은 새 capability 추가가 아니라 consolidation이다.
+- consolidation 단계에서는 `accepted / rejected / [OPEN]`를 구현 기준으로 다시 쓰고, task 문서도 같은 기준으로 즉시 재정렬해야 이후 release gate 논의가 흔들리지 않는다.
+- release / human gate 전에는 provider stance, first-run project path, worktree requirement, task close-out requirement를 명시적으로 정리해야 한다.
