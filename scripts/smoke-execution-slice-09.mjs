@@ -26,17 +26,23 @@ function runGit(projectPath, args) {
 }
 
 function createGitFixtureRepo(label) {
-  const projectPath = fs.mkdtempSync(path.join(os.tmpdir(), `orchestration-slice-09-${label}-`));
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), `orchestration-slice-09-${label}-`));
+  const mainProjectPath = path.join(fixtureRoot, 'main');
+  const projectPath = path.join(fixtureRoot, 'worktree');
+  const branchName = `slice-09-${label}`.replace(/[^A-Za-z0-9._-]/g, '-');
 
-  runGit(projectPath, ['init', '-q']);
-  runGit(projectPath, ['config', 'user.name', 'slice-09']);
-  runGit(projectPath, ['config', 'user.email', 'slice-09@example.com']);
+  fs.mkdirSync(mainProjectPath, { recursive: true });
 
-  fs.writeFileSync(path.join(projectPath, 'scoped.txt'), 'base scoped\n', 'utf8');
-  fs.writeFileSync(path.join(projectPath, 'extra.txt'), 'base extra\n', 'utf8');
+  runGit(mainProjectPath, ['init', '-q']);
+  runGit(mainProjectPath, ['config', 'user.name', 'slice-09']);
+  runGit(mainProjectPath, ['config', 'user.email', 'slice-09@example.com']);
 
-  runGit(projectPath, ['add', 'scoped.txt', 'extra.txt']);
-  runGit(projectPath, ['commit', '-q', '-m', `fixture:${label}`]);
+  fs.writeFileSync(path.join(mainProjectPath, 'scoped.txt'), 'base scoped\n', 'utf8');
+  fs.writeFileSync(path.join(mainProjectPath, 'extra.txt'), 'base extra\n', 'utf8');
+
+  runGit(mainProjectPath, ['add', 'scoped.txt', 'extra.txt']);
+  runGit(mainProjectPath, ['commit', '-q', '-m', `fixture:${label}`]);
+  runGit(mainProjectPath, ['worktree', 'add', '-q', '-b', branchName, projectPath]);
 
   return projectPath;
 }

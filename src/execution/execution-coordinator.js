@@ -900,6 +900,83 @@ function ensureGitCommitEnvironment(projectPath) {
   runGit(projectPath, ['config', '--get', 'user.email']);
 }
 
+function assertDedicatedLinkedWorktreeReady(input) {
+  const actionLabel = input?.actionLabel || 'execution';
+  const projectPath = String(input?.projectPath || '').trim();
+  const expectedWorktreeRef = String(input?.worktreeRef || '').trim();
+
+  if (!projectPath) {
+    throw new Error('project_path is required');
+  }
+
+  if (!fs.existsSync(projectPath)) {
+    throw new Error(`project_path does not exist: ${projectPath}`);
+  }
+
+  const resolvedProjectPath = fs.realpathSync(projectPath);
+  let insideWorkTree = null;
+
+  try {
+    insideWorkTree = runGit(projectPath, ['rev-parse', '--is-inside-work-tree']).trim();
+  } catch (_error) {
+    throw new Error(`project_path is not a git worktree: ${projectPath}`);
+  }
+
+  if (insideWorkTree !== 'true') {
+    throw new Error(`project_path is not a git worktree: ${projectPath}`);
+  }
+
+  const linkedWorktreeRoot = fs.realpathSync(runGit(projectPath, ['rev-parse', '--show-toplevel']).trim());
+  const gitDir = fs.realpathSync(path.resolve(projectPath, runGit(projectPath, ['rev-parse', '--git-dir']).trim()));
+  const gitCommonDir = fs.realpathSync(
+    path.resolve(projectPath, runGit(projectPath, ['rev-parse', '--git-common-dir']).trim()),
+  );
+  const registeredWorktreeRoots = runGit(projectPath, ['worktree', 'list', '--porcelain'])
+    .split('\n')
+    .filter((line) => line.startsWith('worktree '))
+    .map((line) => line.slice('worktree '.length).trim())
+    .filter(Boolean)
+    .map((worktreePath) => fs.realpathSync(worktreePath));
+
+  if (resolvedProjectPath !== linkedWorktreeRoot) {
+    throw new Error(
+      `project_path must point to the linked worktree root before ${actionLabel}: ${projectPath}`,
+    );
+  }
+
+  if (gitDir === gitCommonDir) {
+    throw new Error(
+      `main worktree is blocked before ${actionLabel}; use a dedicated linked worktree root: ${projectPath}`,
+    );
+  }
+
+  if (!registeredWorktreeRoots.includes(linkedWorktreeRoot)) {
+    throw new Error(
+      `project_path is not a registered linked worktree root before ${actionLabel}: ${projectPath}`,
+    );
+  }
+
+  if (expectedWorktreeRef) {
+    if (!fs.existsSync(expectedWorktreeRef)) {
+      throw new Error(`task.worktreeRef does not exist before ${actionLabel}: ${expectedWorktreeRef}`);
+    }
+
+    const resolvedWorktreeRef = fs.realpathSync(expectedWorktreeRef);
+
+    if (resolvedWorktreeRef !== linkedWorktreeRoot) {
+      throw new Error(
+        `task.worktreeRef must match the current linked worktree root before ${actionLabel}: expected=${resolvedWorktreeRef} actual=${linkedWorktreeRoot}`,
+      );
+    }
+  }
+
+  return {
+    gitCommonDir,
+    gitDir,
+    linkedWorktreeRoot,
+  };
+}
+
 function buildCommitApprovalTitle(metadata) {
   return `Approval required: ${COMMIT_ACTION.COMMIT_INTENT} | commitPackageArtifactId=${metadata.commitPackageArtifactId} | sourceReviewerRunId=${metadata.sourceReviewerRunId} | sourceBuilderRunId=${metadata.sourceBuilderRunId} | targetPreflightArtifactId=${metadata.targetPreflightArtifactId}`;
 }
@@ -1862,6 +1939,16 @@ function createExecutionCoordinator(options = {}) {
       ...upstreamReasons.map((reason) => reason.replace(/before commit package/gi, 'before release package')),
     );
 
+    try {
+      assertDedicatedLinkedWorktreeReady({
+        actionLabel: 'release-package',
+        projectPath: project.projectPath,
+        worktreeRef: task.worktreeRef,
+      });
+    } catch (error) {
+      reasons.push(error.message);
+    }
+
     if (!currentCommitBundle.currentCommitPackage?.artifact) {
       if (currentCommitBundle.summary.packageStale) {
         reasons.push(
@@ -2038,10 +2125,12 @@ function createExecutionCoordinator(options = {}) {
         latestReleasePackage,
         packageStale,
         parsedCommitResult,
+        project,
         reasons,
         reviewArtifact: currentCommitBundle.reviewArtifact,
         reviewerRun: currentCommitBundle.reviewerRun,
       }),
+      project,
       task,
     };
   }
@@ -2140,17 +2229,31 @@ function createExecutionCoordinator(options = {}) {
     }
 
     if (project.projectPath) {
-      try {
-        ensureGitCommitEnvironment(project.projectPath);
-        repoStatus = collectRepoChangeSet(project.projectPath);
+      let linkedWorktreeReady = false;
 
-        if (repoStatus.allFiles.length > 0) {
-          reasons.push(
-            `Repo must be clean before close-out. dirty=${repoStatus.dirtyFiles.length} staged=${repoStatus.stagedFiles.length} untracked=${repoStatus.untrackedFiles.length}`,
-          );
-        }
+      try {
+        assertDedicatedLinkedWorktreeReady({
+          actionLabel: 'close-out',
+          projectPath: project.projectPath,
+          worktreeRef: task.worktreeRef,
+        });
+        linkedWorktreeReady = true;
       } catch (error) {
         reasons.push(error.message);
+      }
+
+      if (linkedWorktreeReady) {
+        try {
+          repoStatus = collectRepoChangeSet(project.projectPath);
+
+          if (repoStatus.allFiles.length > 0) {
+            reasons.push(
+              `Repo must be clean before close-out. dirty=${repoStatus.dirtyFiles.length} staged=${repoStatus.stagedFiles.length} untracked=${repoStatus.untrackedFiles.length}`,
+            );
+          }
+        } catch (error) {
+          reasons.push(error.message);
+        }
       }
     }
 
@@ -3994,6 +4097,7 @@ function createExecutionCoordinator(options = {}) {
   async function runReleasePackage(input) {
     const readyContext = assertReleasePackageReady(input);
     const task = readyContext.task;
+    const project = readyContext.project || runtime.getProject(task.projectId);
     const currentCommitBundle = readyContext.currentCommitBundle;
     const commitPackageArtifact = readyContext.commitPackageArtifact;
     const commitResultArtifact = readyContext.commitResultArtifact;
@@ -4014,6 +4118,13 @@ function createExecutionCoordinator(options = {}) {
       commitPackageArtifact,
       commitResultArtifact,
     ];
+
+    assertDedicatedLinkedWorktreeReady({
+      actionLabel: 'release-package',
+      projectPath: project.projectPath,
+      worktreeRef: task.worktreeRef,
+    });
+
     const run = runtime.startRun({
       taskId: task.id,
       kind: 'system',
@@ -4213,6 +4324,7 @@ function createExecutionCoordinator(options = {}) {
   async function runCloseOut(input) {
     const readyContext = assertCloseOutReady(input);
     const task = readyContext.task;
+    const project = readyContext.project || runtime.getProject(task.projectId);
     const commitPackageArtifact = readyContext.commitPackageArtifact;
     const commitResultArtifact = readyContext.commitResultArtifact;
     const releasePackageArtifact = readyContext.currentReleasePackage.artifact;
@@ -4233,6 +4345,13 @@ function createExecutionCoordinator(options = {}) {
       commitResultArtifact,
       releasePackageArtifact,
     ];
+
+    assertDedicatedLinkedWorktreeReady({
+      actionLabel: 'close-out',
+      projectPath: project.projectPath,
+      worktreeRef: task.worktreeRef,
+    });
+
     const run = runtime.startRun({
       taskId: task.id,
       kind: 'system',
