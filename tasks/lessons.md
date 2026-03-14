@@ -9,6 +9,7 @@
 - reviewer provenance는 task 전체의 latest artifact 조합이 아니라 latest builder live-mutation bundle 하나에 고정해야 drift를 막을 수 있었다.
 - commit-package readiness와 local commit readiness도 latest passing reviewer bundle 하나에 고정하는 편이 provenance와 duplicate 제어를 단순하게 유지했다.
 - release-package readiness는 task 전역 latest artifact를 다시 조합하지 말고 latest successful local commit bundle 하나에 고정해야 post-commit provenance drift를 막을 수 있었다.
+- close-out readiness는 release-package readiness를 재사용하지 말고 별도 계산으로 두는 편이 승인 완료 release bundle과 terminal Done duplicate를 함께 다루기에 안정적이었다.
 
 ## shell / gate handling
 
@@ -22,6 +23,9 @@
 - release-package enable/disable과 approval status(`none / pending / approved / rejected / stale`)는 UI에서 별도 semantics를 다시 계산하지 말고 `releasePackageReadiness` summary를 그대로 읽어야 polling과 stale handling drift를 막을 수 있었다.
 - release approval inbox item preselect는 surface 전환 없이 background selection만 갱신해야 Task Detail / Artifacts 중심 shell을 유지하면서 human gate follow-up을 연결할 수 있었다.
 - global artifact default priority는 유지하고 release mutation 직후에만 새 `release-package` artifact를 명시적으로 선택해야 일반 refresh가 사용자의 현재 selection을 덮어쓰지 않았다.
+- close-out gate는 runtime 일반 lifecycle guard에 release semantics를 밀어넣기보다 coordinator 전용 guard로 두고, `Review + passed + no flags + approved current release bundle + clean repo`를 한 번에 확인하는 편이 범위를 안정적으로 유지했다.
+- terminal close-out duplicate는 latest approved release approval id가 아니라 `sourceReleasePackageArtifactId` 기준으로 닫는 편이 재실행 차단과 provenance 추적이 단순했다.
+- local commit 이후에도 close-out 직전에 repo clean(unstaged/staged/untracked 모두 0)을 다시 확인해야 승인된 release bundle 이후의 drift를 막을 수 있었다.
 
 ## smoke / fixtures
 
@@ -29,6 +33,7 @@
 - limited live mutation smoke는 repo root 파일을 직접 fixture로 쓰면 기존 mutation marker가 누적되어 no-op write를 숨길 수 있으므로, clean fixture project를 따로 만들어야 안정적이다.
 - synthetic downstream bundle smoke는 reviewer, commit-package, local commit의 provenance 규칙을 빠르게 검증하는 데 유효했지만, upstream live-mutation path를 대체할 수는 없었다.
 - release-package처럼 범위를 좁힌 후속 slice는 기존 dev-loop smoke를 흔들기보다 별도 execution smoke로 duplicate/stale/blocked 케이스를 닫는 편이 회귀 추적에 유리했다.
+- close-out도 같은 패턴으로 synthetic downstream execution smoke를 따로 두는 편이 release-package 회귀와 Done transition 회귀를 분리해서 추적하기 좋았다.
 - release gate 근거로는 synthetic smoke만으로 부족하고, planner부터 local commit까지 한 번에 도는 real-path dev loop smoke가 필요했다.
 - stale smoke assertion은 과거 route-specific 에러 문구보다 현재 runtime/coordinator guard를 source of truth로 따라가는 편이 유지보수에 유리했다.
 

@@ -9,6 +9,7 @@
 - [x] reviewer is anchored to the latest builder live-mutation bundle and records a terminal review artifact
 - [x] `commit-package` and limited local git commit are wired behind explicit human approval
 - [x] `release-package` is anchored to the latest successful local commit bundle and only prepares a local/demo-only release artifact plus `human/release` approval
+- [x] latest approved `release-package` bundle now drives explicit `close-out` artifact capture and `Review -> Done` transition without push, publish, or external release
 - [x] `Taskboard / Logs / Artifacts / Decision Inbox` operate as the primary ops shell surfaces
 - [x] `Task Detail / Artifacts` can prepare a `release-package`, show structured release provenance and guard reasons, and preselect the matching `human/release` inbox item without forcing a surface change
 - [x] stale smoke expectations and live-mutation fixture assumptions were consolidated around the current guard and preflight contract
@@ -16,7 +17,7 @@
 
 ### now [OPEN]
 - [ ] decide release stance for provider choice: initial live provider vs `local-stub` demo-only
-- [ ] decide whether worktree support, first-run project registration/select UX, and task close-out to `Done` are required before release
+- [ ] decide whether worktree support and first-run project registration/select UX are required before release
 
 ### next phase entry conditions
 - [x] real-path smoke coverage is green for planner through local commit, including the end-to-end dev loop smoke
@@ -41,6 +42,7 @@
 - [x] execution-slice-07
 - [x] execution-slice-08
 - [x] execution-slice-09
+- [x] execution-slice-10
 - [x] ui-slice-02
 - [x] ui-slice-03
 - [x] ui-slice-04

@@ -7,7 +7,13 @@ const path = require('path');
 
 const { executeWithAdapter } = require('./provider-adapter');
 const { createLocalStubProviderAdapter } = require('./providers/local-stub-adapter');
-const { COMMIT_ACTION, RELEASE_ACTION, TASK_LIFECYCLE } = require('../runtime/contracts');
+const {
+  APPROVAL_STATUS,
+  COMMIT_ACTION,
+  RELEASE_ACTION,
+  REVIEW_STATUS,
+  TASK_LIFECYCLE,
+} = require('../runtime/contracts');
 
 const DEFAULT_SOURCE_OF_TRUTH_PATHS = [
   'AGENTS.md',
@@ -827,6 +833,7 @@ function parseReleasePackageArtifactContent(content) {
     deliveryStance: releaseCandidateValues['delivery stance'] || null,
     diffArtifactId: sourceBuilderValues['diff artifact'] || null,
     externalReleaseExecuted: parseYesNoValue(safetyValues['external release executed']),
+    localCommitBundleExecuted: parseYesNoValue(safetyValues['local commit bundle executed']),
     patchArtifactId: sourceBuilderValues['patch artifact'] || null,
     planArtifactId: sourceBuilderValues['plan artifact'] || null,
     preflightArtifactId: sourceCommitValues['target preflight artifact'] || null,
@@ -1058,6 +1065,55 @@ ${renderMarkdownList(input.committedFiles, 'none')}
 `;
 }
 
+function renderCloseOutArtifact(input) {
+  return `# Close-Out: ${input.task.title}
+
+## Done Transition
+- source release approval: ${input.releaseApproval.id}
+- source release-package artifact: ${input.releasePackageArtifact.id}
+- close-out run: ${input.run.id}
+- closed out at: ${input.closedOutAt}
+- lifecycle transition: Review -> Done
+- task lifecycle before close-out: ${input.lifecycleStateBefore}
+- task lifecycle after close-out: Done
+
+## Source Release Bundle
+- source release-package artifact: ${input.releasePackageArtifact.id}
+- source commit-result artifact: ${input.commitResultArtifact.id}
+- source commit-package artifact: ${input.commitPackageArtifact.id}
+- commit sha: ${input.commitSha}
+- delivery stance: ${input.deliveryStance}
+
+## Source Review Bundle
+- source reviewer run: ${input.reviewerRun.id}
+- source review artifact: ${input.reviewArtifact.id}
+- reviewer mapped status: ${input.reviewerRun.summary?.mappedReviewStatus || 'unknown'}
+- reviewer raw verdict: ${input.reviewerRun.summary?.rawVerdict || 'unknown'}
+
+## Source Builder Bundle
+- source builder run: ${input.builderRun.id}
+- source builder approval: ${input.builderApproval?.id || 'none'}
+- target preflight artifact: ${input.preflightArtifact.id}
+- plan artifact: ${input.planArtifact.id}
+- architecture artifact: ${input.architectureArtifact.id}
+- breakdown artifact: ${input.breakdownArtifact.id}
+- change-summary artifact: ${input.changeSummaryArtifact.id}
+- patch artifact: ${input.patchArtifact.id}
+- diff artifact: ${input.diffArtifact.id}
+
+## Worktree Verification
+- repo clean before close-out: yes
+- dirty file count: ${input.repoStatus.dirtyFiles.length}
+- staged file count: ${input.repoStatus.stagedFiles.length}
+- untracked file count: ${input.repoStatus.untrackedFiles.length}
+
+## Release Safety
+- push executed: no
+- publish executed: no
+- external release executed: no
+`;
+}
+
 function createExecutionCoordinator(options = {}) {
   if (!options.runtimeService) {
     throw new Error('runtimeService is required');
@@ -1258,6 +1314,41 @@ function createExecutionCoordinator(options = {}) {
       run,
       summary,
     };
+  }
+
+  function findLatestCloseOutContext(task) {
+    const artifact = findLatestTaskArtifact(runtime, task, 'close-out');
+    const run = artifact?.runId ? runtime.getRun(artifact.runId) : null;
+    const summary = run?.summary && typeof run.summary === 'object' ? run.summary : null;
+
+    return {
+      artifact,
+      run,
+      summary,
+    };
+  }
+
+  function findTerminalCloseOutRun(task, sourceReleasePackageArtifactId) {
+    const snapshot = runtime.getSnapshot();
+
+    return (
+      Object.values(snapshot.runs)
+        .filter((run) => {
+          const summary = run.summary && typeof run.summary === 'object' ? run.summary : null;
+          const metadata = run.metadata && typeof run.metadata === 'object' ? run.metadata : null;
+
+          return (
+            run.taskId === task.id &&
+            run.role === 'close-out' &&
+            (summary?.executionMode === 'close-out' || metadata?.executionMode === 'close-out') &&
+            summary?.closeOutArtifactId &&
+            summary?.sourceReleasePackageArtifactId === sourceReleasePackageArtifactId &&
+            summary?.lifecycleTransition === 'Review -> Done' &&
+            !summary?.error
+          );
+        })
+        .sort(compareRunsByStartedDesc)[0] || null
+    );
   }
 
   function resolveCommitPackageReadiness(input) {
@@ -1477,6 +1568,36 @@ function createExecutionCoordinator(options = {}) {
       latestReleasePackageArtifactId: input.latestReleasePackage?.artifact?.id || null,
       packageStale: Boolean(input.packageStale),
       reasons: [...new Set(input.reasons.filter(Boolean))],
+      sourceBuilderRunId: input.anchor?.builderRun?.id || null,
+      sourceReviewArtifactId: input.reviewArtifact?.id || null,
+      sourceReviewerRunId: input.reviewerRun?.id || null,
+      targetPreflightArtifactId: input.anchor?.preflightArtifact?.id || null,
+      targetPreflightRunId: input.anchor?.preflightArtifact?.runId || null,
+    };
+  }
+
+  function buildCloseOutReadinessSummary(input) {
+    return {
+      allowed: input.reasons.length === 0,
+      approvalStale: Boolean(input.approvalStale),
+      commitPackageArtifactId: input.commitPackageArtifact?.id || null,
+      commitResultArtifactId: input.commitResultArtifact?.id || null,
+      commitSha: input.parsedCommitResult?.commitSha || null,
+      conflict: Boolean(input.conflict),
+      currentReleasePackageArtifactId: input.currentReleasePackage?.artifact?.id || null,
+      deliveryStance: input.deliveryStance,
+      existingCloseOutArtifactId: input.existingCloseOutArtifact?.id || null,
+      existingCloseOutRunId: input.existingCloseOutRun?.id || null,
+      latestApprovedReleaseApprovalId: input.latestApprovedReleaseApproval?.id || null,
+      latestApprovedReleaseApprovalStatus: input.latestApprovedReleaseApproval?.status || null,
+      latestCloseOutArtifactId: input.latestCloseOut?.artifact?.id || null,
+      latestReleasePackageArtifactId: input.latestReleasePackage?.artifact?.id || null,
+      reasons: [...new Set(input.reasons.filter(Boolean))],
+      repoClean: Boolean(input.repoStatus) && input.repoStatus.allFiles.length === 0,
+      repoDirtyFileCount: input.repoStatus?.dirtyFiles?.length ?? null,
+      repoStagedFileCount: input.repoStatus?.stagedFiles?.length ?? null,
+      repoUntrackedFileCount: input.repoStatus?.untrackedFiles?.length ?? null,
+      sourceBuilderApprovalId: input.anchor?.approval?.id || null,
       sourceBuilderRunId: input.anchor?.builderRun?.id || null,
       sourceReviewArtifactId: input.reviewArtifact?.id || null,
       sourceReviewerRunId: input.reviewerRun?.id || null,
@@ -1955,6 +2076,405 @@ function createExecutionCoordinator(options = {}) {
       }
 
       summaries[task.id] = getReleasePackageReadiness({
+        taskId: task.id,
+      });
+    }
+
+    return summaries;
+  }
+
+  function resolveCloseOutReadiness(input) {
+    if (!input || !input.taskId) {
+      throw new Error('taskId is required');
+    }
+
+    const currentCommitBundle = resolveCommitPackageReadiness(input);
+    const task = currentCommitBundle.task;
+    const project = currentCommitBundle.project;
+    const reasons = [];
+    const deliveryStance = 'local-demo-only';
+    const activeFlags = [];
+    const commitPackageArtifact = currentCommitBundle.currentCommitPackage?.artifact || null;
+    const localCommitContext = findLatestSuccessfulLocalCommitContext(task);
+    const commitResultArtifact = localCommitContext.artifact || null;
+    const parsedCommitResult = localCommitContext.parsedArtifact || null;
+    const localCommitRun = localCommitContext.run || null;
+    const localCommitSummary = localCommitContext.summary || null;
+    const latestReleasePackage = findLatestReleasePackageContext(task);
+    const latestCloseOut = findLatestCloseOutContext(task);
+    const parsedReleasePackage = latestReleasePackage.parsedArtifact || null;
+    let currentReleasePackage = null;
+    let latestApprovedReleaseApproval = null;
+    let existingCloseOutRun = null;
+    let existingCloseOutArtifact = null;
+    let approvalStale = false;
+    let conflict = false;
+    let repoStatus = null;
+
+    if (task.lifecycleState !== TASK_LIFECYCLE.REVIEW) {
+      reasons.push(`Task ${task.id} must be in Review before close-out`);
+    }
+
+    if (task.review?.status !== REVIEW_STATUS.PASSED) {
+      reasons.push(`Task ${task.id} review must be passed before close-out`);
+    }
+
+    if (task.flags?.blocked) {
+      activeFlags.push('blocked');
+    }
+
+    if (task.flags?.waitingApproval) {
+      activeFlags.push('waitingApproval');
+    }
+
+    if (task.flags?.waitingDecision) {
+      activeFlags.push('waitingDecision');
+    }
+
+    if (activeFlags.length > 0) {
+      reasons.push(`Task ${task.id} cannot close out while flags remain active: ${activeFlags.join(', ')}`);
+    }
+
+    if (!project.projectPath) {
+      reasons.push('project_path is required');
+    }
+
+    if (project.projectPath) {
+      try {
+        ensureGitCommitEnvironment(project.projectPath);
+        repoStatus = collectRepoChangeSet(project.projectPath);
+
+        if (repoStatus.allFiles.length > 0) {
+          reasons.push(
+            `Repo must be clean before close-out. dirty=${repoStatus.dirtyFiles.length} staged=${repoStatus.stagedFiles.length} untracked=${repoStatus.untrackedFiles.length}`,
+          );
+        }
+      } catch (error) {
+        reasons.push(error.message);
+      }
+    }
+
+    if (!commitPackageArtifact) {
+      if (currentCommitBundle.summary.packageStale) {
+        reasons.push(
+          `Latest valid commit-package artifact is stale for current reviewer/builder provenance on task ${task.id}`,
+        );
+      } else {
+        reasons.push(`Latest valid commit-package artifact is required before close-out for task ${task.id}`);
+      }
+    }
+
+    if (!localCommitRun || !commitResultArtifact || !parsedCommitResult) {
+      reasons.push(`Latest successful local commit bundle is required before close-out for task ${task.id}`);
+    } else {
+      if (localCommitSummary.commitResultArtifactId !== commitResultArtifact.id) {
+        reasons.push(`Local commit run ${localCommitRun.id} is missing current commit-result linkage`);
+      }
+
+      if (!parsedCommitResult.commitSha || localCommitSummary.commitSha !== parsedCommitResult.commitSha) {
+        reasons.push(`Commit result artifact ${commitResultArtifact.id} commit sha must match local commit run ${localCommitRun.id}`);
+      }
+
+      if (parsedCommitResult.commitPackageArtifactId !== localCommitSummary.commitPackageArtifactId) {
+        reasons.push(
+          `Commit result artifact ${commitResultArtifact.id} source commit-package linkage is incomplete`,
+        );
+      }
+
+      if (parsedCommitResult.gitCommitExecuted !== true) {
+        reasons.push(`Commit result artifact ${commitResultArtifact.id} must record git commit executed: yes`);
+      }
+
+      if (parsedCommitResult.pushExecuted !== false || parsedCommitResult.releaseExecuted !== false) {
+        reasons.push(`Commit result artifact ${commitResultArtifact.id} must keep push and release disabled`);
+      }
+
+      if (commitPackageArtifact && parsedCommitResult.commitPackageArtifactId !== commitPackageArtifact.id) {
+        reasons.push(
+          `Local commit bundle ${commitResultArtifact.id} is stale for commit-package ${commitPackageArtifact.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.reviewerRun &&
+        parsedCommitResult.sourceReviewerRunId !== currentCommitBundle.reviewerRun.id
+      ) {
+        reasons.push(
+          `Local commit bundle ${commitResultArtifact.id} is stale for reviewer run ${currentCommitBundle.reviewerRun.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.reviewArtifact &&
+        parsedCommitResult.reviewArtifactId !== currentCommitBundle.reviewArtifact.id
+      ) {
+        reasons.push(
+          `Local commit bundle ${commitResultArtifact.id} is stale for review artifact ${currentCommitBundle.reviewArtifact.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.anchor?.builderRun &&
+        parsedCommitResult.sourceBuilderRunId !== currentCommitBundle.anchor.builderRun.id
+      ) {
+        reasons.push(
+          `Local commit bundle ${commitResultArtifact.id} is stale for builder run ${currentCommitBundle.anchor.builderRun.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.anchor?.preflightArtifact &&
+        parsedCommitResult.preflightArtifactId !== currentCommitBundle.anchor.preflightArtifact.id
+      ) {
+        reasons.push(
+          `Local commit bundle ${commitResultArtifact.id} is stale for preflight ${currentCommitBundle.anchor.preflightArtifact.id}`,
+        );
+      }
+    }
+
+    if (!latestReleasePackage.artifact || !latestReleasePackage.run || !parsedReleasePackage) {
+      reasons.push(`Latest release-package artifact is required before close-out for task ${task.id}`);
+    } else {
+      const releaseSummary = latestReleasePackage.summary || {};
+
+      if (
+        commitResultArtifact &&
+        commitPackageArtifact &&
+        currentCommitBundle.reviewerRun &&
+        currentCommitBundle.anchor?.builderRun &&
+        currentCommitBundle.anchor?.preflightArtifact &&
+        releaseSummary.sourceCommitResultArtifactId === commitResultArtifact.id &&
+        releaseSummary.sourceCommitPackageArtifactId === commitPackageArtifact.id &&
+        releaseSummary.sourceReviewerRunId === currentCommitBundle.reviewerRun.id &&
+        releaseSummary.sourceBuilderRunId === currentCommitBundle.anchor.builderRun.id &&
+        releaseSummary.targetPreflightArtifactId === currentCommitBundle.anchor.preflightArtifact.id &&
+        releaseSummary.commitSha === parsedCommitResult?.commitSha &&
+        releaseSummary.deliveryStance === deliveryStance
+      ) {
+        currentReleasePackage = latestReleasePackage;
+      } else {
+        reasons.push(
+          `Latest release-package artifact ${latestReleasePackage.artifact.id} is stale for current local commit/reviewer/builder provenance`,
+        );
+      }
+
+      if (
+        !parsedReleasePackage.commitResultArtifactId ||
+        !parsedReleasePackage.commitPackageArtifactId ||
+        !parsedReleasePackage.sourceReviewerRunId ||
+        !parsedReleasePackage.sourceBuilderRunId ||
+        !parsedReleasePackage.preflightArtifactId ||
+        !parsedReleasePackage.commitSha
+      ) {
+        reasons.push(
+          `Release package artifact ${latestReleasePackage.artifact.id} provenance is incomplete for close-out`,
+        );
+      }
+
+      if (commitResultArtifact && parsedReleasePackage.commitResultArtifactId !== commitResultArtifact.id) {
+        reasons.push(
+          `Release package artifact ${latestReleasePackage.artifact.id} is stale for commit-result ${commitResultArtifact.id}`,
+        );
+      }
+
+      if (commitPackageArtifact && parsedReleasePackage.commitPackageArtifactId !== commitPackageArtifact.id) {
+        reasons.push(
+          `Release package artifact ${latestReleasePackage.artifact.id} is stale for commit-package ${commitPackageArtifact.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.reviewerRun &&
+        parsedReleasePackage.sourceReviewerRunId !== currentCommitBundle.reviewerRun.id
+      ) {
+        reasons.push(
+          `Release package artifact ${latestReleasePackage.artifact.id} is stale for reviewer run ${currentCommitBundle.reviewerRun.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.anchor?.builderRun &&
+        parsedReleasePackage.sourceBuilderRunId !== currentCommitBundle.anchor.builderRun.id
+      ) {
+        reasons.push(
+          `Release package artifact ${latestReleasePackage.artifact.id} is stale for builder run ${currentCommitBundle.anchor.builderRun.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.anchor?.preflightArtifact &&
+        parsedReleasePackage.preflightArtifactId !== currentCommitBundle.anchor.preflightArtifact.id
+      ) {
+        reasons.push(
+          `Release package artifact ${latestReleasePackage.artifact.id} is stale for preflight ${currentCommitBundle.anchor.preflightArtifact.id}`,
+        );
+      }
+
+      if (parsedCommitResult?.commitSha && parsedReleasePackage.commitSha !== parsedCommitResult.commitSha) {
+        reasons.push(
+          `Release package artifact ${latestReleasePackage.artifact.id} is stale for commit sha ${parsedCommitResult.commitSha}`,
+        );
+      }
+
+      if (parsedReleasePackage.deliveryStance !== deliveryStance) {
+        reasons.push(
+          `Release package artifact ${latestReleasePackage.artifact.id} must keep delivery stance ${deliveryStance}`,
+        );
+      }
+
+      if (parsedReleasePackage.localCommitBundleExecuted !== true) {
+        reasons.push(
+          `Release package artifact ${latestReleasePackage.artifact.id} must record local commit bundle executed: yes`,
+        );
+      }
+
+      if (
+        parsedReleasePackage.pushExecuted !== false ||
+        parsedReleasePackage.publishExecuted !== false ||
+        parsedReleasePackage.externalReleaseExecuted !== false
+      ) {
+        reasons.push(
+          `Release package artifact ${latestReleasePackage.artifact.id} must keep push, publish, and external release disabled`,
+        );
+      }
+
+      if (
+        releaseSummary.pushExecuted !== false ||
+        releaseSummary.publishExecuted !== false ||
+        releaseSummary.externalReleaseExecuted !== false
+      ) {
+        reasons.push(
+          `Release-package run ${latestReleasePackage.run.id} must keep push, publish, and external release disabled`,
+        );
+      }
+    }
+
+    latestApprovedReleaseApproval =
+      runtime
+        .listApprovals({
+          taskId: task.id,
+          allowedNextAction: RELEASE_ACTION.RELEASE_READY,
+          status: APPROVAL_STATUS.APPROVED,
+        })
+        .sort(compareRecordsByCreatedDesc)[0] || null;
+
+    const approvalMatchesCurrentSource =
+      Boolean(latestApprovedReleaseApproval) &&
+      Boolean(currentReleasePackage?.artifact) &&
+      Boolean(commitResultArtifact) &&
+      Boolean(commitPackageArtifact) &&
+      Boolean(currentCommitBundle.reviewerRun) &&
+      Boolean(currentCommitBundle.anchor?.builderRun) &&
+      Boolean(currentCommitBundle.anchor?.preflightArtifact) &&
+      latestApprovedReleaseApproval.metadata?.releasePackageArtifactId === currentReleasePackage.artifact.id &&
+      latestApprovedReleaseApproval.metadata?.commitResultArtifactId === commitResultArtifact.id &&
+      latestApprovedReleaseApproval.metadata?.commitPackageArtifactId === commitPackageArtifact.id &&
+      latestApprovedReleaseApproval.metadata?.sourceReviewerRunId === currentCommitBundle.reviewerRun.id &&
+      latestApprovedReleaseApproval.metadata?.sourceBuilderRunId === currentCommitBundle.anchor.builderRun.id &&
+      latestApprovedReleaseApproval.metadata?.targetPreflightArtifactId ===
+        currentCommitBundle.anchor.preflightArtifact.id &&
+      latestApprovedReleaseApproval.metadata?.commitSha === parsedCommitResult?.commitSha &&
+      latestApprovedReleaseApproval.metadata?.deliveryStance === deliveryStance &&
+      latestApprovedReleaseApproval.targetArtifactId === currentCommitBundle.anchor.preflightArtifact.id &&
+      latestApprovedReleaseApproval.targetRunId === currentCommitBundle.anchor.preflightArtifact.runId;
+
+    approvalStale = Boolean(latestApprovedReleaseApproval) && !approvalMatchesCurrentSource;
+
+    if (!latestApprovedReleaseApproval) {
+      reasons.push(`Latest approved ${RELEASE_ACTION.RELEASE_READY} approval is required before close-out for task ${task.id}`);
+    } else if (approvalStale) {
+      reasons.push(
+        `latest approved approval ${latestApprovedReleaseApproval.id} for ${RELEASE_ACTION.RELEASE_READY} is stale for release-package ${currentReleasePackage?.artifact?.id || 'missing'}`,
+      );
+    }
+
+    if (currentReleasePackage?.artifact) {
+      existingCloseOutRun = findTerminalCloseOutRun(task, currentReleasePackage.artifact.id);
+      existingCloseOutArtifact =
+        existingCloseOutRun?.summary?.closeOutArtifactId
+          ? runtime.getArtifact(existingCloseOutRun.summary.closeOutArtifactId)
+          : null;
+
+      if (existingCloseOutRun) {
+        conflict = true;
+        reasons.unshift(
+          `Close-out run ${existingCloseOutRun.id} already completed for release-package ${currentReleasePackage.artifact.id}`,
+        );
+      }
+    }
+
+    return {
+      commitPackageArtifact,
+      commitResultArtifact,
+      conflict,
+      currentCommitBundle,
+      currentReleasePackage,
+      deliveryStance,
+      existingCloseOutArtifact,
+      existingCloseOutRun,
+      latestApprovedReleaseApproval,
+      latestCloseOut,
+      latestReleasePackage,
+      localCommitRun,
+      parsedCommitResult,
+      parsedReleasePackage,
+      project,
+      repoStatus,
+      reviewArtifact: currentCommitBundle.reviewArtifact,
+      reviewerRun: currentCommitBundle.reviewerRun,
+      summary: buildCloseOutReadinessSummary({
+        anchor: currentCommitBundle.anchor,
+        approvalStale,
+        commitPackageArtifact,
+        commitResultArtifact,
+        conflict,
+        currentReleasePackage,
+        deliveryStance,
+        existingCloseOutArtifact,
+        existingCloseOutRun,
+        latestApprovedReleaseApproval,
+        latestCloseOut,
+        latestReleasePackage,
+        parsedCommitResult,
+        reasons,
+        repoStatus,
+        reviewArtifact: currentCommitBundle.reviewArtifact,
+        reviewerRun: currentCommitBundle.reviewerRun,
+      }),
+      task,
+    };
+  }
+
+  function getCloseOutReadiness(input) {
+    return resolveCloseOutReadiness(input).summary;
+  }
+
+  function assertCloseOutReady(input) {
+    const ready = resolveCloseOutReadiness(input);
+
+    if (ready.summary.allowed) {
+      return ready;
+    }
+
+    const error = new Error(ready.summary.reasons[0] || 'close-out is not ready');
+
+    if (ready.summary.conflict) {
+      error.statusCode = 409;
+    }
+
+    throw error;
+  }
+
+  function listCloseOutReadinessSummaries(input = {}) {
+    const snapshot = runtime.getSnapshot();
+    const summaries = {};
+
+    for (const task of Object.values(snapshot.tasks)) {
+      if (input.projectId && task.projectId !== input.projectId) {
+        continue;
+      }
+
+      summaries[task.id] = getCloseOutReadiness({
         taskId: task.id,
       });
     }
@@ -3690,15 +4210,204 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runCloseOut(input) {
+    const readyContext = assertCloseOutReady(input);
+    const task = readyContext.task;
+    const commitPackageArtifact = readyContext.commitPackageArtifact;
+    const commitResultArtifact = readyContext.commitResultArtifact;
+    const releasePackageArtifact = readyContext.currentReleasePackage.artifact;
+    const releaseApproval = readyContext.latestApprovedReleaseApproval;
+    const reviewArtifact = readyContext.reviewArtifact;
+    const reviewerRun = readyContext.reviewerRun;
+    const anchor = readyContext.currentCommitBundle.anchor;
+    const inputArtifacts = [
+      anchor.planArtifact,
+      anchor.architectureArtifact,
+      anchor.breakdownArtifact,
+      anchor.preflightArtifact,
+      anchor.changeSummaryArtifact,
+      anchor.patchArtifact,
+      anchor.diffArtifact,
+      reviewArtifact,
+      commitPackageArtifact,
+      commitResultArtifact,
+      releasePackageArtifact,
+    ];
+    const run = runtime.startRun({
+      taskId: task.id,
+      kind: 'system',
+      role: 'close-out',
+      metadata: {
+        commitPackageArtifactId: commitPackageArtifact.id,
+        commitResultArtifactId: commitResultArtifact.id,
+        deliveryStance: readyContext.deliveryStance,
+        executionMode: 'close-out',
+        inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+        sourceBuilderRunId: anchor.builderRun.id,
+        sourceReleaseApprovalId: releaseApproval.id,
+        sourceReleasePackageArtifactId: releasePackageArtifact.id,
+        sourceReviewerRunId: reviewerRun.id,
+        targetPreflightArtifactId: anchor.preflightArtifact.id,
+      },
+    });
+    const lifecycleStateBefore = task.lifecycleState;
+    const closedOutAt = new Date().toISOString();
+    let closeOutArtifact = null;
+
+    runtime.appendLog({
+      runId: run.id,
+      message: `close-out run started for task ${task.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `validated approved release-ready approval ${releaseApproval.id} for release-package ${releasePackageArtifact.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `validated clean repo state before close-out: dirty=${readyContext.repoStatus.dirtyFiles.length} staged=${readyContext.repoStatus.stagedFiles.length} untracked=${readyContext.repoStatus.untrackedFiles.length}`,
+    });
+
+    try {
+      closeOutArtifact = runtime.recordArtifact({
+        taskId: task.id,
+        runId: run.id,
+        type: 'close-out',
+        content: renderCloseOutArtifact({
+          architectureArtifact: anchor.architectureArtifact,
+          breakdownArtifact: anchor.breakdownArtifact,
+          builderApproval: anchor.approval,
+          builderRun: anchor.builderRun,
+          changeSummaryArtifact: anchor.changeSummaryArtifact,
+          closedOutAt,
+          commitPackageArtifact,
+          commitResultArtifact,
+          commitSha: readyContext.parsedCommitResult.commitSha,
+          deliveryStance: readyContext.deliveryStance,
+          diffArtifact: anchor.diffArtifact,
+          lifecycleStateBefore,
+          patchArtifact: anchor.patchArtifact,
+          planArtifact: anchor.planArtifact,
+          preflightArtifact: anchor.preflightArtifact,
+          releaseApproval,
+          releasePackageArtifact,
+          repoStatus: readyContext.repoStatus,
+          reviewArtifact,
+          reviewerRun,
+          run,
+          task,
+        }),
+      });
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `saved close-out artifact ${closeOutArtifact.id}`,
+      });
+
+      const transitionedTask = runtime.transitionTaskLifecycle({
+        taskId: task.id,
+        to: TASK_LIFECYCLE.DONE,
+      });
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `transitioned task ${task.id} from ${lifecycleStateBefore} to ${transitionedTask.lifecycleState}`,
+      });
+
+      const completedRun = runtime.completeRun({
+        runId: run.id,
+        summary: {
+          closeOutArtifactId: closeOutArtifact.id,
+          closedOutAt,
+          commitPackageArtifactId: commitPackageArtifact.id,
+          commitResultArtifactId: commitResultArtifact.id,
+          commitSha: readyContext.parsedCommitResult.commitSha,
+          deliveryStance: readyContext.deliveryStance,
+          executionMode: 'close-out',
+          externalReleaseExecuted: false,
+          inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+          lifecycleTransition: 'Review -> Done',
+          nextStage: null,
+          publishExecuted: false,
+          pushExecuted: false,
+          repoClean: true,
+          repoDirtyFileCount: readyContext.repoStatus.dirtyFiles.length,
+          repoStagedFileCount: readyContext.repoStatus.stagedFiles.length,
+          repoUntrackedFileCount: readyContext.repoStatus.untrackedFiles.length,
+          sourceBuilderApprovalId: anchor.approval?.id || null,
+          sourceBuilderRunId: anchor.builderRun.id,
+          sourceCommitPackageArtifactId: commitPackageArtifact.id,
+          sourceCommitResultArtifactId: commitResultArtifact.id,
+          sourceReleaseApprovalId: releaseApproval.id,
+          sourceReleasePackageArtifactId: releasePackageArtifact.id,
+          sourceReviewArtifactId: reviewArtifact.id,
+          sourceReviewerRunId: reviewerRun.id,
+          targetPreflightArtifactId: anchor.preflightArtifact.id,
+          targetPreflightRunId: anchor.preflightArtifact.runId,
+        },
+      });
+
+      return {
+        artifact: closeOutArtifact,
+        inputArtifacts,
+        run: completedRun,
+        task: runtime.getTask(task.id),
+      };
+    } catch (error) {
+      runtime.appendLog({
+        runId: run.id,
+        level: 'error',
+        message: `close-out execution failed: ${error.message}`,
+      });
+
+      runtime.completeRun({
+        runId: run.id,
+        summary: {
+          closeOutArtifactId: closeOutArtifact?.id || null,
+          commitPackageArtifactId: commitPackageArtifact.id,
+          commitResultArtifactId: commitResultArtifact.id,
+          commitSha: readyContext.parsedCommitResult.commitSha,
+          deliveryStance: readyContext.deliveryStance,
+          error: error.message,
+          executionMode: 'close-out',
+          externalReleaseExecuted: false,
+          inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+          lifecycleTransition: null,
+          nextStage: null,
+          publishExecuted: false,
+          pushExecuted: false,
+          repoClean: false,
+          repoDirtyFileCount: readyContext.repoStatus?.dirtyFiles?.length ?? null,
+          repoStagedFileCount: readyContext.repoStatus?.stagedFiles?.length ?? null,
+          repoUntrackedFileCount: readyContext.repoStatus?.untrackedFiles?.length ?? null,
+          sourceBuilderApprovalId: anchor.approval?.id || null,
+          sourceBuilderRunId: anchor.builderRun.id,
+          sourceCommitPackageArtifactId: commitPackageArtifact.id,
+          sourceCommitResultArtifactId: commitResultArtifact.id,
+          sourceReleaseApprovalId: releaseApproval.id,
+          sourceReleasePackageArtifactId: releasePackageArtifact.id,
+          sourceReviewArtifactId: reviewArtifact.id,
+          sourceReviewerRunId: reviewerRun.id,
+          targetPreflightArtifactId: anchor.preflightArtifact.id,
+          targetPreflightRunId: anchor.preflightArtifact.runId,
+        },
+      });
+
+      throw error;
+    }
+  }
+
   return {
     assertBuilderLiveMutationReady,
+    assertCloseOutReady,
     assertCommitPackageReady,
     assertReleasePackageReady,
     assertReviewerReady,
+    getCloseOutReadiness,
     getCommitExecutionReadiness,
     getCommitPackageReadiness,
     getReleasePackageReadiness,
     getReviewerReadiness,
+    listCloseOutReadinessSummaries,
     listCommitExecutionReadinessSummaries,
     listCommitPackageReadinessSummaries,
     listReleasePackageReadinessSummaries,
@@ -3706,6 +4415,7 @@ function createExecutionCoordinator(options = {}) {
     runArchitect,
     runBuilderLiveMutation,
     runBuilderPreflight,
+    runCloseOut,
     runCommitPackage,
     runLocalCommit,
     runReleasePackage,
