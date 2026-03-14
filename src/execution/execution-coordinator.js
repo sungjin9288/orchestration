@@ -7,7 +7,7 @@ const path = require('path');
 
 const { executeWithAdapter } = require('./provider-adapter');
 const { createLocalStubProviderAdapter } = require('./providers/local-stub-adapter');
-const { COMMIT_ACTION, TASK_LIFECYCLE } = require('../runtime/contracts');
+const { COMMIT_ACTION, RELEASE_ACTION, TASK_LIFECYCLE } = require('../runtime/contracts');
 
 const DEFAULT_SOURCE_OF_TRUTH_PATHS = [
   'AGENTS.md',
@@ -782,6 +782,63 @@ function parseCommitPackageArtifactContent(content) {
   };
 }
 
+function parseCommitResultArtifactContent(content) {
+  const sourceValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Source Commit Package'));
+  const commitValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Commit'));
+  const validationValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Validation'));
+  const safetyValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Safety'));
+
+  return {
+    commitApprovalId: sourceValues['commit approval'] || null,
+    commitMessage: commitValues['commit message'] || null,
+    commitPackageArtifactId: sourceValues['source commit-package artifact'] || null,
+    commitSha: commitValues['commit sha'] || null,
+    committedFiles: parseMarkdownList(content, 'Committed Files'),
+    committedFilesMatchedScope: parseYesNoValue(validationValues['committed files matched scope']),
+    gitCommitExecuted: parseYesNoValue(safetyValues['git commit executed']),
+    preflightArtifactId: sourceValues['target preflight artifact'] || null,
+    pushExecuted: parseYesNoValue(safetyValues['push executed']),
+    releaseExecuted: parseYesNoValue(safetyValues['release executed']),
+    reviewArtifactId: sourceValues['source review artifact'] || null,
+    sourceBuilderApprovalId: sourceValues['source builder approval'] || null,
+    sourceBuilderRunId: sourceValues['source builder run'] || null,
+    sourceReviewerRunId: sourceValues['source reviewer run'] || null,
+  };
+}
+
+function parseReleasePackageArtifactContent(content) {
+  const sourceCommitValues = parseMarkdownKeyValueLines(
+    getMarkdownSection(content, 'Source Local Commit Bundle'),
+  );
+  const sourceBuilderValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Source Builder Bundle'));
+  const releaseCandidateValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Release Candidate'));
+  const safetyValues = parseMarkdownKeyValueLines(getMarkdownSection(content, 'Execution Safety'));
+
+  return {
+    architectureArtifactId: sourceBuilderValues['architecture artifact'] || null,
+    breakdownArtifactId: sourceBuilderValues['breakdown artifact'] || null,
+    changeSummaryArtifactId: sourceBuilderValues['change-summary artifact'] || null,
+    commitApprovalId: sourceCommitValues['commit approval'] || null,
+    commitMessage: releaseCandidateValues['commit message'] || null,
+    commitPackageArtifactId: sourceCommitValues['source commit-package artifact'] || null,
+    commitResultArtifactId: sourceCommitValues['source commit-result artifact'] || null,
+    commitSha: releaseCandidateValues['commit sha'] || null,
+    committedFiles: parseMarkdownList(content, 'Committed Files'),
+    deliveryStance: releaseCandidateValues['delivery stance'] || null,
+    diffArtifactId: sourceBuilderValues['diff artifact'] || null,
+    externalReleaseExecuted: parseYesNoValue(safetyValues['external release executed']),
+    patchArtifactId: sourceBuilderValues['patch artifact'] || null,
+    planArtifactId: sourceBuilderValues['plan artifact'] || null,
+    preflightArtifactId: sourceCommitValues['target preflight artifact'] || null,
+    publishExecuted: parseYesNoValue(safetyValues['publish executed']),
+    pushExecuted: parseYesNoValue(safetyValues['push executed']),
+    reviewArtifactId: sourceCommitValues['source review artifact'] || null,
+    sourceBuilderApprovalId: sourceCommitValues['source builder approval'] || null,
+    sourceBuilderRunId: sourceCommitValues['source builder run'] || null,
+    sourceReviewerRunId: sourceCommitValues['source reviewer run'] || null,
+  };
+}
+
 function parseGitPathLines(output) {
   return [
     ...new Set(
@@ -847,6 +904,24 @@ function buildCommitApprovalPrompt(metadata) {
     `sourceReviewerRunId: ${metadata.sourceReviewerRunId}`,
     `sourceBuilderRunId: ${metadata.sourceBuilderRunId}`,
     `targetPreflightArtifactId: ${metadata.targetPreflightArtifactId}`,
+  ].join('\n');
+}
+
+function buildReleaseApprovalTitle(metadata) {
+  return `Approval required: ${RELEASE_ACTION.RELEASE_READY} | releasePackageArtifactId=${metadata.releasePackageArtifactId} | commitResultArtifactId=${metadata.commitResultArtifactId} | commitPackageArtifactId=${metadata.commitPackageArtifactId} | sourceReviewerRunId=${metadata.sourceReviewerRunId} | sourceBuilderRunId=${metadata.sourceBuilderRunId} | targetPreflightArtifactId=${metadata.targetPreflightArtifactId} | commitSha=${metadata.commitSha} | deliveryStance=${metadata.deliveryStance}`;
+}
+
+function buildReleaseApprovalPrompt(metadata) {
+  return [
+    `Approval required before ${RELEASE_ACTION.RELEASE_READY}.`,
+    `releasePackageArtifactId: ${metadata.releasePackageArtifactId}`,
+    `commitResultArtifactId: ${metadata.commitResultArtifactId}`,
+    `commitPackageArtifactId: ${metadata.commitPackageArtifactId}`,
+    `sourceReviewerRunId: ${metadata.sourceReviewerRunId}`,
+    `sourceBuilderRunId: ${metadata.sourceBuilderRunId}`,
+    `targetPreflightArtifactId: ${metadata.targetPreflightArtifactId}`,
+    `commitSha: ${metadata.commitSha}`,
+    `deliveryStance: ${metadata.deliveryStance}`,
   ].join('\n');
 }
 
@@ -939,6 +1014,47 @@ ${renderMarkdownList(input.committedFiles, 'none')}
 - push executed: no
 - merge executed: no
 - release executed: no
+`;
+}
+
+function renderReleasePackageArtifact(input) {
+  return `# Release Package: ${input.task.title}
+
+## Source Local Commit Bundle
+- source commit-result artifact: ${input.commitResultArtifact.id}
+- source commit-package artifact: ${input.commitPackageArtifact.id}
+- commit approval: ${input.commitApproval.id}
+- source reviewer run: ${input.reviewerRun.id}
+- source review artifact: ${input.reviewArtifact.id}
+- source builder run: ${input.builderRun.id}
+- source builder approval: ${input.builderApproval?.id || 'none'}
+- target preflight artifact: ${input.preflightArtifact.id}
+
+## Source Builder Bundle
+- plan artifact: ${input.planArtifact.id}
+- architecture artifact: ${input.architectureArtifact.id}
+- breakdown artifact: ${input.breakdownArtifact.id}
+- change-summary artifact: ${input.changeSummaryArtifact.id}
+- patch artifact: ${input.patchArtifact.id}
+- diff artifact: ${input.diffArtifact.id}
+
+## Release Candidate
+- commit sha: ${input.commitSha}
+- commit message: ${input.commitMessage}
+- delivery stance: ${input.deliveryStance}
+
+## Committed Files
+${renderMarkdownList(input.committedFiles, 'none')}
+
+## Human Gate
+- release approval required: yes
+- allowed next action: ${RELEASE_ACTION.RELEASE_READY}
+
+## Execution Safety
+- local commit bundle executed: yes
+- push executed: no
+- publish executed: no
+- external release executed: no
 `;
 }
 
@@ -1091,6 +1207,54 @@ function createExecutionCoordinator(options = {}) {
 
     return {
       artifact,
+      run,
+      summary,
+    };
+  }
+
+  function findLatestSuccessfulLocalCommitContext(task) {
+    const snapshot = runtime.getSnapshot();
+    const run =
+      Object.values(snapshot.runs)
+        .filter((candidate) => {
+          const summary =
+            candidate.summary && typeof candidate.summary === 'object' ? candidate.summary : null;
+          const metadata =
+            candidate.metadata && typeof candidate.metadata === 'object'
+              ? candidate.metadata
+              : null;
+
+          return (
+            candidate.taskId === task.id &&
+            candidate.role === 'commit-executor' &&
+            (summary?.executionMode === 'local-commit' ||
+              metadata?.executionMode === 'local-commit') &&
+            summary?.commitResultArtifactId &&
+            summary?.gitCommitExecuted === true &&
+            !summary?.error
+          );
+        })
+        .sort(compareRunsByStartedDesc)[0] || null;
+    const artifact = run?.summary?.commitResultArtifactId
+      ? runtime.getArtifact(run.summary.commitResultArtifactId)
+      : null;
+
+    return {
+      artifact,
+      parsedArtifact: artifact ? parseCommitResultArtifactContent(artifact.content) : null,
+      run,
+      summary: run?.summary && typeof run.summary === 'object' ? run.summary : null,
+    };
+  }
+
+  function findLatestReleasePackageContext(task) {
+    const artifact = findLatestTaskArtifact(runtime, task, 'release-package');
+    const run = artifact?.runId ? runtime.getRun(artifact.runId) : null;
+    const summary = run?.summary && typeof run.summary === 'object' ? run.summary : null;
+
+    return {
+      artifact,
+      parsedArtifact: artifact ? parseReleasePackageArtifactContent(artifact.content) : null,
       run,
       summary,
     };
@@ -1292,6 +1456,32 @@ function createExecutionCoordinator(options = {}) {
       sourceReviewerRunId: input.ready.reviewerRun?.id || null,
       targetPreflightArtifactId: input.ready.anchor?.preflightArtifact?.id || null,
       targetPreflightRunId: input.ready.anchor?.preflightArtifact?.runId || null,
+    };
+  }
+
+  function buildReleasePackageReadinessSummary(input) {
+    return {
+      allowed: input.reasons.length === 0,
+      approvalStale: Boolean(input.approvalStale),
+      commitPackageArtifactId: input.commitPackageArtifact?.id || null,
+      commitResultArtifactId: input.commitResultArtifact?.id || null,
+      commitSha: input.parsedCommitResult?.commitSha || null,
+      conflict: Boolean(input.conflict),
+      currentReleasePackageArtifactId: input.currentReleasePackage?.artifact?.id || null,
+      deliveryStance: input.deliveryStance,
+      latestApprovalDisplayStatus: input.approvalStale
+        ? 'stale'
+        : input.latestApproval?.status || 'none',
+      latestApprovalId: input.latestApproval?.id || null,
+      latestApprovalStatus: input.latestApproval?.status || null,
+      latestReleasePackageArtifactId: input.latestReleasePackage?.artifact?.id || null,
+      packageStale: Boolean(input.packageStale),
+      reasons: [...new Set(input.reasons.filter(Boolean))],
+      sourceBuilderRunId: input.anchor?.builderRun?.id || null,
+      sourceReviewArtifactId: input.reviewArtifact?.id || null,
+      sourceReviewerRunId: input.reviewerRun?.id || null,
+      targetPreflightArtifactId: input.anchor?.preflightArtifact?.id || null,
+      targetPreflightRunId: input.anchor?.preflightArtifact?.runId || null,
     };
   }
 
@@ -1526,6 +1716,245 @@ function createExecutionCoordinator(options = {}) {
       }
 
       summaries[task.id] = getCommitExecutionReadiness({
+        taskId: task.id,
+      });
+    }
+
+    return summaries;
+  }
+
+  function resolveReleasePackageReadiness(input) {
+    if (!input || !input.taskId) {
+      throw new Error('taskId is required');
+    }
+
+    const currentCommitBundle = resolveCommitPackageReadiness(input);
+    const task = currentCommitBundle.task;
+    const project = currentCommitBundle.project;
+    const reasons = [];
+    const deliveryStance = 'local-demo-only';
+    const upstreamReasons = currentCommitBundle.summary.reasons.filter(
+      (reason) => !new RegExp(`latest approval .*${COMMIT_ACTION.COMMIT_INTENT} is already`, 'i').test(reason),
+    );
+
+    reasons.push(
+      ...upstreamReasons.map((reason) => reason.replace(/before commit package/gi, 'before release package')),
+    );
+
+    if (!currentCommitBundle.currentCommitPackage?.artifact) {
+      if (currentCommitBundle.summary.packageStale) {
+        reasons.push(
+          `Latest successful local commit bundle is stale for current reviewer/builder provenance on task ${task.id}`,
+        );
+      } else {
+        reasons.push(
+          `Latest valid commit-package artifact is required before release package for task ${task.id}`,
+        );
+      }
+    }
+
+    const commitPackageArtifact = currentCommitBundle.currentCommitPackage?.artifact || null;
+    const localCommitContext = findLatestSuccessfulLocalCommitContext(task);
+    const commitResultArtifact = localCommitContext.artifact || null;
+    const parsedCommitResult = localCommitContext.parsedArtifact || null;
+    const localCommitRun = localCommitContext.run || null;
+    const localCommitSummary = localCommitContext.summary || null;
+
+    if (!localCommitRun || !commitResultArtifact || !parsedCommitResult) {
+      reasons.push(`Latest successful local commit bundle is required before release package for task ${task.id}`);
+    } else {
+      if (localCommitSummary.commitResultArtifactId !== commitResultArtifact.id) {
+        reasons.push(`Local commit run ${localCommitRun.id} is missing current commit-result linkage`);
+      }
+
+      if (!parsedCommitResult.commitSha || localCommitSummary.commitSha !== parsedCommitResult.commitSha) {
+        reasons.push(`Commit result artifact ${commitResultArtifact.id} commit sha must match local commit run ${localCommitRun.id}`);
+      }
+
+      if (parsedCommitResult.commitPackageArtifactId !== localCommitSummary.commitPackageArtifactId) {
+        reasons.push(
+          `Commit result artifact ${commitResultArtifact.id} source commit-package linkage is incomplete`,
+        );
+      }
+
+      if (parsedCommitResult.gitCommitExecuted !== true) {
+        reasons.push(`Commit result artifact ${commitResultArtifact.id} must record git commit executed: yes`);
+      }
+
+      if (parsedCommitResult.pushExecuted !== false || parsedCommitResult.releaseExecuted !== false) {
+        reasons.push(`Commit result artifact ${commitResultArtifact.id} must keep push and release disabled`);
+      }
+
+      if (
+        commitPackageArtifact &&
+        parsedCommitResult.commitPackageArtifactId !== commitPackageArtifact.id
+      ) {
+        reasons.push(
+          `Local commit bundle ${commitResultArtifact.id} is stale for commit-package ${commitPackageArtifact.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.reviewerRun &&
+        parsedCommitResult.sourceReviewerRunId !== currentCommitBundle.reviewerRun.id
+      ) {
+        reasons.push(
+          `Local commit bundle ${commitResultArtifact.id} is stale for reviewer run ${currentCommitBundle.reviewerRun.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.reviewArtifact &&
+        parsedCommitResult.reviewArtifactId !== currentCommitBundle.reviewArtifact.id
+      ) {
+        reasons.push(
+          `Local commit bundle ${commitResultArtifact.id} is stale for review artifact ${currentCommitBundle.reviewArtifact.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.anchor?.builderRun &&
+        parsedCommitResult.sourceBuilderRunId !== currentCommitBundle.anchor.builderRun.id
+      ) {
+        reasons.push(
+          `Local commit bundle ${commitResultArtifact.id} is stale for builder run ${currentCommitBundle.anchor.builderRun.id}`,
+        );
+      }
+
+      if (
+        currentCommitBundle.anchor?.preflightArtifact &&
+        parsedCommitResult.preflightArtifactId !== currentCommitBundle.anchor.preflightArtifact.id
+      ) {
+        reasons.push(
+          `Local commit bundle ${commitResultArtifact.id} is stale for preflight ${currentCommitBundle.anchor.preflightArtifact.id}`,
+        );
+      }
+    }
+
+    const latestReleasePackage = findLatestReleasePackageContext(task);
+    const currentReleasePackage =
+      latestReleasePackage.summary &&
+      commitResultArtifact &&
+      commitPackageArtifact &&
+      currentCommitBundle.reviewerRun &&
+      currentCommitBundle.anchor?.builderRun &&
+      currentCommitBundle.anchor?.preflightArtifact &&
+      latestReleasePackage.summary.sourceCommitResultArtifactId === commitResultArtifact.id &&
+      latestReleasePackage.summary.sourceCommitPackageArtifactId === commitPackageArtifact.id &&
+      latestReleasePackage.summary.sourceReviewerRunId === currentCommitBundle.reviewerRun.id &&
+      latestReleasePackage.summary.sourceBuilderRunId === currentCommitBundle.anchor.builderRun.id &&
+      latestReleasePackage.summary.targetPreflightArtifactId ===
+        currentCommitBundle.anchor.preflightArtifact.id &&
+      latestReleasePackage.summary.commitSha === parsedCommitResult?.commitSha &&
+      latestReleasePackage.summary.deliveryStance === deliveryStance
+        ? latestReleasePackage
+        : null;
+    const packageStale =
+      Boolean(latestReleasePackage.artifact) &&
+      Boolean(commitResultArtifact) &&
+      !currentReleasePackage;
+    const latestApproval =
+      runtime
+        .listApprovals({
+          taskId: task.id,
+          allowedNextAction: RELEASE_ACTION.RELEASE_READY,
+        })
+        .sort(compareRecordsByCreatedDesc)[0] || null;
+    const approvalMatchesCurrentSource =
+      Boolean(latestApproval) &&
+      Boolean(currentReleasePackage?.artifact) &&
+      Boolean(commitResultArtifact) &&
+      Boolean(commitPackageArtifact) &&
+      Boolean(currentCommitBundle.reviewerRun) &&
+      Boolean(currentCommitBundle.anchor?.builderRun) &&
+      Boolean(currentCommitBundle.anchor?.preflightArtifact) &&
+      latestApproval.metadata?.releasePackageArtifactId === currentReleasePackage.artifact.id &&
+      latestApproval.metadata?.commitResultArtifactId === commitResultArtifact.id &&
+      latestApproval.metadata?.commitPackageArtifactId === commitPackageArtifact.id &&
+      latestApproval.metadata?.sourceReviewerRunId === currentCommitBundle.reviewerRun.id &&
+      latestApproval.metadata?.sourceBuilderRunId === currentCommitBundle.anchor.builderRun.id &&
+      latestApproval.metadata?.targetPreflightArtifactId ===
+        currentCommitBundle.anchor.preflightArtifact.id &&
+      latestApproval.metadata?.commitSha === parsedCommitResult?.commitSha &&
+      latestApproval.metadata?.deliveryStance === deliveryStance &&
+      latestApproval.targetArtifactId === currentCommitBundle.anchor.preflightArtifact.id &&
+      latestApproval.targetRunId === currentCommitBundle.anchor.preflightArtifact.runId;
+    const approvalStale = Boolean(latestApproval) && !approvalMatchesCurrentSource;
+    let conflict = false;
+
+    if (
+      latestApproval &&
+      approvalMatchesCurrentSource &&
+      (latestApproval.status === 'pending' || latestApproval.status === 'approved')
+    ) {
+      conflict = true;
+      reasons.push(
+        `latest approval ${latestApproval.id} for ${RELEASE_ACTION.RELEASE_READY} is already ${latestApproval.status} for commit-result ${commitResultArtifact.id}`,
+      );
+    }
+
+    return {
+      commitPackageArtifact,
+      commitResultArtifact,
+      conflict,
+      currentReleasePackage,
+      currentCommitBundle,
+      deliveryStance,
+      latestApproval,
+      latestReleasePackage,
+      localCommitRun,
+      parsedCommitResult,
+      reasons: [...new Set(reasons.filter(Boolean))],
+      summary: buildReleasePackageReadinessSummary({
+        anchor: currentCommitBundle.anchor,
+        approvalStale,
+        commitPackageArtifact,
+        commitResultArtifact,
+        conflict,
+        currentReleasePackage,
+        deliveryStance,
+        latestApproval,
+        latestReleasePackage,
+        packageStale,
+        parsedCommitResult,
+        reasons,
+        reviewArtifact: currentCommitBundle.reviewArtifact,
+        reviewerRun: currentCommitBundle.reviewerRun,
+      }),
+      task,
+    };
+  }
+
+  function getReleasePackageReadiness(input) {
+    return resolveReleasePackageReadiness(input).summary;
+  }
+
+  function assertReleasePackageReady(input) {
+    const ready = resolveReleasePackageReadiness(input);
+
+    if (ready.reasons.length === 0) {
+      return ready;
+    }
+
+    const error = new Error(ready.reasons[0] || 'release-package is not ready');
+
+    if (ready.conflict) {
+      error.statusCode = 409;
+    }
+
+    throw error;
+  }
+
+  function listReleasePackageReadinessSummaries(input = {}) {
+    const snapshot = runtime.getSnapshot();
+    const summaries = {};
+
+    for (const task of Object.values(snapshot.tasks)) {
+      if (input.projectId && task.projectId !== input.projectId) {
+        continue;
+      }
+
+      summaries[task.id] = getReleasePackageReadiness({
         taskId: task.id,
       });
     }
@@ -3042,21 +3471,244 @@ function createExecutionCoordinator(options = {}) {
     }
   }
 
+  async function runReleasePackage(input) {
+    const readyContext = assertReleasePackageReady(input);
+    const task = readyContext.task;
+    const currentCommitBundle = readyContext.currentCommitBundle;
+    const commitPackageArtifact = readyContext.commitPackageArtifact;
+    const commitResultArtifact = readyContext.commitResultArtifact;
+    const parsedCommitResult = readyContext.parsedCommitResult;
+    const parsedCommitPackage = parseCommitPackageArtifactContent(commitPackageArtifact.content);
+    const reviewArtifact = currentCommitBundle.reviewArtifact;
+    const reviewerRun = currentCommitBundle.reviewerRun;
+    const anchor = currentCommitBundle.anchor;
+    const inputArtifacts = [
+      anchor.planArtifact,
+      anchor.architectureArtifact,
+      anchor.breakdownArtifact,
+      anchor.preflightArtifact,
+      anchor.changeSummaryArtifact,
+      anchor.patchArtifact,
+      anchor.diffArtifact,
+      reviewArtifact,
+      commitPackageArtifact,
+      commitResultArtifact,
+    ];
+    const run = runtime.startRun({
+      taskId: task.id,
+      kind: 'system',
+      role: 'release-packager',
+      metadata: {
+        commitPackageArtifactId: commitPackageArtifact.id,
+        commitResultArtifactId: commitResultArtifact.id,
+        deliveryStance: readyContext.deliveryStance,
+        executionMode: 'release-package',
+        inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+        sourceBuilderRunId: anchor.builderRun.id,
+        sourceReviewerRunId: reviewerRun.id,
+        targetPreflightArtifactId: anchor.preflightArtifact.id,
+      },
+    });
+    let releasePackageArtifact = readyContext.currentReleasePackage?.artifact || null;
+    let reusedReleasePackageArtifact = false;
+
+    runtime.appendLog({
+      runId: run.id,
+      message: `release-package run started for task ${task.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `anchored release-package input to local commit bundle ${commitResultArtifact.id} (${parsedCommitResult.commitSha})`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `loaded release-package bundle artifacts ${inputArtifacts.map((artifact) => artifact.id).join(', ')}`,
+    });
+
+    try {
+      if (releasePackageArtifact) {
+        const currentReleasePackage = parseReleasePackageArtifactContent(releasePackageArtifact.content);
+
+        if (
+          !currentReleasePackage.commitResultArtifactId ||
+          !currentReleasePackage.commitPackageArtifactId ||
+          !currentReleasePackage.sourceReviewerRunId ||
+          !currentReleasePackage.sourceBuilderRunId ||
+          !currentReleasePackage.preflightArtifactId ||
+          !currentReleasePackage.commitSha ||
+          currentReleasePackage.deliveryStance !== readyContext.deliveryStance
+        ) {
+          runtime.appendLog({
+            runId: run.id,
+            message: `current release-package artifact ${releasePackageArtifact.id} is incomplete; regenerating`,
+          });
+          releasePackageArtifact = null;
+        } else {
+          reusedReleasePackageArtifact = true;
+          runtime.appendLog({
+            runId: run.id,
+            message: `reusing current release-package artifact ${releasePackageArtifact.id} for commit-result ${commitResultArtifact.id}`,
+          });
+        }
+      }
+
+      if (!releasePackageArtifact) {
+        releasePackageArtifact = runtime.recordArtifact({
+          taskId: task.id,
+          runId: run.id,
+          type: 'release-package',
+          content: renderReleasePackageArtifact({
+            architectureArtifact: anchor.architectureArtifact,
+            breakdownArtifact: anchor.breakdownArtifact,
+            builderApproval: anchor.approval,
+            builderRun: anchor.builderRun,
+            changeSummaryArtifact: anchor.changeSummaryArtifact,
+            commitApproval: runtime.getApproval(parsedCommitResult.commitApprovalId),
+            commitMessage: parsedCommitResult.commitMessage || parsedCommitPackage.commitMessage || 'none',
+            commitPackageArtifact,
+            commitResultArtifact,
+            commitSha: parsedCommitResult.commitSha,
+            committedFiles:
+              parsedCommitResult.committedFiles.length > 0
+                ? parsedCommitResult.committedFiles
+                : parsedCommitPackage.changedFiles,
+            deliveryStance: readyContext.deliveryStance,
+            diffArtifact: anchor.diffArtifact,
+            patchArtifact: anchor.patchArtifact,
+            planArtifact: anchor.planArtifact,
+            preflightArtifact: anchor.preflightArtifact,
+            reviewArtifact,
+            reviewerRun,
+            task,
+          }),
+        });
+
+        runtime.appendLog({
+          runId: run.id,
+          message: `saved release-package artifact ${releasePackageArtifact.id}`,
+        });
+      }
+
+      const approvalMetadata = {
+        releasePackageArtifactId: releasePackageArtifact.id,
+        commitResultArtifactId: commitResultArtifact.id,
+        commitPackageArtifactId: commitPackageArtifact.id,
+        sourceReviewerRunId: reviewerRun.id,
+        sourceBuilderRunId: anchor.builderRun.id,
+        targetPreflightArtifactId: anchor.preflightArtifact.id,
+        commitSha: parsedCommitResult.commitSha,
+        deliveryStance: readyContext.deliveryStance,
+      };
+      const approval = runtime.createApprovalPlaceholder({
+        taskId: task.id,
+        scope: 'release',
+        allowedNextAction: RELEASE_ACTION.RELEASE_READY,
+        targetArtifactId: anchor.preflightArtifact.id,
+        targetRunId: anchor.preflightArtifact.runId,
+        title: buildReleaseApprovalTitle(approvalMetadata),
+        prompt: buildReleaseApprovalPrompt(approvalMetadata),
+        metadata: approvalMetadata,
+      });
+
+      runtime.appendLog({
+        runId: run.id,
+        message: `created release approval placeholder ${approval.id} for release-package artifact ${releasePackageArtifact.id}`,
+      });
+      runtime.appendLog({
+        runId: run.id,
+        message: 'actual push, publish, and external release remained disabled',
+      });
+
+      const completedRun = runtime.completeRun({
+        runId: run.id,
+        summary: {
+          approvalId: approval.id,
+          commitPackageArtifactId: commitPackageArtifact.id,
+          commitResultArtifactId: commitResultArtifact.id,
+          commitSha: parsedCommitResult.commitSha,
+          deliveryStance: readyContext.deliveryStance,
+          executionMode: 'release-package',
+          externalReleaseExecuted: false,
+          inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+          nextStage: 'human gate',
+          publishExecuted: false,
+          pushExecuted: false,
+          releaseExecuted: false,
+          releasePackageArtifactId: releasePackageArtifact.id,
+          reusedReleasePackageArtifact,
+          sourceBuilderRunId: anchor.builderRun.id,
+          sourceCommitPackageArtifactId: commitPackageArtifact.id,
+          sourceCommitResultArtifactId: commitResultArtifact.id,
+          sourceReviewArtifactId: reviewArtifact.id,
+          sourceReviewerRunId: reviewerRun.id,
+          targetPreflightArtifactId: anchor.preflightArtifact.id,
+          targetPreflightRunId: anchor.preflightArtifact.runId,
+        },
+      });
+
+      return {
+        approval,
+        artifact: releasePackageArtifact,
+        inboxItem: runtime.getDecisionInboxItem(approval.inboxItemId),
+        inputArtifacts,
+        run: completedRun,
+      };
+    } catch (error) {
+      runtime.appendLog({
+        runId: run.id,
+        level: 'error',
+        message: `release-package execution failed: ${error.message}`,
+      });
+
+      runtime.completeRun({
+        runId: run.id,
+        summary: {
+          commitPackageArtifactId: commitPackageArtifact.id,
+          commitResultArtifactId: commitResultArtifact.id,
+          commitSha: parsedCommitResult.commitSha,
+          deliveryStance: readyContext.deliveryStance,
+          error: error.message,
+          executionMode: 'release-package',
+          externalReleaseExecuted: false,
+          inputArtifactIds: inputArtifacts.map((artifact) => artifact.id),
+          nextStage: null,
+          publishExecuted: false,
+          pushExecuted: false,
+          releaseExecuted: false,
+          releasePackageArtifactId: releasePackageArtifact?.id || null,
+          sourceBuilderRunId: anchor.builderRun.id,
+          sourceCommitPackageArtifactId: commitPackageArtifact.id,
+          sourceCommitResultArtifactId: commitResultArtifact.id,
+          sourceReviewArtifactId: reviewArtifact.id,
+          sourceReviewerRunId: reviewerRun.id,
+          targetPreflightArtifactId: anchor.preflightArtifact.id,
+          targetPreflightRunId: anchor.preflightArtifact.runId,
+        },
+      });
+
+      throw error;
+    }
+  }
+
   return {
     assertBuilderLiveMutationReady,
     assertCommitPackageReady,
+    assertReleasePackageReady,
     assertReviewerReady,
     getCommitExecutionReadiness,
     getCommitPackageReadiness,
+    getReleasePackageReadiness,
     getReviewerReadiness,
     listCommitExecutionReadinessSummaries,
     listCommitPackageReadinessSummaries,
+    listReleasePackageReadinessSummaries,
     listReviewerReadinessSummaries,
     runArchitect,
     runBuilderLiveMutation,
     runBuilderPreflight,
     runCommitPackage,
     runLocalCommit,
+    runReleasePackage,
     runPlanner,
     runReviewer,
     runTaskBreaker,

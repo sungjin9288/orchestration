@@ -48,6 +48,10 @@ const COMMIT_ACTION = {
   COMMIT_READY: 'commit-ready',
 };
 
+const RELEASE_ACTION = {
+  RELEASE_READY: 'release-ready',
+};
+
 function createEmptyState() {
   return {
     schemaVersion: 2,
@@ -76,6 +80,7 @@ module.exports = {
   DECISION_INBOX_KIND,
   DECISION_INBOX_STATUS,
   PACKS,
+  RELEASE_ACTION,
   REVIEW_STATUS,
   RUN_STATUS,
   TASK_LIFECYCLE,

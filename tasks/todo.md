@@ -8,6 +8,7 @@
 - [x] builder live mutation requires a targeted approval for the latest preflight and saves `change-summary`, `patch`, and `diff`
 - [x] reviewer is anchored to the latest builder live-mutation bundle and records a terminal review artifact
 - [x] `commit-package` and limited local git commit are wired behind explicit human approval
+- [x] `release-package` is anchored to the latest successful local commit bundle and only prepares a local/demo-only release artifact plus `human/release` approval
 - [x] `Taskboard / Logs / Artifacts / Decision Inbox` operate as the primary ops shell surfaces
 - [x] stale smoke expectations and live-mutation fixture assumptions were consolidated around the current guard and preflight contract
 - [x] a real-path end-to-end development loop smoke now covers planner through local commit on a clean temp repo
@@ -38,6 +39,7 @@
 - [x] execution-slice-06
 - [x] execution-slice-07
 - [x] execution-slice-08
+- [x] execution-slice-09
 - [x] ui-slice-02
 - [x] ui-slice-03
 - [x] ui-slice-04
