@@ -53,6 +53,7 @@
 - [x] ui-slice-09
 - [x] ui-slice-10
 - [x] ui-slice-11
+- [x] ui-slice-12
 
 ### deferred / rejected
 - [ ] provider adapter

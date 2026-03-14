@@ -83,6 +83,7 @@ function readSnapshotReadonly() {
 
 function buildDerivedSnapshotData(snapshot) {
   return {
+    closeOutReadinessSummaries: executionCoordinator.listCloseOutReadinessSummaries(),
     commitExecutionReadinessSummaries:
       executionCoordinator.listCommitExecutionReadinessSummaries(),
     commitPackageReadinessSummaries: executionCoordinator.listCommitPackageReadinessSummaries(),
@@ -623,6 +624,41 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, { error: error.message || 'Release package run failed' });
+      return;
+    }
+  }
+
+  const closeOutRunMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)\/run-close-out$/);
+
+  if (method === 'POST' && closeOutRunMatch) {
+    try {
+      const taskId = decodeURIComponent(closeOutRunMatch[1]);
+      const task = runtime.getTask(taskId);
+      const result = await executionCoordinator.runCloseOut({
+        taskId: task.id,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          artifactDetail: getArtifactPayload(result.artifact.id)?.artifact || null,
+          mutation: {
+            artifactId: result.artifact.id,
+            commitPackageArtifactId: result.run.summary?.commitPackageArtifactId || null,
+            commitResultArtifactId: result.run.summary?.commitResultArtifactId || null,
+            kind: 'run-close-out',
+            releasePackageArtifactId: result.run.summary?.sourceReleasePackageArtifactId || null,
+            runId: result.run.id,
+            taskId: task.id,
+          },
+          runLogs: getRunLogsPayload(result.run.id),
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, { error: error.message || 'Close-out run failed' });
       return;
     }
   }
