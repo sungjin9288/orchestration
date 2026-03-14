@@ -93,6 +93,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: Approval-before-commit can be enforced locally without widening into release automation during v1.
 - Impact: Human gate approves the current commit-package bundle first; local commit executes only after that approval.
 
+### DEC-026
+- Status: `Accepted`
+- Decision: Before `release-package` or `close-out`, `project_path` must resolve to a registered dedicated linked git worktree root, not the main worktree. `task.worktreeRef`, when set, must match that same root. This requirement does not apply to the earlier planner-through-local-commit core loop.
+- Why: This is the implemented boundary. The coordinator enforces the dedicated linked worktree guard only on `release-package` and `close-out`, and the current real-path dev-loop smoke closes planner through local commit on a clean temp repo without worktree orchestration.
+- Impact: `DEC-026` closes as a narrow release-gate requirement. v1 does not add automatic worktree creation, selection UX, or broader runtime/UI worktree semantics in this patch.
+
 ### DEC-027
 - Status: `Accepted`
 - Decision: Close-out runs from the latest approved `release-package` bundle and is the explicit shell path from `Review` to `Done`.
@@ -161,12 +167,6 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Status: `[OPEN]`
 - Decision: Finalize `Decision Inbox` item taxonomy and escalation rules.
 - Why It Is Open: Approval, decision, and review-follow-up now share one queue, but the release rules for routing, escalation, and operator expectations are still incomplete.
-- Needed Before: release or human-gate sign-off.
-
-### DEC-026
-- Status: `[OPEN]`
-- Decision: Decide whether worktree-aware execution is required before release.
-- Why It Is Open: Worktree metadata exists in contracts, but no actual worktree orchestration path is wired into the current core loop.
 - Needed Before: release or human-gate sign-off.
 
 ## New Decision Template
