@@ -93,6 +93,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: Approval-before-commit can be enforced locally without widening into release automation during v1.
 - Impact: Human gate approves the current commit-package bundle first; local commit executes only after that approval.
 
+### DEC-027
+- Status: `Accepted`
+- Decision: Close-out runs from the latest approved `release-package` bundle and is the explicit shell path from `Review` to `Done`.
+- Why: This is now implemented end to end. The coordinator computes close-out readiness from passed review, clear task flags, clean repo state, the current approved `release-package` bundle, and approved `release-ready` approval, and the shell exposes a dedicated close-out action and route.
+- Impact: The shell records a `close-out` artifact, then transitions the task `Review -> Done` without push, publish, or external release. Stale or duplicate close-out attempts remain blocked.
+
 ## Rejected
 
 ### DEC-010
@@ -161,12 +167,6 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Status: `[OPEN]`
 - Decision: Decide whether worktree-aware execution is required before release.
 - Why It Is Open: Worktree metadata exists in contracts, but no actual worktree orchestration path is wired into the current core loop.
-- Needed Before: release or human-gate sign-off.
-
-### DEC-027
-- Status: `[OPEN]`
-- Decision: Define the close-out path from review and approval completion into explicit task completion in the shell.
-- Why It Is Open: Runtime lifecycle guards for `Done` exist, but the current shell does not provide a complete close-out interaction after human gate resolution.
 - Needed Before: release or human-gate sign-off.
 
 ## New Decision Template
