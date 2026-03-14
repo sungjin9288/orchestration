@@ -17,7 +17,7 @@
 
 ### now [OPEN]
 - [ ] decide release stance for provider choice: initial live provider vs `local-stub` demo-only
-- [ ] decide whether worktree support and first-run project registration/select UX are required before release
+- [ ] decide first-run project registration/select UX required before release
 
 ### next phase entry conditions
 - [x] real-path smoke coverage is green for planner through local commit, including the end-to-end dev loop smoke
@@ -54,6 +54,7 @@
 - [x] ui-slice-10
 - [x] ui-slice-11
 - [x] ui-slice-12
+- [x] worktree-slice-01
 
 ### deferred / rejected
 - [ ] provider adapter

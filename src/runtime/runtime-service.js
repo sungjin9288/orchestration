@@ -826,6 +826,42 @@ function createRuntimeService(options = {}) {
     return assertTask(taskId, state);
   }
 
+  function normalizeTaskWorktreeRef(worktreeRef) {
+    if (worktreeRef === null || worktreeRef === undefined) {
+      return null;
+    }
+
+    const trimmedWorktreeRef = String(worktreeRef).trim();
+
+    if (!trimmedWorktreeRef) {
+      return null;
+    }
+
+    const resolvedWorktreeRef = path.resolve(trimmedWorktreeRef);
+
+    if (!fs.existsSync(resolvedWorktreeRef)) {
+      throw new Error(`worktreeRef does not exist: ${trimmedWorktreeRef}`);
+    }
+
+    if (!fs.statSync(resolvedWorktreeRef).isDirectory()) {
+      throw new Error(`worktreeRef must be a directory: ${trimmedWorktreeRef}`);
+    }
+
+    return fs.realpathSync(resolvedWorktreeRef);
+  }
+
+  function setTaskWorktreeRef(input) {
+    const state = store.loadState();
+    const task = assertTask(input.taskId, state);
+    const now = new Date().toISOString();
+
+    task.worktreeRef = normalizeTaskWorktreeRef(input.worktreeRef);
+    task.updatedAt = now;
+    store.saveState(state);
+
+    return state.tasks[task.id];
+  }
+
   function createDecisionInboxItem(input) {
     const state = store.loadState();
     const task = assertTask(input.taskId, state);
@@ -1402,6 +1438,7 @@ function createRuntimeService(options = {}) {
     resolveReview,
     resolveDecisionInboxItem,
     resetRuntime,
+    setTaskWorktreeRef,
     selectProject,
     startRun,
     startPlaceholderRun,

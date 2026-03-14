@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
-import { existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, realpathSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -81,8 +82,169 @@ function readSnapshotReadonly() {
   return store.loadState();
 }
 
+function runGit(projectPath, args) {
+  try {
+    return execFileSync('git', args, {
+      cwd: projectPath,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (error) {
+    const stderr = String(error.stderr || '').trim();
+    const stdout = String(error.stdout || '').trim();
+    const detail = stderr || stdout || error.message;
+
+    throw new Error(`git ${args.join(' ')} failed: ${detail}`);
+  }
+}
+
+function parseWorktreeList(output) {
+  const records = [];
+  let current = null;
+
+  for (const rawLine of String(output || '').split('\n')) {
+    const line = rawLine.trim();
+
+    if (!line) {
+      if (current?.worktree) {
+        records.push(current);
+      }
+      current = null;
+      continue;
+    }
+
+    const separatorIndex = line.indexOf(' ');
+    const key = separatorIndex === -1 ? line : line.slice(0, separatorIndex);
+    const value = separatorIndex === -1 ? '' : line.slice(separatorIndex + 1).trim();
+
+    if (key === 'worktree') {
+      if (current?.worktree) {
+        records.push(current);
+      }
+      current = { worktree: value };
+      continue;
+    }
+
+    if (!current) {
+      current = {};
+    }
+
+    current[key] = value || true;
+  }
+
+  if (current?.worktree) {
+    records.push(current);
+  }
+
+  return records;
+}
+
+function toBranchName(branchRef) {
+  return String(branchRef || '').replace(/^refs\/heads\//, '') || null;
+}
+
+function isDedicatedLinkedWorktree(worktreePath) {
+  try {
+    const gitDir = realpathSync(
+      path.resolve(worktreePath, runGit(worktreePath, ['rev-parse', '--git-dir']).trim()),
+    );
+    const gitCommonDir = realpathSync(
+      path.resolve(worktreePath, runGit(worktreePath, ['rev-parse', '--git-common-dir']).trim()),
+    );
+
+    return gitDir !== gitCommonDir;
+  } catch (_error) {
+    return false;
+  }
+}
+
+function detectLinkedWorktrees(projectPath) {
+  const result = {
+    error: null,
+    options: [],
+  };
+
+  if (!projectPath) {
+    return result;
+  }
+
+  if (!existsSync(projectPath)) {
+    return {
+      ...result,
+      error: `project_path does not exist: ${projectPath}`,
+    };
+  }
+
+  let resolvedProjectPath = null;
+
+  try {
+    resolvedProjectPath = realpathSync(projectPath);
+    const insideWorkTree = runGit(projectPath, ['rev-parse', '--is-inside-work-tree']).trim();
+
+    if (insideWorkTree !== 'true') {
+      throw new Error(`project_path is not a git worktree: ${projectPath}`);
+    }
+
+    const optionMap = new Map();
+    const records = parseWorktreeList(runGit(projectPath, ['worktree', 'list', '--porcelain']));
+
+    for (const record of records) {
+      if (!record.worktree || !existsSync(record.worktree)) {
+        continue;
+      }
+
+      if (!isDedicatedLinkedWorktree(record.worktree)) {
+        continue;
+      }
+
+      const resolvedWorktreePath = realpathSync(record.worktree);
+
+      if (optionMap.has(resolvedWorktreePath)) {
+        continue;
+      }
+
+      optionMap.set(resolvedWorktreePath, {
+        branch: toBranchName(record.branch),
+        head: record.HEAD || null,
+        isCurrentProjectPath: resolvedWorktreePath === resolvedProjectPath,
+        path: resolvedWorktreePath,
+      });
+    }
+
+    result.options = [...optionMap.values()].sort((left, right) => {
+      if (left.isCurrentProjectPath !== right.isCurrentProjectPath) {
+        return left.isCurrentProjectPath ? -1 : 1;
+      }
+
+      const leftBranch = left.branch || '';
+      const rightBranch = right.branch || '';
+
+      if (leftBranch !== rightBranch) {
+        return leftBranch.localeCompare(rightBranch);
+      }
+
+      return left.path.localeCompare(right.path);
+    });
+  } catch (error) {
+    result.error = error.message;
+  }
+
+  return result;
+}
+
 function buildDerivedSnapshotData(snapshot) {
+  const activeProject = getActiveProject(snapshot);
+  const linkedWorktrees = activeProject
+    ? detectLinkedWorktrees(activeProject.projectPath)
+    : { error: null, options: [] };
+
   return {
+    activeProjectLinkedWorktrees: {
+      error: linkedWorktrees.error,
+      options: linkedWorktrees.options,
+      projectId: activeProject?.id || null,
+      projectPath: activeProject?.projectPath || null,
+    },
     closeOutReadinessSummaries: executionCoordinator.listCloseOutReadinessSummaries(),
     commitExecutionReadinessSummaries:
       executionCoordinator.listCommitExecutionReadinessSummaries(),
@@ -311,6 +473,64 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       json(response, 400, { error: error.message || 'Invalid request body' });
+      return;
+    }
+  }
+
+  const taskWorktreeRefMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)\/worktree-ref$/);
+
+  if (method === 'POST' && taskWorktreeRefMatch) {
+    try {
+      const taskId = decodeURIComponent(taskWorktreeRefMatch[1]);
+      const input = await readJsonBody(request);
+      const task = runtime.getTask(taskId);
+      const project = runtime.getProject(task.projectId);
+      const rawWorktreeRef = input.worktreeRef;
+      let nextWorktreeRef = null;
+
+      if (rawWorktreeRef !== null && rawWorktreeRef !== undefined && String(rawWorktreeRef).trim()) {
+        const detectedWorktrees = detectLinkedWorktrees(project.projectPath);
+
+        if (detectedWorktrees.error) {
+          throw new Error(detectedWorktrees.error);
+        }
+
+        const resolvedRequestedWorktreeRef = path.resolve(String(rawWorktreeRef).trim());
+
+        if (!existsSync(resolvedRequestedWorktreeRef)) {
+          throw new Error(`worktreeRef does not exist: ${rawWorktreeRef}`);
+        }
+
+        nextWorktreeRef = realpathSync(resolvedRequestedWorktreeRef);
+
+        if (!detectedWorktrees.options.some((option) => option.path === nextWorktreeRef)) {
+          throw new Error(
+            `worktreeRef must match a detected linked worktree for project ${project.id}: ${nextWorktreeRef}`,
+          );
+        }
+      }
+
+      const updatedTask = runtime.setTaskWorktreeRef({
+        taskId: task.id,
+        worktreeRef: nextWorktreeRef,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          mutation: {
+            kind: nextWorktreeRef ? 'set-task-worktree-ref' : 'clear-task-worktree-ref',
+            taskId: updatedTask.id,
+            worktreeRef: updatedTask.worktreeRef,
+          },
+          task: updatedTask,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Task worktree update failed' });
       return;
     }
   }

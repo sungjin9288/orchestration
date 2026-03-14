@@ -63,6 +63,16 @@ function formatDate(value) {
   return date.toLocaleString();
 }
 
+function formatWorktreeOptionLabel(option) {
+  const parts = [option.branch || 'detached', option.path];
+
+  if (option.isCurrentProjectPath) {
+    parts.push('current project_path');
+  }
+
+  return parts.join(' · ');
+}
+
 function sortByCreatedDesc(left, right) {
   const leftValue = left.updatedAt || left.createdAt || '';
   const rightValue = right.updatedAt || right.createdAt || '';
@@ -78,6 +88,12 @@ function getActivePayload() {
   return (
     state.payload || {
       derived: {
+        activeProjectLinkedWorktrees: {
+          error: null,
+          options: [],
+          projectId: null,
+          projectPath: null,
+        },
         closeOutReadinessSummaries: {},
         commitExecutionReadinessSummaries: {},
         commitPackageReadinessSummaries: {},
@@ -142,6 +158,12 @@ function getDerived() {
 
   return {
     derived: payload.derived || {
+      activeProjectLinkedWorktrees: {
+        error: null,
+        options: [],
+        projectId: null,
+        projectPath: null,
+      },
       closeOutReadinessSummaries: {},
       commitExecutionReadinessSummaries: {},
       commitPackageReadinessSummaries: {},
@@ -3519,6 +3541,12 @@ async function postJson(url, body) {
 function applySnapshotPayload(payload) {
   state.payload = {
     derived: payload.derived || {
+      activeProjectLinkedWorktrees: {
+        error: null,
+        options: [],
+        projectId: null,
+        projectPath: null,
+      },
       closeOutReadinessSummaries: {},
       commitExecutionReadinessSummaries: {},
       commitPackageReadinessSummaries: {},
@@ -4298,6 +4326,63 @@ async function runCloseOut(taskId) {
   }
 }
 
+async function updateTaskWorktreeRef(taskId, worktreeRef) {
+  const data = getDerived();
+
+  if (!taskId || !data.taskMap.has(taskId)) {
+    throw new Error('Select a task before updating task.worktreeRef');
+  }
+
+  const isClearing = worktreeRef === null;
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = isClearing
+    ? `Clearing task.worktreeRef for ${taskId}…`
+    : `Applying linked worktree for ${taskId}…`;
+  render();
+
+  try {
+    const payload = await postJson(`/api/tasks/${encodeURIComponent(taskId)}/worktree-ref`, {
+      worktreeRef,
+    });
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromTask(taskId, {
+      applyTaskInboxPreselect: true,
+    });
+    await hydrateSelectedDetails();
+    render();
+    elements.refreshStatus.textContent = isClearing
+      ? `Cleared task.worktreeRef for ${taskId}`
+      : `Updated task.worktreeRef for ${taskId}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function applySelectedTaskWorktree(taskId) {
+  const select = document.querySelector('#task-worktree-select');
+
+  if (!select) {
+    throw new Error('No linked worktree selection is available');
+  }
+
+  const worktreeRef = select.value.trim();
+
+  if (!worktreeRef) {
+    throw new Error('Select a linked worktree before applying');
+  }
+
+  await updateTaskWorktreeRef(taskId, worktreeRef);
+}
+
+async function clearTaskWorktree(taskId) {
+  await updateTaskWorktreeRef(taskId, null);
+}
+
 async function runInboxAction(itemId, verb) {
   const data = getDerived();
   const item = data.inboxItemMap.get(itemId);
@@ -4633,6 +4718,25 @@ function renderTaskDetail(task, data) {
   const parsedPreflight = latestPreflightDetail
     ? parsePreflightArtifact(latestPreflightDetail.content)
     : null;
+  const activeProjectLinkedWorktrees = data.derived.activeProjectLinkedWorktrees || {
+    error: null,
+    options: [],
+    projectId: null,
+    projectPath: null,
+  };
+  const detectedWorktreeOptions =
+    activeProjectLinkedWorktrees.projectId === task.projectId
+      ? activeProjectLinkedWorktrees.options || []
+      : [];
+  const worktreeDetectionError =
+    activeProjectLinkedWorktrees.projectId === task.projectId
+      ? activeProjectLinkedWorktrees.error
+      : null;
+  const currentWorktreeOption = task.worktreeRef
+    ? detectedWorktreeOptions.find((option) => option.path === task.worktreeRef) || null
+    : null;
+  const selectedWorktreeOptionValue =
+    currentWorktreeOption?.path || detectedWorktreeOptions[0]?.path || '';
   const selectedInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
   const preselectedPendingItem =
     selectedInboxItem?.taskId === task.id && selectedInboxItem.status === 'pending'
@@ -4646,6 +4750,12 @@ function renderTaskDetail(task, data) {
   const architectDisabled = state.loading || state.mutating || !latestPlanArtifact;
   const taskBreakerDisabled = taskBreakerState.disabled;
   const builderPreflightDisabled = builderPreflightState.disabled;
+  const worktreeApplyDisabled =
+    state.loading ||
+    state.mutating ||
+    Boolean(worktreeDetectionError) ||
+    detectedWorktreeOptions.length === 0;
+  const worktreeClearDisabled = state.loading || state.mutating || !task.worktreeRef;
   const reviewerState = getReviewerAvailability(task, data);
   const commitPackageState = getCommitPackageAvailability(task, data);
   const closeOutState = getCloseOutAvailability(task, data);
@@ -4688,9 +4798,62 @@ function renderTaskDetail(task, data) {
           <div class="kv-item">
             <p class="detail-key">Worktree</p>
             <strong>${escapeHtml(task.worktreeRef || 'Not linked')}</strong>
-            <p class="detail-copy">No worktree-specific UI in slice 02.</p>
+            <p class="detail-copy">${
+              currentWorktreeOption
+                ? escapeHtml(formatWorktreeOptionLabel(currentWorktreeOption))
+                : task.worktreeRef
+                  ? 'Stored task.worktreeRef is outside the current detected linked worktree list.'
+                  : 'task.worktreeRef is not set.'
+            }</p>
           </div>
         </div>
+        <label class="field">
+          <span class="field-label">Detected Linked Worktrees</span>
+          <select id="task-worktree-select" ${worktreeApplyDisabled ? 'disabled' : ''}>
+            ${
+              detectedWorktreeOptions.length > 0
+                ? detectedWorktreeOptions
+                    .map(
+                      (option) => `
+                        <option value="${escapeHtml(option.path)}" ${
+                          option.path === selectedWorktreeOptionValue ? 'selected' : ''
+                        }>
+                          ${escapeHtml(formatWorktreeOptionLabel(option))}
+                        </option>
+                      `,
+                    )
+                    .join('')
+                : '<option value="">No linked worktrees detected</option>'
+            }
+          </select>
+        </label>
+        <div class="form-actions form-actions-inline">
+          <button
+            class="secondary-button"
+            type="button"
+            data-action="set-task-worktree-ref"
+            data-id="${escapeHtml(task.id)}"
+            ${worktreeApplyDisabled ? 'disabled' : ''}
+          >
+            Apply Worktree
+          </button>
+          <button
+            class="secondary-button"
+            type="button"
+            data-action="clear-task-worktree-ref"
+            data-id="${escapeHtml(task.id)}"
+            ${worktreeClearDisabled ? 'disabled' : ''}
+          >
+            Clear Worktree
+          </button>
+        </div>
+        ${
+          worktreeDetectionError
+            ? `<p class="detail-copy">${escapeHtml(worktreeDetectionError)}</p>`
+            : detectedWorktreeOptions.length > 0
+              ? '<p class="form-help">Stores task.worktreeRef only. release-package and close-out still require active project_path to resolve to the same linked worktree root.</p>'
+              : '<p class="detail-copy">No linked worktrees were detected from the current project_path.</p>'
+        }
       </div>
 
       <div class="detail-block">
@@ -5788,6 +5951,16 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'run-builder-live-mutation') {
         await runBuilderLiveMutation(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'set-task-worktree-ref') {
+        await applySelectedTaskWorktree(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'clear-task-worktree-ref') {
+        await clearTaskWorktree(actionButton.dataset.id);
         return;
       }
 

@@ -412,7 +412,8 @@ h3 {
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   width: 100%;
   border: 1px solid rgba(33, 57, 49, 0.16);
   border-radius: 14px;
