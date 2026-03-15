@@ -17,7 +17,7 @@
 
 ### now [OPEN]
 - [ ] decide release stance for provider choice: initial live provider vs `local-stub` demo-only
-- [ ] decide first-run project registration/select UX required before release
+- [x] document the implemented first-run project registration/select path in `DEC-019`
 
 ### next phase entry conditions
 - [x] real-path smoke coverage is green for planner through local commit, including the end-to-end dev loop smoke

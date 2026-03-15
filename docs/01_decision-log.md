@@ -63,6 +63,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: Local-first operation requires inspectable, versioned rules.
 - Impact: `AGENTS.md`, docs, and pack definitions shape runtime behavior and review expectations.
 
+### DEC-019
+- Status: `Accepted`
+- Decision: The shell first-run path is the `Taskboard` project registry: start from an empty runtime state, register the first project with `name` and `project_path`, make it the active project immediately, and reuse the same registry list for later project selection.
+- Why: This is the implemented v1 path. The runtime initializes with no active project, the shell exposes first-run bootstrap and project-selection states, and task creation plus other primary surfaces stay gated until an active project exists.
+- Impact: `project_path required before execution` stays enforced without pre-seeded runtime state. This decision does not add a new bootstrap wizard, provider semantics, or broader runtime or UI behavior.
+
 ### DEC-021
 - Status: `Accepted`
 - Decision: The current core-loop lifecycle is `Inbox -> In Progress -> Review -> Done`.
@@ -156,12 +162,6 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Decision: Finalize artifact retention, preview, and browse rules for the current taxonomy.
 - Why It Is Open: The baseline types now exist in the core loop, but retention behavior and preview guarantees are still incomplete.
 - Needed Before: release hardening of `Artifacts`.
-
-### DEC-019
-- Status: `[OPEN]`
-- Decision: Define the first-run project registration, selection, and bootstrap path for the shell.
-- Why It Is Open: The runtime can create projects, but the current shell still depends on pre-seeded runtime state instead of a user-facing first-run path.
-- Needed Before: release or human-gate sign-off.
 
 ### DEC-020
 - Status: `[OPEN]`
