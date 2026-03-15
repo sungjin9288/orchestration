@@ -84,23 +84,29 @@ function sortByCreatedDesc(left, right) {
   return rightValue.localeCompare(leftValue);
 }
 
+function createEmptyDerivedState() {
+  return {
+    activeProjectLinkedWorktrees: {
+      error: null,
+      notice: null,
+      options: [],
+      projectId: null,
+      projectPath: null,
+      resolvedProjectPath: null,
+    },
+    closeOutReadinessSummaries: {},
+    commitExecutionReadinessSummaries: {},
+    commitPackageReadinessSummaries: {},
+    releasePackageReadinessSummaries: {},
+    reviewerReadinessSummaries: {},
+    taskGuardSummaries: {},
+  };
+}
+
 function getActivePayload() {
   return (
     state.payload || {
-      derived: {
-        activeProjectLinkedWorktrees: {
-          error: null,
-          options: [],
-          projectId: null,
-          projectPath: null,
-        },
-        closeOutReadinessSummaries: {},
-        commitExecutionReadinessSummaries: {},
-        commitPackageReadinessSummaries: {},
-        releasePackageReadinessSummaries: {},
-        reviewerReadinessSummaries: {},
-        taskGuardSummaries: {},
-      },
+      derived: createEmptyDerivedState(),
       snapshot: {
         activeProjectId: null,
         projects: {},
@@ -157,20 +163,7 @@ function getDerived() {
   const inboxItemMap = new Map(projectInboxItems.map((item) => [item.id, item]));
 
   return {
-    derived: payload.derived || {
-      activeProjectLinkedWorktrees: {
-        error: null,
-        options: [],
-        projectId: null,
-        projectPath: null,
-      },
-      closeOutReadinessSummaries: {},
-      commitExecutionReadinessSummaries: {},
-      commitPackageReadinessSummaries: {},
-      releasePackageReadinessSummaries: {},
-      reviewerReadinessSummaries: {},
-      taskGuardSummaries: {},
-    },
+    derived: payload.derived || createEmptyDerivedState(),
     snapshot,
     activeProject,
     projects,
@@ -223,6 +216,149 @@ function renderProjectGateSurface(title, copy) {
         <p>${escapeHtml(copy)}</p>
       </div>
     </div>
+  `;
+}
+
+function getActiveProjectLinkedWorktreesState(data) {
+  return data.derived.activeProjectLinkedWorktrees || createEmptyDerivedState().activeProjectLinkedWorktrees;
+}
+
+function buildLinkedWorktreeFallbackName(option) {
+  const pathParts = String(option?.path || '')
+    .split('/')
+    .filter(Boolean);
+
+  return option?.branch || pathParts[pathParts.length - 1] || 'linked-worktree';
+}
+
+function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
+  const matchedOption = task.worktreeRef
+    ? (activeProjectLinkedWorktrees.options || []).find((option) => option.path === task.worktreeRef) || null
+    : null;
+
+  if (!task.worktreeRef) {
+    return {
+      copy: 'task.worktreeRef is not set.',
+      label: 'worktree:not-set',
+      status: 'not-set',
+      switchOption: null,
+      tone: 'neutral',
+    };
+  }
+
+  if (matchedOption?.isCurrentProjectPath) {
+    return {
+      copy: 'task.worktreeRef matches the current active project_path.',
+      label: 'worktree:matches-active-project',
+      status: 'matches-active-project',
+      switchOption: null,
+      tone: 'success',
+    };
+  }
+
+  if (matchedOption) {
+    return {
+      copy: `task.worktreeRef points to ${formatWorktreeOptionLabel(matchedOption)} while the active project_path remains ${activeProjectLinkedWorktrees.projectPath || 'unset'}.`,
+      label: 'worktree:mismatch',
+      status: 'mismatch',
+      switchOption: matchedOption,
+      tone: 'warning',
+    };
+  }
+
+  if (activeProjectLinkedWorktrees.notice) {
+    return {
+      copy: `Linked worktree detection is unavailable for the current project_path. Stored task.worktreeRef is ${task.worktreeRef}.`,
+      label: 'worktree:unavailable',
+      status: 'unavailable',
+      switchOption: null,
+      tone: 'neutral',
+    };
+  }
+
+  return {
+    copy: 'Stored task.worktreeRef is outside the current detected linked worktree list.',
+    label: 'worktree:outside-detected-list',
+    status: 'outside-detected-list',
+    switchOption: null,
+    tone: 'warning',
+  };
+}
+
+function renderLinkedWorktreeSwitchPanel(data, projectActionDisabled) {
+  const activeProjectLinkedWorktrees = getActiveProjectLinkedWorktreesState(data);
+
+  if (!data.activeProject) {
+    return `
+      <section class="linked-worktree-panel relation-strip">
+        <div class="card-title-row">
+          <strong>Detected Linked Worktrees</strong>
+          ${createToken('linked-worktrees:inactive', 'neutral')}
+        </div>
+        <p class="detail-copy">Select a registered project to inspect linked worktree roots.</p>
+      </section>
+    `;
+  }
+
+  const options = activeProjectLinkedWorktrees.options || [];
+  const body = options.length
+    ? options
+        .map((option) => {
+          const buttonLabel = option.isCurrentProjectPath ? 'Current Active Project' : 'Switch Active Project';
+
+          return `
+            <div class="linked-worktree-row relation-strip">
+              <div class="card-title-row">
+                <strong>${escapeHtml(option.branch || buildLinkedWorktreeFallbackName(option))}</strong>
+                <div class="token-row">
+                  ${option.isCurrentProjectPath ? createToken('active project_path', 'success') : ''}
+                  ${
+                    option.registeredProjectId
+                      ? createToken(`registered:${option.registeredProjectName || option.registeredProjectId}`, 'neutral')
+                      : createToken('unregistered', 'warning')
+                  }
+                </div>
+              </div>
+              <p class="detail-copy mono">${escapeHtml(option.path)}</p>
+              <div class="form-actions">
+                <button
+                  class="secondary-button"
+                  type="button"
+                  data-action="switch-active-project-worktree"
+                  data-path="${escapeHtml(option.path)}"
+                  ${projectActionDisabled || option.isCurrentProjectPath ? 'disabled' : ''}
+                >
+                  ${buttonLabel}
+                </button>
+                <p class="form-help">${
+                  option.registeredProjectId
+                    ? 'Reuses the existing project select flow.'
+                    : 'Reuses project registration, then makes the linked root active.'
+                }</p>
+              </div>
+            </div>
+          `;
+        })
+        .join('')
+    : `
+        <div class="empty-state empty-state-inline">
+          <strong>No linked worktrees detected</strong>
+          <p>${escapeHtml(activeProjectLinkedWorktrees.notice || 'This project currently exposes no dedicated linked worktree roots.')}</p>
+        </div>
+      `;
+
+  return `
+    <section class="linked-worktree-panel">
+      <div class="panel-header panel-header-compact">
+        <div>
+          <h4>Detected Linked Worktrees</h4>
+          <p class="panel-copy">Current active project 기준으로 detected linked roots만 보여준다. Main worktree는 여기서 제외된다.</p>
+        </div>
+      </div>
+      <div class="linked-worktree-list">
+        ${body}
+      </div>
+    </section>
   `;
 }
 
@@ -3540,20 +3676,7 @@ async function postJson(url, body) {
 
 function applySnapshotPayload(payload) {
   state.payload = {
-    derived: payload.derived || {
-      activeProjectLinkedWorktrees: {
-        error: null,
-        options: [],
-        projectId: null,
-        projectPath: null,
-      },
-      closeOutReadinessSummaries: {},
-      commitExecutionReadinessSummaries: {},
-      commitPackageReadinessSummaries: {},
-      releasePackageReadinessSummaries: {},
-      reviewerReadinessSummaries: {},
-      taskGuardSummaries: {},
-    },
+    derived: payload.derived || createEmptyDerivedState(),
     generatedAt: payload.generatedAt,
     runtimeRoot: payload.runtimeRoot,
     snapshot: payload.snapshot,
@@ -3851,22 +3974,9 @@ async function submitCreateProject() {
       projectPath,
     });
 
-    applySnapshotPayload(payload);
-    const data = getDerived();
     state.projectDraftName = '';
     state.projectDraftPath = '';
-    state.selectedTaskId = null;
-    state.selectedRunId = null;
-    state.selectedArtifactId = null;
-    state.selectedInboxItemId = null;
-    state.selectedRunLogs = null;
-    state.selectedArtifact = null;
-    state.selectedTaskBreakdownArtifact = null;
-    state.selectedTaskPreflightArtifact = null;
-    state.selectionSeeded = false;
-    ensureSelection(data);
-    await hydrateSelectedDetails();
-    render();
+    await applyProjectScopePayload(payload);
     elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
   } finally {
     state.mutating = false;
@@ -3893,20 +4003,7 @@ async function submitSelectProject(projectId) {
   try {
     const payload = await postJson(`/api/projects/${encodeURIComponent(projectId)}/select`);
 
-    applySnapshotPayload(payload);
-    const data = getDerived();
-    state.selectedTaskId = null;
-    state.selectedRunId = null;
-    state.selectedArtifactId = null;
-    state.selectedInboxItemId = null;
-    state.selectedRunLogs = null;
-    state.selectedArtifact = null;
-    state.selectedTaskBreakdownArtifact = null;
-    state.selectedTaskPreflightArtifact = null;
-    state.selectionSeeded = false;
-    ensureSelection(data);
-    await hydrateSelectedDetails();
-    render();
+    await applyProjectScopePayload(payload);
     elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
   } finally {
     state.mutating = false;
@@ -4326,6 +4423,28 @@ async function runCloseOut(taskId) {
   }
 }
 
+function resetProjectScopeSelections() {
+  state.selectedTaskId = null;
+  state.selectedRunId = null;
+  state.selectedArtifactId = null;
+  state.selectedInboxItemId = null;
+  state.selectedRunLogs = null;
+  state.selectedArtifact = null;
+  state.selectedTaskBreakdownArtifact = null;
+  state.selectedTaskPreflightArtifact = null;
+  state.selectionSeeded = false;
+}
+
+async function applyProjectScopePayload(payload) {
+  applySnapshotPayload(payload);
+  const data = getDerived();
+
+  resetProjectScopeSelections();
+  ensureSelection(data);
+  await hydrateSelectedDetails();
+  render();
+}
+
 async function updateTaskWorktreeRef(taskId, worktreeRef) {
   const data = getDerived();
 
@@ -4381,6 +4500,50 @@ async function applySelectedTaskWorktree(taskId) {
 
 async function clearTaskWorktree(taskId) {
   await updateTaskWorktreeRef(taskId, null);
+}
+
+async function switchActiveProjectWorktree(worktreePath) {
+  const data = getDerived();
+  const activeProjectLinkedWorktrees = getActiveProjectLinkedWorktreesState(data);
+  const option =
+    (activeProjectLinkedWorktrees.options || []).find((candidate) => candidate.path === worktreePath) || null;
+
+  if (!data.activeProject) {
+    throw new Error('Active project is required before switching to a linked worktree');
+  }
+
+  if (!option) {
+    throw new Error('Select a detected linked worktree before switching active project');
+  }
+
+  if (option.isCurrentProjectPath) {
+    return;
+  }
+
+  if (option.registeredProjectId) {
+    await submitSelectProject(option.registeredProjectId);
+    return;
+  }
+
+  const name = option.suggestedProjectName || buildLinkedWorktreeFallbackName(option);
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Registering linked worktree ${worktreePath} as the active project…`;
+  render();
+
+  try {
+    const payload = await postJson('/api/projects', {
+      name,
+      projectPath: option.path,
+    });
+
+    await applyProjectScopePayload(payload);
+    elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
 }
 
 async function runInboxAction(itemId, verb) {
@@ -4465,6 +4628,7 @@ function renderNav(data) {
 function renderProjectBootstrapPanel(data) {
   const bootstrapState = getProjectBootstrapState(data);
   const projectActionDisabled = state.loading || state.mutating;
+  const linkedWorktreePanel = renderLinkedWorktreeSwitchPanel(data, projectActionDisabled);
   const projectList = data.projects.length
     ? `
         <div class="project-list">
@@ -4520,6 +4684,7 @@ function renderProjectBootstrapPanel(data) {
         }
       </div>
       ${projectList}
+      ${linkedWorktreePanel}
       <form class="task-create-form project-create-form" data-form="create-project">
         <div class="field-grid">
           <label class="field">
@@ -4718,23 +4883,22 @@ function renderTaskDetail(task, data) {
   const parsedPreflight = latestPreflightDetail
     ? parsePreflightArtifact(latestPreflightDetail.content)
     : null;
-  const activeProjectLinkedWorktrees = data.derived.activeProjectLinkedWorktrees || {
-    error: null,
-    options: [],
-    projectId: null,
-    projectPath: null,
-  };
+  const activeProjectLinkedWorktrees = getActiveProjectLinkedWorktreesState(data);
   const detectedWorktreeOptions =
     activeProjectLinkedWorktrees.projectId === task.projectId
       ? activeProjectLinkedWorktrees.options || []
       : [];
-  const worktreeDetectionError =
+  const worktreeDetectionNotice =
     activeProjectLinkedWorktrees.projectId === task.projectId
-      ? activeProjectLinkedWorktrees.error
+      ? activeProjectLinkedWorktrees.notice
       : null;
   const currentWorktreeOption = task.worktreeRef
     ? detectedWorktreeOptions.find((option) => option.path === task.worktreeRef) || null
     : null;
+  const worktreeRelation = buildTaskWorktreeRelation(task, {
+    ...activeProjectLinkedWorktrees,
+    options: detectedWorktreeOptions,
+  });
   const selectedWorktreeOptionValue =
     currentWorktreeOption?.path || detectedWorktreeOptions[0]?.path || '';
   const selectedInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
@@ -4753,7 +4917,6 @@ function renderTaskDetail(task, data) {
   const worktreeApplyDisabled =
     state.loading ||
     state.mutating ||
-    Boolean(worktreeDetectionError) ||
     detectedWorktreeOptions.length === 0;
   const worktreeClearDisabled = state.loading || state.mutating || !task.worktreeRef;
   const reviewerState = getReviewerAvailability(task, data);
@@ -4807,6 +4970,30 @@ function renderTaskDetail(task, data) {
             }</p>
           </div>
         </div>
+        <div class="relation-strip">
+          <div class="card-title-row">
+            <strong>task.worktreeRef vs active project_path</strong>
+            ${createToken(worktreeRelation.label, worktreeRelation.tone)}
+          </div>
+          <p class="detail-copy">${escapeHtml(worktreeRelation.copy)}</p>
+          ${
+            worktreeRelation.switchOption
+              ? `
+                <div class="relation-button-row">
+                  <button
+                    class="secondary-button"
+                    type="button"
+                    data-action="switch-active-project-worktree"
+                    data-path="${escapeHtml(worktreeRelation.switchOption.path)}"
+                    ${state.loading || state.mutating ? 'disabled' : ''}
+                  >
+                    Switch Active Project
+                  </button>
+                </div>
+              `
+              : ''
+          }
+        </div>
         <label class="field">
           <span class="field-label">Detected Linked Worktrees</span>
           <select id="task-worktree-select" ${worktreeApplyDisabled ? 'disabled' : ''}>
@@ -4848,8 +5035,8 @@ function renderTaskDetail(task, data) {
           </button>
         </div>
         ${
-          worktreeDetectionError
-            ? `<p class="detail-copy">${escapeHtml(worktreeDetectionError)}</p>`
+          worktreeDetectionNotice
+            ? `<p class="detail-copy">${escapeHtml(worktreeDetectionNotice)}</p>`
             : detectedWorktreeOptions.length > 0
               ? '<p class="form-help">Stores task.worktreeRef only. release-package and close-out still require active project_path to resolve to the same linked worktree root.</p>'
               : '<p class="detail-copy">No linked worktrees were detected from the current project_path.</p>'
@@ -5961,6 +6148,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'clear-task-worktree-ref') {
         await clearTaskWorktree(actionButton.dataset.id);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'switch-active-project-worktree') {
+        await switchActiveProjectWorktree(actionButton.dataset.path);
         return;
       }
 

@@ -139,6 +139,17 @@ function parseWorktreeList(output) {
   return records;
 }
 
+function compareRecordsByUpdatedDesc(left, right) {
+  const leftValue = left.updatedAt || left.createdAt || '';
+  const rightValue = right.updatedAt || right.createdAt || '';
+
+  if (leftValue === rightValue) {
+    return String(left.id).localeCompare(String(right.id));
+  }
+
+  return rightValue.localeCompare(leftValue);
+}
+
 function toBranchName(branchRef) {
   return String(branchRef || '').replace(/^refs\/heads\//, '') || null;
 }
@@ -232,18 +243,77 @@ function detectLinkedWorktrees(projectPath) {
   return result;
 }
 
+function getCanonicalProjectPath(projectPath) {
+  if (!projectPath || !existsSync(projectPath)) {
+    return null;
+  }
+
+  try {
+    return realpathSync(projectPath);
+  } catch (_error) {
+    return null;
+  }
+}
+
+function buildRegisteredProjectByCanonicalPath(snapshot, activeProject) {
+  const projects = Object.values(snapshot.projects || {}).sort(compareRecordsByUpdatedDesc);
+  const index = new Map();
+  const activeCanonicalPath = getCanonicalProjectPath(activeProject?.projectPath);
+
+  if (activeProject && activeCanonicalPath) {
+    index.set(activeCanonicalPath, activeProject);
+  }
+
+  for (const project of projects) {
+    const canonicalPath = getCanonicalProjectPath(project.projectPath);
+
+    if (!canonicalPath || index.has(canonicalPath)) {
+      continue;
+    }
+
+    index.set(canonicalPath, project);
+  }
+
+  return index;
+}
+
+function buildSuggestedLinkedWorktreeProjectName(activeProject, option) {
+  const baseName = String(activeProject?.name || '').trim() || 'project';
+  const suffix = String(option.branch || '').trim() || path.basename(option.path) || 'linked-worktree';
+
+  return `${baseName} · ${suffix}`;
+}
+
 function buildDerivedSnapshotData(snapshot) {
   const activeProject = getActiveProject(snapshot);
   const linkedWorktrees = activeProject
     ? detectLinkedWorktrees(activeProject.projectPath)
     : { error: null, options: [] };
+  const registeredProjectsByCanonicalPath = buildRegisteredProjectByCanonicalPath(
+    snapshot,
+    activeProject,
+  );
+  const resolvedProjectPath = getCanonicalProjectPath(activeProject?.projectPath);
+  const mappedOptions = linkedWorktrees.options.map((option) => {
+    const registeredProject = registeredProjectsByCanonicalPath.get(option.path) || null;
+
+    return {
+      ...option,
+      isCurrentProjectPath: option.path === resolvedProjectPath,
+      registeredProjectId: registeredProject?.id || null,
+      registeredProjectName: registeredProject?.name || null,
+      suggestedProjectName: buildSuggestedLinkedWorktreeProjectName(activeProject, option),
+    };
+  });
 
   return {
     activeProjectLinkedWorktrees: {
-      error: linkedWorktrees.error,
-      options: linkedWorktrees.options,
+      error: null,
+      notice: linkedWorktrees.error,
+      options: mappedOptions,
       projectId: activeProject?.id || null,
       projectPath: activeProject?.projectPath || null,
+      resolvedProjectPath,
     },
     closeOutReadinessSummaries: executionCoordinator.listCloseOutReadinessSummaries(),
     commitExecutionReadinessSummaries:
@@ -491,8 +561,8 @@ const server = createServer(async (request, response) => {
       if (rawWorktreeRef !== null && rawWorktreeRef !== undefined && String(rawWorktreeRef).trim()) {
         const detectedWorktrees = detectLinkedWorktrees(project.projectPath);
 
-        if (detectedWorktrees.error) {
-          throw new Error(detectedWorktrees.error);
+        if (detectedWorktrees.error || detectedWorktrees.options.length === 0) {
+          throw new Error(`No detected linked worktrees are currently available for project ${project.id}`);
         }
 
         const resolvedRequestedWorktreeRef = path.resolve(String(rawWorktreeRef).trim());

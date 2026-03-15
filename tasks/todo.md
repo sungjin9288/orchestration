@@ -55,6 +55,7 @@
 - [x] ui-slice-11
 - [x] ui-slice-12
 - [x] worktree-slice-01
+- [x] worktree-slice-02
 
 ### deferred / rejected
 - [ ] provider adapter
