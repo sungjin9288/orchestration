@@ -16,6 +16,7 @@ const state = {
   selectedArtifact: null,
   selectedTaskBreakdownArtifact: null,
   selectedTaskPreflightArtifact: null,
+  linkedWorktreeDraftSlug: '',
   projectDraftName: '',
   projectDraftPath: '',
   taskDraftTitle: '',
@@ -3984,6 +3985,41 @@ async function submitCreateProject() {
   }
 }
 
+async function submitCreateLinkedWorktree() {
+  const data = getDerived();
+  const activeProject = data.activeProject;
+  const slug = state.linkedWorktreeDraftSlug.trim();
+
+  if (!activeProject) {
+    throw new Error('Active project is required before creating a linked worktree');
+  }
+
+  if (!slug) {
+    throw new Error('linked worktree slug is required');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Creating linked worktree ${slug}…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/projects/${encodeURIComponent(activeProject.id)}/linked-worktrees`,
+      {
+        slug,
+      },
+    );
+
+    state.linkedWorktreeDraftSlug = '';
+    await applyProjectScopePayload(payload);
+    elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 async function submitSelectProject(projectId) {
   const dataBefore = getDerived();
 
@@ -4628,7 +4664,11 @@ function renderNav(data) {
 function renderProjectBootstrapPanel(data) {
   const bootstrapState = getProjectBootstrapState(data);
   const projectActionDisabled = state.loading || state.mutating;
+  const linkedWorktreeActionDisabled = projectActionDisabled || !data.activeProject;
   const linkedWorktreePanel = renderLinkedWorktreeSwitchPanel(data, projectActionDisabled);
+  const activeProjectBaseName = data.activeProject
+    ? data.activeProject.projectPath.split('/').filter(Boolean).pop() || 'project'
+    : 'project';
   const projectList = data.projects.length
     ? `
         <div class="project-list">
@@ -4685,6 +4725,32 @@ function renderProjectBootstrapPanel(data) {
       </div>
       ${projectList}
       ${linkedWorktreePanel}
+      ${
+        data.activeProject
+          ? `
+            <form class="task-create-form project-create-form" data-form="create-linked-worktree">
+              <div class="field-grid">
+                <label class="field">
+                  <span class="field-label">Worktree Slug</span>
+                  <input
+                    type="text"
+                    name="linkedWorktreeSlug"
+                    value="${escapeHtml(state.linkedWorktreeDraftSlug)}"
+                    placeholder="feature-x"
+                    ${linkedWorktreeActionDisabled ? 'disabled' : ''}
+                  >
+                </label>
+              </div>
+              <div class="form-actions">
+                <button class="secondary-button" type="submit" ${linkedWorktreeActionDisabled ? 'disabled' : ''}>
+                  Create Linked Worktree
+                </button>
+                <p class="form-help">Creates branch <code>worktree/&lt;slug&gt;</code> at sibling <code>${escapeHtml(`${activeProjectBaseName}--<slug>`)}</code>, then reuses project register/select to make the new linked root active. Existing branch or path collisions fail so use the detected switch list instead.</p>
+              </div>
+            </form>
+          `
+          : ''
+      }
       <form class="task-create-form project-create-form" data-form="create-project">
         <div class="field-grid">
           <label class="field">
@@ -6195,8 +6261,17 @@ document.addEventListener('click', async (event) => {
 });
 
 document.addEventListener('input', (event) => {
+  const createLinkedWorktreeForm = event.target.closest('[data-form="create-linked-worktree"]');
   const createProjectForm = event.target.closest('[data-form="create-project"]');
   const createTaskForm = event.target.closest('[data-form="create-task"]');
+
+  if (createLinkedWorktreeForm) {
+    if (event.target.name === 'linkedWorktreeSlug') {
+      state.linkedWorktreeDraftSlug = event.target.value;
+    }
+
+    return;
+  }
 
   if (createProjectForm) {
     if (event.target.name === 'projectName') {
@@ -6224,8 +6299,21 @@ document.addEventListener('input', (event) => {
 });
 
 document.addEventListener('submit', async (event) => {
+  const createLinkedWorktreeForm = event.target.closest('[data-form="create-linked-worktree"]');
   const createProjectForm = event.target.closest('[data-form="create-project"]');
   const createTaskForm = event.target.closest('[data-form="create-task"]');
+
+  if (createLinkedWorktreeForm) {
+    event.preventDefault();
+
+    try {
+      await submitCreateLinkedWorktree();
+    } catch (error) {
+      elements.refreshStatus.textContent = error.message || 'Linked worktree creation failed';
+      render();
+    }
+    return;
+  }
 
   if (createProjectForm) {
     event.preventDefault();

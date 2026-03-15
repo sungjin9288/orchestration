@@ -284,6 +284,45 @@ function buildSuggestedLinkedWorktreeProjectName(activeProject, option) {
   return `${baseName} · ${suffix}`;
 }
 
+function normalizeLinkedWorktreeSlug(value) {
+  const slug = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+
+  if (!slug) {
+    throw new Error('linked worktree slug is required');
+  }
+
+  return slug;
+}
+
+function buildLinkedWorktreeBranchName(slug) {
+  return `worktree/${slug}`;
+}
+
+function buildLinkedWorktreePath(projectPath, slug) {
+  const resolvedProjectPath = getCanonicalProjectPath(projectPath) || path.resolve(projectPath);
+  const parentDir = path.dirname(resolvedProjectPath);
+  const baseName = path.basename(resolvedProjectPath);
+
+  return path.join(parentDir, `${baseName}--${slug}`);
+}
+
+function branchExists(projectPath, branchName) {
+  try {
+    execFileSync('git', ['show-ref', '--verify', '--quiet', `refs/heads/${branchName}`], {
+      cwd: projectPath,
+      stdio: 'ignore',
+    });
+    return true;
+  } catch (_error) {
+    return false;
+  }
+}
+
 function buildDerivedSnapshotData(snapshot) {
   const activeProject = getActiveProject(snapshot);
   const linkedWorktrees = activeProject
@@ -475,6 +514,100 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
       json(response, statusCode, { error: error.message || 'Project creation failed' });
+      return;
+    }
+  }
+
+  const projectLinkedWorktreesMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/linked-worktrees$/);
+
+  if (method === 'POST' && projectLinkedWorktreesMatch) {
+    try {
+      const projectId = decodeURIComponent(projectLinkedWorktreesMatch[1]);
+      const input = await readJsonBody(request);
+      const snapshot = readSnapshotReadonly();
+      const activeProject = getActiveProject(snapshot);
+      const project = runtime.getProject(projectId);
+      const slug = normalizeLinkedWorktreeSlug(input.slug);
+      const branchName = buildLinkedWorktreeBranchName(slug);
+
+      if (!activeProject || activeProject.id !== project.id) {
+        throw new Error('Linked worktree creation is only available for the active project');
+      }
+
+      if (!project.projectPath) {
+        throw new Error('project_path is required before creating a linked worktree');
+      }
+
+      if (!existsSync(project.projectPath)) {
+        throw new Error(`project_path does not exist: ${project.projectPath}`);
+      }
+
+      const targetPath = buildLinkedWorktreePath(project.projectPath, slug);
+
+      runGit(project.projectPath, ['rev-parse', '--is-inside-work-tree']);
+
+      if (branchExists(project.projectPath, branchName)) {
+        throw new Error(
+          `Linked worktree branch already exists: ${branchName}. Use the existing detected/switch flow instead.`,
+        );
+      }
+
+      if (existsSync(targetPath)) {
+        throw new Error(
+          `Linked worktree path already exists: ${targetPath}. Use the existing detected/switch flow instead.`,
+        );
+      }
+
+      runGit(project.projectPath, ['worktree', 'add', '-b', branchName, targetPath, 'HEAD']);
+
+      const resolvedWorktreePath = getCanonicalProjectPath(targetPath);
+
+      if (!resolvedWorktreePath) {
+        throw new Error(`Linked worktree path could not be resolved after creation: ${targetPath}`);
+      }
+
+      const registeredProjectsByCanonicalPath = buildRegisteredProjectByCanonicalPath(
+        snapshot,
+        activeProject,
+      );
+      const existingProject = registeredProjectsByCanonicalPath.get(resolvedWorktreePath) || null;
+      const linkedWorktreeOption = {
+        branch: branchName,
+        path: resolvedWorktreePath,
+      };
+      const linkedProject = existingProject
+        ? runtime.selectProject(existingProject.id)
+        : runtime.createProject({
+            name: buildSuggestedLinkedWorktreeProjectName(project, linkedWorktreeOption),
+            projectPath: resolvedWorktreePath,
+          });
+
+      json(
+        response,
+        201,
+        buildSnapshotResponse({
+          linkedWorktree: {
+            branch: branchName,
+            path: resolvedWorktreePath,
+            slug,
+          },
+          mutation: {
+            kind: 'create-linked-worktree',
+            mode: existingProject ? 'select-project' : 'create-project',
+            projectId: linkedProject.id,
+            slug,
+          },
+          project: linkedProject,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /already exists/i.test(error.message)
+        ? 409
+        : /not found/i.test(error.message)
+          ? 404
+          : 400;
+      json(response, statusCode, { error: error.message || 'Linked worktree creation failed' });
       return;
     }
   }
