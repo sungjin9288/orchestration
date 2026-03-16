@@ -99,7 +99,7 @@ Orchestration 1.0 should reuse the useful control-plane ideas from `claw-empire`
 - A blocked decision appears in `Decision Inbox`.
 - A task cannot be marked done without review.
 - A commit path cannot proceed without approval.
-- The happy path works for the `development` pack without requiring non-local-first architecture.
+- The local core loop works for the `development` pack end to end without requiring live-provider integration or non-local-first architecture.
 
 ## V1 Acceptance Checklist
 - [ ] `development` pack boundary is documented and enforced
@@ -111,7 +111,7 @@ Orchestration 1.0 should reuse the useful control-plane ideas from `claw-empire`
 - [ ] out-of-scope areas remain deferred
 
 ## Open Areas To Resolve
-- initial provider choice behind the adapter boundary
+- future live-provider opt-in boundary behind the adapter boundary after the v1 `local-demo-only` baseline
 - exact task state machine
 - artifact taxonomy for reports, evidence, and runbooks
 - bootstrap scope for first-run setup

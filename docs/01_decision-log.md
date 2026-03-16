@@ -63,6 +63,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: Local-first operation requires inspectable, versioned rules.
 - Impact: `AGENTS.md`, docs, and pack definitions shape runtime behavior and review expectations.
 
+### DEC-016
+- Status: `Accepted`
+- Decision: Fix the v1 provider stance to `local-demo-only` by default: the shipped path uses the built-in `local-stub` adapter, while any live provider remains a future explicit opt-in behind the same adapter boundary.
+- Why: This matches the implemented path. The execution coordinator defaults to `local-stub`, `release-package` and `close-out` carry `deliveryStance=local-demo-only`, and the current core loop plus release gate stay local-only without push, publish, or external release.
+- Impact: Provider-agnostic interface language stays intact, but the v1 success baseline is the local `development` pack core loop. This decision does not add a live provider or change runtime, execution, or UI semantics.
+
 ### DEC-019
 - Status: `Accepted`
 - Decision: The shell first-run path is the `Taskboard` project registry: start from an empty runtime state, register the first project with `name` and `project_path`, make it the active project immediately, and reuse the same registry list for later project selection.
@@ -150,12 +156,6 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Contracts and docs must be written from first principles for this repo.
 
 ## [OPEN]
-
-### DEC-016
-- Status: `[OPEN]`
-- Decision: Choose the initial live provider or explicitly ship `local-stub` as demo-only for the release gate.
-- Why It Is Open: Single-provider-first is accepted, but the release stance is still ambiguous because the implemented default path remains `local-stub`.
-- Needed Before: release or human-gate sign-off.
 
 ### DEC-018
 - Status: `[OPEN]`

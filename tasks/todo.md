@@ -16,7 +16,7 @@
 - [x] a real-path end-to-end development loop smoke now covers planner through local commit on a clean temp repo
 
 ### now [OPEN]
-- [ ] decide release stance for provider choice: initial live provider vs `local-stub` demo-only
+- [x] lock provider stance for release/human gate to `local-demo-only` by default via `local-stub`, while deferring any live provider to future opt-in
 - [x] document the implemented first-run project registration/select path in `DEC-019`
 
 ### next phase entry conditions
