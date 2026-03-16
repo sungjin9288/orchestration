@@ -25,20 +25,29 @@ function runGit(projectPath, args) {
   });
 }
 
-function createGitFixtureRepo(label) {
-  const projectPath = fs.mkdtempSync(path.join(os.tmpdir(), `orchestration-ui-slice-11-${label}-`));
+function createLinkedWorktreeFixture(label) {
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), `orchestration-ui-slice-11-${label}-`));
+  const mainProjectPath = path.join(fixtureRoot, 'main');
+  const linkedProjectPath = path.join(fixtureRoot, 'linked');
+  const branchName = `ui-slice-11-${label}`.replace(/[^A-Za-z0-9._-]/g, '-');
 
-  runGit(projectPath, ['init', '-q']);
-  runGit(projectPath, ['config', 'user.name', 'ui-slice-11']);
-  runGit(projectPath, ['config', 'user.email', 'ui-slice-11@example.com']);
+  fs.mkdirSync(mainProjectPath, { recursive: true });
 
-  fs.writeFileSync(path.join(projectPath, 'scoped.txt'), 'base scoped\n', 'utf8');
-  fs.writeFileSync(path.join(projectPath, 'extra.txt'), 'base extra\n', 'utf8');
+  runGit(mainProjectPath, ['init', '-q']);
+  runGit(mainProjectPath, ['config', 'user.name', 'ui-slice-11']);
+  runGit(mainProjectPath, ['config', 'user.email', 'ui-slice-11@example.com']);
 
-  runGit(projectPath, ['add', 'scoped.txt', 'extra.txt']);
-  runGit(projectPath, ['commit', '-q', '-m', `fixture:${label}`]);
+  fs.writeFileSync(path.join(mainProjectPath, 'scoped.txt'), 'base scoped\n', 'utf8');
+  fs.writeFileSync(path.join(mainProjectPath, 'extra.txt'), 'base extra\n', 'utf8');
 
-  return projectPath;
+  runGit(mainProjectPath, ['add', 'scoped.txt', 'extra.txt']);
+  runGit(mainProjectPath, ['commit', '-q', '-m', `fixture:${label}`]);
+  runGit(mainProjectPath, ['worktree', 'add', '-q', '-b', branchName, linkedProjectPath]);
+
+  return {
+    linkedProjectPath: fs.realpathSync(linkedProjectPath),
+    mainProjectPath: fs.realpathSync(mainProjectPath),
+  };
 }
 
 function setScopedFile(projectPath, label) {
@@ -272,10 +281,10 @@ async function createReviewedBundle(runtime, coordinator, task, label) {
 }
 
 async function createReleaseReadyTask(runtime, coordinator, label) {
-  const projectPath = createGitFixtureRepo(label);
+  const fixture = createLinkedWorktreeFixture(label);
   const project = runtime.createProject({
     name: `ui-slice-11-${label}`,
-    projectPath,
+    projectPath: fixture.linkedProjectPath,
   });
   const task = runtime.createTask({
     projectId: project.id,
@@ -283,7 +292,12 @@ async function createReleaseReadyTask(runtime, coordinator, label) {
     intent: 'Prepare a release-package artifact from the latest successful local commit bundle.',
   });
 
-  setScopedFile(projectPath, label);
+  runtime.setTaskWorktreeRef({
+    taskId: task.id,
+    worktreeRef: fixture.linkedProjectPath,
+  });
+
+  setScopedFile(fixture.linkedProjectPath, label);
 
   const reviewed = await createReviewedBundle(runtime, coordinator, task, label);
   const commitPackage = await coordinator.runCommitPackage({ taskId: task.id });
@@ -298,9 +312,10 @@ async function createReleaseReadyTask(runtime, coordinator, label) {
 
   return {
     commitPackage,
+    fixture,
     localCommit,
     project,
-    projectPath,
+    projectPath: fixture.linkedProjectPath,
     reviewed,
     task,
   };

@@ -1,5 +1,40 @@
 # todo
 
+## milestone-m3-freeze
+
+### freeze baseline [accepted]
+- [x] current v1 baseline is frozen as `local-first / single-user-first / ops-first`, `development` pack only, and `local-demo-only` by default
+- [x] docs/tasks language matches the implemented lifecycle, gate model, artifact taxonomy, linked worktree boundary, and close-out path
+- [x] remaining v1 open items are separated into explicit `vNext` backlog entries only
+- [x] `milestone-m3-freeze` does not add new capability or change runtime, execution, or UI semantics
+
+### regression / verification [required freeze gate]
+- [x] `node scripts/smoke-dev-loop-m2.mjs`
+- [x] `node scripts/smoke-runtime-slice-05.mjs`
+- [x] `node scripts/smoke-runtime-slice-06.mjs`
+- [x] `node scripts/smoke-execution-slice-05.mjs`
+- [x] `node scripts/smoke-execution-slice-06.mjs`
+- [x] `node scripts/smoke-execution-slice-07.mjs`
+- [x] `node scripts/smoke-execution-slice-08.mjs`
+- [x] `node scripts/smoke-execution-slice-09.mjs`
+- [x] `node scripts/smoke-execution-slice-10.mjs`
+- [x] `node scripts/smoke-execution-slice-11.mjs`
+- [x] `node scripts/smoke-ui-slice-11.mjs`
+- [x] `node scripts/smoke-ui-slice-12.mjs`
+- [x] `node scripts/smoke-worktree-slice-03.mjs`
+
+### regression / verification [extended browser]
+- [ ] `node scripts/smoke-qa-slice-01.mjs`
+
+### clean worktree / reproducibility
+- [x] no unintended worktree drift was introduced by the required freeze regression run; only intended freeze files remain modified
+- [x] canonical regression entrypoints stay direct `node scripts/*.mjs`; no root package runner is required for the frozen baseline
+- [x] required smoke fixtures keep runtime roots isolated under `var/` and use temp git repos for reproducible local execution
+
+### vNext backlog
+- [ ] define the future live-provider opt-in boundary behind the existing adapter boundary after the v1 `local-demo-only` baseline
+- [ ] define when a future delete/archive/GC capability should consume the normalized retention tiers
+
 ## milestone-m2-consolidation
 
 ### current core loop [accepted]
@@ -47,6 +82,7 @@
 - [x] execution-slice-08
 - [x] execution-slice-09
 - [x] execution-slice-10
+- [x] execution-slice-11
 - [x] ui-slice-02
 - [x] ui-slice-03
 - [x] ui-slice-04
@@ -60,6 +96,7 @@
 - [x] ui-slice-12
 - [x] worktree-slice-01
 - [x] worktree-slice-02
+- [x] worktree-slice-03
 - [x] qa-slice-01
 
 ### deferred / rejected

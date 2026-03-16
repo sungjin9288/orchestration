@@ -225,16 +225,14 @@ Artifact expectations:
 - Hard-coding live-provider-specific pack behavior into this contract beyond the accepted `local-demo-only` `local-stub` baseline
 - Extending this pack into non-development workflows without an explicit scope decision
 
-## [OPEN]
+## V1 Freeze Note
+- `Blocked`, `Waiting Approval`, and `Waiting Decision` are fixed v1 task flags, not lifecycle statuses.
+
+## VNext Backlog After V1 Freeze
 ### Future Live-Provider Opt-In Boundary
 - Why still open: The shipped v1 default is fixed to `local-demo-only` via `local-stub`, but the boundary for any future live-provider opt-in is not yet defined at the pack-contract level.
 - Current temporary default: Keep provider-agnostic interface language and do not add live-provider-specific workflow requirements to this pack.
 - Decide again when: Before adding any live execution integration beyond the current local-only baseline.
-
-### Task Flag Model
-- Why still open: The broader product task state machine is not yet fully finalized across `Taskboard`, `Logs`, and `Decision Inbox`.
-- Current temporary default: `Blocked`, `Waiting Approval`, and `Waiting Decision` are all flags, not lifecycle statuses.
-- Decide again when: Before the task contract and `Taskboard` interaction model are finalized in implementation.
 
 ### Future Cleanup Policy
 - Why still open: Retention tiers are normalized, but no delete/archive/GC capability exists in v1.

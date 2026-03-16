@@ -202,9 +202,15 @@ The following changes require an explicit decision log update before implementat
 - provider matrix
 - non-development packs
 
-## Remaining Open
-- future live-provider opt-in boundary behind the adapter boundary after the v1 `local-demo-only` baseline
-- when a future delete/archive/GC capability should consume the normalized retention tiers
+## V1 Freeze Exit Criteria
+- required docs and tasks reflect the current implemented `local-demo-only` `development` pack baseline without widening scope
+- required regression smoke coverage is named explicitly and the required freeze gate passes on the current baseline
+- `git status --short` stays clean before and after the required freeze regression run
+- remaining open items are separated into explicit `vNext` backlog entries only
+
+## VNext Backlog After V1 Freeze
+- define the future live-provider opt-in boundary behind the existing adapter boundary after the v1 `local-demo-only` baseline
+- define when a future delete/archive/GC capability should consume the normalized retention tiers
 
 ## Slice Review Checklist
 - [ ] does the slice preserve local-first behavior

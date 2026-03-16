@@ -114,19 +114,21 @@ Orchestration 1.0 should reuse the useful control-plane ideas from `claw-empire`
 - The local core loop works for the `development` pack end to end without requiring live-provider integration or non-local-first architecture.
 
 ## V1 Acceptance Checklist
-- [ ] `development` pack boundary is documented and enforced
-- [ ] `project_path required` is enforced before execution
-- [ ] first-run `Taskboard` project registry path is documented
-- [ ] `Taskboard / Logs / Artifacts / Decision Inbox` exist as primary surfaces
-- [ ] lifecycle and flags match the current runtime contract
-- [ ] builder `preflight` and `live-mutation` split is documented
-- [ ] review gate exists before task completion
-- [ ] approval gate exists before commit
-- [ ] `commit-package`, `local commit`, `release-package`, and `close-out` are described without widening scope
-- [ ] dedicated linked worktree guard is described narrowly for `release-package` and `close-out`
-- [ ] runtime/control-plane borrowing from `claw-empire` is selective, not copy-paste
-- [ ] out-of-scope areas remain deferred
+- [x] `development` pack boundary is documented and enforced
+- [x] `project_path required` is enforced before execution
+- [x] first-run `Taskboard` project registry path is documented
+- [x] `Taskboard / Logs / Artifacts / Decision Inbox` exist as primary surfaces
+- [x] lifecycle and flags match the current runtime contract
+- [x] builder `preflight` and `live-mutation` split is documented
+- [x] review gate exists before task completion
+- [x] approval gate exists before commit
+- [x] `commit-package`, `local commit`, `release-package`, and `close-out` are described without widening scope
+- [x] dedicated linked worktree guard is described narrowly for `release-package` and `close-out`
+- [x] runtime/control-plane borrowing from `claw-empire` is selective, not copy-paste
+- [x] out-of-scope areas remain deferred
 
-## Open Areas To Resolve
-- future live-provider opt-in boundary behind the adapter boundary after the v1 `local-demo-only` baseline
-- future delete/archive/GC policy for retained artifact history
+## VNext Backlog After V1 Freeze
+These items remain explicitly outside the frozen v1 baseline and do not block `milestone-m3-freeze`.
+
+- define the future live-provider opt-in boundary behind the existing adapter boundary after the v1 `local-demo-only` baseline
+- define when a future delete/archive/GC capability should consume the normalized retention tiers
