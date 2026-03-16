@@ -41,6 +41,7 @@
 - close-out도 같은 패턴으로 synthetic downstream execution smoke를 따로 두는 편이 release-package 회귀와 Done transition 회귀를 분리해서 추적하기 좋았다.
 - release gate 근거로는 synthetic smoke만으로 부족하고, planner부터 local commit까지 한 번에 도는 real-path dev loop smoke가 필요했다.
 - stale smoke assertion은 과거 route-specific 에러 문구보다 현재 runtime/coordinator guard를 source of truth로 따라가는 편이 유지보수에 유리했다.
+- browser click smoke는 DOM에서 landing/selection/visibility만 보고, task/worktree/close-out 의미론은 `/api/snapshot`과 artifact API로 확인하는 편이 범위와 brittleness를 함께 줄였다.
 
 ## next phase
 

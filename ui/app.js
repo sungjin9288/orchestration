@@ -3780,6 +3780,7 @@ async function refreshData() {
     elements.refreshStatus.textContent = 'Failed to load runtime snapshot';
   } finally {
     state.loading = false;
+    render();
   }
 }
 
