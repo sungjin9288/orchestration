@@ -20,7 +20,7 @@ Most agent products optimize for spectacle, chat, or provider breadth before the
 - `claw-empire` is a runtime/control-plane reference, not a product or architecture fork
 
 ## V1 Outcome
-The user can point Orchestration 1.0 at a local repo, create and run development tasks, inspect logs and artifacts, route decisions into an inbox, and keep review and approval gates visible before code is considered done.
+The user can register or select a local project from `Taskboard`, create a task, run the current `development` pack loop end to end, inspect logs and artifacts, resolve review or approval gates in `Decision Inbox`, and close work explicitly without push, publish, or external release.
 
 ## Primary User
 An individual operator building or maintaining software locally who needs control over execution state, review gates, and delivery evidence without adding office-style collaboration overhead.
@@ -29,10 +29,16 @@ An individual operator building or maintaining software locally who needs contro
 ### In Scope
 - `development` pack only
 - project registration and selection with required `project_path`
-- task lifecycle for thin vertical slices
-- worktree-aware execution flows
+- first-run bootstrap through the `Taskboard` project registry
+- thin-slice task lifecycle with `Inbox -> In Progress -> Review -> Done`
+- builder `preflight` and bounded `live-mutation`
+- reviewer flow anchored to the latest builder live-mutation bundle
+- local commit flow via `commit-package -> local commit`
+- local-demo-only release flow via `release-package -> close-out`
+- linked worktree detection, creation, and project switching in the shell
+- dedicated linked worktree guard only before `release-package` and `close-out`
 - live and historical logs
-- artifact capture and linkage
+- artifact capture, preview, and provenance linkage with the fixed v1 taxonomy
 - decision routing for human gates
 - review before done
 - approval before commit
@@ -87,32 +93,41 @@ A human authorization gate that must pass before commit or merge actions proceed
 - Surface blockers before throughput metrics.
 - Avoid silent architecture changes.
 - Start with one provider behind an adapter boundary, not a provider matrix.
+- Keep the shipped v1 path `local-demo-only` by default.
 
 ## Reference Position On claw-empire
 Orchestration 1.0 should reuse the useful control-plane ideas from `claw-empire`, especially around `project`, `task`, `worktree`, `log`, `report`, `api`, `AGENTS`, and bootstrap patterns. It should not copy the product framing, office metaphors, rankings, messenger posture, or platform-first assumptions.
 
 ## Success Criteria For V1
 - A project cannot execute without `project_path`.
+- The first-run shell path is project registration or selection on `Taskboard`.
 - A user can create a task and see its current state on the `Taskboard`.
+- The task lifecycle remains `Inbox -> In Progress -> Review -> Done`, while `blocked`, `waitingApproval`, and `waitingDecision` stay as flags.
 - A run produces inspectable logs on `Logs`.
 - A run can attach or generate artifacts visible on `Artifacts`.
 - A blocked decision appears in `Decision Inbox`.
+- Builder execution is split into explicit `preflight` and bounded `live-mutation`.
 - A task cannot be marked done without review.
 - A commit path cannot proceed without approval.
+- `release-package` and `close-out` stay local-demo-only and do not push, publish, or trigger external release.
+- `release-package` and `close-out` only proceed from a dedicated linked worktree root when required by the current guard.
 - The local core loop works for the `development` pack end to end without requiring live-provider integration or non-local-first architecture.
 
 ## V1 Acceptance Checklist
 - [ ] `development` pack boundary is documented and enforced
 - [ ] `project_path required` is enforced before execution
+- [ ] first-run `Taskboard` project registry path is documented
 - [ ] `Taskboard / Logs / Artifacts / Decision Inbox` exist as primary surfaces
+- [ ] lifecycle and flags match the current runtime contract
+- [ ] builder `preflight` and `live-mutation` split is documented
 - [ ] review gate exists before task completion
 - [ ] approval gate exists before commit
+- [ ] `commit-package`, `local commit`, `release-package`, and `close-out` are described without widening scope
+- [ ] dedicated linked worktree guard is described narrowly for `release-package` and `close-out`
 - [ ] runtime/control-plane borrowing from `claw-empire` is selective, not copy-paste
 - [ ] out-of-scope areas remain deferred
 
 ## Open Areas To Resolve
 - future live-provider opt-in boundary behind the adapter boundary after the v1 `local-demo-only` baseline
-- exact task state machine
-- artifact taxonomy for reports, evidence, and runbooks
-- bootstrap scope for first-run setup
-- decision inbox taxonomy and escalation rules
+- future delete/archive/GC policy for retained artifact history
+- remaining release or human-gate scope that still needs explicit product approval

@@ -1,7 +1,7 @@
 # Orchestration 1.0 Architecture Roadmap v1
 
 ## Purpose
-This document defines the implementation boundary and phased roadmap for building the first usable version of Orchestration 1.0.
+This document defines the current implemented baseline, architecture boundary, and remaining open work for the first usable version of Orchestration 1.0.
 
 ## Architecture Guardrails
 - keep the product `local-first / single-user-first / ops-first`
@@ -22,7 +22,8 @@ This document defines the implementation boundary and phased roadmap for buildin
 - local project registry with explicit `project_path`
 - task orchestration lifecycle
 - run execution tracking
-- worktree-aware task isolation
+- linked worktree detection, creation, and project switching in the shell
+- dedicated linked worktree guard only on `release-package` and `close-out`
 - log capture and replay
 - artifact capture and linkage
 - decision, review, and approval gates
@@ -80,7 +81,7 @@ Required minimum:
 - worktree identifier
 - repo path
 - branch or ref context
-- merge or discard status
+- dedicated linked-root status when release or close-out guards apply
 
 ### Artifact
 Required minimum:
@@ -114,92 +115,69 @@ Required minimum:
 - status
 - allowed next action
 
-## Thin-Slice Roadmap
+## Implemented Baseline
 
-### Phase 0: Baseline Contracts
-Deliverables:
-- master brief
-- decision log
-- IA v1
-- architecture roadmap
+### Shell Bootstrap And Project Gate
+- Runtime starts empty and the first usable path is the `Taskboard` project registry.
+- Registering a project with `name` and `project_path` makes it active immediately.
+- Later project switching reuses the same registry list instead of hidden bootstrap state.
+- Linked worktree create and switch also reuse project register/select flows instead of task migration.
 
-Exit Criteria:
-- v1 scope and out-of-scope areas are explicit
-- primary UI is fixed to the four required surfaces
-- review and approval gates are documented
+### Task And Gate Model
+- The current lifecycle is `Inbox -> In Progress -> Review -> Done`.
+- `blocked`, `waitingApproval`, and `waitingDecision` are task flags, not lifecycle columns.
+- Review remains required before `Done`, and approval remains required before commit or release follow-up.
 
-### Phase 1: Project Gate
-Deliverables:
-- local project registry
-- `project_path` validation
-- active project selection
+### Execution Core Loop
+- The implemented loop is `planner -> architect -> task-breaker -> builder preflight -> builder live-mutation -> reviewer`.
+- Builder execution is split into explicit no-write `preflight` and bounded `live-mutation`.
+- Reviewer input is anchored to the latest builder live-mutation bundle only.
+- The current shell consumes runtime and coordinator readiness summaries directly instead of re-deriving these guards in the client.
 
-Exit Criteria:
-- no execution path exists without `project_path`
-- project health can be shown in the global shell
+### Commit And Release Follow-Up
+- Downstream follow-up is `commit-package -> local commit -> release-package -> close-out`.
+- `commit-package` prepares the local commit bundle and raises a commit approval without executing git commit.
+- `local commit` executes only after the current commit approval matches the current commit-package provenance.
+- `release-package` prepares a local-demo-only release-ready bundle and raises `release-ready` approval.
+- `close-out` runs from the current approved `release-package` bundle and is the explicit `Review -> Done` path.
+- Push, publish, merge, and external release remain disabled in the shipped v1 path.
 
-### Phase 2: Task And Worktree Slice
-Deliverables:
-- task creation and lifecycle state
-- worktree creation and linkage
-- task detail model
+### Worktree Boundary
+- The shell can detect, create, and switch linked worktree roots earlier in the flow.
+- The dedicated linked worktree guard is intentionally narrow: it applies to `release-package` and `close-out`, not to the earlier planner-through-local-commit loop.
+- When `task.worktreeRef` is set for release or close-out, it must match the active linked worktree root exactly.
 
-Exit Criteria:
-- a task can move from `Inbox` to `In Progress`
-- task execution context is isolated by worktree when required
-
-### Phase 3: Run And Logs Slice
-Deliverables:
-- run creation and tracking
-- live log capture
-- historical log replay
-
-Exit Criteria:
-- a started task produces a visible run
-- `Logs` can show live and prior output tied to the task
-
-### Phase 4: Review, Approval, And Decision Inbox
-Deliverables:
-- review workflow
-- approval workflow
-- decision inbox queue
-
-Exit Criteria:
-- task completion is blocked until review passes
-- commit path is blocked until approval passes
-- pending gates are visible in `Decision Inbox`
-
-### Phase 5: Artifacts And Evidence
-Deliverables:
-- artifact storage model
-- artifact browsing and preview
-- review evidence linkage
-
-Exit Criteria:
-- runs and reviews can publish artifacts
-- artifacts are traceable to tasks and runs
-
-### Phase 6: Development Pack Hardening
-Deliverables:
-- development pack contract
-- bootstrap expectations
-- first-run checks
-
-Exit Criteria:
-- the `development` pack can be used end to end without cross-pack assumptions
-- first-run setup is documented enough to prevent ambiguous operation
+### Artifact And Evidence Model
+- Artifact taxonomy is fixed by repo contracts and runtime validation.
+- `plan`, `architecture`, and `breakdown` are latest-centered browse artifacts with history retained.
+- `preflight`, `change-summary`, `patch`, `diff`, `review`, `commit-package`, `commit-result`, `release-package`, and `close-out` are provenance-critical artifacts.
+- Structured preview remains best-effort with raw fallback, and stored raw content plus runtime metadata remain the source of truth.
 
 ## Quality Gates
 
-### Before Marking A Task Done
-- review recorded
-- findings resolved or explicitly accepted
-- verification evidence attached
+### Before Builder Live-Mutation
+- latest `preflight` exists and still matches current `plan`, `architecture`, and `breakdown`
+- latest builder approval targets that exact `preflight`
+- target files stay inside the approved architecture boundary
 
-### Before Commit
-- approval recorded
-- affected task linked
-- pending architecture or policy decisions resolved
+### Before Local Commit
+- latest passing reviewer bundle is current
+- current `commit-package` bundle exists and matches the latest reviewer and builder provenance
+- approved commit approval matches that same package provenance
+- repo dirty, staged, and untracked files match the commit scope exactly
+
+### Before Release-Package
+- latest successful local commit bundle is current
+- active `project_path` resolves to a dedicated linked worktree root
+- `task.worktreeRef`, when set, matches that same root
+- delivery stance remains `local-demo-only`
+
+### Before Close-Out
+- task is in `Review`
+- review status is `passed`
+- no active task flags remain
+- latest approved `release-ready` approval matches the current `release-package` bundle
+- repo is clean immediately before `close-out`
 
 ### Before Architectural Expansion
 - decision log updated
@@ -223,11 +201,10 @@ The following changes require an explicit decision log update before implementat
 - provider matrix
 - non-development packs
 
-## Open Architecture Questions
+## Remaining Open
 - future live-provider opt-in boundary behind the adapter boundary after the v1 `local-demo-only` baseline
-- whether `Blocked`, `Waiting Approval`, and `Waiting Decision` are states or flags
 - when a future delete/archive/GC capability should consume the normalized retention tiers
-- how much bootstrap should do on first run
+- remaining release or human-gate scope that still needs explicit product approval
 
 ## Slice Review Checklist
 - [ ] does the slice preserve local-first behavior

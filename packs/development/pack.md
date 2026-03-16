@@ -33,16 +33,27 @@ A task may enter this pack only when all of the following are true:
 If any entry criterion is missing, the workflow must stop at routing or raise a decision item instead of proceeding silently.
 
 ## Stage Sequence
-Standard stage flow:
+Contract stage flow:
 
 `router -> planner -> architect -> task-breaker -> builder -> reviewer -> human gate`
+
+Current implemented flow for the shipped v1 slice:
+
+`router -> planner -> architect -> task-breaker -> builder(preflight) -> human gate(builder-live-mutation approval) -> builder(live-mutation) -> reviewer -> commit-package -> human gate(commit approval) -> local commit -> release-package -> human gate(release approval) -> close-out`
 
 Rules for stage flow:
 - Stages run in order unless a blocking gate routes the task into `Decision Inbox`.
 - `Blocked`, `Waiting Approval`, and `Waiting Decision` are task flags, not lifecycle statuses.
-- A flag may coexist with a lifecycle state such as `Planned`, `In Progress`, or `Review`.
+- A flag may coexist with a lifecycle state such as `Inbox`, `In Progress`, `Review`, or `Done`.
 - When a flag is raised, the task stays visible in its current lifecycle state while the gate is surfaced in `Taskboard` and `Decision Inbox`.
 - A task resumes from the blocked stage or the next appropriate stage after the gate is resolved.
+- The contract stays stage-oriented, but the current implementation already exposes the downstream `commit-package`, `local commit`, `release-package`, and `close-out` follow-up steps explicitly.
+
+## Linked Worktree Rule
+- The shell may detect, create, and switch linked worktree roots before downstream release follow-up.
+- The earlier planner-through-local-commit core loop does not require worktree orchestration.
+- Before `release-package` or `close-out`, the active `project_path` must resolve to a registered dedicated linked worktree root, not the main worktree.
+- When `task.worktreeRef` is set for those downstream steps, it must match that same linked worktree root exactly.
 
 ## Stage Contracts
 ### Router
@@ -59,7 +70,7 @@ Required result:
 Responsibilities:
 - Translate the routed request into a thin-slice / vertical-slice plan.
 - Define the intended outcome, acceptance target, and verification approach.
-- Call out dependencies, expected artifacts, and whether worktree isolation is needed.
+- Call out dependencies, expected artifacts, and any downstream linked-worktree requirement that later release or close-out must respect.
 - Avoid broad or speculative expansion when a narrower slice can prove the path.
 
 Required result:
@@ -88,12 +99,13 @@ Required result:
 ### Builder
 Responsibilities:
 - Execute the approved task breakdown inside the project context.
-- Produce the intended code, config, docs, or operational changes for the slice.
+- Run explicit `preflight` before any write and keep no-write planning separate from bounded live mutation.
+- Produce the intended code, config, docs, or operational changes for the slice once the current preflight-targeted approval exists.
 - Capture execution evidence, logs, diffs, and verification outputs.
 - Route back to `architect` or `human gate` if the work reveals an unapproved architecture change, policy conflict, or decision need.
 
 Required result:
-- Built changes and supporting evidence that match the approved scope.
+- Built changes and supporting evidence that match the approved scope and the latest approved preflight boundary.
 
 ### Reviewer
 Responsibilities:
@@ -108,7 +120,7 @@ Required result:
 ### Human Gate
 Responsibilities:
 - Resolve human-required approval and decision items.
-- Confirm whether commit approval is required and, if so, whether it is granted.
+- Confirm whether builder live-mutation, commit, or release approval is required and, if so, whether it is granted.
 - Resolve review follow-up or clarification items that cannot be closed automatically.
 - Clear or maintain `waiting_approval` and `waiting_decision` flags based on explicit human action.
 
@@ -174,7 +186,10 @@ Artifact expectations:
 - Review must happen before a task can be marked done.
 - A review outcome must include findings or an explicit no-findings result plus verification evidence.
 - A task cannot be marked done while `blocked`, `waiting_approval`, or `waiting_decision` is still active.
-- Commit must not proceed until approval is explicitly recorded.
+- Builder live mutation must not proceed until the latest approved approval targets the latest preflight artifact and run.
+- Local commit must not proceed until approval is explicitly recorded for the current commit-package provenance.
+- `release-package` must stay `local-demo-only` and must not proceed from the main worktree.
+- `close-out` must run only from the latest approved `release-package` bundle on a clean dedicated linked worktree root.
 - If the builder discovers an architectural change beyond the approved boundary, the workflow must return to `architect` and, when required, create or resolve a human decision before continuing.
 - Done requires all of the following:
   - planned scope completed
@@ -182,7 +197,8 @@ Artifact expectations:
   - review recorded
   - verification evidence recorded
   - pending decisions resolved
-  - pending approvals resolved when commit is requested
+  - pending approvals resolved when commit or release follow-up is requested
+  - current approved release bundle recorded when `close-out` is the terminal step
 
 ## Decision Inbox Taxonomy
 - Top-level inbox kinds are fixed to `review`, `decision`, and `approval`.

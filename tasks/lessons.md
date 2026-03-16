@@ -48,3 +48,6 @@
 - 다음 병목은 새 capability 추가가 아니라 consolidation이다.
 - consolidation 단계에서는 `accepted / rejected / [OPEN]`를 구현 기준으로 다시 쓰고, task 문서도 같은 기준으로 즉시 재정렬해야 이후 release gate 논의가 흔들리지 않는다.
 - release / human gate 전에는 provider stance, first-run project path, worktree requirement, task close-out requirement를 명시적으로 정리해야 한다.
+- consolidation 문서는 speculative phase language보다 current implemented baseline + remaining open 구조로 정리하는 편이 drift를 줄이기 쉬웠다.
+- linked worktree create/switch semantics는 새 capability처럼 문서를 넓히기보다 기존 `DEC-019`와 `DEC-026` 설명을 보강하는 편이 현재 경계를 더 정확하게 유지했다.
+- core docs는 `runtime/contracts`, `runtime-service`, `execution-coordinator`, shell readiness summary를 source of truth로 따라가야 `Planned`, broad worktree isolation, generic inbox actions 같은 stale wording이 다시 들어오지 않았다.

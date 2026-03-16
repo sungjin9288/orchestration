@@ -71,9 +71,9 @@ This file records product and architecture decisions that shape v1. Add a new en
 
 ### DEC-019
 - Status: `Accepted`
-- Decision: The shell first-run path is the `Taskboard` project registry: start from an empty runtime state, register the first project with `name` and `project_path`, make it the active project immediately, and reuse the same registry list for later project selection.
-- Why: This is the implemented v1 path. The runtime initializes with no active project, the shell exposes first-run bootstrap and project-selection states, and task creation plus other primary surfaces stay gated until an active project exists.
-- Impact: `project_path required before execution` stays enforced without pre-seeded runtime state. This decision does not add a new bootstrap wizard, provider semantics, or broader runtime or UI behavior.
+- Decision: The shell first-run path is the `Taskboard` project registry: start from an empty runtime state, register the first project with `name` and `project_path`, make it the active project immediately, reuse the same registry list for later project selection, and reuse the same create/select path when switching the active project to a detected or newly created linked worktree root.
+- Why: This is the implemented v1 path. The runtime initializes with no active project, the shell exposes first-run bootstrap and project-selection states, task creation plus other primary surfaces stay gated until an active project exists, and linked worktree create or switch stays a project-scope operation instead of a separate migration workflow.
+- Impact: `project_path required before execution` stays enforced without pre-seeded runtime state. Linked worktree switching remains explicit at the project level, `task.worktreeRef` remains an explicit task relation instead of an auto-migrated field, and this decision does not add a new bootstrap wizard, provider semantics, or broader runtime or UI behavior.
 
 ### DEC-021
 - Status: `Accepted`
@@ -107,9 +107,9 @@ This file records product and architecture decisions that shape v1. Add a new en
 
 ### DEC-026
 - Status: `Accepted`
-- Decision: Before `release-package` or `close-out`, `project_path` must resolve to a registered dedicated linked git worktree root, not the main worktree. `task.worktreeRef`, when set, must match that same root. This requirement does not apply to the earlier planner-through-local-commit core loop.
-- Why: This is the implemented boundary. The coordinator enforces the dedicated linked worktree guard only on `release-package` and `close-out`, and the current real-path dev-loop smoke closes planner through local commit on a clean temp repo without worktree orchestration.
-- Impact: `DEC-026` closes as a narrow release-gate requirement. v1 does not add automatic worktree creation, selection UX, or broader runtime/UI worktree semantics in this patch.
+- Decision: Before `release-package` or `close-out`, `project_path` must resolve to a registered dedicated linked git worktree root, not the main worktree. `task.worktreeRef`, when set, must match that same root. This requirement does not apply to the earlier planner-through-local-commit core loop even though the shell can already detect, create, and switch linked worktree projects before that point.
+- Why: This is the implemented boundary. The coordinator enforces the dedicated linked worktree guard only on `release-package` and `close-out`, while the current real-path dev-loop smoke closes planner through local commit on a clean temp repo without worktree orchestration. Shell-level linked worktree create/switch reuse the existing project registry flow, but that does not widen the execution guard.
+- Impact: `DEC-026` closes as a narrow release-gate requirement. v1 may expose linked worktree detection, creation, selection, and explicit `task.worktreeRef` assignment in the shell, but it still does not require worktree orchestration for the earlier planner-through-local-commit loop and does not auto-assign task worktree relations.
 
 ### DEC-027
 - Status: `Accepted`
