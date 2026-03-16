@@ -115,7 +115,7 @@ async function main() {
     assert.match(appJs, /selectionSeeded/);
     assert.match(appJs, /state\.surface = 'logs';/);
     assert.match(appJs, /Run Linkage/);
-    assert.match(appJs, /Relation Strip/);
+    assert.match(appJs, /Provenance/);
     assert.match(appJs, /planned patch/);
     assert.match(appJs, /observed diff/);
     assert.match(stylesCss, /\.relation-strip/);

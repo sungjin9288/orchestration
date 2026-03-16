@@ -90,7 +90,7 @@ try {
   assert.match(appJsSource, /commitPackageReadinessSummaries/);
   assert.match(appJsSource, /parseCommitPackageArtifact/);
   assert.match(appJsSource, /renderCommitPackagePanel/);
-  assert.match(appJsSource, /Best-effort structured view of the stored commit-package artifact/);
+  assert.match(appJsSource, /Structured preview is best-effort/);
   assert.match(appJsSource, /approval\?\.allowedNextAction === 'commit-intent'/);
   assert.match(appJsSource, /state\.surface = currentSurface;/);
   assert.match(

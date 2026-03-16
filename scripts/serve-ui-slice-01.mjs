@@ -10,7 +10,7 @@ import executionCoordinatorModule from '../src/execution/execution-coordinator.j
 import fileStoreModule from '../src/runtime/file-store.js';
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
 
-const { createEmptyState } = contractsModule;
+const { ARTIFACT_CATALOG, createEmptyState } = contractsModule;
 const { createExecutionCoordinator } = executionCoordinatorModule;
 const { createFileStore } = fileStoreModule;
 const { createRuntimeService } = runtimeServiceModule;
@@ -369,6 +369,7 @@ function buildSnapshotResponse(extra = {}) {
   const snapshot = readSnapshotReadonly();
 
   return {
+    artifactCatalog: ARTIFACT_CATALOG,
     generatedAt: new Date().toISOString(),
     runtimeRoot: options.runtimeRoot,
     snapshot,
@@ -466,6 +467,7 @@ function getArtifactPayload(artifactId) {
   const filename = path.basename(artifact.path);
 
   return {
+    artifactCatalog: ARTIFACT_CATALOG,
     runtimeRoot: options.runtimeRoot,
     artifact: {
       ...artifact,

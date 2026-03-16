@@ -107,6 +107,7 @@ function createEmptyDerivedState() {
 function getActivePayload() {
   return (
     state.payload || {
+      artifactCatalog: {},
       derived: createEmptyDerivedState(),
       snapshot: {
         activeProjectId: null,
@@ -164,6 +165,7 @@ function getDerived() {
   const inboxItemMap = new Map(projectInboxItems.map((item) => [item.id, item]));
 
   return {
+    artifactCatalog: payload.artifactCatalog || {},
     derived: payload.derived || createEmptyDerivedState(),
     snapshot,
     activeProject,
@@ -2120,6 +2122,85 @@ function renderCompactList(title, items, limit = 2) {
 
 function createToken(label, tone = 'neutral') {
   return `<span class="token token-${tone}">${escapeHtml(label)}</span>`;
+}
+
+function getArtifactCatalogEntry(artifact, data) {
+  if (!artifact || !data?.artifactCatalog) {
+    return null;
+  }
+
+  return data.artifactCatalog[artifact.type] || null;
+}
+
+function getArtifactMeaningBadge(entry) {
+  if (!entry) {
+    return null;
+  }
+
+  if (entry.retentionTier === 'tier-a-provenance-critical') {
+    return { label: 'provenance-critical', tone: 'warning' };
+  }
+
+  if (entry.retentionTier === 'tier-b-latest-centered-history-retained') {
+    return { label: 'latest-centered browse', tone: 'accent' };
+  }
+
+  if (entry.retentionTier === 'tier-c-generic-fallback') {
+    return { label: 'generic fallback', tone: 'neutral' };
+  }
+
+  return null;
+}
+
+function getArtifactPreviewBadge(entry) {
+  if (!entry) {
+    return null;
+  }
+
+  if (entry.previewMode === 'structured-with-raw-fallback') {
+    return { label: 'structured preview + raw fallback', tone: 'success' };
+  }
+
+  if (entry.previewMode === 'raw-only') {
+    return { label: 'raw only', tone: 'neutral' };
+  }
+
+  return null;
+}
+
+function renderArtifactPolicyTokens(artifact, data) {
+  const entry = getArtifactCatalogEntry(artifact, data);
+  const meaningBadge = getArtifactMeaningBadge(entry);
+  const previewBadge = getArtifactPreviewBadge(entry);
+
+  return [meaningBadge, previewBadge]
+    .filter(Boolean)
+    .map((badge) => createToken(badge.label, badge.tone))
+    .join('');
+}
+
+function getArtifactPolicySummary(artifact, data) {
+  const entry = getArtifactCatalogEntry(artifact, data);
+  const meaningBadge = getArtifactMeaningBadge(entry);
+  const previewBadge = getArtifactPreviewBadge(entry);
+
+  if (!meaningBadge || !previewBadge) {
+    return '';
+  }
+
+  return `${meaningBadge.label}. ${previewBadge.label}.`;
+}
+
+function getStructuredPreviewLeadCopy() {
+  return 'Structured preview is best-effort. Stored raw content below remains the source of truth.';
+}
+
+function getStructuredPreviewFallbackCopy() {
+  return 'Structured preview is unavailable for this artifact instance. Showing stored raw content.';
+}
+
+function getRawOnlyPreviewCopy() {
+  return 'This artifact type is raw-only in the current contract. No structured view is derived.';
 }
 
 function getReviewTone(status) {
@@ -5649,6 +5730,12 @@ function renderArtifacts(data) {
         parsedReview,
       })
     : null;
+  const selectedArtifactPolicyEntry = selectedArtifactMeta
+    ? getArtifactCatalogEntry(selectedArtifactMeta, data)
+    : null;
+  const selectedArtifactPolicySummary = selectedArtifactMeta
+    ? getArtifactPolicySummary(selectedArtifactMeta, data)
+    : '';
   const preselectedPendingItem =
     selectedArtifactTask &&
     selectedInboxItem &&
@@ -5681,6 +5768,7 @@ function renderArtifacts(data) {
               </div>
               <p class="list-copy">${escapeHtml(data.taskMap.get(artifact.taskId)?.title || 'Unknown task')}</p>
               <div class="token-row">
+                ${renderArtifactPolicyTokens(artifact, data)}
                 ${createToken(`run:${artifact.runId}`, 'neutral')}
                 ${createToken(formatDate(artifact.createdAt), 'neutral')}
               </div>
@@ -5701,7 +5789,8 @@ function renderArtifacts(data) {
         <div class="panel-header">
           <div>
             <h2>Artifacts</h2>
-            <p class="panel-copy">Traceable outputs grouped by task and origin run.</p>
+            <p class="panel-copy">Latest-first artifact evidence with task and run context.</p>
+            <p class="panel-copy">Badges show browse priority and preview mode. All artifact history stays retained in v1.</p>
           </div>
         </div>
         <div class="list-column">${artifactList}</div>
@@ -5717,15 +5806,21 @@ function renderArtifacts(data) {
               <div class="detail-block">
                 <div class="token-row">
                   ${createToken(selectedArtifactMeta.type, 'neutral')}
+                  ${renderArtifactPolicyTokens(selectedArtifactMeta, data)}
                   ${selectedArtifactTask ? createToken(selectedArtifactTask.lifecycleState, 'neutral') : ''}
                   ${selectedArtifactTask?.review ? createToken(`review:${selectedArtifactTask.review.status}`, getReviewTone(selectedArtifactTask.review.status)) : ''}
                 </div>
                 <p class="detail-copy">${escapeHtml(selectedArtifactTask?.title || 'Unknown task')}</p>
                 <p class="detail-copy mono">${escapeHtml(selectedArtifactMeta.path)}</p>
+                ${
+                  selectedArtifactPolicySummary
+                    ? `<p class="detail-copy">${escapeHtml(selectedArtifactPolicySummary)}</p>`
+                    : ''
+                }
               </div>
               <div class="detail-block">
-                <p class="detail-key">Relation Strip</p>
-                <p class="detail-copy">Client-first linkage only. If run or artifact metadata is incomplete, the raw detail remains the source of truth.</p>
+                <p class="detail-key">Provenance</p>
+                <p class="detail-copy">This strip is convenience only. Stored raw content and runtime metadata remain the source of truth.</p>
                 ${
                   renderRelationStrip(artifactRelationContext) ||
                   '<p class="detail-copy">No direct run or artifact linkage recorded for this artifact.</p>'
@@ -5736,75 +5831,80 @@ function renderArtifacts(data) {
                 ${
                   selectedArtifactMeta.type === 'breakdown' && parsedBreakdown
                     ? `
-                      <p class="detail-copy">Best-effort structured view of the stored breakdown artifact. Raw markdown remains below.</p>
+                      <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                       ${renderStructuredBreakdown(parsedBreakdown)}
                     `
                     : selectedArtifactMeta.type === 'breakdown'
-                      ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                      ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
                       : selectedArtifactMeta.type === 'preflight' && parsedPreflight
                         ? `
-                          <p class="detail-copy">Best-effort structured view of the stored builder preflight artifact. Raw markdown remains below.</p>
+                          <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                           ${renderStructuredPreflight(parsedPreflight)}
                         `
                         : selectedArtifactMeta.type === 'preflight'
-                          ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                          ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
                         : selectedArtifactMeta.type === 'change-summary' && parsedChangeSummary
                           ? `
-                            <p class="detail-copy">Best-effort structured view of the stored builder live mutation change summary. Raw markdown remains below.</p>
+                            <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                             ${renderStructuredChangeSummary(parsedChangeSummary)}
                           `
                           : selectedArtifactMeta.type === 'change-summary'
-                            ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                            ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
                           : selectedArtifactMeta.type === 'review' && parsedReview
                             ? `
-                              <p class="detail-copy">Best-effort structured view of the stored reviewer artifact. Raw markdown remains below.</p>
+                              <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                               ${renderStructuredReview(parsedReview, selectedArtifactTask?.review?.status || null)}
                             `
                             : selectedArtifactMeta.type === 'review'
-                              ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                              ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
                             : selectedArtifactMeta.type === 'commit-package' && parsedCommitPackage
                               ? `
-                                <p class="detail-copy">Best-effort structured view of the stored commit-package artifact. Raw markdown remains below.</p>
+                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredCommitPackage(parsedCommitPackage)}
                               `
                               : selectedArtifactMeta.type === 'commit-package'
-                                ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                                ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
                             : selectedArtifactMeta.type === 'commit-result' && parsedCommitResult
                               ? `
-                                <p class="detail-copy">Best-effort structured view of the stored commit-result artifact. Raw markdown remains below.</p>
+                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredCommitResult(parsedCommitResult)}
                               `
                               : selectedArtifactMeta.type === 'commit-result'
-                                ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                                ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
                             : selectedArtifactMeta.type === 'release-package' && parsedReleasePackage
                               ? `
-                                <p class="detail-copy">Best-effort structured view of the stored release-package artifact. Raw markdown remains below.</p>
+                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredReleasePackage(parsedReleasePackage)}
                               `
                               : selectedArtifactMeta.type === 'release-package'
-                                ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                                ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
                             : selectedArtifactMeta.type === 'close-out' && parsedCloseOut
                               ? `
-                                <p class="detail-copy">Best-effort structured view of the stored close-out artifact. Raw markdown remains below.</p>
+                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredCloseOut(parsedCloseOut)}
                               `
                               : selectedArtifactMeta.type === 'close-out'
-                                ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw markdown fallback.</p>'
+                                ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
                             : selectedArtifactMeta.type === 'patch' && parsedUnifiedDiff
                               ? `
-                                <p class="detail-copy">Best-effort summary of the stored planned patch. Raw patch text remains below.</p>
+                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredUnifiedDiff(parsedUnifiedDiff, 'planned patch')}
                               `
                             : selectedArtifactMeta.type === 'patch'
-                              ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw patch fallback.</p>'
+                              ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
                             : selectedArtifactMeta.type === 'diff' && parsedUnifiedDiff
                               ? `
-                                <p class="detail-copy">Best-effort summary of the stored observed diff. Raw diff text remains below.</p>
+                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredUnifiedDiff(parsedUnifiedDiff, 'observed diff')}
                               `
                               : selectedArtifactMeta.type === 'diff'
-                                ? '<p class="detail-copy">Structured parsing failed. Showing the stored raw diff fallback.</p>'
+                                ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
                       : ''
+                }
+                ${
+                  selectedArtifactPolicyEntry?.previewMode === 'raw-only'
+                    ? `<p class="detail-copy">${escapeHtml(getRawOnlyPreviewCopy())}</p>`
+                    : ''
                 }
                 ${
                   selectedArtifactMeta.type === 'preflight' && selectedArtifactTask
@@ -5870,18 +5970,8 @@ function renderArtifacts(data) {
                       })
                     : ''
                 }
-                <p class="detail-key">${
-                  selectedArtifactMeta.type === 'breakdown' ||
-                  selectedArtifactMeta.type === 'preflight' ||
-                  selectedArtifactMeta.type === 'change-summary' ||
-                  selectedArtifactMeta.type === 'review' ||
-                  selectedArtifactMeta.type === 'commit-package' ||
-                  selectedArtifactMeta.type === 'commit-result' ||
-                  selectedArtifactMeta.type === 'release-package' ||
-                  selectedArtifactMeta.type === 'close-out'
-                    ? 'Raw Markdown'
-                    : 'Raw Preview'
-                }</p>
+                <p class="detail-key">Stored Raw Content</p>
+                <p class="detail-copy">Stored raw content below remains the source of truth.</p>
                 <pre class="artifact-preview">${escapeHtml(state.selectedArtifact?.content || 'No preview content available.')}</pre>
               </div>
             `

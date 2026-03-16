@@ -127,7 +127,7 @@ async function main() {
     assert.match(appJs, /Run Reviewer/);
     assert.match(appJs, /run-reviewer/);
     assert.match(appJs, /mapped review:/);
-    assert.match(appJs, /Best-effort structured view of the stored reviewer artifact/);
+    assert.match(appJs, /Structured preview is best-effort/);
     assert.match(appJs, /preferredInboxItemId: payload\.mutation\.inboxItemId \|\| null/);
     assert.match(appJs, /state\.surface = 'artifacts';/);
     assert.match(stylesCss, /\.review-structured/);

@@ -173,18 +173,37 @@ async function main() {
 
     const indexResponse = await fetch(`${baseUrl}/`);
     const indexHtml = await indexResponse.text();
+    const appJsResponse = await fetch(`${baseUrl}/app.js`);
+    const appJs = await appJsResponse.text();
 
     assert.equal(indexResponse.status, 200);
+    assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /Taskboard/);
     assert.match(indexHtml, /Logs/);
     assert.match(indexHtml, /Artifacts/);
     assert.match(indexHtml, /Decision Inbox/);
+    assert.match(appJs, /provenance-critical/);
+    assert.match(appJs, /latest-centered browse/);
+    assert.match(appJs, /generic fallback/);
+    assert.match(appJs, /structured preview \+ raw fallback/);
+    assert.match(appJs, /raw only/);
+    assert.match(appJs, /Provenance/);
+    assert.match(appJs, /Stored Raw Content/);
 
     const snapshotResponse = await fetch(`${baseUrl}/api/snapshot`);
     const snapshotPayload = await snapshotResponse.json();
 
     assert.equal(snapshotPayload.snapshot.activeProjectId, 'project-0001');
     assert.equal(Object.keys(snapshotPayload.snapshot.tasks).length, 2);
+    assert.ok(snapshotPayload.artifactCatalog);
+    assert.equal(
+      snapshotPayload.artifactCatalog.output.previewMode,
+      'raw-only',
+    );
+    assert.equal(
+      snapshotPayload.artifactCatalog.output.retentionTier,
+      'tier-c-generic-fallback',
+    );
 
     const pendingTask = Object.values(snapshotPayload.snapshot.tasks).find(
       (task) => task.title === 'Pending gate task',
@@ -216,6 +235,7 @@ async function main() {
     const artifactPayload = await artifactResponse.json();
 
     assert.equal(artifactResponse.status, 200);
+    assert.ok(artifactPayload.artifactCatalog);
     assert.equal(artifactPayload.artifact.id, artifactId);
     assert.match(artifactPayload.artifact.content, /artifact preview/);
 
