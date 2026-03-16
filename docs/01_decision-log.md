@@ -117,6 +117,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: This is now implemented end to end. The coordinator computes close-out readiness from passed review, clear task flags, clean repo state, the current approved `release-package` bundle, and approved `release-ready` approval, and the shell exposes a dedicated close-out action and route.
 - Impact: The shell records a `close-out` artifact, then transitions the task `Review -> Done` without push, publish, or external release. Stale or duplicate close-out attempts remain blocked.
 
+### DEC-028
+- Status: `Accepted`
+- Decision: The shipped v1 human-gate and release scope is explicit and stays local-only. `request-builder-live-mutation-approval`, `commit-package`, and `release-package` are approval-producing steps; `builder live-mutation`, `local commit`, and `close-out` are approval-consuming steps. `close-out` is a finalization step that consumes the latest approved `release-package` provenance instead of executing release automation.
+- Why: This matches the implemented runtime, coordinator, and shell behavior. Builder approval targets the latest `preflight`, `commit-package` raises `commit-intent` approval without running git commit, `release-package` raises `release-ready` approval without push/publish/external release, and `close-out` only finalizes `Review -> Done` from the latest approved local-demo-only release bundle.
+- Impact: Remaining release or human-gate scope is no longer implied. Docs can distinguish approval request steps from approval consumer steps without adding capabilities or changing runtime, execution, or UI semantics. Push, publish, external release, and merge automation remain out of scope.
+
 ### DEC-020
 - Status: `Accepted`
 - Decision: `Decision Inbox` top-level kinds stay fixed to `review`, `decision`, and `approval`. `review-follow-up` normalizes to `kind=decision, sourceType=review`, and `unblock/clarification` normalizes to `kind=decision, sourceType=decision, blocksTask=false`.

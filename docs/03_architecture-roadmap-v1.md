@@ -131,15 +131,16 @@ Required minimum:
 ### Execution Core Loop
 - The implemented loop is `planner -> architect -> task-breaker -> builder preflight -> builder live-mutation -> reviewer`.
 - Builder execution is split into explicit no-write `preflight` and bounded `live-mutation`.
+- `request-builder-live-mutation-approval` creates the builder approval for the latest `preflight`, and `builder live-mutation` consumes only that approved preflight target.
 - Reviewer input is anchored to the latest builder live-mutation bundle only.
 - The current shell consumes runtime and coordinator readiness summaries directly instead of re-deriving these guards in the client.
 
 ### Commit And Release Follow-Up
 - Downstream follow-up is `commit-package -> local commit -> release-package -> close-out`.
-- `commit-package` prepares the local commit bundle and raises a commit approval without executing git commit.
-- `local commit` executes only after the current commit approval matches the current commit-package provenance.
-- `release-package` prepares a local-demo-only release-ready bundle and raises `release-ready` approval.
-- `close-out` runs from the current approved `release-package` bundle and is the explicit `Review -> Done` path.
+- `commit-package` prepares the local commit bundle and raises `commit-intent` approval without executing git commit.
+- `local commit` consumes only the current approved `commit-intent` approval for that exact `commit-package` provenance.
+- `release-package` prepares a local-demo-only release-ready bundle and raises `release-ready` approval without executing push, publish, merge, or external release.
+- `close-out` consumes the latest approved current `release-package` bundle provenance and is the explicit `Review -> Done` finalization path.
 - Push, publish, merge, and external release remain disabled in the shipped v1 path.
 
 ### Worktree Boundary
@@ -204,7 +205,6 @@ The following changes require an explicit decision log update before implementat
 ## Remaining Open
 - future live-provider opt-in boundary behind the adapter boundary after the v1 `local-demo-only` baseline
 - when a future delete/archive/GC capability should consume the normalized retention tiers
-- remaining release or human-gate scope that still needs explicit product approval
 
 ## Slice Review Checklist
 - [ ] does the slice preserve local-first behavior

@@ -33,8 +33,8 @@ An individual operator building or maintaining software locally who needs contro
 - thin-slice task lifecycle with `Inbox -> In Progress -> Review -> Done`
 - builder `preflight` and bounded `live-mutation`
 - reviewer flow anchored to the latest builder live-mutation bundle
-- local commit flow via `commit-package -> local commit`
-- local-demo-only release flow via `release-package -> close-out`
+- local commit flow via `commit-package -> commit-intent approval -> local commit`
+- local-demo-only release follow-up via `release-package -> release-ready approval -> close-out`
 - linked worktree detection, creation, and project switching in the shell
 - dedicated linked worktree guard only before `release-package` and `close-out`
 - live and historical logs
@@ -84,7 +84,7 @@ A human-visible question or gate that blocks progress until resolved.
 A quality gate that must pass before the task can be marked done.
 
 ### Approval
-A human authorization gate that must pass before commit or merge actions proceed.
+A human authorization record that binds the next allowed local step to the current `preflight`, `commit-package`, or `release-package` provenance bundle.
 
 ## Product Principles
 - Prefer thin slices over broad platform buildout.
@@ -130,4 +130,3 @@ Orchestration 1.0 should reuse the useful control-plane ideas from `claw-empire`
 ## Open Areas To Resolve
 - future live-provider opt-in boundary behind the adapter boundary after the v1 `local-demo-only` baseline
 - future delete/archive/GC policy for retained artifact history
-- remaining release or human-gate scope that still needs explicit product approval

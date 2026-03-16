@@ -25,10 +25,11 @@
 - [x] `accepted / rejected / [OPEN]` docs match the implemented core loop and remaining release gate
 
 ### remaining [OPEN]
-- [ ] remaining release or human-gate scope is explicitly approved instead of implied
+- [x] remaining release or human-gate scope is explicitly approved instead of implied
 
 ### completed slices [archive]
 - [x] full-docs-reconcile-01
+- [x] docs-patch-06
 - [x] runtime-slice-01
 - [x] runtime-slice-02
 - [x] runtime-slice-03

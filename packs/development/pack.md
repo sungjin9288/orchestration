@@ -48,6 +48,9 @@ Rules for stage flow:
 - When a flag is raised, the task stays visible in its current lifecycle state while the gate is surfaced in `Taskboard` and `Decision Inbox`.
 - A task resumes from the blocked stage or the next appropriate stage after the gate is resolved.
 - The contract stays stage-oriented, but the current implementation already exposes the downstream `commit-package`, `local commit`, `release-package`, and `close-out` follow-up steps explicitly.
+- `request-builder-live-mutation-approval` creates the approval for the latest `preflight`; `builder(live-mutation)` only consumes that approved preflight target.
+- `commit-package` creates `commit-intent` approval and does not run git commit; `local commit` only consumes the approved current commit-package provenance.
+- `release-package` creates `release-ready` approval and does not push, publish, merge, or execute external release; `close-out` only consumes the latest approved current `release-package` bundle provenance and finalizes `Review -> Done`.
 
 ## Linked Worktree Rule
 - The shell may detect, create, and switch linked worktree roots before downstream release follow-up.
@@ -120,7 +123,8 @@ Required result:
 ### Human Gate
 Responsibilities:
 - Resolve human-required approval and decision items.
-- Confirm whether builder live-mutation, commit, or release approval is required and, if so, whether it is granted.
+- Resolve decision follow-up created by planner, architect, task-breaker, builder preflight, or reviewer when those stages route to `Decision Inbox`.
+- Approve or reject builder live-mutation, `commit-intent`, and `release-ready` approvals only; the corresponding execution step consumes the approval later.
 - Resolve review follow-up or clarification items that cannot be closed automatically.
 - Clear or maintain `waiting_approval` and `waiting_decision` flags based on explicit human action.
 
@@ -188,8 +192,8 @@ Artifact expectations:
 - A task cannot be marked done while `blocked`, `waiting_approval`, or `waiting_decision` is still active.
 - Builder live mutation must not proceed until the latest approved approval targets the latest preflight artifact and run.
 - Local commit must not proceed until approval is explicitly recorded for the current commit-package provenance.
-- `release-package` must stay `local-demo-only` and must not proceed from the main worktree.
-- `close-out` must run only from the latest approved `release-package` bundle on a clean dedicated linked worktree root.
+- `release-package` must stay `local-demo-only`, must not proceed from the main worktree, and must only prepare the current release bundle plus `release-ready` approval.
+- `close-out` must run only from the latest approved `release-package` bundle on a clean dedicated linked worktree root and must act as finalization rather than release execution.
 - If the builder discovers an architectural change beyond the approved boundary, the workflow must return to `architect` and, when required, create or resolve a human decision before continuing.
 - Done requires all of the following:
   - planned scope completed
