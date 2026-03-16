@@ -20,7 +20,7 @@ The pack exists to keep development execution inspectable and controlled:
 - The builder must not silently change architecture. If an architectural change is discovered or required, the task must route back through architecture review and, when needed, a human decision.
 - Review is a required gate before a task can be considered done.
 - Approval is a required gate before commit.
-- Provider-specific behavior is intentionally excluded from this contract until the initial provider choice is resolved.
+- Provider-agnostic contract language stays intact, but the shipped v1 default is `local-demo-only` via the built-in `local-stub` adapter. Any live provider remains a future explicit opt-in behind the same adapter boundary.
 
 ## Entry Criteria
 A task may enter this pack only when all of the following are true:
@@ -183,14 +183,14 @@ Artifact expectations:
 - Expanding a thin slice into a broad refactor without explicit re-planning
 - Introducing office-first, messenger-first, ranking, OAuth, or multi-provider-first behavior into this pack
 - Letting hidden runtime state override repo-defined policy or contract files
-- Hard-coding provider-specific pack behavior before the provider decision is made
+- Hard-coding live-provider-specific pack behavior into this contract beyond the accepted `local-demo-only` `local-stub` baseline
 - Extending this pack into non-development workflows without an explicit scope decision
 
 ## [OPEN]
-### Initial Provider Choice
-- Why still open: The single-provider-first strategy is accepted, but the concrete initial provider has not been chosen yet.
-- Current temporary default: This pack stays provider-agnostic and defines no provider-specific behavior beyond assuming a single provider behind an adapter boundary.
-- Decide again when: Before runtime adapter implementation or first live execution integration starts.
+### Future Live-Provider Opt-In Boundary
+- Why still open: The shipped v1 default is fixed to `local-demo-only` via `local-stub`, but the boundary for any future live-provider opt-in is not yet defined at the pack-contract level.
+- Current temporary default: Keep provider-agnostic interface language and do not add live-provider-specific workflow requirements to this pack.
+- Decide again when: Before adding any live execution integration beyond the current local-only baseline.
 
 ### Task Flag Model
 - Why still open: The broader product task state machine is not yet fully finalized across `Taskboard`, `Logs`, and `Decision Inbox`.

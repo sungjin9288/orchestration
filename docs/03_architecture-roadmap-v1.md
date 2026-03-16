@@ -224,7 +224,7 @@ The following changes require an explicit decision log update before implementat
 - non-development packs
 
 ## Open Architecture Questions
-- which provider ships first behind the adapter boundary
+- future live-provider opt-in boundary behind the adapter boundary after the v1 `local-demo-only` baseline
 - whether `Blocked`, `Waiting Approval`, and `Waiting Decision` are states or flags
 - how artifact taxonomy maps to retention and preview behavior
 - how much bootstrap should do on first run
