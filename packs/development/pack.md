@@ -138,27 +138,37 @@ Minimum required outputs:
 - Review record
 - Approval or decision record when a human gate exists
 
-Baseline artifact taxonomy:
-- `plan`
-- `architecture`
+Current artifact taxonomy:
+- Tier A provenance-critical: `preflight`, `change-summary`, `patch`, `diff`, `review`, `commit-package`, `commit-result`, `release-package`, `close-out`
+- Tier B latest-centered browse with history retained: `plan`, `architecture`, `breakdown`
+- Tier C generic fallback only: `output`
+
+These are not artifact types in the current core loop:
 - `decision`
-- `execution-log`
-- `diff`
-- `verification`
-- `review`
 - `approval`
-- `output`
+- `execution-log`
+- `verification`
+
+Current storage and browse rules:
+- All artifact history is retained in v1 because delete/archive/GC capability is out of scope.
+- `Artifacts` may browse latest generated outputs first, but Tier B artifacts remain history-retained and should not be collapsed into single mutable slots.
+- Structured preview is always best-effort with raw fallback. No structured-only artifact exists in the current shell contract.
+- Raw stored artifact content plus runtime metadata remain the source of truth. Client-derived relations and structured previews are convenience only.
 
 Artifact expectations:
 - `plan`: scoped execution plan, acceptance target, verification intent
 - `architecture`: architecture check, boundary note, decision-log linkage
-- `decision`: question, context, resolution, and affected task scope
-- `execution-log`: retained run or command evidence
+- `breakdown`: ordered sub-tasks, checkpoints, review triggers, and stop/escalate conditions
+- `preflight`: target files, intended changes, risks, verification plan, and escalation triggers
+- `change-summary`: bounded live-mutation summary, approval linkage, and target file context
+- `patch`: planned file-update evidence before write
 - `diff`: code or configuration change evidence
-- `verification`: test, lint, build, runtime, or inspection evidence
-- `review`: findings, outcome, and follow-up
-- `approval`: explicit approval scope and recorded authorization
-- `output`: generated deliverable, report, runbook, or other produced result
+- `review`: findings, outcome, verification evidence, and follow-up
+- `commit-package`: review-passed local commit bundle with source builder and reviewer linkage
+- `commit-result`: local commit result with commit sha and scope validation
+- `release-package`: local-demo-only release-ready bundle with local commit provenance
+- `close-out`: terminal `Review -> Done` bundle with approved release provenance
+- `output`: generated deliverable, report, runbook, or other generic fallback output
 
 ## Review / Approval / Done Rules
 - Review must happen before a task can be marked done.
@@ -206,7 +216,7 @@ Artifact expectations:
 - Current temporary default: `Blocked`, `Waiting Approval`, and `Waiting Decision` are all flags, not lifecycle statuses.
 - Decide again when: Before the task contract and `Taskboard` interaction model are finalized in implementation.
 
-### Artifact Taxonomy Baseline
-- Why still open: The baseline artifact types are defined here, but storage layout, retention, preview behavior, and possible subtype expansion are not yet settled.
-- Current temporary default: `plan`, `architecture`, `decision`, `execution-log`, `diff`, `verification`, `review`, `approval`, `output`
-- Decide again when: Before artifact storage, browsing, preview, and retention behavior are implemented.
+### Future Cleanup Policy
+- Why still open: Retention tiers are normalized, but no delete/archive/GC capability exists in v1.
+- Current temporary default: retain full history; tiers define auditability and browse policy only.
+- Decide again when: Before any cleanup capability is added.

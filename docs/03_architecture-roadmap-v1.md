@@ -88,7 +88,7 @@ Required minimum:
 - type
 - origin task or run
 - storage reference
-- preview metadata
+- preview mode classification with raw fallback rules
 
 ### Decision
 Required minimum:
@@ -226,7 +226,7 @@ The following changes require an explicit decision log update before implementat
 ## Open Architecture Questions
 - future live-provider opt-in boundary behind the adapter boundary after the v1 `local-demo-only` baseline
 - whether `Blocked`, `Waiting Approval`, and `Waiting Decision` are states or flags
-- how artifact taxonomy maps to retention and preview behavior
+- when a future delete/archive/GC capability should consume the normalized retention tiers
 - how much bootstrap should do on first run
 
 ## Slice Review Checklist

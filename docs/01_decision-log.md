@@ -123,6 +123,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: This matches the implemented queue and action model without adding a new product capability. The current shell already treats review items as read-only gate markers, decision items as resolve-only, and approval items as approve/reject-only.
 - Impact: The allowed matrix is fixed to `sourceType=approval -> kind=approval`, `sourceType=review -> kind=review|decision`, and `sourceType=decision -> kind=decision`. `blocksTask=true` is only valid on `kind=decision`. `waitingDecision` remains driven by pending decision items, `waitingApproval` remains driven by pending approval records, and review items continue to resolve through the review flow rather than the generic inbox action route.
 
+### DEC-018
+- Status: `Accepted`
+- Decision: Normalize artifact retention, preview, browse, and source-of-truth rules to the current implemented taxonomy. Tier A provenance-critical artifacts are `preflight`, `change-summary`, `patch`, `diff`, `review`, `commit-package`, `commit-result`, `release-package`, and `close-out`, and they always retain history. `plan`, `architecture`, and `breakdown` are latest-centered browse artifacts with history retained. `output` remains an allowed generic Tier C fallback only. `decision`, `approval`, `execution-log`, and `verification` are not artifact types in the current core loop.
+- Why: This matches the implemented runtime, coordinator, and UI behavior without adding delete, archive, or garbage-collection capability. Artifacts already persist as raw stored files plus runtime metadata, structured previews are best-effort with raw fallback, and downstream readiness is anchored to exact artifact and run provenance.
+- Impact: `recordArtifact` may validate types on write, repo docs plus runtime contracts define the allowed taxonomy, and `Artifacts` keeps latest-first browsing without weakening raw-source-of-truth fallback. No read-path migration, lifecycle expansion, provider change, or cleanup capability is added.
+
 ## Rejected
 
 ### DEC-010
@@ -160,14 +166,6 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Decision: Do not fork `claw-empire` as the product baseline.
 - Why: The project needs selective reuse, not inheritance of unrelated framing or architecture.
 - Impact: Contracts and docs must be written from first principles for this repo.
-
-## [OPEN]
-
-### DEC-018
-- Status: `[OPEN]`
-- Decision: Finalize artifact retention, preview, and browse rules for the current taxonomy.
-- Why It Is Open: The baseline types now exist in the core loop, but retention behavior and preview guarantees are still incomplete.
-- Needed Before: release hardening of `Artifacts`.
 
 ## New Decision Template
 Use this template for future entries:

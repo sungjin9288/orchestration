@@ -16,6 +16,114 @@ const RUN_STATUS = {
   COMPLETED: 'completed',
 };
 
+const ARTIFACT_PREVIEW_MODE = {
+  RAW_ONLY: 'raw-only',
+  STRUCTURED_WITH_RAW_FALLBACK: 'structured-with-raw-fallback',
+};
+
+const ARTIFACT_RETENTION_TIER = {
+  TIER_A: 'tier-a-provenance-critical',
+  TIER_B: 'tier-b-latest-centered-history-retained',
+  TIER_C: 'tier-c-generic-fallback',
+};
+
+const ARTIFACT_TYPE = {
+  PLAN: 'plan',
+  ARCHITECTURE: 'architecture',
+  BREAKDOWN: 'breakdown',
+  PREFLIGHT: 'preflight',
+  CHANGE_SUMMARY: 'change-summary',
+  PATCH: 'patch',
+  DIFF: 'diff',
+  REVIEW: 'review',
+  COMMIT_PACKAGE: 'commit-package',
+  COMMIT_RESULT: 'commit-result',
+  RELEASE_PACKAGE: 'release-package',
+  CLOSE_OUT: 'close-out',
+  OUTPUT: 'output',
+};
+
+const ARTIFACT_CATALOG = {
+  [ARTIFACT_TYPE.PLAN]: {
+    latestCenteredBrowse: true,
+    previewMode: ARTIFACT_PREVIEW_MODE.RAW_ONLY,
+    provenanceCritical: false,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_B,
+  },
+  [ARTIFACT_TYPE.ARCHITECTURE]: {
+    latestCenteredBrowse: true,
+    previewMode: ARTIFACT_PREVIEW_MODE.RAW_ONLY,
+    provenanceCritical: false,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_B,
+  },
+  [ARTIFACT_TYPE.BREAKDOWN]: {
+    latestCenteredBrowse: true,
+    previewMode: ARTIFACT_PREVIEW_MODE.STRUCTURED_WITH_RAW_FALLBACK,
+    provenanceCritical: false,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_B,
+  },
+  [ARTIFACT_TYPE.PREFLIGHT]: {
+    latestCenteredBrowse: false,
+    previewMode: ARTIFACT_PREVIEW_MODE.STRUCTURED_WITH_RAW_FALLBACK,
+    provenanceCritical: true,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_A,
+  },
+  [ARTIFACT_TYPE.CHANGE_SUMMARY]: {
+    latestCenteredBrowse: false,
+    previewMode: ARTIFACT_PREVIEW_MODE.STRUCTURED_WITH_RAW_FALLBACK,
+    provenanceCritical: true,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_A,
+  },
+  [ARTIFACT_TYPE.PATCH]: {
+    latestCenteredBrowse: false,
+    previewMode: ARTIFACT_PREVIEW_MODE.STRUCTURED_WITH_RAW_FALLBACK,
+    provenanceCritical: true,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_A,
+  },
+  [ARTIFACT_TYPE.DIFF]: {
+    latestCenteredBrowse: false,
+    previewMode: ARTIFACT_PREVIEW_MODE.STRUCTURED_WITH_RAW_FALLBACK,
+    provenanceCritical: true,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_A,
+  },
+  [ARTIFACT_TYPE.REVIEW]: {
+    latestCenteredBrowse: false,
+    previewMode: ARTIFACT_PREVIEW_MODE.STRUCTURED_WITH_RAW_FALLBACK,
+    provenanceCritical: true,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_A,
+  },
+  [ARTIFACT_TYPE.COMMIT_PACKAGE]: {
+    latestCenteredBrowse: false,
+    previewMode: ARTIFACT_PREVIEW_MODE.STRUCTURED_WITH_RAW_FALLBACK,
+    provenanceCritical: true,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_A,
+  },
+  [ARTIFACT_TYPE.COMMIT_RESULT]: {
+    latestCenteredBrowse: false,
+    previewMode: ARTIFACT_PREVIEW_MODE.STRUCTURED_WITH_RAW_FALLBACK,
+    provenanceCritical: true,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_A,
+  },
+  [ARTIFACT_TYPE.RELEASE_PACKAGE]: {
+    latestCenteredBrowse: false,
+    previewMode: ARTIFACT_PREVIEW_MODE.STRUCTURED_WITH_RAW_FALLBACK,
+    provenanceCritical: true,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_A,
+  },
+  [ARTIFACT_TYPE.CLOSE_OUT]: {
+    latestCenteredBrowse: false,
+    previewMode: ARTIFACT_PREVIEW_MODE.STRUCTURED_WITH_RAW_FALLBACK,
+    provenanceCritical: true,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_A,
+  },
+  [ARTIFACT_TYPE.OUTPUT]: {
+    latestCenteredBrowse: false,
+    previewMode: ARTIFACT_PREVIEW_MODE.RAW_ONLY,
+    provenanceCritical: false,
+    retentionTier: ARTIFACT_RETENTION_TIER.TIER_C,
+  },
+};
+
 const DECISION_INBOX_KIND = {
   REVIEW: 'review',
   DECISION: 'decision',
@@ -87,6 +195,10 @@ function createEmptyState() {
 
 module.exports = {
   APPROVAL_STATUS,
+  ARTIFACT_CATALOG,
+  ARTIFACT_PREVIEW_MODE,
+  ARTIFACT_RETENTION_TIER,
+  ARTIFACT_TYPE,
   BUILDER_ACTION,
   DECISION_INBOX_ALLOWED_KIND_BY_SOURCE_TYPE,
   COMMIT_ACTION,

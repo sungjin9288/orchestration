@@ -5,6 +5,7 @@ const path = require('path');
 
 const {
   APPROVAL_STATUS,
+  ARTIFACT_CATALOG,
   BUILDER_ACTION,
   COMMIT_ACTION,
   DECISION_INBOX_ALLOWED_KIND_BY_SOURCE_TYPE,
@@ -243,6 +244,12 @@ function createRuntimeService(options = {}) {
         .map((line) => normalizeRelativeArtifactPath(line))
         .filter(Boolean),
     );
+  }
+
+  function assertSupportedArtifactType(type) {
+    if (!Object.prototype.hasOwnProperty.call(ARTIFACT_CATALOG, type)) {
+      throw new Error(`Unsupported artifact type: ${type}`);
+    }
   }
 
   function normalizeDecisionInboxShape(input = {}) {
@@ -1377,6 +1384,9 @@ function createRuntimeService(options = {}) {
     const state = store.loadState();
     const task = assertTask(input.taskId, state);
     const run = assertRun(input.runId, state);
+    const type = input.type || 'output';
+
+    assertSupportedArtifactType(type);
 
     const id = nextId(state, 'artifact');
     const createdAt = new Date().toISOString();
@@ -1389,7 +1399,7 @@ function createRuntimeService(options = {}) {
       id,
       taskId: task.id,
       runId: run.id,
-      type: input.type || 'output',
+      type,
       path: artifactPath,
       createdAt,
     };
