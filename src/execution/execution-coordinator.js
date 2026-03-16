@@ -11,6 +11,7 @@ const {
   APPROVAL_STATUS,
   COMMIT_ACTION,
   RELEASE_ACTION,
+  DECISION_INBOX_SOURCE_TYPE,
   REVIEW_STATUS,
   TASK_LIFECYCLE,
 } = require('../runtime/contracts');
@@ -475,6 +476,7 @@ function buildPlannerDecisionInput(task, normalizedResult) {
       lines.join('\n') ||
       'Planner output requires human follow-up before architect handoff.',
     blocksTask: normalizedResult.blockers.length > 0,
+    sourceType: DECISION_INBOX_SOURCE_TYPE.DECISION,
   };
 }
 
@@ -500,6 +502,7 @@ function buildArchitectDecisionInput(task, normalizedResult) {
       lines.join('\n') ||
       'Architect output requires human follow-up before task-breaker handoff.',
     blocksTask: true,
+    sourceType: DECISION_INBOX_SOURCE_TYPE.DECISION,
   };
 }
 
@@ -525,6 +528,7 @@ function buildTaskBreakerDecisionInput(task, normalizedResult) {
       lines.join('\n') ||
       'Task-breaker output requires human follow-up before builder handoff.',
     blocksTask: true,
+    sourceType: DECISION_INBOX_SOURCE_TYPE.DECISION,
   };
 }
 
@@ -550,6 +554,7 @@ function buildBuilderDecisionInput(task, normalizedResult) {
       lines.join('\n') ||
       'Builder preflight requires human follow-up before any live execution.',
     blocksTask: true,
+    sourceType: DECISION_INBOX_SOURCE_TYPE.DECISION,
   };
 }
 
@@ -580,7 +585,7 @@ function buildReviewerDecisionInput(task, parsedReview, normalizedResult, review
       `Review artifact ${reviewArtifact.id} requires a human decision before work may proceed.`,
     blocksTask: Boolean(parsedReview.blockingIssue || normalizedResult.blockers.length > 0),
     sourceId: reviewArtifact.id,
-    sourceType: 'review',
+    sourceType: DECISION_INBOX_SOURCE_TYPE.REVIEW,
   };
 }
 

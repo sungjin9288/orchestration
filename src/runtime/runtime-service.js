@@ -7,7 +7,9 @@ const {
   APPROVAL_STATUS,
   BUILDER_ACTION,
   COMMIT_ACTION,
+  DECISION_INBOX_ALLOWED_KIND_BY_SOURCE_TYPE,
   DECISION_INBOX_KIND,
+  DECISION_INBOX_SOURCE_TYPE,
   DECISION_INBOX_STATUS,
   PACKS,
   REVIEW_STATUS,
@@ -18,6 +20,8 @@ const { createFileStore } = require('./file-store');
 
 function createRuntimeService(options = {}) {
   const store = createFileStore(options);
+  const decisionInboxKinds = new Set(Object.values(DECISION_INBOX_KIND));
+  const decisionInboxSourceTypes = new Set(Object.values(DECISION_INBOX_SOURCE_TYPE));
 
   function nextId(state, entity) {
     state.sequences[entity] += 1;
@@ -239,6 +243,36 @@ function createRuntimeService(options = {}) {
         .map((line) => normalizeRelativeArtifactPath(line))
         .filter(Boolean),
     );
+  }
+
+  function normalizeDecisionInboxShape(input = {}) {
+    const kind = input.kind || DECISION_INBOX_KIND.DECISION;
+    const sourceType = input.sourceType || kind;
+    const blocksTask = Boolean(input.blocksTask);
+
+    if (!decisionInboxKinds.has(kind)) {
+      throw new Error(`Unsupported decision inbox kind: ${kind}`);
+    }
+
+    if (!decisionInboxSourceTypes.has(sourceType)) {
+      throw new Error(`Unsupported decision inbox sourceType: ${sourceType}`);
+    }
+
+    if (!DECISION_INBOX_ALLOWED_KIND_BY_SOURCE_TYPE[sourceType].includes(kind)) {
+      throw new Error(
+        `Decision inbox kind ${kind} is not allowed for sourceType ${sourceType}`,
+      );
+    }
+
+    if (blocksTask && kind !== DECISION_INBOX_KIND.DECISION) {
+      throw new Error('blocksTask=true is only allowed for decision inbox kind=decision');
+    }
+
+    return {
+      kind,
+      sourceType,
+      blocksTask,
+    };
   }
 
   function computeTaskGateState(task, state) {
@@ -652,7 +686,7 @@ function createRuntimeService(options = {}) {
 
   function createDecisionInboxItemRecord(state, input) {
     const task = assertTask(input.taskId, state);
-    const kind = input.kind || DECISION_INBOX_KIND.DECISION;
+    const normalizedShape = normalizeDecisionInboxShape(input);
     const id = input.id || nextId(state, 'decisionInboxItem');
     const now = input.now || new Date().toISOString();
 
@@ -664,12 +698,12 @@ function createRuntimeService(options = {}) {
       id,
       projectId: task.projectId,
       taskId: task.id,
-      kind,
+      kind: normalizedShape.kind,
       status: DECISION_INBOX_STATUS.PENDING,
       title: input.title,
       prompt: input.prompt || '',
-      blocksTask: Boolean(input.blocksTask),
-      sourceType: input.sourceType || kind,
+      blocksTask: normalizedShape.blocksTask,
+      sourceType: normalizedShape.sourceType,
       sourceId: input.sourceId || null,
       resolution: null,
       createdAt: now,
@@ -704,7 +738,7 @@ function createRuntimeService(options = {}) {
         kind: DECISION_INBOX_KIND.REVIEW,
         title: `Review pending: ${task.title}`,
         prompt: 'Review is required before the task can be considered done.',
-        sourceType: DECISION_INBOX_KIND.REVIEW,
+        sourceType: DECISION_INBOX_SOURCE_TYPE.REVIEW,
         sourceId: task.id,
         blocksTask: false,
         now,
@@ -1103,7 +1137,7 @@ function createRuntimeService(options = {}) {
       kind: DECISION_INBOX_KIND.APPROVAL,
       title: state.approvals[approvalId].title,
       prompt: state.approvals[approvalId].prompt,
-      sourceType: DECISION_INBOX_KIND.APPROVAL,
+      sourceType: DECISION_INBOX_SOURCE_TYPE.APPROVAL,
       sourceId: approvalId,
       blocksTask: false,
       now,

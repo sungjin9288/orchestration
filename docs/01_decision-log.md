@@ -117,6 +117,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: This is now implemented end to end. The coordinator computes close-out readiness from passed review, clear task flags, clean repo state, the current approved `release-package` bundle, and approved `release-ready` approval, and the shell exposes a dedicated close-out action and route.
 - Impact: The shell records a `close-out` artifact, then transitions the task `Review -> Done` without push, publish, or external release. Stale or duplicate close-out attempts remain blocked.
 
+### DEC-020
+- Status: `Accepted`
+- Decision: `Decision Inbox` top-level kinds stay fixed to `review`, `decision`, and `approval`. `review-follow-up` normalizes to `kind=decision, sourceType=review`, and `unblock/clarification` normalizes to `kind=decision, sourceType=decision, blocksTask=false`.
+- Why: This matches the implemented queue and action model without adding a new product capability. The current shell already treats review items as read-only gate markers, decision items as resolve-only, and approval items as approve/reject-only.
+- Impact: The allowed matrix is fixed to `sourceType=approval -> kind=approval`, `sourceType=review -> kind=review|decision`, and `sourceType=decision -> kind=decision`. `blocksTask=true` is only valid on `kind=decision`. `waitingDecision` remains driven by pending decision items, `waitingApproval` remains driven by pending approval records, and review items continue to resolve through the review flow rather than the generic inbox action route.
+
 ## Rejected
 
 ### DEC-010
@@ -162,12 +168,6 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Decision: Finalize artifact retention, preview, and browse rules for the current taxonomy.
 - Why It Is Open: The baseline types now exist in the core loop, but retention behavior and preview guarantees are still incomplete.
 - Needed Before: release hardening of `Artifacts`.
-
-### DEC-020
-- Status: `[OPEN]`
-- Decision: Finalize `Decision Inbox` item taxonomy and escalation rules.
-- Why It Is Open: Approval, decision, and review-follow-up now share one queue, but the release rules for routing, escalation, and operator expectations are still incomplete.
-- Needed Before: release or human-gate sign-off.
 
 ## New Decision Template
 Use this template for future entries:

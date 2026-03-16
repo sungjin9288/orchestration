@@ -174,6 +174,15 @@ Artifact expectations:
   - pending decisions resolved
   - pending approvals resolved when commit is requested
 
+## Decision Inbox Taxonomy
+- Top-level inbox kinds are fixed to `review`, `decision`, and `approval`.
+- `review-follow-up` normalizes to `kind=decision, sourceType=review`.
+- `unblock/clarification` normalizes to `kind=decision, sourceType=decision, blocksTask=false`.
+- Allowed matrix: `sourceType=approval -> kind=approval`, `sourceType=review -> kind=review|decision`, `sourceType=decision -> kind=decision`.
+- `blocksTask=true` is only valid on `kind=decision`.
+- `review` items remain read-only gate markers; `decision` items resolve through `resolve`; `approval` items resolve through `approve` or `reject`.
+- `waiting_decision` is driven by pending `decision` items, `waiting_approval` is driven by pending approval records, and `review` items do not set either flag.
+
 ## Forbidden Actions
 - Running work in this pack without a valid `project_path`
 - Treating `Blocked`, `Waiting Approval`, or `Waiting Decision` as lifecycle statuses in this pack contract
@@ -201,8 +210,3 @@ Artifact expectations:
 - Why still open: The baseline artifact types are defined here, but storage layout, retention, preview behavior, and possible subtype expansion are not yet settled.
 - Current temporary default: `plan`, `architecture`, `decision`, `execution-log`, `diff`, `verification`, `review`, `approval`, `output`
 - Decide again when: Before artifact storage, browsing, preview, and retention behavior are implemented.
-
-### Decision Inbox Taxonomy Baseline
-- Why still open: The baseline inbox item types are defined here, but routing rules, escalation behavior, and final action model are not yet settled.
-- Current temporary default: `approval`, `decision`, `review-follow-up`, `unblock/clarification`
-- Decide again when: Before `Decision Inbox` UI and runtime gate wiring are implemented.
