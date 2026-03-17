@@ -39,6 +39,9 @@
 - [x] clarify the adapter contract, secrets handling, health checks, and failure modes before any live-provider implementation starts
 - [x] record the first concrete live provider as `OpenAI Responses API` in a new decision instead of extending `DEC-029`
 - [x] fix the first live scope to `planner` only while keeping explicit opt-in, fail-closed behavior, and no fallback
+- [x] lock the first live adapter strategy to canonical id `openai-responses`, with `live-provider` allowed only as a temporary compatibility alias
+- [x] lock planner live output to Responses Structured Outputs via `text.format.type=json_schema`, with schema fields `artifactMarkdown` and `normalizedResult`
+- [x] lock `outputText` extraction to top-level `response.output_text` first, then safe aggregated `output` content without fixed-index access
 - [x] keep the concrete live model operator-pinned in project config instead of adding a repo default
 - [x] implement opt-in provider selection/config plumbing behind the accepted boundary without changing current v1 semantics
 - [x] add synthetic smoke coverage for config missing, readiness failure, fail-closed behavior, malformed adapter responses, and no-secret-leak guarantees
@@ -81,6 +84,7 @@
 - [x] remaining release or human-gate scope is explicitly approved instead of implied
 
 ### completed slices [archive]
+- [x] strategy-slice-02
 - [x] full-docs-reconcile-01
 - [x] docs-patch-06
 - [x] runtime-slice-01

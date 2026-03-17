@@ -198,9 +198,12 @@ The following changes require an explicit decision log update before implementat
 - `local-stub` remains the shipped default; a live provider is explicit operator opt-in only and does not auto-enable from env or secret presence.
 - Provider selection changes only the adapter used for role execution; it does not change lifecycle, artifact taxonomy, approval semantics, linked-worktree rules, or the local-only release boundary.
 - `strategy-slice-02` fixes the first concrete live provider to `OpenAI Responses API` and limits first live execution scope to `planner` only.
+- The canonical adapter id for that first live provider is `openai-responses`; any retained `live-provider` identifier is compatibility-only and must not become the long-term source-of-truth id.
 - The first concrete provider is selected by smallest adapter-contract delta, explicit opt-in config fit, project-level readiness visibility, fail-closed behavior, and no-secret-leak verification.
 - The first live slice must not introduce a repo-level model default. The concrete model remains operator-pinned project config.
 - Secrets and provider-specific auth stay outside repo-defined runtime state and must not be written into runtime snapshots, artifacts, logs, approvals, or UI payloads.
+- Planner live output should use Responses Structured Outputs with `text.format.type=json_schema`, and the schema should carry both `artifactMarkdown` and `normalizedResult` so the current adapter contract can stay narrow.
+- `outputText` extraction should prefer top-level `response.output_text`; when it is absent, the adapter should safely aggregate `output_text` content from the response `output` array without relying on fixed indexes.
 - Provider health is an execution prerequisite, not a new product surface. A future live opt-in may expose only coarse readiness such as `not-configured`, `ready`, `degraded`, or `error`.
 - Verification direction stays local-first: keep the current `local-stub` regression gate unchanged, add synthetic opt-in smoke coverage for config missing, readiness failure, planner-only scope enforcement, fail-closed behavior, malformed adapter responses, and no-secret-leak guarantees, and limit the first live smoke to an explicit opt-in planner happy path only.
 

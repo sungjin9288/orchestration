@@ -26,6 +26,9 @@
 - provider opt-in도 같은 원칙으로 project-level coarse readiness summary만 노출하고, project.readiness 자체는 provider health로 재정의하지 않는 편이 경계를 안정적으로 유지했다.
 - explicit live opt-in은 env 존재만으로 auto-enable하지 말고, config/env/readiness가 하나라도 비정상이면 local-stub fallback 없이 fail-closed로 막는 편이 no-secret-leak과 operator intent를 함께 지키기 쉬웠다.
 - 첫 concrete live provider는 broad capability 비교보다 현재 `execute(request) -> outputText` 계약과 planner artifact path에 가장 작은 delta로 붙는 대상을 고르는 편이 범위를 안정적으로 유지했다.
+- first live adapter canonical id를 `openai-responses`로 고정하고 `live-provider`는 임시 alias로만 두는 편이 이후 provider drift와 문서/상태 불일치를 줄이기 쉽다.
+- planner live output은 Responses Structured Outputs(`text.format.type=json_schema`)로 `artifactMarkdown + normalizedResult`를 함께 받는 편이 기존 artifact contract와 decision routing을 가장 작게 유지한다.
+- `outputText`는 `response.output_text`를 우선 사용하고, 없으면 `output` array의 `output_text` content를 aggregate하는 편이 응답 shape 변화에 더 안전하며 fixed-index 접근보다 유지보수가 쉽다.
 - first live scope는 planner-only로 고정하고, concrete model default는 repo에 박지 말고 operator-pinned project config로 두는 편이 v1 semantics와 provider drift를 함께 막기 쉬웠다.
 - release-ready approval도 preflight target만으로는 충분하지 않고 `releasePackageArtifactId / commitResultArtifactId / commitPackageArtifactId / sourceReviewerRunId / sourceBuilderRunId / targetPreflightArtifactId / commitSha / deliveryStance`를 metadata에 모두 고정해야 stale allow를 막을 수 있었다.
 - same source commit bundle에 대한 release approval은 pending/approved를 409로 닫고 rejected만 재요청 허용하는 편이 duplicate 제어와 human gate 재시도를 함께 단순하게 유지했다.
