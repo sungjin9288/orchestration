@@ -25,6 +25,8 @@
 - live mutation, reviewer, commit-package, local commit enablement는 UI 추정보다 runtime/coordinator readiness를 그대로 읽는 편이 drift를 줄였다.
 - provider opt-in도 같은 원칙으로 project-level coarse readiness summary만 노출하고, project.readiness 자체는 provider health로 재정의하지 않는 편이 경계를 안정적으로 유지했다.
 - explicit live opt-in은 env 존재만으로 auto-enable하지 말고, config/env/readiness가 하나라도 비정상이면 local-stub fallback 없이 fail-closed로 막는 편이 no-secret-leak과 operator intent를 함께 지키기 쉬웠다.
+- 첫 concrete live provider는 broad capability 비교보다 현재 `execute(request) -> outputText` 계약과 planner artifact path에 가장 작은 delta로 붙는 대상을 고르는 편이 범위를 안정적으로 유지했다.
+- first live scope는 planner-only로 고정하고, concrete model default는 repo에 박지 말고 operator-pinned project config로 두는 편이 v1 semantics와 provider drift를 함께 막기 쉬웠다.
 - release-ready approval도 preflight target만으로는 충분하지 않고 `releasePackageArtifactId / commitResultArtifactId / commitPackageArtifactId / sourceReviewerRunId / sourceBuilderRunId / targetPreflightArtifactId / commitSha / deliveryStance`를 metadata에 모두 고정해야 stale allow를 막을 수 있었다.
 - same source commit bundle에 대한 release approval은 pending/approved를 409로 닫고 rejected만 재요청 허용하는 편이 duplicate 제어와 human gate 재시도를 함께 단순하게 유지했다.
 - release-package enable/disable과 approval status(`none / pending / approved / rejected / stale`)는 UI에서 별도 semantics를 다시 계산하지 말고 `releasePackageReadiness` summary를 그대로 읽어야 polling과 stale handling drift를 막을 수 있었다.
@@ -44,6 +46,8 @@
 - release gate 근거로는 synthetic smoke만으로 부족하고, planner부터 local commit까지 한 번에 도는 real-path dev loop smoke가 필요했다.
 - stale smoke assertion은 과거 route-specific 에러 문구보다 현재 runtime/coordinator guard를 source of truth로 따라가는 편이 유지보수에 유리했다.
 - browser click smoke는 DOM에서 landing/selection/visibility만 보고, task/worktree/close-out 의미론은 `/api/snapshot`과 artifact API로 확인하는 편이 범위와 brittleness를 함께 줄였다.
+- provider opt-in browser smoke도 같은 원칙으로 DOM에서는 summary, readiness, allowed/reason, disabled state만 확인하고 fail-closed 의미론은 API로 한 번 더 닫는 편이 안정적이었다.
+- Playwright CLI 세션 고정은 wrapper 전용 env var에 기대지 말고 각 호출에 `--session`을 명시하는 편이 로컬 재현성과 디버깅 안정성이 높았다.
 
 ## next phase
 

@@ -25,6 +25,7 @@
 
 ### regression / verification [extended browser]
 - [ ] `node scripts/smoke-qa-slice-01.mjs`
+- [ ] `node scripts/smoke-qa-slice-02.mjs`
 
 ### clean worktree / reproducibility
 - [x] no unintended worktree drift was introduced by the required freeze regression run; only intended freeze files remain modified
@@ -36,6 +37,9 @@
 - [x] define the `DEC-016` live-provider opt-in boundary without changing the default `local-demo-only` baseline
 - [x] keep the shipped default on `local-stub` and treat any live provider as explicit operator opt-in
 - [x] clarify the adapter contract, secrets handling, health checks, and failure modes before any live-provider implementation starts
+- [x] record the first concrete live provider as `OpenAI Responses API` in a new decision instead of extending `DEC-029`
+- [x] fix the first live scope to `planner` only while keeping explicit opt-in, fail-closed behavior, and no fallback
+- [x] keep the concrete live model operator-pinned in project config instead of adding a repo default
 - [x] implement opt-in provider selection/config plumbing behind the accepted boundary without changing current v1 semantics
 - [x] add synthetic smoke coverage for config missing, readiness failure, fail-closed behavior, malformed adapter responses, and no-secret-leak guarantees
 - [ ] update provider and release wording only if future implementation requires new operator-visible copy
