@@ -26,6 +26,7 @@
 ### regression / verification [extended browser]
 - [ ] `node scripts/smoke-qa-slice-01.mjs`
 - [ ] `node scripts/smoke-qa-slice-02.mjs`
+- [ ] `node scripts/smoke-qa-slice-03.mjs`
 
 ### clean worktree / reproducibility
 - [x] no unintended worktree drift was introduced by the required freeze regression run; only intended freeze files remain modified
@@ -45,7 +46,13 @@
 - [x] keep the concrete live model operator-pinned in project config instead of adding a repo default
 - [x] implement opt-in provider selection/config plumbing behind the accepted boundary without changing current v1 semantics
 - [x] add synthetic smoke coverage for config missing, readiness failure, fail-closed behavior, malformed adapter responses, and no-secret-leak guarantees
+- [x] define `strategy-slice-03` as the architect-only live opt-in boundary while keeping the implemented planner live path unchanged
+- [x] lock architect live input anchor to the latest plan bundle plus the fixed source-of-truth and architect code-context allowlists
+- [x] lock architect live structured output to schema-backed `anchor`, `artifact`, and `normalizedResult` data with adapter-rendered markdown
+- [x] lock architect live defaults to `task-breaker | human gate`, blocking decision-on-valid-blocked only, and fail-closed on invalid output or readiness failure
+- [x] keep builder/reviewer live expansion and release/close-out semantics out of scope for this slice
 - [ ] update provider and release wording only if future implementation requires new operator-visible copy
+- [ ] implement architect live adapter, role-specific readiness, and architect-specific smoke coverage in a later slice
 
 #### candidate B [later]
 - [ ] define retention-consumer capability against the normalized Tier A/B/C artifact rules
@@ -53,7 +60,7 @@
 - [ ] keep Tier A protected while preserving explicit, inspectable retention behavior for Tier B and Tier C
 
 #### optional verification / housekeeping
-- [x] optional real live planner-only smoke entrypoint is available behind explicit `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL`
+- [x] optional real live planner-only smoke entrypoints are available behind explicit `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL`
 - [ ] decide whether to promote `node scripts/smoke-qa-slice-01.mjs` from optional coverage to a required regression gate
 - [ ] clean non-SSoT reference docs that can drift from the repo contracts
 
@@ -87,6 +94,7 @@
 ### completed slices [archive]
 - [x] strategy-slice-02
 - [x] provider-slice-02
+- [x] strategy-slice-03
 - [x] full-docs-reconcile-01
 - [x] docs-patch-06
 - [x] runtime-slice-01

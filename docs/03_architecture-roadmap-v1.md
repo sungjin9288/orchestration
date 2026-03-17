@@ -207,6 +207,20 @@ The following changes require an explicit decision log update before implementat
 - Provider health is an execution prerequisite, not a new product surface. A future live opt-in may expose only coarse readiness such as `not-configured`, `ready`, `degraded`, or `error`.
 - Verification direction stays local-first: keep the current `local-stub` regression gate unchanged, add synthetic opt-in smoke coverage for config missing, readiness failure, planner-only scope enforcement, fail-closed behavior, malformed adapter responses, and no-secret-leak guarantees, and limit the first live smoke to an explicit opt-in planner happy path only.
 
+## Accepted Next Live-Provider Boundary [Not Yet Implemented]
+- `strategy-slice-03` is a design-lock slice only. The current implemented live runtime remains planner-only until a later implementation slice lands.
+- Why `architect` first: the architect stage is already no-write, artifact-producing, and decision-producing without consuming approvals or touching builder, reviewer, release-package, or close-out semantics.
+- Architect input anchor is fixed to the latest current `plan` bundle: `planArtifactId`, `planRunId`, matching planner run summary, active task and project identity, the existing source-of-truth file set, and the existing architect code-context allowlist.
+- Architect input must not widen into arbitrary repo scans, operator-supplied file targets, or secret-bearing request material. Missing anchor parts block execution instead of degrading into partial input.
+- Architect live output should use Responses Structured Outputs with a strict schema carrying `anchor`, `artifact`, and `normalizedResult` fields.
+- The schema-backed `artifact` payload should cover `boundaryFit`, `affectedComponentsOrContracts`, `policyImpact`, `decisionLogImpact`, `approvedAssumptions`, `noArchitectureChangeStatement`, and `blockingArchitectureIssues`.
+- For this slice, `affectedComponentsOrContracts` stays a repo-relative path allowlist only so downstream builder-preflight architecture-boundary checks keep their current meaning.
+- The adapter should render canonical `architecture` markdown from the validated structured payload before storing the artifact instead of trusting free-form markdown directly from the model.
+- Allowed architect `nextStage` values stay `task-breaker` and `human gate` only. This slice does not widen architect handoff into `planner`, builder, reviewer, or any new stage semantics.
+- Decision and blocking defaults stay fail-closed: valid `boundaryFit=fit` output may hand off to `task-breaker`; valid blocked output may create one blocking decision item; malformed output, anchor mismatch, unsupported stage, invalid path values, missing required fields, or readiness and config failure must produce a run error only with no artifact, no decision item, and no fallback to `local-stub`.
+- Config and readiness stay narrow: the current project provider config shape remains `mode`, canonical adapter id, operator-pinned `model`, and env-var name only; project-level provider summary stays coarse readiness; architect capability is checked through role-specific readiness; unsupported downstream live roles remain degraded and blocked.
+- Secrets stay operator-local and must not be written into runtime state, logs, artifacts, approvals, or UI payloads. Raw auth headers, secret values, and provider payload dumps remain out of scope for persistence and display.
+
 ## Deferred Items
 - office or radar visualization
 - messenger adapters
