@@ -19,6 +19,13 @@ const state = {
   linkedWorktreeDraftSlug: '',
   projectDraftName: '',
   projectDraftPath: '',
+  projectDraftProviderMode: 'local-stub',
+  projectDraftProviderModel: '',
+  projectDraftProviderApiKeyVar: '',
+  projectProviderDraftProjectId: null,
+  projectProviderDraftMode: 'local-stub',
+  projectProviderDraftModel: '',
+  projectProviderDraftApiKeyVar: '',
   taskDraftTitle: '',
   taskDraftIntent: '',
   timerId: null,
@@ -98,10 +105,43 @@ function createEmptyDerivedState() {
     closeOutReadinessSummaries: {},
     commitExecutionReadinessSummaries: {},
     commitPackageReadinessSummaries: {},
+    providerExecutionSummaries: {},
     releasePackageReadinessSummaries: {},
     reviewerReadinessSummaries: {},
     taskGuardSummaries: {},
   };
+}
+
+function getProjectProviderConfig(project) {
+  const provider = project?.provider && typeof project.provider === 'object' ? project.provider : {};
+  const env = provider.env && typeof provider.env === 'object' ? provider.env : {};
+  const mode = provider.mode === 'live' ? 'live' : 'local-stub';
+
+  return {
+    adapter: mode === 'live' ? 'live-provider' : 'local-stub',
+    env: {
+      apiKeyVar: mode === 'live' ? env.apiKeyVar || '' : '',
+    },
+    mode,
+    model: mode === 'live' ? provider.model || '' : '',
+  };
+}
+
+function getProviderExecutionSummary(project, data) {
+  if (!project?.id) {
+    return null;
+  }
+
+  return data.derived.providerExecutionSummaries?.[project.id] || null;
+}
+
+function syncProjectProviderDraft(project) {
+  const config = getProjectProviderConfig(project);
+
+  state.projectProviderDraftProjectId = project?.id || null;
+  state.projectProviderDraftMode = config.mode;
+  state.projectProviderDraftModel = config.model;
+  state.projectProviderDraftApiKeyVar = config.env.apiKeyVar;
 }
 
 function getActivePayload() {
@@ -3756,6 +3796,19 @@ async function postJson(url, body) {
   return payload;
 }
 
+function buildProviderPayload(mode, model, apiKeyVar) {
+  const normalizedMode = mode === 'live' ? 'live' : 'local-stub';
+
+  return {
+    adapter: normalizedMode === 'live' ? 'live-provider' : 'local-stub',
+    env: {
+      apiKeyVar: normalizedMode === 'live' ? apiKeyVar.trim() : '',
+    },
+    mode: normalizedMode,
+    model: normalizedMode === 'live' ? model.trim() : '',
+  };
+}
+
 function applySnapshotPayload(payload) {
   state.payload = {
     derived: payload.derived || createEmptyDerivedState(),
@@ -3763,6 +3816,18 @@ function applySnapshotPayload(payload) {
     runtimeRoot: payload.runtimeRoot,
     snapshot: payload.snapshot,
   };
+
+  const snapshot = payload.snapshot || {};
+  const activeProject = snapshot.activeProjectId
+    ? snapshot.projects?.[snapshot.activeProjectId] || null
+    : null;
+
+  if (
+    (activeProject && state.projectProviderDraftProjectId !== activeProject.id) ||
+    (!activeProject && state.projectProviderDraftProjectId !== null)
+  ) {
+    syncProjectProviderDraft(activeProject);
+  }
 }
 
 function resolvePostMutationSurface(currentSurface, payload, fallbackSurface) {
@@ -4037,6 +4102,11 @@ async function handleSelection(action, id) {
 async function submitCreateProject() {
   const name = state.projectDraftName.trim();
   const projectPath = state.projectDraftPath.trim();
+  const provider = buildProviderPayload(
+    state.projectDraftProviderMode,
+    state.projectDraftProviderModel,
+    state.projectDraftProviderApiKeyVar,
+  );
 
   if (!name) {
     throw new Error('Project name is required');
@@ -4054,13 +4124,52 @@ async function submitCreateProject() {
   try {
     const payload = await postJson('/api/projects', {
       name,
+      provider,
       projectPath,
     });
 
     state.projectDraftName = '';
     state.projectDraftPath = '';
+    state.projectDraftProviderMode = 'local-stub';
+    state.projectDraftProviderModel = '';
+    state.projectDraftProviderApiKeyVar = '';
     await applyProjectScopePayload(payload);
     elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitUpdateProjectProvider() {
+  const data = getDerived();
+  const activeProject = data.activeProject;
+
+  if (!activeProject) {
+    throw new Error('Active project is required before updating provider config');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Updating provider for ${activeProject.name}…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/projects/${encodeURIComponent(activeProject.id)}/provider-config`,
+      {
+        provider: buildProviderPayload(
+          state.projectProviderDraftMode,
+          state.projectProviderDraftModel,
+          state.projectProviderDraftApiKeyVar,
+        ),
+      },
+    );
+
+    applySnapshotPayload(payload);
+    syncProjectProviderDraft(payload.project || null);
+    render();
+    elements.refreshStatus.textContent = `Provider updated for ${payload.project.name}`;
   } finally {
     state.mutating = false;
     render();
@@ -4748,6 +4857,10 @@ function renderProjectBootstrapPanel(data) {
   const projectActionDisabled = state.loading || state.mutating;
   const linkedWorktreeActionDisabled = projectActionDisabled || !data.activeProject;
   const linkedWorktreePanel = renderLinkedWorktreeSwitchPanel(data, projectActionDisabled);
+  const createProjectProviderMode =
+    state.projectDraftProviderMode === 'live' ? 'live' : 'local-stub';
+  const activeProjectProviderConfig = getProjectProviderConfig(data.activeProject);
+  const activeProjectProviderSummary = getProviderExecutionSummary(data.activeProject, data);
   const activeProjectBaseName = data.activeProject
     ? data.activeProject.projectPath.split('/').filter(Boolean).pop() || 'project'
     : 'project';
@@ -4756,29 +4869,47 @@ function renderProjectBootstrapPanel(data) {
         <div class="project-list">
           ${data.projects
             .map(
-              (project) => `
-                <button
-                  class="list-button ${project.id === data.activeProject?.id ? 'is-selected' : ''}"
-                  type="button"
-                  data-action="select-project"
-                  data-id="${escapeHtml(project.id)}"
-                  ${projectActionDisabled ? 'disabled' : ''}
-                >
-                  <div class="card-title-row">
-                    <strong>${escapeHtml(project.name)}</strong>
-                    ${
-                      project.id === data.activeProject?.id
-                        ? createToken('active', 'success')
-                        : createToken('registered', 'neutral')
-                    }
-                  </div>
-                  <p class="list-copy">${escapeHtml(project.projectPath)}</p>
-                  <div class="token-row">
-                    ${createToken(project.pack || 'development', 'neutral')}
-                    ${createToken(`readiness:${project.readiness || 'unknown'}`, 'neutral')}
-                  </div>
-                </button>
-              `,
+              (project) => {
+                const providerConfig = getProjectProviderConfig(project);
+                const providerSummary = getProviderExecutionSummary(project, data);
+
+                return `
+                  <button
+                    class="list-button ${project.id === data.activeProject?.id ? 'is-selected' : ''}"
+                    type="button"
+                    data-action="select-project"
+                    data-id="${escapeHtml(project.id)}"
+                    ${projectActionDisabled ? 'disabled' : ''}
+                  >
+                    <div class="card-title-row">
+                      <strong>${escapeHtml(project.name)}</strong>
+                      ${
+                        project.id === data.activeProject?.id
+                          ? createToken('active', 'success')
+                          : createToken('registered', 'neutral')
+                      }
+                    </div>
+                    <p class="list-copy">${escapeHtml(project.projectPath)}</p>
+                    <div class="token-row">
+                      ${createToken(project.pack || 'development', 'neutral')}
+                      ${createToken(`readiness:${project.readiness || 'unknown'}`, 'neutral')}
+                      ${createToken(`provider:${providerConfig.adapter}`, providerConfig.mode === 'live' ? 'accent' : 'neutral')}
+                      ${
+                        providerSummary
+                          ? createToken(
+                              `provider readiness:${providerSummary.readiness || 'unknown'}`,
+                              providerSummary.allowed
+                                ? 'success'
+                                : providerSummary.readiness === 'error'
+                                  ? 'danger'
+                                  : 'warning',
+                            )
+                          : ''
+                      }
+                    </div>
+                  </button>
+                `;
+              },
             )
             .join('')}
         </div>
@@ -4807,6 +4938,85 @@ function renderProjectBootstrapPanel(data) {
       </div>
       ${projectList}
       ${linkedWorktreePanel}
+      ${
+        data.activeProject
+          ? `
+            <form class="task-create-form project-create-form" data-form="update-project-provider">
+              <div class="panel-header">
+                <div>
+                  <h4>Execution Provider</h4>
+                  <p class="panel-copy">Project-level opt-in only. Default stays local-stub, and live mode never falls back silently.</p>
+                </div>
+                <div class="token-row">
+                  ${createToken(`provider:${activeProjectProviderConfig.adapter}`, activeProjectProviderConfig.mode === 'live' ? 'accent' : 'neutral')}
+                  ${
+                    activeProjectProviderSummary
+                      ? createToken(
+                          `provider readiness:${activeProjectProviderSummary.readiness || 'unknown'}`,
+                          activeProjectProviderSummary.allowed
+                            ? 'success'
+                            : activeProjectProviderSummary.readiness === 'error'
+                              ? 'danger'
+                              : 'warning',
+                        )
+                      : ''
+                  }
+                </div>
+              </div>
+              <div class="field-grid">
+                <label class="field">
+                  <span class="field-label">Mode</span>
+                  <select
+                    name="editProjectProviderMode"
+                    ${projectActionDisabled ? 'disabled' : ''}
+                  >
+                    <option value="local-stub" ${state.projectProviderDraftMode === 'local-stub' ? 'selected' : ''}>local-stub</option>
+                    <option value="live" ${state.projectProviderDraftMode === 'live' ? 'selected' : ''}>live-provider</option>
+                  </select>
+                </label>
+                ${
+                  state.projectProviderDraftMode === 'live'
+                    ? `
+                      <label class="field">
+                        <span class="field-label">Model</span>
+                        <input
+                          type="text"
+                          name="editProjectProviderModel"
+                          value="${escapeHtml(state.projectProviderDraftModel)}"
+                          placeholder="operator-chosen-model"
+                          ${projectActionDisabled ? 'disabled' : ''}
+                        >
+                      </label>
+                      <label class="field">
+                        <span class="field-label">API Key Env Var</span>
+                        <input
+                          type="text"
+                          name="editProjectProviderApiKeyVar"
+                          value="${escapeHtml(state.projectProviderDraftApiKeyVar)}"
+                          placeholder="LIVE_PROVIDER_API_KEY"
+                          ${projectActionDisabled ? 'disabled' : ''}
+                        >
+                      </label>
+                    `
+                    : ''
+                }
+              </div>
+              <div class="form-actions">
+                <button class="secondary-button" type="submit" ${projectActionDisabled ? 'disabled' : ''}>
+                  Update Provider
+                </button>
+                <p class="form-help">
+                  ${
+                    activeProjectProviderSummary?.reasons?.length
+                      ? escapeHtml(activeProjectProviderSummary.reasons[0])
+                      : 'Only non-secret metadata is stored here. Actual live-provider execution stays disabled in provider-slice-01.'
+                  }
+                </p>
+              </div>
+            </form>
+          `
+          : ''
+      }
       ${
         data.activeProject
           ? `
@@ -4855,12 +5065,54 @@ function renderProjectBootstrapPanel(data) {
               ${projectActionDisabled ? 'disabled' : ''}
             >
           </label>
+          <label class="field">
+            <span class="field-label">Provider Mode</span>
+            <select
+              name="projectProviderMode"
+              ${projectActionDisabled ? 'disabled' : ''}
+            >
+              <option value="local-stub" ${createProjectProviderMode === 'local-stub' ? 'selected' : ''}>local-stub</option>
+              <option value="live" ${createProjectProviderMode === 'live' ? 'selected' : ''}>live-provider</option>
+            </select>
+          </label>
+          ${
+            createProjectProviderMode === 'live'
+              ? `
+                <label class="field">
+                  <span class="field-label">Provider Model</span>
+                  <input
+                    type="text"
+                    name="projectProviderModel"
+                    value="${escapeHtml(state.projectDraftProviderModel)}"
+                    placeholder="operator-chosen-model"
+                    ${projectActionDisabled ? 'disabled' : ''}
+                  >
+                </label>
+                <label class="field">
+                  <span class="field-label">API Key Env Var</span>
+                  <input
+                    type="text"
+                    name="projectProviderApiKeyVar"
+                    value="${escapeHtml(state.projectDraftProviderApiKeyVar)}"
+                    placeholder="LIVE_PROVIDER_API_KEY"
+                    ${projectActionDisabled ? 'disabled' : ''}
+                  >
+                </label>
+              `
+              : ''
+          }
         </div>
         <div class="form-actions">
           <button class="secondary-button" type="submit" ${projectActionDisabled ? 'disabled' : ''}>
             Register Project
           </button>
-          <p class="form-help">Registration stores the project and makes it the active project for the shell.</p>
+          <p class="form-help">
+            ${
+              createProjectProviderMode === 'live'
+                ? 'Live mode stores non-secret opt-in metadata only and will remain fail-closed until a future live adapter slice enables execution.'
+                : 'Registration stores the project, keeps local-stub as the default execution provider, and makes the project active.'
+            }
+          </p>
         </div>
       </form>
     </section>
@@ -6351,9 +6603,10 @@ document.addEventListener('click', async (event) => {
   }
 });
 
-document.addEventListener('input', (event) => {
+function handleFormInput(event) {
   const createLinkedWorktreeForm = event.target.closest('[data-form="create-linked-worktree"]');
   const createProjectForm = event.target.closest('[data-form="create-project"]');
+  const updateProjectProviderForm = event.target.closest('[data-form="update-project-provider"]');
   const createTaskForm = event.target.closest('[data-form="create-task"]');
 
   if (createLinkedWorktreeForm) {
@@ -6373,6 +6626,34 @@ document.addEventListener('input', (event) => {
       state.projectDraftPath = event.target.value;
     }
 
+    if (event.target.name === 'projectProviderMode') {
+      state.projectDraftProviderMode = event.target.value === 'live' ? 'live' : 'local-stub';
+    }
+
+    if (event.target.name === 'projectProviderModel') {
+      state.projectDraftProviderModel = event.target.value;
+    }
+
+    if (event.target.name === 'projectProviderApiKeyVar') {
+      state.projectDraftProviderApiKeyVar = event.target.value;
+    }
+
+    return;
+  }
+
+  if (updateProjectProviderForm) {
+    if (event.target.name === 'editProjectProviderMode') {
+      state.projectProviderDraftMode = event.target.value === 'live' ? 'live' : 'local-stub';
+    }
+
+    if (event.target.name === 'editProjectProviderModel') {
+      state.projectProviderDraftModel = event.target.value;
+    }
+
+    if (event.target.name === 'editProjectProviderApiKeyVar') {
+      state.projectProviderDraftApiKeyVar = event.target.value;
+    }
+
     return;
   }
 
@@ -6387,11 +6668,15 @@ document.addEventListener('input', (event) => {
   if (event.target.name === 'intent') {
     state.taskDraftIntent = event.target.value;
   }
-});
+}
+
+document.addEventListener('input', handleFormInput);
+document.addEventListener('change', handleFormInput);
 
 document.addEventListener('submit', async (event) => {
   const createLinkedWorktreeForm = event.target.closest('[data-form="create-linked-worktree"]');
   const createProjectForm = event.target.closest('[data-form="create-project"]');
+  const updateProjectProviderForm = event.target.closest('[data-form="update-project-provider"]');
   const createTaskForm = event.target.closest('[data-form="create-task"]');
 
   if (createLinkedWorktreeForm) {
@@ -6413,6 +6698,18 @@ document.addEventListener('submit', async (event) => {
       await submitCreateProject();
     } catch (error) {
       elements.refreshStatus.textContent = error.message || 'Project registration failed';
+      render();
+    }
+    return;
+  }
+
+  if (updateProjectProviderForm) {
+    event.preventDefault();
+
+    try {
+      await submitUpdateProjectProvider();
+    } catch (error) {
+      elements.refreshStatus.textContent = error.message || 'Project provider update failed';
       render();
     }
     return;

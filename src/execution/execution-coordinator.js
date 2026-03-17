@@ -6,12 +6,16 @@ const os = require('os');
 const path = require('path');
 
 const { executeWithAdapter } = require('./provider-adapter');
+const { createLiveProviderPlaceholderAdapter } = require('./providers/live-provider-placeholder');
 const { createLocalStubProviderAdapter } = require('./providers/local-stub-adapter');
 const {
   APPROVAL_STATUS,
   COMMIT_ACTION,
   RELEASE_ACTION,
   DECISION_INBOX_SOURCE_TYPE,
+  PROVIDER_ADAPTER_ID,
+  PROVIDER_MODE,
+  PROVIDER_READINESS,
   REVIEW_STATUS,
   TASK_LIFECYCLE,
 } = require('../runtime/contracts');
@@ -1196,6 +1200,68 @@ function renderCloseOutArtifact(input) {
 `;
 }
 
+function createDefaultProjectProviderConfig() {
+  return {
+    mode: PROVIDER_MODE.LOCAL_STUB,
+    adapter: PROVIDER_ADAPTER_ID.LOCAL_STUB,
+    model: null,
+    env: {
+      apiKeyVar: null,
+    },
+  };
+}
+
+function normalizeProviderReasons(reasons) {
+  return [...new Set((reasons || []).map((reason) => String(reason || '').trim()).filter(Boolean))];
+}
+
+function normalizeProjectProviderConfig(provider) {
+  const defaults = createDefaultProjectProviderConfig();
+  const source = provider && typeof provider === 'object' ? provider : {};
+  const env = source.env && typeof source.env === 'object' ? source.env : {};
+  const mode = source.mode === PROVIDER_MODE.LIVE ? PROVIDER_MODE.LIVE : PROVIDER_MODE.LOCAL_STUB;
+
+  return {
+    ...defaults,
+    mode,
+    adapter:
+      mode === PROVIDER_MODE.LIVE
+        ? PROVIDER_ADAPTER_ID.LIVE_PROVIDER
+        : PROVIDER_ADAPTER_ID.LOCAL_STUB,
+    model:
+      mode === PROVIDER_MODE.LIVE && typeof source.model === 'string' && source.model.trim().length > 0
+        ? source.model.trim()
+        : null,
+    env: {
+      apiKeyVar:
+        mode === PROVIDER_MODE.LIVE &&
+        typeof (env.apiKeyVar ?? source.apiKeyVar) === 'string' &&
+        String(env.apiKeyVar ?? source.apiKeyVar).trim().length > 0
+          ? String(env.apiKeyVar ?? source.apiKeyVar).trim()
+          : null,
+    },
+  };
+}
+
+function normalizeProviderAdapterReadinessSummary(summary) {
+  const source = summary && typeof summary === 'object' ? summary : {};
+  const readiness = Object.values(PROVIDER_READINESS).includes(source.readiness)
+    ? source.readiness
+    : PROVIDER_READINESS.ERROR;
+  const reasons = normalizeProviderReasons(source.reasons);
+
+  return {
+    readiness,
+    allowed: source.allowed === true && reasons.length === 0,
+    reasons:
+      reasons.length > 0
+        ? reasons
+        : source.allowed === true
+          ? []
+          : ['provider readiness probe blocked execution'],
+  };
+}
+
 function createExecutionCoordinator(options = {}) {
   if (!options.runtimeService) {
     throw new Error('runtimeService is required');
@@ -1203,7 +1269,14 @@ function createExecutionCoordinator(options = {}) {
 
   const runtime = options.runtimeService;
   const repoRoot = path.resolve(options.repoRoot || process.cwd());
-  const providerAdapter = options.providerAdapter || createLocalStubProviderAdapter();
+  const localStubProviderAdapter = options.providerAdapter || createLocalStubProviderAdapter();
+  const liveProviderAdapter =
+    options.liveProviderAdapter || createLiveProviderPlaceholderAdapter();
+  const providerAdaptersById = {
+    [PROVIDER_ADAPTER_ID.LOCAL_STUB]: localStubProviderAdapter,
+    [PROVIDER_ADAPTER_ID.LIVE_PROVIDER]: liveProviderAdapter,
+    ...(options.providerAdaptersById || {}),
+  };
   const plannerPromptPath = options.plannerPromptPath || 'prompts/planner.md';
   const architectPromptPath = options.architectPromptPath || 'prompts/architect.md';
   const taskBreakerPromptPath = options.taskBreakerPromptPath || 'prompts/task-breaker.md';
@@ -1212,6 +1285,126 @@ function createExecutionCoordinator(options = {}) {
   const sourceOfTruthPaths = options.sourceOfTruthPaths || DEFAULT_SOURCE_OF_TRUTH_PATHS;
   const architectCodeContextPaths =
     options.architectCodeContextPaths || DEFAULT_ARCHITECT_CODE_CONTEXT_PATHS;
+
+  function resolveProviderExecutionContext(project, role) {
+    const providerConfig = normalizeProjectProviderConfig(project?.provider);
+    const reasons = [];
+    let readiness = PROVIDER_READINESS.READY;
+    let allowed = true;
+    let adapterId = providerConfig.adapter;
+
+    if (providerConfig.mode === PROVIDER_MODE.LOCAL_STUB) {
+      adapterId = PROVIDER_ADAPTER_ID.LOCAL_STUB;
+    } else {
+      adapterId = PROVIDER_ADAPTER_ID.LIVE_PROVIDER;
+
+      if (!providerConfig.model) {
+        reasons.push('live provider model is required before execution');
+      }
+
+      if (!providerConfig.env.apiKeyVar) {
+        reasons.push('live provider apiKey env var is required before execution');
+      } else if (!process.env[providerConfig.env.apiKeyVar]) {
+        reasons.push(
+          `live provider env var ${providerConfig.env.apiKeyVar} is not configured for execution`,
+        );
+      }
+
+      if (reasons.length > 0) {
+        readiness = PROVIDER_READINESS.NOT_CONFIGURED;
+        allowed = false;
+      }
+    }
+
+    const adapter = providerAdaptersById[adapterId] || null;
+
+    if (!adapter || typeof adapter.execute !== 'function') {
+      readiness = PROVIDER_READINESS.ERROR;
+      allowed = false;
+      reasons.push(`provider adapter ${adapterId} is unavailable`);
+    } else if (
+      providerConfig.mode === PROVIDER_MODE.LIVE &&
+      reasons.length === 0
+    ) {
+      if (typeof adapter.getReadiness !== 'function') {
+        readiness = PROVIDER_READINESS.ERROR;
+        allowed = false;
+        reasons.push(`provider adapter ${adapterId} readiness probe is required`);
+      } else {
+        const adapterReadiness = normalizeProviderAdapterReadinessSummary(
+          adapter.getReadiness({
+            project,
+            providerConfig,
+            role,
+          }),
+        );
+
+        readiness = adapterReadiness.readiness;
+        allowed = adapterReadiness.allowed;
+        reasons.push(...adapterReadiness.reasons);
+      }
+    }
+
+    const summary = {
+      adapter: adapterId,
+      allowed: allowed && normalizeProviderReasons(reasons).length === 0,
+      mode: providerConfig.mode,
+      projectId: project?.id || null,
+      readiness,
+      reasons: normalizeProviderReasons(reasons),
+    };
+
+    return {
+      adapter,
+      project,
+      providerConfig,
+      summary,
+    };
+  }
+
+  function assertProviderExecutionReady(project, role) {
+    const context = resolveProviderExecutionContext(project, role);
+
+    if (context.summary.allowed) {
+      return context;
+    }
+
+    throw new Error(
+      context.summary.reasons[0] || `provider execution is not ready for ${role}`,
+    );
+  }
+
+  function getProviderExecutionReadiness(input = {}) {
+    let project = null;
+
+    if (input.projectId) {
+      project = runtime.getProject(input.projectId);
+    } else if (input.taskId) {
+      const task = runtime.getTask(input.taskId);
+      project = runtime.getProject(task.projectId);
+    }
+
+    if (!project) {
+      throw new Error('projectId or taskId is required');
+    }
+
+    return resolveProviderExecutionContext(project, input.role || 'planner').summary;
+  }
+
+  function listProviderExecutionReadinessSummaries(input = {}) {
+    const snapshot = runtime.getSnapshot();
+    const summaries = {};
+
+    for (const project of Object.values(snapshot.projects)) {
+      if (input.projectId && project.id !== input.projectId) {
+        continue;
+      }
+
+      summaries[project.id] = resolveProviderExecutionContext(project, 'planner').summary;
+    }
+
+    return summaries;
+  }
 
   async function assertBuilderLiveMutationReady(input) {
     if (!input || !input.taskId) {
@@ -2606,6 +2799,8 @@ function createExecutionCoordinator(options = {}) {
       throw new Error('project_path is required');
     }
 
+    const providerContext = assertProviderExecutionReady(project, 'planner');
+
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
       task = runtime.transitionTaskLifecycle({
         taskId: task.id,
@@ -2651,10 +2846,10 @@ function createExecutionCoordinator(options = {}) {
     try {
       runtime.appendLog({
         runId: run.id,
-        message: `invoking provider adapter ${providerAdapter.name || 'unknown-adapter'}`,
+        message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerAdapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['architect', 'human gate'],
         defaultNextStage: 'architect',
@@ -2742,6 +2937,7 @@ function createExecutionCoordinator(options = {}) {
     }
 
     const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
+    const providerContext = assertProviderExecutionReady(project, 'architect');
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
       task = runtime.transitionTaskLifecycle({
@@ -2798,10 +2994,10 @@ function createExecutionCoordinator(options = {}) {
     try {
       runtime.appendLog({
         runId: run.id,
-        message: `invoking provider adapter ${providerAdapter.name || 'unknown-adapter'}`,
+        message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerAdapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['human gate', 'task-breaker'],
         defaultNextStage: 'task-breaker',
@@ -2905,6 +3101,7 @@ function createExecutionCoordinator(options = {}) {
 
     const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
     const architectRun = architectureArtifact.runId ? runtime.getRun(architectureArtifact.runId) : null;
+    const providerContext = assertProviderExecutionReady(project, 'task-breaker');
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
       task = runtime.transitionTaskLifecycle({
@@ -2963,10 +3160,10 @@ function createExecutionCoordinator(options = {}) {
     try {
       runtime.appendLog({
         runId: run.id,
-        message: `invoking provider adapter ${providerAdapter.name || 'unknown-adapter'}`,
+        message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerAdapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['builder', 'human gate'],
         defaultNextStage: 'builder',
@@ -3080,6 +3277,7 @@ function createExecutionCoordinator(options = {}) {
     const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
     const architectRun = architectureArtifact.runId ? runtime.getRun(architectureArtifact.runId) : null;
     const taskBreakerRun = breakdownArtifact.runId ? runtime.getRun(breakdownArtifact.runId) : null;
+    const providerContext = assertProviderExecutionReady(project, 'builder-preflight');
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
       task = runtime.transitionTaskLifecycle({
@@ -3145,10 +3343,10 @@ function createExecutionCoordinator(options = {}) {
     try {
       runtime.appendLog({
         runId: run.id,
-        message: `invoking provider adapter ${providerAdapter.name || 'unknown-adapter'}`,
+        message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerAdapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['reviewer', 'task-breaker', 'architect', 'human gate'],
         defaultNextStage: 'reviewer',
@@ -3279,6 +3477,7 @@ function createExecutionCoordinator(options = {}) {
     const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
     const architectRun = architectureArtifact.runId ? runtime.getRun(architectureArtifact.runId) : null;
     const taskBreakerRun = breakdownArtifact.runId ? runtime.getRun(breakdownArtifact.runId) : null;
+    const providerContext = assertProviderExecutionReady(project, 'builder-live-mutation');
     const promptContract = readContextFile(repoRoot, builderPromptPath);
     const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
       readContextFile(repoRoot, relativePath),
@@ -3340,10 +3539,10 @@ function createExecutionCoordinator(options = {}) {
     try {
       runtime.appendLog({
         runId: run.id,
-        message: `invoking provider adapter ${providerAdapter.name || 'unknown-adapter'}`,
+        message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerAdapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['reviewer', 'architect', 'human gate'],
         defaultNextStage: 'reviewer',
@@ -3523,6 +3722,7 @@ function createExecutionCoordinator(options = {}) {
     const project = readyContext.project;
     const builderRun = readyContext.builderRun;
     const approval = readyContext.approval;
+    const providerContext = assertProviderExecutionReady(project, 'reviewer');
     const promptContract = readContextFile(repoRoot, reviewerPromptPath);
     const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
       readContextFile(repoRoot, relativePath),
@@ -3595,10 +3795,10 @@ function createExecutionCoordinator(options = {}) {
     try {
       runtime.appendLog({
         runId: run.id,
-        message: `invoking provider adapter ${providerAdapter.name || 'unknown-adapter'}`,
+        message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerAdapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['builder', 'architect', 'human gate'],
         defaultNextStage: 'builder',
@@ -4529,11 +4729,13 @@ function createExecutionCoordinator(options = {}) {
     getCloseOutReadiness,
     getCommitExecutionReadiness,
     getCommitPackageReadiness,
+    getProviderExecutionReadiness,
     getReleasePackageReadiness,
     getReviewerReadiness,
     listCloseOutReadinessSummaries,
     listCommitExecutionReadinessSummaries,
     listCommitPackageReadinessSummaries,
+    listProviderExecutionReadinessSummaries,
     listReleasePackageReadinessSummaries,
     listReviewerReadinessSummaries,
     runArchitect,

@@ -36,8 +36,8 @@
 - [x] define the `DEC-016` live-provider opt-in boundary without changing the default `local-demo-only` baseline
 - [x] keep the shipped default on `local-stub` and treat any live provider as explicit operator opt-in
 - [x] clarify the adapter contract, secrets handling, health checks, and failure modes before any live-provider implementation starts
-- [ ] implement opt-in provider selection/config plumbing behind the accepted boundary without changing current v1 semantics
-- [ ] add synthetic smoke coverage for config missing, readiness failure, fail-closed behavior, malformed adapter responses, and no-secret-leak guarantees
+- [x] implement opt-in provider selection/config plumbing behind the accepted boundary without changing current v1 semantics
+- [x] add synthetic smoke coverage for config missing, readiness failure, fail-closed behavior, malformed adapter responses, and no-secret-leak guarantees
 - [ ] update provider and release wording only if future implementation requires new operator-visible copy
 
 #### candidate B [later]
@@ -112,6 +112,7 @@
 - [x] worktree-slice-02
 - [x] worktree-slice-03
 - [x] qa-slice-01
+- [x] provider-slice-01
 
 ### deferred / rejected
 - [ ] provider adapter

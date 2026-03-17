@@ -13,6 +13,8 @@ const {
   DECISION_INBOX_SOURCE_TYPE,
   DECISION_INBOX_STATUS,
   PACKS,
+  PROVIDER_ADAPTER_ID,
+  PROVIDER_MODE,
   REVIEW_STATUS,
   RUN_STATUS,
   TASK_LIFECYCLE,
@@ -29,6 +31,80 @@ function createRuntimeService(options = {}) {
     return `${entity}-${String(state.sequences[entity]).padStart(4, '0')}`;
   }
 
+  function normalizeOptionalString(value) {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const normalizedValue = String(value).trim();
+    return normalizedValue.length > 0 ? normalizedValue : null;
+  }
+
+  function createDefaultProjectProviderConfig() {
+    return {
+      mode: PROVIDER_MODE.LOCAL_STUB,
+      adapter: PROVIDER_ADAPTER_ID.LOCAL_STUB,
+      model: null,
+      env: {
+        apiKeyVar: null,
+      },
+    };
+  }
+
+  function normalizeProjectProviderConfig(input) {
+    const defaultConfig = createDefaultProjectProviderConfig();
+    const source = input && typeof input === 'object' ? input : {};
+    const requestedMode = normalizeOptionalString(source.mode);
+    const requestedAdapter = normalizeOptionalString(source.adapter);
+    const requestedModel = normalizeOptionalString(source.model);
+    const requestedEnv = source.env && typeof source.env === 'object' ? source.env : {};
+    const requestedApiKeyVar = normalizeOptionalString(
+      requestedEnv.apiKeyVar ?? source.apiKeyVar,
+    );
+    const mode = requestedMode === PROVIDER_MODE.LIVE ? PROVIDER_MODE.LIVE : PROVIDER_MODE.LOCAL_STUB;
+
+    if (
+      requestedAdapter &&
+      ![PROVIDER_ADAPTER_ID.LOCAL_STUB, PROVIDER_ADAPTER_ID.LIVE_PROVIDER].includes(
+        requestedAdapter,
+      )
+    ) {
+      throw new Error(
+        `provider.adapter must be ${PROVIDER_ADAPTER_ID.LOCAL_STUB} or ${PROVIDER_ADAPTER_ID.LIVE_PROVIDER}`,
+      );
+    }
+
+    return {
+      ...defaultConfig,
+      mode,
+      adapter:
+        mode === PROVIDER_MODE.LIVE
+          ? PROVIDER_ADAPTER_ID.LIVE_PROVIDER
+          : PROVIDER_ADAPTER_ID.LOCAL_STUB,
+      model: mode === PROVIDER_MODE.LIVE ? requestedModel : null,
+      env: {
+        apiKeyVar: mode === PROVIDER_MODE.LIVE ? requestedApiKeyVar : null,
+      },
+    };
+  }
+
+  function normalizeProjectRecord(project) {
+    if (!project || typeof project !== 'object') {
+      return project;
+    }
+
+    project.provider = normalizeProjectProviderConfig(project.provider);
+    return project;
+  }
+
+  function normalizeProjectsInState(state) {
+    for (const project of Object.values(state.projects || {})) {
+      normalizeProjectRecord(project);
+    }
+
+    return state;
+  }
+
   function assertProject(projectId, state) {
     const project = state.projects[projectId];
 
@@ -36,7 +112,7 @@ function createRuntimeService(options = {}) {
       throw new Error(`Project not found: ${projectId}`);
     }
 
-    return project;
+    return normalizeProjectRecord(project);
   }
 
   function assertTask(taskId, state) {
@@ -784,9 +860,10 @@ function createRuntimeService(options = {}) {
     );
 
     if (existingProject) {
+      normalizeProjectRecord(existingProject);
       state.activeProjectId = existingProject.id;
       store.saveState(state);
-      return state.projects[existingProject.id];
+      return normalizeProjectRecord(state.projects[existingProject.id]);
     }
 
     const id = nextId(state, 'project');
@@ -797,6 +874,7 @@ function createRuntimeService(options = {}) {
       name: input.name,
       projectPath,
       pack: PACKS.DEVELOPMENT,
+      provider: normalizeProjectProviderConfig(input.provider),
       readiness: 'ready',
       createdAt: now,
       updatedAt: now,
@@ -804,22 +882,35 @@ function createRuntimeService(options = {}) {
     state.activeProjectId = id;
     store.saveState(state);
 
-    return state.projects[id];
+    return normalizeProjectRecord(state.projects[id]);
   }
 
   function getProject(projectId) {
     const state = store.loadState();
-    return assertProject(projectId, state);
+    return normalizeProjectRecord(assertProject(projectId, state));
   }
 
   function selectProject(projectId) {
     const state = store.loadState();
     const project = assertProject(projectId, state);
 
+    normalizeProjectRecord(project);
     state.activeProjectId = project.id;
     store.saveState(state);
 
-    return state.projects[project.id];
+    return normalizeProjectRecord(state.projects[project.id]);
+  }
+
+  function setProjectProviderConfig(input) {
+    const state = store.loadState();
+    const project = assertProject(input.projectId, state);
+    const now = new Date().toISOString();
+
+    project.provider = normalizeProjectProviderConfig(input.provider);
+    project.updatedAt = now;
+    store.saveState(state);
+
+    return normalizeProjectRecord(state.projects[project.id]);
   }
 
   function createTask(input) {
@@ -1445,7 +1536,8 @@ function createRuntimeService(options = {}) {
   }
 
   function getSnapshot() {
-    return store.loadState();
+    const state = store.loadState();
+    return normalizeProjectsInState(state);
   }
 
   function resetRuntime() {
@@ -1482,6 +1574,7 @@ function createRuntimeService(options = {}) {
     resolveReview,
     resolveDecisionInboxItem,
     resetRuntime,
+    setProjectProviderConfig,
     setTaskWorktreeRef,
     selectProject,
     startRun,

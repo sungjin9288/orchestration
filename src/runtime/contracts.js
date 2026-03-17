@@ -4,6 +4,23 @@ const PACKS = {
   DEVELOPMENT: 'development',
 };
 
+const PROVIDER_MODE = {
+  LOCAL_STUB: 'local-stub',
+  LIVE: 'live',
+};
+
+const PROVIDER_ADAPTER_ID = {
+  LOCAL_STUB: 'local-stub',
+  LIVE_PROVIDER: 'live-provider',
+};
+
+const PROVIDER_READINESS = {
+  READY: 'ready',
+  NOT_CONFIGURED: 'not-configured',
+  DEGRADED: 'degraded',
+  ERROR: 'error',
+};
+
 const TASK_LIFECYCLE = {
   INBOX: 'Inbox',
   IN_PROGRESS: 'In Progress',
@@ -206,6 +223,9 @@ module.exports = {
   DECISION_INBOX_SOURCE_TYPE,
   DECISION_INBOX_STATUS,
   PACKS,
+  PROVIDER_ADAPTER_ID,
+  PROVIDER_MODE,
+  PROVIDER_READINESS,
   RELEASE_ACTION,
   REVIEW_STATUS,
   RUN_STATUS,

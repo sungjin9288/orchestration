@@ -10,7 +10,7 @@ import executionCoordinatorModule from '../src/execution/execution-coordinator.j
 import fileStoreModule from '../src/runtime/file-store.js';
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
 
-const { ARTIFACT_CATALOG, createEmptyState } = contractsModule;
+const { ARTIFACT_CATALOG } = contractsModule;
 const { createExecutionCoordinator } = executionCoordinatorModule;
 const { createFileStore } = fileStoreModule;
 const { createRuntimeService } = runtimeServiceModule;
@@ -75,11 +75,7 @@ function text(response, statusCode, body, contentType) {
 }
 
 function readSnapshotReadonly() {
-  if (!existsSync(store.statePath)) {
-    return createEmptyState();
-  }
-
-  return store.loadState();
+  return runtime.getSnapshot();
 }
 
 function runGit(projectPath, args) {
@@ -358,6 +354,8 @@ function buildDerivedSnapshotData(snapshot) {
     commitExecutionReadinessSummaries:
       executionCoordinator.listCommitExecutionReadinessSummaries(),
     commitPackageReadinessSummaries: executionCoordinator.listCommitPackageReadinessSummaries(),
+    providerExecutionSummaries:
+      executionCoordinator.listProviderExecutionReadinessSummaries(),
     releasePackageReadinessSummaries:
       executionCoordinator.listReleasePackageReadinessSummaries(),
     reviewerReadinessSummaries: executionCoordinator.listReviewerReadinessSummaries(),
@@ -415,6 +413,21 @@ async function readJsonBody(request) {
   }
 
   return JSON.parse(rawBody);
+}
+
+function parseProviderConfigInput(input) {
+  const provider = input?.provider && typeof input.provider === 'object' ? input.provider : {};
+  const env = provider.env && typeof provider.env === 'object' ? provider.env : {};
+  const apiKeyVar = env.apiKeyVar ?? provider.apiKeyVar;
+
+  return {
+    adapter: typeof provider.adapter === 'string' ? provider.adapter : undefined,
+    env: {
+      apiKeyVar: typeof apiKeyVar === 'string' ? apiKeyVar : undefined,
+    },
+    mode: typeof provider.mode === 'string' ? provider.mode : undefined,
+    model: typeof provider.model === 'string' ? provider.model : undefined,
+  };
 }
 
 async function serveStaticAsset(response, assetPath) {
@@ -499,6 +512,7 @@ const server = createServer(async (request, response) => {
       const project = runtime.createProject({
         name,
         projectPath,
+        provider: parseProviderConfigInput(input),
       });
 
       json(
@@ -516,6 +530,36 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
       json(response, statusCode, { error: error.message || 'Project creation failed' });
+      return;
+    }
+  }
+
+  const projectProviderConfigMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/provider-config$/);
+
+  if (method === 'POST' && projectProviderConfigMatch) {
+    try {
+      const projectId = decodeURIComponent(projectProviderConfigMatch[1]);
+      const input = await readJsonBody(request);
+      const project = runtime.setProjectProviderConfig({
+        projectId,
+        provider: parseProviderConfigInput(input),
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          mutation: {
+            kind: 'update-project-provider',
+            projectId: project.id,
+          },
+          project,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Project provider update failed' });
       return;
     }
   }

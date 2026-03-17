@@ -23,6 +23,8 @@
 - pending inbox action route 하나와 snapshot 기반 selection 갱신만으로 human gate loop를 닫을 수 있었다.
 - approval authorization은 최신 approval record만 보는 것으로는 부족하고, 해당 record가 최신 preflight 또는 commit-package target을 가리키는지까지 확인해야 stale allow를 막을 수 있었다.
 - live mutation, reviewer, commit-package, local commit enablement는 UI 추정보다 runtime/coordinator readiness를 그대로 읽는 편이 drift를 줄였다.
+- provider opt-in도 같은 원칙으로 project-level coarse readiness summary만 노출하고, project.readiness 자체는 provider health로 재정의하지 않는 편이 경계를 안정적으로 유지했다.
+- explicit live opt-in은 env 존재만으로 auto-enable하지 말고, config/env/readiness가 하나라도 비정상이면 local-stub fallback 없이 fail-closed로 막는 편이 no-secret-leak과 operator intent를 함께 지키기 쉬웠다.
 - release-ready approval도 preflight target만으로는 충분하지 않고 `releasePackageArtifactId / commitResultArtifactId / commitPackageArtifactId / sourceReviewerRunId / sourceBuilderRunId / targetPreflightArtifactId / commitSha / deliveryStance`를 metadata에 모두 고정해야 stale allow를 막을 수 있었다.
 - same source commit bundle에 대한 release approval은 pending/approved를 409로 닫고 rejected만 재요청 허용하는 편이 duplicate 제어와 human gate 재시도를 함께 단순하게 유지했다.
 - release-package enable/disable과 approval status(`none / pending / approved / rejected / stale`)는 UI에서 별도 semantics를 다시 계산하지 말고 `releasePackageReadiness` summary를 그대로 읽어야 polling과 stale handling drift를 막을 수 있었다.
