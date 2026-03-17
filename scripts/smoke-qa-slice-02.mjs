@@ -722,7 +722,7 @@ async function runFlow() {
       /provider readiness:not-configured/i,
       'invalid provider live mode rendered',
     );
-    assert.match(liveProviderSnapshot, /provider:live-provider/i);
+    assert.match(liveProviderSnapshot, /provider:openai-responses/i);
 
     const afterInvalidProviderUpdate = await waitForValue(async () => {
       const snapshotPayload = await fetchJson(baseUrl, '/api/snapshot');
@@ -790,121 +790,6 @@ async function runFlow() {
       /model is required/i,
       expectedCounts,
     );
-    await postJson(baseUrl, `/api/projects/${encodeURIComponent(projectId)}/provider-config`, {
-      provider: {
-        env: {
-          apiKeyVar: liveProviderEnvVar,
-        },
-        mode: 'live',
-        model: 'operator-chosen-model',
-      },
-    });
-    assert.equal(clickRef(sessionName, invalidRefreshRef), true);
-
-    const afterDegradedProviderUpdate = await waitForValue(async () => {
-      const snapshotPayload = await fetchJson(baseUrl, '/api/snapshot');
-      const summary = snapshotPayload.derived.providerExecutionSummaries[projectId];
-
-      return summary?.readiness === 'degraded' ? snapshotPayload : null;
-    }, 'degraded live provider config');
-    const degradedSummary = afterDegradedProviderUpdate.derived.providerExecutionSummaries[projectId];
-
-    assert.equal(degradedSummary.allowed, false);
-    assert.equal(degradedSummary.readiness, 'degraded');
-    assert.match(degradedSummary.reasons.join('; '), /disabled in provider-slice-01/i);
-    const degradedProviderSnapshot = await waitForSnapshotText(
-      sessionName,
-      /live-provider execution remains disabled in provider-slice-01/i,
-      'degraded provider DOM',
-    );
-    const degradedRunPlannerRef = findRef(
-      degradedProviderSnapshot,
-      /button "Run Planner" \[ref=(e\d+)\]/,
-      'Run Planner button after degraded provider',
-    );
-
-    assert.match(degradedProviderSnapshot, /provider readiness:degraded/i);
-    assert.equal(clickRef(sessionName, degradedRunPlannerRef), true);
-
-    const degradedRefreshSnapshot = await waitForSnapshotText(
-      sessionName,
-      /live-provider execution remains disabled in provider-slice-01/i,
-      'degraded provider refresh status',
-    );
-
-    assert.match(
-      degradedRefreshSnapshot,
-      /live-provider execution remains disabled in provider-slice-01/,
-    );
-    assertSecretAbsent(
-      degradedRefreshSnapshot,
-      sentinelSecret,
-      'taskboard snapshot after degraded provider failure',
-    );
-
-    const afterDegradedBrowserFailure = await waitForSnapshotPayload(
-      baseUrl,
-      'snapshot after degraded provider browser failure',
-      (payload) =>
-        countRuns(payload.snapshot, taskId) === expectedCounts.runs &&
-        countArtifacts(payload.snapshot, taskId, 'plan') === expectedCounts.planArtifacts,
-    );
-
-    assert.equal(countRuns(afterDegradedBrowserFailure.snapshot, taskId), expectedCounts.runs);
-    assert.equal(
-      countArtifacts(afterDegradedBrowserFailure.snapshot, taskId, 'plan'),
-      expectedCounts.planArtifacts,
-    );
-
-    const degradedApiError = await expectPlannerApiFailClosed(
-      baseUrl,
-      taskId,
-      /disabled in provider-slice-01/i,
-      expectedCounts,
-    );
-    const degradedTaskboardSnapshot = await waitForSnapshotText(
-      sessionName,
-      /live-provider execution remains disabled in provider-slice-01/i,
-      'taskboard after degraded provider',
-    );
-    const degradedLogsNavRef = findRef(
-      degradedTaskboardSnapshot,
-      /button "Logs \(\d+\)" \[ref=(e\d+)\]/,
-      'Logs navigation button after degraded provider',
-    );
-
-    assert.equal(clickRef(sessionName, degradedLogsNavRef), true);
-
-    const degradedLogsSnapshot = await waitForSnapshotText(
-      sessionName,
-      new RegExp(escapeRegExp(localStubRunId)),
-      'logs DOM after degraded provider',
-    );
-    const degradedArtifactsNavRef = findRef(
-      degradedLogsSnapshot,
-      /button "Artifacts \(\d+\)" \[ref=(e\d+)\]/,
-      'Artifacts navigation button after degraded provider',
-    );
-
-    assertSecretAbsent(
-      degradedLogsSnapshot,
-      sentinelSecret,
-      'logs snapshot after degraded provider',
-    );
-    assert.equal(clickRef(sessionName, degradedArtifactsNavRef), true);
-
-    const degradedArtifactsSnapshot = await waitForSnapshotText(
-      sessionName,
-      new RegExp(escapeRegExp(localStubPlanArtifactId)),
-      'artifacts DOM after degraded provider',
-    );
-
-    assertSecretAbsent(
-      degradedArtifactsSnapshot,
-      sentinelSecret,
-      'artifacts snapshot after degraded provider',
-    );
-
     const finalSnapshotPayload = await fetchJson(baseUrl, '/api/snapshot');
 
     await scanApiPayloadsForSecret(baseUrl, finalSnapshotPayload, sentinelSecret);
@@ -914,11 +799,6 @@ async function runFlow() {
     assert.deepEqual(runtimeSecretMatches, []);
 
     return {
-      degradedApiError,
-      degradedSummary: {
-        allowed: degradedSummary.allowed,
-        readiness: degradedSummary.readiness,
-      },
       invalidApiError,
       invalidSummary: {
         allowed: invalidSummary.allowed,

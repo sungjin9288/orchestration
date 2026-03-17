@@ -194,10 +194,10 @@ The following changes require an explicit decision log update before implementat
 - changing provider strategy
 - adding office-first, messenger-first, or multi-provider-first features
 
-## Future Live-Provider Opt-In Boundary
+## Implemented Live-Provider Boundary
 - `local-stub` remains the shipped default; a live provider is explicit operator opt-in only and does not auto-enable from env or secret presence.
 - Provider selection changes only the adapter used for role execution; it does not change lifecycle, artifact taxonomy, approval semantics, linked-worktree rules, or the local-only release boundary.
-- `strategy-slice-02` fixes the first concrete live provider to `OpenAI Responses API` and limits first live execution scope to `planner` only.
+- `provider-slice-02` implements the first concrete live provider as `OpenAI Responses API` and limits first live execution scope to `planner` only.
 - The canonical adapter id for that first live provider is `openai-responses`; any retained `live-provider` identifier is compatibility-only and must not become the long-term source-of-truth id.
 - The first concrete provider is selected by smallest adapter-contract delta, explicit opt-in config fit, project-level readiness visibility, fail-closed behavior, and no-secret-leak verification.
 - The first live slice must not introduce a repo-level model default. The concrete model remains operator-pinned project config.

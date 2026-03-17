@@ -62,15 +62,15 @@ function createRuntimeService(options = {}) {
       requestedEnv.apiKeyVar ?? source.apiKeyVar,
     );
     const mode = requestedMode === PROVIDER_MODE.LIVE ? PROVIDER_MODE.LIVE : PROVIDER_MODE.LOCAL_STUB;
+    const allowedAdapterIds = [
+      PROVIDER_ADAPTER_ID.LOCAL_STUB,
+      PROVIDER_ADAPTER_ID.OPENAI_RESPONSES,
+      PROVIDER_ADAPTER_ID.LIVE_PROVIDER_ALIAS,
+    ];
 
-    if (
-      requestedAdapter &&
-      ![PROVIDER_ADAPTER_ID.LOCAL_STUB, PROVIDER_ADAPTER_ID.LIVE_PROVIDER].includes(
-        requestedAdapter,
-      )
-    ) {
+    if (requestedAdapter && !allowedAdapterIds.includes(requestedAdapter)) {
       throw new Error(
-        `provider.adapter must be ${PROVIDER_ADAPTER_ID.LOCAL_STUB} or ${PROVIDER_ADAPTER_ID.LIVE_PROVIDER}`,
+        `provider.adapter must be ${PROVIDER_ADAPTER_ID.LOCAL_STUB}, ${PROVIDER_ADAPTER_ID.OPENAI_RESPONSES}, or ${PROVIDER_ADAPTER_ID.LIVE_PROVIDER_ALIAS}`,
       );
     }
 
@@ -79,7 +79,7 @@ function createRuntimeService(options = {}) {
       mode,
       adapter:
         mode === PROVIDER_MODE.LIVE
-          ? PROVIDER_ADAPTER_ID.LIVE_PROVIDER
+          ? PROVIDER_ADAPTER_ID.OPENAI_RESPONSES
           : PROVIDER_ADAPTER_ID.LOCAL_STUB,
       model: mode === PROVIDER_MODE.LIVE ? requestedModel : null,
       env: {

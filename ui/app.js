@@ -118,7 +118,7 @@ function getProjectProviderConfig(project) {
   const mode = provider.mode === 'live' ? 'live' : 'local-stub';
 
   return {
-    adapter: mode === 'live' ? 'live-provider' : 'local-stub',
+    adapter: mode === 'live' ? 'openai-responses' : 'local-stub',
     env: {
       apiKeyVar: mode === 'live' ? env.apiKeyVar || '' : '',
     },
@@ -3800,7 +3800,7 @@ function buildProviderPayload(mode, model, apiKeyVar) {
   const normalizedMode = mode === 'live' ? 'live' : 'local-stub';
 
   return {
-    adapter: normalizedMode === 'live' ? 'live-provider' : 'local-stub',
+    adapter: normalizedMode === 'live' ? 'openai-responses' : 'local-stub',
     env: {
       apiKeyVar: normalizedMode === 'live' ? apiKeyVar.trim() : '',
     },
@@ -4971,7 +4971,7 @@ function renderProjectBootstrapPanel(data) {
                     ${projectActionDisabled ? 'disabled' : ''}
                   >
                     <option value="local-stub" ${state.projectProviderDraftMode === 'local-stub' ? 'selected' : ''}>local-stub</option>
-                    <option value="live" ${state.projectProviderDraftMode === 'live' ? 'selected' : ''}>live-provider</option>
+                    <option value="live" ${state.projectProviderDraftMode === 'live' ? 'selected' : ''}>openai-responses</option>
                   </select>
                 </label>
                 ${
@@ -4993,7 +4993,7 @@ function renderProjectBootstrapPanel(data) {
                           type="text"
                           name="editProjectProviderApiKeyVar"
                           value="${escapeHtml(state.projectProviderDraftApiKeyVar)}"
-                          placeholder="LIVE_PROVIDER_API_KEY"
+                          placeholder="OPENAI_API_KEY"
                           ${projectActionDisabled ? 'disabled' : ''}
                         >
                       </label>
@@ -5009,7 +5009,7 @@ function renderProjectBootstrapPanel(data) {
                   ${
                     activeProjectProviderSummary?.reasons?.length
                       ? escapeHtml(activeProjectProviderSummary.reasons[0])
-                      : 'Only non-secret metadata is stored here. Actual live-provider execution stays disabled in provider-slice-01.'
+                      : 'Only non-secret metadata is stored here. Live mode enables planner only; architect, task-breaker, builder, and reviewer stay fail-closed until a later slice.'
                   }
                 </p>
               </div>
@@ -5072,7 +5072,7 @@ function renderProjectBootstrapPanel(data) {
               ${projectActionDisabled ? 'disabled' : ''}
             >
               <option value="local-stub" ${createProjectProviderMode === 'local-stub' ? 'selected' : ''}>local-stub</option>
-              <option value="live" ${createProjectProviderMode === 'live' ? 'selected' : ''}>live-provider</option>
+              <option value="live" ${createProjectProviderMode === 'live' ? 'selected' : ''}>openai-responses</option>
             </select>
           </label>
           ${
@@ -5094,7 +5094,7 @@ function renderProjectBootstrapPanel(data) {
                     type="text"
                     name="projectProviderApiKeyVar"
                     value="${escapeHtml(state.projectDraftProviderApiKeyVar)}"
-                    placeholder="LIVE_PROVIDER_API_KEY"
+                    placeholder="OPENAI_API_KEY"
                     ${projectActionDisabled ? 'disabled' : ''}
                   >
                 </label>
@@ -5109,7 +5109,7 @@ function renderProjectBootstrapPanel(data) {
           <p class="form-help">
             ${
               createProjectProviderMode === 'live'
-                ? 'Live mode stores non-secret opt-in metadata only and will remain fail-closed until a future live adapter slice enables execution.'
+                ? 'Live mode stores non-secret opt-in metadata only. Planner can execute live when model and env are valid; downstream roles stay fail-closed.'
                 : 'Registration stores the project, keeps local-stub as the default execution provider, and makes the project active.'
             }
           </p>

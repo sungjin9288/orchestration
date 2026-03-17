@@ -41,14 +41,18 @@ function assertExecutionRequest(request) {
   }
 }
 
-async function executeWithAdapter(adapter, request) {
+async function executeWithAdapter(adapter, request, context = {}) {
   assertExecutionRequest(request);
 
   if (!adapter || typeof adapter.execute !== 'function') {
     throw new Error('Provider adapter execute(request) is required');
   }
 
-  const response = await adapter.execute(request);
+  const response = await adapter.execute(request, {
+    project: context.project || null,
+    providerConfig: context.providerConfig || null,
+    role: request.role,
+  });
 
   if (!response || typeof response !== 'object') {
     throw new Error('Provider adapter must return an object response');

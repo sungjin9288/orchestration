@@ -11,7 +11,8 @@ const PROVIDER_MODE = {
 
 const PROVIDER_ADAPTER_ID = {
   LOCAL_STUB: 'local-stub',
-  LIVE_PROVIDER: 'live-provider',
+  OPENAI_RESPONSES: 'openai-responses',
+  LIVE_PROVIDER_ALIAS: 'live-provider',
 };
 
 const PROVIDER_READINESS = {

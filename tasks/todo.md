@@ -53,6 +53,7 @@
 - [ ] keep Tier A protected while preserving explicit, inspectable retention behavior for Tier B and Tier C
 
 #### optional verification / housekeeping
+- [x] optional real live planner-only smoke entrypoint is available behind explicit `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL`
 - [ ] decide whether to promote `node scripts/smoke-qa-slice-01.mjs` from optional coverage to a required regression gate
 - [ ] clean non-SSoT reference docs that can drift from the repo contracts
 
@@ -72,7 +73,7 @@
 - [x] `Task Detail / Artifacts` can prepare a `release-package`, show structured release provenance and guard reasons, and preselect the matching `human/release` inbox item without forcing a surface change
 - [x] stale smoke expectations and live-mutation fixture assumptions were consolidated around the current guard and preflight contract
 - [x] a real-path end-to-end development loop smoke now covers planner through local commit on a clean temp repo
-- [x] provider stance is locked to `local-demo-only` via `local-stub`, while any live provider remains future opt-in
+- [x] provider stance keeps `local-stub` as the shipped default while planner-only `openai-responses` live opt-in remains explicit and fail-closed
 - [x] accepted / rejected / [OPEN] docs are reconciled to the implemented bootstrap, worktree, build, review, commit, release-package, close-out, and artifact-policy baseline
 
 ### next phase entry conditions
@@ -85,6 +86,7 @@
 
 ### completed slices [archive]
 - [x] strategy-slice-02
+- [x] provider-slice-02
 - [x] full-docs-reconcile-01
 - [x] docs-patch-06
 - [x] runtime-slice-01

@@ -6,7 +6,9 @@ const os = require('os');
 const path = require('path');
 
 const { executeWithAdapter } = require('./provider-adapter');
-const { createLiveProviderPlaceholderAdapter } = require('./providers/live-provider-placeholder');
+const {
+  createOpenAIResponsesProviderAdapter,
+} = require('./providers/openai-responses-adapter');
 const { createLocalStubProviderAdapter } = require('./providers/local-stub-adapter');
 const {
   APPROVAL_STATUS,
@@ -1226,7 +1228,7 @@ function normalizeProjectProviderConfig(provider) {
     mode,
     adapter:
       mode === PROVIDER_MODE.LIVE
-        ? PROVIDER_ADAPTER_ID.LIVE_PROVIDER
+        ? PROVIDER_ADAPTER_ID.OPENAI_RESPONSES
         : PROVIDER_ADAPTER_ID.LOCAL_STUB,
     model:
       mode === PROVIDER_MODE.LIVE && typeof source.model === 'string' && source.model.trim().length > 0
@@ -1271,10 +1273,11 @@ function createExecutionCoordinator(options = {}) {
   const repoRoot = path.resolve(options.repoRoot || process.cwd());
   const localStubProviderAdapter = options.providerAdapter || createLocalStubProviderAdapter();
   const liveProviderAdapter =
-    options.liveProviderAdapter || createLiveProviderPlaceholderAdapter();
+    options.liveProviderAdapter || createOpenAIResponsesProviderAdapter();
   const providerAdaptersById = {
     [PROVIDER_ADAPTER_ID.LOCAL_STUB]: localStubProviderAdapter,
-    [PROVIDER_ADAPTER_ID.LIVE_PROVIDER]: liveProviderAdapter,
+    [PROVIDER_ADAPTER_ID.OPENAI_RESPONSES]: liveProviderAdapter,
+    [PROVIDER_ADAPTER_ID.LIVE_PROVIDER_ALIAS]: liveProviderAdapter,
     ...(options.providerAdaptersById || {}),
   };
   const plannerPromptPath = options.plannerPromptPath || 'prompts/planner.md';
@@ -1296,7 +1299,7 @@ function createExecutionCoordinator(options = {}) {
     if (providerConfig.mode === PROVIDER_MODE.LOCAL_STUB) {
       adapterId = PROVIDER_ADAPTER_ID.LOCAL_STUB;
     } else {
-      adapterId = PROVIDER_ADAPTER_ID.LIVE_PROVIDER;
+      adapterId = PROVIDER_ADAPTER_ID.OPENAI_RESPONSES;
 
       if (!providerConfig.model) {
         reasons.push('live provider model is required before execution');
@@ -2849,7 +2852,7 @@ function createExecutionCoordinator(options = {}) {
         message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerContext.adapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request, providerContext);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['architect', 'human gate'],
         defaultNextStage: 'architect',
@@ -2997,7 +3000,7 @@ function createExecutionCoordinator(options = {}) {
         message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerContext.adapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request, providerContext);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['human gate', 'task-breaker'],
         defaultNextStage: 'task-breaker',
@@ -3163,7 +3166,7 @@ function createExecutionCoordinator(options = {}) {
         message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerContext.adapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request, providerContext);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['builder', 'human gate'],
         defaultNextStage: 'builder',
@@ -3346,7 +3349,7 @@ function createExecutionCoordinator(options = {}) {
         message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerContext.adapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request, providerContext);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['reviewer', 'task-breaker', 'architect', 'human gate'],
         defaultNextStage: 'reviewer',
@@ -3542,7 +3545,7 @@ function createExecutionCoordinator(options = {}) {
         message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerContext.adapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request, providerContext);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['reviewer', 'architect', 'human gate'],
         defaultNextStage: 'reviewer',
@@ -3798,7 +3801,7 @@ function createExecutionCoordinator(options = {}) {
         message: `invoking provider adapter ${providerContext.adapter.name || 'unknown-adapter'}`,
       });
 
-      const response = await executeWithAdapter(providerContext.adapter, request);
+      const response = await executeWithAdapter(providerContext.adapter, request, providerContext);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
         allowedNextStages: ['builder', 'architect', 'human gate'],
         defaultNextStage: 'builder',

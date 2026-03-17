@@ -20,7 +20,7 @@ The pack exists to keep development execution inspectable and controlled:
 - The builder must not silently change architecture. If an architectural change is discovered or required, the task must route back through architecture review and, when needed, a human decision.
 - Review is a required gate before a task can be considered done.
 - Approval is a required gate before commit.
-- Provider-agnostic contract language stays intact, but the shipped v1 default is `local-demo-only` via the built-in `local-stub` adapter. Any live provider remains a future explicit opt-in behind the same adapter boundary.
+- Provider-agnostic contract language stays intact. The shipped v1 default remains `local-demo-only` via the built-in `local-stub` adapter, and the first live opt-in stays narrowly limited to planner-only `openai-responses` execution behind the same adapter boundary.
 
 ## Entry Criteria
 A task may enter this pack only when all of the following are true:
@@ -229,10 +229,10 @@ Artifact expectations:
 - `Blocked`, `Waiting Approval`, and `Waiting Decision` are fixed v1 task flags, not lifecycle statuses.
 
 ## VNext Backlog After V1 Freeze
-### Future Live-Provider Opt-In Boundary
-- Why still open: The shipped v1 default is fixed to `local-demo-only` via `local-stub`, but the boundary for any future live-provider opt-in is not yet defined at the pack-contract level.
-- Current temporary default: Keep provider-agnostic interface language and do not add live-provider-specific workflow requirements to this pack.
-- Decide again when: Before adding any live execution integration beyond the current local-only baseline.
+### Future Live-Provider Expansion Boundary
+- Why still open: The first live-provider boundary is now implemented as planner-only `openai-responses`, but later scope expansion for `architect`, `task-breaker`, `builder`, `reviewer`, or additional providers is still intentionally deferred.
+- Current temporary default: Keep the current planner-only live scope, keep `local-stub` as the shipped default, and do not widen live execution semantics without an explicit follow-up decision.
+- Decide again when: Before enabling any downstream live role or adding another provider adapter.
 
 ### Future Cleanup Policy
 - Why still open: Retention tiers are normalized, but no delete/archive/GC capability exists in v1.
