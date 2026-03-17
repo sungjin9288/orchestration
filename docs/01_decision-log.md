@@ -135,6 +135,21 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: This matches the implemented runtime, coordinator, and UI behavior without adding delete, archive, or garbage-collection capability. Artifacts already persist as raw stored files plus runtime metadata, structured previews are best-effort with raw fallback, and downstream readiness is anchored to exact artifact and run provenance.
 - Impact: `recordArtifact` may validate types on write, repo docs plus runtime contracts define the allowed taxonomy, and `Artifacts` keeps latest-first browsing without weakening raw-source-of-truth fallback. No read-path migration, lifecycle expansion, provider change, or cleanup capability is added.
 
+### DEC-029
+- Status: `Accepted`
+- Decision: Define the live-provider opt-in boundary that extends `DEC-016` without changing the shipped default. `local-demo-only` via `local-stub` remains the baseline, and any live provider is an explicit operator opt-in that only changes the adapter used for role execution (`planner`, `architect`, `task-breaker`, `builder`, `reviewer`).
+- Why: The repo already has one adapter seam and a fixed local-only delivery stance, but it did not yet define how a future live provider could opt in without leaking provider semantics into lifecycle, approval, artifact, release, or UI behavior.
+- Impact: Provider selection and delivery stance are separate concerns. `release-package` and `close-out` remain `local-demo-only`; no live-provider opt-in may weaken review, approval, worktree, or artifact provenance rules. The core adapter contract stays `name + execute(request)` with the current response shape, while any future live adapter may add only opt-in metadata for supported roles, config requirements, readiness probing, and safe error classification. Secrets stay operator-local and must not be written into runtime state, artifacts, logs, approvals, or UI payloads. Provider health may surface only as a coarse opt-in readiness summary such as `not-configured`, `ready`, `degraded`, or `error`; it must not redefine project readiness, add provider-admin UI, or silently fall back to `local-stub` when explicit live opt-in fails.
+
+## [OPEN]
+
+### DEC-030
+- Status: `[OPEN]`
+- Decision: Define when and how a future retention consumer may apply delete, archive, or GC behavior to the normalized Tier A/B/C artifact rules from `DEC-018`.
+- Why: The runtime already classifies artifact retention tiers, but the current file store and runtime only retain history and do not implement cleanup semantics. Before any cleanup capability exists, provenance-critical artifacts and latest-centered browse behavior need an explicit protection and failure-policy contract.
+- Impact: Future cleanup work should consume the existing retention tiers instead of inventing parallel artifact rules. Tier A provenance-critical artifacts must stay protected, Tier B latest-centered history must keep inspectable retention behavior, and any cleanup action must remain explicit rather than hidden drift.
+- Needed Before: adding delete, archive, or GC capability to runtime, coordinator, or UI flows
+
 ## Rejected
 
 ### DEC-010

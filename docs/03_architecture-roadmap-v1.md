@@ -194,6 +194,13 @@ The following changes require an explicit decision log update before implementat
 - changing provider strategy
 - adding office-first, messenger-first, or multi-provider-first features
 
+## Future Live-Provider Opt-In Boundary
+- `local-stub` remains the shipped default; a live provider is explicit operator opt-in only and does not auto-enable from env or secret presence.
+- Provider selection changes only the adapter used for role execution; it does not change lifecycle, artifact taxonomy, approval semantics, linked-worktree rules, or the local-only release boundary.
+- Secrets and provider-specific auth stay outside repo-defined runtime state and must not be written into runtime snapshots, artifacts, logs, approvals, or UI payloads.
+- Provider health is an execution prerequisite, not a new product surface. A future live opt-in may expose only coarse readiness such as `not-configured`, `ready`, `degraded`, or `error`.
+- Verification direction stays local-first: keep the current `local-stub` regression gate unchanged, and add synthetic opt-in smoke coverage for config missing, readiness failure, fail-closed behavior, malformed adapter responses, and no-secret-leak guarantees before any real provider integration ships.
+
 ## Deferred Items
 - office or radar visualization
 - messenger adapters
@@ -209,7 +216,8 @@ The following changes require an explicit decision log update before implementat
 - remaining open items are separated into explicit `vNext` backlog entries only
 
 ## VNext Backlog After V1 Freeze
-- define the future live-provider opt-in boundary behind the existing adapter boundary after the v1 `local-demo-only` baseline
+- implement any future live-provider opt-in only behind the accepted adapter boundary while preserving the v1 `local-demo-only` baseline
+- add synthetic readiness and failure smoke coverage before any real live-provider integration ships
 - define when a future delete/archive/GC capability should consume the normalized retention tiers
 
 ## Slice Review Checklist

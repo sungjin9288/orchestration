@@ -130,5 +130,6 @@ Orchestration 1.0 should reuse the useful control-plane ideas from `claw-empire`
 ## VNext Backlog After V1 Freeze
 These items remain explicitly outside the frozen v1 baseline and do not block `milestone-m3-freeze`.
 
-- define the future live-provider opt-in boundary behind the existing adapter boundary after the v1 `local-demo-only` baseline
+- implement any future live-provider opt-in only behind the accepted adapter boundary while preserving the v1 `local-demo-only` baseline
+- add synthetic readiness and failure smoke coverage before any real live-provider integration ships
 - define when a future delete/archive/GC capability should consume the normalized retention tiers
