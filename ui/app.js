@@ -5009,7 +5009,7 @@ function renderProjectBootstrapPanel(data) {
                   ${
                     activeProjectProviderSummary?.reasons?.length
                       ? escapeHtml(activeProjectProviderSummary.reasons[0])
-                      : 'Only non-secret metadata is stored here. Live mode enables planner only; architect, task-breaker, builder, and reviewer stay fail-closed until a later slice.'
+                      : 'Only non-secret metadata is stored here. Live mode enables planner and architect only; task-breaker, builder, and reviewer stay fail-closed until a later slice.'
                   }
                 </p>
               </div>
@@ -5109,7 +5109,7 @@ function renderProjectBootstrapPanel(data) {
           <p class="form-help">
             ${
               createProjectProviderMode === 'live'
-                ? 'Live mode stores non-secret opt-in metadata only. Planner can execute live when model and env are valid; downstream roles stay fail-closed.'
+                ? 'Live mode stores non-secret opt-in metadata only. Planner and architect can execute live when model and env are valid; downstream roles stay fail-closed.'
                 : 'Registration stores the project, keeps local-stub as the default execution provider, and makes the project active.'
             }
           </p>
@@ -5521,14 +5521,14 @@ function renderTaskDetail(task, data) {
             ${
               taskBreakerDisabled
                 ? `Task-Breaker stays disabled until ${escapeHtml(taskBreakerState.reasons.join('; '))}.`
-                : `Task-Breaker reads ${escapeHtml(latestPlanArtifact.id)} and ${escapeHtml(latestArchitectureArtifact.id)}, writes a breakdown artifact, and only preselects a blocking Decision Inbox item without leaving Artifacts.`
+                : `Task-Breaker reads ${escapeHtml(latestPlanArtifact?.id || 'latest plan artifact')} and ${escapeHtml(latestArchitectureArtifact?.id || 'latest architecture artifact')}, writes a breakdown artifact, and only preselects a blocking Decision Inbox item without leaving Artifacts.`
             }
           </p>
           <p class="form-help">
             ${
               builderPreflightDisabled
                 ? `Builder preflight stays disabled until ${escapeHtml(builderPreflightState.reasons.join('; '))}.`
-                : `Builder preflight reads ${escapeHtml(builderPreflightState.latestPlanArtifact.id)}, ${escapeHtml(builderPreflightState.latestArchitectureArtifact.id)}, and ${escapeHtml(builderPreflightState.latestBreakdownArtifact.id)}, then writes a no-write preflight artifact without running reviewer live.`
+                : `Builder preflight reads ${escapeHtml(builderPreflightState.latestPlanArtifact?.id || 'latest plan artifact')}, ${escapeHtml(builderPreflightState.latestArchitectureArtifact?.id || 'latest architecture artifact')}, and ${escapeHtml(builderPreflightState.latestBreakdownArtifact?.id || 'latest breakdown artifact')}, then writes a no-write preflight artifact without running reviewer live.`
             }
           </p>
         </div>

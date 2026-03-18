@@ -51,8 +51,8 @@
 - [x] lock architect live structured output to schema-backed `anchor`, `artifact`, and `normalizedResult` data with adapter-rendered markdown
 - [x] lock architect live defaults to `task-breaker | human gate`, blocking decision-on-valid-blocked only, and fail-closed on invalid output or readiness failure
 - [x] keep builder/reviewer live expansion and release/close-out semantics out of scope for this slice
-- [ ] update provider and release wording only if future implementation requires new operator-visible copy
-- [ ] implement architect live adapter, role-specific readiness, and architect-specific smoke coverage in a later slice
+- [x] update provider and release wording only if future implementation requires new operator-visible copy
+- [x] implement architect live adapter, role-specific readiness, and architect-specific smoke coverage in a later slice
 
 #### candidate B [later]
 - [ ] define retention-consumer capability against the normalized Tier A/B/C artifact rules
@@ -60,7 +60,7 @@
 - [ ] keep Tier A protected while preserving explicit, inspectable retention behavior for Tier B and Tier C
 
 #### optional verification / housekeeping
-- [x] optional real live planner-only smoke entrypoints are available behind explicit `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL`
+- [x] optional real live planner plus architect smoke entrypoints are available behind explicit `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL`
 - [ ] decide whether to promote `node scripts/smoke-qa-slice-01.mjs` from optional coverage to a required regression gate
 - [ ] clean non-SSoT reference docs that can drift from the repo contracts
 
@@ -80,7 +80,7 @@
 - [x] `Task Detail / Artifacts` can prepare a `release-package`, show structured release provenance and guard reasons, and preselect the matching `human/release` inbox item without forcing a surface change
 - [x] stale smoke expectations and live-mutation fixture assumptions were consolidated around the current guard and preflight contract
 - [x] a real-path end-to-end development loop smoke now covers planner through local commit on a clean temp repo
-- [x] provider stance keeps `local-stub` as the shipped default while planner-only `openai-responses` live opt-in remains explicit and fail-closed
+- [x] provider stance keeps `local-stub` as the shipped default while planner plus architect `openai-responses` live opt-in remains explicit and fail-closed
 - [x] accepted / rejected / [OPEN] docs are reconciled to the implemented bootstrap, worktree, build, review, commit, release-package, close-out, and artifact-policy baseline
 
 ### next phase entry conditions

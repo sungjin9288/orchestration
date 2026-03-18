@@ -197,7 +197,7 @@ The following changes require an explicit decision log update before implementat
 ## Implemented Live-Provider Boundary
 - `local-stub` remains the shipped default; a live provider is explicit operator opt-in only and does not auto-enable from env or secret presence.
 - Provider selection changes only the adapter used for role execution; it does not change lifecycle, artifact taxonomy, approval semantics, linked-worktree rules, or the local-only release boundary.
-- `provider-slice-02` implements the first concrete live provider as `OpenAI Responses API` and limits first live execution scope to `planner` only.
+- `provider-slice-02` implements the first concrete live provider as `OpenAI Responses API` for `planner`, and `provider-slice-03` extends that same adapter boundary to `architect` without widening downstream live execution.
 - The canonical adapter id for that first live provider is `openai-responses`; any retained `live-provider` identifier is compatibility-only and must not become the long-term source-of-truth id.
 - The first concrete provider is selected by smallest adapter-contract delta, explicit opt-in config fit, project-level readiness visibility, fail-closed behavior, and no-secret-leak verification.
 - The first live slice must not introduce a repo-level model default. The concrete model remains operator-pinned project config.
@@ -205,10 +205,10 @@ The following changes require an explicit decision log update before implementat
 - Planner live output should use Responses Structured Outputs with `text.format.type=json_schema`, and the schema should carry both `artifactMarkdown` and `normalizedResult` so the current adapter contract can stay narrow.
 - `outputText` extraction should prefer top-level `response.output_text`; when it is absent, the adapter should safely aggregate `output_text` content from the response `output` array without relying on fixed indexes.
 - Provider health is an execution prerequisite, not a new product surface. A future live opt-in may expose only coarse readiness such as `not-configured`, `ready`, `degraded`, or `error`.
-- Verification direction stays local-first: keep the current `local-stub` regression gate unchanged, add synthetic opt-in smoke coverage for config missing, readiness failure, planner-only scope enforcement, fail-closed behavior, malformed adapter responses, and no-secret-leak guarantees, and limit the first live smoke to an explicit opt-in planner happy path only.
+- Verification direction stays local-first: keep the current `local-stub` regression gate unchanged, keep planner live regression coverage unchanged, add architect-specific synthetic opt-in smoke coverage for anchor validation, readiness failure, fail-closed behavior, malformed adapter responses, and no-secret-leak guarantees, and limit optional real live smoke to explicit opt-in planner plus architect happy-path coverage only.
 
-## Accepted Next Live-Provider Boundary [Not Yet Implemented]
-- `strategy-slice-03` is a design-lock slice only. The current implemented live runtime remains planner-only until a later implementation slice lands.
+## Implemented Architect Live Boundary
+- `provider-slice-03` implements the accepted `strategy-slice-03` boundary. The current live runtime is planner plus architect only; `task-breaker`, `builder`, and `reviewer` remain blocked and degraded in live mode.
 - Why `architect` first: the architect stage is already no-write, artifact-producing, and decision-producing without consuming approvals or touching builder, reviewer, release-package, or close-out semantics.
 - Architect input anchor is fixed to the latest current `plan` bundle: `planArtifactId`, `planRunId`, matching planner run summary, active task and project identity, the existing source-of-truth file set, and the existing architect code-context allowlist.
 - Architect input must not widen into arbitrary repo scans, operator-supplied file targets, or secret-bearing request material. Missing anchor parts block execution instead of degrading into partial input.

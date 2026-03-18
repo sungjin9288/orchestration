@@ -32,6 +32,7 @@
 - actual live adapter도 project-level readiness는 planner 기준 coarse summary만 노출하고, non-planner role은 adapter readiness에서 `degraded/blocked`로 닫는 편이 UI 개편 없이 scope를 유지하기 쉽다.
 - malformed live provider response는 run error로만 남기고 artifact를 만들지 않는 편이 fail-closed와 provenance cleanliness를 함께 지키기 쉽다.
 - first live scope는 planner-only로 고정하고, concrete model default는 repo에 박지 말고 operator-pinned project config로 두는 편이 v1 semantics와 provider drift를 함께 막기 쉬웠다.
+- architect live 확장은 coordinator 쪽 broad refactor보다 explicit anchor exact-match 검증과 adapter-rendered canonical markdown으로 닫는 편이 downstream boundary semantics를 안정적으로 유지하기 쉽다.
 - release-ready approval도 preflight target만으로는 충분하지 않고 `releasePackageArtifactId / commitResultArtifactId / commitPackageArtifactId / sourceReviewerRunId / sourceBuilderRunId / targetPreflightArtifactId / commitSha / deliveryStance`를 metadata에 모두 고정해야 stale allow를 막을 수 있었다.
 - same source commit bundle에 대한 release approval은 pending/approved를 409로 닫고 rejected만 재요청 허용하는 편이 duplicate 제어와 human gate 재시도를 함께 단순하게 유지했다.
 - release-package enable/disable과 approval status(`none / pending / approved / rejected / stale`)는 UI에서 별도 semantics를 다시 계산하지 말고 `releasePackageReadiness` summary를 그대로 읽어야 polling과 stale handling drift를 막을 수 있었다.
@@ -52,7 +53,7 @@
 - stale smoke assertion은 과거 route-specific 에러 문구보다 현재 runtime/coordinator guard를 source of truth로 따라가는 편이 유지보수에 유리했다.
 - browser click smoke는 DOM에서 landing/selection/visibility만 보고, task/worktree/close-out 의미론은 `/api/snapshot`과 artifact API로 확인하는 편이 범위와 brittleness를 함께 줄였다.
 - provider opt-in browser smoke도 같은 원칙으로 DOM에서는 summary, readiness, allowed/reason, disabled state만 확인하고 fail-closed 의미론은 API로 한 번 더 닫는 편이 안정적이었다.
-- planner-only live browser smoke도 provider config mutation 자체는 API로 두고, 브라우저에서는 opt-in 반영 상태와 planner click-through만 확인하는 편이 현재 shell 구조에서 더 안정적이었다.
+- planner plus architect live browser smoke도 provider config mutation 자체는 API로 두고, 브라우저에서는 opt-in 반영 상태와 planner/architect click-through만 확인하는 편이 현재 shell 구조에서 더 안정적이었다.
 - Task Detail help copy는 upstream artifact id가 아직 없을 수 있으므로 null-safe로 렌더링해야 browser smoke 전에 shell이 죽지 않는다.
 - Playwright CLI 세션 고정은 wrapper 전용 env var에 기대지 말고 각 호출에 `--session`을 명시하는 편이 로컬 재현성과 디버깅 안정성이 높았다.
 

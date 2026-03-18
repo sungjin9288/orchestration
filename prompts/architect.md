@@ -47,12 +47,10 @@ Check whether the proposed slice fits the current repo contracts and architectur
 ## handoff target
 - `task-breaker` when the slice fits the current architecture or has an explicit approved boundary note
 - `human gate` when the slice requires a material architecture decision, policy exception, or decision-log change
-- `planner` when the plan must be narrowed before architecture can safely approve it
 
 ## escalation rules
 - Escalate to `human gate` when implementation would materially alter architecture, contracts, or scope guardrails
 - Escalate to `human gate` when a decision-log update is required before implementation
-- Route back to `planner` when the issue is plan size or scope shape rather than architecture principle
 - Do not allow build work to proceed on a vague promise to revisit architecture later
 
 ## done criteria

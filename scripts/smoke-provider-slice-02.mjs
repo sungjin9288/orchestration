@@ -97,7 +97,7 @@ Run planner through openai-responses and persist a plan artifact.
 ## Acceptance Target
 - planner live invocation works
 - outputText parsing is stable
-- no downstream live roles are enabled
+- downstream live roles beyond planner and architect stay disabled
 
 ## Verification Approach
 - synthetic smoke only
@@ -112,7 +112,7 @@ Run planner through openai-responses and persist a plan artifact.
 No.
 
 ## Non-Goals
-- architect live execution
+- task-breaker live execution
 - builder live execution
 - reviewer live execution
 `;
@@ -192,7 +192,7 @@ const defaultProject = runtime.createProject({
 const defaultTask = runtime.createTask({
   projectId: defaultProject.id,
   title: 'provider-slice-02 local default smoke',
-  intent: 'Keep local-stub as the shipped default while adding planner-only live execution.',
+  intent: 'Keep local-stub as the shipped default while retaining planner live regression coverage.',
 });
 
 assert.equal(runtime.getProject(defaultProject.id).provider.mode, 'local-stub');
@@ -417,27 +417,20 @@ const reviewerReadiness = liveCoordinator.getProviderExecutionReadiness({
   projectId: liveProject.id,
   role: 'reviewer',
 });
-const architectRunCountBefore = countRuns(runtime.getSnapshot(), topLevelTask.id);
 
-assert.equal(architectReadiness.readiness, 'degraded');
+assert.equal(architectReadiness.readiness, 'ready');
 assert.equal(taskBreakerReadiness.readiness, 'degraded');
 assert.equal(builderPreflightReadiness.readiness, 'degraded');
 assert.equal(builderLiveMutationReadiness.readiness, 'degraded');
 assert.equal(reviewerReadiness.readiness, 'degraded');
-assert.equal(architectReadiness.allowed, false);
+assert.equal(architectReadiness.allowed, true);
 assert.equal(taskBreakerReadiness.allowed, false);
 assert.equal(builderPreflightReadiness.allowed, false);
 assert.equal(builderLiveMutationReadiness.allowed, false);
 assert.equal(reviewerReadiness.allowed, false);
-assert.match(architectReadiness.reasons.join('; '), /planner-only/i);
-assert.match(reviewerReadiness.reasons.join('; '), /planner-only/i);
-
-await assert.rejects(
-  () => liveCoordinator.runArchitect({ taskId: topLevelTask.id }),
-  /planner-only/i,
-);
-
-assert.equal(countRuns(runtime.getSnapshot(), topLevelTask.id), architectRunCountBefore);
+assert.deepEqual(architectReadiness.reasons, []);
+assert.match(taskBreakerReadiness.reasons.join('; '), /planner and architect/i);
+assert.match(reviewerReadiness.reasons.join('; '), /planner and architect/i);
 
 const malformedTask = runtime.createTask({
   projectId: liveProject.id,
@@ -499,7 +492,7 @@ console.log(
       livePlannerAdapter: topLevelPlannerResult.run.summary.adapter,
       invalidReadiness: invalidReadiness.readiness,
       malformedRunId: malformedTaskRuns[0]?.id || null,
-      plannerOnlyBlockedRoles: [
+      liveRoleReadiness: [
         architectReadiness.readiness,
         taskBreakerReadiness.readiness,
         builderPreflightReadiness.readiness,

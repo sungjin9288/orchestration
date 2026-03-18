@@ -98,6 +98,14 @@ function buildPlannerExecutionRequest(input) {
 function buildArchitectExecutionRequest(input) {
   return {
     role: 'architect',
+    anchor: {
+      projectId: input.project.id,
+      taskId: input.task.id,
+      planArtifactId: input.planArtifact.id,
+      planRunId: input.planRunId,
+      sourceOfTruthPaths: input.sourceOfTruthPaths || [],
+      codeContextPaths: input.codeContextPaths || [],
+    },
     task: toExecutionTask(input.task),
     project: toExecutionProject(input.project),
     planArtifact: toExecutionArtifact(input.planArtifact),
@@ -2939,7 +2947,11 @@ function createExecutionCoordinator(options = {}) {
       throw new Error(`Plan artifact is required before architect run for task ${task.id}`);
     }
 
-    const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
+    if (!planArtifact.runId) {
+      throw new Error(`Plan run id is required before architect run for task ${task.id}`);
+    }
+
+    const plannerRun = runtime.getRun(planArtifact.runId);
     const providerContext = assertProviderExecutionReady(project, 'architect');
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
@@ -2959,9 +2971,12 @@ function createExecutionCoordinator(options = {}) {
     const request = buildArchitectExecutionRequest({
       codeContext,
       planArtifact,
+      planRunId: planArtifact.runId,
       plannerRunSummary: plannerRun?.summary || null,
       project,
       promptContract,
+      codeContextPaths: architectCodeContextPaths,
+      sourceOfTruthPaths,
       sourceOfTruth,
       task,
     });
@@ -2972,6 +2987,7 @@ function createExecutionCoordinator(options = {}) {
       metadata: {
         codeContextPaths: architectCodeContextPaths,
         inputArtifactId: planArtifact.id,
+        inputRunId: planArtifact.runId,
         promptPath: promptContract.path,
         sourceOfTruthPaths,
       },
@@ -3037,6 +3053,7 @@ function createExecutionCoordinator(options = {}) {
           adapter: response.adapterName,
           decisionCreated: Boolean(decisionInboxItem),
           inputArtifactId: planArtifact.id,
+          inputRunId: planArtifact.runId,
           model: response.model,
           blockers: normalizedResult.blockers.length,
           needsDecision: normalizedResult.needsDecision,
@@ -3065,6 +3082,7 @@ function createExecutionCoordinator(options = {}) {
         summary: {
           error: error.message,
           inputArtifactId: planArtifact.id,
+          inputRunId: planArtifact.runId,
           nextStage: null,
         },
       });
