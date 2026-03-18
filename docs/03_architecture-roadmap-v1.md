@@ -221,6 +221,20 @@ The following changes require an explicit decision log update before implementat
 - Config and readiness stay narrow: the current project provider config shape remains `mode`, canonical adapter id, operator-pinned `model`, and env-var name only; project-level provider summary stays coarse readiness; architect capability is checked through role-specific readiness; unsupported downstream live roles remain degraded and blocked.
 - Secrets stay operator-local and must not be written into runtime state, logs, artifacts, approvals, or UI payloads. Raw auth headers, secret values, and provider payload dumps remain out of scope for persistence and display.
 
+## Defined Task-Breaker Live Boundary
+- `strategy-slice-04` defines the next live boundary but does not implement it. The current live runtime remains planner plus architect only until a later provider slice lands.
+- Why `task-breaker` next: it stays no-write, it writes one `breakdown` artifact with an already-fixed markdown/UI parser contract, and it may raise at most one blocking decision before builder handoff. That keeps the slice downstream of architect without opening builder mutation, reviewer semantics, release-package, or close-out behavior.
+- Task-breaker input anchor is fixed to the current matched plan-plus-architecture provenance chain: `planArtifactId`, `planRunId`, `architectureArtifactId`, `architectureRunId`, active task and project identity, and the fixed repo source-of-truth file set.
+- The coordinator should require that the selected latest `architecture` artifact points back to the current latest `plan` artifact and run before task-breaker execution starts, instead of independently mixing the latest upstream artifacts by type.
+- This boundary does not introduce a task-breaker code-context allowlist. Task-breaker input must stay limited to stored `plan` plus `architecture` artifacts, matching upstream run summaries, and the fixed source-of-truth set. It must not widen into arbitrary repo scans, operator-supplied path lists, or secret-bearing payloads.
+- Task-breaker live output should use Responses Structured Outputs with a strict schema carrying `anchor`, `artifact`, and `normalizedResult` fields.
+- The schema-backed `artifact` payload should cover ordered sub-tasks, checkpoints, expected artifacts per checkpoint, verification checkpoints, review trigger point, stop-and-escalate conditions, and execution boundary summary for builder handoff.
+- The adapter should render canonical `breakdown` markdown from that validated structured payload before storing the artifact so the current breakdown headings and parser behavior remain unchanged in the shell.
+- Allowed task-breaker `nextStage` values stay `builder` and `human gate` only. This boundary does not reopen planner or architect handoff from task-breaker and does not widen builder or reviewer live execution.
+- Decision and blocking defaults stay fail-closed: the builder path is valid only when `needsDecision=false`, `blockers=[]`, and `orderedSubTasks` is non-empty; the human-gate path is valid only when `needsDecision=true` and `blockers` is non-empty, and it may create exactly one blocking decision item with `kind=decision`, `sourceType=decision`, and `blocksTask=true`.
+- Config and readiness stay narrow: the current project provider config shape remains `mode`, canonical adapter id, operator-pinned `model`, and env-var name only; project-level provider summary stays coarse readiness; if this boundary is implemented later, live role gating may open at most `planner + architect + task-breaker`, while `builder-preflight`, `builder-live-mutation`, and `reviewer` remain degraded and blocked.
+- Failures stay fail-closed and no-secret-leak: malformed structured output, anchor or provenance mismatch, unsupported stage, missing required fields, readiness or config failure, and provider HTTP/network errors must produce a run error only with no artifact, no decision item, no fallback to `local-stub`, and no secret material written into runtime state, logs, artifacts, approvals, or UI payloads.
+
 ## Deferred Items
 - office or radar visualization
 - messenger adapters

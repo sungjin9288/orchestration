@@ -53,6 +53,16 @@
 - [x] keep builder/reviewer live expansion and release/close-out semantics out of scope for this slice
 - [x] update provider and release wording only if future implementation requires new operator-visible copy
 - [x] implement architect live adapter, role-specific readiness, and architect-specific smoke coverage in a later slice
+- [x] define `strategy-slice-04` as the task-breaker-only next live boundary while keeping the implemented planner plus architect live path unchanged
+- [x] lock task-breaker input anchor to `planArtifactId / planRunId + architectureArtifactId / architectureRunId` and require latest architecture provenance to match the current latest plan before live execution
+- [x] lock task-breaker live output to schema-backed `anchor`, `artifact`, and `normalizedResult` data with adapter-rendered canonical breakdown markdown
+- [x] lock task-breaker live defaults to `builder | human gate` only, with builder allowed only on `needsDecision=false`, `blockers=[]`, and non-empty ordered sub-tasks
+- [x] lock task-breaker blocked output to `needsDecision=true`, non-empty blockers, and exactly one blocking decision item (`kind=decision`, `sourceType=decision`, `blocksTask=true`)
+- [x] keep the current breakdown UI/parser contract unchanged and keep builder/reviewer live expansion out of scope for this slice
+- [ ] implement task-breaker live adapter, provenance-chain enforcement, and task-breaker-specific readiness in a later `provider-slice-04`
+- [ ] add synthetic task-breaker live smoke coverage for happy-path, human-gate, provenance-mismatch, fail-closed, and no-secret-leak cases
+- [ ] add optional real live task-breaker smoke coverage behind explicit `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL`
+- [ ] add task-breaker live browser/API QA coverage without widening current UI semantics
 
 #### candidate B [later]
 - [ ] define retention-consumer capability against the normalized Tier A/B/C artifact rules

@@ -33,6 +33,9 @@
 - malformed live provider response는 run error로만 남기고 artifact를 만들지 않는 편이 fail-closed와 provenance cleanliness를 함께 지키기 쉽다.
 - first live scope는 planner-only로 고정하고, concrete model default는 repo에 박지 말고 operator-pinned project config로 두는 편이 v1 semantics와 provider drift를 함께 막기 쉬웠다.
 - architect live 확장은 coordinator 쪽 broad refactor보다 explicit anchor exact-match 검증과 adapter-rendered canonical markdown으로 닫는 편이 downstream boundary semantics를 안정적으로 유지하기 쉽다.
+- task-breaker live처럼 upstream artifact가 둘 이상인 단계는 latest artifact를 타입별로 독립 선택하지 말고 `latest plan + matching latest architecture` provenance chain 자체를 anchor로 강제하는 편이 breakdown drift를 막기 쉽다.
+- 기존 UI/parser contract가 이미 고정된 artifact(`breakdown` 등)는 live structured output을 raw markdown 대체로 밀어넣기보다 adapter-rendered canonical markdown으로 닫는 편이 UI 변경 없이 범위를 유지하기 쉽다.
+- prompt contract의 allowed handoff와 escalation wording은 coordinator가 실제 허용하는 `nextStage` 집합과 일치시켜야 fail-closed noise와 문서 drift를 줄이기 쉽다.
 - release-ready approval도 preflight target만으로는 충분하지 않고 `releasePackageArtifactId / commitResultArtifactId / commitPackageArtifactId / sourceReviewerRunId / sourceBuilderRunId / targetPreflightArtifactId / commitSha / deliveryStance`를 metadata에 모두 고정해야 stale allow를 막을 수 있었다.
 - same source commit bundle에 대한 release approval은 pending/approved를 409로 닫고 rejected만 재요청 허용하는 편이 duplicate 제어와 human gate 재시도를 함께 단순하게 유지했다.
 - release-package enable/disable과 approval status(`none / pending / approved / rejected / stale`)는 UI에서 별도 semantics를 다시 계산하지 말고 `releasePackageReadiness` summary를 그대로 읽어야 polling과 stale handling drift를 막을 수 있었다.
