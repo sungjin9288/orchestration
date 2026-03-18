@@ -26,7 +26,7 @@
 ### regression / verification [extended browser]
 - [ ] `node scripts/smoke-qa-slice-01.mjs`
 - [ ] `node scripts/smoke-qa-slice-02.mjs`
-- [ ] `node scripts/smoke-qa-slice-03.mjs`
+- [ ] `node scripts/smoke-qa-slice-04.mjs`
 
 ### clean worktree / reproducibility
 - [x] no unintended worktree drift was introduced by the required freeze regression run; only intended freeze files remain modified
@@ -61,6 +61,7 @@
 
 #### optional verification / housekeeping
 - [x] optional real live planner plus architect smoke entrypoints are available behind explicit `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL`
+- [ ] `node scripts/smoke-qa-live-slice-04.mjs`
 - [ ] decide whether to promote `node scripts/smoke-qa-slice-01.mjs` from optional coverage to a required regression gate
 - [ ] clean non-SSoT reference docs that can drift from the repo contracts
 

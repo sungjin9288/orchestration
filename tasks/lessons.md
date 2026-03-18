@@ -54,6 +54,8 @@
 - browser click smoke는 DOM에서 landing/selection/visibility만 보고, task/worktree/close-out 의미론은 `/api/snapshot`과 artifact API로 확인하는 편이 범위와 brittleness를 함께 줄였다.
 - provider opt-in browser smoke도 같은 원칙으로 DOM에서는 summary, readiness, allowed/reason, disabled state만 확인하고 fail-closed 의미론은 API로 한 번 더 닫는 편이 안정적이었다.
 - planner plus architect live browser smoke도 provider config mutation 자체는 API로 두고, 브라우저에서는 opt-in 반영 상태와 planner/architect click-through만 확인하는 편이 현재 shell 구조에서 더 안정적이었다.
+- qa-slice-04처럼 architect live browser smoke를 추가할 때도 project-level provider summary는 coarse readiness만 브라우저에서 보고, planner/architect ready와 downstream degraded는 direct coordinator assertion으로 닫는 편이 DEC-032 경계와 UI 안정성을 함께 지키기 쉽다.
+- human-gate architect smoke는 Decision Inbox surface 노출만 브라우저에서 확인하고, `kind / sourceType / blocksTask / task flags`는 `/api/snapshot`으로 닫는 편이 selector brittleness 없이 의미론을 유지하기 쉽다.
 - Task Detail help copy는 upstream artifact id가 아직 없을 수 있으므로 null-safe로 렌더링해야 browser smoke 전에 shell이 죽지 않는다.
 - Playwright CLI 세션 고정은 wrapper 전용 env var에 기대지 말고 각 호출에 `--session`을 명시하는 편이 로컬 재현성과 디버깅 안정성이 높았다.
 
