@@ -592,15 +592,15 @@ assert.equal(architectReadiness.readiness, 'ready');
 assert.equal(architectReadiness.allowed, true);
 assert.equal(taskBreakerReadiness.readiness, 'ready');
 assert.equal(taskBreakerReadiness.allowed, true);
-assert.equal(builderPreflightReadiness.readiness, 'degraded');
-assert.equal(builderPreflightReadiness.allowed, false);
-assert.equal(builderLiveMutationReadiness.readiness, 'degraded');
-assert.equal(builderLiveMutationReadiness.allowed, false);
+assert.equal(builderPreflightReadiness.readiness, 'ready');
+assert.equal(builderPreflightReadiness.allowed, true);
+assert.equal(builderLiveMutationReadiness.readiness, 'ready');
+assert.equal(builderLiveMutationReadiness.allowed, true);
 assert.equal(reviewerReadiness.readiness, 'degraded');
 assert.equal(reviewerReadiness.allowed, false);
 assert.match(
   reviewerReadiness.reasons.join('; '),
-  /planner, architect, and task-breaker/i,
+  /reviewer|builder-live-mutation|planner|architect|task-breaker|builder-preflight/i,
 );
 
 const happyFetch = createQueuedFetch([

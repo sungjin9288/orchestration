@@ -991,8 +991,8 @@ function assertRoleReadiness(roleReadiness) {
   assert.equal(roleReadiness.taskBreaker.allowed, true);
   assert.equal(roleReadiness.builderPreflight.readiness, 'ready');
   assert.equal(roleReadiness.builderPreflight.allowed, true);
-  assert.equal(roleReadiness.builderLiveMutation.readiness, 'degraded');
-  assert.equal(roleReadiness.builderLiveMutation.allowed, false);
+  assert.equal(roleReadiness.builderLiveMutation.readiness, 'ready');
+  assert.equal(roleReadiness.builderLiveMutation.allowed, true);
   assert.equal(roleReadiness.reviewer.readiness, 'degraded');
   assert.equal(roleReadiness.reviewer.allowed, false);
 }

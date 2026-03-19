@@ -25,20 +25,30 @@ function runGit(projectPath, args) {
 
 function createGitFixtureProject() {
   const projectPath = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-dev-loop-m2-'));
-  const builderPromptPath = path.join(projectPath, 'prompts', 'builder.md');
+  const fixtureFiles = new Map([
+    ['prompts/builder.md', '# Builder Prompt Contract\n\nM2 dev-loop smoke fixture.\n'],
+    ['src/execution/execution-coordinator.js', "'use strict';\n\nexport const fixtureCoordinator = true;\n"],
+    [
+      'src/execution/providers/local-stub-adapter.js',
+      "'use strict';\n\nexport const fixtureLocalStubAdapter = true;\n",
+    ],
+    ['src/runtime/runtime-service.js', "'use strict';\n\nexport const fixtureRuntimeService = true;\n"],
+    ['scripts/smoke-execution-slice-05.mjs', "console.log('fixture smoke execution slice 05');\n"],
+    ['scripts/serve-ui-slice-01.mjs', "console.log('fixture serve ui slice 01');\n"],
+    ['ui/app.js', "'use strict';\n\nexport const fixtureUiApp = true;\n"],
+  ]);
 
   runGit(projectPath, ['init', '-q']);
   runGit(projectPath, ['config', 'user.name', 'dev-loop-m2']);
   runGit(projectPath, ['config', 'user.email', 'dev-loop-m2@example.com']);
 
-  fs.mkdirSync(path.dirname(builderPromptPath), { recursive: true });
-  fs.writeFileSync(
-    builderPromptPath,
-    '# Builder Prompt Contract\n\nM2 dev-loop smoke fixture.\n',
-    'utf8',
-  );
+  for (const [relativePath, content] of fixtureFiles.entries()) {
+    const filePath = path.join(projectPath, relativePath);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content, 'utf8');
+  }
 
-  runGit(projectPath, ['add', 'prompts/builder.md']);
+  runGit(projectPath, ['add', '.']);
   runGit(projectPath, ['commit', '-q', '-m', 'fixture:m2-dev-loop']);
 
   return projectPath;

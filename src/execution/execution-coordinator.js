@@ -3829,10 +3829,28 @@ function createExecutionCoordinator(options = {}) {
     const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
       readContextFile(repoRoot, relativePath),
     );
-    const codeContext = targetFiles.map((relativePath) =>
-      readProjectContextFile(project.projectPath, relativePath),
+    const baselineTargetContents = captureFileContents(project.projectPath, targetFiles);
+
+    if ([...baselineTargetContents.values()].some((content) => content === null)) {
+      const missingFiles = [...baselineTargetContents.entries()]
+        .filter(([, content]) => content === null)
+        .map(([relativePath]) => relativePath);
+
+      throw new Error(
+        `Builder live mutation only supports existing files in this slice: ${missingFiles.join(', ')}`,
+      );
+    }
+
+    const baselineTargetDigests = [...baselineTargetContents.entries()].map(
+      ([relativePath, content]) => ({
+        path: relativePath,
+        digest: computeContentDigest(content),
+      }),
     );
-    const baselineTargetDigests = captureFileDigests(project.projectPath, targetFiles);
+    const codeContext = [...baselineTargetContents.entries()].map(([relativePath, content]) => ({
+      path: relativePath,
+      content,
+    }));
     const request = buildBuilderLiveMutationExecutionRequest({
       anchor: {
         projectId: project.id,
@@ -3869,17 +3887,6 @@ function createExecutionCoordinator(options = {}) {
       task,
       taskBreakerRunSummary: taskBreakerRun?.summary || null,
     });
-    const baselineTargetContents = captureFileContents(project.projectPath, targetFiles);
-
-    if ([...baselineTargetContents.values()].some((content) => content === null)) {
-      const missingFiles = [...baselineTargetContents.entries()]
-        .filter(([, content]) => content === null)
-        .map(([relativePath]) => relativePath);
-
-      throw new Error(
-        `Builder live mutation only supports existing files in this slice: ${missingFiles.join(', ')}`,
-      );
-    }
 
     run = runtime.startRun({
       taskId: task.id,
