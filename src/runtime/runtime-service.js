@@ -232,6 +232,33 @@ function createRuntimeService(options = {}) {
     return rightValue.localeCompare(leftValue);
   }
 
+  function compareRunsByStartedDesc(left, right) {
+    const leftValue = left.startedAt || '';
+    const rightValue = right.startedAt || '';
+
+    if (leftValue === rightValue) {
+      return String(right.id || '').localeCompare(String(left.id || ''));
+    }
+
+    return rightValue.localeCompare(leftValue);
+  }
+
+  function getApprovalMetadata(approval) {
+    return approval?.metadata && typeof approval.metadata === 'object' ? approval.metadata : {};
+  }
+
+  function isBuilderLiveMutationApprovalConsumed(approval) {
+    if (!approval || approval.allowedNextAction !== BUILDER_ACTION.LIVE_MUTATION) {
+      return false;
+    }
+
+    const metadata = getApprovalMetadata(approval);
+
+    return Boolean(
+      normalizeOptionalString(metadata.consumedAt) && normalizeOptionalString(metadata.consumedByRunId),
+    );
+  }
+
   function listTaskApprovals(taskId, state) {
     return Object.values(state.approvals).filter((approval) => approval.taskId === taskId);
   }
@@ -267,6 +294,175 @@ function createRuntimeService(options = {}) {
     return {
       artifact,
       run,
+    };
+  }
+
+  function findLatestSuccessfulBuilderLiveMutationRun(task, state, filters = {}) {
+    return (
+      Object.values(state.runs)
+        .filter((run) => {
+          const summary = run.summary && typeof run.summary === 'object' ? run.summary : null;
+          const metadata = run.metadata && typeof run.metadata === 'object' ? run.metadata : null;
+
+          if (
+            run.taskId !== task.id ||
+            run.role !== 'builder' ||
+            run.status !== RUN_STATUS.COMPLETED ||
+            (summary?.executionMode !== 'live-mutation' && metadata?.executionMode !== 'live-mutation') ||
+            summary?.error
+          ) {
+            return false;
+          }
+
+          if (
+            filters.preflightArtifactId &&
+            summary?.preflightArtifactId !== filters.preflightArtifactId
+          ) {
+            return false;
+          }
+
+          if (filters.preflightRunId && summary?.preflightRunId !== filters.preflightRunId) {
+            return false;
+          }
+
+          if (filters.approvalId && summary?.approvalId !== filters.approvalId) {
+            return false;
+          }
+
+          return Boolean(
+            summary?.artifactIds &&
+              summary.artifactIds.changeSummary &&
+              summary.artifactIds.patch &&
+              summary.artifactIds.diff,
+          );
+        })
+        .sort(compareRunsByStartedDesc)[0] || null
+    );
+  }
+
+  function evaluateLatestTaskBreakerProvenance(task, state) {
+    const latestPlanArtifact = findLatestTaskArtifactMeta(task, state, 'plan');
+    const latestArchitectureArtifact = findLatestTaskArtifactMeta(task, state, 'architecture');
+    const latestArchitectureRun =
+      latestArchitectureArtifact?.runId ? state.runs[latestArchitectureArtifact.runId] || null : null;
+    const architectureSummary =
+      latestArchitectureRun?.summary && typeof latestArchitectureRun.summary === 'object'
+        ? latestArchitectureRun.summary
+        : {};
+    const hasMatchingPlanProvenance =
+      Boolean(latestPlanArtifact?.runId) &&
+      Boolean(latestArchitectureRun) &&
+      architectureSummary.inputArtifactId === latestPlanArtifact.id &&
+      architectureSummary.inputRunId === latestPlanArtifact.runId;
+
+    return {
+      hasMatchingPlanProvenance,
+      latestArchitectureArtifact,
+      latestArchitectureRunId: latestArchitectureArtifact?.runId || null,
+      latestPlanArtifact,
+      latestPlanRunId: latestPlanArtifact?.runId || null,
+    };
+  }
+
+  function sameExactStringArrays(left, right) {
+    if (left.length !== right.length) {
+      return false;
+    }
+
+    for (let index = 0; index < left.length; index += 1) {
+      if (left[index] !== right[index]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function evaluateLatestBuilderPreflightProvenance(task, state) {
+    const taskBreakerProvenance = evaluateLatestTaskBreakerProvenance(task, state);
+    const latestBreakdownArtifact = findLatestTaskArtifactMeta(task, state, 'breakdown');
+    const latestBreakdownRun =
+      latestBreakdownArtifact?.runId ? state.runs[latestBreakdownArtifact.runId] || null : null;
+    const breakdownSummary =
+      latestBreakdownRun?.summary && typeof latestBreakdownRun.summary === 'object'
+        ? latestBreakdownRun.summary
+        : {};
+    const inputArtifactIds = Array.isArray(breakdownSummary.inputArtifactIds)
+      ? breakdownSummary.inputArtifactIds
+      : [];
+    const inputRunIds = Array.isArray(breakdownSummary.inputRunIds)
+      ? breakdownSummary.inputRunIds
+      : [];
+    const latestPlanArtifact = taskBreakerProvenance.latestPlanArtifact;
+    const latestArchitectureArtifact = taskBreakerProvenance.latestArchitectureArtifact;
+    const hasMatchingBreakdownProvenance =
+      Boolean(latestBreakdownRun) &&
+      Boolean(latestPlanArtifact?.runId) &&
+      Boolean(latestArchitectureArtifact?.runId) &&
+      breakdownSummary.architectureArtifactId === latestArchitectureArtifact.id &&
+      breakdownSummary.architectureRunId === latestArchitectureArtifact.runId &&
+      sameExactStringArrays(inputArtifactIds, [latestPlanArtifact.id, latestArchitectureArtifact.id]) &&
+      sameExactStringArrays(inputRunIds, [latestPlanArtifact.runId, latestArchitectureArtifact.runId]);
+
+    return {
+      hasMatchingArchitecturePlanProvenance: taskBreakerProvenance.hasMatchingPlanProvenance,
+      hasMatchingBreakdownProvenance,
+      latestArchitectureArtifact,
+      latestArchitectureRunId: latestArchitectureArtifact?.runId || null,
+      latestBreakdownArtifact,
+      latestBreakdownRunId: latestBreakdownArtifact?.runId || null,
+      latestPlanArtifact,
+      latestPlanRunId: latestPlanArtifact?.runId || null,
+    };
+  }
+
+  function evaluateCurrentBuilderLiveMutationProvenance(task, state) {
+    const builderPreflightProvenance = evaluateLatestBuilderPreflightProvenance(task, state);
+    const currentPreflight = getLatestPreflightContext(task, state);
+    const currentPreflightRun = currentPreflight.run;
+    const preflightSummary =
+      currentPreflightRun?.summary && typeof currentPreflightRun.summary === 'object'
+        ? currentPreflightRun.summary
+        : {};
+    const inputArtifactIds = Array.isArray(preflightSummary.inputArtifactIds)
+      ? preflightSummary.inputArtifactIds
+      : [];
+    const inputRunIds = Array.isArray(preflightSummary.inputRunIds) ? preflightSummary.inputRunIds : [];
+    const latestPlanArtifact = builderPreflightProvenance.latestPlanArtifact;
+    const latestArchitectureArtifact = builderPreflightProvenance.latestArchitectureArtifact;
+    const latestBreakdownArtifact = builderPreflightProvenance.latestBreakdownArtifact;
+    const hasMatchingPreflightProvenance =
+      Boolean(currentPreflight.artifact) &&
+      Boolean(currentPreflightRun) &&
+      Boolean(latestPlanArtifact?.runId) &&
+      Boolean(latestArchitectureArtifact?.runId) &&
+      Boolean(latestBreakdownArtifact?.runId) &&
+      preflightSummary.planArtifactId === latestPlanArtifact.id &&
+      preflightSummary.planRunId === latestPlanArtifact.runId &&
+      preflightSummary.architectureArtifactId === latestArchitectureArtifact.id &&
+      preflightSummary.architectureRunId === latestArchitectureArtifact.runId &&
+      preflightSummary.breakdownArtifactId === latestBreakdownArtifact.id &&
+      preflightSummary.breakdownRunId === latestBreakdownArtifact.runId &&
+      sameExactStringArrays(inputArtifactIds, [
+        latestPlanArtifact.id,
+        latestArchitectureArtifact.id,
+        latestBreakdownArtifact.id,
+      ]) &&
+      sameExactStringArrays(inputRunIds, [
+        latestPlanArtifact.runId,
+        latestArchitectureArtifact.runId,
+        latestBreakdownArtifact.runId,
+      ]);
+
+    return {
+      currentPreflight,
+      hasMatchingBreakdownProvenance: builderPreflightProvenance.hasMatchingBreakdownProvenance,
+      hasMatchingPlanArchitectureProvenance:
+        builderPreflightProvenance.hasMatchingArchitecturePlanProvenance,
+      hasMatchingPreflightProvenance,
+      latestArchitectureArtifact,
+      latestBreakdownArtifact,
+      latestPlanArtifact,
     };
   }
 
@@ -434,6 +630,14 @@ function createRuntimeService(options = {}) {
         reasons.push(`latest approval ${latestApproval.id} for ${action} is rejected`);
       }
 
+      if (action === BUILDER_ACTION.LIVE_MUTATION && isBuilderLiveMutationApprovalConsumed(latestApproval)) {
+        const metadata = getApprovalMetadata(latestApproval);
+
+        reasons.push(
+          `latest approval ${latestApproval.id} for ${action} is already consumed by builder live mutation run ${metadata.consumedByRunId}`,
+        );
+      }
+
       if (requireCurrentPreflightTarget && currentPreflight?.artifact) {
         const targetArtifactId = latestApproval.targetArtifactId || null;
         const targetRunId = latestApproval.targetRunId || null;
@@ -454,6 +658,7 @@ function createRuntimeService(options = {}) {
       allowed:
         Boolean(latestApproval) &&
         latestApproval.status === APPROVAL_STATUS.APPROVED &&
+        !(action === BUILDER_ACTION.LIVE_MUTATION && isBuilderLiveMutationApprovalConsumed(latestApproval)) &&
         (!requireCurrentPreflightTarget || !stale),
       currentPreflightArtifactId: currentPreflight?.artifact?.id || null,
       currentPreflightRunId: currentPreflight?.run?.id || null,
@@ -468,12 +673,20 @@ function createRuntimeService(options = {}) {
       return 'stale';
     }
 
+    if (
+      approvalEvaluation.action === BUILDER_ACTION.LIVE_MUTATION &&
+      isBuilderLiveMutationApprovalConsumed(approvalEvaluation.latestApproval)
+    ) {
+      return 'consumed';
+    }
+
     return approvalEvaluation.latestApproval?.status || 'none';
   }
 
   function buildTaskBreakerGuardSummary(task, state) {
-    const latestPlanArtifact = findLatestTaskArtifactMeta(task, state, 'plan');
-    const latestArchitectureArtifact = findLatestTaskArtifactMeta(task, state, 'architecture');
+    const provenance = evaluateLatestTaskBreakerProvenance(task, state);
+    const latestPlanArtifact = provenance.latestPlanArtifact;
+    const latestArchitectureArtifact = provenance.latestArchitectureArtifact;
     const pendingBlockingDecisionItems = listPendingBlockingDecisionItems(task.id, state);
     const pendingApprovals = computeTaskGateState(task, state).pendingApprovals;
     const reasons = [];
@@ -484,6 +697,16 @@ function createRuntimeService(options = {}) {
 
     if (!latestArchitectureArtifact) {
       reasons.push('latest architecture artifact required');
+    }
+
+    if (
+      latestPlanArtifact &&
+      latestArchitectureArtifact &&
+      !provenance.hasMatchingPlanProvenance
+    ) {
+      reasons.push(
+        `latest architecture artifact ${latestArchitectureArtifact.id} does not match current latest plan artifact ${latestPlanArtifact.id}`,
+      );
     }
 
     if (pendingBlockingDecisionItems.length > 0) {
@@ -499,7 +722,10 @@ function createRuntimeService(options = {}) {
     return {
       allowed: reasons.length === 0,
       latestArchitectureArtifactId: latestArchitectureArtifact?.id || null,
+      latestArchitectureRunId: provenance.latestArchitectureRunId,
+      latestPlanRunId: provenance.latestPlanRunId,
       latestPlanArtifactId: latestPlanArtifact?.id || null,
+      matchingPlanArchitectureProvenance: provenance.hasMatchingPlanProvenance,
       pendingApprovalIds: pendingApprovals.map((approval) => approval.id),
       pendingBlockingDecisionItemIds: pendingBlockingDecisionItems.map((item) => item.id),
       reasons: uniqueReasons(reasons),
@@ -507,9 +733,10 @@ function createRuntimeService(options = {}) {
   }
 
   function buildBuilderPreflightGuardSummary(task, state) {
-    const latestPlanArtifact = findLatestTaskArtifactMeta(task, state, 'plan');
-    const latestArchitectureArtifact = findLatestTaskArtifactMeta(task, state, 'architecture');
-    const latestBreakdownArtifact = findLatestTaskArtifactMeta(task, state, 'breakdown');
+    const provenance = evaluateLatestBuilderPreflightProvenance(task, state);
+    const latestPlanArtifact = provenance.latestPlanArtifact;
+    const latestArchitectureArtifact = provenance.latestArchitectureArtifact;
+    const latestBreakdownArtifact = provenance.latestBreakdownArtifact;
     const latestPreflightArtifact = findLatestTaskArtifactMeta(task, state, 'preflight');
     const pendingBlockingDecisionItems = listPendingBlockingDecisionItems(task.id, state);
     const pendingApprovals = computeTaskGateState(task, state).pendingApprovals;
@@ -527,6 +754,27 @@ function createRuntimeService(options = {}) {
       reasons.push('latest breakdown artifact required');
     }
 
+    if (
+      latestPlanArtifact &&
+      latestArchitectureArtifact &&
+      !provenance.hasMatchingArchitecturePlanProvenance
+    ) {
+      reasons.push(
+        `latest architecture artifact ${latestArchitectureArtifact.id} does not match current latest plan artifact ${latestPlanArtifact.id}`,
+      );
+    }
+
+    if (
+      latestPlanArtifact &&
+      latestArchitectureArtifact &&
+      latestBreakdownArtifact &&
+      !provenance.hasMatchingBreakdownProvenance
+    ) {
+      reasons.push(
+        `latest breakdown artifact ${latestBreakdownArtifact.id} does not match current latest plan-plus-architecture provenance chain`,
+      );
+    }
+
     if (pendingBlockingDecisionItems.length > 0) {
       reasons.push(
         `blocking decision items: ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
@@ -541,8 +789,12 @@ function createRuntimeService(options = {}) {
       allowed: reasons.length === 0,
       latestArchitectureArtifactId: latestArchitectureArtifact?.id || null,
       latestBreakdownArtifactId: latestBreakdownArtifact?.id || null,
+      latestBreakdownRunId: provenance.latestBreakdownRunId,
       latestPlanArtifactId: latestPlanArtifact?.id || null,
+      latestPlanRunId: provenance.latestPlanRunId,
       latestPreflightArtifactId: latestPreflightArtifact?.id || null,
+      matchingBreakdownProvenance: provenance.hasMatchingBreakdownProvenance,
+      matchingPlanArchitectureProvenance: provenance.hasMatchingArchitecturePlanProvenance,
       pendingApprovalIds: pendingApprovals.map((approval) => approval.id),
       pendingBlockingDecisionItemIds: pendingBlockingDecisionItems.map((item) => item.id),
       reasons: uniqueReasons(reasons),
@@ -550,7 +802,8 @@ function createRuntimeService(options = {}) {
   }
 
   function buildBuilderLiveMutationGuardSummary(task, state) {
-    const currentPreflight = getLatestPreflightContext(task, state);
+    const provenance = evaluateCurrentBuilderLiveMutationProvenance(task, state);
+    const currentPreflight = provenance.currentPreflight;
     const pendingBlockingDecisionItems = listPendingBlockingDecisionItems(task.id, state);
     const pendingApprovals = computeTaskGateState(task, state).pendingApprovals;
     const approvalEvaluation = evaluateLatestApprovalForAction({
@@ -560,12 +813,16 @@ function createRuntimeService(options = {}) {
       state,
       task,
     });
-    const latestPlanArtifact = findLatestTaskArtifactMeta(task, state, 'plan');
-    const latestArchitectureArtifact = findLatestTaskArtifactMeta(task, state, 'architecture');
-    const latestBreakdownArtifact = findLatestTaskArtifactMeta(task, state, 'breakdown');
     const targetFiles = currentPreflight.artifact
       ? parseArtifactPathList(currentPreflight.artifact, 'Target Files')
       : [];
+    const existingSuccessfulRun =
+      currentPreflight.artifact && currentPreflight.run
+        ? findLatestSuccessfulBuilderLiveMutationRun(task, state, {
+            preflightArtifactId: currentPreflight.artifact.id,
+            preflightRunId: currentPreflight.run.id,
+          })
+        : null;
     const reasons = [];
 
     if (!currentPreflight.artifact) {
@@ -588,37 +845,42 @@ function createRuntimeService(options = {}) {
 
     if (
       currentPreflight.artifact &&
-      latestPlanArtifact &&
-      latestPlanArtifact.createdAt > currentPreflight.artifact.createdAt
-    ) {
-      reasons.push(`latest preflight ${currentPreflight.artifact.id} is stale for current plan`);
-    }
-
-    if (
-      currentPreflight.artifact &&
-      latestArchitectureArtifact &&
-      latestArchitectureArtifact.createdAt > currentPreflight.artifact.createdAt
+      !provenance.hasMatchingPlanArchitectureProvenance
     ) {
       reasons.push(
-        `latest preflight ${currentPreflight.artifact.id} is stale for current architecture`,
+        `latest preflight ${currentPreflight.artifact.id} does not match the current latest plan-plus-architecture provenance chain`,
       );
     }
 
     if (
       currentPreflight.artifact &&
-      latestBreakdownArtifact &&
-      latestBreakdownArtifact.createdAt > currentPreflight.artifact.createdAt
+      !provenance.hasMatchingBreakdownProvenance
     ) {
-      reasons.push(`latest preflight ${currentPreflight.artifact.id} is stale for current breakdown`);
+      reasons.push(
+        `latest preflight ${currentPreflight.artifact.id} does not match the current latest plan-plus-architecture-plus-breakdown provenance chain`,
+      );
+    }
+
+    if (currentPreflight.artifact && !provenance.hasMatchingPreflightProvenance) {
+      reasons.push(
+        `latest preflight ${currentPreflight.artifact.id} does not match the current latest preflight provenance chain`,
+      );
+    }
+
+    if (existingSuccessfulRun) {
+      reasons.push(
+        `latest preflight ${currentPreflight.artifact.id} already has successful builder live mutation run ${existingSuccessfulRun.id}`,
+      );
     }
 
     reasons.push(...approvalEvaluation.reasons);
 
     return {
-      allowed: reasons.length === 0 && approvalEvaluation.allowed,
+      allowed: reasons.length === 0 && approvalEvaluation.allowed && !existingSuccessfulRun,
       approvalStale: approvalEvaluation.stale,
       currentPreflightArtifactId: approvalEvaluation.currentPreflightArtifactId,
       currentPreflightRunId: approvalEvaluation.currentPreflightRunId,
+      existingSuccessfulBuilderRunId: existingSuccessfulRun?.id || null,
       latestApprovalDisplayStatus: buildLatestApprovalDisplayStatus(approvalEvaluation),
       latestApprovalId: approvalEvaluation.latestApproval?.id || null,
       latestApprovalStatus: approvalEvaluation.latestApproval?.status || null,
@@ -632,7 +894,8 @@ function createRuntimeService(options = {}) {
   }
 
   function buildBuilderLiveMutationApprovalRequestSummary(task, state) {
-    const currentPreflight = getLatestPreflightContext(task, state);
+    const provenance = evaluateCurrentBuilderLiveMutationProvenance(task, state);
+    const currentPreflight = provenance.currentPreflight;
     const pendingBlockingDecisionItems = listPendingBlockingDecisionItems(task.id, state);
     const approvalEvaluation = evaluateLatestApprovalForAction({
       action: BUILDER_ACTION.LIVE_MUTATION,
@@ -641,6 +904,13 @@ function createRuntimeService(options = {}) {
       state,
       task,
     });
+    const existingSuccessfulRun =
+      currentPreflight.artifact && currentPreflight.run
+        ? findLatestSuccessfulBuilderLiveMutationRun(task, state, {
+            preflightArtifactId: currentPreflight.artifact.id,
+            preflightRunId: currentPreflight.run.id,
+          })
+        : null;
     const reasons = [];
     let conflict = false;
 
@@ -651,6 +921,24 @@ function createRuntimeService(options = {}) {
     if (pendingBlockingDecisionItems.length > 0) {
       reasons.push(
         `blocking decision items: ${pendingBlockingDecisionItems.map((item) => item.id).join(', ')}`,
+      );
+    }
+
+    if (
+      currentPreflight.artifact &&
+      (!provenance.hasMatchingPlanArchitectureProvenance ||
+        !provenance.hasMatchingBreakdownProvenance ||
+        !provenance.hasMatchingPreflightProvenance)
+    ) {
+      reasons.push(
+        `latest preflight ${currentPreflight.artifact.id} does not match the current latest plan-plus-architecture-plus-breakdown provenance chain`,
+      );
+    }
+
+    if (existingSuccessfulRun) {
+      conflict = true;
+      reasons.push(
+        `latest preflight ${currentPreflight.artifact.id} already has successful builder live mutation run ${existingSuccessfulRun.id}`,
       );
     }
 
@@ -676,6 +964,7 @@ function createRuntimeService(options = {}) {
       conflict,
       currentPreflightArtifactId: approvalEvaluation.currentPreflightArtifactId,
       currentPreflightRunId: approvalEvaluation.currentPreflightRunId,
+      existingSuccessfulBuilderRunId: existingSuccessfulRun?.id || null,
       latestApprovalDisplayStatus: buildLatestApprovalDisplayStatus(approvalEvaluation),
       latestApprovalId: approvalEvaluation.latestApproval?.id || null,
       latestApprovalStatus: approvalEvaluation.latestApproval?.status || null,
@@ -1502,6 +1791,133 @@ function createRuntimeService(options = {}) {
     return state.artifacts[id];
   }
 
+  function recordArtifactBundleInState(state, input) {
+    const task = assertTask(input.taskId, state);
+    const run = assertRun(input.runId, state);
+    const createdAt = new Date().toISOString();
+    const writtenArtifactPaths = [];
+    const artifactsByKey = {};
+
+    for (const artifactInput of input.artifacts || []) {
+      const type = artifactInput.type || 'output';
+
+      assertSupportedArtifactType(type);
+
+      const id = nextId(state, 'artifact');
+      const extension = artifactInput.extension || 'md';
+      const filename = `${id}.${extension}`;
+      const content = artifactInput.content || `# ${id}\n`;
+      const artifactPath = store.writeArtifact(filename, content);
+
+      writtenArtifactPaths.push(artifactPath);
+      state.artifacts[id] = {
+        id,
+        taskId: task.id,
+        runId: run.id,
+        type,
+        path: artifactPath,
+        createdAt,
+      };
+      task.artifactIds.push(id);
+
+      if (artifactInput.key) {
+        artifactsByKey[artifactInput.key] = state.artifacts[id];
+      }
+    }
+
+    task.updatedAt = createdAt;
+
+    return {
+      artifactsByKey,
+      createdAt,
+      writtenArtifactPaths,
+    };
+  }
+
+  function finalizeBuilderLiveMutationSuccess(input) {
+    const state = store.loadState();
+    const run = assertRun(input.runId, state);
+    const task = assertTask(run.taskId, state);
+    const approval = assertApproval(input.approvalId, state);
+    const now = new Date().toISOString();
+    let writtenArtifactPaths = [];
+    let artifactsByKey = {};
+
+    if (approval.taskId !== task.id) {
+      throw new Error(`Approval ${approval.id} is not linked to task ${task.id}`);
+    }
+
+    if (approval.allowedNextAction !== BUILDER_ACTION.LIVE_MUTATION) {
+      throw new Error(`Approval ${approval.id} is not a builder live mutation approval`);
+    }
+
+    if (approval.status !== APPROVAL_STATUS.APPROVED) {
+      throw new Error(`Approval ${approval.id} must be approved before builder live mutation succeeds`);
+    }
+
+    if (isBuilderLiveMutationApprovalConsumed(approval)) {
+      const metadata = getApprovalMetadata(approval);
+
+      throw new Error(
+        `Approval ${approval.id} is already consumed by builder live mutation run ${metadata.consumedByRunId}`,
+      );
+    }
+
+    try {
+      const bundle = recordArtifactBundleInState(state, {
+        taskId: task.id,
+        runId: run.id,
+        artifacts: (input.artifacts || []).map((artifactInput) => ({
+          ...artifactInput,
+          key: artifactInput.key || artifactInput.type,
+        })),
+      });
+
+      writtenArtifactPaths = bundle.writtenArtifactPaths;
+      artifactsByKey = bundle.artifactsByKey;
+      approval.metadata = {
+        ...getApprovalMetadata(approval),
+        consumedArtifactIds: Object.values(artifactsByKey).map((artifact) => artifact.id),
+        consumedAt: now,
+        consumedByRunId: run.id,
+        consumedPreflightArtifactId: input.summary?.preflightArtifactId || approval.targetArtifactId,
+        consumedPreflightRunId: input.summary?.preflightRunId || approval.targetRunId,
+      };
+      approval.updatedAt = now;
+
+      run.status = RUN_STATUS.COMPLETED;
+      run.finishedAt = now;
+      run.summary = {
+        ...(input.summary || {}),
+        approvalConsumedAt: now,
+        artifactIds: {
+          changeSummary: artifactsByKey['change-summary']?.id || null,
+          patch: artifactsByKey.patch?.id || null,
+          diff: artifactsByKey.diff?.id || null,
+        },
+      };
+
+      task.updatedAt = now;
+      store.saveState(state);
+    } catch (error) {
+      for (const artifactPath of writtenArtifactPaths) {
+        fs.rmSync(artifactPath, { force: true });
+      }
+
+      throw error;
+    }
+
+    return {
+      approval: state.approvals[approval.id],
+      artifacts: {
+        changeSummary: artifactsByKey['change-summary'],
+        diff: artifactsByKey.diff,
+        patch: artifactsByKey.patch,
+      },
+      run: state.runs[run.id],
+    };
+  }
+
   function getArtifact(artifactId) {
     const state = store.loadState();
     const artifact = state.artifacts[artifactId];
@@ -1555,6 +1971,7 @@ function createRuntimeService(options = {}) {
     createProject,
     createTask,
     ensureCommitActionAllowed,
+    finalizeBuilderLiveMutationSuccess,
     finishRunWithReviewPending,
     getArtifact,
     getApproval,

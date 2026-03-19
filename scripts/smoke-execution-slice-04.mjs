@@ -109,7 +109,7 @@ assert.deepEqual(readyTaskAfter.artifactIds, [
   readyBuilderResult.artifact.id,
 ]);
 assert.equal(readyBuilderResult.decisionInboxItem, null);
-assert.equal(readyBuilderResult.nextStage, 'reviewer');
+assert.equal(readyBuilderResult.nextStage, 'request-builder-live-mutation-approval');
 assert.equal(readyBuilderResult.normalizedResult.needsDecision, false);
 assert.equal(readyBuilderResult.normalizedResult.blockers.length, 0);
 assert.deepEqual(
@@ -158,7 +158,7 @@ await assert.rejects(
     coordinator.runBuilderPreflight({
       taskId: missingBreakdownTask.id,
     }),
-  /Breakdown artifact is required before builder preflight run/i,
+  /latest breakdown artifact required/i,
 );
 
 const missingTaskAfter = runtime.getTask(missingBreakdownTask.id);

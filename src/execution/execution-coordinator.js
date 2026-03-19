@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
@@ -37,6 +38,14 @@ const DEFAULT_ARCHITECT_CODE_CONTEXT_PATHS = [
   'src/execution/execution-coordinator.js',
   'ui/app.js',
 ];
+const DEFAULT_BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS = [
+  'src/runtime/contracts.js',
+  'src/runtime/runtime-service.js',
+  'src/execution/provider-adapter.js',
+  'src/execution/execution-coordinator.js',
+  'src/execution/providers/openai-responses-adapter.js',
+  'ui/app.js',
+];
 
 function toExecutionTask(task) {
   return {
@@ -71,6 +80,15 @@ function toExecutionArtifact(artifact) {
 
 function readContextFile(repoRoot, relativePath) {
   const filePath = path.join(repoRoot, relativePath);
+
+  return {
+    path: relativePath,
+    content: fs.readFileSync(filePath, 'utf8'),
+  };
+}
+
+function readProjectContextFile(projectPath, relativePath) {
+  const filePath = resolveProjectFilePath(projectPath, relativePath);
 
   return {
     path: relativePath,
@@ -120,6 +138,15 @@ function buildArchitectExecutionRequest(input) {
 function buildTaskBreakerExecutionRequest(input) {
   return {
     role: 'task-breaker',
+    anchor: {
+      projectId: input.project.id,
+      taskId: input.task.id,
+      planArtifactId: input.planArtifact.id,
+      planRunId: input.planRunId,
+      architectureArtifactId: input.architectureArtifact.id,
+      architectureRunId: input.architectureRunId,
+      sourceOfTruthPaths: input.sourceOfTruthPaths || [],
+    },
     task: toExecutionTask(input.task),
     project: toExecutionProject(input.project),
     planArtifact: toExecutionArtifact(input.planArtifact),
@@ -135,6 +162,19 @@ function buildTaskBreakerExecutionRequest(input) {
 function buildBuilderPreflightExecutionRequest(input) {
   return {
     role: 'builder',
+    anchor: {
+      projectId: input.project.id,
+      taskId: input.task.id,
+      planArtifactId: input.planArtifact.id,
+      planRunId: input.planArtifact.runId,
+      architectureArtifactId: input.architectureArtifact.id,
+      architectureRunId: input.architectureArtifact.runId,
+      breakdownArtifactId: input.breakdownArtifact.id,
+      breakdownRunId: input.breakdownArtifact.runId,
+      sourceOfTruthPaths: input.sourceOfTruthPaths || [],
+      architectureAllowlistPaths: input.architectureAllowlistPaths || [],
+      codeContextPaths: input.codeContextPaths || [],
+    },
     executionMode: 'preflight',
     mutationAllowed: false,
     task: toExecutionTask(input.task),
@@ -147,6 +187,7 @@ function buildBuilderPreflightExecutionRequest(input) {
     taskBreakerRunSummary: input.taskBreakerRunSummary || null,
     promptContract: input.promptContract,
     sourceOfTruth: input.sourceOfTruth,
+    codeContext: input.codeContext || [],
     expectedArtifactType: 'preflight',
   };
 }
@@ -154,6 +195,7 @@ function buildBuilderPreflightExecutionRequest(input) {
 function buildBuilderLiveMutationExecutionRequest(input) {
   return {
     role: 'builder',
+    anchor: input.anchor,
     executionMode: 'live-mutation',
     mutationAllowed: true,
     task: toExecutionTask(input.task),
@@ -174,6 +216,7 @@ function buildBuilderLiveMutationExecutionRequest(input) {
     preflightRunSummary: input.preflightRunSummary || null,
     promptContract: input.promptContract,
     sourceOfTruth: input.sourceOfTruth,
+    codeContext: input.codeContext || [],
     expectedArtifactType: 'change-summary',
   };
 }
@@ -294,6 +337,7 @@ function parseYesNoValue(value) {
 function parseBase64FileUpdates(content) {
   const section = getMarkdownSection(content, 'File Updates');
   const fileUpdates = [];
+  const seenPaths = new Set();
 
   for (const block of section.split(/^###\s+/m).filter(Boolean)) {
     const newlineIndex = block.indexOf('\n');
@@ -307,6 +351,12 @@ function parseBase64FileUpdates(content) {
     if (!fenceMatch) {
       throw new Error(`Missing base64 file update block for ${relativePath}`);
     }
+
+    if (seenPaths.has(relativePath)) {
+      throw new Error(`Duplicate file update path is not allowed: ${relativePath}`);
+    }
+
+    seenPaths.add(relativePath);
 
     fileUpdates.push({
       path: relativePath,
@@ -338,6 +388,33 @@ function captureFileContents(projectPath, relativePaths) {
   }
 
   return contents;
+}
+
+function computeContentDigest(content) {
+  return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+}
+
+function captureFileDigests(projectPath, relativePaths) {
+  const digests = [];
+
+  for (const relativePath of [...new Set(relativePaths)]) {
+    const filePath = resolveProjectFilePath(projectPath, relativePath);
+
+    if (!fs.existsSync(filePath)) {
+      digests.push({
+        path: relativePath,
+        digest: null,
+      });
+      continue;
+    }
+
+    digests.push({
+      path: relativePath,
+      digest: computeContentDigest(fs.readFileSync(filePath, 'utf8')),
+    });
+  }
+
+  return digests;
 }
 
 function restoreFileContents(projectPath, fileContents) {
@@ -439,6 +516,34 @@ function sameStringSets(left, right) {
   const leftSet = new Set(left);
 
   return right.every((value) => leftSet.has(value));
+}
+
+function sameExactDigestEntries(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index].path !== right[index].path || left[index].digest !== right[index].digest) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function sameExactStringArrays(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function normalizeRoleResult(result, options = {}) {
@@ -572,6 +677,32 @@ function buildBuilderDecisionInput(task, normalizedResult) {
   };
 }
 
+function buildBuilderLiveMutationDecisionInput(task, normalizedResult) {
+  const lines = [];
+
+  if (normalizedResult.summary) {
+    lines.push(normalizedResult.summary);
+  }
+
+  if (normalizedResult.blockers.length > 0) {
+    lines.push(...normalizedResult.blockers.map((blocker) => `- ${blocker}`));
+  }
+
+  if (normalizedResult.needsDecision && normalizedResult.blockers.length === 0) {
+    lines.push('- builder live mutation requires a human decision before any file write may proceed');
+  }
+
+  return {
+    title: normalizedResult.decisionTitle || `Builder live mutation decision: ${task.title}`,
+    prompt:
+      normalizedResult.decisionPrompt ||
+      lines.join('\n') ||
+      'Builder live mutation requires human follow-up before any file write may proceed.',
+    blocksTask: true,
+    sourceType: DECISION_INBOX_SOURCE_TYPE.DECISION,
+  };
+}
+
 function buildReviewerDecisionInput(task, parsedReview, normalizedResult, reviewArtifact) {
   const lines = [];
 
@@ -616,6 +747,154 @@ function findLatestTaskArtifact(runtime, task, type) {
   }
 
   return null;
+}
+
+function resolveLatestTaskBreakerProvenance(runtime, task) {
+  const planArtifact = findLatestTaskArtifact(runtime, task, 'plan');
+
+  if (!planArtifact) {
+    throw new Error(`Plan artifact is required before task-breaker run for task ${task.id}`);
+  }
+
+  if (!planArtifact.runId) {
+    throw new Error(`Plan run id is required before task-breaker run for task ${task.id}`);
+  }
+
+  const architectureArtifact = findLatestTaskArtifact(runtime, task, 'architecture');
+
+  if (!architectureArtifact) {
+    throw new Error(`Architecture artifact is required before task-breaker run for task ${task.id}`);
+  }
+
+  if (!architectureArtifact.runId) {
+    throw new Error(`Architecture run id is required before task-breaker run for task ${task.id}`);
+  }
+
+  const plannerRun = runtime.getRun(planArtifact.runId);
+  const architectRun = runtime.getRun(architectureArtifact.runId);
+  const architectSummary =
+    architectRun?.summary && typeof architectRun.summary === 'object' ? architectRun.summary : {};
+
+  if (
+    architectSummary.inputArtifactId !== planArtifact.id ||
+    architectSummary.inputRunId !== planArtifact.runId
+  ) {
+    throw new Error(
+      `Latest architecture artifact ${architectureArtifact.id} does not match current latest plan artifact ${planArtifact.id}`,
+    );
+  }
+
+  return {
+    architectureArtifact,
+    architectRun,
+    planArtifact,
+    plannerRun,
+  };
+}
+
+function resolveLatestBuilderPreflightProvenance(runtime, task) {
+  const {
+    architectureArtifact,
+    architectRun,
+    planArtifact,
+    plannerRun,
+  } = resolveLatestTaskBreakerProvenance(runtime, task);
+  const breakdownArtifact = findLatestTaskArtifact(runtime, task, 'breakdown');
+
+  if (!breakdownArtifact) {
+    throw new Error(`Breakdown artifact is required before builder preflight run for task ${task.id}`);
+  }
+
+  if (!breakdownArtifact.runId) {
+    throw new Error(`Breakdown run id is required before builder preflight run for task ${task.id}`);
+  }
+
+  const taskBreakerRun = runtime.getRun(breakdownArtifact.runId);
+  const taskBreakerSummary =
+    taskBreakerRun?.summary && typeof taskBreakerRun.summary === 'object'
+      ? taskBreakerRun.summary
+      : {};
+  const inputArtifactIds = Array.isArray(taskBreakerSummary.inputArtifactIds)
+    ? taskBreakerSummary.inputArtifactIds
+    : [];
+  const inputRunIds = Array.isArray(taskBreakerSummary.inputRunIds)
+    ? taskBreakerSummary.inputRunIds
+    : [];
+
+  if (
+    taskBreakerSummary.architectureArtifactId !== architectureArtifact.id ||
+    taskBreakerSummary.architectureRunId !== architectureArtifact.runId ||
+    !sameExactStringArrays(inputArtifactIds, [planArtifact.id, architectureArtifact.id]) ||
+    !sameExactStringArrays(inputRunIds, [planArtifact.runId, architectureArtifact.runId])
+  ) {
+    throw new Error(
+      `Latest breakdown artifact ${breakdownArtifact.id} does not match current latest plan-plus-architecture provenance chain`,
+    );
+  }
+
+  return {
+    architectureArtifact,
+    architectRun,
+    breakdownArtifact,
+    planArtifact,
+    plannerRun,
+    taskBreakerRun,
+  };
+}
+
+function resolveLatestBuilderLiveMutationProvenance(runtime, task, preflightArtifact, preflightRun) {
+  const provenance = resolveLatestBuilderPreflightProvenance(runtime, task);
+  const resolvedPreflightArtifact = preflightArtifact || findLatestTaskArtifact(runtime, task, 'preflight');
+
+  if (!resolvedPreflightArtifact) {
+    throw new Error(`Preflight artifact is required before builder live mutation run for task ${task.id}`);
+  }
+
+  const resolvedPreflightRun =
+    preflightRun ||
+    (resolvedPreflightArtifact.runId ? runtime.getRun(resolvedPreflightArtifact.runId) : null);
+
+  if (!resolvedPreflightRun) {
+    throw new Error(`Preflight run id is required before builder live mutation run for task ${task.id}`);
+  }
+
+  const preflightSummary =
+    resolvedPreflightRun.summary && typeof resolvedPreflightRun.summary === 'object'
+      ? resolvedPreflightRun.summary
+      : {};
+  const inputArtifactIds = Array.isArray(preflightSummary.inputArtifactIds)
+    ? preflightSummary.inputArtifactIds
+    : [];
+  const inputRunIds = Array.isArray(preflightSummary.inputRunIds) ? preflightSummary.inputRunIds : [];
+
+  if (
+    preflightSummary.planArtifactId !== provenance.planArtifact.id ||
+    preflightSummary.planRunId !== provenance.planArtifact.runId ||
+    preflightSummary.architectureArtifactId !== provenance.architectureArtifact.id ||
+    preflightSummary.architectureRunId !== provenance.architectureArtifact.runId ||
+    preflightSummary.breakdownArtifactId !== provenance.breakdownArtifact.id ||
+    preflightSummary.breakdownRunId !== provenance.breakdownArtifact.runId ||
+    !sameExactStringArrays(inputArtifactIds, [
+      provenance.planArtifact.id,
+      provenance.architectureArtifact.id,
+      provenance.breakdownArtifact.id,
+    ]) ||
+    !sameExactStringArrays(inputRunIds, [
+      provenance.planArtifact.runId,
+      provenance.architectureArtifact.runId,
+      provenance.breakdownArtifact.runId,
+    ])
+  ) {
+    throw new Error(
+      `Latest preflight artifact ${resolvedPreflightArtifact.id} does not match current latest plan-plus-architecture-plus-breakdown provenance chain`,
+    );
+  }
+
+  return {
+    ...provenance,
+    preflightArtifact: resolvedPreflightArtifact,
+    preflightRun: resolvedPreflightRun,
+  };
 }
 
 function findLatestBuilderLiveMutationRun(runtime, task) {
@@ -1296,6 +1575,8 @@ function createExecutionCoordinator(options = {}) {
   const sourceOfTruthPaths = options.sourceOfTruthPaths || DEFAULT_SOURCE_OF_TRUTH_PATHS;
   const architectCodeContextPaths =
     options.architectCodeContextPaths || DEFAULT_ARCHITECT_CODE_CONTEXT_PATHS;
+  const builderPreflightCodeContextPaths =
+    options.builderPreflightCodeContextPaths || DEFAULT_BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS;
 
   function resolveProviderExecutionContext(project, role) {
     const providerConfig = normalizeProjectProviderConfig(project?.provider);
@@ -3107,21 +3388,12 @@ function createExecutionCoordinator(options = {}) {
       throw new Error('project_path is required');
     }
 
-    const planArtifact = findLatestTaskArtifact(runtime, task, 'plan');
-    const architectureArtifact = findLatestTaskArtifact(runtime, task, 'architecture');
-
-    if (!planArtifact) {
-      throw new Error(`Plan artifact is required before task-breaker run for task ${task.id}`);
-    }
-
-    if (!architectureArtifact) {
-      throw new Error(
-        `Architecture artifact is required before task-breaker run for task ${task.id}`,
-      );
-    }
-
-    const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
-    const architectRun = architectureArtifact.runId ? runtime.getRun(architectureArtifact.runId) : null;
+    const {
+      architectureArtifact,
+      architectRun,
+      planArtifact,
+      plannerRun,
+    } = resolveLatestTaskBreakerProvenance(runtime, task);
     const providerContext = assertProviderExecutionReady(project, 'task-breaker');
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
@@ -3137,11 +3409,14 @@ function createExecutionCoordinator(options = {}) {
     );
     const request = buildTaskBreakerExecutionRequest({
       architectureArtifact,
+      architectureRunId: architectureArtifact.runId,
       architectRunSummary: architectRun?.summary || null,
       planArtifact,
+      planRunId: planArtifact.runId,
       plannerRunSummary: plannerRun?.summary || null,
       project,
       promptContract,
+      sourceOfTruthPaths,
       sourceOfTruth,
       task,
     });
@@ -3152,6 +3427,7 @@ function createExecutionCoordinator(options = {}) {
       metadata: {
         architectureArtifactId: architectureArtifact.id,
         inputArtifactIds: [planArtifact.id, architectureArtifact.id],
+        inputRunIds: [planArtifact.runId, architectureArtifact.runId],
         promptPath: promptContract.path,
         sourceOfTruthPaths,
       },
@@ -3220,8 +3496,10 @@ function createExecutionCoordinator(options = {}) {
         summary: {
           adapter: response.adapterName,
           architectureArtifactId: architectureArtifact.id,
+          architectureRunId: architectureArtifact.runId,
           decisionCreated: Boolean(decisionInboxItem),
           inputArtifactIds: [planArtifact.id, architectureArtifact.id],
+          inputRunIds: [planArtifact.runId, architectureArtifact.runId],
           model: response.model,
           blockers: normalizedResult.blockers.length,
           needsDecision: normalizedResult.needsDecision,
@@ -3251,6 +3529,7 @@ function createExecutionCoordinator(options = {}) {
         summary: {
           error: error.message,
           inputArtifactIds: [planArtifact.id, architectureArtifact.id],
+          inputRunIds: [planArtifact.runId, architectureArtifact.runId],
           nextStage: null,
         },
       });
@@ -3271,33 +3550,17 @@ function createExecutionCoordinator(options = {}) {
       throw new Error('project_path is required');
     }
 
-    const planArtifact = findLatestTaskArtifact(runtime, task, 'plan');
-    const architectureArtifact = findLatestTaskArtifact(runtime, task, 'architecture');
-    const breakdownArtifact = findLatestTaskArtifact(runtime, task, 'breakdown');
-
-    if (!planArtifact) {
-      throw new Error(`Plan artifact is required before builder preflight run for task ${task.id}`);
-    }
-
-    if (!architectureArtifact) {
-      throw new Error(
-        `Architecture artifact is required before builder preflight run for task ${task.id}`,
-      );
-    }
-
-    if (!breakdownArtifact) {
-      throw new Error(
-        `Breakdown artifact is required before builder preflight run for task ${task.id}`,
-      );
-    }
-
     runtime.assertTaskCanRunBuilderPreflight({
       taskId: input.taskId,
     });
-
-    const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
-    const architectRun = architectureArtifact.runId ? runtime.getRun(architectureArtifact.runId) : null;
-    const taskBreakerRun = breakdownArtifact.runId ? runtime.getRun(breakdownArtifact.runId) : null;
+    const {
+      architectureArtifact,
+      architectRun,
+      breakdownArtifact,
+      planArtifact,
+      plannerRun,
+      taskBreakerRun,
+    } = resolveLatestBuilderPreflightProvenance(runtime, task);
     const providerContext = assertProviderExecutionReady(project, 'builder-preflight');
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
@@ -3311,14 +3574,42 @@ function createExecutionCoordinator(options = {}) {
     const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
       readContextFile(repoRoot, relativePath),
     );
+    const architectureAllowlistPaths = parseMarkdownList(
+      architectureArtifact.content,
+      'Affected Components or Contracts',
+    );
+
+    if (architectureAllowlistPaths.length === 0) {
+      throw new Error(
+        `Architecture artifact ${architectureArtifact.id} affected components allowlist is required before builder preflight run for task ${task.id}`,
+      );
+    }
+
+    const codeContextPaths = builderPreflightCodeContextPaths.filter((relativePath) =>
+      architectureAllowlistPaths.includes(relativePath),
+    );
+
+    if (codeContextPaths.length === 0) {
+      throw new Error(
+        `Builder preflight code context allowlist resolved to zero files inside the approved architecture boundary for task ${task.id}`,
+      );
+    }
+
+    const codeContext = codeContextPaths.map((relativePath) =>
+      readContextFile(repoRoot, relativePath),
+    );
     const request = buildBuilderPreflightExecutionRequest({
       architectureArtifact,
+      architectureAllowlistPaths,
       architectRunSummary: architectRun?.summary || null,
       breakdownArtifact,
+      codeContext,
+      codeContextPaths,
       planArtifact,
       plannerRunSummary: plannerRun?.summary || null,
       project,
       promptContract,
+      sourceOfTruthPaths,
       sourceOfTruth,
       task,
       taskBreakerRunSummary: taskBreakerRun?.summary || null,
@@ -3328,8 +3619,11 @@ function createExecutionCoordinator(options = {}) {
       kind: 'role',
       role: 'builder',
       metadata: {
+        architectureAllowlistPaths,
+        codeContextPaths,
         executionMode: 'preflight',
         inputArtifactIds: [planArtifact.id, architectureArtifact.id, breakdownArtifact.id],
+        inputRunIds: [planArtifact.runId, architectureArtifact.runId, breakdownArtifact.runId],
         mutationAllowed: false,
         promptPath: promptContract.path,
         sourceOfTruthPaths,
@@ -3358,7 +3652,7 @@ function createExecutionCoordinator(options = {}) {
     });
     runtime.appendLog({
       runId: run.id,
-      message: `built builder preflight execution request with ${sourceOfTruth.length} source-of-truth files`,
+      message: `built builder preflight execution request with ${sourceOfTruth.length} source-of-truth files and ${codeContext.length} code-context files`,
     });
 
     try {
@@ -3369,9 +3663,14 @@ function createExecutionCoordinator(options = {}) {
 
       const response = await executeWithAdapter(providerContext.adapter, request, providerContext);
       const normalizedResult = normalizeRoleResult(response.normalizedResult, {
-        allowedNextStages: ['reviewer', 'task-breaker', 'architect', 'human gate'],
-        defaultNextStage: 'reviewer',
-        role: 'builder',
+        allowedNextStages: [
+          'request-builder-live-mutation-approval',
+          'task-breaker',
+          'architect',
+          'human gate',
+        ],
+        defaultNextStage: 'request-builder-live-mutation-approval',
+        role: 'builder-preflight',
       });
       const artifact = runtime.recordArtifact({
         taskId: task.id,
@@ -3402,15 +3701,25 @@ function createExecutionCoordinator(options = {}) {
         runId: run.id,
         summary: {
           adapter: response.adapterName,
+          architectureArtifactId: architectureArtifact.id,
+          architectureRunId: architectureArtifact.runId,
+          breakdownArtifactId: breakdownArtifact.id,
+          breakdownRunId: breakdownArtifact.runId,
+          architectureAllowlistPaths,
+          codeContextPaths,
           decisionCreated: Boolean(decisionInboxItem),
           executionMode: 'preflight',
           inputArtifactIds: [planArtifact.id, architectureArtifact.id, breakdownArtifact.id],
+          inputRunIds: [planArtifact.runId, architectureArtifact.runId, breakdownArtifact.runId],
+          mutationAllowed: false,
           model: response.model,
           blockers: normalizedResult.blockers.length,
-          mutationAllowed: false,
           needsDecision: normalizedResult.needsDecision,
           nextStage: normalizedResult.nextStage,
+          planArtifactId: planArtifact.id,
+          planRunId: planArtifact.runId,
           providerRunId: response.providerRunId,
+          sourceOfTruthPaths,
         },
       });
 
@@ -3432,10 +3741,17 @@ function createExecutionCoordinator(options = {}) {
       runtime.completeRun({
         runId: run.id,
         summary: {
+          architectureArtifactId: architectureArtifact.id,
+          architectureRunId: architectureArtifact.runId,
+          breakdownArtifactId: breakdownArtifact.id,
+          breakdownRunId: breakdownArtifact.runId,
           error: error.message,
+          inputRunIds: [planArtifact.runId, architectureArtifact.runId, breakdownArtifact.runId],
           executionMode: 'preflight',
           inputArtifactIds: [planArtifact.id, architectureArtifact.id, breakdownArtifact.id],
           nextStage: null,
+          planArtifactId: planArtifact.id,
+          planRunId: planArtifact.runId,
         },
       });
 
@@ -3451,6 +3767,7 @@ function createExecutionCoordinator(options = {}) {
     let run = null;
     let backupContents = null;
     let inputArtifactIds = [];
+    let decisionInboxItem = null;
 
     const readyContext = await assertBuilderLiveMutationReady({
       taskId: input.taskId,
@@ -3458,14 +3775,26 @@ function createExecutionCoordinator(options = {}) {
     const task = readyContext.task;
     const project = readyContext.project;
     const approval = readyContext.approval;
-    const preflightArtifact = readyContext.preflightArtifact;
-    const preflightRun = readyContext.preflightRun;
-    const planArtifact = findLatestTaskArtifact(runtime, task, 'plan');
-    const architectureArtifact = findLatestTaskArtifact(runtime, task, 'architecture');
-    const breakdownArtifact = findLatestTaskArtifact(runtime, task, 'breakdown');
+    const {
+      planArtifact,
+      plannerRun,
+      architectureArtifact,
+      architectRun,
+      breakdownArtifact,
+      taskBreakerRun,
+      preflightArtifact,
+      preflightRun,
+    } = resolveLatestBuilderLiveMutationProvenance(
+      runtime,
+      task,
+      readyContext.preflightArtifact,
+      readyContext.preflightRun,
+    );
 
-    if (!planArtifact || !architectureArtifact || !breakdownArtifact) {
-      throw new Error(`Latest plan, architecture, and breakdown artifacts are required for task ${task.id}`);
+    if (approval.targetArtifactId !== preflightArtifact.id || approval.targetRunId !== preflightRun.id) {
+      throw new Error(
+        `Builder live mutation approval ${approval.id} must exactly match preflight ${preflightArtifact.id}`,
+      );
     }
 
     const targetFiles = parseMarkdownList(preflightArtifact.content, 'Target Files');
@@ -3495,19 +3824,41 @@ function createExecutionCoordinator(options = {}) {
       preflightArtifact.id,
     ];
 
-    const plannerRun = planArtifact.runId ? runtime.getRun(planArtifact.runId) : null;
-    const architectRun = architectureArtifact.runId ? runtime.getRun(architectureArtifact.runId) : null;
-    const taskBreakerRun = breakdownArtifact.runId ? runtime.getRun(breakdownArtifact.runId) : null;
     const providerContext = assertProviderExecutionReady(project, 'builder-live-mutation');
     const promptContract = readContextFile(repoRoot, builderPromptPath);
     const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
       readContextFile(repoRoot, relativePath),
     );
+    const codeContext = targetFiles.map((relativePath) =>
+      readProjectContextFile(project.projectPath, relativePath),
+    );
+    const baselineTargetDigests = captureFileDigests(project.projectPath, targetFiles);
     const request = buildBuilderLiveMutationExecutionRequest({
+      anchor: {
+        projectId: project.id,
+        taskId: task.id,
+        planArtifactId: planArtifact.id,
+        planRunId: planArtifact.runId,
+        architectureArtifactId: architectureArtifact.id,
+        architectureRunId: architectureArtifact.runId,
+        breakdownArtifactId: breakdownArtifact.id,
+        breakdownRunId: breakdownArtifact.runId,
+        preflightArtifactId: preflightArtifact.id,
+        preflightRunId: preflightRun.id,
+        approvalId: approval.id,
+        approvalTargetArtifactId: approval.targetArtifactId,
+        approvalTargetRunId: approval.targetRunId,
+        sourceOfTruthPaths,
+        architectureAllowlistPaths: architectureAllowlist,
+        targetFileAllowlistPaths: targetFiles,
+        codeContextPaths: targetFiles,
+        targetFileBaselineDigests: baselineTargetDigests,
+      },
       approval,
       architectureArtifact,
       architectRunSummary: architectRun?.summary || null,
       breakdownArtifact,
+      codeContext,
       planArtifact,
       plannerRunSummary: plannerRun?.summary || null,
       preflightArtifact,
@@ -3520,18 +3871,34 @@ function createExecutionCoordinator(options = {}) {
     });
     const baselineTargetContents = captureFileContents(project.projectPath, targetFiles);
 
+    if ([...baselineTargetContents.values()].some((content) => content === null)) {
+      const missingFiles = [...baselineTargetContents.entries()]
+        .filter(([, content]) => content === null)
+        .map(([relativePath]) => relativePath);
+
+      throw new Error(
+        `Builder live mutation only supports existing files in this slice: ${missingFiles.join(', ')}`,
+      );
+    }
+
     run = runtime.startRun({
       taskId: task.id,
       kind: 'role',
       role: 'builder',
       metadata: {
         approvalId: approval.id,
+        approvalTargetArtifactId: approval.targetArtifactId,
+        approvalTargetRunId: approval.targetRunId,
+        architectureAllowlistPaths: architectureAllowlist,
+        codeContextPaths: targetFiles,
         executionMode: 'live-mutation',
         inputArtifactIds,
         mutationAllowed: true,
         preflightArtifactId: preflightArtifact.id,
+        preflightRunId: preflightRun.id,
         promptPath: promptContract.path,
         sourceOfTruthPaths,
+        targetFileBaselineDigests: baselineTargetDigests,
         targetFiles,
       },
     });
@@ -3556,6 +3923,14 @@ function createExecutionCoordinator(options = {}) {
       runId: run.id,
       message: `validated ${targetFiles.length} preflight target files inside the approved architecture boundary`,
     });
+    runtime.appendLog({
+      runId: run.id,
+      message: `anchored builder live mutation input to approval ${approval.id} and preflight ${preflightArtifact.id}`,
+    });
+    runtime.appendLog({
+      runId: run.id,
+      message: `built builder live mutation execution request with ${sourceOfTruth.length} source-of-truth files and ${codeContext.length} code-context files`,
+    });
 
     try {
       runtime.appendLog({
@@ -3569,33 +3944,12 @@ function createExecutionCoordinator(options = {}) {
         defaultNextStage: 'reviewer',
         role: 'builder',
       });
-      const changeSummaryArtifact = runtime.recordArtifact({
-        taskId: task.id,
-        runId: run.id,
-        type: 'change-summary',
-        content: response.outputText,
-      });
       const fileUpdates = parseBase64FileUpdates(response.outputText);
-      const updatedFiles = [...new Set(fileUpdates.map((fileUpdate) => fileUpdate.path))];
+      const updatedFiles = fileUpdates.map((fileUpdate) => fileUpdate.path);
       const outOfScopeFiles = updatedFiles.filter((relativePath) => !targetFiles.includes(relativePath));
       const outsideArchitectureFiles = updatedFiles.filter(
         (relativePath) => !architectureAllowlist.includes(relativePath),
       );
-
-      runtime.appendLog({
-        runId: run.id,
-        message: `saved builder live mutation change-summary artifact ${changeSummaryArtifact.id}`,
-      });
-
-      if (normalizedResult.blockers.length > 0 || normalizedResult.needsDecision) {
-        throw new Error(
-          `Builder live mutation must stop before file writes: ${normalizedResult.blockers.join('; ') || normalizedResult.summary || 'provider requested follow-up'}`,
-        );
-      }
-
-      if (fileUpdates.length === 0) {
-        throw new Error('Builder live mutation returned no bounded file updates');
-      }
 
       if (outOfScopeFiles.length > 0) {
         throw new Error(
@@ -3609,37 +3963,96 @@ function createExecutionCoordinator(options = {}) {
         );
       }
 
-      backupContents = captureFileContents(project.projectPath, updatedFiles);
+      if (normalizedResult.nextStage === 'architect') {
+        const completedRun = runtime.completeRun({
+          runId: run.id,
+          summary: {
+            adapter: response.adapterName,
+            approvalId: approval.id,
+            executionMode: 'live-mutation',
+            inputArtifactIds,
+            model: response.model,
+            mutationAllowed: true,
+            nextStage: normalizedResult.nextStage,
+            preflightArtifactId: preflightArtifact.id,
+            preflightRunId: preflightRun.id,
+            providerRunId: response.providerRunId,
+          },
+        });
 
-      if ([...backupContents.values()].some((content) => content === null)) {
-        const missingFiles = [...backupContents.entries()]
-          .filter(([, content]) => content === null)
-          .map(([relativePath]) => relativePath);
+        return {
+          artifacts: {},
+          changedFiles: [],
+          decisionInboxItem: null,
+          inputArtifacts: [planArtifact, architectureArtifact, breakdownArtifact, preflightArtifact],
+          normalizedResult,
+          run: completedRun,
+        };
+      }
 
+      if (normalizedResult.nextStage === 'human gate') {
+        decisionInboxItem = runtime.createDecisionInboxItem({
+          taskId: task.id,
+          ...buildBuilderLiveMutationDecisionInput(task, normalizedResult),
+        });
+
+        runtime.appendLog({
+          runId: run.id,
+          message: `created builder live mutation decision inbox item ${decisionInboxItem.id}`,
+        });
+
+        const completedRun = runtime.completeRun({
+          runId: run.id,
+          summary: {
+            adapter: response.adapterName,
+            approvalId: approval.id,
+            decisionCreated: true,
+            executionMode: 'live-mutation',
+            inputArtifactIds,
+            model: response.model,
+            mutationAllowed: true,
+            nextStage: normalizedResult.nextStage,
+            preflightArtifactId: preflightArtifact.id,
+            preflightRunId: preflightRun.id,
+            providerRunId: response.providerRunId,
+          },
+        });
+
+        return {
+          artifacts: {},
+          changedFiles: [],
+          decisionInboxItem,
+          inputArtifacts: [planArtifact, architectureArtifact, breakdownArtifact, preflightArtifact],
+          normalizedResult,
+          run: completedRun,
+        };
+      }
+
+      if (normalizedResult.blockers.length > 0 || normalizedResult.needsDecision) {
         throw new Error(
-          `Builder live mutation only supports existing files in this slice: ${missingFiles.join(', ')}`,
+          `Builder live mutation must stop before file writes: ${normalizedResult.blockers.join('; ') || normalizedResult.summary || 'provider requested follow-up'}`,
         );
       }
 
+      if (fileUpdates.length === 0) {
+        throw new Error('Builder live mutation returned no bounded file updates');
+      }
+
+      const currentTargetDigests = captureFileDigests(project.projectPath, targetFiles);
+
+      if (!sameExactDigestEntries(currentTargetDigests, baselineTargetDigests)) {
+        throw new Error(
+          `Builder live mutation baseline drift detected for preflight ${preflightArtifact.id}; rerun builder preflight before live mutation`,
+        );
+      }
+
+      backupContents = captureFileContents(project.projectPath, updatedFiles);
       const plannedAfterContents = new Map(fileUpdates.map((fileUpdate) => [fileUpdate.path, fileUpdate.content]));
       const patchText = buildCombinedDiff(updatedFiles, backupContents, plannedAfterContents);
 
       if (!patchText.trim()) {
         throw new Error('Builder live mutation produced no patch after validation');
       }
-
-      const patchArtifact = runtime.recordArtifact({
-        taskId: task.id,
-        runId: run.id,
-        type: 'patch',
-        extension: 'patch',
-        content: patchText,
-      });
-
-      runtime.appendLog({
-        runId: run.id,
-        message: `saved builder live mutation patch artifact ${patchArtifact.id}`,
-      });
 
       for (const fileUpdate of fileUpdates) {
         const filePath = resolveProjectFilePath(project.projectPath, fileUpdate.path);
@@ -3661,12 +4074,41 @@ function createExecutionCoordinator(options = {}) {
       }
 
       const diffText = buildCombinedDiff(actualChangedFiles, baselineTargetContents, afterTargetContents);
-      const diffArtifact = runtime.recordArtifact({
-        taskId: task.id,
+      const finalized = runtime.finalizeBuilderLiveMutationSuccess({
+        approvalId: approval.id,
+        artifacts: [
+          {
+            content: response.outputText,
+            type: 'change-summary',
+          },
+          {
+            content: patchText,
+            extension: 'patch',
+            type: 'patch',
+          },
+          {
+            content: diffText,
+            extension: 'diff',
+            type: 'diff',
+          },
+        ],
         runId: run.id,
-        type: 'diff',
-        extension: 'diff',
-        content: diffText,
+        summary: {
+          adapter: response.adapterName,
+          approvalId: approval.id,
+          approvalTargetArtifactId: approval.targetArtifactId,
+          approvalTargetRunId: approval.targetRunId,
+          changedFiles: actualChangedFiles,
+          executionMode: 'live-mutation',
+          inputArtifactIds,
+          model: response.model,
+          mutationAllowed: true,
+          nextStage: normalizedResult.nextStage,
+          preflightArtifactId: preflightArtifact.id,
+          preflightRunId: preflightRun.id,
+          providerRunId: response.providerRunId,
+          targetFiles,
+        },
       });
 
       runtime.appendLog({
@@ -3675,40 +4117,16 @@ function createExecutionCoordinator(options = {}) {
       });
       runtime.appendLog({
         runId: run.id,
-        message: `saved builder live mutation diff artifact ${diffArtifact.id}`,
-      });
-
-      const completedRun = runtime.completeRun({
-        runId: run.id,
-        summary: {
-          adapter: response.adapterName,
-          approvalId: approval.id,
-          artifactIds: {
-            changeSummary: changeSummaryArtifact.id,
-            diff: diffArtifact.id,
-            patch: patchArtifact.id,
-          },
-          changedFiles: actualChangedFiles,
-          executionMode: 'live-mutation',
-          inputArtifactIds,
-          model: response.model,
-          mutationAllowed: true,
-          nextStage: normalizedResult.nextStage,
-          preflightArtifactId: preflightArtifact.id,
-          providerRunId: response.providerRunId,
-        },
+        message: `saved builder live mutation bundle ${finalized.artifacts.changeSummary.id}, ${finalized.artifacts.patch.id}, ${finalized.artifacts.diff.id}`,
       });
 
       return {
-        artifacts: {
-          changeSummary: changeSummaryArtifact,
-          diff: diffArtifact,
-          patch: patchArtifact,
-        },
+        artifacts: finalized.artifacts,
         changedFiles: actualChangedFiles,
+        decisionInboxItem: null,
         inputArtifacts: [planArtifact, architectureArtifact, breakdownArtifact, preflightArtifact],
         normalizedResult,
-        run: completedRun,
+        run: finalized.run,
       };
     } catch (error) {
       if (backupContents) {

@@ -34,8 +34,15 @@
 - first live scope는 planner-only로 고정하고, concrete model default는 repo에 박지 말고 operator-pinned project config로 두는 편이 v1 semantics와 provider drift를 함께 막기 쉬웠다.
 - architect live 확장은 coordinator 쪽 broad refactor보다 explicit anchor exact-match 검증과 adapter-rendered canonical markdown으로 닫는 편이 downstream boundary semantics를 안정적으로 유지하기 쉽다.
 - task-breaker live처럼 upstream artifact가 둘 이상인 단계는 latest artifact를 타입별로 독립 선택하지 말고 `latest plan + matching latest architecture` provenance chain 자체를 anchor로 강제하는 편이 breakdown drift를 막기 쉽다.
+- task-breaker provenance mismatch는 provider 호출 뒤에 정리하기보다 coordinator/runtime guard에서 먼저 막는 편이 stale breakdown artifact와 misleading live logs를 함께 줄이기 쉽다.
 - 기존 UI/parser contract가 이미 고정된 artifact(`breakdown` 등)는 live structured output을 raw markdown 대체로 밀어넣기보다 adapter-rendered canonical markdown으로 닫는 편이 UI 변경 없이 범위를 유지하기 쉽다.
+- task-breaker live browser smoke도 project-level provider summary는 coarse readiness만 브라우저에서 보고, 실제 `builder | human gate` 의미론은 `/api/snapshot`, artifact content, run logs로 닫는 편이 UI drift를 줄이기 쉽다.
 - prompt contract의 allowed handoff와 escalation wording은 coordinator가 실제 허용하는 `nextStage` 집합과 일치시켜야 fail-closed noise와 문서 drift를 줄이기 쉽다.
+- builder-preflight live가 구현된 뒤에는 docs/pack/todo의 design-only wording을 즉시 정리해야 다음 slice 논의가 stale premise 위에서 흔들리지 않는다.
+- builder live mutation live는 preflight/approval pair만으로는 부족하고 `plan + architecture + breakdown + preflight + approval + target allowlist + baseline digests`까지 포함한 exact-match anchor로 잠그는 편이 mutation provenance를 안정적으로 유지하기 쉽다.
+- builder live mutation bundle은 `change-summary / patch / diff`를 따로 남기기보다 atomic bundle로 다루고, validation 실패 시 repo restore + artifact 미생성 + approval 미소비로 닫는 편이 provenance cleanliness와 retry semantics를 함께 지키기 쉽다.
+- reviewer live를 열지 않는 slice에서는 live-mode project의 reviewer blocked/degraded 상태를 silent fallback이 아니라 explicit operator step으로 문서화하는 편이 scope drift를 줄이기 쉽다.
+- provider secret/auth/raw payload/env value non-leak 범위와 repo-content redaction policy는 분리해서 적어야 live-provider slice가 artifact redaction capability까지 암묵적으로 확대되는 drift를 막기 쉽다.
 - release-ready approval도 preflight target만으로는 충분하지 않고 `releasePackageArtifactId / commitResultArtifactId / commitPackageArtifactId / sourceReviewerRunId / sourceBuilderRunId / targetPreflightArtifactId / commitSha / deliveryStance`를 metadata에 모두 고정해야 stale allow를 막을 수 있었다.
 - same source commit bundle에 대한 release approval은 pending/approved를 409로 닫고 rejected만 재요청 허용하는 편이 duplicate 제어와 human gate 재시도를 함께 단순하게 유지했다.
 - release-package enable/disable과 approval status(`none / pending / approved / rejected / stale`)는 UI에서 별도 semantics를 다시 계산하지 말고 `releasePackageReadiness` summary를 그대로 읽어야 polling과 stale handling drift를 막을 수 있었다.

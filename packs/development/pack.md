@@ -20,8 +20,9 @@ The pack exists to keep development execution inspectable and controlled:
 - The builder must not silently change architecture. If an architectural change is discovered or required, the task must route back through architecture review and, when needed, a human decision.
 - Review is a required gate before a task can be considered done.
 - Approval is a required gate before commit.
-- Provider-agnostic contract language stays intact. The shipped v1 default remains `local-demo-only` via the built-in `local-stub` adapter, and the current implemented live opt-in stays narrowly limited to planner plus architect `openai-responses` execution behind the same adapter boundary.
-- `strategy-slice-04` defines the next task-breaker live boundary only as strategy and contract lock. It does not enable task-breaker live execution yet, does not change UI behavior, and does not widen builder, reviewer, release, or close-out semantics.
+- Provider-agnostic contract language stays intact. The shipped v1 default remains `local-demo-only` via the built-in `local-stub` adapter, and the current implemented live opt-in stays narrowly limited to planner plus architect plus task-breaker plus builder-preflight `openai-responses` execution behind the same adapter boundary.
+- `provider-slice-05` implements the accepted builder-preflight live boundary without changing UI semantics beyond current provider copy, and without widening `builder-live-mutation`, reviewer, release, or close-out semantics.
+- `strategy-slice-06` defines `builder-live-mutation` as the next live boundary only. It does not implement live builder-mutation, it keeps reviewer live blocked, and it does not widen release, or close-out semantics.
 
 ## Entry Criteria
 A task may enter this pack only when all of the following are true:
@@ -233,9 +234,9 @@ Artifact expectations:
 
 ## VNext Backlog After V1 Freeze
 ### Future Live-Provider Expansion Boundary
-- Why still open: The current implemented live-provider boundary still includes planner plus architect `openai-responses` only, but `strategy-slice-04` now defines the next task-breaker live boundary that a later implementation slice may consume.
-- Current temporary default: Keep the current planner plus architect live scope, keep `local-stub` as the shipped default, and do not widen live execution semantics without an explicit follow-up implementation slice. If task-breaker live is implemented later, it must anchor to `planArtifactId / planRunId + architectureArtifactId / architectureRunId`, require the latest architecture to match the current latest plan provenance chain, keep `nextStage` limited to `builder | human gate`, keep builder/reviewer degraded, and render canonical breakdown markdown from structured output instead of changing the UI/parser contract.
-- Decide again when: Before implementing task-breaker live execution, before enabling any downstream live role beyond task-breaker, or before adding another provider adapter.
+- Why still open: The current implemented live-provider boundary includes planner plus architect plus task-breaker plus builder-preflight `openai-responses`. `strategy-slice-06` fixes the builder-live-mutation live boundary contract, but builder-live-mutation is not implemented in live mode yet, and reviewer live remains explicitly out of scope.
+- Current temporary default: Keep `local-stub` as the shipped default, keep implemented live execution capped at planner plus architect plus task-breaker plus builder-preflight, define builder-live-mutation live against `projectId / taskId + planArtifactId / planRunId + architectureArtifactId / architectureRunId + breakdownArtifactId / breakdownRunId + preflightArtifactId / preflightRunId + approvalId + approvalTargetArtifactId / approvalTargetRunId + sourceOfTruthPaths + architectureAllowlistPaths + targetFileAllowlistPaths + codeContextPaths + targetFileBaselineDigests`, require `approvalTarget*` to exactly match `preflight*`, keep `codeContextPaths` equal to the target-file allowlist set, keep target files existing-file-only, keep `fileUpdates` repo-relative/unique/non-empty/allowlist-subset with actual changed files exact-matching that set, keep `nextStage` limited to `reviewer | architect | human gate`, keep `change-summary / patch / diff` as one atomic mutation bundle with repo restore + no artifact + no approval consumption on validation failure, keep reviewer degraded in live mode as an explicit operator step with no silent fallback, keep provider secret/auth/raw payload/env value non-leak in scope, and keep repo-content redaction policy out of scope.
+- Decide again when: Before implementing builder-live-mutation live, before enabling reviewer live, or before adding another provider adapter.
 
 ### Future Cleanup Policy
 - Why still open: Retention tiers are normalized, but no delete/archive/GC capability exists in v1.

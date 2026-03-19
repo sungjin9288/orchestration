@@ -148,11 +148,11 @@ assert.equal(readiness.readiness, 'ready');
 assert.equal(readiness.adapter, 'openai-responses');
 assert.equal(architectReadiness.readiness, 'ready');
 assert.equal(architectReadiness.allowed, true);
-assert.equal(taskBreakerReadiness.readiness, 'degraded');
-assert.equal(builderPreflightReadiness.readiness, 'degraded');
+assert.equal(taskBreakerReadiness.readiness, 'ready');
+assert.equal(builderPreflightReadiness.readiness, 'ready');
 assert.equal(reviewerReadiness.readiness, 'degraded');
-assert.equal(taskBreakerReadiness.allowed, false);
-assert.equal(builderPreflightReadiness.allowed, false);
+assert.equal(taskBreakerReadiness.allowed, true);
+assert.equal(builderPreflightReadiness.allowed, true);
 assert.equal(reviewerReadiness.allowed, false);
 
 const plannerResult = await coordinator.runPlanner({

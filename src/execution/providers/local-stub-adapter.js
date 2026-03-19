@@ -430,7 +430,7 @@ function buildNormalizedBuilderPreflightResult(request) {
     .filter(Boolean)
     .join('\n');
   const blockers = [];
-  let nextStage = 'reviewer';
+  let nextStage = 'request-builder-live-mutation-approval';
 
   if (/(blocking risk|preflight risk|human approval before live execution)/i.test(riskSignalText)) {
     blockers.push(
@@ -447,11 +447,11 @@ function buildNormalizedBuilderPreflightResult(request) {
     nextStage,
     summary: needsDecision
       ? 'Builder preflight captured a blocking risk that must route through the human gate.'
-      : 'Builder preflight artifact is ready for reviewer-facing inspection without mutating code.',
+      : 'Builder preflight artifact is ready for explicit live-mutation approval request without mutating code.',
     decisionTitle: `Builder preflight risk: ${request.task.title}`,
     decisionPrompt: renderList(
       blockers,
-      'Builder preflight is ready for reviewer-facing inspection.',
+      'Builder preflight is ready for explicit live-mutation approval request.',
     ),
   };
 }

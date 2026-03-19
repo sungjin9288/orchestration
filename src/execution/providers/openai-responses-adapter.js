@@ -6,8 +6,8 @@ const { PROVIDER_READINESS } = require('../../runtime/contracts');
 
 const DEFAULT_OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const DEFAULT_TIMEOUT_MS = 30000;
-const PLANNER_AND_ARCHITECT_ONLY_REASON =
-  'openai-responses live execution is limited to planner and architect in provider-slice-03';
+const LIVE_ROLE_LIMIT_REASON =
+  'openai-responses live execution is limited to planner, architect, task-breaker, builder-preflight, and builder-live-mutation in provider-slice-06';
 
 function createStructuredResultSchema(allowedNextStages) {
   return {
@@ -166,6 +166,420 @@ function createArchitectStructuredOutputSchema() {
   };
 }
 
+function createTaskBreakerStructuredOutputSchema() {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['anchor', 'artifact', 'normalizedResult'],
+    properties: {
+      anchor: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'projectId',
+          'taskId',
+          'planArtifactId',
+          'planRunId',
+          'architectureArtifactId',
+          'architectureRunId',
+          'sourceOfTruthPaths',
+        ],
+        properties: {
+          projectId: {
+            type: 'string',
+          },
+          taskId: {
+            type: 'string',
+          },
+          planArtifactId: {
+            type: 'string',
+          },
+          planRunId: {
+            type: 'string',
+          },
+          architectureArtifactId: {
+            type: 'string',
+          },
+          architectureRunId: {
+            type: 'string',
+          },
+          sourceOfTruthPaths: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+        },
+      },
+      artifact: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'orderedSubTasks',
+          'checkpoints',
+          'expectedArtifactsPerCheckpoint',
+          'verificationCheckpoints',
+          'reviewTriggerPoints',
+          'stopAndEscalateConditions',
+          'executionBoundarySummary',
+        ],
+        properties: {
+          orderedSubTasks: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          checkpoints: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          expectedArtifactsPerCheckpoint: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          verificationCheckpoints: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          reviewTriggerPoints: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          stopAndEscalateConditions: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          executionBoundarySummary: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+        },
+      },
+      normalizedResult: createStructuredResultSchema(['builder', 'human gate']),
+    },
+  };
+}
+
+function createBuilderPreflightStructuredOutputSchema() {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['anchor', 'artifact', 'normalizedResult'],
+    properties: {
+      anchor: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'projectId',
+          'taskId',
+          'planArtifactId',
+          'planRunId',
+          'architectureArtifactId',
+          'architectureRunId',
+          'breakdownArtifactId',
+          'breakdownRunId',
+          'sourceOfTruthPaths',
+          'architectureAllowlistPaths',
+          'codeContextPaths',
+        ],
+        properties: {
+          projectId: {
+            type: 'string',
+          },
+          taskId: {
+            type: 'string',
+          },
+          planArtifactId: {
+            type: 'string',
+          },
+          planRunId: {
+            type: 'string',
+          },
+          architectureArtifactId: {
+            type: 'string',
+          },
+          architectureRunId: {
+            type: 'string',
+          },
+          breakdownArtifactId: {
+            type: 'string',
+          },
+          breakdownRunId: {
+            type: 'string',
+          },
+          sourceOfTruthPaths: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          architectureAllowlistPaths: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          codeContextPaths: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+        },
+      },
+      artifact: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'targetFiles',
+          'intendedChanges',
+          'risks',
+          'verificationPlan',
+          'reviewEvidenceExpectations',
+          'escalationTriggers',
+        ],
+        properties: {
+          targetFiles: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+          intendedChanges: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+          risks: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+          verificationPlan: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+          reviewEvidenceExpectations: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+          escalationTriggers: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+        },
+      },
+      normalizedResult: createStructuredResultSchema([
+        'request-builder-live-mutation-approval',
+        'architect',
+        'task-breaker',
+        'human gate',
+      ]),
+    },
+  };
+}
+
+function createBuilderLiveMutationStructuredOutputSchema() {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['anchor', 'artifact', 'normalizedResult'],
+    properties: {
+      anchor: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'projectId',
+          'taskId',
+          'planArtifactId',
+          'planRunId',
+          'architectureArtifactId',
+          'architectureRunId',
+          'breakdownArtifactId',
+          'breakdownRunId',
+          'preflightArtifactId',
+          'preflightRunId',
+          'approvalId',
+          'approvalTargetArtifactId',
+          'approvalTargetRunId',
+          'sourceOfTruthPaths',
+          'architectureAllowlistPaths',
+          'targetFileAllowlistPaths',
+          'codeContextPaths',
+          'targetFileBaselineDigests',
+        ],
+        properties: {
+          projectId: {
+            type: 'string',
+          },
+          taskId: {
+            type: 'string',
+          },
+          planArtifactId: {
+            type: 'string',
+          },
+          planRunId: {
+            type: 'string',
+          },
+          architectureArtifactId: {
+            type: 'string',
+          },
+          architectureRunId: {
+            type: 'string',
+          },
+          breakdownArtifactId: {
+            type: 'string',
+          },
+          breakdownRunId: {
+            type: 'string',
+          },
+          preflightArtifactId: {
+            type: 'string',
+          },
+          preflightRunId: {
+            type: 'string',
+          },
+          approvalId: {
+            type: 'string',
+          },
+          approvalTargetArtifactId: {
+            type: 'string',
+          },
+          approvalTargetRunId: {
+            type: 'string',
+          },
+          sourceOfTruthPaths: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          architectureAllowlistPaths: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          targetFileAllowlistPaths: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          codeContextPaths: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          targetFileBaselineDigests: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['path', 'digest'],
+              properties: {
+                path: {
+                  type: 'string',
+                },
+                digest: {
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
+      },
+      artifact: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['changeSummary', 'targetFiles', 'fileUpdates', 'risks', 'verificationNotes'],
+        properties: {
+          changeSummary: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+          targetFiles: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'string',
+            },
+          },
+          fileUpdates: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['path', 'contentBase64'],
+              properties: {
+                path: {
+                  type: 'string',
+                },
+                contentBase64: {
+                  type: 'string',
+                },
+              },
+            },
+          },
+          risks: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+          verificationNotes: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+        },
+      },
+      normalizedResult: createStructuredResultSchema(['reviewer', 'architect', 'human gate']),
+    },
+  };
+}
+
 function sanitizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -214,6 +628,21 @@ function renderJsonFence(value) {
   return `\`\`\`json
 ${JSON.stringify(value, null, 2)}
 \`\`\``;
+}
+
+function renderBase64FileUpdates(fileUpdates) {
+  if (!Array.isArray(fileUpdates) || fileUpdates.length === 0) {
+    return '_No file updates prepared._';
+  }
+
+  return fileUpdates
+    .map(
+      (fileUpdate) => `### ${fileUpdate.path}
+\`\`\`base64
+${Buffer.from(fileUpdate.content, 'utf8').toString('base64')}
+\`\`\``,
+    )
+    .join('\n\n');
 }
 
 function renderPlannerInput(request) {
@@ -282,6 +711,174 @@ ${renderCodeContextSection(request.codeContext)}
 `;
 }
 
+function renderTaskBreakerInput(request) {
+  return `# Task-Breaker Execution Request
+
+## Anchor
+${renderJsonFence(request.anchor)}
+
+## Task
+- id: ${request.task.id}
+- title: ${request.task.title}
+- intent: ${request.task.intent || 'none'}
+- lifecycle state: ${request.task.lifecycleState || 'unknown'}
+
+## Project
+- id: ${request.project.id}
+- name: ${request.project.name}
+- project_path: ${request.project.projectPath}
+- pack: ${request.project.pack}
+
+## Plan Artifact
+- id: ${request.planArtifact.id}
+- runId: ${request.anchor.planRunId}
+\`\`\`md
+${request.planArtifact.content}
+\`\`\`
+
+## Architecture Artifact
+- id: ${request.architectureArtifact.id}
+- runId: ${request.anchor.architectureRunId}
+\`\`\`md
+${request.architectureArtifact.content}
+\`\`\`
+
+## Planner Run Summary
+${renderJsonFence(request.plannerRunSummary || {})}
+
+## Architect Run Summary
+${renderJsonFence(request.architectRunSummary || {})}
+
+## Source Of Truth
+${renderSourceOfTruthSection(request.sourceOfTruth)}
+`;
+}
+
+function renderBuilderPreflightInput(request) {
+  return `# Builder Preflight Execution Request
+
+## Anchor
+${renderJsonFence(request.anchor)}
+
+## Task
+- id: ${request.task.id}
+- title: ${request.task.title}
+- intent: ${request.task.intent || 'none'}
+- lifecycle state: ${request.task.lifecycleState || 'unknown'}
+
+## Project
+- id: ${request.project.id}
+- name: ${request.project.name}
+- project_path: ${request.project.projectPath}
+- pack: ${request.project.pack}
+
+## Plan Artifact
+- id: ${request.planArtifact.id}
+- runId: ${request.anchor.planRunId}
+\`\`\`md
+${request.planArtifact.content}
+\`\`\`
+
+## Architecture Artifact
+- id: ${request.architectureArtifact.id}
+- runId: ${request.anchor.architectureRunId}
+\`\`\`md
+${request.architectureArtifact.content}
+\`\`\`
+
+## Breakdown Artifact
+- id: ${request.breakdownArtifact.id}
+- runId: ${request.anchor.breakdownRunId}
+\`\`\`md
+${request.breakdownArtifact.content}
+\`\`\`
+
+## Planner Run Summary
+${renderJsonFence(request.plannerRunSummary || {})}
+
+## Architect Run Summary
+${renderJsonFence(request.architectRunSummary || {})}
+
+## Task-Breaker Run Summary
+${renderJsonFence(request.taskBreakerRunSummary || {})}
+
+## Source Of Truth
+${renderSourceOfTruthSection(request.sourceOfTruth)}
+
+## Code Context
+  ${renderCodeContextSection(request.codeContext)}
+  `;
+}
+
+function renderBuilderLiveMutationInput(request) {
+  return `# Builder Live Mutation Execution Request
+
+## Anchor
+${renderJsonFence(request.anchor)}
+
+## Task
+- id: ${request.task.id}
+- title: ${request.task.title}
+- intent: ${request.task.intent || 'none'}
+- lifecycle state: ${request.task.lifecycleState || 'unknown'}
+
+## Project
+- id: ${request.project.id}
+- name: ${request.project.name}
+- project_path: ${request.project.projectPath}
+- pack: ${request.project.pack}
+
+## Plan Artifact
+- id: ${request.planArtifact.id}
+- runId: ${request.anchor.planRunId}
+\`\`\`md
+${request.planArtifact.content}
+\`\`\`
+
+## Architecture Artifact
+- id: ${request.architectureArtifact.id}
+- runId: ${request.anchor.architectureRunId}
+\`\`\`md
+${request.architectureArtifact.content}
+\`\`\`
+
+## Breakdown Artifact
+- id: ${request.breakdownArtifact.id}
+- runId: ${request.anchor.breakdownRunId}
+\`\`\`md
+${request.breakdownArtifact.content}
+\`\`\`
+
+## Preflight Artifact
+- id: ${request.preflightArtifact.id}
+- runId: ${request.anchor.preflightRunId}
+\`\`\`md
+${request.preflightArtifact.content}
+\`\`\`
+
+## Approval
+${renderJsonFence(request.approval || {})}
+
+## Planner Run Summary
+${renderJsonFence(request.plannerRunSummary || {})}
+
+## Architect Run Summary
+${renderJsonFence(request.architectRunSummary || {})}
+
+## Task-Breaker Run Summary
+${renderJsonFence(request.taskBreakerRunSummary || {})}
+
+## Builder Preflight Run Summary
+${renderJsonFence(request.preflightRunSummary || {})}
+
+## Source Of Truth
+${renderSourceOfTruthSection(request.sourceOfTruth)}
+
+## Code Context
+${renderCodeContextSection(request.codeContext)}
+`;
+}
+
 function buildPlannerInstructions(request) {
   return `${request.promptContract?.content || ''}
 
@@ -300,6 +897,60 @@ Return JSON only.
 - affectedComponentsOrContracts must contain repo-relative paths only.
 - normalizedResult must describe blockers, decision state, nextStage, summary, decisionTitle, and decisionPrompt for that same architecture output.
 - normalizedResult.nextStage must be task-breaker or human gate only.
+- Do not include secrets, raw environment variable values, auth material, or provider-internal debugging output.`;
+}
+
+function buildTaskBreakerInstructions(request) {
+  return `${request.promptContract?.content || ''}
+
+Return JSON only.
+- anchor must echo the request anchor exactly, including projectId, taskId, planArtifactId, planRunId, architectureArtifactId, architectureRunId, and sourceOfTruthPaths.
+- anchor.sourceOfTruthPaths must contain repo-relative paths only.
+- artifact must include orderedSubTasks, checkpoints, expectedArtifactsPerCheckpoint, verificationCheckpoints, reviewTriggerPoints, stopAndEscalateConditions, and executionBoundarySummary.
+- normalizedResult must describe blockers, decision state, nextStage, summary, decisionTitle, and decisionPrompt for that same breakdown output.
+- normalizedResult.nextStage must be builder or human gate only.
+- builder output is valid only when needsDecision=false, blockers=[], and artifact.orderedSubTasks is non-empty.
+- human gate output is valid only when needsDecision=true and blockers is non-empty.
+- Do not include secrets, raw environment variable values, auth material, or provider-internal debugging output.`;
+}
+
+function buildBuilderPreflightInstructions(request) {
+  return `${request.promptContract?.content || ''}
+
+Return JSON only.
+- anchor must echo the request anchor exactly, including projectId, taskId, planArtifactId, planRunId, architectureArtifactId, architectureRunId, breakdownArtifactId, breakdownRunId, sourceOfTruthPaths, architectureAllowlistPaths, and codeContextPaths.
+- all anchor path arrays must contain repo-relative paths only and must keep the exact request ordering.
+- artifact must include targetFiles, intendedChanges, risks, verificationPlan, reviewEvidenceExpectations, and escalationTriggers.
+- artifact.targetFiles must contain repo-relative paths only and must stay inside anchor.architectureAllowlistPaths.
+- normalizedResult must describe blockers, decision state, nextStage, summary, decisionTitle, and decisionPrompt for that same preflight output.
+- normalizedResult.nextStage must be request-builder-live-mutation-approval, architect, task-breaker, or human gate only.
+- request-builder-live-mutation-approval is valid only when needsDecision=false, blockers=[], and artifact.targetFiles is non-empty.
+- architect or task-breaker escalation is valid only when needsDecision=false and blockers is non-empty.
+- human gate output is valid only when needsDecision=true and blockers is non-empty.
+- Do not include free-form Input Summary markdown; the adapter renders Input Summary from the validated anchor and upstream artifacts.
+  - Do not include secrets, raw environment variable values, auth material, or provider-internal debugging output.`;
+}
+
+function buildBuilderLiveMutationInstructions(request) {
+  return `${request.promptContract?.content || ''}
+
+Return JSON only.
+- anchor must echo the request anchor exactly, including projectId, taskId, planArtifactId, planRunId, architectureArtifactId, architectureRunId, breakdownArtifactId, breakdownRunId, preflightArtifactId, preflightRunId, approvalId, approvalTargetArtifactId, approvalTargetRunId, sourceOfTruthPaths, architectureAllowlistPaths, targetFileAllowlistPaths, codeContextPaths, and targetFileBaselineDigests.
+- approvalTargetArtifactId and approvalTargetRunId must exactly match preflightArtifactId and preflightRunId.
+- all anchor path arrays must contain repo-relative paths only and must keep the exact request ordering.
+- codeContextPaths must exactly match targetFileAllowlistPaths for this slice.
+- targetFileBaselineDigests must keep the exact request ordering and digest values.
+- artifact must include changeSummary, targetFiles, fileUpdates, risks, and verificationNotes.
+- artifact.changeSummary, artifact.risks, and artifact.verificationNotes must be arrays of strings.
+- artifact.targetFiles must exactly match anchor.targetFileAllowlistPaths in the same order.
+- artifact.fileUpdates[].path must be repo-relative, unique, non-empty, and a subset of anchor.targetFileAllowlistPaths.
+- artifact.fileUpdates[].contentBase64 must be a base64-encoded UTF-8 string containing the full post-mutation file contents.
+- normalizedResult must describe blockers, decision state, nextStage, summary, decisionTitle, and decisionPrompt for that same live-mutation output.
+- normalizedResult.nextStage must be reviewer, architect, or human gate only.
+- reviewer is valid only when needsDecision=false, blockers=[], and artifact.fileUpdates is non-empty.
+- architect escalation is valid only when needsDecision=false and blockers is non-empty.
+- human gate is valid only when needsDecision=true and blockers is non-empty.
+- Do not include free-form patch or diff markdown; the coordinator derives patch and diff after validation and file write.
 - Do not include secrets, raw environment variable values, auth material, or provider-internal debugging output.`;
 }
 
@@ -330,6 +981,54 @@ function buildArchitectRequestBody(request, model) {
         name: 'architect_artifact_response',
         strict: true,
         schema: createArchitectStructuredOutputSchema(),
+      },
+    },
+  };
+}
+
+function buildTaskBreakerRequestBody(request, model) {
+  return {
+    model,
+    instructions: buildTaskBreakerInstructions(request),
+    input: renderTaskBreakerInput(request),
+    text: {
+      format: {
+        type: 'json_schema',
+        name: 'task_breaker_artifact_response',
+        strict: true,
+        schema: createTaskBreakerStructuredOutputSchema(),
+      },
+    },
+  };
+}
+
+function buildBuilderPreflightRequestBody(request, model) {
+  return {
+    model,
+    instructions: buildBuilderPreflightInstructions(request),
+    input: renderBuilderPreflightInput(request),
+    text: {
+      format: {
+        type: 'json_schema',
+        name: 'builder_preflight_artifact_response',
+        strict: true,
+        schema: createBuilderPreflightStructuredOutputSchema(),
+      },
+    },
+  };
+}
+
+function buildBuilderLiveMutationRequestBody(request, model) {
+  return {
+    model,
+    instructions: buildBuilderLiveMutationInstructions(request),
+    input: renderBuilderLiveMutationInput(request),
+    text: {
+      format: {
+        type: 'json_schema',
+        name: 'builder_live_mutation_artifact_response',
+        strict: true,
+        schema: createBuilderLiveMutationStructuredOutputSchema(),
       },
     },
   };
@@ -509,6 +1208,247 @@ function normalizeArchitectAnchor(anchor, label) {
   return normalizedAnchor;
 }
 
+function normalizeTaskBreakerAnchor(anchor, label) {
+  if (!anchor || typeof anchor !== 'object' || Array.isArray(anchor)) {
+    throw new Error(`OpenAI Responses structured output ${label} is required`);
+  }
+
+  const sourceOfTruthPaths = sanitizeStringArray(anchor.sourceOfTruthPaths).map((value) => {
+    const normalizedValue = normalizeRelativePath(value);
+
+    if (!normalizedValue) {
+      throw new Error(
+        'OpenAI Responses structured output task-breaker anchor sourceOfTruthPaths must contain repo-relative paths only',
+      );
+    }
+
+    return normalizedValue;
+  });
+
+  const normalizedAnchor = {
+    projectId: sanitizeText(anchor.projectId),
+    taskId: sanitizeText(anchor.taskId),
+    planArtifactId: sanitizeText(anchor.planArtifactId),
+    planRunId: sanitizeText(anchor.planRunId),
+    architectureArtifactId: sanitizeText(anchor.architectureArtifactId),
+    architectureRunId: sanitizeText(anchor.architectureRunId),
+    sourceOfTruthPaths,
+  };
+
+  if (
+    !normalizedAnchor.projectId ||
+    !normalizedAnchor.taskId ||
+    !normalizedAnchor.planArtifactId ||
+    !normalizedAnchor.planRunId ||
+    !normalizedAnchor.architectureArtifactId ||
+    !normalizedAnchor.architectureRunId ||
+    normalizedAnchor.sourceOfTruthPaths.length === 0
+  ) {
+    throw new Error(`OpenAI Responses structured output ${label} is incomplete`);
+  }
+
+  return normalizedAnchor;
+}
+
+function normalizeBuilderPreflightAnchor(anchor, label) {
+  if (!anchor || typeof anchor !== 'object' || Array.isArray(anchor)) {
+    throw new Error(`OpenAI Responses structured output ${label} is required`);
+  }
+
+  const normalizeRepoRelativePaths = (values, fieldName) =>
+    sanitizeStringArray(values).map((value) => {
+      const normalizedValue = normalizeRelativePath(value);
+
+      if (!normalizedValue) {
+        throw new Error(
+          `OpenAI Responses structured output builder-preflight anchor ${fieldName} must contain repo-relative paths only`,
+        );
+      }
+
+      return normalizedValue;
+    });
+
+  const normalizedAnchor = {
+    projectId: sanitizeText(anchor.projectId),
+    taskId: sanitizeText(anchor.taskId),
+    planArtifactId: sanitizeText(anchor.planArtifactId),
+    planRunId: sanitizeText(anchor.planRunId),
+    architectureArtifactId: sanitizeText(anchor.architectureArtifactId),
+    architectureRunId: sanitizeText(anchor.architectureRunId),
+    breakdownArtifactId: sanitizeText(anchor.breakdownArtifactId),
+    breakdownRunId: sanitizeText(anchor.breakdownRunId),
+    sourceOfTruthPaths: normalizeRepoRelativePaths(anchor.sourceOfTruthPaths, 'sourceOfTruthPaths'),
+    architectureAllowlistPaths: normalizeRepoRelativePaths(
+      anchor.architectureAllowlistPaths,
+      'architectureAllowlistPaths',
+    ),
+    codeContextPaths: normalizeRepoRelativePaths(anchor.codeContextPaths, 'codeContextPaths'),
+  };
+
+  if (
+    !normalizedAnchor.projectId ||
+    !normalizedAnchor.taskId ||
+    !normalizedAnchor.planArtifactId ||
+    !normalizedAnchor.planRunId ||
+    !normalizedAnchor.architectureArtifactId ||
+    !normalizedAnchor.architectureRunId ||
+    !normalizedAnchor.breakdownArtifactId ||
+    !normalizedAnchor.breakdownRunId ||
+    normalizedAnchor.sourceOfTruthPaths.length === 0 ||
+    normalizedAnchor.architectureAllowlistPaths.length === 0 ||
+    normalizedAnchor.codeContextPaths.length === 0
+  ) {
+    throw new Error(`OpenAI Responses structured output ${label} is incomplete`);
+  }
+
+  return normalizedAnchor;
+}
+
+function normalizeBuilderLiveMutationDigestRecords(values, label) {
+  if (!Array.isArray(values)) {
+    throw new Error(`OpenAI Responses structured output ${label} is required`);
+  }
+
+  const normalizedDigests = values.map((value) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error(`OpenAI Responses structured output ${label} entries must be objects`);
+    }
+
+    const relativePath = normalizeRelativePath(value.path);
+    const digest = sanitizeText(value.digest).toLowerCase();
+
+    if (!relativePath) {
+      throw new Error(
+        `OpenAI Responses structured output ${label} path values must contain repo-relative paths only`,
+      );
+    }
+
+    if (!/^[a-f0-9]{64}$/.test(digest)) {
+      throw new Error(
+        `OpenAI Responses structured output ${label} digest values must be lowercase sha256 hex strings`,
+      );
+    }
+
+    return {
+      path: relativePath,
+      digest,
+    };
+  });
+
+  const uniquePaths = new Set(normalizedDigests.map((value) => value.path));
+
+  if (normalizedDigests.length === 0 || uniquePaths.size !== normalizedDigests.length) {
+    throw new Error(`OpenAI Responses structured output ${label} must contain unique path entries`);
+  }
+
+  return normalizedDigests;
+}
+
+function normalizeBuilderLiveMutationAnchor(anchor, label) {
+  if (!anchor || typeof anchor !== 'object' || Array.isArray(anchor)) {
+    throw new Error(`OpenAI Responses structured output ${label} is required`);
+  }
+
+  const normalizeRepoRelativePaths = (values, fieldName) =>
+    sanitizeStringArray(values).map((value) => {
+      const normalizedValue = normalizeRelativePath(value);
+
+      if (!normalizedValue) {
+        throw new Error(
+          `OpenAI Responses structured output builder-live-mutation anchor ${fieldName} must contain repo-relative paths only`,
+        );
+      }
+
+      return normalizedValue;
+    });
+
+  const normalizedAnchor = {
+    projectId: sanitizeText(anchor.projectId),
+    taskId: sanitizeText(anchor.taskId),
+    planArtifactId: sanitizeText(anchor.planArtifactId),
+    planRunId: sanitizeText(anchor.planRunId),
+    architectureArtifactId: sanitizeText(anchor.architectureArtifactId),
+    architectureRunId: sanitizeText(anchor.architectureRunId),
+    breakdownArtifactId: sanitizeText(anchor.breakdownArtifactId),
+    breakdownRunId: sanitizeText(anchor.breakdownRunId),
+    preflightArtifactId: sanitizeText(anchor.preflightArtifactId),
+    preflightRunId: sanitizeText(anchor.preflightRunId),
+    approvalId: sanitizeText(anchor.approvalId),
+    approvalTargetArtifactId: sanitizeText(anchor.approvalTargetArtifactId),
+    approvalTargetRunId: sanitizeText(anchor.approvalTargetRunId),
+    sourceOfTruthPaths: normalizeRepoRelativePaths(anchor.sourceOfTruthPaths, 'sourceOfTruthPaths'),
+    architectureAllowlistPaths: normalizeRepoRelativePaths(
+      anchor.architectureAllowlistPaths,
+      'architectureAllowlistPaths',
+    ),
+    targetFileAllowlistPaths: normalizeRepoRelativePaths(
+      anchor.targetFileAllowlistPaths,
+      'targetFileAllowlistPaths',
+    ),
+    codeContextPaths: normalizeRepoRelativePaths(anchor.codeContextPaths, 'codeContextPaths'),
+    targetFileBaselineDigests: normalizeBuilderLiveMutationDigestRecords(
+      anchor.targetFileBaselineDigests,
+      'targetFileBaselineDigests',
+    ),
+  };
+
+  if (
+    !normalizedAnchor.projectId ||
+    !normalizedAnchor.taskId ||
+    !normalizedAnchor.planArtifactId ||
+    !normalizedAnchor.planRunId ||
+    !normalizedAnchor.architectureArtifactId ||
+    !normalizedAnchor.architectureRunId ||
+    !normalizedAnchor.breakdownArtifactId ||
+    !normalizedAnchor.breakdownRunId ||
+    !normalizedAnchor.preflightArtifactId ||
+    !normalizedAnchor.preflightRunId ||
+    !normalizedAnchor.approvalId ||
+    !normalizedAnchor.approvalTargetArtifactId ||
+    !normalizedAnchor.approvalTargetRunId ||
+    normalizedAnchor.sourceOfTruthPaths.length === 0 ||
+    normalizedAnchor.architectureAllowlistPaths.length === 0 ||
+    normalizedAnchor.targetFileAllowlistPaths.length === 0 ||
+    normalizedAnchor.codeContextPaths.length === 0 ||
+    normalizedAnchor.targetFileBaselineDigests.length === 0
+  ) {
+    throw new Error(`OpenAI Responses structured output ${label} is incomplete`);
+  }
+
+  if (
+    normalizedAnchor.approvalTargetArtifactId !== normalizedAnchor.preflightArtifactId ||
+    normalizedAnchor.approvalTargetRunId !== normalizedAnchor.preflightRunId
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output builder-live-mutation anchor approvalTarget* must exactly match preflight*',
+    );
+  }
+
+  if (
+    !sameExactStringArrays(
+      normalizedAnchor.targetFileAllowlistPaths,
+      normalizedAnchor.codeContextPaths,
+    )
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output builder-live-mutation anchor codeContextPaths must exactly match targetFileAllowlistPaths',
+    );
+  }
+
+  if (
+    !sameExactStringArrays(
+      normalizedAnchor.targetFileAllowlistPaths,
+      normalizedAnchor.targetFileBaselineDigests.map((value) => value.path),
+    )
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output builder-live-mutation anchor targetFileBaselineDigests must exactly match targetFileAllowlistPaths',
+    );
+  }
+
+  return normalizedAnchor;
+}
+
 function sameExactStringArrays(left, right) {
   if (left.length !== right.length) {
     return false;
@@ -533,6 +1473,86 @@ function assertArchitectAnchorExactMatch(expected, actual) {
     !sameExactStringArrays(expected.codeContextPaths, actual.codeContextPaths)
   ) {
     throw new Error('OpenAI Responses structured output anchor must exactly match the architect request anchor');
+  }
+}
+
+function assertTaskBreakerAnchorExactMatch(expected, actual) {
+  if (
+    expected.projectId !== actual.projectId ||
+    expected.taskId !== actual.taskId ||
+    expected.planArtifactId !== actual.planArtifactId ||
+    expected.planRunId !== actual.planRunId ||
+    expected.architectureArtifactId !== actual.architectureArtifactId ||
+    expected.architectureRunId !== actual.architectureRunId ||
+    !sameExactStringArrays(expected.sourceOfTruthPaths, actual.sourceOfTruthPaths)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output anchor must exactly match the task-breaker request anchor',
+    );
+  }
+}
+
+function assertBuilderPreflightAnchorExactMatch(expected, actual) {
+  if (
+    expected.projectId !== actual.projectId ||
+    expected.taskId !== actual.taskId ||
+    expected.planArtifactId !== actual.planArtifactId ||
+    expected.planRunId !== actual.planRunId ||
+    expected.architectureArtifactId !== actual.architectureArtifactId ||
+    expected.architectureRunId !== actual.architectureRunId ||
+    expected.breakdownArtifactId !== actual.breakdownArtifactId ||
+    expected.breakdownRunId !== actual.breakdownRunId ||
+    !sameExactStringArrays(expected.sourceOfTruthPaths, actual.sourceOfTruthPaths) ||
+    !sameExactStringArrays(
+      expected.architectureAllowlistPaths,
+      actual.architectureAllowlistPaths,
+    ) ||
+    !sameExactStringArrays(expected.codeContextPaths, actual.codeContextPaths)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output anchor must exactly match the builder-preflight request anchor',
+    );
+  }
+}
+
+function sameExactDigestEntries(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index].path !== right[index].path || left[index].digest !== right[index].digest) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function assertBuilderLiveMutationAnchorExactMatch(expected, actual) {
+  if (
+    expected.projectId !== actual.projectId ||
+    expected.taskId !== actual.taskId ||
+    expected.planArtifactId !== actual.planArtifactId ||
+    expected.planRunId !== actual.planRunId ||
+    expected.architectureArtifactId !== actual.architectureArtifactId ||
+    expected.architectureRunId !== actual.architectureRunId ||
+    expected.breakdownArtifactId !== actual.breakdownArtifactId ||
+    expected.breakdownRunId !== actual.breakdownRunId ||
+    expected.preflightArtifactId !== actual.preflightArtifactId ||
+    expected.preflightRunId !== actual.preflightRunId ||
+    expected.approvalId !== actual.approvalId ||
+    expected.approvalTargetArtifactId !== actual.approvalTargetArtifactId ||
+    expected.approvalTargetRunId !== actual.approvalTargetRunId ||
+    !sameExactStringArrays(expected.sourceOfTruthPaths, actual.sourceOfTruthPaths) ||
+    !sameExactStringArrays(expected.architectureAllowlistPaths, actual.architectureAllowlistPaths) ||
+    !sameExactStringArrays(expected.targetFileAllowlistPaths, actual.targetFileAllowlistPaths) ||
+    !sameExactStringArrays(expected.codeContextPaths, actual.codeContextPaths) ||
+    !sameExactDigestEntries(expected.targetFileBaselineDigests, actual.targetFileBaselineDigests)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output anchor must exactly match the builder-live-mutation request anchor',
+    );
   }
 }
 
@@ -627,6 +1647,13 @@ function getMarkdownSection(content, heading) {
   return match ? match[1].trim() : '';
 }
 
+function parseMarkdownList(content, heading) {
+  return getMarkdownSection(content, heading)
+    .split('\n')
+    .map((line) => line.replace(/^[-*]\s+/, '').trim())
+    .filter(Boolean);
+}
+
 function renderArchitectArtifactMarkdown(request, anchor, artifact) {
   const sliceGoal = getMarkdownSection(request.planArtifact?.content, 'Slice Goal');
   const acceptanceTarget = getMarkdownSection(request.planArtifact?.content, 'Acceptance Target');
@@ -663,6 +1690,284 @@ ${artifact.noArchitectureChangeStatement}
 
 ## Blocking Architecture Issues
 ${renderList(artifact.blockingArchitectureIssues, 'none')}
+`;
+}
+
+function normalizeTaskBreakerArtifact(artifact) {
+  if (!artifact || typeof artifact !== 'object' || Array.isArray(artifact)) {
+    throw new Error('OpenAI Responses structured output artifact is required');
+  }
+
+  const requiredArrayFields = [
+    'orderedSubTasks',
+    'checkpoints',
+    'expectedArtifactsPerCheckpoint',
+    'verificationCheckpoints',
+    'reviewTriggerPoints',
+    'stopAndEscalateConditions',
+    'executionBoundarySummary',
+  ];
+
+  for (const field of requiredArrayFields) {
+    if (!Array.isArray(artifact[field])) {
+      throw new Error(`OpenAI Responses structured output artifact.${field} is required`);
+    }
+  }
+
+  const normalizedArtifact = {
+    orderedSubTasks: sanitizeStringArray(artifact.orderedSubTasks),
+    checkpoints: sanitizeStringArray(artifact.checkpoints),
+    expectedArtifactsPerCheckpoint: sanitizeStringArray(artifact.expectedArtifactsPerCheckpoint),
+    verificationCheckpoints: sanitizeStringArray(artifact.verificationCheckpoints),
+    reviewTriggerPoints: sanitizeStringArray(artifact.reviewTriggerPoints),
+    stopAndEscalateConditions: sanitizeStringArray(artifact.stopAndEscalateConditions),
+    executionBoundarySummary: sanitizeStringArray(artifact.executionBoundarySummary),
+  };
+
+  for (const [field, value] of Object.entries(normalizedArtifact)) {
+    if (value.length === 0) {
+      throw new Error(
+        `OpenAI Responses structured output artifact.${field} must contain at least one item`,
+      );
+    }
+  }
+
+  return normalizedArtifact;
+}
+
+function normalizeBuilderPreflightArtifact(artifact) {
+  if (!artifact || typeof artifact !== 'object' || Array.isArray(artifact)) {
+    throw new Error('OpenAI Responses structured output artifact is required');
+  }
+
+  const requiredArrayFields = [
+    'targetFiles',
+    'intendedChanges',
+    'risks',
+    'verificationPlan',
+    'reviewEvidenceExpectations',
+    'escalationTriggers',
+  ];
+
+  for (const field of requiredArrayFields) {
+    if (!Array.isArray(artifact[field])) {
+      throw new Error(`OpenAI Responses structured output artifact.${field} is required`);
+    }
+  }
+
+  return {
+    targetFiles: sanitizeStringArray(artifact.targetFiles).map((value) => {
+      const normalizedValue = normalizeRelativePath(value);
+
+      if (!normalizedValue) {
+        throw new Error(
+          'OpenAI Responses structured output targetFiles must contain repo-relative paths only',
+        );
+      }
+
+      return normalizedValue;
+    }),
+    intendedChanges: sanitizeStringArray(artifact.intendedChanges),
+    risks: sanitizeStringArray(artifact.risks),
+    verificationPlan: sanitizeStringArray(artifact.verificationPlan),
+    reviewEvidenceExpectations: sanitizeStringArray(artifact.reviewEvidenceExpectations),
+    escalationTriggers: sanitizeStringArray(artifact.escalationTriggers),
+  };
+}
+
+function normalizeBuilderLiveMutationArtifact(artifact) {
+  if (!artifact || typeof artifact !== 'object' || Array.isArray(artifact)) {
+    throw new Error('OpenAI Responses structured output artifact is required');
+  }
+
+  const requiredArrayFields = [
+    'changeSummary',
+    'targetFiles',
+    'fileUpdates',
+    'risks',
+    'verificationNotes',
+  ];
+
+  for (const field of requiredArrayFields) {
+    if (!Array.isArray(artifact[field])) {
+      throw new Error(`OpenAI Responses structured output artifact.${field} is required`);
+    }
+  }
+
+  const targetFiles = sanitizeStringArray(artifact.targetFiles).map((value) => {
+    const normalizedValue = normalizeRelativePath(value);
+
+    if (!normalizedValue) {
+      throw new Error(
+        'OpenAI Responses structured output artifact.targetFiles must contain repo-relative paths only',
+      );
+    }
+
+    return normalizedValue;
+  });
+  const fileUpdates = artifact.fileUpdates.map((value) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error('OpenAI Responses structured output artifact.fileUpdates entries are required');
+    }
+
+    const relativePath = normalizeRelativePath(value.path);
+    const contentBase64 = sanitizeText(value.contentBase64);
+
+    if (!relativePath) {
+      throw new Error(
+        'OpenAI Responses structured output artifact.fileUpdates paths must contain repo-relative paths only',
+      );
+    }
+
+    if (!contentBase64) {
+      throw new Error(
+        'OpenAI Responses structured output artifact.fileUpdates contentBase64 is required',
+      );
+    }
+
+    return {
+      path: relativePath,
+      content: Buffer.from(contentBase64, 'base64').toString('utf8'),
+    };
+  });
+  const uniqueFileUpdatePaths = new Set(fileUpdates.map((value) => value.path));
+
+  if (uniqueFileUpdatePaths.size !== fileUpdates.length) {
+    throw new Error(
+      'OpenAI Responses structured output artifact.fileUpdates paths must be unique for builder-live-mutation',
+    );
+  }
+
+  return {
+    changeSummary: sanitizeStringArray(artifact.changeSummary),
+    targetFiles,
+    fileUpdates,
+    risks: sanitizeStringArray(artifact.risks),
+    verificationNotes: sanitizeStringArray(artifact.verificationNotes),
+  };
+}
+
+function renderTaskBreakerArtifactMarkdown(request, anchor, artifact, normalizedResult) {
+  const sliceGoal = getMarkdownSection(request.planArtifact?.content, 'Slice Goal');
+  const approvedAssumptions = getMarkdownSection(
+    request.architectureArtifact?.content,
+    'Approved Assumptions',
+  );
+  const executionBoundarySummary = [
+    ...artifact.executionBoundarySummary,
+    `next stage: ${normalizedResult.nextStage}`,
+    `planner artifact: ${anchor.planArtifactId}`,
+    `planner run: ${anchor.planRunId}`,
+    `architecture artifact: ${anchor.architectureArtifactId}`,
+    `architecture run: ${anchor.architectureRunId}`,
+    `slice goal: ${sliceGoal || 'not stated'}`,
+    `approved assumptions: ${approvedAssumptions ? 'present' : 'not stated'}`,
+  ];
+
+  return `# Task Breakdown: ${request.task.title}
+
+## Ordered Sub-Tasks
+${renderList(artifact.orderedSubTasks, 'none')}
+
+## Checkpoints
+${renderList(artifact.checkpoints, 'none')}
+
+## Expected Artifacts Per Checkpoint
+${renderList(artifact.expectedArtifactsPerCheckpoint, 'none')}
+
+## Verification Checkpoints
+${renderList(artifact.verificationCheckpoints, 'none')}
+
+## Review Trigger Point
+${renderList(artifact.reviewTriggerPoints, 'none')}
+
+## Stop-And-Escalate Conditions
+${renderList(artifact.stopAndEscalateConditions, 'none')}
+
+## Execution Boundary Summary
+${renderList(executionBoundarySummary, 'none')}
+`;
+}
+
+function renderBuilderPreflightArtifactMarkdown(request, anchor, artifact, normalizedResult) {
+  const sliceGoal = getMarkdownSection(request.planArtifact?.content, 'Slice Goal');
+  const acceptanceTarget = getMarkdownSection(request.planArtifact?.content, 'Acceptance Target');
+  const approvedAssumptions = getMarkdownSection(
+    request.architectureArtifact?.content,
+    'Approved Assumptions',
+  );
+  const orderedSubTasks = parseMarkdownList(request.breakdownArtifact?.content, 'Ordered Sub-Tasks');
+
+  return `# Builder Preflight: ${request.task.title}
+
+## Target Files
+${renderList(artifact.targetFiles, 'none identified')}
+
+## Intended Changes
+${renderList(artifact.intendedChanges, 'none')}
+
+## Risks
+${renderList(artifact.risks, 'none')}
+
+## Verification Plan
+${renderList(artifact.verificationPlan, 'none')}
+
+## Review Evidence Expectations
+${renderList(artifact.reviewEvidenceExpectations, 'none')}
+
+## Escalation Triggers
+${renderList(artifact.escalationTriggers, 'none')}
+
+## Input Summary
+- plan artifact: ${anchor.planArtifactId}
+- plan run: ${anchor.planRunId}
+- architecture artifact: ${anchor.architectureArtifactId}
+- architecture run: ${anchor.architectureRunId}
+- breakdown artifact: ${anchor.breakdownArtifactId}
+- breakdown run: ${anchor.breakdownRunId}
+- source-of-truth files: ${anchor.sourceOfTruthPaths.length}
+- architecture allowlist files: ${anchor.architectureAllowlistPaths.length}
+- code context files: ${anchor.codeContextPaths.length}
+- ordered sub-tasks in latest breakdown: ${orderedSubTasks.length}
+- slice goal: ${sliceGoal || 'not stated'}
+- acceptance target: ${acceptanceTarget || 'not stated'}
+- approved assumptions: ${approvedAssumptions ? 'present' : 'not stated'}
+- next action: ${normalizedResult.nextStage}
+- execution mode: ${request.executionMode || 'unspecified'}
+  - mutation allowed: ${request.mutationAllowed === false ? 'no' : 'yes'}
+  `;
+}
+
+function renderBuilderLiveMutationArtifactMarkdown(request, anchor, artifact, normalizedResult) {
+  const summaryLines = [
+    ...artifact.changeSummary,
+    `preflight artifact: ${anchor.preflightArtifactId}`,
+    `preflight run: ${anchor.preflightRunId}`,
+    `approval id: ${anchor.approvalId}`,
+    `approval target artifact: ${anchor.approvalTargetArtifactId}`,
+    `approval target run: ${anchor.approvalTargetRunId}`,
+    `prepared file updates: ${artifact.fileUpdates.length}`,
+    `reviewer executed: no`,
+    `commit or release executed: no`,
+    `next stage: ${normalizedResult.nextStage}`,
+  ];
+
+  return `# Builder Live Mutation: ${request.task.title}
+
+## Change Summary
+${renderList(summaryLines, 'none')}
+
+## Target Files
+${renderList(artifact.targetFiles, 'none')}
+
+## File Updates
+${renderBase64FileUpdates(artifact.fileUpdates)}
+
+## Risks
+${renderList(artifact.risks, 'none')}
+
+## Verification Notes
+${renderList(artifact.verificationNotes, 'none')}
 `;
 }
 
@@ -714,6 +2019,218 @@ function normalizeStructuredArchitectPayload(outputText, request) {
 
   return {
     artifactMarkdown: renderArchitectArtifactMarkdown(request, responseAnchor, artifact),
+    normalizedResult,
+  };
+}
+
+function normalizeStructuredTaskBreakerPayload(outputText, request) {
+  const parsedPayload = parseStructuredOutputPayload(outputText);
+  const expectedAnchor = normalizeTaskBreakerAnchor(request.anchor, 'anchor');
+  const responseAnchor = normalizeTaskBreakerAnchor(parsedPayload.anchor, 'anchor');
+
+  assertTaskBreakerAnchorExactMatch(expectedAnchor, responseAnchor);
+
+  if (
+    !parsedPayload.normalizedResult ||
+    typeof parsedPayload.normalizedResult !== 'object' ||
+    Array.isArray(parsedPayload.normalizedResult)
+  ) {
+    throw new Error('OpenAI Responses structured output normalizedResult is required');
+  }
+
+  const artifact = normalizeTaskBreakerArtifact(parsedPayload.artifact);
+  const normalizedResult = normalizeStructuredResult(
+    parsedPayload.normalizedResult,
+    ['builder', 'human gate'],
+    'task-breaker',
+  );
+
+  if (
+    normalizedResult.nextStage === 'builder' &&
+    (normalizedResult.needsDecision ||
+      normalizedResult.blockers.length > 0 ||
+      artifact.orderedSubTasks.length === 0)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output builder handoff must keep needsDecision=false, blockers=[], and orderedSubTasks non-empty',
+    );
+  }
+
+  if (
+    normalizedResult.nextStage === 'human gate' &&
+    (!normalizedResult.needsDecision || normalizedResult.blockers.length === 0)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output human gate handoff must keep needsDecision=true and blockers non-empty',
+    );
+  }
+
+  return {
+    artifactMarkdown: renderTaskBreakerArtifactMarkdown(
+      request,
+      responseAnchor,
+      artifact,
+      normalizedResult,
+    ),
+    normalizedResult,
+  };
+}
+
+function normalizeStructuredBuilderPreflightPayload(outputText, request) {
+  const parsedPayload = parseStructuredOutputPayload(outputText);
+  const expectedAnchor = normalizeBuilderPreflightAnchor(request.anchor, 'anchor');
+  const responseAnchor = normalizeBuilderPreflightAnchor(parsedPayload.anchor, 'anchor');
+
+  assertBuilderPreflightAnchorExactMatch(expectedAnchor, responseAnchor);
+
+  if (
+    !parsedPayload.normalizedResult ||
+    typeof parsedPayload.normalizedResult !== 'object' ||
+    Array.isArray(parsedPayload.normalizedResult)
+  ) {
+    throw new Error('OpenAI Responses structured output normalizedResult is required');
+  }
+
+  const artifact = normalizeBuilderPreflightArtifact(parsedPayload.artifact);
+  const normalizedResult = normalizeStructuredResult(
+    parsedPayload.normalizedResult,
+    [
+      'request-builder-live-mutation-approval',
+      'architect',
+      'task-breaker',
+      'human gate',
+    ],
+    'builder-preflight',
+  );
+  const targetFilesOutsideArchitecture = artifact.targetFiles.filter(
+    (relativePath) => !responseAnchor.architectureAllowlistPaths.includes(relativePath),
+  );
+
+  if (targetFilesOutsideArchitecture.length > 0) {
+    throw new Error(
+      'OpenAI Responses structured output targetFiles must stay inside the approved architecture allowlist',
+    );
+  }
+
+  if (
+    normalizedResult.nextStage === 'request-builder-live-mutation-approval' &&
+    (normalizedResult.needsDecision ||
+      normalizedResult.blockers.length > 0 ||
+      artifact.targetFiles.length === 0)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output clean builder-preflight handoff must keep needsDecision=false, blockers=[], and targetFiles non-empty',
+    );
+  }
+
+  if (
+    (normalizedResult.nextStage === 'architect' || normalizedResult.nextStage === 'task-breaker') &&
+    (normalizedResult.needsDecision || normalizedResult.blockers.length === 0)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output architect/task-breaker escalation must keep needsDecision=false and blockers non-empty',
+    );
+  }
+
+  if (
+    normalizedResult.nextStage === 'human gate' &&
+    (!normalizedResult.needsDecision || normalizedResult.blockers.length === 0)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output human gate handoff must keep needsDecision=true and blockers non-empty',
+    );
+  }
+
+  return {
+    artifactMarkdown: renderBuilderPreflightArtifactMarkdown(
+      request,
+      responseAnchor,
+      artifact,
+      normalizedResult,
+    ),
+    normalizedResult,
+  };
+}
+
+function normalizeStructuredBuilderLiveMutationPayload(outputText, request) {
+  const parsedPayload = parseStructuredOutputPayload(outputText);
+  const expectedAnchor = normalizeBuilderLiveMutationAnchor(request.anchor, 'anchor');
+  const responseAnchor = normalizeBuilderLiveMutationAnchor(parsedPayload.anchor, 'anchor');
+
+  assertBuilderLiveMutationAnchorExactMatch(expectedAnchor, responseAnchor);
+
+  if (
+    !parsedPayload.normalizedResult ||
+    typeof parsedPayload.normalizedResult !== 'object' ||
+    Array.isArray(parsedPayload.normalizedResult)
+  ) {
+    throw new Error('OpenAI Responses structured output normalizedResult is required');
+  }
+
+  const artifact = normalizeBuilderLiveMutationArtifact(parsedPayload.artifact);
+  const normalizedResult = normalizeStructuredResult(
+    parsedPayload.normalizedResult,
+    ['reviewer', 'architect', 'human gate'],
+    'builder-live-mutation',
+  );
+  const outOfScopeFiles = artifact.fileUpdates.filter(
+    (fileUpdate) => !responseAnchor.targetFileAllowlistPaths.includes(fileUpdate.path),
+  );
+
+  if (!sameExactStringArrays(responseAnchor.targetFileAllowlistPaths, artifact.targetFiles)) {
+    throw new Error(
+      'OpenAI Responses structured output artifact.targetFiles must exactly match targetFileAllowlistPaths',
+    );
+  }
+
+  if (!sameExactStringArrays(responseAnchor.targetFileAllowlistPaths, responseAnchor.codeContextPaths)) {
+    throw new Error(
+      'OpenAI Responses structured output builder-live-mutation anchor codeContextPaths must exactly match targetFileAllowlistPaths',
+    );
+  }
+
+  if (outOfScopeFiles.length > 0) {
+    throw new Error(
+      'OpenAI Responses structured output artifact.fileUpdates must stay inside the approved target-file allowlist',
+    );
+  }
+
+  if (
+    normalizedResult.nextStage === 'reviewer' &&
+    (normalizedResult.needsDecision ||
+      normalizedResult.blockers.length > 0 ||
+      artifact.fileUpdates.length === 0)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output reviewer handoff must keep needsDecision=false, blockers=[], and artifact.fileUpdates non-empty',
+    );
+  }
+
+  if (
+    normalizedResult.nextStage === 'architect' &&
+    (normalizedResult.needsDecision || normalizedResult.blockers.length === 0)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output architect escalation must keep needsDecision=false and blockers non-empty',
+    );
+  }
+
+  if (
+    normalizedResult.nextStage === 'human gate' &&
+    (!normalizedResult.needsDecision || normalizedResult.blockers.length === 0)
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output human gate handoff must keep needsDecision=true and blockers non-empty',
+    );
+  }
+
+  return {
+    artifactMarkdown: renderBuilderLiveMutationArtifactMarkdown(
+      request,
+      responseAnchor,
+      artifact,
+      normalizedResult,
+    ),
     normalizedResult,
   };
 }
@@ -809,7 +2326,19 @@ function buildRequestBody(request, model) {
     return buildArchitectRequestBody(request, model);
   }
 
-  throw new Error(`${PLANNER_AND_ARCHITECT_ONLY_REASON}; ${request.role} remains blocked`);
+  if (request.role === 'task-breaker') {
+    return buildTaskBreakerRequestBody(request, model);
+  }
+
+  if (request.role === 'builder' && request.executionMode === 'preflight') {
+    return buildBuilderPreflightRequestBody(request, model);
+  }
+
+  if (request.role === 'builder' && request.executionMode === 'live-mutation') {
+    return buildBuilderLiveMutationRequestBody(request, model);
+  }
+
+  throw new Error(`${LIVE_ROLE_LIMIT_REASON}; ${request.role} remains blocked`);
 }
 
 function normalizeStructuredPayload(outputText, request) {
@@ -821,7 +2350,19 @@ function normalizeStructuredPayload(outputText, request) {
     return normalizeStructuredArchitectPayload(outputText, request);
   }
 
-  throw new Error(`${PLANNER_AND_ARCHITECT_ONLY_REASON}; ${request.role} remains blocked`);
+  if (request.role === 'task-breaker') {
+    return normalizeStructuredTaskBreakerPayload(outputText, request);
+  }
+
+  if (request.role === 'builder' && request.executionMode === 'preflight') {
+    return normalizeStructuredBuilderPreflightPayload(outputText, request);
+  }
+
+  if (request.role === 'builder' && request.executionMode === 'live-mutation') {
+    return normalizeStructuredBuilderLiveMutationPayload(outputText, request);
+  }
+
+  throw new Error(`${LIVE_ROLE_LIMIT_REASON}; ${request.role} remains blocked`);
 }
 
 function createOpenAIResponsesProviderAdapter(options = {}) {
@@ -840,11 +2381,17 @@ function createOpenAIResponsesProviderAdapter(options = {}) {
         };
       }
 
-      if (input.role !== 'planner' && input.role !== 'architect') {
+      if (
+        input.role !== 'planner' &&
+        input.role !== 'architect' &&
+        input.role !== 'task-breaker' &&
+        input.role !== 'builder-preflight' &&
+        input.role !== 'builder-live-mutation'
+      ) {
         return {
           readiness: PROVIDER_READINESS.DEGRADED,
           allowed: false,
-          reasons: [`${PLANNER_AND_ARCHITECT_ONLY_REASON}; ${input.role} remains blocked`],
+          reasons: [`${LIVE_ROLE_LIMIT_REASON}; ${input.role} remains blocked`],
         };
       }
 
@@ -855,8 +2402,16 @@ function createOpenAIResponsesProviderAdapter(options = {}) {
       };
     },
     async execute(request, context = {}) {
-      if (request.role !== 'planner' && request.role !== 'architect') {
-        throw new Error(`${PLANNER_AND_ARCHITECT_ONLY_REASON}; ${request.role} remains blocked`);
+      if (
+        request.role !== 'planner' &&
+        request.role !== 'architect' &&
+        request.role !== 'task-breaker' &&
+        !(
+          request.role === 'builder' &&
+          (request.executionMode === 'preflight' || request.executionMode === 'live-mutation')
+        )
+      ) {
+        throw new Error(`${LIVE_ROLE_LIMIT_REASON}; ${request.role} remains blocked`);
       }
 
       const providerConfig =

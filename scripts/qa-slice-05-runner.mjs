@@ -26,6 +26,7 @@ const PLAYWRIGHT_VIEWPORT = {
   height: 960,
   width: 1440,
 };
+const SERVER_FETCH_STATE_ENV = 'QA_SLICE_05_SERVER_FETCH_STUB_STATE';
 const SOURCE_OF_TRUTH_PATHS = [
   'AGENTS.md',
   'docs/00_master-brief.md',
@@ -34,11 +35,19 @@ const SOURCE_OF_TRUTH_PATHS = [
   'docs/03_architecture-roadmap-v1.md',
   'packs/development/pack.md',
 ];
-const CODE_CONTEXT_PATHS = [
+const ARCHITECT_CODE_CONTEXT_PATHS = [
   'src/runtime/contracts.js',
   'src/runtime/file-store.js',
   'src/runtime/runtime-service.js',
   'src/execution/execution-coordinator.js',
+  'ui/app.js',
+];
+const BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS = [
+  'src/runtime/contracts.js',
+  'src/runtime/runtime-service.js',
+  'src/execution/provider-adapter.js',
+  'src/execution/execution-coordinator.js',
+  'src/execution/providers/openai-responses-adapter.js',
   'ui/app.js',
 ];
 
@@ -78,13 +87,13 @@ function runGit(projectPath, args) {
 }
 
 function createFixtureProject(label) {
-  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), `orchestration-qa-slice-04-${label}-`));
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), `orchestration-qa-slice-05-${label}-`));
   const projectPath = path.join(fixtureRoot, 'project');
 
   fs.mkdirSync(projectPath, { recursive: true });
   runGit(projectPath, ['init', '-q']);
-  runGit(projectPath, ['config', 'user.name', 'qa-slice-04']);
-  runGit(projectPath, ['config', 'user.email', 'qa-slice-04@example.com']);
+  runGit(projectPath, ['config', 'user.name', 'qa-slice-05']);
+  runGit(projectPath, ['config', 'user.email', 'qa-slice-05@example.com']);
   fs.writeFileSync(path.join(projectPath, 'README.md'), `# ${label}\n`, 'utf8');
   runGit(projectPath, ['add', 'README.md']);
   runGit(projectPath, ['commit', '-q', '-m', `fixture:${label}`]);
@@ -93,6 +102,10 @@ function createFixtureProject(label) {
     fixtureRoot,
     projectPath: fs.realpathSync(projectPath),
   };
+}
+
+function countApprovals(snapshot, taskId) {
+  return Object.values(snapshot.approvals).filter((approval) => approval.taskId === taskId).length;
 }
 
 function countArtifacts(snapshot, taskId, type = null) {
@@ -156,6 +169,92 @@ function createRoutingOutcome(scopeStatement) {
     missingContext: [],
     decisionNote: '',
   };
+}
+
+function createServerFetchStubFiles(outputRoot) {
+  const preloadPath = path.join(outputRoot, 'qa-slice-05-server-fetch-stub.cjs');
+  const statePath = path.join(outputRoot, 'qa-slice-05-server-fetch-state.json');
+  const preload = `'use strict';
+
+const fs = require('node:fs');
+
+const statePath = process.env[${JSON.stringify(SERVER_FETCH_STATE_ENV)}];
+
+function loadState() {
+  if (!statePath || !fs.existsSync(statePath)) {
+    return { calls: [], queue: [] };
+  }
+
+  return JSON.parse(fs.readFileSync(statePath, 'utf8'));
+}
+
+function saveState(state) {
+  fs.writeFileSync(statePath, \`\${JSON.stringify(state, null, 2)}\\n\`, 'utf8');
+}
+
+global.fetch = async function qaSlice05ServerFetch(url, init = {}) {
+  const state = loadState();
+
+  state.calls.push({
+    body: init.body || '',
+    headers: init.headers || {},
+    method: init.method || 'GET',
+    url,
+  });
+
+  if (!Array.isArray(state.queue) || state.queue.length === 0) {
+    saveState(state);
+    throw new Error('No queued response for qa-slice-05 server fetch stub');
+  }
+
+  const next = state.queue.shift();
+  saveState(state);
+
+  if (next && Object.prototype.hasOwnProperty.call(next, 'throwError')) {
+    const error = new Error(next.throwError.message || 'qa-slice-05 server fetch stub error');
+
+    error.name = next.throwError.name || 'Error';
+    throw error;
+  }
+
+  const status = next && Number.isInteger(next.status) ? next.status : 200;
+  const payload = next && next.payload ? next.payload : {};
+
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    async text() {
+      return JSON.stringify(payload);
+    },
+  };
+};
+`;
+
+  fs.writeFileSync(preloadPath, preload, 'utf8');
+  fs.writeFileSync(statePath, `${JSON.stringify({ calls: [], queue: [] }, null, 2)}\n`, 'utf8');
+
+  return {
+    preloadPath,
+    statePath,
+  };
+}
+
+function readServerFetchState(statePath) {
+  return JSON.parse(fs.readFileSync(statePath, 'utf8'));
+}
+
+function writeServerFetchQueue(statePath, responses = []) {
+  fs.writeFileSync(
+    statePath,
+    `${JSON.stringify({ calls: [], queue: responses }, null, 2)}\n`,
+    'utf8',
+  );
+}
+
+function mergeNodeOptions(existing, extraParts = []) {
+  return [String(existing || '').trim(), ...extraParts.map((value) => String(value || '').trim())]
+    .filter(Boolean)
+    .join(' ');
 }
 
 async function allocatePort() {
@@ -548,20 +647,20 @@ function createPlannerArtifactMarkdown(label) {
   return `# Plan: ${label}
 
 ## Slice Goal
-Verify qa-slice-04 planner, architect, and task-breaker live verification through browser plus API assertions.
+Verify qa-slice-05 builder-preflight live verification through browser plus API assertions.
 
 ## Intended Outcome
-Keep browser checks surface-only while closing live semantics through API endpoints and direct coordinator assertions.
+Keep browser checks limited to happy-path provider summary, builder-preflight launch, Artifacts landing, and selected preflight visibility.
 
 ## Acceptance Target
 - live project provider summary stays coarse in browser
-- planner, architect, and task-breaker execute live
-- architecture and breakdown artifacts stay inspectable
-- human-gate state surfaces on Decision Inbox without widening UI semantics
+- planner, architect, task-breaker, and builder-preflight execute live
+- builder-preflight lands on Artifacts with the new preflight artifact selected
+- builder live mutation and reviewer remain blocked or degraded through API and coordinator summaries
 
 ## Verification Approach
-- browser landing, selection, and visibility checks
-- /api/snapshot, /api/artifacts, /api/runs/:id/logs assertions
+- browser landing, button click, Artifacts landing, and selected artifact visibility checks
+- /api/snapshot, /api/artifacts, /api/runs/:id/logs, direct coordinator readiness assertions
 
 ## Dependencies and Blockers
 - none
@@ -569,6 +668,8 @@ Keep browser checks surface-only while closing live semantics through API endpoi
 ## Expected Artifacts
 - plan
 - architecture
+- breakdown
+- preflight
 `;
 }
 
@@ -593,7 +694,7 @@ function createArchitectStructuredText({ anchor, artifact = {}, normalizedResult
       boundaryFit: artifact.boundaryFit || 'fit',
       affectedComponentsOrContracts: Array.isArray(artifact.affectedComponentsOrContracts)
         ? artifact.affectedComponentsOrContracts
-        : ['src/execution/execution-coordinator.js'],
+        : [...BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS],
       policyImpact: Array.isArray(artifact.policyImpact)
         ? artifact.policyImpact
         : ['The slice keeps project-level provider summary coarse in browser surfaces.'],
@@ -602,7 +703,9 @@ function createArchitectStructuredText({ anchor, artifact = {}, normalizedResult
         : ['None. The current decision log remains unchanged.'],
       approvedAssumptions: Array.isArray(artifact.approvedAssumptions)
         ? artifact.approvedAssumptions
-        : ['Role readiness beyond project summary is verified outside the browser.'],
+        : [
+            'Browser checks stay happy-path only while API and coordinator assertions close semantics.',
+          ],
       noArchitectureChangeStatement:
         artifact.noArchitectureChangeStatement ||
         'No architecture change is approved by this note. Downstream work must stay inside the current live boundary.',
@@ -629,32 +732,36 @@ function createTaskBreakerStructuredText({ anchor, artifact = {}, normalizedResu
       orderedSubTasks: Array.isArray(artifact.orderedSubTasks)
         ? artifact.orderedSubTasks
         : [
-            'Validate the approved plan-plus-architecture provenance chain before builder handoff.',
+            'Validate the current plan-plus-architecture provenance chain before builder-preflight handoff.',
             'Prepare the minimum implementation sequence without widening scope.',
-            'Stop after the bounded implementation slice is ready for builder preflight.',
+            'Stop after the bounded implementation slice is builder-preflight-ready.',
           ],
       checkpoints: Array.isArray(artifact.checkpoints)
         ? artifact.checkpoints
         : [
             'checkpoint 1: confirm the current boundary and non-goals',
-            'checkpoint 2: define the smallest builder-ready sequence',
-            'checkpoint 3: mark verification and review handoff points',
+            'checkpoint 2: define the smallest builder-preflight-ready sequence',
+            'checkpoint 3: capture API and browser happy-path verification points',
           ],
       expectedArtifactsPerCheckpoint: Array.isArray(artifact.expectedArtifactsPerCheckpoint)
         ? artifact.expectedArtifactsPerCheckpoint
-        : ['checkpoint 1: breakdown', 'checkpoint 2: diff', 'checkpoint 3: review'],
+        : [
+            'checkpoint 1: breakdown',
+            'checkpoint 2: preflight',
+            'checkpoint 3: approval request',
+          ],
       verificationCheckpoints: Array.isArray(artifact.verificationCheckpoints)
         ? artifact.verificationCheckpoints
-        : ['Confirm the planned verification step before builder execution.'],
+        : ['Confirm provider readiness, provenance, and no-secret-leak checks.'],
       reviewTriggerPoints: Array.isArray(artifact.reviewTriggerPoints)
         ? artifact.reviewTriggerPoints
-        : ['Trigger review after the bounded builder sequence and verification evidence are ready.'],
+        : ['Trigger review only after approved live mutation plus verification evidence are ready.'],
       stopAndEscalateConditions: Array.isArray(artifact.stopAndEscalateConditions)
         ? artifact.stopAndEscalateConditions
         : ['Stop if execution would widen scope beyond the approved architecture boundary.'],
       executionBoundarySummary: Array.isArray(artifact.executionBoundarySummary)
         ? artifact.executionBoundarySummary
-        : ['Builder handoff stays bounded to the current approved slice only.'],
+        : ['Builder-preflight handoff stays bounded to the current approved slice only.'],
     },
     normalizedResult: {
       blockers: Array.isArray(normalizedResult.blockers) ? normalizedResult.blockers : [],
@@ -662,6 +769,49 @@ function createTaskBreakerStructuredText({ anchor, artifact = {}, normalizedResu
       nextStage: normalizedResult.nextStage || 'builder',
       summary:
         normalizedResult.summary || 'Task-breaker output is ready for builder handoff.',
+      decisionTitle: normalizedResult.decisionTitle || '',
+      decisionPrompt: normalizedResult.decisionPrompt || '',
+    },
+  });
+}
+
+function createBuilderPreflightStructuredText({ anchor, artifact = {}, normalizedResult = {} }) {
+  return JSON.stringify({
+    anchor,
+    artifact: {
+      targetFiles: Array.isArray(artifact.targetFiles)
+        ? artifact.targetFiles
+        : ['src/execution/execution-coordinator.js', 'src/runtime/runtime-service.js'],
+      intendedChanges: Array.isArray(artifact.intendedChanges)
+        ? artifact.intendedChanges
+        : [
+            'Prepare a no-write builder-preflight artifact for the approved slice.',
+            'Preserve approval-request-only handoff without widening builder live mutation or reviewer live.',
+          ],
+      risks: Array.isArray(artifact.risks)
+        ? artifact.risks
+        : ['Fail closed when provenance, path validation, or structured output validation does not match.'],
+      verificationPlan: Array.isArray(artifact.verificationPlan)
+        ? artifact.verificationPlan
+        : [
+            'Verify provider summary and role readiness through browser plus coordinator assertions.',
+            'Verify the selected preflight artifact and run logs through API endpoints.',
+          ],
+      reviewEvidenceExpectations: Array.isArray(artifact.reviewEvidenceExpectations)
+        ? artifact.reviewEvidenceExpectations
+        : ['Keep the preflight artifact parser-compatible with explicit target files and verification plan.'],
+      escalationTriggers: Array.isArray(artifact.escalationTriggers)
+        ? artifact.escalationTriggers
+        : ['Escalate if target files would leave the approved architecture boundary.'],
+    },
+    normalizedResult: {
+      blockers: Array.isArray(normalizedResult.blockers) ? normalizedResult.blockers : [],
+      needsDecision: Boolean(normalizedResult.needsDecision),
+      nextStage:
+        normalizedResult.nextStage || 'request-builder-live-mutation-approval',
+      summary:
+        normalizedResult.summary ||
+        'Builder-preflight output is ready for explicit live-mutation approval request.',
       decisionTitle: normalizedResult.decisionTitle || '',
       decisionPrompt: normalizedResult.decisionPrompt || '',
     },
@@ -685,10 +835,6 @@ function createPlannerApiPayload(label, options = {}) {
 
   if (options.useAggregatedOutput === true) {
     payload.output = [
-      {
-        type: 'reasoning',
-        content: [],
-      },
       {
         type: 'message',
         content: [{ type: 'output_text', text: outputText }],
@@ -752,6 +898,30 @@ function createTaskBreakerApiPayload(anchor, options = {}) {
   };
 }
 
+function createBuilderPreflightApiPayload(anchor, options = {}) {
+  const outputText =
+    options.rawOutputText ||
+    createBuilderPreflightStructuredText({
+      anchor: options.anchor || anchor,
+      artifact: options.artifact,
+      normalizedResult: options.normalizedResult,
+    });
+
+  return {
+    payload: {
+      id: options.providerRunId || 'resp-builder-preflight',
+      model: options.model || 'gpt-4.1-mini',
+      output_text: outputText,
+      usage: {
+        input_tokens: 16,
+        output_tokens: 32,
+        total_tokens: 48,
+      },
+    },
+    status: options.status ?? 200,
+  };
+}
+
 function createSyntheticCoordinator(runtime, fetchImpl) {
   return createExecutionCoordinator({
     liveProviderAdapter: createOpenAIResponsesProviderAdapter({
@@ -761,7 +931,8 @@ function createSyntheticCoordinator(runtime, fetchImpl) {
     repoRoot,
     runtimeService: runtime,
     sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
-    architectCodeContextPaths: CODE_CONTEXT_PATHS,
+    architectCodeContextPaths: ARCHITECT_CODE_CONTEXT_PATHS,
+    builderPreflightCodeContextPaths: BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS,
   });
 }
 
@@ -770,7 +941,8 @@ function createDefaultCoordinator(runtime) {
     repoRoot,
     runtimeService: runtime,
     sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
-    architectCodeContextPaths: CODE_CONTEXT_PATHS,
+    architectCodeContextPaths: ARCHITECT_CODE_CONTEXT_PATHS,
+    builderPreflightCodeContextPaths: BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS,
   });
 }
 
@@ -856,6 +1028,133 @@ function assertOpenAiLogs(logsPayload) {
   assert.doesNotMatch(messages, /local-stub/i);
 }
 
+function createArchitectAnchor(projectId, taskId, planArtifactId, planRunId) {
+  return {
+    projectId,
+    taskId,
+    planArtifactId,
+    planRunId,
+    sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
+    codeContextPaths: ARCHITECT_CODE_CONTEXT_PATHS,
+  };
+}
+
+function createTaskBreakerAnchor(
+  projectId,
+  taskId,
+  planArtifactId,
+  planRunId,
+  architectureArtifactId,
+  architectureRunId,
+) {
+  return {
+    projectId,
+    taskId,
+    planArtifactId,
+    planRunId,
+    architectureArtifactId,
+    architectureRunId,
+    sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
+  };
+}
+
+function createBuilderPreflightAnchor(
+  projectId,
+  taskId,
+  planArtifactId,
+  planRunId,
+  architectureArtifactId,
+  architectureRunId,
+  breakdownArtifactId,
+  breakdownRunId,
+  architectureAllowlistPaths = BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS,
+  codeContextPaths = BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS,
+) {
+  return {
+    projectId,
+    taskId,
+    planArtifactId,
+    planRunId,
+    architectureArtifactId,
+    architectureRunId,
+    breakdownArtifactId,
+    breakdownRunId,
+    sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
+    architectureAllowlistPaths,
+    codeContextPaths,
+  };
+}
+
+async function runPlannerArchitectTaskBreakerForTask({
+  coordinator,
+  projectId,
+  queuedFetch,
+  runtime,
+  label,
+  taskId,
+  intent,
+  scopeStatement,
+}) {
+  const task = taskId
+    ? runtime.getTask(taskId)
+    : runtime.createTask({
+        projectId,
+        title: `qa-slice-05 ${label}`,
+        intent,
+      });
+  const plannerResult = await coordinator.runPlanner({
+    taskId: task.id,
+    routingOutcome: createRoutingOutcome(scopeStatement),
+  });
+  const planArtifact = runtime.getArtifact(plannerResult.artifact.id);
+  const architectAnchor = createArchitectAnchor(
+    projectId,
+    task.id,
+    planArtifact.id,
+    plannerResult.run.id,
+  );
+
+  queuedFetch.push(
+    createArchitectApiPayload(architectAnchor, {
+      providerRunId: 'resp-architect-fit',
+    }),
+  );
+
+  const architectResult = await coordinator.runArchitect({
+    taskId: task.id,
+  });
+  const architectureArtifact = runtime.getArtifact(architectResult.artifact.id);
+  const taskBreakerAnchor = createTaskBreakerAnchor(
+    projectId,
+    task.id,
+    planArtifact.id,
+    plannerResult.run.id,
+    architectureArtifact.id,
+    architectResult.run.id,
+  );
+
+  queuedFetch.push(
+    createTaskBreakerApiPayload(taskBreakerAnchor, {
+      providerRunId: 'resp-task-breaker-fit',
+    }),
+  );
+
+  const taskBreakerResult = await coordinator.runTaskBreaker({
+    taskId: task.id,
+  });
+  const breakdownArtifact = runtime.getArtifact(taskBreakerResult.artifact.id);
+
+  return {
+    architectResult,
+    architectureArtifact,
+    breakdownArtifact,
+    planArtifact,
+    plannerResult,
+    task,
+    taskBreakerResult,
+  };
+}
+
 async function verifyBrowserProjectSummary({
   outputRoot,
   overrideEnvVar,
@@ -872,20 +1171,16 @@ async function verifyBrowserProjectSummary({
   });
 
   assert.match(providerReadySnapshot, /provider:openai-responses/i);
-  assert.match(providerReadySnapshot, /planner, architect, and task-breaker/i);
+  assert.match(providerReadySnapshot, /planner, architect, task-breaker, and builder preflight/i);
   assertSecretAbsent(providerReadySnapshot, secret, 'project summary snapshot');
   assertProjectProviderSummary(projectSummary);
 
   return providerReadySnapshot;
 }
 
-async function verifyBrowserHumanGateFlow({
-  architectRunId,
-  architectureArtifactId,
-  decisionTitle,
+async function triggerBrowserBuilderPreflight({
   outputRoot,
   overrideEnvVar,
-  plannerArtifactId,
   secret,
   sessionName,
   taskId,
@@ -905,162 +1200,84 @@ async function verifyBrowserHumanGateFlow({
     overrideEnvVar,
     pattern: new RegExp(escapeRegExp(taskTitle)),
     sessionName,
-    label: 'selected gate task body',
+    label: 'selected builder-preflight task body',
   });
-
   collectedDomTexts.push(selectedTaskText);
-  assert.match(selectedTaskText, new RegExp(escapeRegExp(plannerArtifactId)));
-  assert.match(selectedTaskText, new RegExp(escapeRegExp(architectureArtifactId)));
-  assert.match(selectedTaskText, /Task-Breaker stays disabled until/i);
-  assert.match(selectedTaskText, /Builder preflight stays disabled until/i);
-  assert.match(selectedTaskText, /Reviewer Disabled By/i);
   assertSecretAbsent(selectedTaskText, secret, 'taskboard selected task body');
 
-  clickSelector({
+  const buildReadyText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    selector: '.nav-button[data-surface="logs"]',
+    pattern: /Run Builder Preflight/i,
     sessionName,
+    label: 'builder-preflight button visibility',
   });
-
-  const logsText = await waitForBodyText({
-    outputRoot,
-    overrideEnvVar,
-    pattern: new RegExp(escapeRegExp(architectRunId)),
-    sessionName,
-    label: 'logs surface body',
-  });
-  collectedDomTexts.push(logsText);
-  assertSecretAbsent(logsText, secret, 'logs surface body');
+  collectedDomTexts.push(buildReadyText);
+  assertSecretAbsent(buildReadyText, secret, 'builder-preflight button body');
 
   clickSelector({
     outputRoot,
     overrideEnvVar,
-    selector: '.nav-button[data-surface="artifacts"]',
+    selector: '[data-action="run-builder-preflight"]',
     sessionName,
   });
 
-  const artifactsText = await waitForBodyText({
-    outputRoot,
-    overrideEnvVar,
-    pattern: new RegExp(escapeRegExp(architectureArtifactId)),
-    sessionName,
-    label: 'artifacts surface body',
-  });
-  collectedDomTexts.push(artifactsText);
-  assert.match(artifactsText, /Stop-And-Escalate Conditions/i);
-  assertSecretAbsent(artifactsText, secret, 'artifacts surface body');
+  const activeSurface = await waitForValue(async () => {
+    const surface = evaluate({
+      expression: `document.querySelector('.nav-button.is-active')?.dataset.surface || null`,
+      outputRoot,
+      overrideEnvVar,
+      sessionName,
+    });
 
-  clickSelector({
-    outputRoot,
-    overrideEnvVar,
-    selector: '.nav-button[data-surface="decision-inbox"]',
-    sessionName,
-  });
+    return surface === 'artifacts' ? surface : null;
+  }, 'Artifacts landing after builder preflight');
 
-  const decisionInboxText = await waitForBodyText({
-    outputRoot,
-    overrideEnvVar,
-    pattern: new RegExp(escapeRegExp(decisionTitle)),
-    sessionName,
-    label: 'decision inbox body',
-  });
-  collectedDomTexts.push(decisionInboxText);
-  assertSecretAbsent(decisionInboxText, secret, 'decision inbox body');
+  assert.equal(activeSurface, 'artifacts');
 
   return collectedDomTexts;
 }
 
-async function verifyBrowserRealFlow({
-  architectRunId,
-  architectureArtifactId,
-  decisionTitle,
+async function verifyBrowserArtifactSelection({
+  artifactId,
   outputRoot,
   overrideEnvVar,
   secret,
   sessionName,
-  taskId,
-  taskTitle,
 }) {
-  const collectedDomTexts = [];
+  const selectedArtifactId = await waitForValue(async () => {
+    const value = evaluate({
+      expression: `document.querySelector('[data-action="select-artifact"].is-selected')?.dataset.id || null`,
+      outputRoot,
+      overrideEnvVar,
+      sessionName,
+    });
 
-  clickSelector({
-    outputRoot,
-    overrideEnvVar,
-    selector: `[data-action="select-task"][data-id="${taskId}"]`,
-    sessionName,
-  });
+    return value === artifactId ? value : null;
+  }, 'selected preflight artifact');
 
-  const taskBodyText = await waitForBodyText({
-    outputRoot,
-    overrideEnvVar,
-    pattern: new RegExp(escapeRegExp(taskTitle)),
-    sessionName,
-    label: 'selected real live task body',
-  });
-  collectedDomTexts.push(taskBodyText);
-  assert.match(taskBodyText, new RegExp(escapeRegExp(architectureArtifactId)));
-  assertSecretAbsent(taskBodyText, secret, 'real live task body');
-
-  clickSelector({
-    outputRoot,
-    overrideEnvVar,
-    selector: '.nav-button[data-surface="logs"]',
-    sessionName,
-  });
-
-  const logsText = await waitForBodyText({
-    outputRoot,
-    overrideEnvVar,
-    pattern: new RegExp(escapeRegExp(architectRunId)),
-    sessionName,
-    label: 'real live logs body',
-  });
-  collectedDomTexts.push(logsText);
-  assertSecretAbsent(logsText, secret, 'real live logs body');
-
-  clickSelector({
-    outputRoot,
-    overrideEnvVar,
-    selector: '.nav-button[data-surface="artifacts"]',
-    sessionName,
-  });
+  assert.equal(selectedArtifactId, artifactId);
 
   const artifactsText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: new RegExp(escapeRegExp(architectureArtifactId)),
+    pattern: new RegExp(`${escapeRegExp(artifactId)}[\\s\\S]*Target Files`, 'i'),
     sessionName,
-    label: 'real live artifacts body',
+    label: 'selected preflight artifact body',
   });
-  collectedDomTexts.push(artifactsText);
-  assertSecretAbsent(artifactsText, secret, 'real live artifacts body');
 
-  if (decisionTitle) {
-    clickSelector({
-      outputRoot,
-      overrideEnvVar,
-      selector: '.nav-button[data-surface="decision-inbox"]',
-      sessionName,
-    });
+  assert.match(artifactsText, /Builder Preflight/i);
+  assert.match(artifactsText, /Target Files/i);
+  assert.match(artifactsText, /Verification Plan/i);
+  assert.match(artifactsText, /Review Evidence Expectations/i);
+  assertSecretAbsent(artifactsText, secret, 'artifacts surface body');
 
-    const decisionText = await waitForBodyText({
-      outputRoot,
-      overrideEnvVar,
-      pattern: new RegExp(escapeRegExp(decisionTitle)),
-      sessionName,
-      label: 'real live decision inbox body',
-    });
-    collectedDomTexts.push(decisionText);
-    assertSecretAbsent(decisionText, secret, 'real live decision inbox body');
-  }
-
-  return collectedDomTexts;
+  return artifactsText;
 }
 
 async function prepareBrowserHarness({ browser, outputRoot, overrideEnvVar, runtimeRoot, serverEnv }) {
   const configPath = path.join(outputRoot, 'playwright-cli.json');
-  const sessionName = 'qa-slice-04';
+  const sessionName = 'qa-slice-05';
   const port = await allocatePort();
   const baseUrl = `http://127.0.0.1:${port}`;
   const server = startUiServer({
@@ -1096,14 +1313,14 @@ async function refreshBrowser({ outputRoot, overrideEnvVar, sessionName }) {
   });
 }
 
-export async function runQaSlice04SyntheticSmoke(options = {}) {
-  const outputRoot = options.outputRoot || path.join(repoRoot, 'output', 'playwright', 'qa-slice-04');
-  const runtimeRoot = options.runtimeRoot || path.join(repoRoot, 'var', 'runtime-qa-slice-04');
-  const browser = options.browser || process.env.QA_SLICE_04_PLAYWRIGHT_BROWSER || 'chrome';
-  const overrideEnvVar = options.overrideEnvVar || 'QA_SLICE_04_PLAYWRIGHT_CLI_BIN';
-  const liveProviderEnvVar = options.liveProviderEnvVar || 'QA_SLICE_04_LIVE_PROVIDER_API_KEY';
-  const sentinelSecret = options.secret || 'qa-slice-04-secret-sentinel';
-  const providerModel = options.model || 'qa-slice-04-operator-model';
+export async function runQaSlice05SyntheticSmoke(options = {}) {
+  const outputRoot = options.outputRoot || path.join(repoRoot, 'output', 'playwright', 'qa-slice-05');
+  const runtimeRoot = options.runtimeRoot || path.join(repoRoot, 'var', 'runtime-qa-slice-05');
+  const browser = options.browser || process.env.QA_SLICE_05_PLAYWRIGHT_BROWSER || 'chrome';
+  const overrideEnvVar = options.overrideEnvVar || 'QA_SLICE_05_PLAYWRIGHT_CLI_BIN';
+  const liveProviderEnvVar = options.liveProviderEnvVar || 'QA_SLICE_05_LIVE_PROVIDER_API_KEY';
+  const sentinelSecret = options.secret || 'qa-slice-05-secret-sentinel';
+  const providerModel = options.model || 'qa-slice-05-operator-model';
   const runtime = createRuntimeService({ runtimeRoot });
   const fixture = createFixtureProject('synthetic-live');
 
@@ -1113,8 +1330,13 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
   process.env[liveProviderEnvVar] = sentinelSecret;
   runtime.resetRuntime();
 
+  const serverFetchStub = createServerFetchStubFiles(outputRoot);
   const serverEnv = {
     [liveProviderEnvVar]: sentinelSecret,
+    [SERVER_FETCH_STATE_ENV]: serverFetchStub.statePath,
+    NODE_OPTIONS: mergeNodeOptions(process.env.NODE_OPTIONS, [
+      `--require=${serverFetchStub.preloadPath}`,
+    ]),
   };
   const harness = await prepareBrowserHarness({
     browser,
@@ -1123,7 +1345,6 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
     runtimeRoot,
     serverEnv,
   });
-
   const domTexts = [];
 
   try {
@@ -1138,7 +1359,7 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
     assertSecretAbsent(landingSnapshot, sentinelSecret, 'landing snapshot');
 
     const projectPayload = await postJson(harness.baseUrl, '/api/projects', {
-      name: 'qa-slice-04',
+      name: 'qa-slice-05',
       projectPath: fixture.projectPath,
       provider: {
         adapter: 'openai-responses',
@@ -1166,194 +1387,66 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
     });
     domTexts.push(providerReadySnapshot);
 
-    const fitTaskPayload = await postJson(harness.baseUrl, '/api/tasks', {
-      intent: 'Verify synthetic fit task-breaker live flow for qa-slice-04.',
-      title: 'QA slice 04 task-breaker fit',
-    });
-    const gateTaskPayload = await postJson(harness.baseUrl, '/api/tasks', {
-      intent: 'Verify synthetic human-gate task-breaker live flow for qa-slice-04.',
-      title: 'QA slice 04 task-breaker human gate',
+    const taskPayload = await postJson(harness.baseUrl, '/api/tasks', {
+      intent:
+        'Run planner, architect, task-breaker, and builder-preflight through synthetic qa-slice-05 while keeping browser assertions limited to provider summary, builder-preflight launch, Artifacts landing, and selected preflight visibility.',
+      title: 'QA slice 05 builder-preflight fit',
     });
 
     const syntheticRuntime = createRuntimeService({ runtimeRoot });
-    const queuedFetch = createQueuedFetch();
+    const queuedFetch = createQueuedFetch([createPlannerApiPayload('qa-slice-05-fit')]);
     const syntheticCoordinator = createSyntheticCoordinator(syntheticRuntime, queuedFetch.fetchImpl);
     const roleReadiness = collectRoleReadiness(syntheticCoordinator, projectId);
 
     assertRoleReadiness(roleReadiness);
 
-    queuedFetch.push(createPlannerApiPayload('qa-slice-04-fit'));
-    const fitPlannerResult = await syntheticCoordinator.runPlanner({
-      taskId: fitTaskPayload.task.id,
-      routingOutcome: createRoutingOutcome(
-        'Verify synthetic fit task-breaker live flow for qa-slice-04.',
-      ),
-    });
-    const fitAnchor = {
+    const context = await runPlannerArchitectTaskBreakerForTask({
+      coordinator: syntheticCoordinator,
       projectId,
-      taskId: fitTaskPayload.task.id,
-      planArtifactId: fitPlannerResult.artifact.id,
-      planRunId: fitPlannerResult.run.id,
-      sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
-      codeContextPaths: CODE_CONTEXT_PATHS,
-    };
-    queuedFetch.push(
-      createArchitectApiPayload(fitAnchor, {
-        providerRunId: 'resp-architect-fit',
-      }),
-    );
-    const fitArchitectResult = await syntheticCoordinator.runArchitect({
-      taskId: fitTaskPayload.task.id,
+      queuedFetch,
+      runtime: syntheticRuntime,
+      label: 'builder-preflight fit',
+      taskId: taskPayload.task.id,
+      intent:
+        'Run planner, architect, and task-breaker live before browser-triggered builder-preflight verification.',
+      scopeStatement:
+        'Verify qa-slice-05 happy-path browser and API coverage for builder-preflight live execution.',
     });
-    const fitTaskBreakerAnchor = {
+
+    assert.equal(context.task.id, taskPayload.task.id);
+
+    assert.equal(context.plannerResult.run.summary.adapter, 'openai-responses');
+    assert.equal(context.architectResult.run.summary.adapter, 'openai-responses');
+    assert.equal(context.architectResult.run.summary.inputArtifactId, context.planArtifact.id);
+    assert.equal(context.architectResult.run.summary.inputRunId, context.plannerResult.run.id);
+    assert.equal(context.taskBreakerResult.run.summary.adapter, 'openai-responses');
+    assert.equal(
+      context.taskBreakerResult.run.summary.architectureArtifactId,
+      context.architectureArtifact.id,
+    );
+    assert.equal(
+      context.taskBreakerResult.run.summary.architectureRunId,
+      context.architectResult.run.id,
+    );
+    assert.equal(context.taskBreakerResult.run.summary.nextStage, 'builder');
+    assert.equal(context.taskBreakerResult.decisionInboxItem, null);
+
+    const builderPreflightAnchor = createBuilderPreflightAnchor(
       projectId,
-      taskId: fitTaskPayload.task.id,
-      planArtifactId: fitPlannerResult.artifact.id,
-      planRunId: fitPlannerResult.run.id,
-      architectureArtifactId: fitArchitectResult.artifact.id,
-      architectureRunId: fitArchitectResult.run.id,
-      sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
-    };
-    queuedFetch.push(
-      createTaskBreakerApiPayload(fitTaskBreakerAnchor, {
-        providerRunId: 'resp-task-breaker-fit',
+      context.task.id,
+      context.planArtifact.id,
+      context.plannerResult.run.id,
+      context.architectureArtifact.id,
+      context.architectResult.run.id,
+      context.breakdownArtifact.id,
+      context.taskBreakerResult.run.id,
+    );
+
+    writeServerFetchQueue(serverFetchStub.statePath, [
+      createBuilderPreflightApiPayload(builderPreflightAnchor, {
+        providerRunId: 'resp-builder-preflight-fit',
       }),
-    );
-    const fitTaskBreakerResult = await syntheticCoordinator.runTaskBreaker({
-      taskId: fitTaskPayload.task.id,
-    });
-
-    queuedFetch.push(createPlannerApiPayload('qa-slice-04-human-gate'));
-    const gatePlannerResult = await syntheticCoordinator.runPlanner({
-      taskId: gateTaskPayload.task.id,
-      routingOutcome: createRoutingOutcome(
-        'Verify synthetic human-gate task-breaker live flow for qa-slice-04.',
-      ),
-    });
-    const gateAnchor = {
-      projectId,
-      taskId: gateTaskPayload.task.id,
-      planArtifactId: gatePlannerResult.artifact.id,
-      planRunId: gatePlannerResult.run.id,
-      sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
-      codeContextPaths: CODE_CONTEXT_PATHS,
-    };
-    queuedFetch.push(
-      createArchitectApiPayload(gateAnchor, {
-        providerRunId: 'resp-architect-human-gate',
-      }),
-    );
-    const gateArchitectResult = await syntheticCoordinator.runArchitect({
-      taskId: gateTaskPayload.task.id,
-    });
-    const gateTaskBreakerAnchor = {
-      projectId,
-      taskId: gateTaskPayload.task.id,
-      planArtifactId: gatePlannerResult.artifact.id,
-      planRunId: gatePlannerResult.run.id,
-      architectureArtifactId: gateArchitectResult.artifact.id,
-      architectureRunId: gateArchitectResult.run.id,
-      sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
-    };
-    queuedFetch.push(
-      createTaskBreakerApiPayload(gateTaskBreakerAnchor, {
-        providerRunId: 'resp-task-breaker-human-gate',
-        artifact: {
-          stopAndEscalateConditions: [
-            'Stop because an operator decision is still required before builder handoff.',
-          ],
-          executionBoundarySummary: [
-            'Builder must remain blocked until the current human gate is resolved.',
-          ],
-        },
-        normalizedResult: {
-          blockers: ['An operator decision is required before builder handoff may proceed.'],
-          needsDecision: true,
-          nextStage: 'human gate',
-          summary: 'Task-breaker found a blocking issue that routes through the human gate.',
-          decisionTitle: 'Task-breaker decision required',
-          decisionPrompt: 'Resolve the blocked implementation choice before builder work may continue.',
-        },
-      }),
-    );
-    const gateTaskBreakerResult = await syntheticCoordinator.runTaskBreaker({
-      taskId: gateTaskPayload.task.id,
-    });
-
-    assert.equal(fitPlannerResult.run.summary.adapter, 'openai-responses');
-    assert.equal(fitArchitectResult.run.summary.adapter, 'openai-responses');
-    assert.equal(fitArchitectResult.run.summary.inputArtifactId, fitPlannerResult.artifact.id);
-    assert.equal(fitArchitectResult.run.summary.inputRunId, fitPlannerResult.run.id);
-    assert.equal(fitArchitectResult.run.summary.nextStage, 'task-breaker');
-    assert.equal(fitArchitectResult.decisionInboxItem, null);
-    assert.equal(fitTaskBreakerResult.run.summary.adapter, 'openai-responses');
-    assert.equal(fitTaskBreakerResult.run.summary.architectureArtifactId, fitArchitectResult.artifact.id);
-    assert.equal(fitTaskBreakerResult.run.summary.architectureRunId, fitArchitectResult.run.id);
-    assert.equal(fitTaskBreakerResult.run.summary.nextStage, 'builder');
-    assert.equal(fitTaskBreakerResult.decisionInboxItem, null);
-    assert.equal(gatePlannerResult.run.summary.adapter, 'openai-responses');
-    assert.equal(gateArchitectResult.run.summary.adapter, 'openai-responses');
-    assert.equal(gateArchitectResult.run.summary.inputArtifactId, gatePlannerResult.artifact.id);
-    assert.equal(gateArchitectResult.run.summary.inputRunId, gatePlannerResult.run.id);
-    assert.equal(gateArchitectResult.run.summary.nextStage, 'task-breaker');
-    assert.equal(gateArchitectResult.decisionInboxItem, null);
-    assert.equal(gateTaskBreakerResult.run.summary.adapter, 'openai-responses');
-    assert.equal(gateTaskBreakerResult.run.summary.nextStage, 'human gate');
-    assert.ok(gateTaskBreakerResult.decisionInboxItem);
-
-    const snapshotPayload = await waitForSnapshotPayload(
-      harness.baseUrl,
-      'synthetic qa-slice-04 snapshot',
-      (payload) =>
-        countArtifacts(payload.snapshot, fitTaskPayload.task.id, 'breakdown') === 1 &&
-        countArtifacts(payload.snapshot, gateTaskPayload.task.id, 'breakdown') === 1 &&
-        countPendingDecisionItems(payload.snapshot, gateTaskPayload.task.id) === 1,
-    );
-
-    const gateSnapshotTask = snapshotPayload.snapshot.tasks[gateTaskPayload.task.id];
-    const gateDecisionItem =
-      Object.values(snapshotPayload.snapshot.decisionInboxItems).find(
-        (item) =>
-          item.taskId === gateTaskPayload.task.id &&
-          item.status === 'pending' &&
-          item.title === gateTaskBreakerResult.decisionInboxItem.title,
-      ) || null;
-
-    assert.ok(gateDecisionItem);
-    assert.equal(gateDecisionItem.kind, 'decision');
-    assert.equal(gateDecisionItem.sourceType, 'decision');
-    assert.equal(gateDecisionItem.blocksTask, true);
-    assert.equal(gateSnapshotTask.flags.blocked, true);
-    assert.equal(gateSnapshotTask.flags.waitingDecision, true);
-    assert.equal(gateSnapshotTask.flags.waitingApproval, false);
-    assertProjectProviderSummary(snapshotPayload.derived.providerExecutionSummaries[projectId]);
-
-    const fitArtifactPayload = await fetchArtifactPayload(
-      harness.baseUrl,
-      fitTaskBreakerResult.artifact.id,
-    );
-    const gateArtifactPayload = await fetchArtifactPayload(
-      harness.baseUrl,
-      gateTaskBreakerResult.artifact.id,
-    );
-    const fitPlannerLogs = await fetchRunLogsPayload(harness.baseUrl, fitPlannerResult.run.id);
-    const fitArchitectLogs = await fetchRunLogsPayload(harness.baseUrl, fitArchitectResult.run.id);
-    const fitTaskBreakerLogs = await fetchRunLogsPayload(harness.baseUrl, fitTaskBreakerResult.run.id);
-    const gatePlannerLogs = await fetchRunLogsPayload(harness.baseUrl, gatePlannerResult.run.id);
-    const gateArchitectLogs = await fetchRunLogsPayload(harness.baseUrl, gateArchitectResult.run.id);
-    const gateTaskBreakerLogs = await fetchRunLogsPayload(
-      harness.baseUrl,
-      gateTaskBreakerResult.run.id,
-    );
-
-    assert.match(fitArtifactPayload.artifact.content, /## Ordered Sub-Tasks/);
-    assert.match(gateArtifactPayload.artifact.content, /## Stop-And-Escalate Conditions/);
-    assertOpenAiLogs(fitPlannerLogs);
-    assertOpenAiLogs(fitArchitectLogs);
-    assertOpenAiLogs(fitTaskBreakerLogs);
-    assertOpenAiLogs(gatePlannerLogs);
-    assertOpenAiLogs(gateArchitectLogs);
-    assertOpenAiLogs(gateTaskBreakerLogs);
+    ]);
 
     await refreshBrowser({
       outputRoot,
@@ -1361,21 +1454,75 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
       sessionName: harness.sessionName,
     });
 
-    const browserGateTexts = await verifyBrowserHumanGateFlow({
-      architectRunId: gateTaskBreakerResult.run.id,
-      architectureArtifactId: gateTaskBreakerResult.artifact.id,
-      decisionTitle: gateTaskBreakerResult.decisionInboxItem.title,
+    const browserTaskTexts = await triggerBrowserBuilderPreflight({
       outputRoot,
       overrideEnvVar,
-      plannerArtifactId: gatePlannerResult.artifact.id,
       secret: sentinelSecret,
       sessionName: harness.sessionName,
-      taskId: gateTaskPayload.task.id,
-      taskTitle: gateTaskPayload.task.title,
+      taskId: taskPayload.task.id,
+      taskTitle: taskPayload.task.title,
     });
-    domTexts.push(...browserGateTexts);
+    domTexts.push(...browserTaskTexts);
+
+    const snapshotPayload = await waitForSnapshotPayload(
+      harness.baseUrl,
+      'synthetic qa-slice-05 snapshot',
+      (payload) =>
+        countArtifacts(payload.snapshot, taskPayload.task.id, 'preflight') === 1 &&
+        countPendingDecisionItems(payload.snapshot, taskPayload.task.id) === 0,
+    );
+
+    const preflightArtifact = findLatestArtifact(snapshotPayload, taskPayload.task.id, 'preflight');
+    const preflightRun = preflightArtifact?.runId
+      ? snapshotPayload.snapshot.runs[preflightArtifact.runId] || null
+      : null;
+    const taskGuardSummary = snapshotPayload.derived.taskGuardSummaries?.[taskPayload.task.id] || null;
+    const reviewerSummary =
+      snapshotPayload.derived.reviewerReadinessSummaries?.[taskPayload.task.id] || null;
+
+    assert.ok(preflightArtifact);
+    assert.ok(preflightRun);
+    assertProjectProviderSummary(snapshotPayload.derived.providerExecutionSummaries[projectId]);
+    assert.equal(countApprovals(snapshotPayload.snapshot, taskPayload.task.id), 0);
+    assert.equal(preflightRun.summary.adapter, 'openai-responses');
+    assert.equal(preflightRun.summary.planArtifactId, context.planArtifact.id);
+    assert.equal(preflightRun.summary.planRunId, context.plannerResult.run.id);
+    assert.equal(preflightRun.summary.architectureArtifactId, context.architectureArtifact.id);
+    assert.equal(preflightRun.summary.architectureRunId, context.architectResult.run.id);
+    assert.equal(preflightRun.summary.breakdownArtifactId, context.breakdownArtifact.id);
+    assert.equal(preflightRun.summary.breakdownRunId, context.taskBreakerResult.run.id);
+    assert.equal(preflightRun.summary.nextStage, 'request-builder-live-mutation-approval');
+    assert.equal(preflightRun.summary.decisionCreated, false);
+    assert.ok(taskGuardSummary);
+    assert.equal(taskGuardSummary.builderLiveMutationApprovalRequest.allowed, true);
+    assert.equal(taskGuardSummary.builderLiveMutation.allowed, false);
+    assert.ok(reviewerSummary);
+    assert.equal(reviewerSummary.allowed, false);
+
+    const artifactPayload = await fetchArtifactPayload(harness.baseUrl, preflightArtifact.id);
+    const preflightLogs = await fetchRunLogsPayload(harness.baseUrl, preflightRun.id);
+
+    assert.match(artifactPayload.artifact.content, /^# Builder Preflight:/m);
+    assert.match(artifactPayload.artifact.content, /^## Target Files$/m);
+    assert.match(artifactPayload.artifact.content, /^## Verification Plan$/m);
+    assert.match(artifactPayload.artifact.content, /^## Review Evidence Expectations$/m);
+    assert.match(artifactPayload.artifact.content, /^## Input Summary$/m);
+    assertOpenAiLogs(preflightLogs);
+
+    const artifactSurfaceText = await verifyBrowserArtifactSelection({
+      artifactId: preflightArtifact.id,
+      outputRoot,
+      overrideEnvVar,
+      secret: sentinelSecret,
+      sessionName: harness.sessionName,
+    });
+    domTexts.push(artifactSurfaceText);
 
     await scanApiPayloadsForSecret(harness.baseUrl, snapshotPayload, sentinelSecret);
+
+    const serverFetchState = readServerFetchState(serverFetchStub.statePath);
+
+    assert.equal(serverFetchState.calls.length, 1);
 
     for (const domText of domTexts) {
       assertSecretAbsent(domText, sentinelSecret, 'browser DOM text');
@@ -1393,21 +1540,6 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
         cliVersion: PLAYWRIGHT_CLI_VERSION,
       },
       runtimeRoot,
-      scenarios: {
-        fit: {
-          breakdownArtifactId: fitTaskBreakerResult.artifact.id,
-          nextStage: fitTaskBreakerResult.run.summary.nextStage,
-          planArtifactId: fitPlannerResult.artifact.id,
-          plannerRunId: fitPlannerResult.run.id,
-        },
-        humanGate: {
-          breakdownArtifactId: gateTaskBreakerResult.artifact.id,
-          decisionInboxItemId: gateTaskBreakerResult.decisionInboxItem.id,
-          nextStage: gateTaskBreakerResult.run.summary.nextStage,
-          planArtifactId: gatePlannerResult.artifact.id,
-          plannerRunId: gatePlannerResult.run.id,
-        },
-      },
       roleReadiness: {
         architect: roleReadiness.architect.readiness,
         builderLiveMutation: roleReadiness.builderLiveMutation.readiness,
@@ -1416,10 +1548,17 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
         reviewer: roleReadiness.reviewer.readiness,
         taskBreaker: roleReadiness.taskBreaker.readiness,
       },
+      scenario: {
+        builderPreflightRunId: preflightRun.id,
+        nextStage: preflightRun.summary.nextStage,
+        preflightArtifactId: preflightArtifact.id,
+        selectedSurface: 'artifacts',
+        taskId: taskPayload.task.id,
+      },
     };
   } catch (error) {
     captureFailureScreenshot({
-      filename: 'qa-slice-04-failure.png',
+      filename: 'qa-slice-05-failure.png',
       outputRoot,
       overrideEnvVar,
       sessionName: harness.sessionName,
@@ -1436,12 +1575,12 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
   }
 }
 
-export async function runQaSlice04RealSmoke(options = {}) {
+export async function runQaSlice05RealSmoke(options = {}) {
   const outputRoot =
-    options.outputRoot || path.join(repoRoot, 'output', 'playwright', 'qa-slice-04-live');
-  const runtimeRoot = options.runtimeRoot || path.join(repoRoot, 'var', 'runtime-qa-live-slice-04');
-  const browser = options.browser || process.env.QA_SLICE_04_PLAYWRIGHT_BROWSER || 'chrome';
-  const overrideEnvVar = options.overrideEnvVar || 'QA_SLICE_04_PLAYWRIGHT_CLI_BIN';
+    options.outputRoot || path.join(repoRoot, 'output', 'playwright', 'qa-slice-05-live');
+  const runtimeRoot = options.runtimeRoot || path.join(repoRoot, 'var', 'runtime-qa-live-slice-05');
+  const browser = options.browser || process.env.QA_SLICE_05_PLAYWRIGHT_BROWSER || 'chrome';
+  const overrideEnvVar = options.overrideEnvVar || 'QA_SLICE_05_PLAYWRIGHT_CLI_BIN';
   const apiKeyVar = options.apiKeyVar || 'OPENAI_API_KEY';
   const apiKey = process.env[apiKeyVar] || '';
   const model = options.model || process.env.OPENAI_RESPONSES_MODEL || '';
@@ -1485,7 +1624,7 @@ export async function runQaSlice04RealSmoke(options = {}) {
     assertSecretAbsent(landingSnapshot, apiKey, 'real live landing snapshot');
 
     const projectPayload = await postJson(harness.baseUrl, '/api/projects', {
-      name: 'qa-slice-04-live',
+      name: 'qa-slice-05-live',
       projectPath: fixture.projectPath,
       provider: {
         adapter: 'openai-responses',
@@ -1514,8 +1653,9 @@ export async function runQaSlice04RealSmoke(options = {}) {
     domTexts.push(providerReadySnapshot);
 
     const taskPayload = await postJson(harness.baseUrl, '/api/tasks', {
-      intent: 'Run planner, architect, and task-breaker through the optional real qa-slice-04 live smoke.',
-      title: 'QA slice 04 optional real live',
+      intent:
+        'Run planner, architect, task-breaker, and builder-preflight live for optional qa-slice-05 verification while keeping browser assertions limited to provider summary, builder-preflight launch, Artifacts landing, and selected preflight visibility. Stay inside these repo-relative files only: src/runtime/contracts.js, src/runtime/runtime-service.js, src/execution/provider-adapter.js, src/execution/execution-coordinator.js, src/execution/providers/openai-responses-adapter.js, ui/app.js.',
+      title: 'QA slice 05 optional real live',
     });
 
     const realRuntime = createRuntimeService({ runtimeRoot });
@@ -1527,19 +1667,15 @@ export async function runQaSlice04RealSmoke(options = {}) {
     const plannerResult = await coordinator.runPlanner({
       taskId: taskPayload.task.id,
       routingOutcome: createRoutingOutcome(
-        'Validate the optional real planner, architect, and task-breaker live path for qa-slice-04.',
+        'Validate the optional real planner, architect, task-breaker, and builder-preflight live path for qa-slice-05.',
       ),
     });
     const architectResult = await coordinator.runArchitect({
       taskId: taskPayload.task.id,
     });
-    let taskBreakerResult = null;
-
-    if (architectResult.run.summary.nextStage === 'task-breaker') {
-      taskBreakerResult = await coordinator.runTaskBreaker({
-        taskId: taskPayload.task.id,
-      });
-    }
+    const taskBreakerResult = await coordinator.runTaskBreaker({
+      taskId: taskPayload.task.id,
+    });
 
     assert.equal(plannerResult.run.summary.adapter, 'openai-responses');
     assert.ok(plannerResult.run.summary.providerRunId);
@@ -1547,44 +1683,10 @@ export async function runQaSlice04RealSmoke(options = {}) {
     assert.ok(architectResult.run.summary.providerRunId);
     assert.equal(architectResult.run.summary.inputArtifactId, plannerResult.artifact.id);
     assert.equal(architectResult.run.summary.inputRunId, plannerResult.run.id);
-    assert.ok(['task-breaker', 'human gate'].includes(architectResult.run.summary.nextStage));
-    if (taskBreakerResult) {
-      assert.equal(taskBreakerResult.run.summary.adapter, 'openai-responses');
-      assert.ok(taskBreakerResult.run.summary.providerRunId);
-      assert.ok(['builder', 'human gate'].includes(taskBreakerResult.run.summary.nextStage));
-    }
-
-    const snapshotPayload = await waitForSnapshotPayload(
-      harness.baseUrl,
-      'real qa-slice-04 snapshot',
-      (payload) =>
-        countArtifacts(payload.snapshot, taskPayload.task.id, 'plan') === 1 &&
-        countArtifacts(payload.snapshot, taskPayload.task.id, 'architecture') === 1 &&
-        (architectResult.run.summary.nextStage !== 'task-breaker' ||
-          countArtifacts(payload.snapshot, taskPayload.task.id, 'breakdown') === 1),
-    );
-
-    assertProjectProviderSummary(snapshotPayload.derived.providerExecutionSummaries[projectId]);
-
-    const artifactPayload = await fetchArtifactPayload(
-      harness.baseUrl,
-      taskBreakerResult ? taskBreakerResult.artifact.id : architectResult.artifact.id,
-    );
-    const plannerLogs = await fetchRunLogsPayload(harness.baseUrl, plannerResult.run.id);
-    const architectLogs = await fetchRunLogsPayload(harness.baseUrl, architectResult.run.id);
-    const taskBreakerLogs = taskBreakerResult
-      ? await fetchRunLogsPayload(harness.baseUrl, taskBreakerResult.run.id)
-      : null;
-
-    assert.match(
-      artifactPayload.artifact.content,
-      taskBreakerResult ? /## Ordered Sub-Tasks/ : /## Affected Components or Contracts/,
-    );
-    assertOpenAiLogs(plannerLogs);
-    assertOpenAiLogs(architectLogs);
-    if (taskBreakerLogs) {
-      assertOpenAiLogs(taskBreakerLogs);
-    }
+    assert.equal(architectResult.run.summary.nextStage, 'task-breaker');
+    assert.equal(taskBreakerResult.run.summary.adapter, 'openai-responses');
+    assert.ok(taskBreakerResult.run.summary.providerRunId);
+    assert.equal(taskBreakerResult.run.summary.nextStage, 'builder');
 
     await refreshBrowser({
       outputRoot,
@@ -1592,10 +1694,7 @@ export async function runQaSlice04RealSmoke(options = {}) {
       sessionName: harness.sessionName,
     });
 
-    const browserTexts = await verifyBrowserRealFlow({
-      architectRunId: architectResult.run.id,
-      architectureArtifactId: architectResult.artifact.id,
-      decisionTitle: architectResult.decisionInboxItem?.title || null,
+    const browserTaskTexts = await triggerBrowserBuilderPreflight({
       outputRoot,
       overrideEnvVar,
       secret: apiKey,
@@ -1603,7 +1702,59 @@ export async function runQaSlice04RealSmoke(options = {}) {
       taskId: taskPayload.task.id,
       taskTitle: taskPayload.task.title,
     });
-    domTexts.push(...browserTexts);
+    domTexts.push(...browserTaskTexts);
+
+    const snapshotPayload = await waitForSnapshotPayload(
+      harness.baseUrl,
+      'real qa-slice-05 snapshot',
+      (payload) => countArtifacts(payload.snapshot, taskPayload.task.id, 'preflight') === 1,
+    );
+
+    const preflightArtifact = findLatestArtifact(snapshotPayload, taskPayload.task.id, 'preflight');
+    const preflightRun = preflightArtifact?.runId
+      ? snapshotPayload.snapshot.runs[preflightArtifact.runId] || null
+      : null;
+    const taskGuardSummary = snapshotPayload.derived.taskGuardSummaries?.[taskPayload.task.id] || null;
+    const reviewerSummary =
+      snapshotPayload.derived.reviewerReadinessSummaries?.[taskPayload.task.id] || null;
+
+    assert.ok(preflightArtifact);
+    assert.ok(preflightRun);
+    assertProjectProviderSummary(snapshotPayload.derived.providerExecutionSummaries[projectId]);
+    assert.equal(preflightRun.summary.adapter, 'openai-responses');
+    assert.ok(preflightRun.summary.providerRunId);
+    assert.equal(preflightRun.summary.planArtifactId, plannerResult.artifact.id);
+    assert.equal(preflightRun.summary.planRunId, plannerResult.run.id);
+    assert.equal(preflightRun.summary.architectureArtifactId, architectResult.artifact.id);
+    assert.equal(preflightRun.summary.architectureRunId, architectResult.run.id);
+    assert.equal(preflightRun.summary.breakdownArtifactId, taskBreakerResult.artifact.id);
+    assert.equal(preflightRun.summary.breakdownRunId, taskBreakerResult.run.id);
+    assert.ok(
+      ['request-builder-live-mutation-approval', 'architect', 'task-breaker', 'human gate'].includes(
+        preflightRun.summary.nextStage,
+      ),
+    );
+    assert.ok(taskGuardSummary);
+    assert.equal(taskGuardSummary.builderLiveMutation.allowed, false);
+    assert.ok(reviewerSummary);
+    assert.equal(reviewerSummary.allowed, false);
+
+    const artifactPayload = await fetchArtifactPayload(harness.baseUrl, preflightArtifact.id);
+    const preflightLogs = await fetchRunLogsPayload(harness.baseUrl, preflightRun.id);
+
+    assert.match(artifactPayload.artifact.content, /^# Builder Preflight:/m);
+    assert.match(artifactPayload.artifact.content, /^## Target Files$/m);
+    assert.match(artifactPayload.artifact.content, /^## Input Summary$/m);
+    assertOpenAiLogs(preflightLogs);
+
+    const artifactSurfaceText = await verifyBrowserArtifactSelection({
+      artifactId: preflightArtifact.id,
+      outputRoot,
+      overrideEnvVar,
+      secret: apiKey,
+      sessionName: harness.sessionName,
+    });
+    domTexts.push(artifactSurfaceText);
 
     await scanApiPayloadsForSecret(harness.baseUrl, snapshotPayload, apiKey);
 
@@ -1632,20 +1783,16 @@ export async function runQaSlice04RealSmoke(options = {}) {
         taskBreaker: roleReadiness.taskBreaker.readiness,
       },
       scenario: {
-        artifactId: taskBreakerResult ? taskBreakerResult.artifact.id : architectResult.artifact.id,
-        architectNextStage: architectResult.run.summary.nextStage,
-        decisionInboxItemId:
-          (taskBreakerResult && taskBreakerResult.decisionInboxItem?.id) ||
-          architectResult.decisionInboxItem?.id ||
-          null,
-        planArtifactId: plannerResult.artifact.id,
-        plannerRunId: plannerResult.run.id,
-        taskBreakerNextStage: taskBreakerResult?.run.summary.nextStage || null,
+        builderPreflightRunId: preflightRun.id,
+        nextStage: preflightRun.summary.nextStage,
+        preflightArtifactId: preflightArtifact.id,
+        selectedSurface: 'artifacts',
+        taskId: taskPayload.task.id,
       },
     };
   } catch (error) {
     captureFailureScreenshot({
-      filename: 'qa-slice-04-live-failure.png',
+      filename: 'qa-slice-05-live-failure.png',
       outputRoot,
       overrideEnvVar,
       sessionName: harness.sessionName,

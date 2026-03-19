@@ -121,7 +121,7 @@ async function main() {
     assert.match(appJs, /compact summary/);
     assert.match(appJs, /taskGuardSummaries/);
     assert.match(appJs, /live mutation guard:blocked/);
-    assert.equal((appJs.match(/applyTaskInboxPreselect: true/g) || []).length, 3);
+    assert.equal((appJs.match(/applyTaskInboxPreselect: true/g) || []).length, 4);
     assert.match(stylesCss, /\.compact-list/);
 
     const readyTaskPayload = await postJson('/api/tasks', {
@@ -140,7 +140,10 @@ async function main() {
     assert.equal(readyBuilderPayload.mutation.kind, 'run-builder-preflight');
     assert.equal(readyBuilderPayload.mutation.taskId, readyTask.id);
     assert.equal(readyBuilderPayload.mutation.inboxItemId, null);
-    assert.equal(readyBuilderPayload.mutation.normalizedResult.nextStage, 'reviewer');
+    assert.equal(
+      readyBuilderPayload.mutation.normalizedResult.nextStage,
+      'request-builder-live-mutation-approval',
+    );
     assert.deepEqual(readyBuilderPayload.mutation.inputArtifactIds, [
       readySetup.plannerPayload.mutation.artifactId,
       readySetup.architectPayload.mutation.artifactId,

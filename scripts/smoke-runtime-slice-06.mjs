@@ -29,6 +29,136 @@ function createArtifact(taskId, type, label) {
   };
 }
 
+function createPlanArtifact(taskId, label) {
+  const run = runtime.startRun({
+    taskId,
+    kind: 'role',
+    role: 'planner',
+  });
+  const artifact = runtime.recordArtifact({
+    taskId,
+    runId: run.id,
+    type: 'plan',
+    content: `# Plan: ${label}\n\n## Slice Goal\n${label}\n`,
+  });
+  const completedRun = runtime.completeRun({
+    runId: run.id,
+    summary: {
+      nextStage: 'architect',
+    },
+  });
+
+  return {
+    artifact,
+    run: completedRun,
+  };
+}
+
+function createArchitectureArtifact(taskId, plan, label) {
+  const run = runtime.startRun({
+    taskId,
+    kind: 'role',
+    role: 'architect',
+  });
+  const artifact = runtime.recordArtifact({
+    taskId,
+    runId: run.id,
+    type: 'architecture',
+    content: `# Architecture Note: ${label}
+
+## Affected Components or Contracts
+- src/runtime/runtime-service.js
+- src/execution/execution-coordinator.js
+`,
+  });
+  const completedRun = runtime.completeRun({
+    runId: run.id,
+    summary: {
+      inputArtifactId: plan.artifact.id,
+      inputRunId: plan.run.id,
+      nextStage: 'task-breaker',
+    },
+  });
+
+  return {
+    artifact,
+    run: completedRun,
+  };
+}
+
+function createBreakdownArtifact(taskId, plan, architecture, label) {
+  const run = runtime.startRun({
+    taskId,
+    kind: 'role',
+    role: 'task-breaker',
+  });
+  const artifact = runtime.recordArtifact({
+    taskId,
+    runId: run.id,
+    type: 'breakdown',
+    content: `# Task Breakdown: ${label}
+
+## Ordered Sub-Tasks
+- keep the current bounded slice unchanged
+`,
+  });
+  const completedRun = runtime.completeRun({
+    runId: run.id,
+    summary: {
+      architectureArtifactId: architecture.artifact.id,
+      architectureRunId: architecture.run.id,
+      inputArtifactIds: [plan.artifact.id, architecture.artifact.id],
+      inputRunIds: [plan.run.id, architecture.run.id],
+      nextStage: 'builder',
+    },
+  });
+
+  return {
+    artifact,
+    run: completedRun,
+  };
+}
+
+function createPreflightArtifact(taskId, plan, architecture, breakdown, label) {
+  const run = runtime.startRun({
+    taskId,
+    kind: 'role',
+    role: 'builder',
+  });
+  const artifact = runtime.recordArtifact({
+    taskId,
+    runId: run.id,
+    type: 'preflight',
+    content: `# Builder Preflight: ${label}
+
+## Target Files
+- src/runtime/runtime-service.js
+- src/execution/execution-coordinator.js
+`,
+  });
+  const completedRun = runtime.completeRun({
+    runId: run.id,
+    summary: {
+      architectureArtifactId: architecture.artifact.id,
+      architectureRunId: architecture.run.id,
+      breakdownArtifactId: breakdown.artifact.id,
+      breakdownRunId: breakdown.run.id,
+      executionMode: 'preflight',
+      inputArtifactIds: [plan.artifact.id, architecture.artifact.id, breakdown.artifact.id],
+      inputRunIds: [plan.run.id, architecture.run.id, breakdown.run.id],
+      mutationAllowed: false,
+      nextStage: 'request-builder-live-mutation-approval',
+      planArtifactId: plan.artifact.id,
+      planRunId: plan.run.id,
+    },
+  });
+
+  return {
+    artifact,
+    run: completedRun,
+  };
+}
+
 runtime.resetRuntime();
 
 const project = runtime.createProject({
@@ -47,7 +177,10 @@ assert.throws(
   (error) => error.statusCode === 400 && /latest preflight artifact required/i.test(error.message),
 );
 
-const preflightOne = createArtifact(task.id, 'preflight', 'preflight one');
+const plan = createPlanArtifact(task.id, 'plan one');
+const architecture = createArchitectureArtifact(task.id, plan, 'architecture one');
+const breakdown = createBreakdownArtifact(task.id, plan, architecture, 'breakdown one');
+const preflightOne = createPreflightArtifact(task.id, plan, architecture, breakdown, 'preflight one');
 const requestSummaryBefore = runtime.getTaskGuardSummary(task.id).builderLiveMutationApprovalRequest;
 
 assert.equal(requestSummaryBefore.allowed, true);
@@ -101,7 +234,7 @@ assert.throws(
   (error) => error.statusCode === 409 && /already covers preflight/i.test(error.message),
 );
 
-const preflightTwo = createArtifact(task.id, 'preflight', 'preflight two');
+const preflightTwo = createPreflightArtifact(task.id, plan, architecture, breakdown, 'preflight two');
 const staleSummary = runtime.getTaskGuardSummary(task.id);
 
 assert.equal(staleSummary.builderLiveMutation.latestApprovalDisplayStatus, 'stale');

@@ -486,16 +486,20 @@ assert.equal(plannerReadiness.readiness, 'ready');
 assert.equal(plannerReadiness.allowed, true);
 assert.equal(architectReadiness.readiness, 'ready');
 assert.equal(architectReadiness.allowed, true);
-assert.equal(taskBreakerReadiness.readiness, 'degraded');
-assert.equal(builderPreflightReadiness.readiness, 'degraded');
+assert.equal(taskBreakerReadiness.readiness, 'ready');
+assert.equal(builderPreflightReadiness.readiness, 'ready');
 assert.equal(builderLiveMutationReadiness.readiness, 'degraded');
 assert.equal(reviewerReadiness.readiness, 'degraded');
-assert.equal(taskBreakerReadiness.allowed, false);
-assert.equal(builderPreflightReadiness.allowed, false);
+assert.equal(taskBreakerReadiness.allowed, true);
+assert.equal(builderPreflightReadiness.allowed, true);
 assert.equal(builderLiveMutationReadiness.allowed, false);
 assert.equal(reviewerReadiness.allowed, false);
-assert.match(taskBreakerReadiness.reasons.join('; '), /planner and architect/i);
-assert.match(reviewerReadiness.reasons.join('; '), /planner and architect/i);
+assert.equal(taskBreakerReadiness.reasons.length, 0);
+assert.equal(builderPreflightReadiness.reasons.length, 0);
+assert.match(
+  reviewerReadiness.reasons.join('; '),
+  /planner, architect, task-breaker, and builder-preflight/i,
+);
 
 const happyFetch = createQueuedFetch([
   createPlannerApiPayload('architect-happy-path'),

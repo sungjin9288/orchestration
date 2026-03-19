@@ -5009,7 +5009,7 @@ function renderProjectBootstrapPanel(data) {
                   ${
                     activeProjectProviderSummary?.reasons?.length
                       ? escapeHtml(activeProjectProviderSummary.reasons[0])
-                      : 'Only non-secret metadata is stored here. Live mode enables planner and architect only; task-breaker, builder, and reviewer stay fail-closed until a later slice.'
+                      : 'Only non-secret metadata is stored here. Live mode enables planner, architect, task-breaker, and builder preflight only; builder live mutation and reviewer stay fail-closed until a later slice.'
                   }
                 </p>
               </div>
@@ -5109,7 +5109,7 @@ function renderProjectBootstrapPanel(data) {
           <p class="form-help">
             ${
               createProjectProviderMode === 'live'
-                ? 'Live mode stores non-secret opt-in metadata only. Planner and architect can execute live when model and env are valid; downstream roles stay fail-closed.'
+                ? 'Live mode stores non-secret opt-in metadata only. Planner, architect, task-breaker, and builder preflight can execute live when model and env are valid; builder live mutation and reviewer stay fail-closed.'
                 : 'Registration stores the project, keeps local-stub as the default execution provider, and makes the project active.'
             }
           </p>
