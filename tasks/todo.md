@@ -27,6 +27,7 @@
 - [ ] `node scripts/smoke-qa-slice-01.mjs`
 - [ ] `node scripts/smoke-qa-slice-02.mjs`
 - [x] `node scripts/smoke-qa-slice-04.mjs`
+- [x] `node scripts/smoke-qa-slice-06.mjs`
 
 ### clean worktree / reproducibility
 - [x] no unintended worktree drift was introduced by the required freeze regression run; only intended freeze files remain modified
@@ -82,7 +83,15 @@
 - [x] keep provider secret/auth/raw payload/env value non-leak in scope for this slice while leaving repo-content redaction policy out of scope
 - [ ] implement builder-live-mutation live adapter, anchor enforcement, atomic mutation-bundle persistence, and approval-consumption rules in `provider-slice-06`
 - [ ] add synthetic builder-live-mutation live smoke coverage for happy-path, approval-consumption, allowlist-mismatch, exact-match-failure, fail-closed, and no-secret-leak cases
-- [ ] add builder-live-mutation live browser/API QA coverage without widening reviewer live semantics
+- [x] add builder-live-mutation live browser/API QA coverage without widening reviewer live semantics
+- [x] define `strategy-slice-07` as the reviewer-only next live boundary while keeping the current implemented live path unchanged until later `provider-slice-06` and `provider-slice-07`
+- [x] lock reviewer live input to the latest builder live-mutation bundle only, with matched upstream provenance, builder logs, exact changed-file context, and no recombining latest artifacts by type
+- [x] lock reviewer live structured output to schema-backed `anchor / artifact / normalizedResult` data with canonical `Review Verdict / Evidence Reviewed / Findings / Contract Compliance / Verification Evidence / Accepted Risks / Next Action / Follow-Up Gate` headings and raw `fail` preserved
+- [x] lock reviewer live follow-up to `builder | architect | human gate` only, keep pass-side follow-up explicit instead of auto-starting `commit-package`, and allow at most one blocking `sourceType=review` decision item only when the review explicitly needs it
+- [x] keep reviewer live fail-closed, no-fallback, no-approval-creation, and no-secret-leak guarantees in scope without widening commit-package, local commit, release-package, or close-out semantics
+- [ ] implement reviewer live adapter, builder-bundle anchor enforcement, and terminal review artifact persistence in `provider-slice-07`
+- [ ] add synthetic reviewer live smoke coverage for pass, fail, changes-requested, architecture-drift, human-gate, fail-closed, and no-secret-leak cases
+- [ ] add reviewer live browser/API QA coverage without widening commit-package, local commit, release-package, or close-out semantics
 
 #### candidate B [later]
 - [ ] define retention-consumer capability against the normalized Tier A/B/C artifact rules

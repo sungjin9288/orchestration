@@ -22,7 +22,8 @@ The pack exists to keep development execution inspectable and controlled:
 - Approval is a required gate before commit.
 - Provider-agnostic contract language stays intact. The shipped v1 default remains `local-demo-only` via the built-in `local-stub` adapter, and the current implemented live opt-in stays narrowly limited to planner plus architect plus task-breaker plus builder-preflight `openai-responses` execution behind the same adapter boundary.
 - `provider-slice-05` implements the accepted builder-preflight live boundary without changing UI semantics beyond current provider copy, and without widening `builder-live-mutation`, reviewer, release, or close-out semantics.
-- `strategy-slice-06` defines `builder-live-mutation` as the next live boundary only. It does not implement live builder-mutation, it keeps reviewer live blocked, and it does not widen release, or close-out semantics.
+- `strategy-slice-06` defines `builder-live-mutation` as the next live boundary only. It does not implement live builder mutation, it keeps reviewer live blocked, and it does not widen commit, release, or close-out semantics.
+- `strategy-slice-07` defines `reviewer` as the next downstream live boundary only. It keeps the current implemented live path capped at planner plus architect plus task-breaker plus builder-preflight until later provider slices, keeps commit-package, local commit, release-package, and close-out as explicit local follow-up, and does not add approval or release automation.
 
 ## Entry Criteria
 A task may enter this pack only when all of the following are true:
@@ -117,12 +118,14 @@ Required result:
 ### Reviewer
 Responsibilities:
 - Inspect the built result for correctness, regressions, and contract compliance.
+- Anchor review input to the latest builder live-mutation bundle only and do not recombine latest artifacts by type across task history.
 - Run the most relevant practical verification available for the change.
 - Record findings, required changes, accepted risks, and evidence.
+- Keep reviewer output limited to the review artifact plus explicit follow-up to `builder`, `architect`, or `human gate`; do not create approval or run commit or release follow-up inside review.
 - Prevent premature completion when verification or review evidence is missing.
 
 Required result:
-- A review record with explicit outcome and linked verification evidence.
+- A review record with explicit outcome, linked verification evidence, and explicit follow-up posture.
 
 ### Human Gate
 Responsibilities:
@@ -234,9 +237,10 @@ Artifact expectations:
 
 ## VNext Backlog After V1 Freeze
 ### Future Live-Provider Expansion Boundary
-- Why still open: The current implemented live-provider boundary includes planner plus architect plus task-breaker plus builder-preflight `openai-responses`. `strategy-slice-06` fixes the builder-live-mutation live boundary contract, but builder-live-mutation is not implemented in live mode yet, and reviewer live remains explicitly out of scope.
+- Why still open: The current implemented live-provider boundary includes planner plus architect plus task-breaker plus builder-preflight `openai-responses`. `strategy-slice-06` fixes the builder-live-mutation live boundary contract and `strategy-slice-07` fixes the reviewer live boundary contract, but builder-live-mutation and reviewer are not implemented in live mode yet.
 - Current temporary default: Keep `local-stub` as the shipped default, keep implemented live execution capped at planner plus architect plus task-breaker plus builder-preflight, define builder-live-mutation live against `projectId / taskId + planArtifactId / planRunId + architectureArtifactId / architectureRunId + breakdownArtifactId / breakdownRunId + preflightArtifactId / preflightRunId + approvalId + approvalTargetArtifactId / approvalTargetRunId + sourceOfTruthPaths + architectureAllowlistPaths + targetFileAllowlistPaths + codeContextPaths + targetFileBaselineDigests`, require `approvalTarget*` to exactly match `preflight*`, keep `codeContextPaths` equal to the target-file allowlist set, keep target files existing-file-only, keep `fileUpdates` repo-relative/unique/non-empty/allowlist-subset with actual changed files exact-matching that set, keep `nextStage` limited to `reviewer | architect | human gate`, keep `change-summary / patch / diff` as one atomic mutation bundle with repo restore + no artifact + no approval consumption on validation failure, keep reviewer degraded in live mode as an explicit operator step with no silent fallback, keep provider secret/auth/raw payload/env value non-leak in scope, and keep repo-content redaction policy out of scope.
-- Decide again when: Before implementing builder-live-mutation live, before enabling reviewer live, or before adding another provider adapter.
+- Current temporary default: Define reviewer live against `projectId / taskId + planArtifactId / planRunId + architectureArtifactId / architectureRunId + breakdownArtifactId / breakdownRunId + preflightArtifactId / preflightRunId + changeSummaryArtifactId / changeSummaryRunId + patchArtifactId / patchRunId + diffArtifactId / diffRunId + approvalId + sourceBuilderRunId + sourceOfTruthPaths + changedFilePaths + builderLogs`, require bundle-only anchoring instead of recombining latest artifacts by type, keep canonical `Review Verdict / Evidence Reviewed / Findings / Contract Compliance / Verification Evidence / Accepted Risks / Next Action / Follow-Up Gate` headings with raw `fail` preserved, keep `nextStage` limited to `builder | architect | human gate`, keep pass-side follow-up explicit instead of auto-starting `commit-package`, allow at most one blocking `kind=decision, sourceType=review, blocksTask=true` item only when review explicitly needs a decision, and keep fail-closed, no-fallback, and no-secret-leak guarantees in scope.
+- Decide again when: Before implementing builder-live-mutation live, before implementing reviewer live, or before adding another provider adapter.
 
 ### Future Cleanup Policy
 - Why still open: Retention tiers are normalized, but no delete/archive/GC capability exists in v1.
