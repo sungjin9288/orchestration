@@ -222,8 +222,37 @@ function buildBuilderLiveMutationExecutionRequest(input) {
 }
 
 function buildReviewerExecutionRequest(input) {
+  const sourceOfTruthPaths = Array.isArray(input.sourceOfTruthPaths)
+    ? input.sourceOfTruthPaths
+    : Array.isArray(input.sourceOfTruth)
+      ? input.sourceOfTruth.map((file) => file.path).filter(Boolean)
+      : [];
+  const changedFilePaths = Array.isArray(input.changedFiles) ? input.changedFiles : [];
+
   return {
     role: 'reviewer',
+    anchor: {
+      projectId: input.project.id,
+      taskId: input.task.id,
+      planArtifactId: input.planArtifact.id,
+      planRunId: input.planArtifact.runId,
+      architectureArtifactId: input.architectureArtifact.id,
+      architectureRunId: input.architectureArtifact.runId,
+      breakdownArtifactId: input.breakdownArtifact.id,
+      breakdownRunId: input.breakdownArtifact.runId,
+      preflightArtifactId: input.preflightArtifact.id,
+      preflightRunId: input.preflightArtifact.runId,
+      changeSummaryArtifactId: input.changeSummaryArtifact.id,
+      changeSummaryRunId: input.changeSummaryArtifact.runId,
+      patchArtifactId: input.patchArtifact.id,
+      patchRunId: input.patchArtifact.runId,
+      diffArtifactId: input.diffArtifact.id,
+      diffRunId: input.diffArtifact.runId,
+      approvalId: input.approval?.id || null,
+      sourceBuilderRunId: input.builderRun.id,
+      sourceOfTruthPaths,
+      changedFilePaths,
+    },
     task: toExecutionTask(input.task),
     project: toExecutionProject(input.project),
     builderRun: {
@@ -728,7 +757,7 @@ function buildReviewerDecisionInput(task, parsedReview, normalizedResult, review
       normalizedResult.decisionPrompt ||
       lines.join('\n') ||
       `Review artifact ${reviewArtifact.id} requires a human decision before work may proceed.`,
-    blocksTask: Boolean(parsedReview.blockingIssue || normalizedResult.blockers.length > 0),
+    blocksTask: true,
     sourceId: reviewArtifact.id,
     sourceType: DECISION_INBOX_SOURCE_TYPE.REVIEW,
   };
@@ -897,7 +926,7 @@ function resolveLatestBuilderLiveMutationProvenance(runtime, task, preflightArti
   };
 }
 
-function findLatestBuilderLiveMutationRun(runtime, task) {
+function findLatestSuccessfulBuilderLiveMutationRun(runtime, task) {
   const snapshot = runtime.getSnapshot();
 
   return (
@@ -905,28 +934,82 @@ function findLatestBuilderLiveMutationRun(runtime, task) {
       .filter((run) => {
         const summary = run.summary && typeof run.summary === 'object' ? run.summary : null;
         const metadata = run.metadata && typeof run.metadata === 'object' ? run.metadata : null;
+        const artifactIds =
+          summary?.artifactIds && typeof summary.artifactIds === 'object' ? summary.artifactIds : null;
 
         return (
           run.taskId === task.id &&
           run.role === 'builder' &&
           (summary?.executionMode === 'live-mutation' ||
-            metadata?.executionMode === 'live-mutation')
+            metadata?.executionMode === 'live-mutation') &&
+          !summary?.error &&
+          Array.isArray(summary?.inputArtifactIds) &&
+          summary.inputArtifactIds.length > 0 &&
+          Boolean(summary?.approvalId) &&
+          Boolean(summary?.preflightArtifactId) &&
+          Boolean(summary?.preflightRunId) &&
+          Array.isArray(summary?.changedFiles) &&
+          summary.changedFiles.length > 0 &&
+          Boolean(artifactIds?.changeSummary) &&
+          Boolean(artifactIds?.patch) &&
+          Boolean(artifactIds?.diff)
         );
       })
       .sort(compareRunsByStartedDesc)[0] || null
   );
 }
 
+function normalizeReviewerChangedFilePaths(changedFiles, builderRunId) {
+  if (!Array.isArray(changedFiles) || changedFiles.length === 0) {
+    throw new Error(`Builder live mutation run ${builderRunId} changedFiles bundle is missing`);
+  }
+
+  const normalizedChangedFiles = changedFiles.map((value) => {
+    const normalizedValue = normalizeRelativePath(value);
+
+    if (!normalizedValue) {
+      throw new Error(
+        `Builder live mutation run ${builderRunId} changedFiles must contain repo-relative paths only`,
+      );
+    }
+
+    return normalizedValue;
+  });
+
+  if (new Set(normalizedChangedFiles).size !== normalizedChangedFiles.length) {
+    throw new Error(`Builder live mutation run ${builderRunId} changedFiles must be unique`);
+  }
+
+  return normalizedChangedFiles;
+}
+
+function assertReviewerBundleArtifact(artifact, expectedType, expectedRunId, label) {
+  if (!artifact) {
+    throw new Error(`${label} is missing`);
+  }
+
+  if (artifact.type !== expectedType) {
+    throw new Error(`${label} ${artifact.id} must be type ${expectedType}`);
+  }
+
+  if (artifact.runId !== expectedRunId) {
+    throw new Error(`${label} ${artifact.id} must belong to run ${expectedRunId}`);
+  }
+}
+
 function resolveReviewerAnchorBundle(runtime, task) {
-  const builderRun = findLatestBuilderLiveMutationRun(runtime, task);
+  const builderRun = findLatestSuccessfulBuilderLiveMutationRun(runtime, task);
 
   if (!builderRun) {
-    throw new Error(`Latest builder live mutation run is required before reviewer run for task ${task.id}`);
+    throw new Error(
+      `Latest successful builder live mutation bundle is required before reviewer run for task ${task.id}`,
+    );
   }
 
   const summary = builderRun.summary && typeof builderRun.summary === 'object' ? builderRun.summary : {};
   const artifactIds = summary.artifactIds && typeof summary.artifactIds === 'object' ? summary.artifactIds : {};
   const inputArtifactIds = Array.isArray(summary.inputArtifactIds) ? summary.inputArtifactIds : [];
+  const changedFiles = normalizeReviewerChangedFilePaths(summary.changedFiles, builderRun.id);
 
   if (inputArtifactIds.length === 0) {
     throw new Error(`Builder live mutation run ${builderRun.id} input bundle is missing`);
@@ -944,6 +1027,12 @@ function resolveReviewerAnchorBundle(runtime, task) {
     throw new Error(`Builder live mutation run ${builderRun.id} approval linkage is missing`);
   }
 
+  if (!inputArtifactIds.includes(summary.preflightArtifactId)) {
+    throw new Error(
+      `Builder live mutation run ${builderRun.id} preflight artifact is missing from the input bundle`,
+    );
+  }
+
   const inputArtifacts = inputArtifactIds.map((artifactId) => runtime.getArtifact(artifactId));
   const planArtifact = inputArtifacts.find((artifact) => artifact.type === 'plan') || null;
   const architectureArtifact =
@@ -954,18 +1043,84 @@ function resolveReviewerAnchorBundle(runtime, task) {
     throw new Error(`Builder live mutation run ${builderRun.id} input bundle is incomplete`);
   }
 
+  const preflightArtifact = runtime.getArtifact(summary.preflightArtifactId);
+  const approval = runtime.getApproval(summary.approvalId);
+  const changeSummaryArtifact = runtime.getArtifact(artifactIds.changeSummary);
+  const patchArtifact = runtime.getArtifact(artifactIds.patch);
+  const diffArtifact = runtime.getArtifact(artifactIds.diff);
+
+  if (preflightArtifact.type !== 'preflight') {
+    throw new Error(
+      `Builder live mutation run ${builderRun.id} preflight artifact ${preflightArtifact.id} must be type preflight`,
+    );
+  }
+
+  if (preflightArtifact.runId !== summary.preflightRunId) {
+    throw new Error(
+      `Builder live mutation run ${builderRun.id} preflight bundle does not match recorded preflight run ${summary.preflightRunId}`,
+    );
+  }
+
+  if (
+    (summary.approvalTargetArtifactId && summary.approvalTargetArtifactId !== preflightArtifact.id) ||
+    (summary.approvalTargetRunId && summary.approvalTargetRunId !== preflightArtifact.runId)
+  ) {
+    throw new Error(
+      `Builder live mutation run ${builderRun.id} approval target does not match preflight bundle ${preflightArtifact.id}`,
+    );
+  }
+
+  if (
+    approval.targetArtifactId !== preflightArtifact.id ||
+    approval.targetRunId !== preflightArtifact.runId
+  ) {
+    throw new Error(
+      `Builder live mutation run ${builderRun.id} approval ${approval.id} does not match preflight bundle ${preflightArtifact.id}`,
+    );
+  }
+
+  assertReviewerBundleArtifact(
+    changeSummaryArtifact,
+    'change-summary',
+    builderRun.id,
+    'Reviewer source change-summary artifact',
+  );
+  assertReviewerBundleArtifact(
+    patchArtifact,
+    'patch',
+    builderRun.id,
+    'Reviewer source patch artifact',
+  );
+  assertReviewerBundleArtifact(
+    diffArtifact,
+    'diff',
+    builderRun.id,
+    'Reviewer source diff artifact',
+  );
+
+  const changeSummaryFileUpdates = parseBase64FileUpdates(changeSummaryArtifact.content).map(
+    (fileUpdate) => fileUpdate.path,
+  );
+
+  if (!sameStringSets(changeSummaryFileUpdates, changedFiles)) {
+    throw new Error(
+      `Builder live mutation run ${builderRun.id} changedFiles do not match the latest successful bundle anchor`,
+    );
+  }
+
   return {
-    approval: runtime.getApproval(summary.approvalId),
+    approval,
     architectureArtifact,
     breakdownArtifact,
     builderLogs: runtime.getLogs(builderRun.id),
     builderRun,
-    changeSummaryArtifact: runtime.getArtifact(artifactIds.changeSummary),
-    diffArtifact: runtime.getArtifact(artifactIds.diff),
+    changeSummaryArtifact,
+    changedFiles,
+    diffArtifact,
     inputArtifacts,
-    patchArtifact: runtime.getArtifact(artifactIds.patch),
+    patchArtifact,
     planArtifact,
-    preflightArtifact: runtime.getArtifact(summary.preflightArtifactId),
+    preflightArtifact,
   };
 }
 
@@ -981,6 +1136,8 @@ function findTerminalReviewerRun(runtime, task, sourceRunId) {
           run.taskId === task.id &&
           run.role === 'reviewer' &&
           summary?.sourceRunId === sourceRunId &&
+          summary?.terminal === true &&
+          !summary?.error &&
           summary?.reviewArtifactId
         );
       })
@@ -1026,6 +1183,51 @@ function buildReviewerResolutionNote(parsedReview, reviewArtifact) {
   return `Review follow-up is required. See ${reviewArtifact.id} for evidence and findings.`;
 }
 
+function assertReviewerArtifactMatchesBundle(parsedReview, readyContext) {
+  const expectedFields = [
+    ['sourceBuilderRunId', readyContext.builderRun.id, 'source builder run'],
+    ['preflightArtifactId', readyContext.preflightArtifact.id, 'preflight artifact'],
+    ['changeSummaryArtifactId', readyContext.changeSummaryArtifact.id, 'change-summary artifact'],
+    ['patchArtifactId', readyContext.patchArtifact.id, 'patch artifact'],
+    ['diffArtifactId', readyContext.diffArtifact.id, 'diff artifact'],
+  ];
+
+  for (const [field, expectedValue, label] of expectedFields) {
+    if (parsedReview[field] !== expectedValue) {
+      throw new Error(`Reviewer artifact ${label} must match the latest successful builder bundle anchor`);
+    }
+  }
+}
+
+function assertReviewerFollowUpMatchesNormalizedResult(parsedReview, normalizedResult) {
+  const expectsBlockingDecision =
+    normalizedResult.nextStage === 'human gate' &&
+    normalizedResult.needsDecision === true &&
+    normalizedResult.blockers.length > 0;
+
+  if (parsedReview.decisionRequired !== normalizedResult.needsDecision) {
+    throw new Error(
+      'Reviewer artifact follow-up gate must match the validated reviewer normalizedResult.needsDecision value',
+    );
+  }
+
+  if (parsedReview.blockingIssue !== expectsBlockingDecision) {
+    throw new Error(
+      'Reviewer artifact follow-up gate must match the validated reviewer human-gate decision condition',
+    );
+  }
+}
+
+function shouldCreateReviewerDecision(parsedReview, normalizedResult) {
+  return (
+    normalizedResult.nextStage === 'human gate' &&
+    normalizedResult.needsDecision === true &&
+    normalizedResult.blockers.length > 0 &&
+    parsedReview.decisionRequired === true &&
+    parsedReview.blockingIssue === true
+  );
+}
+
 function shouldCreateBlockingDecision(normalizedResult) {
   return normalizedResult.needsDecision || normalizedResult.nextStage === 'human gate';
 }
@@ -1043,6 +1245,7 @@ function buildReviewerReadinessSummary(input) {
     allowed: reasons.length === 0,
     approvalId: anchor?.approval?.id || null,
     changeSummaryArtifactId: anchor?.changeSummaryArtifact?.id || null,
+    changedFileCount: anchor?.changedFiles?.length || 0,
     diffArtifactId: anchor?.diffArtifact?.id || null,
     existingReviewArtifactId: existingReviewerSummary?.reviewArtifactId || null,
     existingReviewerRunId: existingReviewerRun?.id || null,
@@ -4194,6 +4397,7 @@ function createExecutionCoordinator(options = {}) {
       breakdownArtifact: readyContext.breakdownArtifact,
       builderLogs: readyContext.builderLogs,
       builderRun,
+      changedFiles: readyContext.changedFiles,
       changeSummaryArtifact: readyContext.changeSummaryArtifact,
       diffArtifact: readyContext.diffArtifact,
       patchArtifact: readyContext.patchArtifact,
@@ -4202,6 +4406,7 @@ function createExecutionCoordinator(options = {}) {
       project,
       promptContract,
       sourceOfTruth,
+      sourceOfTruthPaths,
       task,
     });
     const run = runtime.startRun({
@@ -4250,15 +4455,20 @@ function createExecutionCoordinator(options = {}) {
         defaultNextStage: 'builder',
         role: 'reviewer',
       });
+      const parsedReview = parseReviewerArtifactContent(response.outputText);
+      const mappedReviewStatus = mapReviewerVerdictToReviewStatus(parsedReview.verdict);
+      const createDecision = shouldCreateReviewerDecision(parsedReview, normalizedResult);
+      let decisionInboxItem = null;
+
+      assertReviewerArtifactMatchesBundle(parsedReview, readyContext);
+      assertReviewerFollowUpMatchesNormalizedResult(parsedReview, normalizedResult);
+
       const reviewArtifact = runtime.recordArtifact({
         taskId: task.id,
         runId: run.id,
         type: 'review',
         content: response.outputText,
       });
-      const parsedReview = parseReviewerArtifactContent(response.outputText);
-      const mappedReviewStatus = mapReviewerVerdictToReviewStatus(parsedReview.verdict);
-      let decisionInboxItem = null;
 
       runtime.appendLog({
         runId: run.id,
@@ -4273,7 +4483,7 @@ function createExecutionCoordinator(options = {}) {
         verificationArtifactIds: [],
       });
 
-      if (parsedReview.decisionRequired || normalizedResult.needsDecision) {
+      if (createDecision) {
         decisionInboxItem = runtime.createDecisionInboxItem({
           taskId: task.id,
           ...buildReviewerDecisionInput(task, parsedReview, normalizedResult, reviewArtifact),

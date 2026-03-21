@@ -3641,7 +3641,7 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
         }
       </div>
       <p class="detail-copy">
-        Runtime-derived summary for limited builder live mutation. Execution stays bounded to the latest preflight target files and never runs reviewer or commit paths.
+        Runtime-derived summary for limited builder live mutation. Execution stays bounded to the latest preflight target files, then hands off to reviewer without auto-starting commit paths.
       </p>
       ${
         guardSummary.reasons?.length
@@ -5009,7 +5009,7 @@ function renderProjectBootstrapPanel(data) {
                   ${
                     activeProjectProviderSummary?.reasons?.length
                       ? escapeHtml(activeProjectProviderSummary.reasons[0])
-                      : 'Only non-secret metadata is stored here. Live mode enables planner, architect, task-breaker, and builder preflight only; builder live mutation and reviewer stay fail-closed until a later slice.'
+                      : 'Only non-secret metadata is stored here. Live mode enables planner, architect, task-breaker, builder preflight, builder live mutation, and reviewer when model and env are valid. Commit-package, local commit, release-package, and close-out remain explicit downstream local steps.'
                   }
                 </p>
               </div>
@@ -5109,7 +5109,7 @@ function renderProjectBootstrapPanel(data) {
           <p class="form-help">
             ${
               createProjectProviderMode === 'live'
-                ? 'Live mode stores non-secret opt-in metadata only. Planner, architect, task-breaker, and builder preflight can execute live when model and env are valid; builder live mutation and reviewer stay fail-closed.'
+                ? 'Live mode stores non-secret opt-in metadata only. Planner, architect, task-breaker, builder preflight, builder live mutation, and reviewer can execute live when model and env are valid; commit-package, local commit, release-package, and close-out stay explicit local follow-up.'
                 : 'Registration stores the project, keeps local-stub as the default execution provider, and makes the project active.'
             }
           </p>
@@ -5186,7 +5186,7 @@ function renderTaskboard(data) {
             <h2>Taskboard</h2>
             <p class="panel-copy">Lifecycle, flags, review state, and gate visibility by task.</p>
           </div>
-          <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval + limited live mutation write + commit-package prepare + local commit + release-package prepare + close-out enabled</p>
+          <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval + limited live mutation write + reviewer + commit-package prepare + local commit + release-package prepare + close-out enabled</p>
         </div>
         ${bootstrapPanel}
         ${
@@ -5528,7 +5528,7 @@ function renderTaskDetail(task, data) {
             ${
               builderPreflightDisabled
                 ? `Builder preflight stays disabled until ${escapeHtml(builderPreflightState.reasons.join('; '))}.`
-                : `Builder preflight reads ${escapeHtml(builderPreflightState.latestPlanArtifact?.id || 'latest plan artifact')}, ${escapeHtml(builderPreflightState.latestArchitectureArtifact?.id || 'latest architecture artifact')}, and ${escapeHtml(builderPreflightState.latestBreakdownArtifact?.id || 'latest breakdown artifact')}, then writes a no-write preflight artifact without running reviewer live.`
+                : `Builder preflight reads ${escapeHtml(builderPreflightState.latestPlanArtifact?.id || 'latest plan artifact')}, ${escapeHtml(builderPreflightState.latestArchitectureArtifact?.id || 'latest architecture artifact')}, and ${escapeHtml(builderPreflightState.latestBreakdownArtifact?.id || 'latest breakdown artifact')}, then writes a no-write preflight artifact and leaves reviewer as an explicit downstream step.`
             }
           </p>
         </div>

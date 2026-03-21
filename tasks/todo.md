@@ -81,7 +81,7 @@
 - [x] lock `change-summary / patch / diff` to one mutation bundle with partial persistence forbidden, repo restore + artifact non-creation + approval non-consumption on validation failure
 - [x] keep reviewer live expansion out of scope, and document reviewer blocked/degraded in a live-mode project as an explicit operator step instead of a silent fallback
 - [x] keep provider secret/auth/raw payload/env value non-leak in scope for this slice while leaving repo-content redaction policy out of scope
-- [ ] implement builder-live-mutation live adapter, anchor enforcement, atomic mutation-bundle persistence, and approval-consumption rules in `provider-slice-06`
+- [x] implement builder-live-mutation live adapter, anchor enforcement, atomic mutation-bundle persistence, and approval-consumption rules in `provider-slice-06`
 - [ ] add synthetic builder-live-mutation live smoke coverage for happy-path, approval-consumption, allowlist-mismatch, exact-match-failure, fail-closed, and no-secret-leak cases
 - [x] add builder-live-mutation live browser/API QA coverage without widening reviewer live semantics
 - [x] define `strategy-slice-07` as the reviewer-only next live boundary while keeping the current implemented live path unchanged until later `provider-slice-06` and `provider-slice-07`
@@ -89,9 +89,9 @@
 - [x] lock reviewer live structured output to schema-backed `anchor / artifact / normalizedResult` data with canonical `Review Verdict / Evidence Reviewed / Findings / Contract Compliance / Verification Evidence / Accepted Risks / Next Action / Follow-Up Gate` headings and raw `fail` preserved
 - [x] lock reviewer live follow-up to `builder | architect | human gate` only, keep pass-side follow-up explicit instead of auto-starting `commit-package`, and allow at most one blocking `sourceType=review` decision item only when the review explicitly needs it
 - [x] keep reviewer live fail-closed, no-fallback, no-approval-creation, and no-secret-leak guarantees in scope without widening commit-package, local commit, release-package, or close-out semantics
-- [ ] implement reviewer live adapter, builder-bundle anchor enforcement, and terminal review artifact persistence in `provider-slice-07`
-- [ ] add synthetic reviewer live smoke coverage for pass, fail, changes-requested, architecture-drift, human-gate, fail-closed, and no-secret-leak cases
-- [ ] add reviewer live browser/API QA coverage without widening commit-package, local commit, release-package, or close-out semantics
+- [x] implement reviewer live adapter, builder-bundle anchor enforcement, and terminal review artifact persistence in `provider-slice-07`
+- [x] add synthetic reviewer live smoke coverage for pass, fail, changes-requested, architecture-drift, human-gate, fail-closed, and no-secret-leak cases
+- [x] add reviewer live browser/API QA coverage without widening commit-package, local commit, release-package, or close-out semantics
 
 #### candidate B [later]
 - [ ] define retention-consumer capability against the normalized Tier A/B/C artifact rules
@@ -103,6 +103,7 @@
 - [ ] `node scripts/smoke-qa-live-slice-04.mjs`
 - [ ] `node scripts/smoke-qa-live-slice-05.mjs`
 - [ ] `node scripts/smoke-qa-live-slice-06.mjs`
+- [ ] `node scripts/smoke-qa-live-slice-07.mjs`
 - [ ] decide whether to promote `node scripts/smoke-qa-slice-01.mjs` from optional coverage to a required regression gate
 - [ ] clean non-SSoT reference docs that can drift from the repo contracts
 
