@@ -33,6 +33,7 @@ An individual operator building or maintaining software locally who needs contro
 - thin-slice task lifecycle with `Inbox -> In Progress -> Review -> Done`
 - builder `preflight` and bounded `live-mutation`
 - reviewer flow anchored to the latest builder live-mutation bundle
+- explicit project-level live-provider opt-in for `planner -> architect -> task-breaker -> builder preflight -> builder live-mutation -> reviewer` behind the existing adapter boundary, while the shipped default remains `local-stub`
 - local commit flow via `commit-package -> commit-intent approval -> local commit`
 - local-demo-only release follow-up via `release-package -> release-ready approval -> close-out`
 - linked worktree detection, creation, and project switching in the shell
@@ -112,6 +113,7 @@ Orchestration 1.0 should reuse the useful control-plane ideas from `claw-empire`
 - `release-package` and `close-out` stay local-demo-only and do not push, publish, or trigger external release.
 - `release-package` and `close-out` only proceed from a dedicated linked worktree root when required by the current guard.
 - The local core loop works for the `development` pack end to end without requiring live-provider integration or non-local-first architecture.
+- When live mode is explicitly opted in, execution remains limited to `planner -> architect -> task-breaker -> builder preflight -> builder live-mutation -> reviewer`, and downstream `commit-package`, `local commit`, `release-package`, and `close-out` remain explicit local follow-up.
 
 ## V1 Acceptance Checklist
 - [x] `development` pack boundary is documented and enforced
@@ -128,8 +130,8 @@ Orchestration 1.0 should reuse the useful control-plane ideas from `claw-empire`
 - [x] out-of-scope areas remain deferred
 
 ## VNext Backlog After V1 Freeze
-These items remain explicitly outside the frozen v1 baseline and do not block `milestone-m3-freeze`.
+These items remain explicitly outside the frozen v1 baseline and do not block `milestone-m4-live-freeze`.
 
-- implement any future live-provider opt-in only behind the accepted adapter boundary while preserving the v1 `local-demo-only` baseline
-- add synthetic readiness and failure smoke coverage before any real live-provider integration ships
+- keep any future live-provider expansion behind the accepted adapter boundary while preserving the shipped `local-stub` / `local-demo-only` baseline and the current planner-through-reviewer live boundary
+- keep synthetic readiness and failure smoke coverage authoritative before promoting any optional real-live verification into a required freeze gate
 - define when a future delete/archive/GC capability should consume the normalized retention tiers
