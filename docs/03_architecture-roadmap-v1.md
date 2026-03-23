@@ -326,8 +326,11 @@ The following changes require an explicit decision log update before implementat
 - remaining open items are separated into explicit `vNext` backlog entries only
 
 ## VNext Backlog After V1 Freeze
-- implement any future live-provider opt-in only behind the accepted adapter boundary while preserving the v1 `local-demo-only` baseline
-- add synthetic readiness and failure smoke coverage before any real live-provider integration ships
+- `strategy-m5-01` is docs-only backlog ordering: do not add capability, do not change runtime, execution, or UI semantics, and do not promote optional real-live verification into the required freeze gate
+- priority 1: keep optional real-live verification as the first post-freeze backlog item for the current planner-through-reviewer boundary, while keeping it non-blocking and allowing env-missing `skipped`
+- priority 2: define artifact redaction policy after optional real-live verification, and keep that policy separate from the already accepted provider secret/auth/raw payload/env non-leak boundary
+- priority 3: define future `commit-package -> local commit -> release-package -> close-out` scope only after artifact redaction policy, without widening the current live execution boundary
+- priority 4: evaluate any second provider adapter only after the three items above, while preserving the accepted adapter boundary and the v1 single-provider-first shipped baseline
 - define when a future delete/archive/GC capability should consume the normalized retention tiers
 
 ## Slice Review Checklist

@@ -242,6 +242,11 @@ Artifact expectations:
 ### Future Live-Provider Expansion Boundary
 - Why still open: The current implemented live-provider boundary now includes planner plus architect plus task-breaker plus builder-preflight plus builder-live-mutation plus reviewer `openai-responses`, but additional providers, artifact-redaction policy, and any widening into commit-package, local commit, release-package, or close-out live execution remain out of scope.
 - Current temporary default: Keep `local-stub` as the shipped default, keep implemented live execution capped at planner plus architect plus task-breaker plus builder-preflight plus builder-live-mutation plus reviewer, keep builder-live-mutation anchored to one approved preflight bundle with exact target-file validation and atomic `change-summary / patch / diff` persistence, keep reviewer anchored to one latest successful builder live-mutation bundle with canonical `Review Verdict / Evidence Reviewed / Findings / Contract Compliance / Verification Evidence / Accepted Risks / Next Action / Follow-Up Gate` headings, keep pass-side follow-up explicit instead of auto-starting `commit-package`, allow at most one blocking `kind=decision, sourceType=review, blocksTask=true` item only when review explicitly needs a decision, and keep fail-closed, no-fallback, and no-secret-leak guarantees in scope.
+- Post-freeze backlog ordering for `strategy-m5-01`:
+  1. optional real-live verification first, still non-blocking and still separate from the required freeze gate
+  2. artifact redaction policy second, kept policy-only and separate from provider secret/auth/raw payload/env non-leak guarantees
+  3. future `commit-package`, `local commit`, `release-package`, and `close-out` scope third, without widening current live execution
+  4. second provider adapter last, only after the three items above
 - Decide again when: Before adding another provider adapter or before widening live execution beyond reviewer into commit-package, local commit, release-package, or close-out.
 
 ### Future Cleanup Policy

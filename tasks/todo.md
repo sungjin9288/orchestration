@@ -53,10 +53,22 @@
 - [x] optional real-live verification is described as non-blocking and separate from required synthetic gates
 - [x] `docs/01_decision-log.md` remains unchanged in this freeze
 
+### post-freeze backlog ordering [accepted]
+- [x] `strategy-m5-01` is limited to docs-only backlog ordering; no new capability or runtime/execution/UI semantics change is introduced
+- [x] priority 1 is fixed to optional real-live verification and stays non-blocking instead of becoming a required freeze gate
+- [x] priority 2 remains artifact redaction policy
+- [x] priority 3 remains commit/release future scope
+- [x] priority 4 remains second provider adapter
+- [x] `docs/01_decision-log.md` remains untouched in this slice
+
 ### remaining [OPEN]
 - [ ] decide whether to keep `milestone-m3-freeze` as pure archive provenance or trim it in a later docs-only cleanup
 - [ ] decide whether `node scripts/smoke-qa-slice-01.mjs` should be promoted from optional browser coverage to a required regression gate
 - [ ] decide whether task-breaker optional real-live coverage needs a standalone provider entrypoint beyond the existing `smoke-qa-live-slice-04.mjs` path
+- [ ] run and record optional real-live verification for the current planner-through-reviewer boundary without promoting it into the required freeze gate
+- [ ] define artifact redaction policy after optional real-live verification, without widening into implementation
+- [ ] define future `commit-package -> local commit -> release-package -> close-out` scope after artifact redaction policy, without widening current live semantics
+- [ ] evaluate whether any second provider adapter is needed only after the three items above
 - [ ] clean non-SSoT reference docs that can drift from the repo contracts
 
 ## milestone-m3-freeze [archive]
