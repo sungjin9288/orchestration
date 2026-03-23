@@ -847,8 +847,8 @@ assert.equal(builderPreflightReadiness.readiness, 'ready');
 assert.equal(builderPreflightReadiness.allowed, true);
 assert.equal(builderLiveMutationReadiness.readiness, 'ready');
 assert.equal(builderLiveMutationReadiness.allowed, true);
-assert.equal(reviewerReadiness.readiness, 'degraded');
-assert.equal(reviewerReadiness.allowed, false);
+assert.equal(reviewerReadiness.readiness, 'ready');
+assert.equal(reviewerReadiness.allowed, true);
 
 const happyFetch = createQueuedFetch([createPlannerApiPayload('builder-live-mutation-happy')]);
 const happyCoordinator = createLiveCoordinator(runtime, happyFetch.fetchImpl);

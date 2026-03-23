@@ -275,6 +275,41 @@ The following changes require an explicit decision log update before implementat
 - Config and readiness should stay narrow: the current project provider config shape remains `mode`, canonical adapter id, operator-pinned `model`, and env-var name only; project-level provider summary stays coarse readiness; live role gating may open at most `planner + architect + task-breaker + builder-preflight + builder-live-mutation + reviewer`, while commit-package, local commit, release-package, and close-out remain explicit local follow-up steps outside live role execution.
 - Failures should stay fail-closed and no-secret-leak: malformed structured output, anchor or bundle provenance mismatch, unsupported next stage, invalid verdict or follow-up combinations, missing required fields, readiness or config failure, and provider HTTP or network errors must produce a run error only with no review artifact, no decision item, no fallback to `local-stub`, and no provider secret, raw provider payload, or env value written into runtime state, logs, artifacts, approvals, or UI payloads.
 
+## Milestone M4 Live Freeze
+
+### Current Live Baseline
+- The shipped default remains `local-stub`, and downstream delivery stance remains `local-demo-only`.
+- Explicit live opt-in is limited to project-level `openai-responses` configuration with non-secret metadata only.
+- The current live execution boundary is frozen at `planner -> architect -> task-breaker -> builder-preflight -> builder-live-mutation -> reviewer`.
+- `builder-live-mutation` remains anchored to the latest approved preflight pair with exact target-file and atomic mutation-bundle validation.
+- `reviewer` remains anchored to the latest successful builder live-mutation bundle only and keeps downstream `commit-package -> local commit -> release-package -> close-out` as explicit local follow-up.
+
+### Required Freeze Gate
+- The required local baseline from `milestone-m3-freeze` remains unchanged and still applies.
+- The required live-provider synthetic baseline is:
+  - `node scripts/smoke-provider-slice-04.mjs`
+  - `node scripts/smoke-provider-slice-05.mjs`
+  - `node scripts/smoke-provider-slice-06.mjs`
+  - `node scripts/smoke-provider-slice-07.mjs`
+  - `node scripts/smoke-qa-slice-04.mjs`
+  - `node scripts/smoke-qa-slice-05.mjs`
+  - `node scripts/smoke-qa-slice-06.mjs`
+  - `node scripts/smoke-qa-slice-07.mjs`
+
+### Optional Real-Live Verification
+- Optional real-live verification stays fully separate from the required freeze gate.
+- Missing `OPENAI_API_KEY` or `OPENAI_RESPONSES_MODEL` records a `skipped` result and does not fail `milestone-m4-live-freeze`.
+- Optional real-live verification for the current planner-through-reviewer boundary is:
+  - `node scripts/smoke-provider-live-slice-02.mjs`
+  - `node scripts/smoke-provider-live-slice-03.mjs`
+  - `node scripts/smoke-provider-live-slice-05.mjs`
+  - `node scripts/smoke-provider-live-slice-06.mjs`
+  - `node scripts/smoke-provider-live-slice-07.mjs`
+  - `node scripts/smoke-qa-live-slice-04.mjs`
+  - `node scripts/smoke-qa-live-slice-05.mjs`
+  - `node scripts/smoke-qa-live-slice-06.mjs`
+  - `node scripts/smoke-qa-live-slice-07.mjs`
+
 ## Deferred Items
 - office or radar visualization
 - messenger adapters
@@ -284,8 +319,9 @@ The following changes require an explicit decision log update before implementat
 - non-development packs
 
 ## V1 Freeze Exit Criteria
-- required docs and tasks reflect the current implemented `local-demo-only` `development` pack baseline without widening scope
-- required regression smoke coverage is named explicitly and the required freeze gate passes on the current baseline
+- required docs and tasks reflect the current implemented shipped default plus the current planner-through-reviewer live boundary without widening scope
+- required regression smoke coverage is named explicitly, and `milestone-m4-live-freeze` keeps the local baseline plus the required live-provider synthetic baseline separate from any optional real-live verification
+- optional real-live verification stays non-blocking, and env-missing `skipped` results do not fail the freeze
 - `git status --short` stays clean before and after the required freeze regression run
 - remaining open items are separated into explicit `vNext` backlog entries only
 

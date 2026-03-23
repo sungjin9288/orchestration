@@ -21,6 +21,7 @@ The pack exists to keep development execution inspectable and controlled:
 - Review is a required gate before a task can be considered done.
 - Approval is a required gate before commit.
 - Provider-agnostic contract language stays intact. The shipped v1 default remains `local-demo-only` via the built-in `local-stub` adapter, and the current implemented live opt-in stays narrowly limited to planner plus architect plus task-breaker plus builder-preflight plus builder-live-mutation plus reviewer `openai-responses` execution behind the same adapter boundary.
+- `milestone-m4-live-freeze` fixes that current live-provider baseline at planner plus architect plus task-breaker plus builder-preflight plus builder-live-mutation plus reviewer only; `commit-package`, `local commit`, `release-package`, and `close-out` remain explicit downstream local follow-up.
 - `provider-slice-05` implements the accepted builder-preflight live boundary without widening commit-package, local commit, release-package, or close-out semantics.
 - `provider-slice-06` implements the accepted builder-live-mutation live boundary with bounded file updates, atomic `change-summary / patch / diff` persistence, and fail-closed approval consumption semantics.
 - `provider-slice-07` implements the accepted reviewer live boundary with latest successful builder-bundle anchoring, canonical review markdown persistence, and explicit downstream commit-package follow-up.
@@ -234,6 +235,8 @@ Artifact expectations:
 
 ## V1 Freeze Note
 - `Blocked`, `Waiting Approval`, and `Waiting Decision` are fixed v1 task flags, not lifecycle statuses.
+- `milestone-m4-live-freeze` treats the required live-provider synthetic baseline as `smoke-provider-slice-04/05/06/07` plus `smoke-qa-slice-04/05/06/07`.
+- Optional real-live verification stays separate from the required freeze gate; missing `OPENAI_API_KEY` or `OPENAI_RESPONSES_MODEL` may record `skipped` without failing the freeze.
 
 ## VNext Backlog After V1 Freeze
 ### Future Live-Provider Expansion Boundary

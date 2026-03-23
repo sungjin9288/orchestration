@@ -819,10 +819,10 @@ function assertRoleReadiness(roleReadiness) {
   assert.equal(roleReadiness.taskBreaker.allowed, true);
   assert.equal(roleReadiness.builderPreflight.readiness, 'ready');
   assert.equal(roleReadiness.builderPreflight.allowed, true);
-  assert.equal(roleReadiness.builderLiveMutation.readiness, 'degraded');
-  assert.equal(roleReadiness.builderLiveMutation.allowed, false);
-  assert.equal(roleReadiness.reviewer.readiness, 'degraded');
-  assert.equal(roleReadiness.reviewer.allowed, false);
+  assert.equal(roleReadiness.builderLiveMutation.readiness, 'ready');
+  assert.equal(roleReadiness.builderLiveMutation.allowed, true);
+  assert.equal(roleReadiness.reviewer.readiness, 'ready');
+  assert.equal(roleReadiness.reviewer.allowed, true);
 }
 
 async function fetchArtifactPayload(baseUrl, artifactId) {
@@ -872,7 +872,10 @@ async function verifyBrowserProjectSummary({
   });
 
   assert.match(providerReadySnapshot, /provider:openai-responses/i);
-  assert.match(providerReadySnapshot, /planner, architect, and task-breaker/i);
+  assert.match(
+    providerReadySnapshot,
+    /planner[\s\S]*architect[\s\S]*task-breaker[\s\S]*builder preflight[\s\S]*reviewer/i,
+  );
   assertSecretAbsent(providerReadySnapshot, secret, 'project summary snapshot');
   assertProjectProviderSummary(projectSummary);
 

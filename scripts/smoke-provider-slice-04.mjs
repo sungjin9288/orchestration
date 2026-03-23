@@ -596,11 +596,11 @@ assert.equal(builderPreflightReadiness.readiness, 'ready');
 assert.equal(builderPreflightReadiness.allowed, true);
 assert.equal(builderLiveMutationReadiness.readiness, 'ready');
 assert.equal(builderLiveMutationReadiness.allowed, true);
-assert.equal(reviewerReadiness.readiness, 'degraded');
-assert.equal(reviewerReadiness.allowed, false);
+assert.equal(reviewerReadiness.readiness, 'ready');
+assert.equal(reviewerReadiness.allowed, true);
 assert.match(
   reviewerReadiness.reasons.join('; '),
-  /reviewer|builder-live-mutation|planner|architect|task-breaker|builder-preflight/i,
+  /^$|reviewer|builder-live-mutation|planner|architect|task-breaker|builder-preflight/i,
 );
 
 const happyFetch = createQueuedFetch([

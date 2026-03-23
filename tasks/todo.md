@@ -1,6 +1,67 @@
 # todo
 
-## milestone-m3-freeze
+## milestone-m4-live-freeze
+
+### current live baseline [accepted]
+- [x] shipped default stays `local-stub`, and downstream delivery stance stays `local-demo-only`
+- [x] explicit live opt-in uses canonical `openai-responses` project config with non-secret metadata only
+- [x] the current live execution boundary is frozen at `planner -> architect -> task-breaker -> builder-preflight -> builder-live-mutation -> reviewer`
+- [x] `builder-live-mutation` stays anchored to the latest approved preflight pair and persists atomic `change-summary / patch / diff` bundles only
+- [x] `reviewer` stays anchored to the latest successful builder live-mutation bundle only and keeps `commit-package -> local commit -> release-package -> close-out` as explicit downstream local follow-up
+- [x] `milestone-m4-live-freeze` does not add capability or change runtime, execution, or UI semantics
+
+### regression / verification [required freeze gate]
+- [ ] unchanged required local baseline from `milestone-m3-freeze` remains green
+- [ ] `node scripts/smoke-dev-loop-m2.mjs`
+- [ ] `node scripts/smoke-runtime-slice-05.mjs`
+- [ ] `node scripts/smoke-runtime-slice-06.mjs`
+- [ ] `node scripts/smoke-execution-slice-05.mjs`
+- [ ] `node scripts/smoke-execution-slice-06.mjs`
+- [ ] `node scripts/smoke-execution-slice-07.mjs`
+- [ ] `node scripts/smoke-execution-slice-08.mjs`
+- [ ] `node scripts/smoke-execution-slice-09.mjs`
+- [ ] `node scripts/smoke-execution-slice-10.mjs`
+- [ ] `node scripts/smoke-execution-slice-11.mjs`
+- [ ] `node scripts/smoke-ui-slice-11.mjs`
+- [ ] `node scripts/smoke-ui-slice-12.mjs`
+- [ ] `node scripts/smoke-worktree-slice-03.mjs`
+- [x] required live-provider synthetic baseline remains green
+- [x] `node scripts/smoke-provider-slice-04.mjs`
+- [x] `node scripts/smoke-provider-slice-05.mjs`
+- [x] `node scripts/smoke-provider-slice-06.mjs`
+- [x] `node scripts/smoke-provider-slice-07.mjs`
+- [x] `node scripts/smoke-qa-slice-04.mjs`
+- [x] `node scripts/smoke-qa-slice-05.mjs`
+- [x] `node scripts/smoke-qa-slice-06.mjs`
+- [x] `node scripts/smoke-qa-slice-07.mjs`
+
+### optional real-live verification [non-blocking]
+- [x] optional real-live verification is fully separate from the required freeze gate
+- [x] missing `OPENAI_API_KEY` or `OPENAI_RESPONSES_MODEL` records `skipped` and does not fail `milestone-m4-live-freeze`
+- [ ] `node scripts/smoke-provider-live-slice-02.mjs`
+- [ ] `node scripts/smoke-provider-live-slice-03.mjs`
+- [ ] `node scripts/smoke-provider-live-slice-05.mjs`
+- [ ] `node scripts/smoke-provider-live-slice-06.mjs`
+- [ ] `node scripts/smoke-provider-live-slice-07.mjs`
+- [ ] `node scripts/smoke-qa-live-slice-04.mjs`
+- [ ] `node scripts/smoke-qa-live-slice-05.mjs`
+- [ ] `node scripts/smoke-qa-live-slice-06.mjs`
+- [ ] `node scripts/smoke-qa-live-slice-07.mjs`
+
+### source-of-truth docs/tasks [accepted]
+- [x] `docs/00_master-brief.md`, `docs/03_architecture-roadmap-v1.md`, `packs/development/pack.md`, and `tasks/todo.md` describe the current implemented planner-through-reviewer live boundary without widening scope
+- [x] optional real-live verification is described as non-blocking and separate from required synthetic gates
+- [x] `docs/01_decision-log.md` remains unchanged in this freeze
+
+### remaining [OPEN]
+- [ ] decide whether to keep `milestone-m3-freeze` as pure archive provenance or trim it in a later docs-only cleanup
+- [ ] decide whether `node scripts/smoke-qa-slice-01.mjs` should be promoted from optional browser coverage to a required regression gate
+- [ ] decide whether task-breaker optional real-live coverage needs a standalone provider entrypoint beyond the existing `smoke-qa-live-slice-04.mjs` path
+- [ ] clean non-SSoT reference docs that can drift from the repo contracts
+
+## milestone-m3-freeze [archive]
+
+Historical freeze baseline retained for provenance. Current source-of-truth freeze entry is `milestone-m4-live-freeze`.
 
 ### freeze baseline [accepted]
 - [x] current v1 baseline is frozen as `local-first / single-user-first / ops-first`, `development` pack only, and `local-demo-only` by default
@@ -82,7 +143,7 @@
 - [x] keep reviewer live expansion out of scope, and document reviewer blocked/degraded in a live-mode project as an explicit operator step instead of a silent fallback
 - [x] keep provider secret/auth/raw payload/env value non-leak in scope for this slice while leaving repo-content redaction policy out of scope
 - [x] implement builder-live-mutation live adapter, anchor enforcement, atomic mutation-bundle persistence, and approval-consumption rules in `provider-slice-06`
-- [ ] add synthetic builder-live-mutation live smoke coverage for happy-path, approval-consumption, allowlist-mismatch, exact-match-failure, fail-closed, and no-secret-leak cases
+- [x] add synthetic builder-live-mutation live smoke coverage for happy-path, approval-consumption, allowlist-mismatch, exact-match-failure, fail-closed, and no-secret-leak cases
 - [x] add builder-live-mutation live browser/API QA coverage without widening reviewer live semantics
 - [x] define `strategy-slice-07` as the reviewer-only next live boundary while keeping the current implemented live path unchanged until later `provider-slice-06` and `provider-slice-07`
 - [x] lock reviewer live input to the latest builder live-mutation bundle only, with matched upstream provenance, builder logs, exact changed-file context, and no recombining latest artifacts by type
