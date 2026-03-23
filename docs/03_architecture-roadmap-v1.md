@@ -355,6 +355,12 @@ The following changes require an explicit decision log update before implementat
 - the helper relationship to readiness stays explicit: availability must come directly from the current `commitExecutionReadiness` and `commitPackageReadiness` summaries, and the client must not infer hidden commit semantics beyond those coordinator summaries.
 - when commit approval is `pending`, `rejected`, `stale`, `missing`, or otherwise blocked, the helper must stay disabled or absent and the operator must continue through the existing explicit approval-resolution path before the next local step.
 - one-click `commit-package -> approval -> local commit`, hidden approval consumption, and inbox-triggered execution remain out of scope for this backlog item; at most, a future inbox affordance may navigate back to the current task and commit panel without running the step itself.
+- `strategy-m5-06` is docs/tasks-only release-side convenience-scope lock: do not add capability, do not change runtime, execution, or UI semantics, and do not reinterpret release follow-up as one hidden completion chain.
+- release-side is not permanently closed as manual/local-only; it remains a deferred convenience candidate only after the commit-side helper decisions are settled.
+- the only allowed future shape is an in-panel resume helper from the approved current `release-package` bundle into the next explicit local step `close-out`, and it must remain scoped to the existing release/close-out guard area rather than a new standalone surface.
+- the helper scope stays narrow: it must not prepare or regenerate `release-package`, resolve `release-ready` approval, create or switch linked worktrees, recover repo cleanliness, or bypass `Review -> Done` close-out guard checks. Those remain explicit/manual prerequisites outside the helper.
+- Decision Inbox remains non-executing on the release side as well: at most, it may offer a navigation hint back to the current task and release/close-out panel when a current approved release bundle exists.
+- one-click `release-package -> approval -> close-out`, hidden approval consumption, linked-worktree automation, repo-clean recovery automation, auto close-out, and the broader four-step downstream chain remain widening-forbidden for this backlog item.
 - define when a future delete/archive/GC capability should consume the normalized retention tiers
 
 ## Slice Review Checklist

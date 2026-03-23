@@ -271,6 +271,12 @@ Artifact expectations:
   - approval visibility is mandatory: current approval status/id, current commit-package id, reviewer/builder/preflight provenance, and blocked reasons must remain visible next to the helper
   - helper availability must come directly from current `commitExecutionReadiness` and `commitPackageReadiness`; the client must not recompute hidden commit semantics beyond those summaries
   - when approval is pending, rejected, stale, missing, or otherwise blocked, the helper stays disabled or absent and the operator continues through the existing explicit approval path; inbox affordance may at most navigate back to the task/panel, not execute the step
+- `strategy-m5-06` policy boundary:
+  - this slice stays docs/tasks-only: no new capability, no runtime/execution/UI semantic change, and no reinterpretation of release follow-up as one hidden completion chain
+  - release-side is not permanently closed as manual/local-only; it remains a deferred convenience candidate only
+  - the only allowed future shape is an in-panel resume helper from an approved current `release-package` bundle into `close-out`, not a new standalone surface and not a release-side one-click chain
+  - helper scope excludes `release-package` prepare/regeneration, `release-ready` approval resolution, linked worktree create/switch, and repo-clean recovery; those remain explicit/manual prerequisites outside the helper
+  - Decision Inbox may at most navigate back to the task/panel for release follow-up; it must not execute release-side steps, and one-click release approval consumption, auto close-out, linked-worktree automation, repo-clean recovery automation, and the broader four-step chain remain widening-forbidden
 - Decide again when: Before adding another provider adapter or before widening live execution beyond reviewer into commit-package, local commit, release-package, or close-out.
 
 ### Future Cleanup Policy

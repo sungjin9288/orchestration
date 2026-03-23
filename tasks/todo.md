@@ -87,6 +87,12 @@
 - [x] approval visibility remains mandatory: current approval status/id, current commit-package id, reviewer/builder/preflight provenance, and blocked reasons stay visible next to the helper
 - [x] helper availability must come directly from current `commitExecutionReadiness` and `commitPackageReadiness`; the client must not recompute hidden commit semantics beyond those summaries
 - [x] when approval is pending, rejected, stale, missing, or otherwise blocked, the helper stays disabled or absent and the operator continues through the existing explicit approval path; inbox affordance may at most navigate back to the task/panel without executing the step
+- [x] `strategy-m5-06` is limited to docs/tasks-only release-side convenience-scope lock; no new capability or runtime/execution/UI semantics change is introduced
+- [x] release-side is not permanently closed as manual/local-only; it remains a deferred convenience candidate only
+- [x] the only allowed future shape is an in-panel resume helper from the approved current `release-package` bundle into `close-out`, not a new standalone surface and not a release-side one-click chain
+- [x] helper scope excludes `release-package` prepare/regeneration, `release-ready` approval resolution, linked worktree create/switch, and repo-clean recovery; those remain explicit/manual prerequisites outside the helper
+- [x] Decision Inbox may at most navigate back to the current task/panel for release follow-up; it must not execute release-side steps
+- [x] one-click `release-package -> approval -> close-out`, hidden approval consumption, linked-worktree automation, repo-clean recovery automation, auto close-out, and the broader four-step chain remain widening-forbidden
 
 ### remaining [OPEN]
 - [ ] decide whether to keep `milestone-m3-freeze` as pure archive provenance or trim it in a later docs-only cleanup
@@ -94,9 +100,10 @@
 - [ ] decide whether task-breaker optional real-live coverage needs a standalone provider entrypoint beyond the existing `smoke-qa-live-slice-04.mjs` path
 - [ ] rerun optional real-live verification with configured `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL` to capture provider/API `pass|fail|skipped` evidence by model when operator credentials are available
 - [ ] decide whether any future repo-content redaction implementation should stay preview/export-only or also create redacted derivative copies, while keeping raw stored artifact content as the source of truth
-- [ ] decide whether future `release-package -> close-out` should remain permanently explicit/manual local follow-up or later re-enter review as a separate deferred convenience candidate without changing linked-worktree, approval, clean-repo, or terminal finalization guards
 - [ ] decide the final helper label and placement for any future commit-side resume CTA, including whether it should appear in `Task Detail` only or also in `Artifacts`
 - [ ] decide whether `Decision Inbox` should expose only a navigation hint back to the current task/panel for commit approval follow-up, while keeping actual execution out of inbox actions
+- [ ] decide the final helper label and placement for any future release-side resume CTA, including whether it should appear in `Task Detail` only or also in `Artifacts`
+- [ ] decide whether release-side navigation hints should appear only for approved current release bundles or also for stale/blocked bundles as non-executing guidance
 - [ ] evaluate whether any second provider adapter is needed only after the three items above
 - [ ] clean non-SSoT reference docs that can drift from the repo contracts
 
