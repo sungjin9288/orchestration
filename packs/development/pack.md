@@ -247,6 +247,18 @@ Artifact expectations:
   2. artifact redaction policy second, kept policy-only and separate from provider secret/auth/raw payload/env non-leak guarantees
   3. future `commit-package`, `local commit`, `release-package`, and `close-out` scope third, without widening current live execution
   4. second provider adapter last, only after the three items above
+- `strategy-m5-02` policy boundary:
+  - provider secret/auth/raw payload/env non-leak remains a persistence prohibition, not a repo-content redaction rule
+  - repo-content redaction stays policy-only in this slice and does not rewrite raw stored artifact content
+  - `patch` and `diff` remain exact provenance evidence and stay outside redaction scope for the current frozen baseline
+  - `change-summary` and `review` keep canonical structured provenance and findings; only duplicated large verbatim repo-content excerpts are future redaction candidates
+  - runtime snapshot metadata, logs, artifact storage, and current raw artifact detail behavior remain unchanged in this slice
+- `strategy-m5-03` policy boundary:
+  - current downstream local follow-up stays explicit: `commit-package` and `release-package` remain approval-producing prepare steps, while `local commit` and `close-out` remain approval-consuming local execution steps
+  - the current split between review, approval, git side effects, linked-worktree release guard, and `local-demo-only` delivery stance remains intentional and unchanged in this slice
+  - recommended priority 1 for any future automation candidate is operator-invoked local convenience chaining only, and only when it reuses the current readiness, approval, provenance, linked-worktree, and delivery-stance guards without redefining them
+  - provider or reviewer auto-start of downstream commit/release follow-up remains out of scope, as do approval auto-resolution and hidden step chaining
+  - push, merge, publish, and external release remain widening-forbidden lines, and `release-package` plus `close-out` continue to require the current dedicated linked worktree boundary
 - Decide again when: Before adding another provider adapter or before widening live execution beyond reviewer into commit-package, local commit, release-package, or close-out.
 
 ### Future Cleanup Policy

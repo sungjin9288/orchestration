@@ -331,6 +331,18 @@ The following changes require an explicit decision log update before implementat
 - priority 2: define artifact redaction policy after optional real-live verification, and keep that policy separate from the already accepted provider secret/auth/raw payload/env non-leak boundary
 - priority 3: define future `commit-package -> local commit -> release-package -> close-out` scope only after artifact redaction policy, without widening the current live execution boundary
 - priority 4: evaluate any second provider adapter only after the three items above, while preserving the accepted adapter boundary and the v1 single-provider-first shipped baseline
+- `strategy-m5-02` is docs/tasks-only policy lock: do not add capability, do not change runtime, execution, or UI semantics, and do not reinterpret provider non-leak as repo-content redaction.
+- provider secret/auth/raw payload/env non-leak remains a persistence-prohibited boundary: those values must not be written into runtime state, logs, artifacts, approvals, or UI payloads, and they are not a redaction candidate because they must not persist at all.
+- repo-content redaction policy is narrower and applies only to future duplicated narrative exposure. It does not rewrite or mask the current raw stored artifact content that remains the source of truth in v1.
+- `patch` and `diff` stay exact raw provenance evidence for the mutation bundle and are not redaction targets in the current frozen baseline.
+- `change-summary` and `review` keep canonical structured provenance, findings, verdict, verification, and follow-up fields intact. Only duplicated large verbatim repo-content excerpts inside future convenience narratives are redaction candidates.
+- boundary application stays explicit: runtime snapshot metadata keeps current shape, logs keep current no-secret-leak behavior, artifact storage keeps raw stored content plus metadata as the source of truth, and the current Artifact Detail raw-content view remains unchanged in this slice.
+- `strategy-m5-03` is docs/tasks-only future-scope lock: do not add capability, do not change runtime, execution, or UI semantics, and do not reinterpret downstream local follow-up as provider-owned or auto-starting execution.
+- the current downstream local follow-up baseline remains explicit after reviewer: `commit-package` and `release-package` are approval-producing prepare steps, while `local commit` and `close-out` are approval-consuming local execution steps.
+- this boundary stays explicit because review authority, approval authority, git side effects, linked-worktree release guard, and local-demo-only delivery stance remain intentionally separated in the current frozen baseline.
+- recommended priority 1 for any future automation candidate is operator-invoked local convenience chaining only, and only when it reuses the current readiness, approval, provenance, linked-worktree, and `local-demo-only` guards without changing their meaning.
+- provider or reviewer auto-start of `commit-package`, `local commit`, `release-package`, or `close-out` remains out of scope. Approval auto-resolution, approval-consumer collapse, or hidden chaining across those steps remains out of scope.
+- push, merge, publish, and external release remain widening-forbidden lines for this backlog item, and `release-package` plus `close-out` must continue to require the current dedicated linked worktree boundary.
 - define when a future delete/archive/GC capability should consume the normalized retention tiers
 
 ## Slice Review Checklist

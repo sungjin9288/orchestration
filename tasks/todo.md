@@ -38,15 +38,16 @@
 ### optional real-live verification [non-blocking]
 - [x] optional real-live verification is fully separate from the required freeze gate
 - [x] missing `OPENAI_API_KEY` or `OPENAI_RESPONSES_MODEL` records `skipped` and does not fail `milestone-m4-live-freeze`
-- [ ] `node scripts/smoke-provider-live-slice-02.mjs`
-- [ ] `node scripts/smoke-provider-live-slice-03.mjs`
-- [ ] `node scripts/smoke-provider-live-slice-05.mjs`
-- [ ] `node scripts/smoke-provider-live-slice-06.mjs`
-- [ ] `node scripts/smoke-provider-live-slice-07.mjs`
-- [ ] `node scripts/smoke-qa-live-slice-04.mjs`
-- [ ] `node scripts/smoke-qa-live-slice-05.mjs`
-- [ ] `node scripts/smoke-qa-live-slice-06.mjs`
-- [ ] `node scripts/smoke-qa-live-slice-07.mjs`
+- [x] `ops-verification-m5-01` ran on `2026-03-23` as a non-blocking operational verification; env snapshot was `OPENAI_API_KEY=false`, `OPENAI_RESPONSES_MODEL=false`, so `skipped` was recorded as the normal result and `model` was recorded separately as `(unset)`
+- [x] `node scripts/smoke-provider-live-slice-02.mjs` recorded `status=skipped`, `model=(unset)`
+- [x] `node scripts/smoke-provider-live-slice-03.mjs` recorded `status=skipped`, `model=(unset)`
+- [x] `node scripts/smoke-provider-live-slice-05.mjs` recorded `status=skipped`, `model=(unset)`
+- [x] `node scripts/smoke-provider-live-slice-06.mjs` recorded `status=skipped`, `model=(unset)`
+- [x] `node scripts/smoke-provider-live-slice-07.mjs` recorded `status=skipped`, `model=(unset)`
+- [x] `node scripts/smoke-qa-live-slice-04.mjs` recorded `status=skipped`, `model=(unset)`
+- [x] `node scripts/smoke-qa-live-slice-05.mjs` recorded `status=skipped`, `model=(unset)`
+- [x] `node scripts/smoke-qa-live-slice-06.mjs` recorded `status=skipped`, `model=(unset)`
+- [x] `node scripts/smoke-qa-live-slice-07.mjs` recorded `status=skipped`, `model=(unset)`
 
 ### source-of-truth docs/tasks [accepted]
 - [x] `docs/00_master-brief.md`, `docs/03_architecture-roadmap-v1.md`, `packs/development/pack.md`, and `tasks/todo.md` describe the current implemented planner-through-reviewer live boundary without widening scope
@@ -61,13 +62,29 @@
 - [x] priority 4 remains second provider adapter
 - [x] `docs/01_decision-log.md` remains untouched in this slice
 
+### artifact redaction policy [accepted]
+- [x] `strategy-m5-02` is limited to docs/tasks policy lock; no new capability or runtime/execution/UI semantics change is introduced
+- [x] provider secret/auth/raw payload/env non-leak remains a persistence-prohibited boundary and is kept separate from repo-content redaction policy
+- [x] repo-content redaction policy does not rewrite raw stored artifact content in the current frozen baseline; raw stored artifact content plus runtime metadata remain the source of truth
+- [x] `patch` and `diff` remain exact raw provenance evidence and stay outside redaction scope in the current frozen baseline
+- [x] `change-summary` and `review` keep canonical structured provenance, findings, verdict, verification, and follow-up fields intact; only duplicated large verbatim repo-content excerpts are future redaction candidates
+- [x] runtime snapshot metadata, logs, artifact storage, and the current Artifact Detail raw-content view remain unchanged in this slice
+
+### commit/release future scope [accepted]
+- [x] `strategy-m5-03` is limited to docs/tasks future-scope lock; no new capability or runtime/execution/UI semantics change is introduced
+- [x] the current downstream local follow-up baseline remains explicit after reviewer: `commit-package` and `release-package` stay approval-producing prepare steps, while `local commit` and `close-out` stay approval-consuming local execution steps
+- [x] the current split between review, approval, git side effects, linked-worktree release guard, and `local-demo-only` delivery stance remains intentional and unchanged in the current frozen baseline
+- [x] recommended priority 1 for any future automation candidate is operator-invoked local convenience chaining only, and only when it reuses the current readiness, approval, provenance, linked-worktree, and delivery-stance guards without redefining them
+- [x] provider or reviewer auto-start of downstream commit/release follow-up remains out of scope, as do approval auto-resolution and hidden step chaining
+- [x] push, merge, publish, and external release remain widening-forbidden lines, and `release-package` plus `close-out` continue to require the current dedicated linked worktree boundary
+
 ### remaining [OPEN]
 - [ ] decide whether to keep `milestone-m3-freeze` as pure archive provenance or trim it in a later docs-only cleanup
 - [ ] decide whether `node scripts/smoke-qa-slice-01.mjs` should be promoted from optional browser coverage to a required regression gate
 - [ ] decide whether task-breaker optional real-live coverage needs a standalone provider entrypoint beyond the existing `smoke-qa-live-slice-04.mjs` path
-- [ ] run and record optional real-live verification for the current planner-through-reviewer boundary without promoting it into the required freeze gate
-- [ ] define artifact redaction policy after optional real-live verification, without widening into implementation
-- [ ] define future `commit-package -> local commit -> release-package -> close-out` scope after artifact redaction policy, without widening current live semantics
+- [ ] rerun optional real-live verification with configured `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL` to capture provider/API `pass|fail|skipped` evidence by model when operator credentials are available
+- [ ] decide whether any future repo-content redaction implementation should stay preview/export-only or also create redacted derivative copies, while keeping raw stored artifact content as the source of truth
+- [ ] decide whether future operator-invoked local convenience chaining should stop at `commit-package -> local commit`, or also include `release-package -> close-out`, while keeping the current explicit downstream boundary intact
 - [ ] evaluate whether any second provider adapter is needed only after the three items above
 - [ ] clean non-SSoT reference docs that can drift from the repo contracts
 
