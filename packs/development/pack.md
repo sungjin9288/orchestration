@@ -259,6 +259,18 @@ Artifact expectations:
   - recommended priority 1 for any future automation candidate is operator-invoked local convenience chaining only, and only when it reuses the current readiness, approval, provenance, linked-worktree, and delivery-stance guards without redefining them
   - provider or reviewer auto-start of downstream commit/release follow-up remains out of scope, as do approval auto-resolution and hidden step chaining
   - push, merge, publish, and external release remain widening-forbidden lines, and `release-package` plus `close-out` continue to require the current dedicated linked worktree boundary
+- `strategy-m5-04` policy boundary:
+  - this slice stays docs/tasks-only: no new capability, no runtime/execution/UI semantic change, and no reinterpretation of downstream local follow-up as one hidden chain
+  - priority 1 convenience candidate is commit-side bounded continuation only: `commit-package -> local commit`
+  - the only acceptable future shape is a resume helper that re-checks the current commit approval state before continuing into the next explicit local step; it must not auto-create, auto-resolve, auto-consume, or hide the approval boundary
+  - `release-package -> close-out` remains deferred future scope because linked-worktree guard, approved current release provenance, clean-repo verification, and terminal finalization stay heavier downstream boundaries
+  - the full four-step downstream chain remains non-recommended and widening-forbidden, and provider/reviewer auto-start, hidden multi-step chaining, linked-worktree auto-switch, plus push/merge/publish/external release remain out of scope
+- `strategy-m5-05` policy boundary:
+  - this slice stays docs/tasks-only: no new capability, no runtime/execution/UI semantic change, and no reinterpretation of commit-side resume as a new inbox execution route or hidden chain
+  - the preferred operator-facing form is an in-panel commit-side resume CTA inside the existing commit guard area, not a one-click `prepare + commit` chain and not a new standalone surface
+  - approval visibility is mandatory: current approval status/id, current commit-package id, reviewer/builder/preflight provenance, and blocked reasons must remain visible next to the helper
+  - helper availability must come directly from current `commitExecutionReadiness` and `commitPackageReadiness`; the client must not recompute hidden commit semantics beyond those summaries
+  - when approval is pending, rejected, stale, missing, or otherwise blocked, the helper stays disabled or absent and the operator continues through the existing explicit approval path; inbox affordance may at most navigate back to the task/panel, not execute the step
 - Decide again when: Before adding another provider adapter or before widening live execution beyond reviewer into commit-package, local commit, release-package, or close-out.
 
 ### Future Cleanup Policy

@@ -77,6 +77,16 @@
 - [x] recommended priority 1 for any future automation candidate is operator-invoked local convenience chaining only, and only when it reuses the current readiness, approval, provenance, linked-worktree, and delivery-stance guards without redefining them
 - [x] provider or reviewer auto-start of downstream commit/release follow-up remains out of scope, as do approval auto-resolution and hidden step chaining
 - [x] push, merge, publish, and external release remain widening-forbidden lines, and `release-package` plus `close-out` continue to require the current dedicated linked worktree boundary
+- [x] `strategy-m5-04` is limited to docs/tasks-only convenience-scope lock; no new capability or runtime/execution/UI semantics change is introduced
+- [x] priority 1 convenience candidate is commit-side bounded continuation only: `commit-package -> local commit`
+- [x] the only acceptable future shape is a resume helper that re-checks the current commit approval state before continuing into the next explicit local step; it must not auto-create, auto-resolve, auto-consume, or hide the approval boundary
+- [x] `release-package -> close-out` remains deferred future scope because linked-worktree guard, approved current release provenance, clean-repo verification, and terminal `Review -> Done` finalization stay heavier downstream boundaries
+- [x] the full four-step downstream chain remains non-recommended and widening-forbidden, and provider/reviewer auto-start, hidden multi-step chaining, linked-worktree auto-switch, plus push/merge/publish/external release remain out of scope
+- [x] `strategy-m5-05` is limited to docs/tasks-only operator-facing form lock; no new capability or runtime/execution/UI semantics change is introduced
+- [x] the preferred operator-facing form is an in-panel commit-side resume CTA inside the existing commit guard area, not a one-click `prepare + commit` chain and not a new standalone surface
+- [x] approval visibility remains mandatory: current approval status/id, current commit-package id, reviewer/builder/preflight provenance, and blocked reasons stay visible next to the helper
+- [x] helper availability must come directly from current `commitExecutionReadiness` and `commitPackageReadiness`; the client must not recompute hidden commit semantics beyond those summaries
+- [x] when approval is pending, rejected, stale, missing, or otherwise blocked, the helper stays disabled or absent and the operator continues through the existing explicit approval path; inbox affordance may at most navigate back to the task/panel without executing the step
 
 ### remaining [OPEN]
 - [ ] decide whether to keep `milestone-m3-freeze` as pure archive provenance or trim it in a later docs-only cleanup
@@ -84,7 +94,9 @@
 - [ ] decide whether task-breaker optional real-live coverage needs a standalone provider entrypoint beyond the existing `smoke-qa-live-slice-04.mjs` path
 - [ ] rerun optional real-live verification with configured `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL` to capture provider/API `pass|fail|skipped` evidence by model when operator credentials are available
 - [ ] decide whether any future repo-content redaction implementation should stay preview/export-only or also create redacted derivative copies, while keeping raw stored artifact content as the source of truth
-- [ ] decide whether future operator-invoked local convenience chaining should stop at `commit-package -> local commit`, or also include `release-package -> close-out`, while keeping the current explicit downstream boundary intact
+- [ ] decide whether future `release-package -> close-out` should remain permanently explicit/manual local follow-up or later re-enter review as a separate deferred convenience candidate without changing linked-worktree, approval, clean-repo, or terminal finalization guards
+- [ ] decide the final helper label and placement for any future commit-side resume CTA, including whether it should appear in `Task Detail` only or also in `Artifacts`
+- [ ] decide whether `Decision Inbox` should expose only a navigation hint back to the current task/panel for commit approval follow-up, while keeping actual execution out of inbox actions
 - [ ] evaluate whether any second provider adapter is needed only after the three items above
 - [ ] clean non-SSoT reference docs that can drift from the repo contracts
 
