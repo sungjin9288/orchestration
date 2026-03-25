@@ -150,15 +150,16 @@ assert.equal(architectReadiness.readiness, 'ready');
 assert.equal(architectReadiness.allowed, true);
 assert.equal(taskBreakerReadiness.readiness, 'ready');
 assert.equal(builderPreflightReadiness.readiness, 'ready');
-assert.equal(reviewerReadiness.readiness, 'degraded');
+// Reviewer readiness stays ready in the frozen live boundary even when this smoke stops earlier.
+assert.equal(reviewerReadiness.readiness, 'ready');
 assert.equal(taskBreakerReadiness.allowed, true);
 assert.equal(builderPreflightReadiness.allowed, true);
-assert.equal(reviewerReadiness.allowed, false);
+assert.equal(reviewerReadiness.allowed, true);
 
 const plannerResult = await coordinator.runPlanner({
   taskId: task.id,
   routingOutcome: createRoutingOutcome(
-    'Validate the optional real planner plus architect live path without widening downstream live execution.',
+    'Validate the optional real planner plus architect live path while leaving downstream live stages unexecuted in this smoke.',
   ),
 });
 const architectResult = await coordinator.runArchitect({

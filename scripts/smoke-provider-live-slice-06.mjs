@@ -140,7 +140,7 @@ const task = runtime.createTask({
   projectId: project.id,
   title: 'provider live slice 06 builder live mutation smoke',
   intent:
-    'Run planner, architect, task-breaker, builder-preflight, approval, and builder-live-mutation live for provider-slice-06. Keep the mutation bounded to approved target files only, preserve exact preflight plus approval provenance, save one atomic change-summary plus patch plus diff bundle, and keep reviewer blocked in live mode.',
+    'Run planner, architect, task-breaker, builder-preflight, approval, and builder-live-mutation live for provider-slice-06. Keep the mutation bounded to approved target files only, preserve exact preflight plus approval provenance, save one atomic change-summary plus patch plus diff bundle, and leave reviewer execution to the later slice-07 smoke.',
 });
 const coordinator = createExecutionCoordinator({
   repoRoot,
@@ -183,15 +183,16 @@ assert.equal(taskBreakerReadiness.readiness, 'ready');
 assert.equal(taskBreakerReadiness.allowed, true);
 assert.equal(builderPreflightReadiness.readiness, 'ready');
 assert.equal(builderPreflightReadiness.allowed, true);
+// Reviewer readiness stays ready after builder live mutation joined the frozen live boundary.
 assert.equal(builderLiveMutationReadiness.readiness, 'ready');
 assert.equal(builderLiveMutationReadiness.allowed, true);
-assert.equal(reviewerReadiness.readiness, 'degraded');
-assert.equal(reviewerReadiness.allowed, false);
+assert.equal(reviewerReadiness.readiness, 'ready');
+assert.equal(reviewerReadiness.allowed, true);
 
 const plannerResult = await coordinator.runPlanner({
   taskId: task.id,
   routingOutcome: createRoutingOutcome(
-    'Verify the optional real live builder-live-mutation path for provider-slice-06 while keeping reviewer blocked.',
+    'Verify the optional real live builder-live-mutation path for provider-slice-06 while leaving reviewer execution to the later slice-07 smoke.',
   ),
 });
 const architectResult = await coordinator.runArchitect({
@@ -247,7 +248,7 @@ assert.equal(
     projectId: project.id,
     role: 'reviewer',
   }).allowed,
-  false,
+  true,
 );
 
 assertSecretAbsent(JSON.stringify(snapshot), apiKey, 'snapshot payload');
