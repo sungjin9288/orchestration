@@ -70,6 +70,34 @@ function createRoutingOutcome(scopeStatement) {
   };
 }
 
+const stageTimings = [];
+
+async function runStage(stage, fn) {
+  const startedAt = Date.now();
+
+  try {
+    const result = await fn();
+
+    stageTimings.push({
+      durationMs: Date.now() - startedAt,
+      stage,
+      status: 'ok',
+    });
+
+    return result;
+  } catch (error) {
+    const durationMs = Date.now() - startedAt;
+
+    stageTimings.push({
+      durationMs,
+      stage,
+      status: 'error',
+    });
+    error.message = `${error.message} [stage=${stage}] [durationMs=${durationMs}] [stageTimings=${JSON.stringify(stageTimings)}]`;
+    throw error;
+  }
+}
+
 function countArtifacts(snapshot, taskId, type = null) {
   return Object.values(snapshot.artifacts).filter(
     (artifact) => artifact.taskId === taskId && (!type || artifact.type === type),
@@ -127,179 +155,202 @@ if (!apiKey || !model) {
   process.exit(0);
 }
 
-const runtime = createRuntimeService({ runtimeRoot });
-runtime.resetRuntime();
+try {
+  const runtime = createRuntimeService({ runtimeRoot });
+  runtime.resetRuntime();
 
-const project = runtime.createProject({
-  name: 'provider-live-slice-07',
-  projectPath: createFixtureProject(),
-  provider: {
-    adapter: 'openai-responses',
-    mode: 'live',
-    model,
-    env: {
-      apiKeyVar,
+  const project = runtime.createProject({
+    name: 'provider-live-slice-07',
+    projectPath: createFixtureProject(),
+    provider: {
+      adapter: 'openai-responses',
+      mode: 'live',
+      model,
+      env: {
+        apiKeyVar,
+      },
     },
-  },
-});
-const task = runtime.createTask({
-  projectId: project.id,
-  title: 'provider live slice 07 builder live mutation smoke',
-  intent:
-    'Run planner, architect, task-breaker, builder-preflight, approval, builder-live-mutation, and reviewer live for provider-slice-07. Keep the mutation bounded to approved target files only, preserve exact preflight plus approval provenance, save one atomic change-summary plus patch plus diff bundle, and keep commit-package, local commit, release-package, and close-out as explicit downstream local steps.',
-});
-const coordinator = createExecutionCoordinator({
-  repoRoot,
-  runtimeService: runtime,
-  sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
-  architectCodeContextPaths: ARCHITECT_CODE_CONTEXT_PATHS,
-  builderPreflightCodeContextPaths: BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS,
-});
+  });
+  const task = runtime.createTask({
+    projectId: project.id,
+    title: 'provider live slice 07 builder live mutation smoke',
+    intent:
+      'Run planner, architect, task-breaker, builder-preflight, approval, builder-live-mutation, and reviewer live for provider-slice-07. Keep the mutation bounded to approved target files only, preserve exact preflight plus approval provenance, save one atomic change-summary plus patch plus diff bundle, and keep commit-package, local commit, release-package, and close-out as explicit downstream local steps.',
+  });
+  const coordinator = createExecutionCoordinator({
+    repoRoot,
+    runtimeService: runtime,
+    sourceOfTruthPaths: SOURCE_OF_TRUTH_PATHS,
+    architectCodeContextPaths: ARCHITECT_CODE_CONTEXT_PATHS,
+    builderPreflightCodeContextPaths: BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS,
+  });
 
-const plannerReadiness = coordinator.getProviderExecutionReadiness({
-  projectId: project.id,
-  role: 'planner',
-});
-const architectReadiness = coordinator.getProviderExecutionReadiness({
-  projectId: project.id,
-  role: 'architect',
-});
-const taskBreakerReadiness = coordinator.getProviderExecutionReadiness({
-  projectId: project.id,
-  role: 'task-breaker',
-});
-const builderPreflightReadiness = coordinator.getProviderExecutionReadiness({
-  projectId: project.id,
-  role: 'builder-preflight',
-});
-const builderLiveMutationReadiness = coordinator.getProviderExecutionReadiness({
-  projectId: project.id,
-  role: 'builder-live-mutation',
-});
-const reviewerReadiness = coordinator.getProviderExecutionReadiness({
-  projectId: project.id,
-  role: 'reviewer',
-});
+  const plannerReadiness = coordinator.getProviderExecutionReadiness({
+    projectId: project.id,
+    role: 'planner',
+  });
+  const architectReadiness = coordinator.getProviderExecutionReadiness({
+    projectId: project.id,
+    role: 'architect',
+  });
+  const taskBreakerReadiness = coordinator.getProviderExecutionReadiness({
+    projectId: project.id,
+    role: 'task-breaker',
+  });
+  const builderPreflightReadiness = coordinator.getProviderExecutionReadiness({
+    projectId: project.id,
+    role: 'builder-preflight',
+  });
+  const builderLiveMutationReadiness = coordinator.getProviderExecutionReadiness({
+    projectId: project.id,
+    role: 'builder-live-mutation',
+  });
+  const reviewerReadiness = coordinator.getProviderExecutionReadiness({
+    projectId: project.id,
+    role: 'reviewer',
+  });
 
-assert.equal(plannerReadiness.readiness, 'ready');
-assert.equal(plannerReadiness.allowed, true);
-assert.equal(architectReadiness.readiness, 'ready');
-assert.equal(architectReadiness.allowed, true);
-assert.equal(taskBreakerReadiness.readiness, 'ready');
-assert.equal(taskBreakerReadiness.allowed, true);
-assert.equal(builderPreflightReadiness.readiness, 'ready');
-assert.equal(builderPreflightReadiness.allowed, true);
-assert.equal(builderLiveMutationReadiness.readiness, 'ready');
-assert.equal(builderLiveMutationReadiness.allowed, true);
-assert.equal(reviewerReadiness.readiness, 'ready');
-assert.equal(reviewerReadiness.allowed, true);
+  assert.equal(plannerReadiness.readiness, 'ready');
+  assert.equal(plannerReadiness.allowed, true);
+  assert.equal(architectReadiness.readiness, 'ready');
+  assert.equal(architectReadiness.allowed, true);
+  assert.equal(taskBreakerReadiness.readiness, 'ready');
+  assert.equal(taskBreakerReadiness.allowed, true);
+  assert.equal(builderPreflightReadiness.readiness, 'ready');
+  assert.equal(builderPreflightReadiness.allowed, true);
+  assert.equal(builderLiveMutationReadiness.readiness, 'ready');
+  assert.equal(builderLiveMutationReadiness.allowed, true);
+  assert.equal(reviewerReadiness.readiness, 'ready');
+  assert.equal(reviewerReadiness.allowed, true);
 
-const plannerResult = await coordinator.runPlanner({
-  taskId: task.id,
-  routingOutcome: createRoutingOutcome(
-    'Verify the optional real live builder-live-mutation plus reviewer path for provider-slice-07 while keeping commit, release, and close-out semantics unchanged.',
-  ),
-});
-const architectResult = await coordinator.runArchitect({
-  taskId: task.id,
-});
-const taskBreakerResult = await coordinator.runTaskBreaker({
-  taskId: task.id,
-});
-const builderPreflightResult = await coordinator.runBuilderPreflight({
-  taskId: task.id,
-});
+  const plannerResult = await runStage('planner', () =>
+    coordinator.runPlanner({
+      taskId: task.id,
+      routingOutcome: createRoutingOutcome(
+        'Verify the optional real live builder-live-mutation plus reviewer path for provider-slice-07 while keeping commit, release, and close-out semantics unchanged.',
+      ),
+    }),
+  );
+  const architectResult = await runStage('architect', () =>
+    coordinator.runArchitect({
+      taskId: task.id,
+    }),
+  );
+  const taskBreakerResult = await runStage('task-breaker', () =>
+    coordinator.runTaskBreaker({
+      taskId: task.id,
+    }),
+  );
+  const builderPreflightResult = await runStage('builder-preflight', () =>
+    coordinator.runBuilderPreflight({
+      taskId: task.id,
+    }),
+  );
 
-assert.equal(plannerResult.run.summary.adapter, 'openai-responses');
-assert.equal(architectResult.run.summary.adapter, 'openai-responses');
-assert.equal(taskBreakerResult.run.summary.adapter, 'openai-responses');
-assert.equal(builderPreflightResult.run.summary.adapter, 'openai-responses');
-assert.equal(builderPreflightResult.run.summary.nextStage, 'request-builder-live-mutation-approval');
+  assert.equal(plannerResult.run.summary.adapter, 'openai-responses');
+  assert.equal(architectResult.run.summary.adapter, 'openai-responses');
+  assert.equal(taskBreakerResult.run.summary.adapter, 'openai-responses');
+  assert.equal(builderPreflightResult.run.summary.adapter, 'openai-responses');
+  assert.equal(builderPreflightResult.run.summary.nextStage, 'request-builder-live-mutation-approval');
 
-const approval = runtime.requestBuilderLiveMutationApproval({
-  taskId: task.id,
-});
+  const approval = runtime.requestBuilderLiveMutationApproval({
+    taskId: task.id,
+  });
 
-runtime.resolveDecisionInboxItem({
-  itemId: approval.inboxItemId,
-  action: 'approved',
-  note: 'Approve optional real live builder mutation smoke.',
-});
+  runtime.resolveDecisionInboxItem({
+    itemId: approval.inboxItemId,
+    action: 'approved',
+    note: 'Approve optional real live builder mutation smoke.',
+  });
 
-const builderLiveMutationResult = await coordinator.runBuilderLiveMutation({
-  taskId: task.id,
-});
-const reviewerResult = await coordinator.runReviewer({
-  taskId: task.id,
-});
-const consumedApproval = runtime.getApproval(approval.id);
-const snapshot = runtime.getSnapshot();
+  const builderLiveMutationResult = await runStage('builder-live-mutation', () =>
+    coordinator.runBuilderLiveMutation({
+      taskId: task.id,
+    }),
+  );
+  const reviewerResult = await runStage('reviewer', () =>
+    coordinator.runReviewer({
+      taskId: task.id,
+    }),
+  );
+  const consumedApproval = runtime.getApproval(approval.id);
+  const snapshot = runtime.getSnapshot();
 
-assert.equal(builderLiveMutationResult.run.summary.adapter, 'openai-responses');
-assert.ok(builderLiveMutationResult.run.summary.providerRunId);
-assert.equal(builderLiveMutationResult.run.summary.preflightArtifactId, builderPreflightResult.artifact.id);
-assert.equal(builderLiveMutationResult.run.summary.preflightRunId, builderPreflightResult.run.id);
-assert.equal(builderLiveMutationResult.run.summary.approvalId, approval.id);
-assert.ok(builderLiveMutationResult.artifacts.changeSummary.id);
-assert.ok(builderLiveMutationResult.artifacts.patch.id);
-assert.ok(builderLiveMutationResult.artifacts.diff.id);
-assert.ok(Array.isArray(builderLiveMutationResult.changedFiles));
-assert.ok(builderLiveMutationResult.changedFiles.length > 0);
-assert.equal(consumedApproval.metadata.consumedByRunId, builderLiveMutationResult.run.id);
-assert.ok(consumedApproval.metadata.consumedAt);
-assert.equal(
-  runtime.getTaskGuardSummary(task.id).builderLiveMutation.latestApprovalDisplayStatus,
-  'consumed',
-);
-assert.equal(reviewerResult.run.summary.adapter, 'openai-responses');
-assert.ok(reviewerResult.run.summary.providerRunId);
-assert.ok(reviewerResult.artifact.id);
-assert.ok(['pass', 'fail', 'changes_requested'].includes(reviewerResult.run.summary.rawVerdict));
-assert.ok(['passed', 'changes_requested'].includes(reviewerResult.run.summary.mappedReviewStatus));
-assert.ok(['builder', 'architect', 'human gate'].includes(reviewerResult.run.summary.nextStage));
-assert.equal(reviewerResult.run.summary.sourceRunId, builderLiveMutationResult.run.id);
-assert.equal(countArtifacts(snapshot, task.id, 'review'), 1);
-assert.equal(countArtifacts(snapshot, task.id, 'commit-package'), 0);
-await assert.rejects(
-  () => coordinator.runReviewer({ taskId: task.id }),
-  (error) =>
-    error.statusCode === 409 &&
-    /Terminal reviewer run .* already exists for builder live mutation run/i.test(error.message),
-);
+  assert.equal(builderLiveMutationResult.run.summary.adapter, 'openai-responses');
+  assert.ok(builderLiveMutationResult.run.summary.providerRunId);
+  assert.equal(builderLiveMutationResult.run.summary.preflightArtifactId, builderPreflightResult.artifact.id);
+  assert.equal(builderLiveMutationResult.run.summary.preflightRunId, builderPreflightResult.run.id);
+  assert.equal(builderLiveMutationResult.run.summary.approvalId, approval.id);
+  assert.ok(builderLiveMutationResult.artifacts.changeSummary.id);
+  assert.ok(builderLiveMutationResult.artifacts.patch.id);
+  assert.ok(builderLiveMutationResult.artifacts.diff.id);
+  assert.ok(Array.isArray(builderLiveMutationResult.changedFiles));
+  assert.ok(builderLiveMutationResult.changedFiles.length > 0);
+  assert.equal(consumedApproval.metadata.consumedByRunId, builderLiveMutationResult.run.id);
+  assert.ok(consumedApproval.metadata.consumedAt);
+  assert.equal(
+    runtime.getTaskGuardSummary(task.id).builderLiveMutation.latestApprovalDisplayStatus,
+    'consumed',
+  );
+  assert.equal(reviewerResult.run.summary.adapter, 'openai-responses');
+  assert.ok(reviewerResult.run.summary.providerRunId);
+  assert.ok(reviewerResult.artifact.id);
+  assert.ok(['pass', 'fail', 'changes_requested'].includes(reviewerResult.run.summary.rawVerdict));
+  assert.ok(['passed', 'changes_requested'].includes(reviewerResult.run.summary.mappedReviewStatus));
+  assert.ok(['builder', 'architect', 'human gate'].includes(reviewerResult.run.summary.nextStage));
+  assert.equal(reviewerResult.run.summary.sourceRunId, builderLiveMutationResult.run.id);
+  assert.equal(countArtifacts(snapshot, task.id, 'review'), 1);
+  assert.equal(countArtifacts(snapshot, task.id, 'commit-package'), 0);
+  await assert.rejects(
+    () => coordinator.runReviewer({ taskId: task.id }),
+    (error) =>
+      error.statusCode === 409 &&
+      /Terminal reviewer run .* already exists for builder live mutation run/i.test(error.message),
+  );
 
-assertSecretAbsent(JSON.stringify(snapshot), apiKey, 'snapshot payload');
+  assertSecretAbsent(JSON.stringify(snapshot), apiKey, 'snapshot payload');
 
-for (const run of Object.values(snapshot.runs)) {
-  const logs = runtime.getLogs(run.id);
-  assertSecretAbsent(JSON.stringify(logs), apiKey, `logs ${run.id}`);
+  for (const run of Object.values(snapshot.runs)) {
+    const logs = runtime.getLogs(run.id);
+    assertSecretAbsent(JSON.stringify(logs), apiKey, `logs ${run.id}`);
+  }
+
+  for (const artifact of Object.values(snapshot.artifacts)) {
+    const artifactPayload = runtime.getArtifact(artifact.id);
+    assertSecretAbsent(JSON.stringify(artifactPayload), apiKey, `artifact ${artifact.id}`);
+  }
+
+  const runtimeSecretMatches = scanFilesForSecret(runtimeRoot, apiKey);
+  assert.deepEqual(runtimeSecretMatches, []);
+
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        runtimeRoot,
+        projectId: project.id,
+        plannerRunId: plannerResult.run.id,
+        architectRunId: architectResult.run.id,
+        taskBreakerRunId: taskBreakerResult.run.id,
+        builderPreflightRunId: builderPreflightResult.run.id,
+        builderLiveMutationRunId: builderLiveMutationResult.run.id,
+        reviewerRunId: reviewerResult.run.id,
+        reviewArtifactId: reviewerResult.artifact.id,
+        reviewerRawVerdict: reviewerResult.run.summary.rawVerdict,
+        reviewerMappedStatus: reviewerResult.run.summary.mappedReviewStatus,
+        stageTimings,
+        timeoutBudgetMs: {
+          providerRequest: 30_000,
+        },
+        changedFiles: builderLiveMutationResult.changedFiles,
+      },
+      null,
+      2,
+    ),
+  );
+} catch (error) {
+  if (!String(error.message || '').includes('[stageTimings=')) {
+    error.message = `${error.message} [stageTimings=${JSON.stringify(stageTimings)}]`;
+  }
+  throw error;
 }
-
-for (const artifact of Object.values(snapshot.artifacts)) {
-  const artifactPayload = runtime.getArtifact(artifact.id);
-  assertSecretAbsent(JSON.stringify(artifactPayload), apiKey, `artifact ${artifact.id}`);
-}
-
-const runtimeSecretMatches = scanFilesForSecret(runtimeRoot, apiKey);
-assert.deepEqual(runtimeSecretMatches, []);
-
-console.log(
-  JSON.stringify(
-    {
-      ok: true,
-      runtimeRoot,
-      projectId: project.id,
-      plannerRunId: plannerResult.run.id,
-      architectRunId: architectResult.run.id,
-      taskBreakerRunId: taskBreakerResult.run.id,
-      builderPreflightRunId: builderPreflightResult.run.id,
-      builderLiveMutationRunId: builderLiveMutationResult.run.id,
-      reviewerRunId: reviewerResult.run.id,
-      reviewArtifactId: reviewerResult.artifact.id,
-      reviewerRawVerdict: reviewerResult.run.summary.rawVerdict,
-      reviewerMappedStatus: reviewerResult.run.summary.mappedReviewStatus,
-      changedFiles: builderLiveMutationResult.changedFiles,
-    },
-    null,
-    2,
-  ),
-);

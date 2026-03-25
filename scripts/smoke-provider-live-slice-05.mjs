@@ -116,7 +116,7 @@ const task = runtime.createTask({
   projectId: project.id,
   title: 'provider live slice 05 builder preflight smoke',
   intent:
-    'Run planner, architect, task-breaker, and builder-preflight live for provider-slice-05 while keeping builder live mutation and reviewer live blocked. Stay inside these repo-relative files only: src/runtime/contracts.js, src/runtime/runtime-service.js, src/execution/provider-adapter.js, src/execution/execution-coordinator.js, src/execution/providers/openai-responses-adapter.js, ui/app.js.',
+    'Run planner, architect, task-breaker, and builder-preflight live for provider-slice-05 while leaving builder-live-mutation and reviewer execution to later smokes. Stay inside these repo-relative files only: src/runtime/contracts.js, src/runtime/runtime-service.js, src/execution/provider-adapter.js, src/execution/execution-coordinator.js, src/execution/providers/openai-responses-adapter.js, ui/app.js.',
 });
 const coordinator = createExecutionCoordinator({
   repoRoot,
@@ -158,15 +158,16 @@ assert.equal(taskBreakerReadiness.readiness, 'ready');
 assert.equal(taskBreakerReadiness.allowed, true);
 assert.equal(builderPreflightReadiness.readiness, 'ready');
 assert.equal(builderPreflightReadiness.allowed, true);
-assert.equal(builderLiveMutationReadiness.readiness, 'degraded');
-assert.equal(builderLiveMutationReadiness.allowed, false);
-assert.equal(reviewerReadiness.readiness, 'degraded');
-assert.equal(reviewerReadiness.allowed, false);
+// Downstream provider readiness stays ready even though execution continues in later smokes.
+assert.equal(builderLiveMutationReadiness.readiness, 'ready');
+assert.equal(builderLiveMutationReadiness.allowed, true);
+assert.equal(reviewerReadiness.readiness, 'ready');
+assert.equal(reviewerReadiness.allowed, true);
 
 const plannerResult = await coordinator.runPlanner({
   taskId: task.id,
   routingOutcome: createRoutingOutcome(
-    'Validate the optional real planner, architect, task-breaker, and builder-preflight live path for provider-slice-05 without widening builder live mutation or reviewer live execution.',
+    'Validate the optional real planner, architect, task-breaker, and builder-preflight live path for provider-slice-05 while stopping this smoke before downstream live execution.',
   ),
 });
 const architectResult = await coordinator.runArchitect({

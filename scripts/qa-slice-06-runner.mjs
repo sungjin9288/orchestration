@@ -700,7 +700,7 @@ Keep browser checks limited to approval request, inbox approval, live mutation l
 - builder live mutation approval is requested and consumed once for the current preflight pair
 - builder live mutation stores change-summary, patch, and diff as one bundle
 - duplicate rerun stays blocked
-- reviewer provider execution remains blocked or degraded
+- reviewer provider readiness stays visible while reviewer execution remains outside this slice
 
 ## Verification Approach
 - browser landing, selection, button visibility, logs landing, and selected artifact visibility checks
@@ -808,7 +808,9 @@ function createTaskBreakerStructuredText({ anchor, artifact = {}, normalizedResu
         : ['Stop if mutation would leave the approved allowlist or change runtime semantics.'],
       executionBoundarySummary: Array.isArray(artifact.executionBoundarySummary)
         ? artifact.executionBoundarySummary
-        : ['The slice ends at builder live mutation verification; reviewer live remains blocked.'],
+        : [
+            'The slice ends at builder live mutation verification; reviewer execution moves to the later reviewer slice.',
+          ],
     },
     normalizedResult: {
       blockers: Array.isArray(normalizedResult.blockers) ? normalizedResult.blockers : [],
@@ -1684,87 +1686,135 @@ async function runSharedQaSlice06Flow({
   const runtime = createRuntimeService({ runtimeRoot });
   const fixture = createFixtureProject(projectName);
   const domTexts = [];
+  const stageTimings = [];
+
+  async function runStage(stage, fn) {
+    const startedAt = Date.now();
+
+    try {
+      const result = await fn();
+
+      stageTimings.push({
+        durationMs: Date.now() - startedAt,
+        stage,
+        status: 'ok',
+      });
+
+      return result;
+    } catch (error) {
+      const durationMs = Date.now() - startedAt;
+
+      stageTimings.push({
+        durationMs,
+        stage,
+        status: 'error',
+      });
+      error.message = `${error.message} [stage=${stage}] [durationMs=${durationMs}] [stageTimings=${JSON.stringify(stageTimings)}]`;
+      throw error;
+    }
+  }
 
   ensureCleanDir(outputRoot);
   ensureCleanDir(runtimeRoot);
   ensurePlaywrightConfig(outputRoot, path.join(outputRoot, 'playwright-cli.json'));
   runtime.resetRuntime();
 
-  const harness = await prepareBrowserHarness({
-    browser,
-    outputRoot,
-    overrideEnvVar,
-    runtimeRoot,
-    serverEnv: createServerEnv(),
-  });
-
-  try {
-    const landingSnapshot = await waitForSnapshotText({
+  const harness = await runStage('prepare-browser-harness', () =>
+    prepareBrowserHarness({
+      browser,
       outputRoot,
       overrideEnvVar,
-      pattern: /Register Project/i,
-      sessionName: harness.sessionName,
-      label: 'project bootstrap landing',
-    });
+      runtimeRoot,
+      serverEnv: createServerEnv(),
+    }),
+  );
+
+  try {
+    const landingSnapshot = await runStage('browser-bootstrap-landing', () =>
+      waitForSnapshotText({
+        outputRoot,
+        overrideEnvVar,
+        pattern: /Register Project/i,
+        sessionName: harness.sessionName,
+        label: 'project bootstrap landing',
+      }),
+    );
     domTexts.push(landingSnapshot);
     assertSecretAbsent(landingSnapshot, secretToCheck, 'landing snapshot');
 
-    const projectPayload = await postJson(harness.baseUrl, '/api/projects', {
-      name: projectName,
-      projectPath: fixture.projectPath,
-      provider: {
-        adapter: 'openai-responses',
-        mode: 'live',
-        model: providerModel,
-        env: {
-          apiKeyVar: liveProviderApiKeyVar,
+    const projectPayload = await runStage('register-live-project', () =>
+      postJson(harness.baseUrl, '/api/projects', {
+        name: projectName,
+        projectPath: fixture.projectPath,
+        provider: {
+          adapter: 'openai-responses',
+          mode: 'live',
+          model: providerModel,
+          env: {
+            apiKeyVar: liveProviderApiKeyVar,
+          },
         },
-      },
-    });
+      }),
+    );
     const projectId = projectPayload.project.id;
 
-    await refreshBrowser({
-      outputRoot,
-      overrideEnvVar,
-      sessionName: harness.sessionName,
-    });
+    await runStage('browser-refresh-after-project', () =>
+      refreshBrowser({
+        outputRoot,
+        overrideEnvVar,
+        sessionName: harness.sessionName,
+      }),
+    );
 
-    const providerReadySnapshot = await verifyBrowserProjectSummary({
-      outputRoot,
-      overrideEnvVar,
-      projectSummary: projectPayload.derived.providerExecutionSummaries[projectId],
-      secret: secretToCheck,
-      sessionName: harness.sessionName,
-    });
+    const providerReadySnapshot = await runStage('verify-browser-project-summary', () =>
+      verifyBrowserProjectSummary({
+        outputRoot,
+        overrideEnvVar,
+        projectSummary: projectPayload.derived.providerExecutionSummaries[projectId],
+        secret: secretToCheck,
+        sessionName: harness.sessionName,
+      }),
+    );
     domTexts.push(providerReadySnapshot);
 
-    const taskPayload = await postJson(harness.baseUrl, '/api/tasks', {
-      title: taskTitle,
-      intent:
-        'Verify builder live mutation through browser and API without widening runtime, reviewer, release, or close-out semantics.',
-    });
+    const taskPayload = await runStage('create-task', () =>
+      postJson(harness.baseUrl, '/api/tasks', {
+        title: taskTitle,
+        intent:
+          'Verify builder live mutation through browser and API without widening runtime, reviewer, release, or close-out semantics.',
+      }),
+    );
 
     const readinessCoordinator = createReadinessCoordinator(runtime);
     const roleReadinessBefore = collectRoleReadiness(readinessCoordinator, projectId);
 
     assertRoleReadiness(roleReadinessBefore);
 
-    const upstreamContext = await createUpstreamCoordinator(runtime, taskPayload.task.id, projectId);
-
-    await refreshBrowser({
-      outputRoot,
-      overrideEnvVar,
-      sessionName: harness.sessionName,
-    });
-
-    const approvalRequestPayload = await postJson(
-      harness.baseUrl,
-      `/api/tasks/${encodeURIComponent(taskPayload.task.id)}/request-builder-live-mutation-approval`,
+    const upstreamContext = await runStage('prepare-upstream-context', () =>
+      createUpstreamCoordinator(runtime, taskPayload.task.id, projectId),
     );
-    const approvalRequestedSnapshot = await waitForSnapshotPayload(
-      harness.baseUrl,
-      'builder live mutation approval requested snapshot',
-      (payload) => payload.snapshot.approvals[approvalRequestPayload.mutation.approvalId]?.status === 'pending',
+
+    await runStage('browser-refresh-before-approval-request', () =>
+      refreshBrowser({
+        outputRoot,
+        overrideEnvVar,
+        sessionName: harness.sessionName,
+      }),
+    );
+
+    const approvalRequestPayload = await runStage('request-builder-approval', () =>
+      postJson(
+        harness.baseUrl,
+        `/api/tasks/${encodeURIComponent(taskPayload.task.id)}/request-builder-live-mutation-approval`,
+      ),
+    );
+    const approvalRequestedSnapshot = await runStage('wait-builder-approval-pending', () =>
+      waitForSnapshotPayload(
+        harness.baseUrl,
+        'builder live mutation approval requested snapshot',
+        (payload) =>
+          payload.snapshot.approvals[approvalRequestPayload.mutation.approvalId]?.status === 'pending',
+      ),
     );
     const approval = Object.values(approvalRequestedSnapshot.snapshot.approvals).find(
       (candidate) => candidate.taskId === taskPayload.task.id,
@@ -1782,20 +1832,25 @@ async function runSharedQaSlice06Flow({
     assert.equal(taskGuardAfterRequest.builderLiveMutation.allowed, false);
     assert.equal(taskGuardAfterRequest.builderLiveMutationApprovalRequest.allowed, false);
 
-    await postJson(
-      harness.baseUrl,
-      `/api/decision-inbox/${encodeURIComponent(inboxItem.id)}/actions`,
-      { verb: 'approve' },
+    await runStage('approve-builder-approval', () =>
+      postJson(
+        harness.baseUrl,
+        `/api/decision-inbox/${encodeURIComponent(inboxItem.id)}/actions`,
+        { verb: 'approve' },
+      ),
     );
 
-    const approvalResolvedSnapshot = await waitForSnapshotPayload(
-      harness.baseUrl,
-      'builder live mutation approval approved snapshot',
-      (payload) => {
-        const nextApproval = payload.snapshot.approvals[approval.id];
-        const guardSummary = payload.derived.taskGuardSummaries?.[taskPayload.task.id]?.builderLiveMutation;
-        return nextApproval?.status === 'approved' && guardSummary?.allowed === true;
-      },
+    const approvalResolvedSnapshot = await runStage('wait-builder-approval-approved', () =>
+      waitForSnapshotPayload(
+        harness.baseUrl,
+        'builder live mutation approval approved snapshot',
+        (payload) => {
+          const nextApproval = payload.snapshot.approvals[approval.id];
+          const guardSummary =
+            payload.derived.taskGuardSummaries?.[taskPayload.task.id]?.builderLiveMutation;
+          return nextApproval?.status === 'approved' && guardSummary?.allowed === true;
+        },
+      ),
     );
     const approvedRecord = approvalResolvedSnapshot.snapshot.approvals[approval.id];
     const taskGuardAfterApprove =
@@ -1817,51 +1872,62 @@ async function runSharedQaSlice06Flow({
       approvedRecord.id,
     );
 
-    await queueBuilderLiveMutationResponse({
-      anchor: builderAnchor,
-      approval: approvedRecord,
-      context: {
-        ...upstreamContext,
+    await runStage('queue-builder-live-mutation-response', () =>
+      queueBuilderLiveMutationResponse({
+        anchor: builderAnchor,
         approval: approvedRecord,
-        project: projectPayload.project,
-      },
-      mutationPlan,
-    });
-
-    await refreshBrowser({
-      outputRoot,
-      overrideEnvVar,
-      sessionName: harness.sessionName,
-    });
-
-    const runTexts = await triggerBrowserBuilderLiveMutation({
-      outputRoot,
-      overrideEnvVar,
-      secret: secretToCheck,
-      sessionName: harness.sessionName,
-      taskId: taskPayload.task.id,
-      taskTitle: taskPayload.task.title,
-    });
-    domTexts.push(...runTexts);
-    const mutationPayload = await postJson(
-      harness.baseUrl,
-      `/api/tasks/${encodeURIComponent(taskPayload.task.id)}/run-builder-live-mutation`,
+        context: {
+          ...upstreamContext,
+          approval: approvedRecord,
+          project: projectPayload.project,
+        },
+        mutationPlan,
+      }),
     );
 
-    const successSnapshot = await waitForSnapshotPayload(
-      harness.baseUrl,
-      'builder live mutation success snapshot',
-      (payload) => {
-        const guardSummary = payload.derived.taskGuardSummaries?.[taskPayload.task.id]?.builderLiveMutation;
-        return (
-          countArtifacts(payload.snapshot, taskPayload.task.id, 'change-summary') === 1 &&
-          countArtifacts(payload.snapshot, taskPayload.task.id, 'patch') === 1 &&
-          countArtifacts(payload.snapshot, taskPayload.task.id, 'diff') === 1 &&
-          payload.snapshot.runs[mutationPayload.mutation.runId] &&
-          payload.snapshot.approvals[approval.id]?.metadata?.consumedAt &&
-          guardSummary?.latestApprovalDisplayStatus === 'consumed'
-        );
-      },
+    await runStage('browser-refresh-before-builder-run', () =>
+      refreshBrowser({
+        outputRoot,
+        overrideEnvVar,
+        sessionName: harness.sessionName,
+      }),
+    );
+
+    const runTexts = await runStage('browser-verify-builder-run-entry', () =>
+      triggerBrowserBuilderLiveMutation({
+        outputRoot,
+        overrideEnvVar,
+        secret: secretToCheck,
+        sessionName: harness.sessionName,
+        taskId: taskPayload.task.id,
+        taskTitle: taskPayload.task.title,
+      }),
+    );
+    domTexts.push(...runTexts);
+    const mutationPayload = await runStage('run-builder-live-mutation-api', () =>
+      postJson(
+        harness.baseUrl,
+        `/api/tasks/${encodeURIComponent(taskPayload.task.id)}/run-builder-live-mutation`,
+      ),
+    );
+
+    const successSnapshot = await runStage('wait-builder-success-snapshot', () =>
+      waitForSnapshotPayload(
+        harness.baseUrl,
+        'builder live mutation success snapshot',
+        (payload) => {
+          const guardSummary =
+            payload.derived.taskGuardSummaries?.[taskPayload.task.id]?.builderLiveMutation;
+          return (
+            countArtifacts(payload.snapshot, taskPayload.task.id, 'change-summary') === 1 &&
+            countArtifacts(payload.snapshot, taskPayload.task.id, 'patch') === 1 &&
+            countArtifacts(payload.snapshot, taskPayload.task.id, 'diff') === 1 &&
+            payload.snapshot.runs[mutationPayload.mutation.runId] &&
+            payload.snapshot.approvals[approval.id]?.metadata?.consumedAt &&
+            guardSummary?.latestApprovalDisplayStatus === 'consumed'
+          );
+        },
+      ),
     );
 
     const changeSummaryArtifact = findLatestArtifact(successSnapshot, taskPayload.task.id, 'change-summary');
@@ -1896,10 +1962,17 @@ async function runSharedQaSlice06Flow({
     assert.equal(mutationPayload.mutation.patchArtifactId, patchArtifact.id);
     assert.equal(mutationPayload.mutation.diffArtifactId, diffArtifact.id);
 
-    const changeSummaryPayload = await fetchArtifactPayload(harness.baseUrl, changeSummaryArtifact.id);
-    const patchPayload = await fetchArtifactPayload(harness.baseUrl, patchArtifact.id);
-    const diffPayload = await fetchArtifactPayload(harness.baseUrl, diffArtifact.id);
-    const builderLogs = await fetchRunLogsPayload(harness.baseUrl, builderRun.id);
+    const {
+      builderLogs,
+      changeSummaryPayload,
+      diffPayload,
+      patchPayload,
+    } = await runStage('fetch-builder-artifacts-and-logs', async () => ({
+      builderLogs: await fetchRunLogsPayload(harness.baseUrl, builderRun.id),
+      changeSummaryPayload: await fetchArtifactPayload(harness.baseUrl, changeSummaryArtifact.id),
+      diffPayload: await fetchArtifactPayload(harness.baseUrl, diffArtifact.id),
+      patchPayload: await fetchArtifactPayload(harness.baseUrl, patchArtifact.id),
+    }));
 
     assert.match(changeSummaryPayload.artifact.content, /^# Builder Live Mutation:/m);
     assert.match(changeSummaryPayload.artifact.content, /^## Change Summary$/m);
@@ -1912,31 +1985,41 @@ async function runSharedQaSlice06Flow({
       /saved builder live mutation bundle/i,
     );
 
-    await refreshBrowser({
-      outputRoot,
-      overrideEnvVar,
-      sessionName: harness.sessionName,
-    });
-    const logsText = await verifyBrowserLogsLanding({
-      outputRoot,
-      overrideEnvVar,
-      runId: builderRun.id,
-      secret: secretToCheck,
-      sessionName: harness.sessionName,
-    });
+    await runStage('browser-refresh-before-logs-check', () =>
+      refreshBrowser({
+        outputRoot,
+        overrideEnvVar,
+        sessionName: harness.sessionName,
+      }),
+    );
+    const logsText = await runStage('browser-verify-builder-logs-landing', () =>
+      verifyBrowserLogsLanding({
+        outputRoot,
+        overrideEnvVar,
+        runId: builderRun.id,
+        secret: secretToCheck,
+        sessionName: harness.sessionName,
+      }),
+    );
     domTexts.push(logsText);
 
-    const artifactText = await verifyBrowserArtifactSelection({
-      artifactId: changeSummaryArtifact.id,
-      outputRoot,
-      overrideEnvVar,
-      secret: secretToCheck,
-      sessionName: harness.sessionName,
-    });
+    const artifactText = await runStage('browser-verify-change-summary-selection', () =>
+      verifyBrowserArtifactSelection({
+        artifactId: changeSummaryArtifact.id,
+        outputRoot,
+        overrideEnvVar,
+        secret: secretToCheck,
+        sessionName: harness.sessionName,
+      }),
+    );
     domTexts.push(artifactText);
 
-    await assertDuplicateLiveMutationBlocks(harness.baseUrl, taskPayload.task.id);
-    await scanApiPayloadsForSecret(harness.baseUrl, successSnapshot, secretToCheck);
+    await runStage('verify-builder-duplicate-guards', () =>
+      assertDuplicateLiveMutationBlocks(harness.baseUrl, taskPayload.task.id),
+    );
+    await runStage('scan-builder-api-payloads-for-secret', () =>
+      scanApiPayloadsForSecret(harness.baseUrl, successSnapshot, secretToCheck),
+    );
 
     const roleReadinessAfter = collectRoleReadiness(readinessCoordinator, projectId);
 
@@ -1982,6 +2065,13 @@ async function runSharedQaSlice06Flow({
         reviewer: roleReadinessAfter.reviewer.readiness,
         taskBreaker: roleReadinessAfter.taskBreaker.readiness,
       },
+      stageTimings,
+      timeoutBudgetMs: {
+        browserPoll: 12_000,
+        playwrightAction: 60_000,
+        playwrightOpen: 120_000,
+        providerRequest: 30_000,
+      },
       scenario: {
         approvalId: approval.id,
         builderRunId: builderRun.id,
@@ -1999,6 +2089,9 @@ async function runSharedQaSlice06Flow({
       overrideEnvVar,
       sessionName: harness.sessionName,
     });
+    if (!String(error.message || '').includes('[stageTimings=')) {
+      error.message = `${error.message} [stageTimings=${JSON.stringify(stageTimings)}]`;
+    }
     throw error;
   } finally {
     closePlaywrightSession({
