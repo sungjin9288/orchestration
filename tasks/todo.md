@@ -48,6 +48,16 @@
 - [x] `node scripts/smoke-qa-live-slice-05.mjs` recorded `status=skipped`, `model=(unset)`
 - [x] `node scripts/smoke-qa-live-slice-06.mjs` recorded `status=skipped`, `model=(unset)`
 - [x] `node scripts/smoke-qa-live-slice-07.mjs` recorded `status=skipped`, `model=(unset)`
+- [x] `ops-verification-m5-02` ran on `2026-03-25` as a non-blocking operational verification; env snapshot was `OPENAI_API_KEY=true`, `OPENAI_RESPONSES_MODEL=gpt-5.4`, and each script result was recorded without changing the required freeze gate
+- [x] `node scripts/smoke-provider-live-slice-02.mjs` recorded `status=pass`, `model=gpt-5.4`
+- [x] `node scripts/smoke-qa-live-slice-04.mjs` recorded `status=pass`, `model=gpt-5.4`
+- [x] `node scripts/smoke-qa-live-slice-05.mjs` recorded `status=pass`, `model=gpt-5.4`
+- [x] `node scripts/smoke-provider-live-slice-03.mjs` recorded `status=fail (stale expectation suspected)`, `model=gpt-5.4`
+- [x] `node scripts/smoke-provider-live-slice-05.mjs` recorded `status=fail (stale expectation suspected)`, `model=gpt-5.4`
+- [x] `node scripts/smoke-provider-live-slice-06.mjs` recorded `status=fail (stale expectation suspected)`, `model=gpt-5.4`
+- [x] `node scripts/smoke-provider-live-slice-07.mjs` recorded `status=fail (real timeout observed)`, `model=gpt-5.4`
+- [x] `node scripts/smoke-qa-live-slice-06.mjs` recorded `status=fail (real timeout observed)`, `model=gpt-5.4`
+- [x] `node scripts/smoke-qa-live-slice-07.mjs` recorded `status=fail (real timeout observed)`, `model=gpt-5.4`
 
 ### source-of-truth docs/tasks [accepted]
 - [x] `docs/00_master-brief.md`, `docs/03_architecture-roadmap-v1.md`, `packs/development/pack.md`, and `tasks/todo.md` describe the current implemented planner-through-reviewer live boundary without widening scope
@@ -98,7 +108,8 @@
 - [ ] decide whether to keep `milestone-m3-freeze` as pure archive provenance or trim it in a later docs-only cleanup
 - [ ] decide whether `node scripts/smoke-qa-slice-01.mjs` should be promoted from optional browser coverage to a required regression gate
 - [ ] decide whether task-breaker optional real-live coverage needs a standalone provider entrypoint beyond the existing `smoke-qa-live-slice-04.mjs` path
-- [ ] rerun optional real-live verification with configured `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL` to capture provider/API `pass|fail|skipped` evidence by model when operator credentials are available
+- [ ] investigate `status=fail (stale expectation suspected)` results from `scripts/smoke-provider-live-slice-03.mjs`, `scripts/smoke-provider-live-slice-05.mjs`, and `scripts/smoke-provider-live-slice-06.mjs` against the current planner-through-reviewer frozen baseline
+- [ ] investigate `status=fail (real timeout observed)` results from `scripts/smoke-provider-live-slice-07.mjs`, `scripts/smoke-qa-live-slice-06.mjs`, and `scripts/smoke-qa-live-slice-07.mjs` under `OPENAI_RESPONSES_MODEL=gpt-5.4`
 - [ ] decide whether any future repo-content redaction implementation should stay preview/export-only or also create redacted derivative copies, while keeping raw stored artifact content as the source of truth
 - [ ] decide the final helper label and placement for any future commit-side resume CTA, including whether it should appear in `Task Detail` only or also in `Artifacts`
 - [ ] decide whether `Decision Inbox` should expose only a navigation hint back to the current task/panel for commit approval follow-up, while keeping actual execution out of inbox actions
