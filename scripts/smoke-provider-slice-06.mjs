@@ -88,6 +88,10 @@ function countArtifacts(snapshot, taskId, type = null) {
   ).length;
 }
 
+function countDecisionInboxItems(snapshot, taskId) {
+  return Object.values(snapshot.decisionInboxItems).filter((item) => item.taskId === taskId).length;
+}
+
 function scanFilesForSecret(rootPath, secret) {
   const matches = [];
 
@@ -783,6 +787,60 @@ async function assertBuilderLiveMutationFailure({
   }
 }
 
+async function assertBuilderLiveMutationEscalation({
+  builderLiveResponseFactory,
+  expectedDecision = false,
+  expectedNextStage,
+  label,
+  project,
+  runtime,
+}) {
+  const queuedFetch = createQueuedFetch([createPlannerApiPayload(`${label}-planner`)]);
+  const coordinator = createLiveCoordinator(runtime, queuedFetch.fetchImpl);
+  const context = await runApprovedBuilderPreflightContext({
+    coordinator,
+    project,
+    queuedFetch,
+    runtime,
+    label,
+  });
+  const approvalBefore = runtime.getApproval(context.approval.id);
+  const builderAnchor = createBuilderLiveMutationAnchor(context);
+  const beforeSnapshot = runtime.getSnapshot();
+  const runCountBefore = countRuns(beforeSnapshot, context.task.id);
+  const changeSummaryCountBefore = countArtifacts(beforeSnapshot, context.task.id, 'change-summary');
+  const patchCountBefore = countArtifacts(beforeSnapshot, context.task.id, 'patch');
+  const diffCountBefore = countArtifacts(beforeSnapshot, context.task.id, 'diff');
+  const decisionCountBefore = countDecisionInboxItems(beforeSnapshot, context.task.id);
+  const targetFileContentsBefore = context.targetFiles.map((relativePath) => ({
+    path: relativePath,
+    content: fs.readFileSync(path.join(context.project.projectPath, relativePath), 'utf8'),
+  }));
+
+  queuedFetch.push(builderLiveResponseFactory(builderAnchor, context));
+
+  const result = await coordinator.runBuilderLiveMutation({ taskId: context.task.id });
+  const afterSnapshot = runtime.getSnapshot();
+  const approvalAfter = runtime.getApproval(context.approval.id);
+
+  assert.equal(countRuns(afterSnapshot, context.task.id), runCountBefore + 1);
+  assert.equal(countArtifacts(afterSnapshot, context.task.id, 'change-summary'), changeSummaryCountBefore);
+  assert.equal(countArtifacts(afterSnapshot, context.task.id, 'patch'), patchCountBefore);
+  assert.equal(countArtifacts(afterSnapshot, context.task.id, 'diff'), diffCountBefore);
+  assert.equal(countDecisionInboxItems(afterSnapshot, context.task.id), decisionCountBefore + (expectedDecision ? 1 : 0));
+  assert.equal(result.run.summary.nextStage, expectedNextStage);
+  assert.deepEqual(result.changedFiles, []);
+  assert.deepEqual(result.artifacts, {});
+  assert.equal(Boolean(result.decisionInboxItem), expectedDecision);
+  assert.equal(Boolean(approvalBefore.metadata?.consumedAt), false);
+  assert.equal(Boolean(approvalAfter.metadata?.consumedAt), false);
+
+  for (const fileRecord of targetFileContentsBefore) {
+    const content = fs.readFileSync(path.join(context.project.projectPath, fileRecord.path), 'utf8');
+    assert.equal(content, fileRecord.content);
+  }
+}
+
 const runtime = createRuntimeService({ runtimeRoot });
 runtime.resetRuntime();
 process.env[liveProviderEnvVar] = sentinelSecret;
@@ -943,6 +1001,59 @@ assert.throws(
   () => runtime.requestBuilderLiveMutationApproval({ taskId: happyContext.task.id }),
   (error) => error.statusCode === 409 && /successful builder live mutation run|already covers/i.test(error.message),
 );
+
+await assertBuilderLiveMutationEscalation({
+  expectedNextStage: 'architect',
+  label: 'builder-live-mutation architect escalation',
+  project: liveProject,
+  runtime,
+  builderLiveResponseFactory: (anchor, context) =>
+    createBuilderLiveMutationApiPayload(anchor, {
+      artifact: {
+        changeSummary: ['Escalate without mutating files when upstream architectural clarification is required.'],
+        fileUpdates: [],
+        targetFiles: context.targetFiles,
+        risks: ['Do not write files before architect follow-up clarifies the bounded mutation.'],
+        verificationNotes: ['Keep the approved live-mutation approval unconsumed when no write occurs.'],
+      },
+      normalizedResult: {
+        blockers: ['Architect review is required before a bounded mutation can proceed.'],
+        needsDecision: false,
+        nextStage: 'architect',
+        summary: 'Escalate to architect without mutating files.',
+        decisionTitle: '',
+        decisionPrompt: '',
+      },
+      providerRunId: 'resp-builder-live-mutation-architect-escalation',
+    }),
+});
+
+await assertBuilderLiveMutationEscalation({
+  builderLiveResponseFactory: (anchor, context) =>
+    createBuilderLiveMutationApiPayload(anchor, {
+      artifact: {
+        changeSummary: ['Hold at human gate without mutating files while awaiting explicit approval.'],
+        fileUpdates: [],
+        targetFiles: context.targetFiles,
+        risks: ['Do not write files before the blocking human decision is resolved.'],
+        verificationNotes: ['Keep the approved live-mutation approval unconsumed when no write occurs.'],
+      },
+      normalizedResult: {
+        blockers: ['A human decision is required before any bounded file mutation may proceed.'],
+        needsDecision: true,
+        nextStage: 'human gate',
+        summary: 'Hold the task at human gate without mutating files.',
+        decisionTitle: 'Builder live mutation decision required',
+        decisionPrompt: 'Decide whether the bounded live mutation may proceed.',
+      },
+      providerRunId: 'resp-builder-live-mutation-human-gate',
+    }),
+  expectedDecision: true,
+  expectedNextStage: 'human gate',
+  label: 'builder-live-mutation human gate escalation',
+  project: liveProject,
+  runtime,
+});
 
 await assertBuilderLiveMutationFailure({
   errorPattern: /structured output JSON is required/i,

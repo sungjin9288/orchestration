@@ -45,6 +45,34 @@ function createRoutingOutcome(scopeStatement) {
   };
 }
 
+const stageTimings = [];
+
+async function runStage(stage, fn) {
+  const startedAt = Date.now();
+
+  try {
+    const result = await fn();
+
+    stageTimings.push({
+      durationMs: Date.now() - startedAt,
+      stage,
+      status: 'ok',
+    });
+
+    return result;
+  } catch (error) {
+    const durationMs = Date.now() - startedAt;
+
+    stageTimings.push({
+      durationMs,
+      stage,
+      status: 'error',
+    });
+    error.message = `${error.message} [stage=${stage}] [durationMs=${durationMs}] [stageTimings=${JSON.stringify(stageTimings)}]`;
+    throw error;
+  }
+}
+
 function scanFilesForSecret(rootPath, secret) {
   const matches = [];
 
@@ -156,15 +184,19 @@ assert.equal(taskBreakerReadiness.allowed, true);
 assert.equal(builderPreflightReadiness.allowed, true);
 assert.equal(reviewerReadiness.allowed, true);
 
-const plannerResult = await coordinator.runPlanner({
-  taskId: task.id,
-  routingOutcome: createRoutingOutcome(
-    'Validate the optional real planner plus architect live path while leaving downstream live stages unexecuted in this smoke.',
-  ),
-});
-const architectResult = await coordinator.runArchitect({
-  taskId: task.id,
-});
+const plannerResult = await runStage('planner', () =>
+  coordinator.runPlanner({
+    taskId: task.id,
+    routingOutcome: createRoutingOutcome(
+      'Validate the optional real planner plus architect live path while leaving downstream live stages unexecuted in this smoke.',
+    ),
+  }),
+);
+const architectResult = await runStage('architect', () =>
+  coordinator.runArchitect({
+    taskId: task.id,
+  }),
+);
 const snapshot = runtime.getSnapshot();
 
 assert.equal(plannerResult.run.summary.adapter, 'openai-responses');
@@ -211,6 +243,7 @@ console.log(
       architectureArtifactId: architectResult.artifact.id,
       architectNextStage: architectResult.run.summary.nextStage,
       decisionInboxItemId: architectResult.decisionInboxItem?.id || null,
+      stageTimings,
       readiness: {
         architect: architectReadiness.readiness,
         planner: readiness.readiness,

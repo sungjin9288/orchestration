@@ -5,7 +5,7 @@ const path = require('path');
 const { PROVIDER_READINESS } = require('../../runtime/contracts');
 
 const DEFAULT_OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
-const DEFAULT_TIMEOUT_MS = 30000;
+const DEFAULT_TIMEOUT_MS = 120000;
 const LIVE_ROLE_LIMIT_REASON =
   'openai-responses live execution is limited to planner, architect, task-breaker, builder-preflight, builder-live-mutation, and reviewer in provider-slice-07';
 
@@ -1230,6 +1230,8 @@ Return JSON only.
 - artifact must include verdict, evidenceReviewed, findings, contractCompliance, verificationEvidence, acceptedRisks, and followUpGate.
 - artifact.verdict must be pass, fail, or changes_requested only.
 - artifact.followUpGate must include blockingIssue and decisionRequired booleans.
+- artifact.followUpGate.decisionRequired must exactly match normalizedResult.needsDecision.
+- artifact.followUpGate.blockingIssue must be true only for a blocking human-gate decision handoff where normalizedResult.nextStage is human gate, normalizedResult.needsDecision is true, and normalizedResult.blockers is non-empty; otherwise artifact.followUpGate.blockingIssue must be false.
 - normalizedResult must describe blockers, decision state, nextStage, summary, decisionTitle, and decisionPrompt for that same review output.
 - normalizedResult.nextStage must be builder, architect, or human gate only.
 - builder is valid only when artifact.verdict is fail or changes_requested, needsDecision=false, and blockers=[].
@@ -2927,6 +2929,20 @@ function buildRequestBody(request, model) {
   throw new Error(`${LIVE_ROLE_LIMIT_REASON}; ${request.role} remains blocked`);
 }
 
+function resolveTimeoutMs(options = {}) {
+  if (Number.isInteger(options.timeoutMs) && options.timeoutMs > 0) {
+    return options.timeoutMs;
+  }
+
+  const envTimeoutMs = Number.parseInt(process.env.OPENAI_RESPONSES_TIMEOUT_MS || '', 10);
+
+  if (Number.isInteger(envTimeoutMs) && envTimeoutMs > 0) {
+    return envTimeoutMs;
+  }
+
+  return DEFAULT_TIMEOUT_MS;
+}
+
 function normalizeStructuredPayload(outputText, request) {
   if (request.role === 'planner') {
     return normalizeStructuredPlannerPayload(outputText);
@@ -2958,7 +2974,7 @@ function normalizeStructuredPayload(outputText, request) {
 function createOpenAIResponsesProviderAdapter(options = {}) {
   const fetchImpl = options.fetchImpl || globalThis.fetch;
   const apiUrl = options.apiUrl || DEFAULT_OPENAI_RESPONSES_URL;
-  const timeoutMs = Number.isInteger(options.timeoutMs) ? options.timeoutMs : DEFAULT_TIMEOUT_MS;
+  const timeoutMs = resolveTimeoutMs(options);
 
   return {
     name: 'openai-responses',
@@ -3065,5 +3081,6 @@ function createOpenAIResponsesProviderAdapter(options = {}) {
 }
 
 module.exports = {
+  DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS: DEFAULT_TIMEOUT_MS,
   createOpenAIResponsesProviderAdapter,
 };

@@ -46,6 +46,19 @@ function createRoutingOutcome(scopeStatement) {
   };
 }
 
+function parseMarkdownList(content, heading) {
+  const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = String(content || '').match(
+    new RegExp(`^## ${escapedHeading}\\n([\\s\\S]*?)(?=^## [^\\n]+\\n|(?![\\s\\S]))`, 'm'),
+  );
+  const section = match ? match[1] : '';
+
+  return section
+    .split('\n')
+    .map((line) => line.replace(/^[-*]\s+/, '').trim())
+    .filter(Boolean);
+}
+
 function scanFilesForSecret(rootPath, secret) {
   const matches = [];
 
@@ -197,7 +210,11 @@ assert.equal(taskBreakerResult.run.summary.nextStage, 'builder');
 const builderPreflightResult = await coordinator.runBuilderPreflight({
   taskId: task.id,
 });
+const architectureArtifact = runtime.getArtifact(architectResult.artifact.id);
 const preflightArtifact = runtime.getArtifact(builderPreflightResult.artifact.id);
+const expectedBuilderPreflightCodeContextPaths = BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS.filter((relativePath) =>
+  parseMarkdownList(architectureArtifact.content, 'Affected Components or Contracts').includes(relativePath),
+);
 
 assert.equal(builderPreflightResult.run.summary.adapter, 'openai-responses');
 assert.ok(builderPreflightResult.run.summary.providerRunId);
@@ -207,9 +224,10 @@ assert.equal(builderPreflightResult.run.summary.architectureArtifactId, architec
 assert.equal(builderPreflightResult.run.summary.architectureRunId, architectResult.run.id);
 assert.equal(builderPreflightResult.run.summary.breakdownArtifactId, taskBreakerResult.artifact.id);
 assert.equal(builderPreflightResult.run.summary.breakdownRunId, taskBreakerResult.run.id);
+assert.ok(expectedBuilderPreflightCodeContextPaths.length > 0);
 assert.deepEqual(
   builderPreflightResult.run.summary.codeContextPaths,
-  BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS,
+  expectedBuilderPreflightCodeContextPaths,
 );
 assert.match(preflightArtifact.content, /^# Builder Preflight:/m);
 assert.match(preflightArtifact.content, /^## Target Files$/m);

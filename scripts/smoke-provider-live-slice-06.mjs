@@ -24,19 +24,19 @@ const SOURCE_OF_TRUTH_PATHS = [
 ];
 const ARCHITECT_CODE_CONTEXT_PATHS = [
   'src/runtime/contracts.js',
-  'src/runtime/file-store.js',
-  'src/runtime/runtime-service.js',
-  'src/execution/execution-coordinator.js',
-  'ui/app.js',
+  'src/execution/provider-adapter.js',
 ];
 const BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS = [
   'src/runtime/contracts.js',
-  'src/runtime/runtime-service.js',
   'src/execution/provider-adapter.js',
-  'src/execution/execution-coordinator.js',
-  'src/execution/providers/openai-responses-adapter.js',
-  'ui/app.js',
 ];
+const failureContext = {
+  approvalId: null,
+  preflightArtifactId: null,
+  projectId: null,
+  runtimeRoot,
+  taskId: null,
+};
 
 function ensureParentDir(filePath) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -68,6 +68,40 @@ function createRoutingOutcome(scopeStatement) {
     missingContext: [],
     decisionNote: '',
   };
+}
+
+const stageTimings = [];
+
+async function runStage(stage, fn) {
+  const startedAt = Date.now();
+
+  try {
+    const result = await fn();
+
+    stageTimings.push({
+      durationMs: Date.now() - startedAt,
+      stage,
+      status: 'ok',
+    });
+
+    return result;
+  } catch (error) {
+    const durationMs = Date.now() - startedAt;
+    const contextSuffix = Object.entries(failureContext)
+      .filter(([, value]) => value)
+      .map(([key, value]) => `[${key}=${value}]`)
+      .join(' ');
+
+    stageTimings.push({
+      durationMs,
+      stage,
+      status: 'error',
+    });
+    error.message =
+      `${error.message} [stage=${stage}] [durationMs=${durationMs}] [stageTimings=${JSON.stringify(stageTimings)}]` +
+      (contextSuffix ? ` ${contextSuffix}` : '');
+    throw error;
+  }
 }
 
 function scanFilesForSecret(rootPath, secret) {
@@ -136,12 +170,14 @@ const project = runtime.createProject({
     },
   },
 });
+failureContext.projectId = project.id;
 const task = runtime.createTask({
   projectId: project.id,
   title: 'provider live slice 06 builder live mutation smoke',
   intent:
-    'Run planner, architect, task-breaker, builder-preflight, approval, and builder-live-mutation live for provider-slice-06. Keep the mutation bounded to approved target files only, preserve exact preflight plus approval provenance, save one atomic change-summary plus patch plus diff bundle, and leave reviewer execution to the later slice-07 smoke.',
+    'Run planner, architect, task-breaker, builder-preflight, approval, and builder-live-mutation live for provider-slice-06. Make one bounded non-behavioral smoke annotation update inside src/runtime/contracts.js only, keep src/execution/provider-adapter.js unchanged unless strictly required for contract alignment, preserve exact preflight plus approval provenance, save one atomic change-summary plus patch plus diff bundle, and leave reviewer execution to the later slice-07 smoke.',
 });
+failureContext.taskId = task.id;
 const coordinator = createExecutionCoordinator({
   repoRoot,
   runtimeService: runtime,
@@ -189,21 +225,30 @@ assert.equal(builderLiveMutationReadiness.allowed, true);
 assert.equal(reviewerReadiness.readiness, 'ready');
 assert.equal(reviewerReadiness.allowed, true);
 
-const plannerResult = await coordinator.runPlanner({
-  taskId: task.id,
-  routingOutcome: createRoutingOutcome(
-    'Verify the optional real live builder-live-mutation path for provider-slice-06 while leaving reviewer execution to the later slice-07 smoke.',
-  ),
-});
-const architectResult = await coordinator.runArchitect({
-  taskId: task.id,
-});
-const taskBreakerResult = await coordinator.runTaskBreaker({
-  taskId: task.id,
-});
-const builderPreflightResult = await coordinator.runBuilderPreflight({
-  taskId: task.id,
-});
+const plannerResult = await runStage('planner', () =>
+  coordinator.runPlanner({
+    taskId: task.id,
+    routingOutcome: createRoutingOutcome(
+      'Verify the optional real live builder-live-mutation path for provider-slice-06 by applying one bounded non-behavioral smoke annotation update inside src/runtime/contracts.js while leaving reviewer execution to the later slice-07 smoke.',
+    ),
+  }),
+);
+const architectResult = await runStage('architect', () =>
+  coordinator.runArchitect({
+    taskId: task.id,
+  }),
+);
+const taskBreakerResult = await runStage('task-breaker', () =>
+  coordinator.runTaskBreaker({
+    taskId: task.id,
+  }),
+);
+const builderPreflightResult = await runStage('builder-preflight', () =>
+  coordinator.runBuilderPreflight({
+    taskId: task.id,
+  }),
+);
+failureContext.preflightArtifactId = builderPreflightResult.artifact.id;
 
 assert.equal(plannerResult.run.summary.adapter, 'openai-responses');
 assert.equal(architectResult.run.summary.adapter, 'openai-responses');
@@ -214,6 +259,7 @@ assert.equal(builderPreflightResult.run.summary.nextStage, 'request-builder-live
 const approval = runtime.requestBuilderLiveMutationApproval({
   taskId: task.id,
 });
+failureContext.approvalId = approval.id;
 
 runtime.resolveDecisionInboxItem({
   itemId: approval.inboxItemId,
@@ -221,9 +267,11 @@ runtime.resolveDecisionInboxItem({
   note: 'Approve optional real live builder mutation smoke.',
 });
 
-const builderLiveMutationResult = await coordinator.runBuilderLiveMutation({
-  taskId: task.id,
-});
+const builderLiveMutationResult = await runStage('builder-live-mutation', () =>
+  coordinator.runBuilderLiveMutation({
+    taskId: task.id,
+  }),
+);
 const consumedApproval = runtime.getApproval(approval.id);
 const snapshot = runtime.getSnapshot();
 
@@ -278,6 +326,7 @@ console.log(
       builderPreflightRunId: builderPreflightResult.run.id,
       builderLiveMutationRunId: builderLiveMutationResult.run.id,
       changedFiles: builderLiveMutationResult.changedFiles,
+      stageTimings,
     },
     null,
     2,

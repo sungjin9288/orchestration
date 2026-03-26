@@ -4154,24 +4154,6 @@ function createExecutionCoordinator(options = {}) {
         defaultNextStage: 'reviewer',
         role: 'builder',
       });
-      const fileUpdates = parseBase64FileUpdates(response.outputText);
-      const updatedFiles = fileUpdates.map((fileUpdate) => fileUpdate.path);
-      const outOfScopeFiles = updatedFiles.filter((relativePath) => !targetFiles.includes(relativePath));
-      const outsideArchitectureFiles = updatedFiles.filter(
-        (relativePath) => !architectureAllowlist.includes(relativePath),
-      );
-
-      if (outOfScopeFiles.length > 0) {
-        throw new Error(
-          `Builder live mutation attempted to update files outside the latest preflight target files: ${outOfScopeFiles.join(', ')}`,
-        );
-      }
-
-      if (outsideArchitectureFiles.length > 0) {
-        throw new Error(
-          `Builder live mutation attempted to update files outside the approved architecture boundary: ${outsideArchitectureFiles.join(', ')}`,
-        );
-      }
 
       if (normalizedResult.nextStage === 'architect') {
         const completedRun = runtime.completeRun({
@@ -4236,6 +4218,25 @@ function createExecutionCoordinator(options = {}) {
           normalizedResult,
           run: completedRun,
         };
+      }
+
+      const fileUpdates = parseBase64FileUpdates(response.outputText);
+      const updatedFiles = fileUpdates.map((fileUpdate) => fileUpdate.path);
+      const outOfScopeFiles = updatedFiles.filter((relativePath) => !targetFiles.includes(relativePath));
+      const outsideArchitectureFiles = updatedFiles.filter(
+        (relativePath) => !architectureAllowlist.includes(relativePath),
+      );
+
+      if (outOfScopeFiles.length > 0) {
+        throw new Error(
+          `Builder live mutation attempted to update files outside the latest preflight target files: ${outOfScopeFiles.join(', ')}`,
+        );
+      }
+
+      if (outsideArchitectureFiles.length > 0) {
+        throw new Error(
+          `Builder live mutation attempted to update files outside the approved architecture boundary: ${outsideArchitectureFiles.join(', ')}`,
+        );
       }
 
       if (normalizedResult.blockers.length > 0 || normalizedResult.needsDecision) {

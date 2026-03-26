@@ -4,9 +4,11 @@ import os from 'node:os';
 import path from 'node:path';
 
 import executionCoordinatorModule from '../src/execution/execution-coordinator.js';
+import openaiResponsesAdapterModule from '../src/execution/providers/openai-responses-adapter.js';
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
 
 const { createExecutionCoordinator } = executionCoordinatorModule;
+const { DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS } = openaiResponsesAdapterModule;
 const { createRuntimeService } = runtimeServiceModule;
 
 const repoRoot = process.cwd();
@@ -24,19 +26,19 @@ const SOURCE_OF_TRUTH_PATHS = [
 ];
 const ARCHITECT_CODE_CONTEXT_PATHS = [
   'src/runtime/contracts.js',
-  'src/runtime/file-store.js',
-  'src/runtime/runtime-service.js',
-  'src/execution/execution-coordinator.js',
-  'ui/app.js',
+  'src/execution/provider-adapter.js',
 ];
 const BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS = [
   'src/runtime/contracts.js',
-  'src/runtime/runtime-service.js',
   'src/execution/provider-adapter.js',
-  'src/execution/execution-coordinator.js',
-  'src/execution/providers/openai-responses-adapter.js',
-  'ui/app.js',
 ];
+const failureContext = {
+  approvalId: null,
+  preflightArtifactId: null,
+  projectId: null,
+  runtimeRoot,
+  taskId: null,
+};
 
 function ensureParentDir(filePath) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -87,13 +89,19 @@ async function runStage(stage, fn) {
     return result;
   } catch (error) {
     const durationMs = Date.now() - startedAt;
+    const contextSuffix = Object.entries(failureContext)
+      .filter(([, value]) => value)
+      .map(([key, value]) => `[${key}=${value}]`)
+      .join(' ');
 
     stageTimings.push({
       durationMs,
       stage,
       status: 'error',
     });
-    error.message = `${error.message} [stage=${stage}] [durationMs=${durationMs}] [stageTimings=${JSON.stringify(stageTimings)}]`;
+    error.message =
+      `${error.message} [stage=${stage}] [durationMs=${durationMs}] [stageTimings=${JSON.stringify(stageTimings)}]` +
+      (contextSuffix ? ` ${contextSuffix}` : '');
     throw error;
   }
 }
@@ -171,12 +179,14 @@ try {
       },
     },
   });
+  failureContext.projectId = project.id;
   const task = runtime.createTask({
     projectId: project.id,
     title: 'provider live slice 07 builder live mutation smoke',
     intent:
-      'Run planner, architect, task-breaker, builder-preflight, approval, builder-live-mutation, and reviewer live for provider-slice-07. Keep the mutation bounded to approved target files only, preserve exact preflight plus approval provenance, save one atomic change-summary plus patch plus diff bundle, and keep commit-package, local commit, release-package, and close-out as explicit downstream local steps.',
+      'Run planner, architect, task-breaker, builder-preflight, approval, builder-live-mutation, and reviewer live for provider-slice-07. Make one bounded non-behavioral smoke annotation update inside src/runtime/contracts.js only, keep src/execution/provider-adapter.js unchanged unless strictly required for contract alignment, preserve exact preflight plus approval provenance, save one atomic change-summary plus patch plus diff bundle, and keep commit-package, local commit, release-package, and close-out as explicit downstream local steps.',
   });
+  failureContext.taskId = task.id;
   const coordinator = createExecutionCoordinator({
     repoRoot,
     runtimeService: runtime,
@@ -227,7 +237,7 @@ try {
     coordinator.runPlanner({
       taskId: task.id,
       routingOutcome: createRoutingOutcome(
-        'Verify the optional real live builder-live-mutation plus reviewer path for provider-slice-07 while keeping commit, release, and close-out semantics unchanged.',
+        'Verify the optional real live builder-live-mutation plus reviewer path for provider-slice-07 by applying one bounded non-behavioral smoke annotation update inside src/runtime/contracts.js while keeping commit, release, and close-out semantics unchanged.',
       ),
     }),
   );
@@ -246,6 +256,7 @@ try {
       taskId: task.id,
     }),
   );
+  failureContext.preflightArtifactId = builderPreflightResult.artifact.id;
 
   assert.equal(plannerResult.run.summary.adapter, 'openai-responses');
   assert.equal(architectResult.run.summary.adapter, 'openai-responses');
@@ -256,6 +267,7 @@ try {
   const approval = runtime.requestBuilderLiveMutationApproval({
     taskId: task.id,
   });
+  failureContext.approvalId = approval.id;
 
   runtime.resolveDecisionInboxItem({
     itemId: approval.inboxItemId,
@@ -340,7 +352,7 @@ try {
         reviewerMappedStatus: reviewerResult.run.summary.mappedReviewStatus,
         stageTimings,
         timeoutBudgetMs: {
-          providerRequest: 30_000,
+          providerRequest: DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS,
         },
         changedFiles: builderLiveMutationResult.changedFiles,
       },

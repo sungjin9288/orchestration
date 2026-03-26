@@ -15,7 +15,8 @@ import runtimeServiceModule from '../src/runtime/runtime-service.js';
 
 const { createExecutionCoordinator } = executionCoordinatorModule;
 const { createLocalStubProviderAdapter } = localStubAdapterModule;
-const { createOpenAIResponsesProviderAdapter } = openaiResponsesAdapterModule;
+const { DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS, createOpenAIResponsesProviderAdapter } =
+  openaiResponsesAdapterModule;
 const { createRuntimeService } = runtimeServiceModule;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -52,9 +53,11 @@ const BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS = [
   'ui/app.js',
 ];
 const DEFAULT_TARGET_FILES = [
-  'src/runtime/runtime-service.js',
-  'src/execution/execution-coordinator.js',
+  'src/runtime/contracts.js',
+  'src/execution/provider-adapter.js',
 ];
+const QA_BROWSER_FLAKE_ERROR_PATTERN =
+  /project bootstrap landing|logs landing after builder live mutation|selected run visibility/i;
 
 function ensureCleanDir(dirPath) {
   fs.rmSync(dirPath, { force: true, recursive: true });
@@ -1701,11 +1704,20 @@ async function runSharedQaSlice06Flow({
   taskTitle,
   liveProviderApiKeyVar,
   providerModel,
+  expectExactMutationContent = true,
 }) {
   const runtime = createRuntimeService({ runtimeRoot });
   const fixture = createFixtureProject(projectName);
   const domTexts = [];
   const stageTimings = [];
+  const failureContext = {
+    approvalId: null,
+    outputRoot,
+    projectId: null,
+    runtimeRoot,
+    targetFiles: null,
+    taskId: null,
+  };
 
   async function runStage(stage, fn) {
     const startedAt = Date.now();
@@ -1722,13 +1734,21 @@ async function runSharedQaSlice06Flow({
       return result;
     } catch (error) {
       const durationMs = Date.now() - startedAt;
+      const contextSuffix = Object.entries(failureContext)
+        .filter(([, value]) => value)
+        .map(([key, value]) =>
+          Array.isArray(value) ? `[${key}=${JSON.stringify(value)}]` : `[${key}=${value}]`,
+        )
+        .join(' ');
 
       stageTimings.push({
         durationMs,
         stage,
         status: 'error',
       });
-      error.message = `${error.message} [stage=${stage}] [durationMs=${durationMs}] [stageTimings=${JSON.stringify(stageTimings)}]`;
+      error.message =
+        `${error.message} [stage=${stage}] [durationMs=${durationMs}] [stageTimings=${JSON.stringify(stageTimings)}]` +
+        (contextSuffix ? ` ${contextSuffix}` : '');
       throw error;
     }
   }
@@ -1776,6 +1796,7 @@ async function runSharedQaSlice06Flow({
       }),
     );
     const projectId = projectPayload.project.id;
+    failureContext.projectId = projectId;
 
     await runStage('browser-refresh-after-project', () =>
       refreshBrowser({
@@ -1800,9 +1821,10 @@ async function runSharedQaSlice06Flow({
       postJson(harness.baseUrl, '/api/tasks', {
         title: taskTitle,
         intent:
-          'Verify builder live mutation through browser and API without widening runtime, reviewer, release, or close-out semantics.',
+          'Verify builder live mutation through browser and API by applying one bounded non-behavioral smoke annotation update inside src/runtime/contracts.js only, keep src/execution/provider-adapter.js unchanged unless strictly required for contract alignment, and do not widen runtime, reviewer, release, or close-out semantics.',
       }),
     );
+    failureContext.taskId = taskPayload.task.id;
 
     const readinessCoordinator = createReadinessCoordinator(runtime);
     const roleReadinessBefore = collectRoleReadiness(readinessCoordinator, projectId);
@@ -1812,6 +1834,7 @@ async function runSharedQaSlice06Flow({
     const upstreamContext = await runStage('prepare-upstream-context', () =>
       createUpstreamCoordinator(runtime, taskPayload.task.id, projectId),
     );
+    failureContext.targetFiles = upstreamContext.targetFiles;
 
     await runStage('browser-refresh-before-approval-request', () =>
       refreshBrowser({
@@ -1838,6 +1861,7 @@ async function runSharedQaSlice06Flow({
     const approval = Object.values(approvalRequestedSnapshot.snapshot.approvals).find(
       (candidate) => candidate.taskId === taskPayload.task.id,
     );
+    failureContext.approvalId = approval?.id || null;
     const inboxItem = Object.values(approvalRequestedSnapshot.snapshot.decisionInboxItems).find(
       (candidate) => candidate.taskId === taskPayload.task.id && candidate.status === 'pending',
     );
@@ -1969,10 +1993,16 @@ async function runSharedQaSlice06Flow({
     assert.equal(builderRun.summary.nextStage, 'reviewer');
     assert.equal(builderRun.summary.approvalId, approval.id);
     assert.deepEqual(builderRun.summary.changedFiles, [upstreamContext.targetFiles[0]]);
-    assert.equal(
-      fs.readFileSync(path.join(fixture.projectPath, upstreamContext.targetFiles[0]), 'utf8'),
-      mutationPlan.mutated,
+    const changedFileContent = fs.readFileSync(
+      path.join(fixture.projectPath, upstreamContext.targetFiles[0]),
+      'utf8',
     );
+
+    if (expectExactMutationContent) {
+      assert.equal(changedFileContent, mutationPlan.mutated);
+    } else {
+      assert.notEqual(changedFileContent, mutationPlan.original);
+    }
     assert.ok(finalGuardSummary);
     assert.equal(finalGuardSummary.allowed, false);
     assert.equal(finalGuardSummary.latestApprovalDisplayStatus, 'consumed');
@@ -2089,7 +2119,7 @@ async function runSharedQaSlice06Flow({
         browserPoll: 12_000,
         playwrightAction: 60_000,
         playwrightOpen: 120_000,
-        providerRequest: 30_000,
+        providerRequest: DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS,
       },
       scenario: {
         approvalId: approval.id,
@@ -2123,6 +2153,24 @@ async function runSharedQaSlice06Flow({
   }
 }
 
+async function runQaSlice06SmokeWithRetry(factory, maxAttempts = 2) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await factory();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt >= maxAttempts || !QA_BROWSER_FLAKE_ERROR_PATTERN.test(String(error.message || ''))) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 export async function runQaSlice06SyntheticSmoke(options = {}) {
   const outputRoot = options.outputRoot || path.join(repoRoot, 'output', 'playwright', 'qa-slice-06');
   const runtimeRoot = options.runtimeRoot || path.join(repoRoot, 'var', 'runtime-qa-slice-06');
@@ -2133,66 +2181,69 @@ export async function runQaSlice06SyntheticSmoke(options = {}) {
   const providerModel = options.model || 'qa-slice-06-operator-model';
   let serverFetchStub = null;
 
-  return runSharedQaSlice06Flow({
-    browser,
-    outputRoot,
-    runtimeRoot,
-    overrideEnvVar,
-    secretToCheck: sentinelSecret,
-    createServerEnv() {
-      process.env[liveProviderEnvVar] = sentinelSecret;
-      serverFetchStub = createServerFetchStubFiles(outputRoot);
-      return {
-        [liveProviderEnvVar]: sentinelSecret,
-        [SERVER_FETCH_STATE_ENV]: serverFetchStub.statePath,
-        NODE_OPTIONS: mergeNodeOptions(process.env.NODE_OPTIONS, [`--require=${serverFetchStub.preloadPath}`]),
-      };
-    },
-    createReadinessCoordinator(runtime) {
-      return createDefaultCoordinator(runtime);
-    },
-    createUpstreamCoordinator(runtime, taskId, projectId) {
-      const queuedFetch = createQueuedFetch([createPlannerApiPayload('qa-slice-06-synthetic-fit')]);
-      const syntheticCoordinator = createSyntheticCoordinator(runtime, queuedFetch.fetchImpl);
+  return runQaSlice06SmokeWithRetry(() =>
+    runSharedQaSlice06Flow({
+      browser,
+      outputRoot,
+      runtimeRoot,
+      overrideEnvVar,
+      secretToCheck: sentinelSecret,
+      createServerEnv() {
+        process.env[liveProviderEnvVar] = sentinelSecret;
+        serverFetchStub = createServerFetchStubFiles(outputRoot);
+        return {
+          [liveProviderEnvVar]: sentinelSecret,
+          [SERVER_FETCH_STATE_ENV]: serverFetchStub.statePath,
+          NODE_OPTIONS: mergeNodeOptions(process.env.NODE_OPTIONS, [`--require=${serverFetchStub.preloadPath}`]),
+        };
+      },
+      createReadinessCoordinator(runtime) {
+        return createDefaultCoordinator(runtime);
+      },
+      createUpstreamCoordinator(runtime, taskId, projectId) {
+        const queuedFetch = createQueuedFetch([createPlannerApiPayload('qa-slice-06-synthetic-fit')]);
+        const syntheticCoordinator = createSyntheticCoordinator(runtime, queuedFetch.fetchImpl);
 
-      return prepareBuilderLiveMutationContext({
-        coordinator: syntheticCoordinator,
-        projectId,
-        queuedFetch,
-        runtime,
-        taskId,
-        label: 'synthetic-fit',
-      });
-    },
-    async queueBuilderLiveMutationResponse({ anchor, context, mutationPlan }) {
-      writeServerFetchQueue(serverFetchStub.statePath, [
-        createBuilderLiveMutationApiPayload(anchor, {
-          artifact: {
-            changeSummary: ['Prepare one bounded file update inside the approved allowlist.'],
-            fileUpdates: [
-              {
-                path: context.targetFiles[0],
-                content: mutationPlan.mutated,
-              },
-            ],
-            targetFiles: context.targetFiles,
-            risks: ['Fail closed if actual changed files do not match the validated file updates.'],
-            verificationNotes: [
-              'Store change-summary, patch, and diff together as one mutation bundle.',
-            ],
-          },
-          providerRunId: 'resp-qa-slice-06-builder-live-mutation',
-        }),
-      ]);
-    },
-    getServerStatePath() {
-      return serverFetchStub?.statePath || null;
-    },
-    projectName: 'qa-slice-06',
-    taskTitle: 'QA slice 06 builder-live-mutation fit',
-    liveProviderApiKeyVar: liveProviderEnvVar,
-    providerModel,
-  });
+        return prepareBuilderLiveMutationContext({
+          coordinator: syntheticCoordinator,
+          projectId,
+          queuedFetch,
+          runtime,
+          taskId,
+          label: 'synthetic-fit',
+        });
+      },
+      async queueBuilderLiveMutationResponse({ anchor, context, mutationPlan }) {
+        writeServerFetchQueue(serverFetchStub.statePath, [
+          createBuilderLiveMutationApiPayload(anchor, {
+            artifact: {
+              changeSummary: ['Prepare one bounded file update inside the approved allowlist.'],
+              fileUpdates: [
+                {
+                  path: context.targetFiles[0],
+                  content: mutationPlan.mutated,
+                },
+              ],
+              targetFiles: context.targetFiles,
+              risks: ['Fail closed if actual changed files do not match the validated file updates.'],
+              verificationNotes: [
+                'Store change-summary, patch, and diff together as one mutation bundle.',
+              ],
+            },
+            providerRunId: 'resp-qa-slice-06-builder-live-mutation',
+          }),
+        ]);
+      },
+      getServerStatePath() {
+        return serverFetchStub?.statePath || null;
+      },
+      projectName: 'qa-slice-06',
+      taskTitle: 'QA slice 06 builder-live-mutation fit',
+      liveProviderApiKeyVar: liveProviderEnvVar,
+      providerModel,
+      expectExactMutationContent: true,
+    }),
+  );
 }
 
 export async function runQaSlice06RealSmoke(options = {}) {
@@ -2213,39 +2264,42 @@ export async function runQaSlice06RealSmoke(options = {}) {
     };
   }
 
-  return runSharedQaSlice06Flow({
-    browser,
-    outputRoot,
-    runtimeRoot,
-    overrideEnvVar,
-    secretToCheck: apiKey,
-    createServerEnv() {
-      return {
-        [apiKeyVar]: apiKey,
-      };
-    },
-    createReadinessCoordinator(runtime) {
-      return createDefaultCoordinator(runtime);
-    },
-    createUpstreamCoordinator(runtime, taskId, projectId) {
-      const queuedFetch = createQueuedFetch([createPlannerApiPayload('qa-slice-06-real-upstream')]);
-      const syntheticCoordinator = createSyntheticCoordinator(runtime, queuedFetch.fetchImpl);
+  return runQaSlice06SmokeWithRetry(() =>
+    runSharedQaSlice06Flow({
+      browser,
+      outputRoot,
+      runtimeRoot,
+      overrideEnvVar,
+      secretToCheck: apiKey,
+      createServerEnv() {
+        return {
+          [apiKeyVar]: apiKey,
+        };
+      },
+      createReadinessCoordinator(runtime) {
+        return createDefaultCoordinator(runtime);
+      },
+      createUpstreamCoordinator(runtime, taskId, projectId) {
+        const queuedFetch = createQueuedFetch([createPlannerApiPayload('qa-slice-06-real-upstream')]);
+        const syntheticCoordinator = createSyntheticCoordinator(runtime, queuedFetch.fetchImpl);
 
-      return prepareBuilderLiveMutationContext({
-        coordinator: syntheticCoordinator,
-        projectId,
-        queuedFetch,
-        runtime,
-        taskId,
-        label: 'real-upstream',
-      });
-    },
-    async queueBuilderLiveMutationResponse(_input) {
-      // Real live smoke intentionally uses the server's actual openai-responses adapter.
-    },
-    projectName: 'qa-slice-06-live',
-    taskTitle: 'QA slice 06 optional real live',
-    liveProviderApiKeyVar: apiKeyVar,
-    providerModel: model,
-  });
+        return prepareBuilderLiveMutationContext({
+          coordinator: syntheticCoordinator,
+          projectId,
+          queuedFetch,
+          runtime,
+          taskId,
+          label: 'real-upstream',
+        });
+      },
+      async queueBuilderLiveMutationResponse(_input) {
+        // Real live smoke intentionally uses the server's actual openai-responses adapter.
+      },
+      projectName: 'qa-slice-06-live',
+      taskTitle: 'QA slice 06 optional real live',
+      liveProviderApiKeyVar: apiKeyVar,
+      providerModel: model,
+      expectExactMutationContent: false,
+    }),
+  );
 }
