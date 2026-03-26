@@ -155,6 +155,12 @@ function buildChangeSummaryContent(preflightArtifactId, approvalId) {
 ## Target Files
 - scoped.txt
 
+## File Updates
+### scoped.txt
+\`\`\`base64
+${Buffer.from('scoped change synthetic\n', 'utf8').toString('base64')}
+\`\`\`
+
 ## Risks
 - none
 
@@ -164,6 +170,17 @@ function buildChangeSummaryContent(preflightArtifactId, approvalId) {
 }
 
 function buildPatchContent(label) {
+  return `diff --git a/scoped.txt b/scoped.txt
+index 1111111..2222222 100644
+--- a/scoped.txt
++++ b/scoped.txt
+@@ -1 +1 @@
+-base scoped
++scoped change ${label}
+`;
+}
+
+function buildDiffContent(label) {
   return `diff --git a/scoped.txt b/scoped.txt
 index 1111111..2222222 100644
 --- a/scoped.txt
@@ -242,6 +259,15 @@ Add a thin browser-level QA smoke without changing product semantics.
       executionMode: 'live-mutation',
     },
   });
+
+  runtime.appendLog({
+    runId: builderRun.id,
+    message: `synthetic builder live mutation run started for ${task.id} (${label})`,
+  });
+  runtime.appendLog({
+    runId: builderRun.id,
+    message: `anchored synthetic approval ${approval.id} to preflight ${preflight.artifact.id}`,
+  });
   const changeSummary = runtime.recordArtifact({
     taskId: task.id,
     runId: builderRun.id,
@@ -260,7 +286,7 @@ Add a thin browser-level QA smoke without changing product semantics.
     runId: builderRun.id,
     type: 'diff',
     extension: 'diff',
-    content: buildPatchContent(label),
+    content: buildDiffContent(label),
   });
   const completedBuilderRun = runtime.completeRun({
     runId: builderRun.id,
@@ -273,8 +299,17 @@ Add a thin browser-level QA smoke without changing product semantics.
       },
       changedFiles: ['scoped.txt'],
       executionMode: 'live-mutation',
-      inputArtifactIds: [plan.artifact.id, architecture.artifact.id, breakdown.artifact.id],
+      inputArtifactIds: [
+        plan.artifact.id,
+        architecture.artifact.id,
+        breakdown.artifact.id,
+        preflight.artifact.id,
+      ],
+      inputRunIds: [plan.run.id, architecture.run.id, breakdown.run.id, preflight.run.id],
+      approvalTargetArtifactId: preflight.artifact.id,
+      approvalTargetRunId: preflight.run.id,
       preflightArtifactId: preflight.artifact.id,
+      preflightRunId: preflight.run.id,
     },
   });
 
@@ -780,7 +815,7 @@ async function runFlowTwo() {
     assert.equal(
       evaluate(
         sessionName,
-        `document.querySelector(${jsLiteral(closeOutSelector)})?.textContent?.includes('Close Out') || false`,
+        `document.querySelector(${jsLiteral(closeOutSelector)})?.textContent?.includes('Resume Approved Close Out') || false`,
       ),
       true,
     );

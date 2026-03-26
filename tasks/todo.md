@@ -101,9 +101,12 @@
 - [x] `strategy-m5-02` is limited to docs/tasks policy lock; no new capability or runtime/execution/UI semantics change is introduced
 - [x] provider secret/auth/raw payload/env non-leak remains a persistence-prohibited boundary and is kept separate from repo-content redaction policy
 - [x] repo-content redaction policy does not rewrite raw stored artifact content in the current frozen baseline; raw stored artifact content plus runtime metadata remain the source of truth
+- [x] the first repo-content redaction implementation stays `preview/export only` and must not create redacted derivative copies as new source-of-truth artifacts
 - [x] `patch` and `diff` remain exact raw provenance evidence and stay outside redaction scope in the current frozen baseline
 - [x] `change-summary` and `review` keep canonical structured provenance, findings, verdict, verification, and follow-up fields intact; only duplicated large verbatim repo-content excerpts are future redaction candidates
 - [x] runtime snapshot metadata, logs, artifact storage, and the current Artifact Detail raw-content view remain unchanged in this slice
+- [x] `artifact-redaction-m5-06` implements the first preview-only repo-content redaction on current `main`: `Artifacts -> Artifact Detail -> change-summary` keeps file paths visible in structured preview, redacts stored `File Updates` payloads there, and leaves the raw artifact block unchanged as the source of truth
+- [x] `node scripts/smoke-ui-slice-11.mjs` now fixes the UI contract for preview-only change-summary redaction by asserting `parseChangeSummaryFileUpdates`, `renderStructuredChangeSummary`, the redacted `File Updates` preview copy, and unchanged raw-content source-of-truth copy in `ui/app.js`
 
 ### commit/release future scope [accepted]
 - [x] `strategy-m5-03` is limited to docs/tasks future-scope lock; no new capability or runtime/execution/UI semantics change is introduced
@@ -119,29 +122,35 @@
 - [x] the full four-step downstream chain remains non-recommended and widening-forbidden, and provider/reviewer auto-start, hidden multi-step chaining, linked-worktree auto-switch, plus push/merge/publish/external release remain out of scope
 - [x] `strategy-m5-05` is limited to docs/tasks-only operator-facing form lock; no new capability or runtime/execution/UI semantics change is introduced
 - [x] the preferred operator-facing form is an in-panel commit-side resume CTA inside the existing commit guard area, not a one-click `prepare + commit` chain and not a new standalone surface
+- [x] the final commit-side operator-facing label is `Resume Approved Local Commit`, and the executing CTA belongs only in `Task Detail`; `Artifacts` and `Decision Inbox` may at most navigate back to that panel
 - [x] approval visibility remains mandatory: current approval status/id, current commit-package id, reviewer/builder/preflight provenance, and blocked reasons stay visible next to the helper
 - [x] helper availability must come directly from current `commitExecutionReadiness` and `commitPackageReadiness`; the client must not recompute hidden commit semantics beyond those summaries
 - [x] when approval is pending, rejected, stale, missing, or otherwise blocked, the helper stays disabled or absent and the operator continues through the existing explicit approval path; inbox affordance may at most navigate back to the task/panel without executing the step
 - [x] `strategy-m5-06` is limited to docs/tasks-only release-side convenience-scope lock; no new capability or runtime/execution/UI semantics change is introduced
 - [x] release-side is not permanently closed as manual/local-only; it remains a deferred convenience candidate only
 - [x] the only allowed future shape is an in-panel resume helper from the approved current `release-package` bundle into `close-out`, not a new standalone surface and not a release-side one-click chain
+- [x] the final release-side operator-facing label is `Resume Approved Close Out`, and the executing CTA belongs only in `Task Detail`; `Artifacts` and `Decision Inbox` stay navigation-only when a current approved release bundle exists
 - [x] helper scope excludes `release-package` prepare/regeneration, `release-ready` approval resolution, linked worktree create/switch, and repo-clean recovery; those remain explicit/manual prerequisites outside the helper
 - [x] Decision Inbox may at most navigate back to the current task/panel for release follow-up; it must not execute release-side steps
+- [x] stale or blocked release bundles continue to show existing guard reasons only; navigation hints are reserved for current approved release bundles and do not appear as alternate execution affordances
 - [x] one-click `release-package -> approval -> close-out`, hidden approval consumption, linked-worktree automation, repo-clean recovery automation, auto close-out, and the broader four-step chain remain widening-forbidden
 
+### post-v1 coverage defaults [accepted]
+- [x] `milestone-m3-freeze` remains a pure archive provenance record and is not trimmed in the current closure pass
+- [x] `node scripts/smoke-qa-slice-01.mjs` remains optional browser coverage and is not promoted into the required regression gate
+- [x] `node scripts/smoke-qa-slice-01.mjs` synthetic reviewed-bundle fixture now matches the current reviewer anchor contract and passes on current `main` when rerun outside the sandbox
+- [x] task-breaker optional real-live coverage stays on the existing `node scripts/smoke-qa-live-slice-04.mjs` path and does not require a standalone provider live entrypoint
+- [x] `DEC-030` is resolved by keeping future delete/archive/GC work behind an explicit operator-invoked retention consumer over the normalized Tier A/B/C rules
+
 ### remaining [OPEN]
-- [ ] decide whether to keep `milestone-m3-freeze` as pure archive provenance or trim it in a later docs-only cleanup
-- [ ] decide whether `node scripts/smoke-qa-slice-01.mjs` should be promoted from optional browser coverage to a required regression gate
-- [ ] decide whether task-breaker optional real-live coverage needs a standalone provider entrypoint beyond the existing `smoke-qa-live-slice-04.mjs` path
 - [ ] make configured `OPENAI_API_KEY` / `OPENAI_RESPONSES_MODEL` visible to the current execution context, or rerun the optional real-live verification set from the operator shell and import the evidence back into this ledger
 - [ ] rerun configured-env optional live verification for `scripts/smoke-provider-live-slice-03.mjs`, `scripts/smoke-provider-live-slice-05.mjs`, and `scripts/smoke-provider-live-slice-06.mjs` so the historical `stale expectation suspected` records can be replaced with current-main evidence
 - [ ] rerun configured-env optional live verification for `scripts/smoke-provider-live-slice-07.mjs`, `scripts/smoke-qa-live-slice-06.mjs`, and `scripts/smoke-qa-live-slice-07.mjs` so current timeout diagnostics can capture stage-level evidence under `OPENAI_RESPONSES_MODEL=gpt-5.4`
-- [ ] decide whether any future repo-content redaction implementation should stay preview/export-only or also create redacted derivative copies, while keeping raw stored artifact content as the source of truth
-- [ ] decide the final helper label and placement for any future commit-side resume CTA, including whether it should appear in `Task Detail` only or also in `Artifacts`
-- [ ] decide whether `Decision Inbox` should expose only a navigation hint back to the current task/panel for commit approval follow-up, while keeping actual execution out of inbox actions
-- [ ] decide the final helper label and placement for any future release-side resume CTA, including whether it should appear in `Task Detail` only or also in `Artifacts`
-- [ ] decide whether release-side navigation hints should appear only for approved current release bundles or also for stale/blocked bundles as non-executing guidance
-- [ ] evaluate whether any second provider adapter is needed only after the three items above
+- [x] `commit-helper-m5-07` implements the bounded `Resume Approved Local Commit` helper in `Task Detail` only: `Prepare Commit Package` and `Resume Approved Local Commit` stay executable there, while `Artifacts` and `Decision Inbox` keep commit provenance/readiness visible but downgrade to navigation-only hints back to the same guard area
+- [x] `node scripts/smoke-ui-slice-10.mjs` now fixes the helper contract by asserting the `Resume Approved Local Commit` label, `open-taskboard-task` navigation path, `Open Task Detail Commit Guard` hint, and the `currentSurface === 'taskboard'` execution boundary in `ui/app.js`
+- [x] `release-helper-m5-08` implements the bounded `Resume Approved Close Out` helper in `Task Detail` only: `Artifacts` and `Decision Inbox` keep release/close-out provenance and guard reasons visible but downgrade to navigation-only hints back to the same guard area only when the current approved release bundle is ready
+- [x] `node scripts/smoke-ui-slice-12.mjs` now fixes the release-side helper contract by asserting the `Resume Approved Close Out` label, `Open Task Detail Close-Out Guard` hint, and navigation-only close-out copy in `ui/app.js`
+- [x] `provider-eval-m5-09` concludes that no second provider adapter is needed for current completion: current `main` stays `openai-responses` only, and provider expansion remains explicitly deferred until optional real-live housekeeping or a concrete operator gap shows the current planner-through-reviewer boundary is insufficient
 - [x] clean non-SSoT reference docs that can drift from the repo contracts
 
 ## milestone-m3-freeze [archive]
@@ -250,7 +259,7 @@ Historical freeze baseline retained for provenance. Current source-of-truth free
 - [x] `node scripts/smoke-qa-live-slice-05.mjs` historical optional real-live result is now tracked in `milestone-m4-live-freeze -> optional real-live verification`
 - [x] `node scripts/smoke-qa-live-slice-06.mjs` historical optional real-live result is now tracked in `milestone-m4-live-freeze -> optional real-live verification`
 - [x] `node scripts/smoke-qa-live-slice-07.mjs` historical optional real-live result is now tracked in `milestone-m4-live-freeze -> optional real-live verification`
-- [ ] decide whether to promote `node scripts/smoke-qa-slice-01.mjs` from optional coverage to a required regression gate
+- [x] `node scripts/smoke-qa-slice-01.mjs` remains optional browser coverage unless a later freeze decision explicitly promotes it
 - [x] clean non-SSoT reference docs that can drift from the repo contracts
 
 ## milestone-m2-consolidation

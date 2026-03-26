@@ -203,7 +203,9 @@ Implication:
 
 - current `main` reaches operator-usable v1 completion for the frozen development-pack baseline
 - optional real-live reruns remain non-blocking operational follow-up
-- the next development priority may move to the first deferred post-v1 backlog item once the operator chooses to proceed
+- current `main` now applies the first preview-only repo-content redaction on `change-summary` structured preview while keeping the raw artifact block unchanged as the source of truth
+- current `main` now implements the bounded commit-side helper as `Resume Approved Local Commit` in `Task Detail` only, with `Artifacts` and `Decision Inbox` reduced to navigation-only commit follow-up hints
+- current `main` now implements the bounded release-side helper as `Resume Approved Close Out` in `Task Detail` only, with `Artifacts` and `Decision Inbox` reduced to navigation-only close-out follow-up hints
 
 ## Current Backlog Ordering
 The current post-freeze ordering is locked:
@@ -218,6 +220,13 @@ Additional convenience boundaries already locked:
 - commit-side convenience stays limited to `commit-package -> local commit` and only as a bounded resume helper candidate
 - release-side convenience stays limited to `approved current release-package -> close-out` and remains deferred
 - one-click full chain, hidden approval consumption, and auto close-out remain widening-forbidden
+- the first redaction implementation defaults to `preview/export only`; raw stored artifact content remains the source of truth and no redacted derivative copy becomes canonical
+- the future commit-side helper label is fixed to `Resume Approved Local Commit` in the `Task Detail` commit guard area only
+- the future release-side helper label is fixed to `Resume Approved Close Out` in the `Task Detail` release/close-out guard area only
+- `Artifacts` and `Decision Inbox` may offer navigation-only hints for those helpers, but remain non-executing surfaces
+- `smoke-qa-slice-01` stays optional browser coverage, and task-breaker optional real-live coverage stays on the existing `smoke-qa-live-slice-04` path
+- current `main` now implements both bounded helper slices: `Resume Approved Local Commit` and `Resume Approved Close Out` execute only from `Task Detail`, while `Artifacts` and `Decision Inbox` remain navigation-only companion surfaces
+- second-provider work is not required for current completion and remains explicitly deferred on current `main`; revisit it only if optional real-live housekeeping or a concrete operator gap shows that the current `openai-responses` boundary is insufficient
 
 ## Absolute Guardrails
 Codex executors must not break the following:

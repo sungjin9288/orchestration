@@ -354,11 +354,17 @@ const appJsSource = fs.readFileSync(path.join(repoRoot, 'ui', 'app.js'), 'utf8')
 assert.match(serveUiSource, /releasePackageReadinessSummaries/);
 assert.match(serveUiSource, /run-release-package/);
 assert.match(appJsSource, /Prepare Release Package/);
+assert.match(appJsSource, /parseChangeSummaryArtifact/);
+assert.match(appJsSource, /parseChangeSummaryFileUpdates/);
+assert.match(appJsSource, /renderStructuredChangeSummary/);
 assert.match(appJsSource, /parseReleasePackageArtifact/);
 assert.match(appJsSource, /renderStructuredReleasePackage/);
+assert.match(appJsSource, /selectedArtifactMeta\.type === 'change-summary'/);
 assert.match(appJsSource, /selectedArtifactMeta\.type === 'release-package'/);
 assert.match(appJsSource, /allowedNextAction === 'release-ready'/);
 assert.match(appJsSource, /currentSurface === 'taskboard' \|\| currentSurface === 'artifacts'/);
+assert.match(appJsSource, /Preview redacts stored repo content inside File Updates\./);
+assert.match(appJsSource, /Stored raw content below remains the source of truth\./);
 
 const happyCase = await createReleaseReadyTask(runtime, coordinator, 'happy');
 const beforeSummary = coordinator.getReleasePackageReadiness({

@@ -371,6 +371,12 @@ assert.match(appJsSource, /function getCloseOutAvailability/);
 assert.match(appJsSource, /function parseCloseOutArtifact/);
 assert.match(appJsSource, /function renderStructuredCloseOut/);
 assert.match(appJsSource, /data-action="run-close-out"/);
+assert.match(appJsSource, /Resume Approved Close Out/);
+assert.match(appJsSource, /Open Task Detail Close-Out Guard/);
+assert.match(
+  appJsSource,
+  /stays navigation-only for close-out follow-up\. Open Task Detail to use Resume Approved Close Out\./,
+);
 assert.match(appJsSource, /selectedArtifactMeta\.type === 'close-out'/);
 assert.match(appJsSource, /function resolvePostMutationSurface/);
 assert.match(appJsSource, /item\.kind === 'decision'/);

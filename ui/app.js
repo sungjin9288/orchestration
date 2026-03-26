@@ -830,6 +830,40 @@ function parseMarkdownKeyValueLines(content) {
   return result;
 }
 
+function parseChangeSummaryFileUpdates(content) {
+  const text = String(content || '').trim();
+
+  if (!text) {
+    return [];
+  }
+
+  const matches = [...text.matchAll(/^###\s+(.+)$/gm)];
+
+  if (matches.length === 0) {
+    return [];
+  }
+
+  return matches
+    .map((match, index) => {
+      const path = match[1]?.trim() || '';
+      const sectionStart = match.index + match[0].length;
+      const sectionEnd = index + 1 < matches.length ? matches[index + 1].index : text.length;
+      const block = text.slice(sectionStart, sectionEnd).trim();
+      const codeFenceMatch = block.match(/^```([^\n]*)\n[\s\S]*?\n```$/m);
+
+      if (!path) {
+        return null;
+      }
+
+      return {
+        encoding: codeFenceMatch?.[1]?.trim() || null,
+        path,
+        payloadStored: block.length > 0,
+      };
+    })
+    .filter(Boolean);
+}
+
 function parseIntegerValue(value) {
   const parsed = Number.parseInt(String(value || '').trim(), 10);
   return Number.isFinite(parsed) ? parsed : null;
@@ -939,6 +973,7 @@ function parseChangeSummaryArtifact(content) {
     approvalId: summaryValues['approval id'] || null,
     changeSummary: parseMarkdownBullets(sections['Change Summary']),
     commitOrReleaseExecuted: summaryValues['commit or release executed'] || null,
+    fileUpdates: parseChangeSummaryFileUpdates(sections['File Updates']),
     preparedFileUpdates: parseIntegerValue(summaryValues['prepared file updates']),
     preflightArtifactId: summaryValues['preflight artifact'] || null,
     reviewerExecuted: summaryValues['reviewer executed'] || null,
@@ -950,6 +985,7 @@ function parseChangeSummaryArtifact(content) {
   };
   const hasStructuredContent = [
     parsed.changeSummary,
+    parsed.fileUpdates,
     parsed.targetFiles,
     parsed.risks,
     parsed.verificationNotes,
@@ -1467,6 +1503,11 @@ function renderStructuredChangeSummary(parsed) {
             : ''
         }
         ${
+          parsed.fileUpdates.length > 0
+            ? createToken(`file updates:${parsed.fileUpdates.length}`, 'neutral')
+            : ''
+        }
+        ${
           parsed.reviewerExecuted
             ? createToken(`reviewer:${parsed.reviewerExecuted}`, 'warning')
             : ''
@@ -1479,6 +1520,27 @@ function renderStructuredChangeSummary(parsed) {
       </div>
       ${renderBreakdownList('Change Summary', parsed.changeSummary)}
       ${renderBreakdownList('Target Files', parsed.targetFiles)}
+      ${
+        parsed.fileUpdates.length > 0
+          ? `
+            <section class="breakdown-section">
+              <p class="detail-key">File Updates</p>
+              <p class="detail-copy">${escapeHtml(getPreviewRedactionCopy())}</p>
+              <ul class="breakdown-list">
+                ${parsed.fileUpdates
+                  .map((update) => {
+                    const detail =
+                      update.encoding || update.payloadStored
+                        ? `${update.path} (${update.encoding || 'stored'} payload redacted in preview)`
+                        : `${update.path} (preview redacted)`;
+                    return `<li>${escapeHtml(detail)}</li>`;
+                  })
+                  .join('')}
+              </ul>
+            </section>
+          `
+          : ''
+      }
       ${renderBreakdownList('Risks', parsed.risks)}
       ${renderBreakdownList('Verification Notes', parsed.verificationNotes)}
     </div>
@@ -2233,6 +2295,10 @@ function getArtifactPolicySummary(artifact, data) {
 
 function getStructuredPreviewLeadCopy() {
   return 'Structured preview is best-effort. Stored raw content below remains the source of truth.';
+}
+
+function getPreviewRedactionCopy() {
+  return 'Preview redacts stored repo content inside File Updates. Stored raw content below remains the source of truth.';
 }
 
 function getStructuredPreviewFallbackCopy() {
@@ -3139,6 +3205,52 @@ function renderPreselectedPendingItemHint(item, approval, options = {}) {
   `;
 }
 
+function getSurfaceDisplayName(surface) {
+  if (surface === 'decision-inbox') {
+    return 'Decision Inbox';
+  }
+
+  if (surface === 'taskboard') {
+    return 'Taskboard';
+  }
+
+  if (surface === 'artifacts') {
+    return 'Artifacts';
+  }
+
+  if (surface === 'logs') {
+    return 'Logs';
+  }
+
+  return surface || 'Current surface';
+}
+
+function renderTaskDetailNavigationHint(task, options = {}) {
+  if (!task) {
+    return '';
+  }
+
+  const label = options.label || 'Open Task Detail';
+  const helpText = options.helpText || 'Open Task Detail to continue on the bounded execution surface.';
+
+  return `
+    <div class="breakdown-inbox-hint">
+      <div class="form-actions form-actions-inline">
+        <button
+          class="secondary-button"
+          type="button"
+          data-action="open-taskboard-task"
+          data-id="${escapeHtml(task.id)}"
+          ${state.loading || state.mutating ? 'disabled' : ''}
+        >
+          ${escapeHtml(label)}
+        </button>
+        <p class="form-help">${escapeHtml(helpText)}</p>
+      </div>
+    </div>
+  `;
+}
+
 function renderCommitPackagePanel(task, data, options = {}) {
   if (!task) {
     return '';
@@ -3147,6 +3259,8 @@ function renderCommitPackagePanel(task, data, options = {}) {
   const { disabled, summary } = getCommitPackageAvailability(task, data);
   const commitExecutionState = getCommitExecutionAvailability(task, data);
   const currentSurface = options.currentSurface || state.surface;
+  const allowExecutingActions =
+    options.forceExecutingActions === true || currentSurface === 'taskboard';
   const displayStatus = getCommitApprovalDisplayStatus(summary);
   const packageStatus = summary.currentCommitPackageArtifactId
     ? 'current'
@@ -3165,12 +3279,12 @@ function renderCommitPackagePanel(task, data, options = {}) {
     commitExecutionState.summary.latestApprovalDisplayStatus ||
     getCommitApprovalDisplayStatus(commitExecutionState.summary);
   const localCommitHelp = commitExecutionState.summary.allowed
-    ? `Runs a local git commit from commit-package ${commitExecutionState.summary.commitPackageArtifactId || 'the current package'} and lands on the saved commit-result artifact. Push, merge, and release remain disabled.`
-    : `Run Local Commit stays disabled until ${
+    ? `Resume Approved Local Commit runs a local git commit from commit-package ${commitExecutionState.summary.commitPackageArtifactId || 'the current package'} and lands on the saved commit-result artifact. Push, merge, and release remain disabled.`
+    : `Resume Approved Local Commit stays disabled until ${
         (commitExecutionState.summary.reasons || []).join('; ') || 'the approved local commit bundle is ready'
       }.`;
   const actionSurface =
-    options.includeAction === false
+    options.includeAction === false || !allowExecutingActions
       ? ''
       : `
         <div class="form-actions form-actions-inline">
@@ -3261,19 +3375,39 @@ function renderCommitPackagePanel(task, data, options = {}) {
               : '<p class="detail-copy">Local commit is ready for the current approved commit-package bundle.</p>'
           }
           <div class="form-actions form-actions-inline">
-            <button
-              class="primary-button"
-              type="button"
-              data-action="run-local-commit"
-              data-id="${escapeHtml(task.id)}"
-              ${commitExecutionState.disabled ? 'disabled' : ''}
-            >
-              Run Local Commit
-            </button>
-            <p class="form-help">${escapeHtml(localCommitHelp)}</p>
+            ${
+              allowExecutingActions
+                ? `
+                  <button
+                    class="primary-button"
+                    type="button"
+                    data-action="run-local-commit"
+                    data-id="${escapeHtml(task.id)}"
+                    ${commitExecutionState.disabled ? 'disabled' : ''}
+                  >
+                    Resume Approved Local Commit
+                  </button>
+                  <p class="form-help">${escapeHtml(localCommitHelp)}</p>
+                `
+                : `
+                  <p class="form-help">
+                    ${escapeHtml(
+                      `${getSurfaceDisplayName(currentSurface)} stays navigation-only for commit follow-up. Open Task Detail to use Resume Approved Local Commit.`,
+                    )}
+                  </p>
+                `
+            }
           </div>
         </div>
       `;
+  const navigationHint =
+    allowExecutingActions
+      ? ''
+      : renderTaskDetailNavigationHint(task, {
+          label: 'Open Task Detail Commit Guard',
+          helpText:
+            'Execution stays on Task Detail. Artifacts and Decision Inbox remain navigation-only for commit continuation.',
+        });
 
   return `
     <div class="guard-summary">
@@ -3338,6 +3472,7 @@ function renderCommitPackagePanel(task, data, options = {}) {
       }
       ${actionSurface}
       ${localCommitActionSurface}
+      ${navigationHint}
     </div>
   `;
 }
@@ -3474,6 +3609,8 @@ function renderCloseOutPanel(task, data, options = {}) {
 
   const { disabled, summary } = getCloseOutAvailability(task, data);
   const currentSurface = options.currentSurface || state.surface;
+  const allowExecutingActions =
+    options.forceExecutingActions === true || currentSurface === 'taskboard';
   const displayStatus = getCloseOutApprovalDisplayStatus(summary);
   const packageStatus = summary.currentReleasePackageArtifactId
     ? 'current'
@@ -3482,7 +3619,7 @@ function renderCloseOutPanel(task, data, options = {}) {
       : 'missing';
   const relationContext = buildCloseOutRelationContext(task, data, summary);
   const actionHelp = summary.allowed
-    ? `Runs close-out from release-package ${summary.currentReleasePackageArtifactId || 'the current approved bundle'}, captures a close-out artifact, and transitions Review -> Done without push, publish, or external release.`
+    ? `Resume Approved Close Out runs close-out from release-package ${summary.currentReleasePackageArtifactId || 'the current approved bundle'}, captures a close-out artifact, and transitions Review -> Done without push, publish, or external release.`
     : `Close Out stays disabled until ${
         (summary.reasons || []).join('; ') || 'the current approved release bundle is ready'
       }.`;
@@ -3491,18 +3628,38 @@ function renderCloseOutPanel(task, data, options = {}) {
       ? ''
       : `
           <div class="form-actions form-actions-inline">
-            <button
-              class="primary-button"
-              type="button"
-              data-action="run-close-out"
-              data-id="${escapeHtml(task.id)}"
-              ${disabled ? 'disabled' : ''}
-            >
-              Close Out
-            </button>
-            <p class="form-help">${escapeHtml(actionHelp)}</p>
+            ${
+              allowExecutingActions
+                ? `
+                  <button
+                    class="primary-button"
+                    type="button"
+                    data-action="run-close-out"
+                    data-id="${escapeHtml(task.id)}"
+                    ${disabled ? 'disabled' : ''}
+                  >
+                    Resume Approved Close Out
+                  </button>
+                  <p class="form-help">${escapeHtml(actionHelp)}</p>
+                `
+                : `
+                  <p class="form-help">
+                    ${escapeHtml(
+                      `${getSurfaceDisplayName(currentSurface)} stays navigation-only for close-out follow-up. Open Task Detail to use Resume Approved Close Out.`,
+                    )}
+                  </p>
+                `
+            }
           </div>
         `;
+  const navigationHint =
+    allowExecutingActions || !summary.allowed
+      ? ''
+      : renderTaskDetailNavigationHint(task, {
+          label: 'Open Task Detail Close-Out Guard',
+          helpText:
+            'Execution stays on Task Detail. Artifacts and Decision Inbox remain navigation-only for close-out continuation.',
+        });
 
   return `
     <div class="guard-summary">
@@ -3579,6 +3736,7 @@ function renderCloseOutPanel(task, data, options = {}) {
         '<p class="detail-copy">No close-out provenance relation is available yet.</p>'
       }
       ${actionSurface}
+      ${navigationHint}
     </div>
   `;
 }
@@ -4000,6 +4158,13 @@ async function handleSelection(action, id) {
     syncSelectionsFromTask(id, {
       applyTaskInboxPreselect: true,
     });
+  }
+
+  if (action === 'open-taskboard-task') {
+    syncSelectionsFromTask(id, {
+      applyTaskInboxPreselect: true,
+    });
+    state.surface = 'taskboard';
   }
 
   if (action === 'select-run') {

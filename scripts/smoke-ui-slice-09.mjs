@@ -16,14 +16,24 @@ const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-09');
 
 function createFixtureProject() {
   const projectPath = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-09-'));
-  const fixturePath = path.join(projectPath, 'prompts', 'builder.md');
+  const fixtureFiles = new Map([
+    ['prompts/builder.md', '# Builder Prompt Contract\n\nUI slice 09 commit-package fixture.\n'],
+    ['src/execution/execution-coordinator.js', "'use strict';\n\nexport const fixtureCoordinator = true;\n"],
+    [
+      'src/execution/providers/local-stub-adapter.js',
+      "'use strict';\n\nexport const fixtureLocalStubAdapter = true;\n",
+    ],
+    ['src/runtime/runtime-service.js', "'use strict';\n\nexport const fixtureRuntimeService = true;\n"],
+    ['scripts/smoke-execution-slice-05.mjs', "console.log('fixture smoke execution slice 05');\n"],
+    ['scripts/serve-ui-slice-01.mjs', "console.log('fixture serve ui slice 01');\n"],
+    ['ui/app.js', "'use strict';\n\nexport const fixtureUiApp = true;\n"],
+  ]);
 
-  fs.mkdirSync(path.dirname(fixturePath), { recursive: true });
-  fs.writeFileSync(
-    fixturePath,
-    '# Builder Prompt Contract\n\nUI slice 09 commit-package fixture.\n',
-    'utf8',
-  );
+  for (const [relativePath, content] of fixtureFiles.entries()) {
+    const filePath = path.join(projectPath, relativePath);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content, 'utf8');
+  }
 
   return projectPath;
 }

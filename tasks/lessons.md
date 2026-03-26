@@ -14,6 +14,7 @@
 ## shell / gate handling
 
 - 초기 UI는 write action보다 gate/status visibility에 집중하는 편이 pack 제약과 구조 안정성에 더 맞았다.
+- local browser smoke가 `listen EPERM 127.0.0.1`로 실패하면 product regression으로 바로 해석하지 말고, 먼저 sandbox port-binding 제한인지 분리해서 outside-sandbox로 재실행하는 편이 원인 분리가 빨랐다.
 - shell server 안의 최소 mutation route + snapshot echo만으로도 write UI를 generic API layer 없이 붙일 수 있었다.
 - linked worktree selection도 같은 패턴으로 닫을 수 있었고, detection은 current project_path에서 server-derived로 계산하고 release/close-out guard ownership은 coordinator에 그대로 두는 편이 drift를 막았다.
 - detected linked worktree와 registered project 매핑은 raw string path가 아니라 canonical realpath 기준으로 처리해야 symlink나 alias path가 섞여도 shell switch가 흔들리지 않았다.
@@ -52,6 +53,9 @@
 - close-out gate는 runtime 일반 lifecycle guard에 release semantics를 밀어넣기보다 coordinator 전용 guard로 두고, `Review + passed + no flags + approved current release bundle + clean repo`를 한 번에 확인하는 편이 범위를 안정적으로 유지했다.
 - terminal close-out duplicate는 latest approved release approval id가 아니라 `sourceReleasePackageArtifactId` 기준으로 닫는 편이 재실행 차단과 provenance 추적이 단순했다.
 - local commit 이후에도 close-out 직전에 repo clean(unstaged/staged/untracked 모두 0)을 다시 확인해야 승인된 release bundle 이후의 drift를 막을 수 있었다.
+- commit-side helper처럼 승인 소비 단계가 있는 실행 CTA는 `Task Detail` 한 곳에만 두고, `Artifacts`와 `Decision Inbox`는 provenance/readiness + navigation-only hint로 제한하는 편이 surface authority drift를 막기 쉬웠다.
+- release-side helper도 같은 규칙을 따라야 했다. `Resume Approved Close Out` CTA는 `Task Detail` release/close-out guard에만 두고, `Artifacts`와 `Decision Inbox`는 current approved release bundle일 때만 navigation hint를 보이며 stale/blocked bundle에서는 기존 guard reason만 남기는 편이 권한 경계를 가장 안정적으로 유지했다.
+- second provider 평가는 구현 순서의 자동 다음 칸처럼 다루면 안 됐다. current `openai-responses` boundary로 operator problem이 이미 닫혀 있다면 provider matrix를 넓히기보다 optional real-live housekeeping과 concrete gap evidence를 먼저 모으는 편이 docs, smoke, readiness drift를 줄이기 쉬웠다.
 
 ## smoke / fixtures
 
@@ -67,6 +71,7 @@
 - planner plus architect live browser smoke도 provider config mutation 자체는 API로 두고, 브라우저에서는 opt-in 반영 상태와 planner/architect click-through만 확인하는 편이 현재 shell 구조에서 더 안정적이었다.
 - qa-slice-04처럼 architect live browser smoke를 추가할 때도 project-level provider summary는 coarse readiness만 브라우저에서 보고, planner/architect ready와 downstream degraded는 direct coordinator assertion으로 닫는 편이 DEC-032 경계와 UI 안정성을 함께 지키기 쉽다.
 - human-gate architect smoke는 Decision Inbox surface 노출만 브라우저에서 확인하고, `kind / sourceType / blocksTask / task flags`는 `/api/snapshot`으로 닫는 편이 selector brittleness 없이 의미론을 유지하기 쉽다.
+- synthetic reviewed-bundle browser smoke도 current reviewer anchor contract를 그대로 따라야 했다. builder live-mutation fixture에는 `preflightArtifactId`, `preflightRunId`, `inputArtifactIds`, `inputRunIds`, approval target linkage, `changedFiles`, 그리고 change-summary의 base64 `File Updates`가 모두 맞아야 reviewer readiness drift를 막을 수 있었다.
 - Task Detail help copy는 upstream artifact id가 아직 없을 수 있으므로 null-safe로 렌더링해야 browser smoke 전에 shell이 죽지 않는다.
 - Playwright CLI 세션 고정은 wrapper 전용 env var에 기대지 말고 각 호출에 `--session`을 명시하는 편이 로컬 재현성과 디버깅 안정성이 높았다.
 

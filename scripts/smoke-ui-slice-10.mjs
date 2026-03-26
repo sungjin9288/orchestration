@@ -104,6 +104,12 @@ function buildChangeSummaryContent(preflightArtifactId, approvalId) {
 ## Target Files
 - scoped.txt
 
+## File Updates
+### scoped.txt
+\`\`\`base64
+${Buffer.from('scoped change synthetic\n', 'utf8').toString('base64')}
+\`\`\`
+
 ## Risks
 - none
 
@@ -226,6 +232,8 @@ Prepare local commit evidence from the latest successful terminal reviewer pass 
     runId: builderRun.id,
     summary: {
       approvalId: approval.id,
+      approvalTargetArtifactId: preflight.artifact.id,
+      approvalTargetRunId: preflight.run.id,
       artifactIds: {
         changeSummary: changeSummary.id,
         patch: patch.id,
@@ -233,8 +241,15 @@ Prepare local commit evidence from the latest successful terminal reviewer pass 
       },
       changedFiles: ['scoped.txt'],
       executionMode: 'live-mutation',
-      inputArtifactIds: [plan.artifact.id, architecture.artifact.id, breakdown.artifact.id],
+      inputArtifactIds: [
+        plan.artifact.id,
+        architecture.artifact.id,
+        breakdown.artifact.id,
+        preflight.artifact.id,
+      ],
+      inputRunIds: [plan.run.id, architecture.run.id, breakdown.run.id, preflight.run.id],
       preflightArtifactId: preflight.artifact.id,
+      preflightRunId: preflight.run.id,
     },
   });
 
@@ -309,12 +324,19 @@ const appJsSource = fs.readFileSync(path.join(repoRoot, 'ui', 'app.js'), 'utf8')
 
 assert.match(serveUiSource, /commitExecutionReadinessSummaries/);
 assert.match(serveUiSource, /run-local-commit/);
-assert.match(appJsSource, /Run Local Commit/);
+assert.match(appJsSource, /Resume Approved Local Commit/);
 assert.match(appJsSource, /commitExecutionReadinessSummaries/);
 assert.match(appJsSource, /parseCommitResultArtifact/);
 assert.match(appJsSource, /renderStructuredCommitResult/);
 assert.match(appJsSource, /selectedArtifactMeta\.type === 'commit-result'/);
 assert.match(appJsSource, /data-action="run-local-commit"/);
+assert.match(appJsSource, /open-taskboard-task/);
+assert.match(appJsSource, /Open Task Detail Commit Guard/);
+assert.match(
+  appJsSource,
+  /stays navigation-only for commit follow-up\. Open Task Detail to use Resume Approved Local Commit\./,
+);
+assert.match(appJsSource, /currentSurface === 'taskboard'/);
 assert.match(appJsSource, /state\.surface = 'artifacts';/);
 
 const happyCase = await createCommitReadyTask(runtime, coordinator, 'happy');
