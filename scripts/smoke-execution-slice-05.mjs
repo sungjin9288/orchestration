@@ -37,6 +37,44 @@ function ensureFixtureProject() {
   );
 }
 
+function parseMarkdownList(content, heading) {
+  const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = String(content || '').match(
+    new RegExp(`^## ${escapedHeading}\\n([\\s\\S]*?)(?=^## [^\\n]+\\n|(?![\\s\\S]))`, 'm'),
+  );
+  const section = match ? match[1] : '';
+
+  return section
+    .split('\n')
+    .map((line) => line.replace(/^[-*]\s+/, '').trim())
+    .filter(Boolean);
+}
+
+function materializePreflightTargetFiles(projectPath, preflightContent) {
+  const targetFiles = parseMarkdownList(preflightContent, 'Target Files');
+
+  for (const relativePath of targetFiles) {
+    const targetPath = path.join(projectPath, relativePath);
+
+    if (fs.existsSync(targetPath)) {
+      continue;
+    }
+
+    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+
+    const sourcePath = path.join(repoRoot, relativePath);
+
+    if (fs.existsSync(sourcePath)) {
+      fs.copyFileSync(sourcePath, targetPath);
+      continue;
+    }
+
+    fs.writeFileSync(targetPath, `# synthetic fixture for ${relativePath}\n`, 'utf8');
+  }
+
+  return targetFiles;
+}
+
 function buildOutOfScopeOutput() {
   return `# Builder Live Mutation: malicious
 
@@ -136,6 +174,7 @@ const approvalTask = runtime.createTask({
 
 const setup = await runThroughBuilderPreflight(coordinator, approvalTask);
 const preflightArtifact = runtime.getArtifact(setup.builderPreflightResult.artifact.id);
+const targetFiles = materializePreflightTargetFiles(projectRoot, preflightArtifact.content);
 const projectFixtureBefore = fs.readFileSync(fixtureProjectPath, 'utf8');
 
 assert.match(preflightArtifact.content, /^## Target Files$/m);
@@ -193,24 +232,32 @@ const successLogs = runtime.getLogs(successResult.run.id);
 const changeSummaryArtifact = runtime.getArtifact(successResult.artifacts.changeSummary.id);
 const patchArtifact = runtime.getArtifact(successResult.artifacts.patch.id);
 const diffArtifact = runtime.getArtifact(successResult.artifacts.diff.id);
-const projectFixtureAfter = fs.readFileSync(fixtureProjectPath, 'utf8');
 const approvalTaskAfter = runtime.getTask(approvalTask.id);
 const reviewInboxItems = runtime.listDecisionInboxItems({
   kind: 'review',
   taskId: approvalTask.id,
 });
+const changedFilePath = path.join(projectRoot, successResult.changedFiles[0] || '');
+const changedFileAfter = fs.readFileSync(changedFilePath, 'utf8');
 
 assert.equal(successResult.run.summary.executionMode, 'live-mutation');
 assert.equal(successResult.run.summary.approvalId, approvedApproval.id);
-assert.deepEqual(successResult.changedFiles, [fixtureRelativePath]);
+assert.ok(successResult.changedFiles.length >= 1);
+assert.ok(successResult.changedFiles.every((relativePath) => targetFiles.includes(relativePath)));
 assert.equal(changeSummaryArtifact.type, 'change-summary');
 assert.equal(patchArtifact.type, 'patch');
 assert.equal(diffArtifact.type, 'diff');
 assert.match(changeSummaryArtifact.content, /^# Builder Live Mutation:/m);
-assert.match(patchArtifact.content, new RegExp(`a/${fixtureRelativePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-assert.match(diffArtifact.content, new RegExp(`b/${fixtureRelativePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-assert.notEqual(projectFixtureAfter, projectFixtureBefore);
-assert.match(projectFixtureAfter, new RegExp(`builder-live-mutation ${approvedApproval.id}`));
+assert.match(
+  patchArtifact.content,
+  new RegExp(`a/${successResult.changedFiles[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+);
+assert.match(
+  diffArtifact.content,
+  new RegExp(`b/${successResult.changedFiles[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+);
+assert.notEqual(changedFileAfter, projectFixtureBefore);
+assert.match(changedFileAfter, new RegExp(`builder-live-mutation ${approvedApproval.id}`));
 assert.equal(approvalTaskAfter.lifecycleState, 'In Progress');
 assert.equal(approvalTaskAfter.review.status, 'pending');
 assert.equal(reviewInboxItems.length, 0);
@@ -218,15 +265,7 @@ assert.match(successLogs[0].message, /builder live mutation run started/i);
 assert.match(successLogs[3].message, /approved live mutation approval/i);
 assert.match(
   successLogs.map((entry) => entry.message).join('\n'),
-  /saved builder live mutation change-summary artifact/i,
-);
-assert.match(
-  successLogs.map((entry) => entry.message).join('\n'),
-  /saved builder live mutation patch artifact/i,
-);
-assert.match(
-  successLogs.map((entry) => entry.message).join('\n'),
-  /saved builder live mutation diff artifact/i,
+  /saved builder live mutation bundle/i,
 );
 
 const stalePreflight = await coordinator.runBuilderPreflight({

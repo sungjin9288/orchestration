@@ -36,8 +36,14 @@ function buildPreflightContent(label) {
 `;
 }
 
-function createArtifact(taskId, type, label) {
-  const role = type === 'preflight' ? 'builder' : 'smoke';
+function createArtifact(taskId, type, label, summary = null) {
+  const roleByType = {
+    architecture: 'architect',
+    breakdown: 'task-breaker',
+    plan: 'planner',
+    preflight: 'builder',
+  };
+  const role = roleByType[type] || 'smoke';
   const run = runtime.startRun({
     taskId,
     kind: 'role',
@@ -52,11 +58,45 @@ function createArtifact(taskId, type, label) {
         ? buildPreflightContent(label)
         : `# ${type}: ${label}\n\n${label}\n`,
   });
-  const completedRun = runtime.completeRun({ runId: run.id });
+  const completedRun = runtime.completeRun({
+    runId: run.id,
+    summary,
+  });
 
   return {
     artifact,
     run: completedRun,
+  };
+}
+
+function createBuilderProvenanceChain(taskId, label) {
+  const plan = createArtifact(taskId, 'plan', `${label} plan`);
+  const architecture = createArtifact(taskId, 'architecture', `${label} architecture`, {
+    inputArtifactId: plan.artifact.id,
+    inputRunId: plan.run.id,
+  });
+  const breakdown = createArtifact(taskId, 'breakdown', `${label} breakdown`, {
+    architectureArtifactId: architecture.artifact.id,
+    architectureRunId: architecture.run.id,
+    inputArtifactIds: [plan.artifact.id, architecture.artifact.id],
+    inputRunIds: [plan.run.id, architecture.run.id],
+  });
+  const preflight = createArtifact(taskId, 'preflight', `${label} preflight`, {
+    planArtifactId: plan.artifact.id,
+    planRunId: plan.run.id,
+    architectureArtifactId: architecture.artifact.id,
+    architectureRunId: architecture.run.id,
+    breakdownArtifactId: breakdown.artifact.id,
+    breakdownRunId: breakdown.run.id,
+    inputArtifactIds: [plan.artifact.id, architecture.artifact.id, breakdown.artifact.id],
+    inputRunIds: [plan.run.id, architecture.run.id, breakdown.run.id],
+  });
+
+  return {
+    architecture,
+    breakdown,
+    plan,
+    preflight,
   };
 }
 
@@ -85,9 +125,22 @@ const guardSplitTask = runtime.createTask({
   intent: 'Keep builder preflight and builder live mutation semantics separate.',
 });
 
-createArtifact(guardSplitTask.id, 'plan', 'split plan');
-createArtifact(guardSplitTask.id, 'architecture', 'split architecture');
-createArtifact(guardSplitTask.id, 'breakdown', 'split breakdown');
+const splitPlan = createArtifact(guardSplitTask.id, 'plan', 'split plan');
+const splitArchitecture = createArtifact(
+  guardSplitTask.id,
+  'architecture',
+  'split architecture',
+  {
+    inputArtifactId: splitPlan.artifact.id,
+    inputRunId: splitPlan.run.id,
+  },
+);
+createArtifact(guardSplitTask.id, 'breakdown', 'split breakdown', {
+  architectureArtifactId: splitArchitecture.artifact.id,
+  architectureRunId: splitArchitecture.run.id,
+  inputArtifactIds: [splitPlan.artifact.id, splitArchitecture.artifact.id],
+  inputRunIds: [splitPlan.run.id, splitArchitecture.run.id],
+});
 
 const guardSplitSummary = runtime.getTaskGuardSummary(guardSplitTask.id);
 
@@ -105,7 +158,7 @@ const liveApprovalTask = runtime.createTask({
   intent: 'Normalize pending, approved, rejected, and stale approvals against the latest preflight.',
 });
 
-const preflightOne = createArtifact(liveApprovalTask.id, 'preflight', 'preflight one');
+const { preflight: preflightOne } = createBuilderProvenanceChain(liveApprovalTask.id, 'live approval one');
 const pendingLiveApproval = runtime.createApprovalPlaceholder({
   taskId: liveApprovalTask.id,
   scope: 'builder',
@@ -159,7 +212,7 @@ assert.equal(
   true,
 );
 
-const preflightTwo = createArtifact(liveApprovalTask.id, 'preflight', 'preflight two');
+const { preflight: preflightTwo } = createBuilderProvenanceChain(liveApprovalTask.id, 'live approval two');
 const staleLiveSummary = runtime.getTaskGuardSummary(liveApprovalTask.id).builderLiveMutation;
 
 assert.equal(staleLiveSummary.allowed, false);
@@ -178,7 +231,7 @@ const commitTask = runtime.createTask({
   intent: 'Apply the same latest-record and preflight-target rule to commit approval.',
 });
 
-const commitPreflightOne = createArtifact(commitTask.id, 'preflight', 'commit preflight one');
+const { preflight: commitPreflightOne } = createBuilderProvenanceChain(commitTask.id, 'commit approval one');
 const pendingCommitApproval = runtime.createApprovalPlaceholder({
   taskId: commitTask.id,
   scope: 'commit',
@@ -211,7 +264,7 @@ assert.equal(
   true,
 );
 
-const commitPreflightTwo = createArtifact(commitTask.id, 'preflight', 'commit preflight two');
+const { preflight: commitPreflightTwo } = createBuilderProvenanceChain(commitTask.id, 'commit approval two');
 
 assert.throws(
   () =>

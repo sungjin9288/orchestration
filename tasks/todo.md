@@ -11,20 +11,20 @@
 - [x] `milestone-m4-live-freeze` does not add capability or change runtime, execution, or UI semantics
 
 ### regression / verification [required freeze gate]
-- [ ] unchanged required local baseline from `milestone-m3-freeze` remains green
-- [ ] `node scripts/smoke-dev-loop-m2.mjs`
-- [ ] `node scripts/smoke-runtime-slice-05.mjs`
-- [ ] `node scripts/smoke-runtime-slice-06.mjs`
-- [ ] `node scripts/smoke-execution-slice-05.mjs`
-- [ ] `node scripts/smoke-execution-slice-06.mjs`
-- [ ] `node scripts/smoke-execution-slice-07.mjs`
-- [ ] `node scripts/smoke-execution-slice-08.mjs`
-- [ ] `node scripts/smoke-execution-slice-09.mjs`
-- [ ] `node scripts/smoke-execution-slice-10.mjs`
-- [ ] `node scripts/smoke-execution-slice-11.mjs`
-- [ ] `node scripts/smoke-ui-slice-11.mjs`
-- [ ] `node scripts/smoke-ui-slice-12.mjs`
-- [ ] `node scripts/smoke-worktree-slice-03.mjs`
+- [x] unchanged required local baseline from `milestone-m3-freeze` remains green
+- [x] `node scripts/smoke-dev-loop-m2.mjs`
+- [x] `node scripts/smoke-runtime-slice-05.mjs`
+- [x] `node scripts/smoke-runtime-slice-06.mjs`
+- [x] `node scripts/smoke-execution-slice-05.mjs`
+- [x] `node scripts/smoke-execution-slice-06.mjs`
+- [x] `node scripts/smoke-execution-slice-07.mjs`
+- [x] `node scripts/smoke-execution-slice-08.mjs`
+- [x] `node scripts/smoke-execution-slice-09.mjs`
+- [x] `node scripts/smoke-execution-slice-10.mjs`
+- [x] `node scripts/smoke-execution-slice-11.mjs`
+- [x] `node scripts/smoke-ui-slice-11.mjs`
+- [x] `node scripts/smoke-ui-slice-12.mjs`
+- [x] `node scripts/smoke-worktree-slice-03.mjs`
 - [x] required live-provider synthetic baseline remains green
 - [x] `node scripts/smoke-provider-slice-04.mjs`
 - [x] `node scripts/smoke-provider-slice-05.mjs`
@@ -58,11 +58,36 @@
 - [x] `node scripts/smoke-provider-live-slice-07.mjs` recorded `status=fail (real timeout observed)`, `model=gpt-5.4`
 - [x] `node scripts/smoke-qa-live-slice-06.mjs` recorded `status=fail (real timeout observed)`, `model=gpt-5.4`
 - [x] `node scripts/smoke-qa-live-slice-07.mjs` recorded `status=fail (real timeout observed)`, `model=gpt-5.4`
+- [x] current `main` now aligns `scripts/smoke-provider-live-slice-03.mjs`, `scripts/smoke-provider-live-slice-05.mjs`, and `scripts/smoke-provider-live-slice-06.mjs` to the frozen reviewer/downstream readiness truth (`ready`, `allowed=true`), so the recorded stale failures remain historical operational evidence until the next configured-env rerun
+- [x] current `main` now carries stage-level timeout diagnostics for `scripts/smoke-provider-live-slice-07.mjs`, `scripts/qa-slice-06-runner.mjs`, and `scripts/qa-slice-07-runner.mjs`, including `stageTimings`, `timeoutBudgetMs`, and failure-message suffixes with `stage` plus `durationMs`
 
 ### source-of-truth docs/tasks [accepted]
 - [x] `docs/00_master-brief.md`, `docs/03_architecture-roadmap-v1.md`, `packs/development/pack.md`, and `tasks/todo.md` describe the current implemented planner-through-reviewer live boundary without widening scope
 - [x] optional real-live verification is described as non-blocking and separate from required synthetic gates
 - [x] `docs/01_decision-log.md` remains unchanged in this freeze
+- [x] `docs/04_codex-handoff-master-brief.md` and `docs/05_execution-spec-ops-verification-m5-02.md` record the current `main` handoff package and immediate stale-vs-real-fail execution spec without widening the frozen baseline
+- [x] drift-prone non-SSoT reference docs were reduced to the current repo-integrated numbered set under `docs/00..05`; `docs/04` and `docs/05` remain explicit derivative handoff docs referenced from `docs/03` and do not float as separate ad-hoc notes
+
+### operator rehearsal [accepted]
+- [x] `operator-hardening-m5-03` ran on `2026-03-26` against current `main` using synthetic/local smoke only because configured live env was not visible to this process
+- [x] `node scripts/smoke-ui-slice-01.mjs` reconfirmed the primary shell surfaces `Taskboard / Logs / Artifacts / Decision Inbox`, project-scoped snapshot state, and explicit review/approval gate visibility
+- [x] `node scripts/smoke-worktree-slice-03.mjs` reconfirmed project register/select reuse for linked worktree create/switch without task migration or hidden worktree auto-assignment
+- [x] `node scripts/smoke-dev-loop-m2.mjs` reconfirmed the bounded planner -> architect -> task-breaker -> builder preflight -> builder live-mutation -> reviewer -> commit-package -> local commit operator path on a clean temp repo
+- [x] `node scripts/smoke-ui-slice-11.mjs` reconfirmed `release-package` visibility as explicit `local-demo-only` downstream follow-up with current readiness and approval summaries preserved
+- [x] `node scripts/smoke-ui-slice-12.mjs` reconfirmed `close-out` visibility as explicit release-bundle-consuming finalization with clean-repo and duplicate-close-out guards preserved
+- [x] no hidden auto-transition, no silent fallback, and no downstream auto-start was observed in the current operator rehearsal path
+
+### stabilization close [accepted]
+- [x] `v1-stabilization-close-m5-04` reran the changed runtime/execution/ui smoke bundle on current `main` and confirmed the current smoke-fixture realignment remains green after docs/tasks reconciliation
+- [x] rerun bundle confirmed green for `node scripts/smoke-runtime-slice-05.mjs`, `node scripts/smoke-execution-slice-05.mjs`, `node scripts/smoke-execution-slice-06.mjs`, `node scripts/smoke-execution-slice-07.mjs`, `node scripts/smoke-execution-slice-08.mjs`, `node scripts/smoke-execution-slice-09.mjs`, `node scripts/smoke-execution-slice-10.mjs`, `node scripts/smoke-execution-slice-11.mjs`, `node scripts/smoke-ui-slice-11.mjs`, and `node scripts/smoke-ui-slice-12.mjs`
+- [x] `qa-runner-log-selection-m5-05` closed the synthetic logs-surface verification drift by selecting the target run row before asserting log detail visibility; `node scripts/smoke-qa-slice-06.mjs` and `node scripts/smoke-qa-slice-07.mjs` both pass on current `main` without widening runtime or UI semantics
+- [x] remaining optional real-live gap is now tracked as an execution-context env visibility blocker rather than a required-baseline regression on current `main`
+
+### v1 usable completion [accepted]
+- [x] current `main` now satisfies the operator-usable `development` pack v1 baseline defined by `docs/00_master-brief.md`, `docs/02_ia-v1.md`, `docs/03_architecture-roadmap-v1.md`, and `packs/development/pack.md`
+- [x] required local baseline, required live-provider synthetic baseline, operator rehearsal, and stabilization-close reruns are all green on current `main`
+- [x] optional real-live reruns remain non-blocking operational verification only and do not prevent `v1 usable completion`
+- [x] the first post-v1 development priority moves to `artifact redaction policy`; optional real-live reruns stay available as separate ops housekeeping whenever configured env is visible to the execution context
 
 ### post-freeze backlog ordering [accepted]
 - [x] `strategy-m5-01` is limited to docs-only backlog ordering; no new capability or runtime/execution/UI semantics change is introduced
@@ -108,15 +133,16 @@
 - [ ] decide whether to keep `milestone-m3-freeze` as pure archive provenance or trim it in a later docs-only cleanup
 - [ ] decide whether `node scripts/smoke-qa-slice-01.mjs` should be promoted from optional browser coverage to a required regression gate
 - [ ] decide whether task-breaker optional real-live coverage needs a standalone provider entrypoint beyond the existing `smoke-qa-live-slice-04.mjs` path
-- [ ] investigate `status=fail (stale expectation suspected)` results from `scripts/smoke-provider-live-slice-03.mjs`, `scripts/smoke-provider-live-slice-05.mjs`, and `scripts/smoke-provider-live-slice-06.mjs` against the current planner-through-reviewer frozen baseline
-- [ ] investigate `status=fail (real timeout observed)` results from `scripts/smoke-provider-live-slice-07.mjs`, `scripts/smoke-qa-live-slice-06.mjs`, and `scripts/smoke-qa-live-slice-07.mjs` under `OPENAI_RESPONSES_MODEL=gpt-5.4`
+- [ ] make configured `OPENAI_API_KEY` / `OPENAI_RESPONSES_MODEL` visible to the current execution context, or rerun the optional real-live verification set from the operator shell and import the evidence back into this ledger
+- [ ] rerun configured-env optional live verification for `scripts/smoke-provider-live-slice-03.mjs`, `scripts/smoke-provider-live-slice-05.mjs`, and `scripts/smoke-provider-live-slice-06.mjs` so the historical `stale expectation suspected` records can be replaced with current-main evidence
+- [ ] rerun configured-env optional live verification for `scripts/smoke-provider-live-slice-07.mjs`, `scripts/smoke-qa-live-slice-06.mjs`, and `scripts/smoke-qa-live-slice-07.mjs` so current timeout diagnostics can capture stage-level evidence under `OPENAI_RESPONSES_MODEL=gpt-5.4`
 - [ ] decide whether any future repo-content redaction implementation should stay preview/export-only or also create redacted derivative copies, while keeping raw stored artifact content as the source of truth
 - [ ] decide the final helper label and placement for any future commit-side resume CTA, including whether it should appear in `Task Detail` only or also in `Artifacts`
 - [ ] decide whether `Decision Inbox` should expose only a navigation hint back to the current task/panel for commit approval follow-up, while keeping actual execution out of inbox actions
 - [ ] decide the final helper label and placement for any future release-side resume CTA, including whether it should appear in `Task Detail` only or also in `Artifacts`
 - [ ] decide whether release-side navigation hints should appear only for approved current release bundles or also for stale/blocked bundles as non-executing guidance
 - [ ] evaluate whether any second provider adapter is needed only after the three items above
-- [ ] clean non-SSoT reference docs that can drift from the repo contracts
+- [x] clean non-SSoT reference docs that can drift from the repo contracts
 
 ## milestone-m3-freeze [archive]
 
@@ -220,12 +246,12 @@ Historical freeze baseline retained for provenance. Current source-of-truth free
 
 #### optional verification / housekeeping
 - [x] optional real live planner plus architect smoke entrypoints are available behind explicit `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL`
-- [ ] `node scripts/smoke-qa-live-slice-04.mjs`
-- [ ] `node scripts/smoke-qa-live-slice-05.mjs`
-- [ ] `node scripts/smoke-qa-live-slice-06.mjs`
-- [ ] `node scripts/smoke-qa-live-slice-07.mjs`
+- [x] `node scripts/smoke-qa-live-slice-04.mjs` historical optional real-live result is now tracked in `milestone-m4-live-freeze -> optional real-live verification`
+- [x] `node scripts/smoke-qa-live-slice-05.mjs` historical optional real-live result is now tracked in `milestone-m4-live-freeze -> optional real-live verification`
+- [x] `node scripts/smoke-qa-live-slice-06.mjs` historical optional real-live result is now tracked in `milestone-m4-live-freeze -> optional real-live verification`
+- [x] `node scripts/smoke-qa-live-slice-07.mjs` historical optional real-live result is now tracked in `milestone-m4-live-freeze -> optional real-live verification`
 - [ ] decide whether to promote `node scripts/smoke-qa-slice-01.mjs` from optional coverage to a required regression gate
-- [ ] clean non-SSoT reference docs that can drift from the repo contracts
+- [x] clean non-SSoT reference docs that can drift from the repo contracts
 
 ## milestone-m2-consolidation
 

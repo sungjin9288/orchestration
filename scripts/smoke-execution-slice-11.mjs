@@ -143,6 +143,12 @@ function buildChangeSummaryContent(preflightArtifactId, approvalId) {
 ## Target Files
 - scoped.txt
 
+## File Updates
+### scoped.txt
+\`\`\`base64
+${Buffer.from('scoped change synthetic\n', 'utf8').toString('base64')}
+\`\`\`
+
 ## Risks
 - none
 
@@ -280,8 +286,17 @@ Add a dedicated linked worktree guard for release-package and close-out.
       },
       changedFiles: ['scoped.txt'],
       executionMode: 'live-mutation',
-      inputArtifactIds: [plan.artifact.id, architecture.artifact.id, breakdown.artifact.id],
+      inputArtifactIds: [
+        plan.artifact.id,
+        architecture.artifact.id,
+        breakdown.artifact.id,
+        preflight.artifact.id,
+      ],
+      inputRunIds: [plan.run.id, architecture.run.id, breakdown.run.id, preflight.run.id],
+      approvalTargetArtifactId: preflight.artifact.id,
+      approvalTargetRunId: preflight.run.id,
       preflightArtifactId: preflight.artifact.id,
+      preflightRunId: preflight.run.id,
     },
   });
 

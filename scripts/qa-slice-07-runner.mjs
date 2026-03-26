@@ -1682,12 +1682,31 @@ async function verifyBrowserLogsLanding({
     label: 'logs landing after builder live mutation',
   });
 
+  await waitForValue(async () => {
+    const selector = `[data-action="select-run"][data-id="${runId}"]`;
+    const runVisible = evaluate({
+      expression: `Boolean(document.querySelector(${JSON.stringify(selector)}))`,
+      outputRoot,
+      overrideEnvVar,
+      sessionName,
+    });
+
+    return runVisible ? selector : null;
+  }, 'logs run list entry visibility');
+
+  clickSelector({
+    outputRoot,
+    overrideEnvVar,
+    selector: `[data-action="select-run"][data-id="${runId}"]`,
+    sessionName,
+  });
+
   const logsText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
     pattern: new RegExp(escapeRegExp(runId), 'i'),
     sessionName,
-    label: 'selected builder live mutation run visibility',
+    label: 'selected run visibility',
   });
 
   assertSecretAbsent(logsText, secret, 'logs surface body');

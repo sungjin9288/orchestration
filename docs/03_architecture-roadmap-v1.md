@@ -194,6 +194,10 @@ The following changes require an explicit decision log update before implementat
 - changing provider strategy
 - adding office-first, messenger-first, or multi-provider-first features
 
+## Codex Handoff Package
+- `docs/04_codex-handoff-master-brief.md` is a repo-aligned briefing document for Codex executors. It summarizes current `main` truth, frozen boundaries, and implementation guardrails without replacing the core source-of-truth docs.
+- `docs/05_execution-spec-ops-verification-m5-02.md` locks the immediate stale-vs-real-fail execution spec for the optional real-live verification follow-up and does not widen runtime, execution, provider, or UI semantics.
+
 ## Implemented Live-Provider Boundary
 - `local-stub` remains the shipped default; a live provider is explicit operator opt-in only and does not auto-enable from env or secret presence.
 - Provider selection changes only the adapter used for role execution; it does not change lifecycle, artifact taxonomy, approval semantics, linked-worktree rules, or the local-only release boundary.

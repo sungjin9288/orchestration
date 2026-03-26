@@ -79,6 +79,12 @@ function buildChangeSummaryContent(preflightArtifactId, approvalId) {
 ## Target Files
 - prompts/builder.md
 
+## File Updates
+### prompts/builder.md
+\`\`\`base64
+${Buffer.from('# Builder Prompt Contract\n# synthetic reviewer smoke fixture\n', 'utf8').toString('base64')}
+\`\`\`
+
 ## Risks
 - none
 
@@ -217,8 +223,17 @@ Attach reviewer to the latest builder live mutation run bundle.
       },
       changedFiles: ['prompts/builder.md'],
       executionMode: 'live-mutation',
-      inputArtifactIds: [plan.artifact.id, architecture.artifact.id, breakdown.artifact.id],
+      inputArtifactIds: [
+        plan.artifact.id,
+        architecture.artifact.id,
+        breakdown.artifact.id,
+        preflight.artifact.id,
+      ],
+      inputRunIds: [plan.run.id, architecture.run.id, breakdown.run.id, preflight.run.id],
+      approvalTargetArtifactId: preflight.artifact.id,
+      approvalTargetRunId: preflight.run.id,
       preflightArtifactId: preflight.artifact.id,
+      preflightRunId: preflight.run.id,
     },
   });
 
@@ -265,7 +280,7 @@ const emptyTask = runtime.createTask({
 
 await assert.rejects(
   () => coordinator.runReviewer({ taskId: emptyTask.id }),
-  /latest builder live mutation run is required/i,
+  /latest successful builder live mutation bundle is required before reviewer run/i,
 );
 
 const passTask = runtime.createTask({
