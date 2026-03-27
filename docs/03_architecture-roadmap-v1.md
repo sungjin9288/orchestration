@@ -3,6 +3,12 @@
 ## Purpose
 This document defines the current implemented baseline, architecture boundary, and remaining open work for the first usable version of Orchestration 1.0.
 
+## Current Phase Position
+- the v1 control-plane baseline is complete and remains the authoritative shipped execution substrate
+- the next product step is not "more Taskboard-first consolidation" but the post-v1 AI orchestration pivot described in `docs/06_ai-orchestration-pivot.md`
+- future work should reuse the current runtime, coordinator, artifact, approval, and review engine rather than replacing it
+- the existing shell remains available as `advanced ops mode`; it is not the intended default first-time product experience anymore
+
 ## Architecture Guardrails
 - keep the product `local-first / single-user-first / ops-first`
 - treat repo files as the source of truth for policy and contracts
@@ -194,6 +200,8 @@ The following changes require an explicit decision log update before implementat
 - changing provider strategy
 - adding office-first, messenger-first, or multi-provider-first features
 
+`DEC-042` now records the accepted post-v1 pivot direction. Any implementation that changes the default user-facing product entry toward `Mission / Council / Execution / Deliverables` must still preserve the frozen v1 engine contracts unless a later explicit decision changes them.
+
 ## Codex Handoff Package
 - `docs/04_codex-handoff-master-brief.md` is a repo-aligned briefing document for Codex executors. It summarizes current `main` truth, frozen boundaries, and implementation guardrails without replacing the core source-of-truth docs.
 - `docs/05_execution-spec-ops-verification-m5-02.md` locks the immediate stale-vs-real-fail execution spec for the optional real-live verification follow-up and does not widen runtime, execution, provider, or UI semantics.
@@ -330,6 +338,8 @@ The following changes require an explicit decision log update before implementat
 - remaining open items are separated into explicit `vNext` backlog entries only
 
 ## VNext Backlog After V1 Freeze
+- `ai-orchestration-pivot-v2` is now implemented on current `main`: the intended orchestration experience now runs on top of the current engine, and the existing shell remains available as `advanced ops mode`
+- future post-freeze follow-up returns to explicit non-blocking housekeeping or later `vNext` backlog entries instead of reopening the pivot itself as the next unresolved default-surface rewrite
 - `strategy-m5-01` is docs-only backlog ordering: do not add capability, do not change runtime, execution, or UI semantics, and do not promote optional real-live verification into the required freeze gate
 - priority 1: keep optional real-live verification as the first post-freeze backlog item for the current planner-through-reviewer boundary, while keeping it non-blocking and allowing env-missing `skipped`
 - priority 2: define artifact redaction policy after optional real-live verification, and keep that policy separate from the already accepted provider secret/auth/raw payload/env non-leak boundary
@@ -373,7 +383,7 @@ The following changes require an explicit decision log update before implementat
 - Decision Inbox remains non-executing on the release side as well: at most, it may offer a navigation hint back to the current task and release/close-out panel when a current approved release bundle exists.
 - one-click `release-package -> approval -> close-out`, hidden approval consumption, linked-worktree automation, repo-clean recovery automation, auto close-out, and the broader four-step downstream chain remain widening-forbidden for this backlog item.
 - `smoke-qa-slice-01` remains optional browser coverage instead of joining the required freeze gate, and task-breaker optional real-live coverage continues through `smoke-qa-live-slice-04` without a standalone provider live smoke.
-- any future delete/archive/GC capability must consume the normalized retention tiers through an explicit operator-invoked retention consumer: Tier A stays protected, Tier B remains inspectable until explicitly acted on, and Tier C is the first cleanup candidate.
+- current `main` may expose explicit retention consumer preview/apply behavior, but any delete/archive/GC capability must still consume the normalized retention tiers through an explicit operator-invoked retention consumer: Tier A stays protected, Tier B remains inspectable until explicitly acted on, Tier C is the first cleanup candidate, and hidden cleanup remains forbidden.
 
 ## Slice Review Checklist
 - [ ] does the slice preserve local-first behavior

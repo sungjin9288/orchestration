@@ -553,7 +553,7 @@ async function runFlow() {
     openPlaywrightSession(sessionName, baseUrl);
     const bootstrapSnapshot = await waitForSnapshotText(
       sessionName,
-      /Register Project/,
+      /Start With This Project/,
       'project bootstrap landing',
     );
     const bootstrapRefreshRef = findRef(
@@ -562,8 +562,8 @@ async function runFlow() {
       'Refresh button on bootstrap page',
     );
 
-    assert.match(bootstrapSnapshot, /option "local-stub" \[selected\]/i);
-    assertSecretAbsent(bootstrapSnapshot, sentinelSecret, 'taskboard bootstrap snapshot');
+    assert.match(bootstrapSnapshot, /Mission Start|Mission Project Access/i);
+    assertSecretAbsent(bootstrapSnapshot, sentinelSecret, 'mission bootstrap snapshot');
 
     const afterRegister = await postJson(baseUrl, '/api/projects', {
       name: 'qa-slice-02',
@@ -586,6 +586,25 @@ async function runFlow() {
     assert.equal(projectSummary.readiness, 'ready');
     assert.equal(projectSummary.allowed, true);
     assert.deepEqual(projectSummary.reasons, []);
+    const registeredMissionSnapshot = await waitForSnapshotText(
+      sessionName,
+      /Create Mission|Mission title/i,
+      'mission snapshot after project registration',
+    );
+    const taskboardNavRef = findRef(
+      registeredMissionSnapshot,
+      /button "Taskboard \(\d+\)" \[ref=(e\d+)\]/,
+      'Taskboard navigation button after project registration',
+    );
+
+    assert.match(registeredMissionSnapshot, /Mission/);
+    assertSecretAbsent(
+      registeredMissionSnapshot,
+      sentinelSecret,
+      'mission snapshot after project registration',
+    );
+    assert.equal(clickRef(sessionName, taskboardNavRef), true);
+
     const registeredTaskboardSnapshot = await waitForSnapshotText(
       sessionName,
       /provider readiness:ready/i,
@@ -689,7 +708,7 @@ async function runFlow() {
       new RegExp(escapeRegExp(localStubPlanArtifactId)),
       'artifacts DOM',
     );
-    const taskboardNavRef = findRef(
+    const taskboardNavRefAfterArtifacts = findRef(
       artifactsSnapshot,
       /button "Taskboard \(\d+\)" \[ref=(e\d+)\]/,
       'Taskboard navigation button',
@@ -697,7 +716,7 @@ async function runFlow() {
 
     assertSecretAbsent(artifactsSnapshot, sentinelSecret, 'artifacts snapshot');
 
-    assert.equal(clickRef(sessionName, taskboardNavRef), true);
+    assert.equal(clickRef(sessionName, taskboardNavRefAfterArtifacts), true);
 
     const providerReadySnapshot = await waitForSnapshotText(
       sessionName,

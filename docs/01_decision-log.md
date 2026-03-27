@@ -180,9 +180,9 @@ This file records product and architecture decisions that shape v1. Add a new en
 ### DEC-030
 - Status: `Accepted`
 - Decision: Any future delete, archive, or GC capability must stay an explicit operator-invoked retention consumer over the normalized Tier A/B/C artifact rules from `DEC-018`; no hidden background cleanup is allowed, Tier A provenance-critical artifacts remain protected, Tier B remains inspectable and latest-centered until explicitly acted on, and Tier C is the first eligible cleanup tier.
-- Why: The runtime already classifies retention tiers, but v1 intentionally retains full history and has no cleanup engine. Locking the consumer shape now prevents future cleanup work from inventing parallel rules or silently weakening provenance.
-- Impact: Cleanup stays out of the current runtime until a dedicated follow-on slice implements it. When that happens, it must reuse the normalized tiers, preserve raw stored artifact content as source-of-truth, require explicit operator intent, and keep failure policy inspectable in runtime, coordinator, and UI flows. Automatic or hidden cleanup remains out of scope.
-- Needed Before: implementing any delete, archive, or GC capability in runtime, coordinator, or UI flows
+- Why: The runtime now exposes an explicit retention consumer preview/apply path, so the important boundary is no longer "whether cleanup exists" but "whether it stays explicit, inspectable, and provenance-safe." Locking the consumer shape prevents later cleanup work from inventing parallel rules or silently weakening Tier A protection.
+- Impact: The current runtime may expose inspect-only preview plus explicit operator-invoked `archive/delete/gc` apply behavior, but hidden cleanup still stays out of scope. Any delete, archive, or GC path must reuse the normalized tiers, keep Tier A protected, preserve inspectable state for Tier B and Tier C, and keep failure policy inspectable in runtime, coordinator, and UI flows. Automatic or hidden cleanup remains out of scope.
+- Needed Before: adding any background, implicit, or policy-widening cleanup behavior beyond the explicit retention consumer
 
 ### DEC-037
 - Status: `Accepted`
@@ -213,6 +213,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Decision: Do not start a second provider adapter after v1 completion unless optional real-live housekeeping or a concrete operator gap shows that the current `openai-responses` planner-through-reviewer boundary is insufficient; current `main` stays single-provider and second-provider work remains explicitly deferred.
 - Why: The current repo has already closed the operator-usable v1 baseline, preview-only redaction, and bounded downstream helpers without needing provider breadth. Starting a second adapter now would widen readiness, smoke, docs, and failure classification matrices before there is evidence that a second provider solves a current operator problem.
 - Impact: Optional real-live housekeeping remains the only provider-related follow-up on current `main`. Any future second provider requires a new explicit decision, preserved `local-stub` shipped default, unchanged planner-through-reviewer live boundary semantics, and a fresh adapter-specific verification matrix rather than being treated as an automatic next step.
+
+### DEC-042
+- Status: `Accepted`
+- Decision: After the frozen v1 control-plane baseline, treat the current shell as reusable execution infrastructure and pivot the next primary product experience toward `goal input -> visible multi-role AI alignment -> bounded execution -> delivery`, with top-level user-facing framing centered on `Mission / Council / Execution / Deliverables`.
+- Why: The current `Taskboard / Logs / Artifacts / Decision Inbox` shell successfully closes inspectable local execution, review, approval, and provenance, but it does not match the intended product experience of "tell the system a goal and watch multiple AI roles coordinate toward a result." Continuing to polish the operator console as the default product would deepen that mismatch instead of fixing it.
+- Impact: This decision does not reopen or weaken the frozen v1 constraints. `local-first`, `single-user-first`, `project_path required`, `review before done`, `approval before commit`, bounded live mutation, and the current planner-through-reviewer engine remain authoritative. The existing v1 shell is retained as `advanced ops mode`, while future implementation may add visible role collaboration, council-style alignment, and more automatic progression between stages. Office-first framing, messenger-first posture, ranking, OAuth-first platform work, and multi-provider-first strategy all remain rejected.
 
 ## Rejected
 

@@ -1,0 +1,60 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..');
+const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-29');
+const statePath = path.join(runtimeRoot, 'state.json');
+
+const smoke29Output = execFileSync(process.execPath, ['scripts/smoke-ui-slice-29.mjs'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+  stdio: ['ignore', 'pipe', 'pipe'],
+});
+const smoke29 = JSON.parse(smoke29Output);
+const appJs = fs.readFileSync(appJsPath, 'utf8');
+const runtimeState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+const { taskId, closeOutArtifactId, closeOutRunId, releasePackageArtifactId } = smoke29.closeOut;
+const mission = Object.values(runtimeState.missions)[0];
+const task = runtimeState.tasks[taskId];
+const closeOutArtifact = runtimeState.artifacts[closeOutArtifactId];
+const closeOutRun = runtimeState.runs[closeOutRunId];
+
+assert.equal(smoke29.ok, true);
+assert.match(appJs, /Mission Completion/);
+assert.match(appJs, /Current Mission State/);
+assert.match(appJs, /Next Safe Follow-Up/);
+assert.match(appJs, /completed the bounded orchestration path and closed through close-out artifact/);
+assert.match(appJs, /bounded delivery is sealed by close-out artifact/);
+assert.equal(task.lifecycleState, 'Done');
+assert.equal(mission.linkedTaskId, taskId);
+assert.equal(mission.status, 'executing');
+assert.equal(closeOutArtifact.type, 'close-out');
+assert.equal(closeOutRun.summary.executionMode, 'close-out');
+assert.equal(closeOutRun.summary.lifecycleTransition, 'Review -> Done');
+assert.equal(closeOutRun.summary.sourceReleasePackageArtifactId, releasePackageArtifactId);
+
+console.log(
+  JSON.stringify(
+    {
+      ok: true,
+      runtimeRoot,
+      missionDoneSummary: {
+        missionId: mission.id,
+        missionStatus: mission.status,
+        taskId,
+        taskLifecycleState: task.lifecycleState,
+        closeOutArtifactId,
+        closeOutRunId,
+        releasePackageArtifactId,
+      },
+    },
+    null,
+    2,
+  ),
+);

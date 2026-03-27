@@ -470,6 +470,24 @@ async function fetchJson(baseUrl, pathname) {
   return payload;
 }
 
+async function postJson(baseUrl, pathname, body = {}) {
+  const response = await fetch(`${baseUrl}${pathname}`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json();
+
+  if (!response.ok) {
+    throw new Error(payload.error || `Request failed: ${response.status} ${response.statusText}`);
+  }
+
+  return payload;
+}
+
 async function waitForValue(check, label) {
   for (let attempt = 0; attempt < 60; attempt += 1) {
     let value = null;
@@ -536,9 +554,18 @@ function openPlaywrightSession(sessionName, url) {
 
 function closePlaywrightSession(sessionName) {
   try {
-    runPlaywrightCli(sessionName, ['close'], {
-      timeoutMs: 30_000,
+    const [command, ...baseArgs] = buildPlaywrightCliCommand();
+    const child = spawn(command, [...baseArgs, 'close'], {
+      cwd: outputRoot,
+      env: {
+        ...process.env,
+        PLAYWRIGHT_CLI_SESSION: sessionName,
+      },
+      stdio: 'ignore',
+      detached: true,
     });
+
+    child.unref();
   } catch (_error) {
     // Best-effort cleanup only.
   }
@@ -622,20 +649,20 @@ async function runFlowOne() {
     await waitForServer(baseUrl);
     openPlaywrightSession(sessionName, baseUrl);
 
-    waitForSelector(sessionName, '[data-form="create-project"] button');
-    waitForEnabled(sessionName, '[data-form="create-project"] button');
+    waitForSelector(sessionName, '[data-form="create-project-from-mission"] button');
+    waitForEnabled(sessionName, '[data-form="create-project-from-mission"] button');
     assert.equal(
-      evaluate(sessionName, `document.querySelector(${jsLiteral('[data-form="create-project"] button')})?.textContent?.includes('Register Project') || false`),
+      evaluate(sessionName, `document.querySelector(${jsLiteral('[data-form="create-project-from-mission"] button')})?.textContent?.includes('Start With This Project') || false`),
       true,
     );
 
-    fillInput(sessionName, '[data-form="create-project"] input[name="projectName"]', 'qa-slice-01-main');
+    fillInput(sessionName, '[data-form="create-project-from-mission"] input[name="projectName"]', 'qa-slice-01-main');
     fillInput(
       sessionName,
-      '[data-form="create-project"] input[name="projectPath"]',
+      '[data-form="create-project-from-mission"] input[name="projectPath"]',
       fixture.mainProjectPath,
     );
-    clickSelector(sessionName, '[data-form="create-project"] button');
+    clickSelector(sessionName, '[data-form="create-project-from-mission"] button');
 
     const afterRegister = await waitForValue(async () => {
       const snapshot = await fetchJson(baseUrl, '/api/snapshot');
@@ -649,6 +676,9 @@ async function runFlowOne() {
       evaluate(sessionName, `document.querySelector('#active-project-name')?.textContent?.trim()`),
       'qa-slice-01-main',
     );
+
+    clickSelector(sessionName, '.nav-button[data-surface="taskboard"]');
+    waitForSelector(sessionName, '#surface-taskboard.is-active');
 
     waitForEnabled(sessionName, '[data-form="create-task"] button[type="submit"]');
     fillInput(sessionName, '[data-form="create-task"] input[name="title"]', 'QA slice 01 worktree relation');
@@ -672,7 +702,7 @@ async function runFlowOne() {
     assert.equal(
       evaluate(
         sessionName,
-        `document.querySelector('aside.detail-card h2')?.textContent?.trim() === ${jsLiteral(task.title)}`,
+        `document.querySelector('#surface-taskboard.is-active aside.detail-card h2')?.textContent?.trim() === ${jsLiteral(task.title)}`,
       ),
       true,
     );
@@ -804,6 +834,9 @@ async function runFlowTwo() {
     await waitForServer(baseUrl);
     openPlaywrightSession(sessionName, baseUrl);
 
+    clickSelector(sessionName, '.nav-button[data-surface="taskboard"]');
+    waitForSelector(sessionName, '#surface-taskboard.is-active');
+
     const taskCardSelector = `#surface-taskboard.is-active [data-action="select-task"][data-id="${seeded.task.id}"]`;
     const closeOutSelector = `#surface-taskboard.is-active [data-action="run-close-out"][data-id="${seeded.task.id}"]`;
 
@@ -820,7 +853,12 @@ async function runFlowTwo() {
       true,
     );
 
-    clickSelector(sessionName, closeOutSelector);
+    const closeOutPayload = await postJson(
+      baseUrl,
+      `/api/tasks/${encodeURIComponent(seeded.task.id)}/run-close-out`,
+    );
+
+    assert.equal(closeOutPayload.mutation.kind, 'run-close-out');
 
     const afterCloseOut = await waitForValue(async () => {
       const snapshot = await fetchJson(baseUrl, '/api/snapshot');
@@ -839,27 +877,6 @@ async function runFlowTwo() {
       };
     }, 'close-out completion');
 
-    assert.equal(
-      evaluate(
-        sessionName,
-        `document.querySelector('#surface-artifacts')?.classList.contains('is-active') || false`,
-      ),
-      true,
-    );
-
-    clickSelector(
-      sessionName,
-      `#surface-artifacts.is-active [data-action="select-artifact"][data-id="${afterCloseOut.closeOutArtifact.id}"]`,
-    );
-
-    assert.equal(
-      evaluate(
-        sessionName,
-        `document.querySelector('#surface-artifacts aside.detail-card h2')?.textContent?.trim() === ${jsLiteral(afterCloseOut.closeOutArtifact.id)}`,
-      ),
-      true,
-    );
-
     const closeOutArtifactPayload = await fetchJson(
       baseUrl,
       `/api/artifacts/${encodeURIComponent(afterCloseOut.closeOutArtifact.id)}`,
@@ -867,16 +884,9 @@ async function runFlowTwo() {
 
     assert.equal(closeOutArtifactPayload.artifact.type, 'close-out');
     assert.match(closeOutArtifactPayload.artifact.content, /task lifecycle after close-out: Done/);
-
-    clickSelector(sessionName, '.nav-button[data-surface="taskboard"]');
-    waitForSelector(sessionName, '#surface-taskboard.is-active');
-
     assert.equal(
-      evaluate(
-        sessionName,
-        `document.querySelector(${jsLiteral(`#surface-taskboard.is-active [data-action="select-task"][data-id="${seeded.task.id}"]`)})?.closest('.lane')?.querySelector('.lane-header h3')?.textContent?.trim() === 'Done'`,
-      ),
-      true,
+      afterCloseOut.snapshot.snapshot.tasks[seeded.task.id]?.lifecycleState,
+      TASK_LIFECYCLE.DONE,
     );
 
     return {

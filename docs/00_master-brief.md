@@ -22,6 +22,15 @@ Most agent products optimize for spectacle, chat, or provider breadth before the
 ## V1 Outcome
 The user can register or select a local project from `Taskboard`, create a task, run the current `development` pack loop end to end, inspect logs and artifacts, resolve review or approval gates in `Decision Inbox`, and close work explicitly without push, publish, or external release.
 
+## Post-V1 Direction
+The frozen v1 outcome is now treated as reusable execution infrastructure, not the final intended product experience.
+
+- keep the current local-first execution engine, provenance model, bounded mutation model, and approval or review gates
+- keep the current `Taskboard / Logs / Artifacts / Decision Inbox` shell available as `advanced ops mode`
+- shift the next primary product entry toward `goal input -> visible multi-role AI alignment -> bounded execution -> delivery`
+- define that next primary experience around `Mission / Council / Execution / Deliverables`, not a more polished `Taskboard`-first operator console
+- preserve the existing rejected boundaries: no office-first shell, no messenger-first posture, no ranking layer, no OAuth-first expansion, and no multi-provider-first reframing
+
 ## Primary User
 An individual operator building or maintaining software locally who needs control over execution state, review gates, and delivery evidence without adding office-style collaboration overhead.
 
@@ -61,6 +70,8 @@ V1 has four first-class surfaces:
 4. `Decision Inbox`
 
 These are not secondary tabs under a chat shell. They are the main operating surfaces of the product.
+
+For the post-v1 pivot, these four surfaces remain authoritative for the frozen v1 shell and the future `advanced ops mode`, but they are no longer the intended default first-time product entry once the next orchestration layer is implemented.
 
 ## Core Operating Model
 ### Project
@@ -132,6 +143,8 @@ Orchestration 1.0 should reuse the useful control-plane ideas from `claw-empire`
 ## VNext Backlog After V1 Freeze
 These items remain explicitly outside the frozen v1 baseline and do not block `milestone-m4-live-freeze`.
 
+- `ai-orchestration-pivot-v2` is now implemented on current `main`: `Mission / Council / Execution / Deliverables` is the default post-v1 product baseline on top of the current v1 execution infrastructure, while `Taskboard / Logs / Artifacts / Decision Inbox` remains available as `advanced ops mode`
+- future post-v1 follow-up returns to non-blocking housekeeping or later explicit `vNext` backlog items instead of treating the pivot itself as the next unresolved default product entry
 - keep any future live-provider expansion behind the accepted adapter boundary while preserving the shipped `local-stub` / `local-demo-only` baseline and the current planner-through-reviewer live boundary
 - keep synthetic readiness and failure smoke coverage authoritative before promoting any optional real-live verification into a required freeze gate
-- define when a future delete/archive/GC capability should consume the normalized retention tiers
+- keep delete/archive/GC behavior behind the explicit inspect-first retention consumer over the normalized retention tiers, with Tier A protected and no hidden cleanup

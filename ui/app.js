@@ -1,13 +1,14 @@
-const SURFACE_IDS = ['taskboard', 'logs', 'artifacts', 'decision-inbox'];
+const SURFACE_IDS = ['mission', 'council', 'execution', 'deliverables', 'taskboard', 'logs', 'artifacts', 'decision-inbox'];
 const TASK_LIFECYCLE_ORDER = ['Inbox', 'In Progress', 'Review', 'Done'];
 
 const state = {
-  surface: 'taskboard',
+  surface: 'mission',
   payload: null,
   loading: false,
   mutating: false,
   selectionSeeded: false,
   error: null,
+  selectedMissionId: null,
   selectedTaskId: null,
   selectedRunId: null,
   selectedArtifactId: null,
@@ -26,6 +27,9 @@ const state = {
   projectProviderDraftMode: 'local-stub',
   projectProviderDraftModel: '',
   projectProviderDraftApiKeyVar: '',
+  missionDraftTitle: '',
+  missionDraftGoal: '',
+  missionDraftConstraints: '',
   taskDraftTitle: '',
   taskDraftIntent: '',
   timerId: null,
@@ -40,6 +44,10 @@ const elements = {
   activeRunCount: document.querySelector('#active-run-count'),
   pendingGateCount: document.querySelector('#pending-gate-count'),
   surfaces: {
+    mission: document.querySelector('#surface-mission'),
+    council: document.querySelector('#surface-council'),
+    execution: document.querySelector('#surface-execution'),
+    deliverables: document.querySelector('#surface-deliverables'),
     taskboard: document.querySelector('#surface-taskboard'),
     logs: document.querySelector('#surface-logs'),
     artifacts: document.querySelector('#surface-artifacts'),
@@ -151,6 +159,9 @@ function getActivePayload() {
       derived: createEmptyDerivedState(),
       snapshot: {
         activeProjectId: null,
+        selectedMissionId: null,
+        missions: {},
+        councilSessions: {},
         projects: {},
         tasks: {},
         runs: {},
@@ -167,6 +178,8 @@ function getDerived() {
   const snapshot = payload.snapshot;
 
   const projects = Object.values(snapshot.projects).sort(sortByCreatedDesc);
+  const missions = Object.values(snapshot.missions || {}).sort(sortByCreatedDesc);
+  const councilSessions = Object.values(snapshot.councilSessions || {}).sort(sortByCreatedDesc);
   const tasks = Object.values(snapshot.tasks).sort(sortByCreatedDesc);
   const runs = Object.values(snapshot.runs).sort(sortByCreatedDesc);
   const artifacts = Object.values(snapshot.artifacts).sort(sortByCreatedDesc);
@@ -179,6 +192,15 @@ function getDerived() {
 
   const projectTasks = activeProject
     ? tasks.filter((task) => task.projectId === activeProject.id)
+    : [];
+  const projectMissions = activeProject
+    ? missions.filter((mission) => mission.projectId === activeProject.id)
+    : [];
+  const projectCouncilSessions = activeProject
+    ? councilSessions.filter((councilSession) => {
+        const mission = snapshot.missions[councilSession.missionId];
+        return mission && mission.projectId === activeProject.id;
+      })
     : [];
   const projectRuns = activeProject
     ? runs.filter((run) => {
@@ -200,6 +222,10 @@ function getDerived() {
     : [];
 
   const taskMap = new Map(projectTasks.map((task) => [task.id, task]));
+  const missionMap = new Map(projectMissions.map((mission) => [mission.id, mission]));
+  const councilSessionMap = new Map(
+    projectCouncilSessions.map((councilSession) => [councilSession.id, councilSession]),
+  );
   const runMap = new Map(projectRuns.map((run) => [run.id, run]));
   const artifactMap = new Map(projectArtifacts.map((artifact) => [artifact.id, artifact]));
   const inboxItemMap = new Map(projectInboxItems.map((item) => [item.id, item]));
@@ -207,9 +233,13 @@ function getDerived() {
   return {
     artifactCatalog: payload.artifactCatalog || {},
     derived: payload.derived || createEmptyDerivedState(),
+    councilSessions: projectCouncilSessions,
+    missions: projectMissions,
     snapshot,
     activeProject,
     projects,
+    councilSessionMap,
+    missionMap,
     tasks: projectTasks,
     runs: projectRuns,
     artifacts: projectArtifacts,
@@ -243,12 +273,56 @@ function getProjectBootstrapState(data) {
   };
 }
 
-function getProjectGateCopy(data, surfaceName) {
-  if (data.projects.length === 0) {
-    return `Register a project on Taskboard before using ${surfaceName}.`;
+function getMissionStatusTone(status) {
+  if (status === 'completed') {
+    return 'success';
   }
 
-  return `Select the current project on Taskboard before using ${surfaceName}.`;
+  if (status === 'blocked') {
+    return 'danger';
+  }
+
+  if (status === 'aligning') {
+    return 'warning';
+  }
+
+  if (status === 'executing') {
+    return 'accent';
+  }
+
+  if (status === 'aligned') {
+    return 'success';
+  }
+
+  return 'neutral';
+}
+
+function getCouncilStatusTone(status) {
+  if (status === 'approved') {
+    return 'success';
+  }
+
+  if (status === 'pending-alignment') {
+    return 'warning';
+  }
+
+  return 'neutral';
+}
+
+function getAlignmentTone(status) {
+  if (status === 'approved') {
+    return 'success';
+  }
+
+  return 'warning';
+}
+
+function getProjectGateCopy(data, surfaceName) {
+  if (data.projects.length === 0) {
+    return `Register a project in Advanced Ops Mode before using ${surfaceName}.`;
+  }
+
+  return `Select the current project in Advanced Ops Mode before using ${surfaceName}.`;
 }
 
 function renderProjectGateSurface(title, copy) {
@@ -259,6 +333,18 @@ function renderProjectGateSurface(title, copy) {
         <p>${escapeHtml(copy)}</p>
       </div>
     </div>
+  `;
+}
+
+function renderAdvancedOpsNotice(copy) {
+  return `
+    <section class="ops-mode-banner">
+      <div class="card-title-row">
+        <strong>Advanced Ops Mode</strong>
+        ${createToken('detailed control', 'warning')}
+      </div>
+      <p class="detail-copy">${escapeHtml(copy)}</p>
+    </section>
   `;
 }
 
@@ -480,6 +566,204 @@ function getTaskApprovalSummary(task, approvals) {
     approved: taskApprovals.filter((approval) => approval.status === 'approved').length,
     rejected: taskApprovals.filter((approval) => approval.status === 'rejected').length,
     actions: taskApprovals.map((approval) => approval.allowedNextAction).filter(Boolean),
+  };
+}
+
+function getApprovalActionLabel(action) {
+  if (!action) {
+    return null;
+  }
+
+  if (action === 'builder-live-mutation') {
+    return 'builder live mutation';
+  }
+
+  if (action === 'commit-intent') {
+    return 'local commit';
+  }
+
+  if (action === 'release-ready') {
+    return 'release package';
+  }
+
+  return action;
+}
+
+function describeApprovalTarget(approval, targetArtifact) {
+  if (targetArtifact) {
+    return `${targetArtifact.type} ${targetArtifact.id}`;
+  }
+
+  if (approval?.targetArtifactId) {
+    return `artifact ${approval.targetArtifactId}`;
+  }
+
+  return 'the current bounded artifact';
+}
+
+function getTaskApprovalBridge(task, data) {
+  if (!task) {
+    return {
+      actionLabel: null,
+      bridgeCopy: 'No approval bridge exists yet for this mission.',
+      currentApproval: null,
+      currentGateItem: null,
+      nextStepCopy: 'Next operator step: stay on Mission or Council until execution creates the first gate.',
+      pendingInboxItem: null,
+      targetArtifact: null,
+    };
+  }
+
+  const taskApprovals = getTaskApprovals(task.id, data.approvals).sort(sortByCreatedDesc);
+  const taskItems = getTaskInboxItems(task.id, data.inboxItems).sort(sortByCreatedDesc);
+  const currentGateItem = getPreferredTaskInboxItem(task.id, data);
+  const pendingInboxItem =
+    taskItems.find((item) => item.status === 'pending' && item.kind === 'approval') || null;
+  const currentApproval =
+    (pendingInboxItem?.sourceId
+      ? taskApprovals.find((approval) => approval.id === pendingInboxItem.sourceId) || null
+      : null) ||
+    taskApprovals.find((approval) => approval.status === 'pending') ||
+    taskApprovals[0] ||
+    null;
+  const targetArtifact = currentApproval?.targetArtifactId
+    ? data.artifactMap.get(currentApproval.targetArtifactId) || null
+    : null;
+  const actionLabel = getApprovalActionLabel(currentApproval?.allowedNextAction);
+  const targetLabel = describeApprovalTarget(currentApproval, targetArtifact);
+
+  if (currentApproval) {
+    if (
+      currentApproval.status === 'pending' &&
+      currentApproval.allowedNextAction === 'builder-live-mutation'
+    ) {
+      return {
+        actionLabel,
+        bridgeCopy: `Council approval already advanced this mission to preflight. The current human gate is ${currentApproval.id}, which approves builder live mutation against ${targetLabel}.`,
+        currentApproval,
+        currentGateItem,
+        nextStepCopy: pendingInboxItem
+          ? `Open Advanced Ops Mode -> Decision Inbox -> approve ${pendingInboxItem.id}, then return to Taskboard and run Live Mutation.`
+          : 'Open Advanced Ops Mode and approve the current builder live mutation gate before running Live Mutation.',
+        pendingInboxItem,
+        targetArtifact,
+      };
+    }
+
+    if (
+      currentApproval.status === 'approved' &&
+      currentApproval.allowedNextAction === 'builder-live-mutation'
+    ) {
+      return {
+        actionLabel,
+        bridgeCopy: `${currentApproval.id} already approved builder live mutation for ${targetLabel}.`,
+        currentApproval,
+        currentGateItem,
+        nextStepCopy: 'Open Advanced Ops Mode -> Taskboard and run Live Mutation.',
+        pendingInboxItem,
+        targetArtifact,
+      };
+    }
+
+    if (
+      currentApproval.status === 'pending' &&
+      currentApproval.allowedNextAction === 'commit-intent'
+    ) {
+      return {
+        actionLabel,
+        bridgeCopy: `The current human gate is ${currentApproval.id}, which approves local commit intent against ${targetLabel}.`,
+        currentApproval,
+        currentGateItem,
+        nextStepCopy: pendingInboxItem
+          ? `Approve ${pendingInboxItem.id} on Execution, then return here for Resume Approved Local Commit when readiness turns green.`
+          : 'Approve the current commit gate on Execution, then return here for Resume Approved Local Commit when readiness turns green.',
+        pendingInboxItem,
+        targetArtifact,
+      };
+    }
+
+    if (
+      currentApproval.status === 'approved' &&
+      currentApproval.allowedNextAction === 'commit-intent'
+    ) {
+      return {
+        actionLabel,
+        bridgeCopy: `${currentApproval.id} already approved local commit intent for ${targetLabel}.`,
+        currentApproval,
+        currentGateItem,
+        nextStepCopy:
+          'Run Resume Approved Local Commit on Execution when the current commit bundle readiness is green.',
+        pendingInboxItem,
+        targetArtifact,
+      };
+    }
+
+    if (
+      currentApproval.status === 'pending' &&
+      currentApproval.allowedNextAction === 'release-ready'
+    ) {
+      return {
+        actionLabel,
+        bridgeCopy: `The current human gate is ${currentApproval.id}, which approves release readiness against ${targetLabel}.`,
+        currentApproval,
+        currentGateItem,
+        nextStepCopy: pendingInboxItem
+          ? `Approve ${pendingInboxItem.id} on Execution, then return here for Resume Approved Close Out when readiness turns green.`
+          : 'Approve the current release gate on Execution, then return here for Resume Approved Close Out when readiness turns green.',
+        pendingInboxItem,
+        targetArtifact,
+      };
+    }
+
+    if (
+      currentApproval.status === 'approved' &&
+      currentApproval.allowedNextAction === 'release-ready'
+    ) {
+      return {
+        actionLabel,
+        bridgeCopy: `${currentApproval.id} already approved release readiness for ${targetLabel}.`,
+        currentApproval,
+        currentGateItem,
+        nextStepCopy:
+          'Run Resume Approved Close Out on Execution when the current release bundle readiness is green.',
+        pendingInboxItem,
+        targetArtifact,
+      };
+    }
+
+    return {
+      actionLabel,
+      bridgeCopy: `${currentApproval.id} is ${currentApproval.status} for ${actionLabel || currentApproval.scope || 'the current approval'}, targeting ${targetLabel}.`,
+      currentApproval,
+      currentGateItem,
+      nextStepCopy: pendingInboxItem
+        ? `Open Advanced Ops Mode -> Decision Inbox -> review ${pendingInboxItem.id}.`
+        : 'Open Advanced Ops Mode and inspect the current approval record.',
+      pendingInboxItem,
+      targetArtifact,
+    };
+  }
+
+  if (currentGateItem?.status === 'pending') {
+    return {
+      actionLabel: null,
+      bridgeCopy: `${currentGateItem.id} is the current pending ${currentGateItem.kind} gate for this mission.`,
+      currentApproval: null,
+      currentGateItem,
+      nextStepCopy: 'Open Advanced Ops Mode -> Decision Inbox and resolve the current gate.',
+      pendingInboxItem: null,
+      targetArtifact: null,
+    };
+  }
+
+  return {
+    actionLabel: null,
+    bridgeCopy: 'No approval bridge is active right now.',
+    currentApproval: null,
+    currentGateItem,
+    nextStepCopy: 'Stay on the primary surfaces until a new execution gate appears.',
+    pendingInboxItem: null,
+    targetArtifact: null,
   };
 }
 
@@ -762,6 +1046,260 @@ function getCloseOutAvailability(task, data) {
       targetPreflightRunId: null,
     },
   };
+}
+
+function getMissionCompletionSummary(mission, data) {
+  const linkedTask =
+    mission?.linkedTaskId && data.taskMap.has(mission.linkedTaskId)
+      ? data.taskMap.get(mission.linkedTaskId)
+      : null;
+  const latestCloseOutArtifact = linkedTask ? getLatestTaskArtifact(linkedTask, data, 'close-out') : null;
+  const closeOutState = linkedTask ? getCloseOutAvailability(linkedTask, data) : null;
+  const completionReady = Boolean(
+    linkedTask &&
+      linkedTask.lifecycleState === 'Done' &&
+      (latestCloseOutArtifact || closeOutState?.summary?.existingCloseOutArtifactId),
+  );
+
+  return {
+    closeOutArtifactId:
+      latestCloseOutArtifact?.id || closeOutState?.summary?.existingCloseOutArtifactId || null,
+    closeOutState,
+    completionReady,
+    latestCloseOutArtifact,
+    linkedTask,
+    releasePackageArtifactId:
+      closeOutState?.summary?.currentReleasePackageArtifactId ||
+      closeOutState?.summary?.latestReleasePackageArtifactId ||
+      null,
+  };
+}
+
+function getMissionCouncilPreview(mission, data) {
+  const councilSession =
+    mission?.councilSessionId && data.councilSessionMap.has(mission.councilSessionId)
+      ? data.councilSessionMap.get(mission.councilSessionId)
+      : null;
+  const alignmentStatus = councilSession?.alignment?.status || 'pending';
+  const openQuestionsCount = Array.isArray(councilSession?.openQuestions)
+    ? councilSession.openQuestions.length
+    : 0;
+  const participantCount = Array.isArray(councilSession?.participants)
+    ? councilSession.participants.length
+    : 0;
+  const selectedPlanTitle = councilSession?.selectedPlan?.title || null;
+  const recommendation = councilSession?.recommendation || null;
+  const summary = councilSession?.summary || null;
+
+  return {
+    alignmentStatus,
+    councilSession,
+    openQuestionsCount,
+    participantCount,
+    previewLine: councilSession
+      ? `${selectedPlanTitle || recommendation || summary || 'Recommendation ready'}. Alignment ${alignmentStatus}.`
+      : 'No council recommendation recorded yet.',
+    recommendationPreview: recommendation || summary || 'No recommendation recorded.',
+    selectedPlanTitle: selectedPlanTitle || 'No selected plan recorded.',
+    selectedPlanScope: councilSession?.selectedPlan?.scope || 'No selected scope recorded.',
+  };
+}
+
+function getMissionExecutionPreview(mission, data) {
+  const linkedTask =
+    mission?.linkedTaskId && data.taskMap.has(mission.linkedTaskId)
+      ? data.taskMap.get(mission.linkedTaskId)
+      : null;
+
+  if (!linkedTask) {
+    return {
+      actionLabel: null,
+      approvalBridge: null,
+      blockedReason: 'No linked task exists yet.',
+      gatePreview: 'No execution gate is active because no linked task exists yet.',
+      latestRun: null,
+      latestRunNextStage: null,
+      latestRunRole: null,
+      linkedTask,
+      preferredInboxItem: null,
+      stagePreview: 'No execution run has been recorded yet.',
+    };
+  }
+
+  const latestRun = linkedTask.latestRunId ? data.runMap.get(linkedTask.latestRunId) || null : null;
+  const latestRunNextStage = latestRun?.summary?.nextStage || null;
+  const latestRunRole = latestRun?.role || latestRun?.kind || 'none';
+  const approvalBridge = getTaskApprovalBridge(linkedTask, data);
+  const preferredInboxItem = getPreferredTaskInboxItem(linkedTask.id, data);
+  const blockedReason =
+    preferredInboxItem?.status === 'pending'
+      ? preferredInboxItem.prompt || preferredInboxItem.title
+      : linkedTask.flags?.waitingApproval
+        ? 'Builder live mutation approval is pending.'
+        : linkedTask.flags?.waitingDecision
+          ? 'A blocking decision is pending.'
+          : linkedTask.flags?.blocked
+            ? 'The linked task is currently blocked.'
+            : 'No blocking reason is active.';
+
+  return {
+    actionLabel: approvalBridge.actionLabel || preferredInboxItem?.kind || null,
+    approvalBridge,
+    blockedReason,
+    gatePreview: approvalBridge.bridgeCopy || 'No execution gate is active right now.',
+    latestRun,
+    latestRunNextStage,
+    latestRunRole,
+    linkedTask,
+    preferredInboxItem,
+    stagePreview: latestRun
+      ? `Latest execution stage: ${latestRunRole}${
+          latestRunNextStage ? ` -> ${latestRunNextStage}` : ''
+        } (${latestRun.status}).`
+      : 'No execution run has been recorded yet.',
+  };
+}
+
+function getMissionDeliverablesPreview(mission, data) {
+  const linkedTask =
+    mission?.linkedTaskId && data.taskMap.has(mission.linkedTaskId)
+      ? data.taskMap.get(mission.linkedTaskId)
+      : null;
+
+  if (!linkedTask) {
+    return {
+      approvalSummary: { approved: 0, pending: 0, rejected: 0, total: 0 },
+      currentDeliverableArtifact: null,
+      latestApproval: null,
+      latestReviewStatus: 'pending',
+      linkedTask,
+      previewLine: 'No deliverables yet because no linked task exists.',
+    };
+  }
+
+  const taskArtifacts = getTaskArtifacts(linkedTask.id, data.artifacts).sort(sortByCreatedDesc);
+  const taskApprovals = getTaskApprovals(linkedTask.id, data.approvals).sort(sortByCreatedDesc);
+  const latestArtifact = taskArtifacts[0] || null;
+  const latestPlanArtifact = getLatestTaskArtifact(linkedTask, data, 'plan');
+  const latestArchitectureArtifact = getLatestTaskArtifact(linkedTask, data, 'architecture');
+  const latestBreakdownArtifact = getLatestTaskArtifact(linkedTask, data, 'breakdown');
+  const latestPreflightArtifact = getLatestTaskArtifact(linkedTask, data, 'preflight');
+  const latestChangeSummaryArtifact = getLatestTaskArtifact(linkedTask, data, 'change-summary');
+  const latestPatchArtifact = getLatestTaskArtifact(linkedTask, data, 'patch');
+  const latestDiffArtifact = getLatestTaskArtifact(linkedTask, data, 'diff');
+  const latestReviewArtifact = getLatestTaskArtifact(linkedTask, data, 'review');
+  const latestCommitPackageArtifact = getLatestTaskArtifact(linkedTask, data, 'commit-package');
+  const latestCommitResultArtifact = getLatestTaskArtifact(linkedTask, data, 'commit-result');
+  const latestReleasePackageArtifact = getLatestTaskArtifact(linkedTask, data, 'release-package');
+  const latestCloseOutArtifact = getLatestTaskArtifact(linkedTask, data, 'close-out');
+  const currentDeliverableArtifact =
+    latestCloseOutArtifact ||
+    latestReleasePackageArtifact ||
+    latestCommitResultArtifact ||
+    latestCommitPackageArtifact ||
+    latestReviewArtifact ||
+    latestChangeSummaryArtifact ||
+    latestDiffArtifact ||
+    latestPatchArtifact ||
+    latestPreflightArtifact ||
+    latestBreakdownArtifact ||
+    latestArchitectureArtifact ||
+    latestPlanArtifact ||
+    latestArtifact;
+  const latestApproval = taskApprovals[0] || null;
+  const latestReviewStatus = linkedTask.review?.status || 'pending';
+
+  return {
+    approvalSummary: getTaskApprovalSummary(linkedTask, data.approvals),
+    currentDeliverableArtifact,
+    latestApproval,
+    latestReviewStatus,
+    linkedTask,
+    previewLine: currentDeliverableArtifact
+      ? `${currentDeliverableArtifact.type} ${currentDeliverableArtifact.id}; review ${latestReviewStatus}; approval ${latestApproval?.status || 'none'}.`
+      : `No artifact package yet; review ${latestReviewStatus}; approval ${latestApproval?.status || 'none'}.`,
+  };
+}
+
+function getMissionNextActionPreview(mission, previews) {
+  if (!mission) {
+    return {
+      actionLabel: 'Start With Mission',
+      summary: 'Mission is the current best next step because no mission is selected yet.',
+      surface: 'mission',
+      tone: 'warning',
+    };
+  }
+
+  if (previews.completion?.completionReady) {
+    return {
+      actionLabel: 'Prepare Next Mission',
+      summary:
+        'Mission is the current best next step because the bounded path is already sealed and the next mission draft can be prepared safely from current constraints.',
+      surface: 'mission',
+      tone: 'success',
+    };
+  }
+
+  if (!previews.council?.councilSession) {
+    return {
+      actionLabel: 'Draft Council',
+      summary:
+        'Council is the current best next step because no visible recommendation exists yet for this mission.',
+      surface: 'council',
+      tone: 'warning',
+    };
+  }
+
+  if (previews.council.alignmentStatus !== 'approved') {
+    return {
+      actionLabel: 'Open Council',
+      summary:
+        'Council is the current best next step because the recommendation is visible but alignment is still pending.',
+      surface: 'council',
+      tone: 'warning',
+    };
+  }
+
+  if (!previews.execution?.linkedTask) {
+    return {
+      actionLabel: 'Create Linked Task',
+      summary:
+        'Mission is the current best next step because the recommendation is aligned but no linked task exists yet.',
+      surface: 'mission',
+      tone: 'accent',
+    };
+  }
+
+  return {
+    actionLabel: 'Open Execution',
+    summary: `Execution is the current best next step because ${previews.execution.gatePreview}`,
+    surface: 'execution',
+    tone: 'accent',
+  };
+}
+
+function renderMissionSnapshotList(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return '<p class="detail-copy">No snapshot items are available yet.</p>';
+  }
+
+  return `
+    <ul class="compact-list">
+      ${items
+        .map(
+          (item) => `
+            <li>
+              <strong>${escapeHtml(item.label)}</strong>
+              ${createToken(`surface:${item.surface}`, item.tone || 'neutral')}
+              : ${escapeHtml(item.copy)}
+              ${item.handoffCopy ? ` ${escapeHtml(item.handoffCopy)}` : ''}
+            </li>
+          `,
+        )
+        .join('')}
+    </ul>
+  `;
 }
 
 function stripMarkdownBullet(line) {
@@ -3206,6 +3744,22 @@ function renderPreselectedPendingItemHint(item, approval, options = {}) {
 }
 
 function getSurfaceDisplayName(surface) {
+  if (surface === 'mission') {
+    return 'Mission';
+  }
+
+  if (surface === 'council') {
+    return 'Council';
+  }
+
+  if (surface === 'execution') {
+    return 'Execution';
+  }
+
+  if (surface === 'deliverables') {
+    return 'Deliverables';
+  }
+
   if (surface === 'decision-inbox') {
     return 'Decision Inbox';
   }
@@ -3846,11 +4400,16 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
 }
 
 function ensureSelection(data) {
+  const selectedMission = data.missionMap.get(state.selectedMissionId) || null;
   const selectedRun = data.runMap.get(state.selectedRunId) || null;
   const selectedArtifact = data.artifactMap.get(state.selectedArtifactId) || null;
   const selectedInboxItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
 
   if (!state.selectionSeeded) {
+    state.selectedMissionId =
+      data.snapshot.selectedMissionId && data.missionMap.has(data.snapshot.selectedMissionId)
+        ? data.snapshot.selectedMissionId
+        : data.missions[0]?.id || null;
     state.selectedTaskId =
       selectedArtifact?.taskId ||
       selectedRun?.taskId ||
@@ -3883,6 +4442,10 @@ function ensureSelection(data) {
     return;
   }
 
+  if (state.selectedMissionId && !selectedMission) {
+    state.selectedMissionId = null;
+  }
+
   if (state.selectedRunId && !selectedRun) {
     state.selectedRunId = null;
   }
@@ -3902,6 +4465,13 @@ function ensureSelection(data) {
       (state.selectedInboxItemId && data.inboxItemMap.get(state.selectedInboxItemId)?.taskId) ||
       data.tasks[0]?.id ||
       null;
+  }
+
+  if (!state.selectedMissionId || !data.missionMap.has(state.selectedMissionId)) {
+    state.selectedMissionId =
+      data.snapshot.selectedMissionId && data.missionMap.has(data.snapshot.selectedMissionId)
+        ? data.snapshot.selectedMissionId
+        : data.missions[0]?.id || null;
   }
 
   const activeTask = data.taskMap.get(state.selectedTaskId) || null;
@@ -4143,6 +4713,35 @@ function syncSelectionsFromTask(taskId, options = {}) {
   }
 }
 
+function syncSelectionsFromMission(missionId) {
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+
+  state.selectedMissionId = missionId;
+  state.selectionSeeded = true;
+
+  if (mission?.linkedTaskId && data.taskMap.has(mission.linkedTaskId)) {
+    syncSelectionsFromTask(mission.linkedTaskId, {
+      applyTaskInboxPreselect: true,
+    });
+    state.selectedMissionId = missionId;
+  }
+}
+
+function prepareNextMissionDraft(missionId) {
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+
+  state.surface = 'mission';
+  state.selectedMissionId = mission?.id || state.selectedMissionId;
+  state.missionDraftTitle = '';
+  state.missionDraftGoal = '';
+  state.missionDraftConstraints = mission?.constraints || '';
+  elements.refreshStatus.textContent = mission
+    ? `Prepared next mission draft from ${mission.id}`
+    : 'Prepared next mission draft';
+}
+
 async function handleSurfaceChange(surface) {
   state.surface = surface;
   render();
@@ -4152,6 +4751,35 @@ async function handleSelection(action, id) {
   if (action === 'select-project') {
     await submitSelectProject(id);
     return;
+  }
+
+  if (action === 'select-mission') {
+    await submitSelectMission(id);
+    return;
+  }
+
+  if (action === 'open-council') {
+    syncSelectionsFromMission(id);
+    state.surface = 'council';
+  }
+
+  if (action === 'open-execution') {
+    syncSelectionsFromMission(id);
+    state.surface = 'execution';
+  }
+
+  if (action === 'revise-mission') {
+    syncSelectionsFromMission(id);
+    state.surface = 'mission';
+  }
+
+  if (action === 'open-mission') {
+    syncSelectionsFromMission(id);
+    state.surface = 'mission';
+  }
+
+  if (action === 'prepare-next-mission') {
+    prepareNextMissionDraft(id);
   }
 
   if (action === 'select-task') {
@@ -4164,6 +4792,35 @@ async function handleSelection(action, id) {
     syncSelectionsFromTask(id, {
       applyTaskInboxPreselect: true,
     });
+    state.surface = 'taskboard';
+  }
+
+  if (action === 'create-linked-task-for-mission') {
+    await submitCreateLinkedTaskForMission(id);
+    return;
+  }
+
+  if (action === 'draft-council-for-mission') {
+    await submitDraftCouncilForMission(id);
+    return;
+  }
+
+  if (action === 'approve-council-for-mission') {
+    await submitApproveCouncilForMission(id);
+    return;
+  }
+
+  if (action === 'open-advanced-ops') {
+    const data = getDerived();
+    const mission = data.missionMap.get(id) || null;
+
+    if (mission?.linkedTaskId && data.taskMap.has(mission.linkedTaskId)) {
+      syncSelectionsFromTask(mission.linkedTaskId, {
+        applyTaskInboxPreselect: true,
+      });
+    }
+
+    state.selectedMissionId = mission?.id || state.selectedMissionId;
     state.surface = 'taskboard';
   }
 
@@ -4264,14 +4921,16 @@ async function handleSelection(action, id) {
   render();
 }
 
-async function submitCreateProject() {
+async function submitCreateProject(options = {}) {
   const name = state.projectDraftName.trim();
   const projectPath = state.projectDraftPath.trim();
-  const provider = buildProviderPayload(
-    state.projectDraftProviderMode,
-    state.projectDraftProviderModel,
-    state.projectDraftProviderApiKeyVar,
-  );
+  const provider = options.forceLocalStub
+    ? buildProviderPayload('local-stub', '', '')
+    : buildProviderPayload(
+        state.projectDraftProviderMode,
+        state.projectDraftProviderModel,
+        state.projectDraftProviderApiKeyVar,
+      );
 
   if (!name) {
     throw new Error('Project name is required');
@@ -4299,6 +4958,9 @@ async function submitCreateProject() {
     state.projectDraftProviderModel = '';
     state.projectDraftProviderApiKeyVar = '';
     await applyProjectScopePayload(payload);
+    if (options.successSurface) {
+      state.surface = options.successSurface;
+    }
     elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
   } finally {
     state.mutating = false;
@@ -4397,6 +5059,188 @@ async function submitSelectProject(projectId) {
 
     await applyProjectScopePayload(payload);
     elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitCreateMission() {
+  const data = getDerived();
+
+  if (!data.activeProject) {
+    throw new Error('Active project is required before creating missions');
+  }
+
+  const title = state.missionDraftTitle.trim();
+  const goal = state.missionDraftGoal.trim();
+  const constraints = state.missionDraftConstraints.trim();
+
+  if (!title) {
+    throw new Error('Mission title is required');
+  }
+
+  if (!goal) {
+    throw new Error('Mission goal is required');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = 'Creating mission and drafting council…';
+  render();
+
+  try {
+    const payload = await postJson('/api/missions', {
+      autoDraftCouncil: true,
+      constraints,
+      goal,
+      title,
+    });
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromMission(payload.mission.id);
+    state.missionDraftTitle = '';
+    state.missionDraftGoal = '';
+    state.missionDraftConstraints = '';
+    state.selectionSeeded = true;
+    await hydrateSelectedDetails();
+    state.surface = payload.councilSession?.id ? 'council' : 'mission';
+    render();
+    elements.refreshStatus.textContent = payload.councilSession?.id
+      ? `Created mission ${payload.mission.id} and drafted council ${payload.councilSession.id}`
+      : `Created mission ${payload.mission.id}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitSelectMission(missionId) {
+  const data = getDerived();
+
+  if (!missionId || !data.missionMap.has(missionId)) {
+    throw new Error('Select a mission');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Selecting mission ${missionId}…`;
+  render();
+
+  try {
+    const payload = await postJson(`/api/missions/${encodeURIComponent(missionId)}/select`);
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromMission(missionId);
+    await hydrateSelectedDetails();
+    state.surface = 'mission';
+    render();
+    elements.refreshStatus.textContent = `Selected mission ${payload.mission.id}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitCreateLinkedTaskForMission(missionId) {
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+
+  if (!mission) {
+    throw new Error('Select a mission before creating a linked task');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Creating linked task for ${missionId}…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/missions/${encodeURIComponent(missionId)}/create-linked-task`,
+      {},
+    );
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromMission(missionId);
+    await hydrateSelectedDetails();
+    state.surface = 'mission';
+    render();
+    elements.refreshStatus.textContent = `Created linked task ${payload.task.id}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitDraftCouncilForMission(missionId) {
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+
+  if (!mission) {
+    throw new Error('Select a mission before drafting council');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Drafting council for ${missionId}…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/missions/${encodeURIComponent(missionId)}/draft-council`,
+    );
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromMission(missionId);
+    await hydrateSelectedDetails();
+    state.surface = 'council';
+    render();
+    elements.refreshStatus.textContent = `Drafted council ${payload.councilSession.id}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitApproveCouncilForMission(missionId) {
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+
+  if (!mission) {
+    throw new Error('Select a mission before approving council');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Approving recommendation for ${missionId}…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/missions/${encodeURIComponent(missionId)}/approve-council`,
+    );
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    syncSelectionsFromMission(missionId);
+    if (payload.task?.id) {
+      syncSelectionsFromTask(payload.task.id, {
+        applyTaskInboxPreselect: true,
+        preferredArtifactId:
+          payload.mutation?.lastArtifactId || payload.approval?.targetArtifactId || null,
+        preferredInboxItemId: payload.item?.id || null,
+        preferredRunId: payload.mutation?.lastRunId || null,
+      });
+    }
+    await hydrateSelectedDetails();
+    state.surface = 'execution';
+    render();
+    elements.refreshStatus.textContent = `Aligned mission ${payload.mission.id} and advanced execution to ${payload.mutation?.autoChain?.stoppedAt || 'execution'}`;
   } finally {
     state.mutating = false;
     render();
@@ -4816,6 +5660,7 @@ async function runCloseOut(taskId) {
 }
 
 function resetProjectScopeSelections() {
+  state.selectedMissionId = null;
   state.selectedTaskId = null;
   state.selectedRunId = null;
   state.selectedArtifactId = null;
@@ -4991,6 +5836,10 @@ function renderSummary(data) {
 function renderNav(data) {
   const pendingInboxCount = data.inboxItems.filter((item) => item.status === 'pending').length;
   const artifactCount = data.artifacts.length;
+  const councilCount = data.councilSessions.length;
+  const executionCount = data.missions.filter((mission) => Boolean(mission.linkedTaskId)).length;
+  const deliverableCount = data.missions.filter((mission) => Boolean(mission.linkedTaskId)).length;
+  const missionCount = data.missions.length;
   const runCount = data.runs.length;
   const taskCount = data.tasks.length;
 
@@ -5000,6 +5849,18 @@ function renderNav(data) {
     button.classList.toggle('is-active', isActive);
 
     let count = 0;
+    if (surface === 'mission') {
+      count = missionCount;
+    }
+    if (surface === 'council') {
+      count = councilCount;
+    }
+    if (surface === 'execution') {
+      count = executionCount;
+    }
+    if (surface === 'deliverables') {
+      count = deliverableCount;
+    }
     if (surface === 'taskboard') {
       count = taskCount;
     }
@@ -5013,15 +5874,33 @@ function renderNav(data) {
       count = pendingInboxCount;
     }
 
-    button.textContent = `${button.dataset.surface === 'decision-inbox' ? 'Decision Inbox' : button.dataset.surface.charAt(0).toUpperCase() + button.dataset.surface.slice(1)} (${count})`;
+    const label =
+      button.dataset.surface === 'decision-inbox'
+        ? 'Decision Inbox'
+        : button.dataset.surface.charAt(0).toUpperCase() + button.dataset.surface.slice(1);
+    button.textContent = `${label} (${count})`;
   }
 }
 
-function renderProjectBootstrapPanel(data) {
-  const bootstrapState = getProjectBootstrapState(data);
+function renderProjectBootstrapPanel(data, options = {}) {
+  const mode = options.mode === 'mission' ? 'mission' : 'advanced';
+  const missionMode = mode === 'mission';
+  const bootstrapState = missionMode
+    ? data.projects.length === 0
+      ? {
+          copy: 'Register the first local project here, then move directly into mission creation.',
+          title: 'Mission Start',
+        }
+      : {
+          copy: 'Select a registered project here or register a new one, then continue on the mission path.',
+          title: 'Mission Project Access',
+        }
+    : getProjectBootstrapState(data);
   const projectActionDisabled = state.loading || state.mutating;
   const linkedWorktreeActionDisabled = projectActionDisabled || !data.activeProject;
-  const linkedWorktreePanel = renderLinkedWorktreeSwitchPanel(data, projectActionDisabled);
+  const linkedWorktreePanel = missionMode
+    ? ''
+    : renderLinkedWorktreeSwitchPanel(data, projectActionDisabled);
   const createProjectProviderMode =
     state.projectDraftProviderMode === 'live' ? 'live' : 'local-stub';
   const activeProjectProviderConfig = getProjectProviderConfig(data.activeProject);
@@ -5058,18 +5937,24 @@ function renderProjectBootstrapPanel(data) {
                     <div class="token-row">
                       ${createToken(project.pack || 'development', 'neutral')}
                       ${createToken(`readiness:${project.readiness || 'unknown'}`, 'neutral')}
-                      ${createToken(`provider:${providerConfig.adapter}`, providerConfig.mode === 'live' ? 'accent' : 'neutral')}
                       ${
-                        providerSummary
-                          ? createToken(
-                              `provider readiness:${providerSummary.readiness || 'unknown'}`,
-                              providerSummary.allowed
-                                ? 'success'
-                                : providerSummary.readiness === 'error'
-                                  ? 'danger'
-                                  : 'warning',
-                            )
-                          : ''
+                        missionMode
+                          ? ''
+                          : createToken(`provider:${providerConfig.adapter}`, providerConfig.mode === 'live' ? 'accent' : 'neutral')
+                      }
+                      ${
+                        missionMode
+                          ? ''
+                          : providerSummary
+                            ? createToken(
+                                `provider readiness:${providerSummary.readiness || 'unknown'}`,
+                                providerSummary.allowed
+                                  ? 'success'
+                                  : providerSummary.readiness === 'error'
+                                    ? 'danger'
+                                    : 'warning',
+                              )
+                            : ''
                       }
                     </div>
                   </button>
@@ -5104,7 +5989,7 @@ function renderProjectBootstrapPanel(data) {
       ${projectList}
       ${linkedWorktreePanel}
       ${
-        data.activeProject
+        data.activeProject && !missionMode
           ? `
             <form class="task-create-form project-create-form" data-form="update-project-provider">
               <div class="panel-header">
@@ -5183,7 +6068,7 @@ function renderProjectBootstrapPanel(data) {
           : ''
       }
       ${
-        data.activeProject
+        data.activeProject && !missionMode
           ? `
             <form class="task-create-form project-create-form" data-form="create-linked-worktree">
               <div class="field-grid">
@@ -5208,7 +6093,7 @@ function renderProjectBootstrapPanel(data) {
           `
           : ''
       }
-      <form class="task-create-form project-create-form" data-form="create-project">
+      <form class="task-create-form project-create-form" data-form="${missionMode ? 'create-project-from-mission' : 'create-project'}">
         <div class="field-grid">
           <label class="field">
             <span class="field-label">Project Name</span>
@@ -5230,18 +6115,24 @@ function renderProjectBootstrapPanel(data) {
               ${projectActionDisabled ? 'disabled' : ''}
             >
           </label>
-          <label class="field">
-            <span class="field-label">Provider Mode</span>
-            <select
-              name="projectProviderMode"
-              ${projectActionDisabled ? 'disabled' : ''}
-            >
-              <option value="local-stub" ${createProjectProviderMode === 'local-stub' ? 'selected' : ''}>local-stub</option>
-              <option value="live" ${createProjectProviderMode === 'live' ? 'selected' : ''}>openai-responses</option>
-            </select>
-          </label>
           ${
-            createProjectProviderMode === 'live'
+            !missionMode
+              ? `
+                <label class="field">
+                  <span class="field-label">Provider Mode</span>
+                  <select
+                    name="projectProviderMode"
+                    ${projectActionDisabled ? 'disabled' : ''}
+                  >
+                    <option value="local-stub" ${createProjectProviderMode === 'local-stub' ? 'selected' : ''}>local-stub</option>
+                    <option value="live" ${createProjectProviderMode === 'live' ? 'selected' : ''}>openai-responses</option>
+                  </select>
+                </label>
+              `
+              : ''
+          }
+          ${
+            !missionMode && createProjectProviderMode === 'live'
               ? `
                 <label class="field">
                   <span class="field-label">Provider Model</span>
@@ -5269,11 +6160,13 @@ function renderProjectBootstrapPanel(data) {
         </div>
         <div class="form-actions">
           <button class="secondary-button" type="submit" ${projectActionDisabled ? 'disabled' : ''}>
-            Register Project
+            ${missionMode ? 'Start With This Project' : 'Register Project'}
           </button>
           <p class="form-help">
             ${
-              createProjectProviderMode === 'live'
+              missionMode
+                ? 'Mission registration always starts local-stub by default. Provider and linked worktree controls stay in Advanced Ops Mode.'
+                : createProjectProviderMode === 'live'
                 ? 'Live mode stores non-secret opt-in metadata only. Planner, architect, task-breaker, builder preflight, builder live mutation, and reviewer can execute live when model and env are valid; commit-package, local commit, release-package, and close-out stay explicit local follow-up.'
                 : 'Registration stores the project, keeps local-stub as the default execution provider, and makes the project active.'
             }
@@ -5281,6 +6174,2057 @@ function renderProjectBootstrapPanel(data) {
         </div>
       </form>
     </section>
+  `;
+}
+
+function renderMission(data) {
+  if (!data.activeProject) {
+    elements.surfaces.mission.innerHTML = `
+      <div class="surface-grid">
+        <section class="surface-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Mission</h2>
+              <p class="panel-copy">Pick the project first, then create the mission.</p>
+            </div>
+            <div class="token-row">
+              ${createToken(`registered-projects:${data.projects.length}`, data.projects.length > 0 ? 'neutral' : 'warning')}
+            </div>
+          </div>
+          ${renderProjectBootstrapPanel(data, { mode: 'mission' })}
+        </section>
+        <aside class="detail-card">
+          <div class="panel-header">
+            <div>
+              <h2>Mission Entry</h2>
+              <p class="panel-copy">Project starts here. Advanced Ops keeps provider, worktree, and operator detail.</p>
+            </div>
+          </div>
+          <div class="stack">
+            <section class="relation-strip">
+              <div class="card-title-row">
+                <strong>Recommended First Step</strong>
+                ${createToken('orchestration-first', 'success')}
+              </div>
+              <p class="detail-copy">Pick a project above, then create the first mission.</p>
+            </section>
+            <section class="relation-strip">
+              <div class="card-title-row">
+                <strong>Still In Advanced Ops</strong>
+                ${createToken('provider/worktree/detail', 'warning')}
+              </div>
+              <p class="detail-copy">Provider, worktree, logs, artifacts, and decisions stay in Advanced Ops.</p>
+            </section>
+          </div>
+        </aside>
+      </div>
+    `;
+    return;
+  }
+
+  const selectedMission = data.missionMap.get(state.selectedMissionId) || data.missions[0] || null;
+  const selectedMissionCompletion = getMissionCompletionSummary(selectedMission, data);
+  const selectedMissionCouncilPreview = getMissionCouncilPreview(selectedMission, data);
+  const selectedMissionExecutionPreview = getMissionExecutionPreview(selectedMission, data);
+  const selectedMissionDeliverablesPreview = getMissionDeliverablesPreview(selectedMission, data);
+  const selectedMissionNextActionPreview = getMissionNextActionPreview(selectedMission, {
+    completion: selectedMissionCompletion,
+    council: selectedMissionCouncilPreview,
+    deliverables: selectedMissionDeliverablesPreview,
+    execution: selectedMissionExecutionPreview,
+  });
+  const linkedTask = selectedMissionCompletion.linkedTask;
+  const closeOutState = selectedMissionCompletion.closeOutState;
+  const missionCompletionReady = selectedMissionCompletion.completionReady;
+  const missionCompletionArtifactId = selectedMissionCompletion.closeOutArtifactId;
+  const missionCompletionReleasePackageId = selectedMissionCompletion.releasePackageArtifactId;
+  const selectedCouncilSession = selectedMissionCouncilPreview.councilSession;
+  const selectedMissionActiveSnapshotItems = missionCompletionReady
+    ? []
+    : [
+        {
+          label: 'Council Preview',
+          copy: selectedCouncilSession
+            ? `${selectedMissionCouncilPreview.recommendationPreview} Alignment ${selectedMissionCouncilPreview.alignmentStatus}.`
+            : 'Draft council to populate the current recommendation.',
+          handoffCopy: 'See Council for recommendation detail and alignment.',
+          surface: 'council',
+          tone: selectedCouncilSession
+            ? getAlignmentTone(selectedMissionCouncilPreview.alignmentStatus)
+            : 'warning',
+        },
+        {
+          label: 'Execution Preview',
+          copy: selectedMissionExecutionPreview.stagePreview,
+          handoffCopy: 'See Execution for current gate and blocked reason.',
+          surface: 'execution',
+          tone: 'accent',
+        },
+        {
+          label: 'Deliverables Preview',
+          copy: selectedMissionDeliverablesPreview.previewLine,
+          handoffCopy: 'See Deliverables for artifact, review, and approval detail.',
+          surface: 'deliverables',
+          tone: 'neutral',
+        },
+        {
+          label: 'Current Best Next Step',
+          copy: selectedMissionNextActionPreview.summary,
+          handoffCopy: `Current owner surface is ${getSurfaceDisplayName(selectedMissionNextActionPreview.surface)}.`,
+          surface: selectedMissionNextActionPreview.surface,
+          tone: selectedMissionNextActionPreview.tone,
+        },
+      ];
+  const missionCreateDisabled = state.loading || state.mutating;
+  const linkedTaskCreateDisabled =
+    state.loading || state.mutating || !selectedMission || Boolean(selectedMission.linkedTaskId);
+  const missionEntries = data.missions.map((mission) => ({
+    councilPreview: getMissionCouncilPreview(mission, data),
+    completion: getMissionCompletionSummary(mission, data),
+    deliverablesPreview: getMissionDeliverablesPreview(mission, data),
+    executionPreview: getMissionExecutionPreview(mission, data),
+    nextActionPreview: getMissionNextActionPreview(mission, {
+      completion: getMissionCompletionSummary(mission, data),
+      council: getMissionCouncilPreview(mission, data),
+      deliverables: getMissionDeliverablesPreview(mission, data),
+      execution: getMissionExecutionPreview(mission, data),
+    }),
+    mission,
+  }));
+  const activeMissionEntries = missionEntries.filter(({ completion }) => !completion.completionReady);
+  const completedMissionEntries = missionEntries.filter(({ completion }) => completion.completionReady);
+  const renderMissionRows = (entries, emptyTitle, emptyCopy) => {
+    if (entries.length === 0) {
+      return `
+        <div class="empty-state empty-state-inline">
+          <strong>${escapeHtml(emptyTitle)}</strong>
+          <p>${escapeHtml(emptyCopy)}</p>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="project-list">
+        ${entries
+          .map(({ mission, completion, councilPreview, deliverablesPreview, executionPreview, nextActionPreview }) => {
+            const missionTask = completion.linkedTask;
+            const missionSurfaceLabel = getSurfaceDisplayName(nextActionPreview.surface);
+            const missionRowSummary = completion.completionReady
+              ? `Completed · close-out artifact ${completion.closeOutArtifactId}. Linked task ${mission.linkedTaskId || 'none'} is sealed and next cycle is ready on Mission.`
+              : `Council · ${councilPreview.alignmentStatus}. Execution · ${
+                  missionTask ? missionTask.lifecycleState : 'no linked task'
+                }. Deliverables · ${
+                  deliverablesPreview.currentDeliverableArtifact?.type || 'none'
+                }, review ${deliverablesPreview.latestReviewStatus}, approval ${
+                  deliverablesPreview.latestApproval?.status || 'none'
+                }.`;
+            const missionRowNextCopy = completion.completionReady
+              ? 'Next owner · Mission via Prepare Next Mission.'
+              : `Next owner · ${missionSurfaceLabel} via ${nextActionPreview.actionLabel}.`;
+            const missionRowTokens = completion.completionReady
+              ? `
+                  ${createToken('completion:sealed', 'success')}
+                  ${createToken('next-cycle:ready', 'success')}
+                  ${
+                    mission.linkedTaskId
+                      ? createToken(`linked-task:${mission.linkedTaskId}`, 'accent')
+                      : createToken('linked-task:none', 'warning')
+                  }
+                  ${
+                    completion.closeOutArtifactId
+                      ? createToken(`close-out:${completion.closeOutArtifactId}`, 'neutral')
+                      : ''
+                  }
+                `
+              : `
+                  ${
+                    mission.linkedTaskId
+                      ? createToken(`linked-task:${mission.linkedTaskId}`, 'accent')
+                      : createToken('linked-task:none', 'warning')
+                  }
+                  ${
+                    missionTask ? createToken(`task:${missionTask.lifecycleState}`, 'neutral') : ''
+                  }
+                  ${
+                    councilPreview.councilSession
+                      ? createToken(
+                          `alignment:${councilPreview.alignmentStatus}`,
+                          getAlignmentTone(councilPreview.alignmentStatus),
+                        )
+                      : createToken('alignment:none', 'warning')
+                  }
+                  ${
+                    executionPreview.actionLabel
+                      ? createToken(`gate:${executionPreview.actionLabel}`, 'neutral')
+                      : ''
+                  }
+                  ${
+                    deliverablesPreview.currentDeliverableArtifact
+                      ? createToken(
+                          `artifact:${deliverablesPreview.currentDeliverableArtifact.type}`,
+                          'neutral',
+                        )
+                      : ''
+                  }
+                  ${createToken(`next:${nextActionPreview.surface}`, nextActionPreview.tone)}
+                  ${missionTask?.flags?.waitingApproval ? createToken('waitingApproval', 'accent') : ''}
+                  ${missionTask?.flags?.waitingDecision ? createToken('waitingDecision', 'warning') : ''}
+                  ${missionTask?.flags?.blocked ? createToken('blocked', 'danger') : ''}
+                `;
+
+            return `
+              <button
+                class="list-button ${mission.id === selectedMission?.id ? 'is-selected' : ''}"
+                type="button"
+                data-action="select-mission"
+                data-id="${escapeHtml(mission.id)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+                >
+                  <div class="card-title-row">
+                    <strong>${escapeHtml(mission.title)}</strong>
+                    ${createToken(mission.status || 'draft', getMissionStatusTone(mission.status))}
+                  </div>
+                  <p class="list-copy">${escapeHtml(mission.goal || 'No mission goal recorded.')}</p>
+                  <p class="detail-copy">${escapeHtml(missionRowSummary)}</p>
+                  <p class="detail-copy">${escapeHtml(missionRowNextCopy)}</p>
+                  <div class="token-row">${missionRowTokens}</div>
+              </button>
+            `;
+          })
+          .join('')}
+      </div>
+    `;
+  };
+  const missionList = data.missions.length
+    ? `
+        <div class="stack">
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Active Missions</strong>
+              <div class="token-row">
+                ${createToken(`count:${activeMissionEntries.length}`, activeMissionEntries.length > 0 ? 'neutral' : 'warning')}
+              </div>
+            </div>
+            <p class="detail-copy">Current bounded work stays here.</p>
+          </section>
+          ${renderMissionRows(
+            activeMissionEntries,
+            'No active missions',
+            'Prepare the next mission when the next bounded cycle is ready.',
+          )}
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Completed Missions</strong>
+              <div class="token-row">
+                ${createToken(`count:${completedMissionEntries.length}`, completedMissionEntries.length > 0 ? 'success' : 'neutral')}
+              </div>
+            </div>
+            <p class="detail-copy">Sealed rows wait here for the next cycle.</p>
+          </section>
+          ${renderMissionRows(
+            completedMissionEntries,
+            'No completed missions yet',
+            'Completed rows land here after close-out seals the path.',
+          )}
+        </div>
+      `
+    : `
+        <div class="empty-state">
+          <strong>No missions yet</strong>
+          <p>Create the first mission above, then add the linked task when execution is needed.</p>
+        </div>
+      `;
+
+  elements.surfaces.mission.innerHTML = `
+    <div class="surface-grid">
+      <section class="surface-panel">
+        <div class="panel-header panel-header-tight">
+          <div>
+            <h2>Mission</h2>
+            <p class="panel-copy panel-copy-tight">Intent starts here. Task-level execution stays in Advanced Ops.</p>
+          </div>
+          <div class="token-row token-row-compact">
+            ${createToken(`project:${data.activeProject.name}`, 'success')}
+            ${createToken(`missions:${data.missions.length}`, 'neutral')}
+          </div>
+        </div>
+        <form class="task-create-form task-create-form-compact" data-form="create-mission">
+          <div class="field-grid field-grid-compact">
+            <label class="field field-compact">
+              <span class="field-label">Title</span>
+              <input
+                type="text"
+                name="missionTitle"
+                value="${escapeHtml(state.missionDraftTitle)}"
+                placeholder="Mission title"
+                ${missionCreateDisabled ? 'disabled' : ''}
+              >
+            </label>
+            <label class="field field-compact">
+              <span class="field-label">Goal</span>
+              <textarea
+                name="missionGoal"
+                rows="3"
+                placeholder="What should the system make or improve?"
+                ${missionCreateDisabled ? 'disabled' : ''}
+              >${escapeHtml(state.missionDraftGoal)}</textarea>
+            </label>
+            <label class="field field-compact">
+              <span class="field-label">Scope</span>
+              <textarea
+                name="missionConstraints"
+                rows="3"
+                placeholder="Scope limits or acceptance hints"
+                ${missionCreateDisabled ? 'disabled' : ''}
+              >${escapeHtml(state.missionDraftConstraints)}</textarea>
+            </label>
+          </div>
+          <div class="form-actions form-actions-inline form-actions-compact">
+            <button class="primary-button" type="submit" ${missionCreateDisabled ? 'disabled' : ''}>Create Mission</button>
+            <div class="token-row">
+              ${createToken('council:auto-draft', 'success')}
+            </div>
+          </div>
+        </form>
+        ${missionList}
+      </section>
+      <aside class="detail-card">
+        <div class="panel-header panel-header-tight">
+          <div>
+            <h2>Mission Detail</h2>
+            <p class="panel-copy panel-copy-tight">Mission stays primary. Advanced Ops stays secondary.</p>
+          </div>
+        </div>
+        ${
+          selectedMission
+            ? `
+              <div class="token-row token-row-compact">
+                ${createToken(selectedMission.status || 'draft', getMissionStatusTone(selectedMission.status))}
+                ${
+                  selectedMission.linkedTaskId
+                    ? createToken(`linked-task:${selectedMission.linkedTaskId}`, 'accent')
+                    : createToken('linked-task:none', 'warning')
+                }
+              </div>
+              <div class="stack">
+                <section class="relation-strip relation-strip-compact">
+                  <div class="card-title-row card-title-row-tight">
+                    <strong>${escapeHtml(selectedMission.title)}</strong>
+                  </div>
+                  <p class="detail-copy detail-copy-compact">${escapeHtml(selectedMission.goal || 'No mission goal recorded.')}</p>
+                </section>
+                ${
+                  missionCompletionReady
+                    ? `
+                      <section class="relation-strip">
+                        <div class="card-title-row">
+                          <strong>Execution Preview</strong>
+                        </div>
+                        <div class="token-row">
+                          ${
+                            linkedTask ? createToken(`task:${linkedTask.lifecycleState}`, 'neutral') : createToken('task:none', 'warning')
+                          }
+                          ${
+                            selectedMissionExecutionPreview.actionLabel
+                              ? createToken(`gate:${selectedMissionExecutionPreview.actionLabel}`, 'neutral')
+                              : createToken('gate:none', 'warning')
+                          }
+                          ${linkedTask?.flags?.blocked ? createToken('blocked', 'danger') : ''}
+                          ${linkedTask?.flags?.waitingApproval ? createToken('waitingApproval', 'accent') : ''}
+                          ${linkedTask?.flags?.waitingDecision ? createToken('waitingDecision', 'warning') : ''}
+                        </div>
+                        <p class="detail-copy">${escapeHtml(selectedMissionExecutionPreview.stagePreview)}</p>
+                        <p class="detail-copy">
+                          <strong>Current Gate Preview</strong>: ${escapeHtml(selectedMissionExecutionPreview.gatePreview)}
+                        </p>
+                        <p class="detail-copy">
+                          <strong>Blocked Reason</strong>: ${escapeHtml(selectedMissionExecutionPreview.blockedReason)}
+                        </p>
+                      </section>
+                      <section class="relation-strip">
+                        <div class="card-title-row">
+                          <strong>Deliverables Preview</strong>
+                        </div>
+                        <div class="token-row">
+                          ${
+                            selectedMissionDeliverablesPreview.currentDeliverableArtifact
+                              ? createToken(
+                                  `artifact:${selectedMissionDeliverablesPreview.currentDeliverableArtifact.type}`,
+                                  'neutral',
+                                )
+                              : createToken('artifact:none', 'warning')
+                          }
+                          ${createToken(
+                            `review:${selectedMissionDeliverablesPreview.latestReviewStatus}`,
+                            getReviewTone(selectedMissionDeliverablesPreview.latestReviewStatus),
+                          )}
+                          ${
+                            selectedMissionDeliverablesPreview.latestApproval
+                              ? createToken(
+                                  `approval:${selectedMissionDeliverablesPreview.latestApproval.status}`,
+                                  getApprovalTone(selectedMissionDeliverablesPreview.latestApproval.status),
+                                )
+                              : createToken('approval:none', 'neutral')
+                          }
+                        </div>
+                        <p class="detail-copy">
+                          <strong>Latest Artifact Preview</strong>: ${escapeHtml(
+                            selectedMissionDeliverablesPreview.currentDeliverableArtifact
+                              ? `${selectedMissionDeliverablesPreview.currentDeliverableArtifact.type} ${selectedMissionDeliverablesPreview.currentDeliverableArtifact.id} is the current bounded output head.`
+                              : 'No artifact package exists yet.',
+                          )}
+                        </p>
+                        <p class="detail-copy">
+                          <strong>Review State</strong>: ${escapeHtml(
+                            `Current review status is ${selectedMissionDeliverablesPreview.latestReviewStatus}.`,
+                          )}
+                        </p>
+                        <p class="detail-copy">
+                          <strong>Approval State</strong>: ${escapeHtml(
+                            selectedMissionDeliverablesPreview.latestApproval
+                              ? `${selectedMissionDeliverablesPreview.latestApproval.id} is ${selectedMissionDeliverablesPreview.latestApproval.status}.`
+                              : 'No approval record exists yet.',
+                          )}
+                        </p>
+                      </section>
+                      <section class="relation-strip">
+                        <div class="card-title-row">
+                          <strong>Current Best Next Step</strong>
+                        </div>
+                        <div class="token-row">
+                          ${createToken(`surface:${selectedMissionNextActionPreview.surface}`, selectedMissionNextActionPreview.tone)}
+                          ${createToken(`action:${selectedMissionNextActionPreview.actionLabel}`, 'neutral')}
+                        </div>
+                        <p class="detail-copy">${escapeHtml(selectedMissionNextActionPreview.summary)}</p>
+                      </section>
+                    `
+                    : `
+                      <section class="relation-strip">
+                        <div class="card-title-row">
+                          <strong>Mission Snapshot</strong>
+                          <div class="token-row">
+                            ${
+                              selectedCouncilSession
+                                ? createToken(
+                                    `alignment:${selectedMissionCouncilPreview.alignmentStatus}`,
+                                    getAlignmentTone(selectedMissionCouncilPreview.alignmentStatus),
+                                  )
+                                : createToken('alignment:none', 'warning')
+                            }
+                            ${
+                              linkedTask
+                                ? createToken(`task:${linkedTask.lifecycleState}`, 'neutral')
+                                : createToken('task:none', 'warning')
+                            }
+                            ${
+                              selectedMissionDeliverablesPreview.latestApproval
+                                ? createToken(
+                                    `approval:${selectedMissionDeliverablesPreview.latestApproval.status}`,
+                                    getApprovalTone(selectedMissionDeliverablesPreview.latestApproval.status),
+                                  )
+                                : createToken('approval:none', 'neutral')
+                            }
+                            ${createToken(
+                              `surface:${selectedMissionNextActionPreview.surface}`,
+                              selectedMissionNextActionPreview.tone,
+                            )}
+                            ${createToken(`action:${selectedMissionNextActionPreview.actionLabel}`, 'neutral')}
+                          </div>
+                        </div>
+                        <p class="detail-copy">One strip keeps council, execution, deliverables, and next step together.</p>
+                        ${renderMissionSnapshotList(selectedMissionActiveSnapshotItems)}
+                      </section>
+                    `
+                }
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Linked Task</strong>
+                  </div>
+                  <p class="detail-copy">
+                    ${
+                      linkedTask
+                        ? escapeHtml(`${linkedTask.id} is ready in ${linkedTask.lifecycleState}.`)
+                        : 'No linked task exists yet for this mission.'
+                    }
+                  </p>
+                </section>
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Mission Actions</strong>
+                  </div>
+                  <p class="detail-copy">Primary actions live here. Advanced Ops stays secondary.</p>
+                  <div class="form-actions form-actions-inline">
+                    ${
+                      selectedCouncilSession
+                        ? `
+                          <button
+                            class="secondary-button"
+                            type="button"
+                            data-action="open-council"
+                            data-id="${escapeHtml(selectedMission.id)}"
+                            ${state.loading || state.mutating ? 'disabled' : ''}
+                          >
+                            Open Council
+                          </button>
+                        `
+                        : `
+                          <button
+                            class="secondary-button"
+                            type="button"
+                            data-action="draft-council-for-mission"
+                            data-id="${escapeHtml(selectedMission.id)}"
+                            ${state.loading || state.mutating ? 'disabled' : ''}
+                          >
+                            Draft Council
+                          </button>
+                        `
+                    }
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="create-linked-task-for-mission"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${linkedTaskCreateDisabled ? 'disabled' : ''}
+                    >
+                      Create Linked Task
+                    </button>
+                    ${
+                      linkedTask
+                        ? `
+                          <button
+                            class="secondary-button"
+                            type="button"
+                            data-action="open-execution"
+                            data-id="${escapeHtml(selectedMission.id)}"
+                            ${state.loading || state.mutating ? 'disabled' : ''}
+                          >
+                            Open Execution
+                          </button>
+                        `
+                        : ''
+                    }
+                  </div>
+                  ${
+                    missionCompletionReady
+                      ? `
+                        <div class="form-actions form-actions-inline">
+                          <button
+                            class="primary-button"
+                            type="button"
+                            data-action="prepare-next-mission"
+                            data-id="${escapeHtml(selectedMission.id)}"
+                            ${state.loading || state.mutating ? 'disabled' : ''}
+                          >
+                            Prepare Next Mission
+                          </button>
+                        </div>
+                      `
+                      : ''
+                  }
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-advanced-ops"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Advanced Ops Mode
+                    </button>
+                    <p class="form-help">Linked task setup stays on the v1 engine. Advanced Ops remains secondary.</p>
+                  </div>
+                </section>
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Mission Completion</strong>
+                  </div>
+                  <div class="token-row">
+                    ${
+                          linkedTask
+                            ? createToken(
+                                `task:${linkedTask.lifecycleState}`,
+                                linkedTask.lifecycleState === 'Done' ? 'success' : 'neutral',
+                              )
+                            : createToken('task:none', 'warning')
+                        }
+                        ${
+                          missionCompletionReady
+                            ? createToken('state:complete', 'success')
+                            : createToken('state:open', 'warning')
+                        }
+                        ${
+                          missionCompletionArtifactId
+                            ? createToken(`close-out:${missionCompletionArtifactId}`, 'neutral')
+                            : ''
+                        }
+                  </div>
+                  <p class="detail-copy">
+                    ${
+                      missionCompletionReady
+                        ? escapeHtml(
+                            `${selectedMission.title} completed the bounded orchestration path and closed through close-out artifact ${missionCompletionArtifactId}.`,
+                          )
+                        : 'Mission completion summary appears here after the linked task reaches Done through the bounded close-out path.'
+                    }
+                  </p>
+                  <p class="detail-copy">
+                    <strong>Current Mission State</strong>: ${
+                      missionCompletionReady
+                        ? escapeHtml(
+                            `Task ${linkedTask.id} is Done. Source release bundle ${missionCompletionReleasePackageId || 'unknown'} is anchored to the saved close-out result.`,
+                          )
+                        : linkedTask
+                          ? escapeHtml(
+                              `Task ${linkedTask.id} is currently ${linkedTask.lifecycleState}. Complete the bounded path through close-out to seal mission completion.`,
+                            )
+                          : 'No linked task exists yet.'
+                    }
+                  </p>
+                  <p class="detail-copy">
+                    <strong>Next Safe Follow-Up</strong>: ${
+                      missionCompletionReady
+                        ? 'Review the saved close-out bundle on Deliverables, then start a new mission or revise this mission for the next bounded outcome. Push, publish, and external release remain out of scope here.'
+                        : 'Use Council or Execution to keep advancing the current bounded path. Completion stays unset until the close-out bundle is saved.'
+                    }
+                  </p>
+                </section>
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Council</strong>
+                  </div>
+                  ${
+                    selectedCouncilSession
+                      ? `
+                        <div class="token-row">
+                          ${createToken(
+                            `alignment:${selectedMissionCouncilPreview.alignmentStatus}`,
+                            getAlignmentTone(selectedMissionCouncilPreview.alignmentStatus),
+                          )}
+                          ${createToken(
+                            `participants:${selectedMissionCouncilPreview.participantCount}`,
+                            'neutral',
+                          )}
+                          ${
+                            selectedMissionCouncilPreview.openQuestionsCount > 0
+                              ? createToken(
+                                  `open-questions:${selectedMissionCouncilPreview.openQuestionsCount}`,
+                                  'warning',
+                                )
+                              : createToken('open-questions:0', 'success')
+                          }
+                        </div>
+                      `
+                      : ''
+                  }
+                  <p class="detail-copy">
+                    ${
+                      selectedCouncilSession
+                        ? escapeHtml(
+                            `${selectedCouncilSession.id} is ${selectedCouncilSession.status} with alignment ${selectedCouncilSession.alignment?.status || 'pending'}.`,
+                          )
+                        : 'No council session yet for this mission.'
+                    }
+                  </p>
+                  <p class="detail-copy">
+                    ${
+                      selectedCouncilSession
+                        ? escapeHtml(
+                            `Recommendation Preview: ${selectedMissionCouncilPreview.recommendationPreview}`,
+                          )
+                        : 'Recommendation Preview: Draft council to populate the current recommendation.'
+                    }
+                  </p>
+                  <p class="detail-copy">
+                    ${
+                      selectedCouncilSession
+                        ? escapeHtml(
+                            `Alignment State: ${selectedMissionCouncilPreview.alignmentStatus}. Selected plan ${selectedMissionCouncilPreview.selectedPlanTitle}.`,
+                          )
+                        : 'Alignment State: unavailable until a council session exists.'
+                    }
+                  </p>
+                </section>
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Constraints</strong>
+                  </div>
+                  <p class="detail-copy">${escapeHtml(selectedMission.constraints || 'No explicit constraints recorded.')}</p>
+                </section>
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Advanced Ops Mode</strong>
+                  </div>
+                  <p class="detail-copy">Secondary escape hatch for full Taskboard control.</p>
+                  <p class="detail-copy">
+                    ${
+                      linkedTask
+                        ? escapeHtml(`Opens Taskboard with linked task ${linkedTask.id} selected.`)
+                        : 'Opens Taskboard without changing mission scope.'
+                    }
+                  </p>
+                </section>
+              </div>
+            `
+            : `
+              <div class="empty-state">
+                <strong>No mission selected</strong>
+                <p>Select or create a mission.</p>
+              </div>
+            `
+        }
+      </aside>
+    </div>
+  `;
+}
+
+function renderCouncil(data) {
+  if (!data.activeProject) {
+    elements.surfaces.council.innerHTML = renderProjectGateSurface(
+      'Council Unavailable',
+      'Register or select a project on Taskboard before opening council.',
+    );
+    return;
+  }
+
+  const selectedMission = data.missionMap.get(state.selectedMissionId) || data.missions[0] || null;
+  const selectedCouncilSession =
+    selectedMission?.councilSessionId && data.councilSessionMap.has(selectedMission.councilSessionId)
+      ? data.councilSessionMap.get(selectedMission.councilSessionId)
+      : null;
+  const linkedTask =
+    selectedMission?.linkedTaskId && data.taskMap.has(selectedMission.linkedTaskId)
+      ? data.taskMap.get(selectedMission.linkedTaskId)
+      : null;
+
+  if (!selectedMission) {
+    elements.surfaces.council.innerHTML = `
+      <div class="surface-panel">
+        <div class="empty-state empty-state-strong">
+          <strong>No mission selected</strong>
+          <p>Create or select a mission on the Mission surface before opening council.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const councilDraftDisabled =
+    state.loading || state.mutating || Boolean(selectedCouncilSession);
+  const approveDisabled =
+    state.loading ||
+    state.mutating ||
+    !selectedCouncilSession ||
+    selectedCouncilSession.alignment?.status === 'approved';
+  const participantCards = selectedCouncilSession
+    ? selectedCouncilSession.participants
+        .map(
+          (participant) => `
+            <section class="relation-strip">
+              <div class="card-title-row">
+                <strong>${escapeHtml(participant.role)}</strong>
+                ${createToken('visible role', 'neutral')}
+              </div>
+              <p class="detail-copy">${escapeHtml(participant.focus || 'No focus recorded.')}</p>
+            </section>
+          `,
+        )
+        .join('')
+    : '';
+  const transcriptCards = selectedCouncilSession
+    ? selectedCouncilSession.transcript
+        .map(
+          (entry) => `
+            <section class="relation-strip">
+              <div class="card-title-row">
+                <strong>${escapeHtml(entry.role)}</strong>
+                ${entry.stance ? createToken(entry.stance, 'neutral') : ''}
+              </div>
+              <p class="detail-copy">${escapeHtml(entry.content || '')}</p>
+            </section>
+          `,
+        )
+        .join('')
+    : '';
+
+  elements.surfaces.council.innerHTML = `
+    <div class="surface-grid">
+      <section class="surface-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Council</h2>
+            <p class="panel-copy">Visible role roster, transcript, and one alignment checkpoint sit above the existing execution engine.</p>
+          </div>
+          <div class="token-row">
+            ${createToken(`project:${data.activeProject.name}`, 'success')}
+            ${createToken(`mission:${selectedMission.id}`, 'neutral')}
+            ${createToken(`sessions:${data.councilSessions.length}`, 'neutral')}
+          </div>
+        </div>
+        <section class="relation-strip">
+          <div class="card-title-row">
+            <strong>${escapeHtml(selectedMission.title)}</strong>
+            ${createToken(selectedMission.status || 'draft', getMissionStatusTone(selectedMission.status))}
+            ${
+              selectedCouncilSession
+                ? createToken(
+                    selectedCouncilSession.status,
+                    getCouncilStatusTone(selectedCouncilSession.status),
+                  )
+                : createToken('council:none', 'warning')
+            }
+          </div>
+          <p class="detail-copy">${escapeHtml(selectedMission.goal || 'No mission goal recorded.')}</p>
+          <p class="detail-copy">${escapeHtml(selectedMission.constraints || 'No explicit constraints recorded.')}</p>
+          ${
+            !selectedCouncilSession
+              ? `
+                <div class="form-actions form-actions-inline">
+                  <button
+                    class="primary-button"
+                    type="button"
+                    data-action="draft-council-for-mission"
+                    data-id="${escapeHtml(selectedMission.id)}"
+                    ${councilDraftDisabled ? 'disabled' : ''}
+                  >
+                    Draft Council
+                  </button>
+                  <p class="form-help">Draft one visible multi-role recommendation before any automatic downstream execution exists.</p>
+                </div>
+              `
+              : ''
+          }
+        </section>
+        ${
+          selectedCouncilSession
+            ? `
+              <div class="stack">
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Participant Roster</strong>
+                  </div>
+                  <div class="stack">
+                    ${participantCards}
+                  </div>
+                </section>
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Transcript</strong>
+                  </div>
+                  <div class="stack">
+                    ${transcriptCards}
+                  </div>
+                </section>
+              </div>
+            `
+            : `
+              <div class="empty-state">
+                <strong>No council session yet</strong>
+                <p>Draft council to make the role roster, transcript, recommendation, and alignment checkpoint visible.</p>
+              </div>
+            `
+        }
+      </section>
+      <aside class="detail-card">
+        <div class="panel-header">
+          <div>
+            <h2>Recommendation</h2>
+            <p class="panel-copy">Approve Recommendation now auto-creates the linked task, advances planner through builder preflight, and stops at the existing approval or decision gate.</p>
+          </div>
+        </div>
+        ${
+          selectedCouncilSession
+            ? `
+              <div class="token-row">
+                ${createToken(selectedCouncilSession.id, 'neutral')}
+                ${createToken(
+                  `alignment:${selectedCouncilSession.alignment?.status || 'pending'}`,
+                  getAlignmentTone(selectedCouncilSession.alignment?.status || 'pending'),
+                )}
+                ${
+                  linkedTask
+                    ? createToken(`linked-task:${linkedTask.id}`, 'accent')
+                    : createToken('linked-task:none', 'warning')
+                }
+              </div>
+              <div class="stack">
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Summary</strong>
+                  </div>
+                  <p class="detail-copy">${escapeHtml(selectedCouncilSession.summary || 'No summary recorded.')}</p>
+                </section>
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Recommendation</strong>
+                  </div>
+                  <p class="detail-copy">${escapeHtml(selectedCouncilSession.recommendation || 'No recommendation recorded.')}</p>
+                </section>
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Selected Plan</strong>
+                  </div>
+                  <p class="detail-copy">${escapeHtml(selectedCouncilSession.selectedPlan?.title || 'No selected plan recorded.')}</p>
+                  <p class="detail-copy">${escapeHtml(selectedCouncilSession.selectedPlan?.scope || 'No selected scope recorded.')}</p>
+                </section>
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Open Questions</strong>
+                  </div>
+                  <div class="stack">
+                    ${selectedCouncilSession.openQuestions
+                      .map(
+                        (question) => `
+                          <p class="detail-copy">${escapeHtml(question)}</p>
+                        `,
+                      )
+                      .join('')}
+                  </div>
+                </section>
+                <section class="relation-strip">
+                  <div class="card-title-row">
+                    <strong>Alignment Checkpoint</strong>
+                  </div>
+                  <p class="detail-copy">Approve Recommendation creates the linked task when needed, runs planner through builder preflight, and then stops at the existing gate.</p>
+                  <div class="form-actions">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="approve-council-for-mission"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${approveDisabled ? 'disabled' : ''}
+                    >
+                      Approve Recommendation
+                    </button>
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="revise-mission"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Revise Mission
+                    </button>
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-advanced-ops"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Advanced Ops Mode
+                    </button>
+                    ${
+                      linkedTask
+                        ? `
+                          <button
+                            class="secondary-button"
+                            type="button"
+                            data-action="open-execution"
+                            data-id="${escapeHtml(selectedMission.id)}"
+                            ${state.loading || state.mutating ? 'disabled' : ''}
+                          >
+                            Open Execution
+                          </button>
+                        `
+                        : ''
+                    }
+                  </div>
+                  <p class="form-help">
+                    ${
+                      selectedCouncilSession.alignment?.status === 'approved'
+                        ? escapeHtml(
+                            `Aligned at ${formatDate(selectedCouncilSession.alignment?.decidedAt)}. Open Execution to inspect the linked task, latest run stage, approval bridge, and next operator step.`,
+                          )
+                        : 'Alignment stays explicit and single-step. Downstream execution starts only when this recommendation is approved.'
+                    }
+                  </p>
+                </section>
+              </div>
+            `
+            : `
+              <div class="empty-state">
+                <strong>Council recommendation unavailable</strong>
+                <p>Draft council from the selected mission to populate the recommendation and alignment checkpoint.</p>
+              </div>
+            `
+        }
+      </aside>
+    </div>
+  `;
+}
+
+function renderExecution(data) {
+  if (!data.activeProject) {
+    elements.surfaces.execution.innerHTML = renderProjectGateSurface(
+      'Execution Unavailable',
+      'Register or select a project on Mission, or use Advanced Ops Mode when you need manual project control before opening execution.',
+    );
+    return;
+  }
+
+  const selectedMission = data.missionMap.get(state.selectedMissionId) || data.missions[0] || null;
+
+  if (!selectedMission) {
+    elements.surfaces.execution.innerHTML = `
+      <div class="surface-panel">
+        <div class="empty-state empty-state-strong">
+          <strong>No mission selected</strong>
+          <p>Create or select a mission before opening execution.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const linkedTask =
+    selectedMission.linkedTaskId && data.taskMap.has(selectedMission.linkedTaskId)
+      ? data.taskMap.get(selectedMission.linkedTaskId)
+      : null;
+
+  if (!linkedTask) {
+    elements.surfaces.execution.innerHTML = `
+      <div class="surface-grid">
+        <section class="surface-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Execution</h2>
+              <p class="panel-copy">Execution stays empty until a linked task exists for the selected mission.</p>
+            </div>
+          </div>
+          <div class="empty-state">
+            <strong>No linked task yet</strong>
+            <p>Approve Recommendation on Council to auto-create the first linked task, or create one manually from Mission.</p>
+          </div>
+        </section>
+        <aside class="detail-card">
+          <div class="panel-header">
+            <div>
+              <h2>Next Action</h2>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button
+              class="secondary-button"
+              type="button"
+              data-action="open-council"
+              data-id="${escapeHtml(selectedMission.id)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              Open Council
+            </button>
+            <button
+              class="secondary-button"
+              type="button"
+              data-action="open-advanced-ops"
+              data-id="${escapeHtml(selectedMission.id)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              Open Advanced Ops Mode
+            </button>
+          </div>
+        </aside>
+      </div>
+    `;
+    return;
+  }
+
+  const latestRun = linkedTask.latestRunId ? data.runMap.get(linkedTask.latestRunId) || null : null;
+  const latestRunNextStage = latestRun?.summary?.nextStage || null;
+  const latestRunRole = latestRun?.role || latestRun?.kind || 'none';
+  const preferredInboxItem = getPreferredTaskInboxItem(linkedTask.id, data);
+  const taskBreakerState = getTaskBreakerAvailability(linkedTask, data);
+  const builderPreflightState = getBuilderPreflightAvailability(linkedTask, data);
+  const builderLiveMutationState = getBuilderLiveMutationSummaries(linkedTask, data);
+  const reviewerState = getReviewerAvailability(linkedTask, data);
+  const commitPackageState = getCommitPackageAvailability(linkedTask, data);
+  const commitExecutionState = getCommitExecutionAvailability(linkedTask, data);
+  const releasePackageState = getReleasePackageAvailability(linkedTask, data);
+  const approvalBridge = getTaskApprovalBridge(linkedTask, data);
+  const canApproveCurrentGate = Boolean(
+    approvalBridge.pendingInboxItem &&
+      approvalBridge.currentApproval?.status === 'pending' &&
+      approvalBridge.currentApproval?.allowedNextAction === 'builder-live-mutation',
+  );
+  const canApproveCommitGate = Boolean(
+    approvalBridge.pendingInboxItem &&
+      approvalBridge.currentApproval?.status === 'pending' &&
+      approvalBridge.currentApproval?.allowedNextAction === 'commit-intent',
+  );
+  const canApproveReleaseGate = Boolean(
+    approvalBridge.pendingInboxItem &&
+      approvalBridge.currentApproval?.status === 'pending' &&
+      approvalBridge.currentApproval?.allowedNextAction === 'release-ready',
+  );
+  const canRunLiveMutation = Boolean(
+    approvalBridge.currentApproval &&
+      approvalBridge.currentApproval.status === 'approved' &&
+      approvalBridge.currentApproval.allowedNextAction === 'builder-live-mutation' &&
+      builderLiveMutationState.guardSummary.allowed,
+  );
+  const canRunReviewer = Boolean(reviewerState.summary.allowed);
+  const canPrepareCommitPackage = Boolean(commitPackageState.summary.allowed);
+  const canRunLocalCommit = Boolean(commitExecutionState.summary.allowed);
+  const canPrepareReleasePackage = Boolean(releasePackageState.summary.allowed);
+  const latestPlanArtifact = taskBreakerState.latestPlanArtifact;
+  const latestArchitectureArtifact = taskBreakerState.latestArchitectureArtifact;
+  const latestBreakdownArtifact = taskBreakerState.latestBreakdownArtifact;
+  const latestPreflightArtifact = builderPreflightState.latestPreflightArtifact;
+  const latestPreflightDetail =
+    state.selectedTaskPreflightArtifact?.id === latestPreflightArtifact?.id
+      ? state.selectedTaskPreflightArtifact
+      : null;
+  const parsedPreflight = latestPreflightDetail
+    ? parsePreflightArtifact(latestPreflightDetail.content)
+    : null;
+  const gateCopy =
+    preferredInboxItem?.status === 'pending'
+      ? preferredInboxItem.prompt || preferredInboxItem.title
+      : linkedTask.flags?.waitingApproval
+        ? 'Builder live mutation approval is pending.'
+        : linkedTask.flags?.waitingDecision
+          ? 'A blocking decision is pending.'
+          : builderLiveMutationState.requestSummary.allowed
+            ? `Preflight ${builderLiveMutationState.requestSummary.currentPreflightArtifactId} is ready for builder live mutation approval.`
+            : 'No blocking gate is active.';
+
+  elements.surfaces.execution.innerHTML = `
+    <div class="surface-grid">
+      <section class="surface-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Execution</h2>
+            <p class="panel-copy">Compact execution summary for the selected mission. Detailed run control remains in Advanced Ops Mode.</p>
+          </div>
+          <div class="token-row">
+            ${createToken(`mission:${selectedMission.id}`, 'neutral')}
+            ${createToken(`task:${linkedTask.id}`, 'accent')}
+            ${createToken(linkedTask.lifecycleState, 'neutral')}
+          </div>
+        </div>
+
+        <section class="relation-strip">
+          <div class="card-title-row">
+            <strong>Lifecycle</strong>
+          </div>
+          <div class="token-row">
+            ${createToken(`review:${linkedTask.review?.status || 'pending'}`, getReviewTone(linkedTask.review?.status))}
+            ${linkedTask.flags?.blocked ? createToken('blocked', 'danger') : ''}
+            ${linkedTask.flags?.waitingApproval ? createToken('waitingApproval', 'accent') : ''}
+            ${linkedTask.flags?.waitingDecision ? createToken('waitingDecision', 'warning') : ''}
+          </div>
+          <p class="detail-copy">${escapeHtml(linkedTask.intent || selectedMission.goal || 'No execution intent recorded.')}</p>
+        </section>
+
+        <section class="relation-strip">
+          <div class="card-title-row">
+            <strong>Latest Run Stage</strong>
+          </div>
+          <div class="token-row">
+            ${latestRun ? createToken(`run:${latestRun.id}`, getRunTone(latestRun.status)) : createToken('run:none', 'neutral')}
+            ${latestRun ? createToken(`role:${latestRunRole}`, 'neutral') : ''}
+            ${latestRunNextStage ? createToken(`next:${latestRunNextStage}`, 'neutral') : ''}
+          </div>
+          <p class="detail-copy">
+            ${
+              latestRun
+                ? escapeHtml(`${formatDate(latestRun.startedAt)}에 시작된 latest run 기준 요약이다.`)
+                : 'No execution run has been recorded yet.'
+            }
+          </p>
+        </section>
+
+        <section class="relation-strip">
+          <div class="card-title-row">
+            <strong>Upstream Chain</strong>
+          </div>
+          <div class="token-row">
+            ${latestPlanArtifact ? createToken(`plan:${latestPlanArtifact.id}`, 'success') : createToken('plan:none', 'warning')}
+            ${latestArchitectureArtifact ? createToken(`architecture:${latestArchitectureArtifact.id}`, 'success') : createToken('architecture:none', 'warning')}
+            ${latestBreakdownArtifact ? createToken(`breakdown:${latestBreakdownArtifact.id}`, 'neutral') : createToken('breakdown:none', 'neutral')}
+            ${latestPreflightArtifact ? createToken(`preflight:${latestPreflightArtifact.id}`, 'neutral') : createToken('preflight:none', 'neutral')}
+          </div>
+          <p class="detail-copy">Approve Recommendation auto chain은 planner부터 builder preflight까지만 진행되고, 이후는 기존 gate semantics를 따른다.</p>
+        </section>
+      </section>
+
+      <aside class="detail-card">
+        <div class="panel-header">
+          <div>
+            <h2>Current Gate</h2>
+            <p class="panel-copy">Execution은 current approval bridge, gate 상태, 그리고 preflight readiness를 compact하게 보여준다.</p>
+          </div>
+        </div>
+        <div class="stack">
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Approval Bridge</strong>
+            </div>
+            <div class="token-row">
+              ${
+                approvalBridge.currentApproval
+                  ? createToken(
+                      `approval:${approvalBridge.currentApproval.id}`,
+                      getApprovalTone(approvalBridge.currentApproval.status),
+                    )
+                  : createToken('approval:none', 'neutral')
+              }
+              ${
+                approvalBridge.actionLabel
+                  ? createToken(`action:${approvalBridge.actionLabel}`, 'neutral')
+                  : ''
+              }
+              ${
+                approvalBridge.targetArtifact
+                  ? createToken(`target:${approvalBridge.targetArtifact.type}`, 'neutral')
+                  : ''
+              }
+              ${
+                approvalBridge.targetArtifact
+                  ? createToken(`artifact:${approvalBridge.targetArtifact.id}`, 'neutral')
+                  : ''
+              }
+              ${
+                approvalBridge.pendingInboxItem
+                  ? createToken(
+                      `inbox:${approvalBridge.pendingInboxItem.id}`,
+                      getInboxTone(approvalBridge.pendingInboxItem),
+                    )
+                  : ''
+              }
+            </div>
+            <p class="detail-copy">${escapeHtml(approvalBridge.bridgeCopy)}</p>
+            <p class="detail-copy"><strong>Next Operator Step</strong>: ${escapeHtml(approvalBridge.nextStepCopy)}</p>
+            ${
+              canApproveCurrentGate
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="run-inbox-action"
+                      data-id="${escapeHtml(approvalBridge.pendingInboxItem.id)}"
+                      data-verb="approve"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Approve Current Gate
+                    </button>
+                  </div>
+                  <p class="form-help">This reuses the existing pending builder approval record and keeps detailed task, log, artifact, and inbox control in Advanced Ops Mode.</p>
+                `
+                : ''
+            }
+            ${
+              canApproveCommitGate
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="run-inbox-action"
+                      data-id="${escapeHtml(approvalBridge.pendingInboxItem.id)}"
+                      data-verb="approve"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Approve Current Commit Gate
+                    </button>
+                  </div>
+                  <p class="form-help">This reuses the existing pending commit approval record. Local commit, release, and close-out still stay in Advanced Ops Mode after this approval is resolved.</p>
+                `
+                : ''
+            }
+            ${
+              canApproveReleaseGate
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="run-inbox-action"
+                      data-id="${escapeHtml(approvalBridge.pendingInboxItem.id)}"
+                      data-verb="approve"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Approve Current Release Gate
+                    </button>
+                  </div>
+                  <p class="form-help">This reuses the existing pending release approval record. Close-out still stays bounded and continues from Execution only after current release readiness turns green.</p>
+                `
+                : ''
+            }
+            ${
+              canRunLiveMutation
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="run-builder-live-mutation"
+                      data-id="${escapeHtml(linkedTask.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Run Live Mutation
+                    </button>
+                  </div>
+                  <p class="form-help">The current builder approval is already approved. This CTA reuses the existing live mutation task route, then lands on Logs for the bounded mutation bundle.</p>
+                `
+                : ''
+            }
+            ${
+              canRunReviewer
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="run-reviewer"
+                      data-id="${escapeHtml(linkedTask.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Run Reviewer
+                    </button>
+                  </div>
+                  <p class="form-help">The latest live mutation bundle is ready for reviewer inspection from the primary orchestration path. This CTA reuses the existing reviewer route and then lands on Artifacts.</p>
+                `
+                : ''
+            }
+            ${
+              canPrepareCommitPackage
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="run-commit-package"
+                      data-id="${escapeHtml(linkedTask.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Prepare Commit Package
+                    </button>
+                  </div>
+                  <p class="form-help">The latest passing reviewer bundle is ready. This CTA reuses the existing commit-package route and opens the current commit approval without running local commit, release, or close-out.</p>
+                `
+                : ''
+            }
+            ${
+              canRunLocalCommit
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="run-local-commit"
+                      data-id="${escapeHtml(linkedTask.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Resume Approved Local Commit
+                    </button>
+                  </div>
+                  <p class="form-help">The current commit bundle is ready. This CTA reuses the existing local commit route, then lands on Artifacts with the saved commit-result bundle. Release and close-out still stay in Advanced Ops Mode.</p>
+                `
+                : ''
+            }
+            ${
+              canPrepareReleasePackage
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="run-release-package"
+                      data-id="${escapeHtml(linkedTask.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Prepare Release Package
+                    </button>
+                  </div>
+                  <p class="form-help">The latest successful local commit bundle is ready. This CTA reuses the existing release-package route, then opens the current release approval without enabling push, publish, or close-out on the primary shell.</p>
+                `
+                : ''
+            }
+            ${
+              canRunCloseOut
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="primary-button"
+                      type="button"
+                      data-action="run-close-out"
+                      data-id="${escapeHtml(linkedTask.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Resume Approved Close Out
+                    </button>
+                  </div>
+                  <p class="form-help">The current approved release bundle is ready. This CTA reuses the existing close-out route, then lands on Artifacts with the saved close-out bundle. External delivery still stays in Advanced Ops Mode.</p>
+                `
+                : ''
+            }
+          </section>
+
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Blocked Reason</strong>
+            </div>
+            <p class="detail-copy">${escapeHtml(gateCopy)}</p>
+            <div class="token-row">
+              ${preferredInboxItem?.status === 'pending' ? createToken(`inbox:${preferredInboxItem.id}`, getInboxTone(preferredInboxItem)) : ''}
+              ${preferredInboxItem?.kind ? createToken(`kind:${preferredInboxItem.kind}`, 'neutral') : ''}
+              ${
+                builderLiveMutationState.requestSummary.latestApprovalDisplayStatus
+                  ? createToken(
+                      `approval:${builderLiveMutationState.requestSummary.latestApprovalDisplayStatus}`,
+                      builderLiveMutationState.requestSummary.latestApprovalDisplayStatus === 'pending'
+                        ? 'accent'
+                        : 'neutral',
+                    )
+                  : ''
+              }
+            </div>
+          </section>
+
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Preflight Readiness</strong>
+            </div>
+            <div class="token-row">
+              ${createToken(
+                builderLiveMutationState.requestSummary.allowed ? 'ready-for-approval' : 'not-ready',
+                builderLiveMutationState.requestSummary.allowed ? 'success' : 'warning',
+              )}
+              ${
+                builderLiveMutationState.requestSummary.currentPreflightArtifactId
+                  ? createToken(
+                      `preflight:${builderLiveMutationState.requestSummary.currentPreflightArtifactId}`,
+                      'neutral',
+                    )
+                  : ''
+              }
+            </div>
+            <p class="detail-copy">
+              ${
+                builderLiveMutationState.requestSummary.allowed
+                  ? '현재 preflight artifact 기준으로 builder live mutation approval gate가 생성된 상태다.'
+                  : escapeHtml(
+                      (builderLiveMutationState.requestSummary.reasons || []).join('; ') ||
+                        'Preflight readiness is not available yet.',
+                    )
+              }
+            </p>
+            ${
+              parsedPreflight
+                ? `
+                  ${renderCompactList('Target Files', parsedPreflight.targetFiles)}
+                  ${renderCompactList('Risks', parsedPreflight.risks)}
+                `
+                : ''
+            }
+          </section>
+
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Next Actions</strong>
+            </div>
+            <div class="form-actions">
+              <button
+                class="secondary-button"
+                type="button"
+                data-action="open-council"
+                data-id="${escapeHtml(selectedMission.id)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                Open Council
+              </button>
+              <button
+                class="secondary-button"
+                type="button"
+                data-action="open-advanced-ops"
+                data-id="${escapeHtml(selectedMission.id)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                Open Advanced Ops Mode
+              </button>
+            </div>
+            <p class="form-help">If the current gate is still pending, open Advanced Ops Mode, resolve it in Decision Inbox, then return to Taskboard for the next bounded execution action.</p>
+          </section>
+        </div>
+      </aside>
+    </div>
+  `;
+}
+
+function renderDeliverables(data) {
+  if (!data.activeProject) {
+    elements.surfaces.deliverables.innerHTML = renderProjectGateSurface(
+      'Deliverables Unavailable',
+      'Register or select a project on Mission, or use Advanced Ops Mode when you need manual project control before opening deliverables.',
+    );
+    return;
+  }
+
+  const selectedMission = data.missionMap.get(state.selectedMissionId) || data.missions[0] || null;
+
+  if (!selectedMission) {
+    elements.surfaces.deliverables.innerHTML = `
+      <div class="surface-panel">
+        <div class="empty-state empty-state-strong">
+          <strong>No mission selected</strong>
+          <p>Create or select a mission before opening deliverables.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const linkedTask =
+    selectedMission.linkedTaskId && data.taskMap.has(selectedMission.linkedTaskId)
+      ? data.taskMap.get(selectedMission.linkedTaskId)
+      : null;
+
+  if (!linkedTask) {
+    elements.surfaces.deliverables.innerHTML = `
+      <div class="surface-grid">
+        <section class="surface-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Deliverables</h2>
+              <p class="panel-copy">Deliverables stay empty until the selected mission owns one linked task.</p>
+            </div>
+          </div>
+          <div class="empty-state">
+            <strong>No linked task yet</strong>
+            <p>Approve Recommendation on Council first. Deliverables only summarize artifact, review, and approval state that already exists on the current engine.</p>
+          </div>
+        </section>
+        <aside class="detail-card">
+          <div class="panel-header">
+            <div>
+              <h2>Advanced Ops Detail</h2>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button
+              class="secondary-button"
+              type="button"
+              data-action="open-advanced-ops"
+              data-id="${escapeHtml(selectedMission.id)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              Open Advanced Ops Mode
+            </button>
+          </div>
+        </aside>
+      </div>
+    `;
+    return;
+  }
+
+  const taskArtifacts = getTaskArtifacts(linkedTask.id, data.artifacts).sort(sortByCreatedDesc);
+  const taskApprovals = getTaskApprovals(linkedTask.id, data.approvals).sort(sortByCreatedDesc);
+  const approvalSummary = getTaskApprovalSummary(linkedTask, data.approvals);
+  const preferredInboxItem = getPreferredTaskInboxItem(linkedTask.id, data);
+  const latestArtifact = taskArtifacts[0] || null;
+  const latestPlanArtifact = getLatestTaskArtifact(linkedTask, data, 'plan');
+  const latestArchitectureArtifact = getLatestTaskArtifact(linkedTask, data, 'architecture');
+  const latestBreakdownArtifact = getLatestTaskArtifact(linkedTask, data, 'breakdown');
+  const latestPreflightArtifact = getLatestTaskArtifact(linkedTask, data, 'preflight');
+  const latestChangeSummaryArtifact = getLatestTaskArtifact(linkedTask, data, 'change-summary');
+  const latestPatchArtifact = getLatestTaskArtifact(linkedTask, data, 'patch');
+  const latestDiffArtifact = getLatestTaskArtifact(linkedTask, data, 'diff');
+  const latestReviewArtifact = getLatestTaskArtifact(linkedTask, data, 'review');
+  const latestCommitPackageArtifact = getLatestTaskArtifact(linkedTask, data, 'commit-package');
+  const latestCommitResultArtifact = getLatestTaskArtifact(linkedTask, data, 'commit-result');
+  const latestReleasePackageArtifact = getLatestTaskArtifact(linkedTask, data, 'release-package');
+  const latestCloseOutArtifact = getLatestTaskArtifact(linkedTask, data, 'close-out');
+  const latestApproval = taskApprovals[0] || null;
+  const approvalBridge = getTaskApprovalBridge(linkedTask, data);
+  const reviewerState = getReviewerAvailability(linkedTask, data);
+  const commitPackageState = getCommitPackageAvailability(linkedTask, data);
+  const commitExecutionState = getCommitExecutionAvailability(linkedTask, data);
+  const releasePackageState = getReleasePackageAvailability(linkedTask, data);
+  const closeOutState = getCloseOutAvailability(linkedTask, data);
+  const missionCompletionReady = Boolean(
+    linkedTask &&
+      linkedTask.lifecycleState === 'Done' &&
+      (latestCloseOutArtifact || closeOutState.summary.existingCloseOutArtifactId),
+  );
+  const missionCompletionArtifactId =
+    latestCloseOutArtifact?.id || closeOutState.summary.existingCloseOutArtifactId || null;
+  const canApproveCurrentGate = Boolean(
+    approvalBridge.pendingInboxItem &&
+      approvalBridge.currentApproval?.status === 'pending' &&
+      approvalBridge.currentApproval?.allowedNextAction === 'builder-live-mutation',
+  );
+  const canApproveCommitGate = Boolean(
+    approvalBridge.pendingInboxItem &&
+      approvalBridge.currentApproval?.status === 'pending' &&
+      approvalBridge.currentApproval?.allowedNextAction === 'commit-intent',
+  );
+  const canApproveReleaseGate = Boolean(
+    approvalBridge.pendingInboxItem &&
+      approvalBridge.currentApproval?.status === 'pending' &&
+      approvalBridge.currentApproval?.allowedNextAction === 'release-ready',
+  );
+  const canRunLiveMutation = Boolean(
+    approvalBridge.currentApproval &&
+      approvalBridge.currentApproval.status === 'approved' &&
+      approvalBridge.currentApproval.allowedNextAction === 'builder-live-mutation' &&
+      data.derived?.taskGuardSummaries?.[linkedTask.id]?.builderLiveMutation?.allowed,
+  );
+  const canRunReviewer = Boolean(reviewerState.summary.allowed);
+  const canPrepareCommitPackage = Boolean(commitPackageState.summary.allowed);
+  const canRunLocalCommit = Boolean(commitExecutionState.summary.allowed);
+  const canPrepareReleasePackage = Boolean(releasePackageState.summary.allowed);
+  const canRunCloseOut = Boolean(closeOutState.summary.allowed);
+  const latestReviewStatus = linkedTask.review?.status || 'pending';
+  const latestReviewNote =
+    linkedTask.review?.resolution?.note || 'No review resolution note recorded yet.';
+  const currentDeliverableArtifact =
+    latestCloseOutArtifact ||
+    latestReleasePackageArtifact ||
+    latestCommitResultArtifact ||
+    latestCommitPackageArtifact ||
+    latestReviewArtifact ||
+    latestChangeSummaryArtifact ||
+    latestDiffArtifact ||
+    latestPatchArtifact ||
+    latestPreflightArtifact ||
+    latestBreakdownArtifact ||
+    latestArchitectureArtifact ||
+    latestPlanArtifact ||
+    latestArtifact;
+
+  elements.surfaces.deliverables.innerHTML = `
+    <div class="surface-grid">
+      <section class="surface-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Deliverables</h2>
+            <p class="panel-copy">Compact summary of the latest artifact package, review state, and approval state for the selected mission.</p>
+          </div>
+          <div class="token-row">
+            ${createToken(`mission:${selectedMission.id}`, 'neutral')}
+            ${createToken(`task:${linkedTask.id}`, 'accent')}
+            ${createToken(`artifacts:${taskArtifacts.length}`, 'neutral')}
+          </div>
+        </div>
+
+        <section class="relation-strip">
+          <div class="card-title-row">
+            <strong>Latest Artifact Package</strong>
+          </div>
+          <div class="token-row">
+            ${
+              currentDeliverableArtifact
+                ? createToken(`current:${currentDeliverableArtifact.type}`, 'success')
+                : createToken('current:none', 'warning')
+            }
+            ${currentDeliverableArtifact ? createToken(currentDeliverableArtifact.id, 'neutral') : ''}
+            ${latestArtifact ? createToken(`latest-write:${latestArtifact.type}`, 'neutral') : ''}
+          </div>
+          <p class="detail-copy">
+            ${
+              currentDeliverableArtifact
+                ? escapeHtml(
+                    `${currentDeliverableArtifact.type} artifact ${currentDeliverableArtifact.id} is the current top of the bounded deliverable stack as of ${formatDate(currentDeliverableArtifact.createdAt)}.`,
+                  )
+                : 'No artifact package exists yet for this mission.'
+            }
+          </p>
+          <div class="stack">
+            <section class="relation-strip">
+              <div class="card-title-row">
+                <strong>Execution Package</strong>
+              </div>
+              <div class="token-row">
+                ${latestPlanArtifact ? createToken(`plan:${latestPlanArtifact.id}`, 'success') : createToken('plan:none', 'warning')}
+                ${latestArchitectureArtifact ? createToken(`architecture:${latestArchitectureArtifact.id}`, 'success') : createToken('architecture:none', 'warning')}
+                ${latestBreakdownArtifact ? createToken(`breakdown:${latestBreakdownArtifact.id}`, 'neutral') : createToken('breakdown:none', 'neutral')}
+                ${latestPreflightArtifact ? createToken(`preflight:${latestPreflightArtifact.id}`, 'neutral') : createToken('preflight:none', 'neutral')}
+              </div>
+              <p class="detail-copy">Planner through builder preflight artifacts remain the current upstream package for this mission until a later bounded step advances mutation or review.</p>
+            </section>
+            <section class="relation-strip">
+              <div class="card-title-row">
+                <strong>Delivery Package</strong>
+              </div>
+              <div class="token-row">
+                ${latestChangeSummaryArtifact ? createToken(`change-summary:${latestChangeSummaryArtifact.id}`, 'neutral') : createToken('change-summary:none', 'neutral')}
+                ${latestPatchArtifact ? createToken(`patch:${latestPatchArtifact.id}`, 'neutral') : createToken('patch:none', 'neutral')}
+                ${latestDiffArtifact ? createToken(`diff:${latestDiffArtifact.id}`, 'neutral') : createToken('diff:none', 'neutral')}
+                ${latestReviewArtifact ? createToken(`review:${latestReviewArtifact.id}`, 'neutral') : createToken('review:none', 'neutral')}
+                ${latestCommitPackageArtifact ? createToken(`commit-package:${latestCommitPackageArtifact.id}`, 'neutral') : ''}
+                ${latestCommitResultArtifact ? createToken(`commit-result:${latestCommitResultArtifact.id}`, 'neutral') : ''}
+                ${latestReleasePackageArtifact ? createToken(`release-package:${latestReleasePackageArtifact.id}`, 'neutral') : ''}
+                ${latestCloseOutArtifact ? createToken(`close-out:${latestCloseOutArtifact.id}`, 'neutral') : ''}
+              </div>
+              <p class="detail-copy">
+                ${
+                  latestChangeSummaryArtifact || latestReviewArtifact || latestCommitPackageArtifact || latestReleasePackageArtifact || latestCloseOutArtifact
+                    ? 'Downstream package artifacts already exist and remain visible here without adding any new execution affordance.'
+                    : 'No downstream mutation, review, commit, release, or close-out package exists yet. Current bounded progress still stops before those later semantics.'
+                }
+              </p>
+            </section>
+          </div>
+        </section>
+      </section>
+
+      <aside class="detail-card">
+        <div class="panel-header">
+          <div>
+            <h2>Latest State</h2>
+            <p class="panel-copy">Deliverables stays summary-only. It now highlights the current approval target and still hands detailed control off to Advanced Ops Mode.</p>
+          </div>
+        </div>
+        <div class="stack">
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Latest Review State</strong>
+            </div>
+            <div class="token-row">
+              ${createToken(`required:${linkedTask.review?.required ? 'yes' : 'no'}`, linkedTask.review?.required ? 'warning' : 'neutral')}
+              ${createToken(`status:${latestReviewStatus}`, getReviewTone(latestReviewStatus))}
+              ${createToken(`verification:${linkedTask.review?.verificationArtifactIds?.length || 0}`, 'neutral')}
+              ${latestReviewArtifact ? createToken(`artifact:${latestReviewArtifact.id}`, 'neutral') : createToken('artifact:none', 'neutral')}
+              ${
+                reviewerState.summary.sourceBuilderRunId
+                  ? createToken(`source run:${reviewerState.summary.sourceBuilderRunId}`, 'neutral')
+                  : ''
+              }
+            </div>
+            <p class="detail-copy">${escapeHtml(latestReviewNote)}</p>
+            ${
+              canRunReviewer
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-execution"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Execution To Run Reviewer
+                    </button>
+                  </div>
+                  <p class="form-help">Primary reviewer CTA lives on Execution after the bounded live mutation bundle is available.</p>
+                `
+                : ''
+            }
+            ${
+              canPrepareCommitPackage
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-execution"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Execution To Prepare Commit Package
+                    </button>
+                  </div>
+                  <p class="form-help">Primary commit-package CTA lives on Execution after the latest passing reviewer bundle is available.</p>
+                `
+                : ''
+            }
+            ${
+              canApproveCommitGate
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-execution"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Execution To Approve Commit Gate
+                    </button>
+                  </div>
+                  <p class="form-help">Primary commit approval CTA lives on Execution after the current commit package opens a pending commit approval.</p>
+                `
+                : ''
+            }
+            ${
+              canRunLocalCommit
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-execution"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Execution To Run Local Commit
+                    </button>
+                  </div>
+                  <p class="form-help">Primary local commit CTA lives on Execution once the current approved commit bundle is ready.</p>
+                `
+                : ''
+            }
+            ${
+              canPrepareReleasePackage
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-execution"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Execution To Prepare Release Package
+                    </button>
+                  </div>
+                  <p class="form-help">Primary release-package CTA lives on Execution once the latest successful local commit bundle is ready.</p>
+                `
+                : ''
+            }
+            ${
+              canApproveReleaseGate
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-execution"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Execution To Approve Release Gate
+                    </button>
+                  </div>
+                  <p class="form-help">Primary release approval CTA lives on Execution after the current release package opens a pending release approval.</p>
+                `
+                : ''
+            }
+            ${
+              canRunCloseOut
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-execution"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Execution To Run Close Out
+                    </button>
+                  </div>
+                  <p class="form-help">Primary close-out CTA lives on Execution once the current approved release bundle is ready.</p>
+                `
+                : ''
+            }
+          </section>
+
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Latest Approval State</strong>
+            </div>
+            <div class="token-row">
+              ${createToken(`pending:${approvalSummary.pending}`, approvalSummary.pending > 0 ? 'accent' : 'neutral')}
+              ${createToken(`approved:${approvalSummary.approved}`, approvalSummary.approved > 0 ? 'success' : 'neutral')}
+              ${createToken(`rejected:${approvalSummary.rejected}`, approvalSummary.rejected > 0 ? 'danger' : 'neutral')}
+              ${
+                latestApproval?.allowedNextAction
+                  ? createToken(
+                      `action:${getApprovalActionLabel(latestApproval.allowedNextAction)}`,
+                      'neutral',
+                    )
+                  : ''
+              }
+              ${
+                latestApproval
+                  ? createToken(`latest:${latestApproval.status}`, getApprovalTone(latestApproval.status))
+                  : createToken('latest:none', 'neutral')
+              }
+            </div>
+            <p class="detail-copy">
+              ${
+                latestApproval
+                  ? escapeHtml(
+                      `${latestApproval.id} is ${latestApproval.status} for ${latestApproval.allowedNextAction || latestApproval.scope}, targeting ${latestApproval.targetArtifactId || 'the current bounded artifact'}.`,
+                    )
+                  : 'No approval record exists yet for this mission.'
+              }
+            </p>
+            ${
+              preferredInboxItem?.status === 'pending'
+                ? `
+                  <div class="token-row">
+                    ${createToken(`inbox:${preferredInboxItem.id}`, getInboxTone(preferredInboxItem))}
+                    ${createToken(`kind:${preferredInboxItem.kind}`, 'neutral')}
+                  </div>
+                `
+                : ''
+            }
+          </section>
+
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Current Approval Target</strong>
+            </div>
+            <div class="token-row">
+              ${
+                approvalBridge.currentApproval
+                  ? createToken(
+                      `approval:${approvalBridge.currentApproval.id}`,
+                      getApprovalTone(approvalBridge.currentApproval.status),
+                    )
+                  : createToken('approval:none', 'neutral')
+              }
+              ${
+                approvalBridge.targetArtifact
+                  ? createToken(`target:${approvalBridge.targetArtifact.type}`, 'neutral')
+                  : ''
+              }
+              ${
+                approvalBridge.targetArtifact
+                  ? createToken(`artifact:${approvalBridge.targetArtifact.id}`, 'neutral')
+                  : ''
+              }
+              ${
+                approvalBridge.pendingInboxItem
+                  ? createToken(
+                      `inbox:${approvalBridge.pendingInboxItem.id}`,
+                      getInboxTone(approvalBridge.pendingInboxItem),
+                    )
+                  : ''
+              }
+            </div>
+            <p class="detail-copy">${escapeHtml(approvalBridge.bridgeCopy)}</p>
+            <p class="detail-copy"><strong>Next Operator Step</strong>: ${escapeHtml(approvalBridge.nextStepCopy)}</p>
+            ${
+              canApproveCurrentGate
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-execution"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Execution
+                    </button>
+                  </div>
+                  <p class="form-help">Primary approval CTA lives on Execution. Deliverables keeps this surface summary-only.</p>
+                `
+                : ''
+            }
+            ${
+              canRunLiveMutation
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-execution"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Execution To Run Live Mutation
+                    </button>
+                  </div>
+                  <p class="form-help">The bounded live mutation CTA is available on Execution after the current builder gate is approved.</p>
+                `
+                : ''
+            }
+          </section>
+
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Mission Completion</strong>
+            </div>
+            <div class="token-row">
+              ${createToken(`mission:${selectedMission.status || 'draft'}`, getMissionStatusTone(selectedMission.status))}
+              ${
+                linkedTask
+                  ? createToken(
+                      `task:${linkedTask.lifecycleState}`,
+                      linkedTask.lifecycleState === 'Done' ? 'success' : 'neutral',
+                    )
+                  : createToken('task:none', 'warning')
+              }
+              ${
+                missionCompletionReady
+                  ? createToken('completion:sealed', 'success')
+                  : createToken('completion:open', 'warning')
+              }
+              ${
+                missionCompletionArtifactId
+                  ? createToken(`close-out:${missionCompletionArtifactId}`, 'neutral')
+                  : ''
+              }
+              ${
+                closeOutState.summary.currentReleasePackageArtifactId
+                  ? createToken(
+                      `release-package:${closeOutState.summary.currentReleasePackageArtifactId}`,
+                      'neutral',
+                    )
+                  : ''
+              }
+            </div>
+            <p class="detail-copy">
+              ${
+                missionCompletionReady
+                  ? escapeHtml(
+                      `Current Mission State: bounded delivery is sealed by close-out artifact ${missionCompletionArtifactId} for task ${linkedTask.id}.`,
+                    )
+                  : 'Current Mission State: bounded delivery is still open. Deliverables will pin the close-out bundle here after the mission reaches Done.'
+              }
+            </p>
+            <p class="detail-copy">
+              <strong>Next Safe Follow-Up</strong>: ${
+                missionCompletionReady
+                  ? 'Use the saved close-out bundle as the final bounded summary, then start the next mission or open Advanced Ops Mode for deeper provenance inspection. External delivery remains disabled here.'
+                  : 'Keep advancing the current bounded path from Execution. This surface remains summary-only until the close-out bundle is saved.'
+              }
+            </p>
+            ${
+              missionCompletionReady
+                ? `
+                  <div class="form-actions form-actions-inline">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-mission"
+                      data-id="${escapeHtml(selectedMission.id)}"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      Open Mission To Start Next Cycle
+                    </button>
+                  </div>
+                  <p class="form-help">Mission holds the next-cycle entry. Use it to prepare the next bounded mission draft without reopening execution.</p>
+                `
+                : ''
+            }
+          </section>
+
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>Advanced Ops Detail</strong>
+            </div>
+            <p class="detail-copy">Deliverables intentionally stops at compact summary. Taskboard, Logs, Artifacts, and Decision Inbox remain the detailed operator path.</p>
+            <div class="form-actions">
+              <button
+                class="secondary-button"
+                type="button"
+                data-action="open-advanced-ops"
+                data-id="${escapeHtml(selectedMission.id)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                Open Advanced Ops Mode
+              </button>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </div>
   `;
 }
 
@@ -5349,10 +8293,11 @@ function renderTaskboard(data) {
         <div class="panel-header">
           <div>
             <h2>Taskboard</h2>
-            <p class="panel-copy">Lifecycle, flags, review state, and gate visibility by task.</p>
+            <p class="panel-copy">Taskboard is the detailed execution control surface for project setup, lifecycle, gate handling, and downstream follow-up.</p>
           </div>
           <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval + limited live mutation write + reviewer + commit-package prepare + local commit + release-package prepare + close-out enabled</p>
         </div>
+        ${renderAdvancedOpsNotice('Taskboard, Logs, Artifacts, and Decision Inbox now sit behind the orchestration-first path. Use this surface when mission-level flow needs detailed operator control.')}
         ${bootstrapPanel}
         ${
           data.activeProject
@@ -6021,9 +8966,10 @@ function renderLogs(data) {
         <div class="panel-header">
           <div>
             <h2>Logs</h2>
-            <p class="panel-copy">Run-level execution output with task and gate context.</p>
+            <p class="panel-copy">Advanced operator logs for run-level execution output, linkage, and gate context.</p>
           </div>
         </div>
+        ${renderAdvancedOpsNotice('Logs remains an advanced inspection surface. Mission, Council, Execution, and Deliverables stay the primary product path.')}
         <div class="list-column">${runList}</div>
       </section>
       <aside class="detail-card">
@@ -6206,10 +9152,11 @@ function renderArtifacts(data) {
         <div class="panel-header">
           <div>
             <h2>Artifacts</h2>
-            <p class="panel-copy">Latest-first artifact evidence with task and run context.</p>
+            <p class="panel-copy">Advanced artifact inspection with latest-first evidence, provenance, and raw stored content.</p>
             <p class="panel-copy">Badges show browse priority and preview mode. All artifact history stays retained in v1.</p>
           </div>
         </div>
+        ${renderAdvancedOpsNotice('Artifacts is intentionally an advanced provenance surface. Deliverables stays summary-only and links back here only when deep inspection is required.')}
         <div class="list-column">${artifactList}</div>
       </section>
       <aside class="detail-card">
@@ -6522,7 +9469,16 @@ function renderDecisionInbox(data) {
 
   elements.surfaces['decision-inbox'].innerHTML = `
     <div class="surface-grid surface-grid-inbox">
-      ${renderInboxList(pendingItems, 'Pending Queue', 'Human-required gates still waiting on resolution.')}
+      <section class="surface-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Decision Inbox</h2>
+            <p class="panel-copy">Advanced decision handling for pending and resolved review, decision, and approval items.</p>
+          </div>
+        </div>
+        ${renderAdvancedOpsNotice('Decision Inbox stays available for explicit approval and decision handling, but it is no longer the primary orchestration entry path.')}
+        ${renderInboxList(pendingItems, 'Pending Queue', 'Human-required gates still waiting on resolution.')}
+      </section>
       ${renderInboxList(resolvedItems, 'Resolved Recent', 'Resolved decisions and approvals remain visible for audit.')}
       <aside class="detail-card">
         <div>
@@ -6668,6 +9624,10 @@ function render() {
     return;
   }
 
+  renderMission(data);
+  renderCouncil(data);
+  renderExecution(data);
+  renderDeliverables(data);
   renderTaskboard(data);
   renderLogs(data);
   renderArtifacts(data);
@@ -6770,7 +9730,9 @@ document.addEventListener('click', async (event) => {
 
 function handleFormInput(event) {
   const createLinkedWorktreeForm = event.target.closest('[data-form="create-linked-worktree"]');
+  const createMissionForm = event.target.closest('[data-form="create-mission"]');
   const createProjectForm = event.target.closest('[data-form="create-project"]');
+  const createMissionProjectForm = event.target.closest('[data-form="create-project-from-mission"]');
   const updateProjectProviderForm = event.target.closest('[data-form="update-project-provider"]');
   const createTaskForm = event.target.closest('[data-form="create-task"]');
 
@@ -6782,7 +9744,7 @@ function handleFormInput(event) {
     return;
   }
 
-  if (createProjectForm) {
+  if (createProjectForm || createMissionProjectForm) {
     if (event.target.name === 'projectName') {
       state.projectDraftName = event.target.value;
     }
@@ -6822,6 +9784,22 @@ function handleFormInput(event) {
     return;
   }
 
+  if (createMissionForm) {
+    if (event.target.name === 'missionTitle') {
+      state.missionDraftTitle = event.target.value;
+    }
+
+    if (event.target.name === 'missionGoal') {
+      state.missionDraftGoal = event.target.value;
+    }
+
+    if (event.target.name === 'missionConstraints') {
+      state.missionDraftConstraints = event.target.value;
+    }
+
+    return;
+  }
+
   if (!createTaskForm) {
     return;
   }
@@ -6840,7 +9818,9 @@ document.addEventListener('change', handleFormInput);
 
 document.addEventListener('submit', async (event) => {
   const createLinkedWorktreeForm = event.target.closest('[data-form="create-linked-worktree"]');
+  const createMissionForm = event.target.closest('[data-form="create-mission"]');
   const createProjectForm = event.target.closest('[data-form="create-project"]');
+  const createMissionProjectForm = event.target.closest('[data-form="create-project-from-mission"]');
   const updateProjectProviderForm = event.target.closest('[data-form="update-project-provider"]');
   const createTaskForm = event.target.closest('[data-form="create-task"]');
 
@@ -6868,6 +9848,21 @@ document.addEventListener('submit', async (event) => {
     return;
   }
 
+  if (createMissionProjectForm) {
+    event.preventDefault();
+
+    try {
+      await submitCreateProject({
+        forceLocalStub: true,
+        successSurface: 'mission',
+      });
+    } catch (error) {
+      elements.refreshStatus.textContent = error.message || 'Mission project registration failed';
+      render();
+    }
+    return;
+  }
+
   if (updateProjectProviderForm) {
     event.preventDefault();
 
@@ -6875,6 +9870,18 @@ document.addEventListener('submit', async (event) => {
       await submitUpdateProjectProvider();
     } catch (error) {
       elements.refreshStatus.textContent = error.message || 'Project provider update failed';
+      render();
+    }
+    return;
+  }
+
+  if (createMissionForm) {
+    event.preventDefault();
+
+    try {
+      await submitCreateMission();
+    } catch (error) {
+      elements.refreshStatus.textContent = error.message || 'Mission creation failed';
       render();
     }
     return;

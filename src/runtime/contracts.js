@@ -45,6 +45,26 @@ const ARTIFACT_RETENTION_TIER = {
   TIER_C: 'tier-c-generic-fallback',
 };
 
+const RETENTION_CONSUMER_ACTION = {
+  PREVIEW: 'preview',
+  ARCHIVE: 'archive',
+  DELETE: 'delete',
+  GC: 'gc',
+};
+
+const RETENTION_CONSUMER_DISPOSITION = {
+  PROTECTED: 'protected',
+  INSPECT_BEFORE_ACTION: 'inspect-before-action',
+  CLEANUP_CANDIDATE: 'cleanup-candidate',
+};
+
+const RETENTION_CONSUMER_STATUS = {
+  ACTIVE: 'active',
+  ARCHIVED: 'archived',
+  DELETED: 'deleted',
+  GC: 'gc',
+};
+
 const ARTIFACT_TYPE = {
   PLAN: 'plan',
   ARCHITECTURE: 'architecture',
@@ -192,9 +212,12 @@ const RELEASE_ACTION = {
 
 function createEmptyState() {
   return {
-    schemaVersion: 2,
+    schemaVersion: 4,
     activeProjectId: null,
+    selectedMissionId: null,
     sequences: {
+      mission: 0,
+      councilSession: 0,
       project: 0,
       task: 0,
       run: 0,
@@ -202,6 +225,8 @@ function createEmptyState() {
       decisionInboxItem: 0,
       approval: 0,
     },
+    missions: {},
+    councilSessions: {},
     projects: {},
     tasks: {},
     runs: {},
@@ -227,6 +252,9 @@ module.exports = {
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,
   PROVIDER_READINESS,
+  RETENTION_CONSUMER_ACTION,
+  RETENTION_CONSUMER_DISPOSITION,
+  RETENTION_CONSUMER_STATUS,
   RELEASE_ACTION,
   REVIEW_STATUS,
   RUN_STATUS,
