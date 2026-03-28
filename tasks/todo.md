@@ -514,6 +514,7 @@ Historical freeze baseline retained for provenance. Current source-of-truth free
 - [x] `scripts/smoke-ui-slice-65.mjs` now pins the cleanup-readiness inventory for that same dirty baseline: tracked modifications are bucketed into `policy/contracts`, `runtime/retention`, `shell/ui`, and `browser coverage`, while untracked files stay bucketed as `pivot docs`, `retention smokes`, and `ui slice smokes` so future hygiene work can stage by bucket instead of ad-hoc file picking
 - [x] `scripts/smoke-ui-slice-66.mjs` now pins the recommended non-destructive cleanup order for that inventory: stage `policy/contracts -> runtime/retention -> shell/ui -> browser coverage` first, then handle untracked `pivot docs -> retention smokes -> ui slice smokes`, with delete/reset/rewrite still blocked until an explicit cleanup decision
 - [x] `ops-verification-postmerge-main-01` reran representative clean-`main` baseline coverage after PR merge and branch cleanup on `main@3bbf8a3`: `node scripts/smoke-ui-slice-59.mjs`, `node scripts/smoke-retention-slice-02.mjs`, `node scripts/smoke-qa-slice-01.mjs`, and `node scripts/smoke-qa-slice-02.mjs` all passed, confirming the default orchestration shell, retention apply flow, and mission-first browser entry still work from the merged baseline
+- [x] `docs-roadmap-alignment-postmerge-02` closes the stale `docs/03_architecture-roadmap-v1.md` phase-summary wording so current `main` no longer frames the already merged orchestration pivot as a pending "next product step"
 
 ### vNext backlog
 #### candidate A [next]
