@@ -133,6 +133,7 @@
 - zero-open backlog가 곧 clean worktree를 뜻하지는 않으므로, cleanup decision 없이 바로 정리하려 들기보다 현재 dirty state를 known baseline smoke로 먼저 고정하는 편이 accidental drift와 cumulative intended changes를 가장 잘 분리했다.
 - dirty worktree를 실제로 정리할 시점이 오더라도 파일 하나씩 ad-hoc으로 고르기보다 `policy/contracts`, `runtime/retention`, `shell/ui`, `browser coverage`, `docs/smokes`처럼 stable bucket inventory를 먼저 고정해 두는 편이 staging 실수와 cleanup drift를 줄이기 쉬웠다.
 - cleanup order도 같은 원칙이 적용됐고, bucket inventory를 만든 뒤에는 `policy/contracts -> runtime/retention -> shell/ui -> browser coverage -> docs/smokes`처럼 stage order까지 먼저 고정해 두는 편이 cross-bucket staging bleed와 불필요한 partial commit 결정을 줄이기 쉬웠다.
+- PR merge와 branch cleanup까지 끝난 뒤에도 usable baseline을 가정만 하지 말고, clean `main`에서 representative source/runtime/browser smoke를 다시 돌려 merged baseline이 실제로 살아 있는지 한 번 더 닫는 편이 가장 안전했다.
 - completed mission list framing도 같은 원칙이 유지됐고, row scanability를 높일 때는 새 `mission.status`나 extra runtime field를 만들기보다 linked task `Done` + saved close-out artifact 기준으로 `active / completed` framing과 next-cycle-ready copy만 얹는 편이 drift를 막기 가장 쉬웠다.
 - council preview도 같은 원칙이 유지됐고, `Mission`에서 recommendation과 alignment를 더 잘 보이게 만들 때는 별도 mission shadow field를 만들지 않고 existing `councilSession.summary / recommendation / selectedPlan / alignment`만 재조합하는 편이 drift를 막기 가장 쉬웠다.
 - active mission detail의 preview가 여러 strip로 불어나기 시작하면 정보를 더 추가하기보다 `Council / Execution / Deliverables / Current Best Next Step`를 하나의 compact snapshot으로 접는 편이 scanability를 훨씬 빨리 회복시켰다. 이때도 기존 preview helper를 재사용하면 runtime semantics를 건드리지 않고 density만 줄일 수 있었다.
