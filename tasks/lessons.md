@@ -65,6 +65,7 @@
 - release-package처럼 범위를 좁힌 후속 slice는 기존 dev-loop smoke를 흔들기보다 별도 execution smoke로 duplicate/stale/blocked 케이스를 닫는 편이 회귀 추적에 유리했다.
 - close-out도 같은 패턴으로 synthetic downstream execution smoke를 따로 두는 편이 release-package 회귀와 Done transition 회귀를 분리해서 추적하기 좋았다.
 - release gate 근거로는 synthetic smoke만으로 부족하고, planner부터 local commit까지 한 번에 도는 real-path dev loop smoke가 필요했다.
+- local-stub live mutation smoke fixture는 단일 placeholder 파일만 두는 것으로는 불안정할 수 있었고, current allowlist selection에 맞는 `prompts/builder.md` 같은 실제 target 후보를 함께 만들어 두는 편이 primary-shell CTA smoke를 더 안정적으로 닫는 데 유리했다.
 - stale smoke assertion은 과거 route-specific 에러 문구보다 현재 runtime/coordinator guard를 source of truth로 따라가는 편이 유지보수에 유리했다.
 - browser click smoke는 DOM에서 landing/selection/visibility만 보고, task/worktree/close-out 의미론은 `/api/snapshot`과 artifact API로 확인하는 편이 범위와 brittleness를 함께 줄였다.
 - provider opt-in browser smoke도 같은 원칙으로 DOM에서는 summary, readiness, allowed/reason, disabled state만 확인하고 fail-closed 의미론은 API로 한 번 더 닫는 편이 안정적이었다.
@@ -83,3 +84,65 @@
 - consolidation 문서는 speculative phase language보다 current implemented baseline + remaining open 구조로 정리하는 편이 drift를 줄이기 쉬웠다.
 - linked worktree create/switch semantics는 새 capability처럼 문서를 넓히기보다 기존 `DEC-019`와 `DEC-026` 설명을 보강하는 편이 현재 경계를 더 정확하게 유지했다.
 - core docs는 `runtime/contracts`, `runtime-service`, `execution-coordinator`, shell readiness summary를 source of truth로 따라가야 `Planned`, broad worktree isolation, generic inbox actions 같은 stale wording이 다시 들어오지 않았다.
+- 제품 의도가 "역할을 가진 AI들이 회의하고 조율해 결과를 만드는 경험"이라면, execution engine closure와 product completion을 같은 것으로 취급하면 안 됐다.
+- `Taskboard / Logs / Artifacts / Decision Inbox` 중심 셸은 reusable control plane으로는 유효했지만, 기본 진입점, visible role interaction, automation default가 다르면 사용자는 전혀 다른 제품으로 느낀다.
+- 피벗 첫 단계는 곧바로 전면 구현으로 들어가기보다 `기본 진입점`, `새 상위 객체`, `자동 진행이 멈출 지점`을 문서로 먼저 고정하는 편이 다시 ops-shell 사고방식으로 회귀하는 drift를 막기 쉬웠다.
+- `Mission`을 default surface로 올리고 linked-task creation만 먼저 붙이면, 기존 planner-through-close-out engine을 건드리지 않고도 product entry를 orchestration 쪽으로 이동시킬 수 있었다.
+- `Council`은 새 provider role이나 theater를 만들지 않아도, mission 위에 `visible roster + transcript + recommendation + single alignment CTA`만 얹으면 사용자가 제품 의도를 훨씬 빨리 이해할 수 있었다.
+- alignment 승인 뒤의 auto chain은 새 상태기계를 만드는 대신 기존 `runPlanner -> runArchitect -> runTaskBreaker -> runBuilderPreflight -> requestBuilderLiveMutationApproval` public path를 route 하나에서 순차 재사용하는 편이 provenance와 gate semantics를 가장 작게 유지했다.
+- `Deliverables`는 새 downstream action을 추가하지 말고, 이미 존재하는 artifact/review/approval state를 compact하게 재배열하는 편이 bounded semantics를 지키면서도 사용자가 "지금 무엇이 만들어졌는지"를 더 빨리 이해하게 만들었다.
+- top-level shell을 실제로 피벗하려면 surface를 추가하는 것만으로는 부족했고, header/nav/grouping copy에서 `Primary Orchestration`과 `Advanced Ops Mode`를 명시적으로 나눠야 사용자가 제품 중심을 덜 헷갈렸다.
+- orchestration-first entry를 만들려면 `Taskboard`를 숨기는 것만으로는 부족했고, first-run project registration/select 자체를 `Mission`에서 시작할 수 있어야 사용자가 실제 첫 클릭부터 제품 의도대로 들어올 수 있었다.
+- `Mission -> Council` handoff도 별도 버튼을 다시 찾게 두면 friction이 남았고, mission 생성 시 optional council autodraft를 붙이는 편이 intent 입력 직후 visible role discussion으로 바로 이어져 orchestration 흐름이 더 자연스러웠다.
+- `Mission -> Council -> Execution` handoff에서는 `waitingApproval` 같은 추상 상태만 보여주는 것으로 부족했고, primary surface에서 approval id, target artifact, inbox item, 다음 operator step을 함께 요약해야 사용자가 현재 gate를 훨씬 빨리 이해할 수 있었다.
+- current gate가 pending builder approval 하나로 좁혀진 순간에는 `Execution`에서 explicit CTA 하나를 바로 노출하는 편이 자연스러웠고, 이때도 새 mutation path를 만들기보다 existing inbox approval action을 그대로 재사용하는 편이 semantics drift를 막기 쉬웠다.
+- primary shell에서 live mutation까지 끌어올릴 때도 별도 orchestration route를 새로 만들기보다 승인된 gate 뒤에 existing `run-builder-live-mutation` task route를 그대로 재사용하는 편이 bounded semantics와 기존 smoke 자산을 함께 유지하기 쉬웠다.
+- reviewer 단계도 같은 원칙이 유효했고, latest live-mutation bundle이 준비된 시점에는 primary shell에서 `Run Reviewer` CTA를 직접 보여주되, 실제 실행은 existing reviewer route를 그대로 재사용하는 편이 semantics drift 없이 orchestration flow를 더 매끈하게 만들기 쉬웠다.
+- commit-package 단계도 같은 원칙이 유지됐고, latest passing reviewer bundle 뒤에는 primary shell에서 `Prepare Commit Package` CTA를 직접 보여주되 실제 실행은 existing commit-package route를 그대로 재사용하는 편이 downstream commit/release/close-out semantics를 건드리지 않고 orchestration flow만 확장하기 쉬웠다.
+- commit approval 단계도 별도 orchestration approval route를 만들지 않고 existing inbox approval action을 그대로 재사용하는 편이 가장 안전했고, primary shell에서는 CTA와 next-step copy만 올려도 operator가 현재 gate와 downstream local commit handoff를 충분히 이해할 수 있었다.
+- local commit 단계도 같은 원칙이 유지됐고, primary shell에는 `Resume Approved Local Commit` CTA만 올리되 실제 실행은 existing local commit route를 그대로 재사용하고 결과는 그대로 `commit-result` artifact로 떨어뜨리는 편이 commit/release provenance를 가장 안정적으로 유지했다.
+- release-package 단계도 같은 원칙이 유지됐고, latest successful local commit bundle 뒤에는 primary shell에서 `Prepare Release Package` CTA만 올리되 실제 실행은 existing release-package route를 그대로 재사용하는 편이 downstream release approval과 close-out semantics를 건드리지 않고 orchestration flow만 확장하기 쉬웠다.
+- release approval 단계도 별도 orchestration approval route를 만들지 않고 existing inbox approval action을 그대로 재사용하는 편이 가장 안전했고, primary shell에서는 CTA와 next-step copy만 올려도 operator가 현재 release gate와 downstream close-out handoff를 충분히 이해할 수 있었다.
+- close-out 단계도 같은 원칙이 유지됐고, primary shell에는 `Resume Approved Close Out` CTA만 올리되 실제 실행은 existing close-out route를 그대로 재사용하는 편이 가장 안전했다. 다만 close-out readiness는 approved release gate 하나만으로 충분하지 않고 current task lifecycle이 `Review`여야 하므로, smoke도 이 stricter readiness truth를 그대로 만족시키는 방향으로 써야 stale expectation drift를 막을 수 있었다.
+- mission completion summary는 runtime `mission.status`를 새로 늘리는 대신 linked task `Done`과 saved close-out artifact에서 파생시키는 편이 가장 안전했다. 그렇게 해야 product shell이 완료 상태를 더 직접적으로 보여주면서도 existing runtime semantics와 audit/provenance 구조를 그대로 유지할 수 있었다.
+- next-cycle entry도 같은 원칙이 유지됐고, completed mission 위에 새 workflow state를 추가하기보다 `Prepare Next Mission`처럼 current constraints만 draft에 시드하는 non-destructive entry를 두는 편이 가장 안전했다. 이렇게 하면 사용자는 완료 직후 바로 다음 mission으로 넘어갈 수 있지만, 현재 mission record나 execution provenance는 그대로 보존된다.
+- selected `Mission` detail의 token density를 줄일 때는 source 안의 `createToken(...)` 분기 수와 실제 렌더 밀도를 같은 것으로 취급하면 smoke가 쉽게 stale해진다. 이런 slice는 raw token count보다 “어떤 provenance token을 남기고 어떤 verbose token을 제거했는지”를 직접 검증하는 편이 훨씬 안정적이었다.
+- selected `Mission` detail은 정보량을 줄이는 것만큼 순서도 중요했고, active mission에서는 `Mission Snapshot / Linked Task / Mission Completion` 같은 state-heavy strip를 `Constraints / Advanced Ops`보다 먼저 배치하는 편이 현재 상태를 훨씬 빨리 읽게 했다.
+- selected `Mission` detail의 action도 section 안에 흩어두기보다 `Mission Actions`로 한데 모으는 편이 훨씬 읽기 쉬웠다. 이때도 action route를 새로 만들지 않고 기존 `Create Linked Task / Open Council / Open Execution / Open Advanced Ops`를 그대로 재배치하는 편이 semantics drift를 막기 가장 쉬웠다.
+- action을 한데 모은 뒤에는 주변 section에서 같은 `Mission Actions` 설명을 반복하지 않는 편이 훨씬 읽기 쉬웠다. 요약 strip마다 같은 handoff 문장을 다시 쓰기보다, action strip 한 곳에만 남기고 나머지는 상태 설명에 집중시키는 편이 더 깔끔했다.
+- helper copy를 줄일 때도 같은 원칙이 유지됐고, `Mission Detail`에서는 panel/snapshot/action/advanced-ops wording을 짧고 같은 톤으로 맞추는 편이 훨씬 읽기 쉬웠다. 상태 의미를 다시 설명하기보다 표면의 역할만 짧게 말하는 편이 product shell 감각을 더 빠르게 올렸다.
+- empty-state copy도 같은 원칙이 유지됐고, `Mission`의 no-project / no-selected-mission 상태에서는 “왜 비어 있는지”보다 “다음에 뭘 하면 되는지”를 짧게 말하는 편이 훨씬 읽기 쉬웠다. 첫 진입 helper도 같은 톤으로 줄여야 product entry가 덜 무겁게 느껴진다.
+- mission list empty-state도 같은 원칙이 유지됐고, `no active missions / no completed missions / no missions yet`에서는 lifecycle 설명을 길게 반복하기보다 다음 bounded move를 한 문장으로 바로 말하는 편이 훨씬 빨리 읽힌다.
+- mission list section helper도 같은 원칙이 유지됐고, `Active Missions / Completed Missions`에서는 행이 어떤 상태인지 서술형으로 길게 풀기보다 “여기가 현재 work가 머무는 곳인지, sealed row가 머무는 곳인지”만 짧게 말하는 편이 section intent를 훨씬 빨리 읽게 했다.
+- mission list panel helper도 같은 원칙이 유지됐고, surface 상단 helper는 “여기서 무엇을 시작하고 무엇이 다른 surface에 남는지”만 짧게 말하는 편이 entry intent를 훨씬 빨리 읽게 했다.
+- mission form helper도 같은 원칙이 유지됐고, create-form 아래 설명은 downstream flow 전체를 길게 다시 말하기보다 “council이 바로 draft되고 visible discussion이 시작된다”는 한 문장만 남기는 편이 entry flow를 훨씬 빨리 읽게 했다.
+- mission form placeholder도 같은 원칙이 유지됐고, field 안의 안내 문구는 질문형 설명을 길게 쓰기보다 입력 대상만 바로 드러내는 편이 entry field scanability를 훨씬 빨리 높였다.
+- mission form label도 같은 원칙이 유지됐고, create-form label은 `Mission Title / Mission Goal`처럼 반복 설명을 붙이기보다 `Title / Goal / Scope`처럼 field 역할만 남기는 편이 scanability를 더 빨리 높였다.
+- mission form submit-area도 같은 원칙이 유지됐고, CTA label과 helper는 `Create Mission`, `Council drafts right away...`처럼 completion point와 immediate next effect만 남기는 편이 entry action을 훨씬 빨리 읽게 했다.
+- mission form action strip도 같은 원칙이 유지됐고, submit-area는 설명 문장을 다시 두기보다 `Create Mission` 버튼과 `council:auto-draft` 같은 compact token만 남기는 편이 completion point를 훨씬 빨리 스캔하게 했다.
+- mission form panel density도 같은 원칙이 유지됐고, create-form 전체는 copy를 더 줄이기보다 `task-create-form-compact / field-grid-compact / field-compact / form-actions-compact` 같은 modifier class로 spacing만 줄이는 편이 semantics drift 없이 scanability를 가장 안전하게 높였다.
+- mission panel header density도 같은 원칙이 유지됐고, 상단 intent와 project token은 `panel-header-tight / panel-copy-tight / token-row-compact`처럼 modifier class로 gap만 줄이는 편이 copy semantics를 건드리지 않고도 훨씬 빨리 읽히게 했다.
+- mission detail header density도 같은 원칙이 유지됐고, selected mission context와 current state entry도 새 copy를 만들기보다 `panel-header-tight / panel-copy-tight / token-row-compact`를 재사용해 상단 gap만 줄이는 편이 drift 없이 scanability를 가장 안전하게 높였다.
+- mission title strip density도 같은 원칙이 유지됐고, selected mission identity와 bounded goal도 새 상태나 helper copy를 늘리기보다 `relation-strip-compact / card-title-row-tight / detail-copy-compact` 같은 modifier class로 strip 밀도만 줄이는 편이 가장 안전했다.
+- detail polish가 title strip까지 닫히면, 그 다음에는 microcopy slice를 계속 쪼개기보다 acceptance freeze로 전환해 현재 `Mission / Council / Execution / Deliverables` baseline을 completion target으로 고정하는 편이 drift를 훨씬 줄였다.
+- acceptance freeze 단계에서는 새 capability를 더 열기보다 existing runtime fixture와 source-based acceptance smoke로 “이 baseline이 완성 상태다”를 고정하는 편이 가장 안전했다. completion 이후 남는 optional real-live/provider housekeeping은 반드시 non-blocking 운영 트랙으로 분리해야 했다.
+- completion baseline이 frozen 된 뒤에는 새 primary-shell slice를 계속 열기보다 남은 작업을 기존 non-blocking housekeeping backlog로 되돌리는 편이 drift를 가장 잘 막았다. baseline completion과 운영 housekeeping을 같은 queue에 두면 다시 product blocker처럼 보이기 쉽다.
+- 상위 방향성 항목(`ai-orchestration-pivot-v2`)이 실제로 구현된 뒤에도 backlog에 `[ ]`로 남겨두면 이후 housekeeping이 다시 product blocker처럼 보인다. completion freeze 이후에는 그 방향성 항목 자체를 완료로 닫고, 남은 작업만 explicit non-blocking 또는 later `vNext` entry로 되돌려야 ledger drift를 막기 쉽다.
+- deferred/rejected section도 같은 원칙이 적용됐고, docs가 이미 `deferred` 또는 `rejected`로 못 박은 항목을 todo 끝에 `- [ ]`로 남겨두면 실제 open implementation item처럼 오해되기 쉽다. 그런 항목은 unchecked backlog가 아니라 명시적 deferred/rejected note로 닫아 두는 편이 ledger drift를 가장 잘 막았다.
+- todo에 active unchecked item이 0개가 된 시점은 그냥 상태가 아니라 baseline contract라서, `rg` 확인만 하고 끝내기보다 zero-open 상태 자체를 smoke로 고정해 두는 편이 이후 stale checkbox 재유입을 가장 빨리 잡아냈다.
+- zero-open backlog가 곧 clean worktree를 뜻하지는 않으므로, cleanup decision 없이 바로 정리하려 들기보다 현재 dirty state를 known baseline smoke로 먼저 고정하는 편이 accidental drift와 cumulative intended changes를 가장 잘 분리했다.
+- dirty worktree를 실제로 정리할 시점이 오더라도 파일 하나씩 ad-hoc으로 고르기보다 `policy/contracts`, `runtime/retention`, `shell/ui`, `browser coverage`, `docs/smokes`처럼 stable bucket inventory를 먼저 고정해 두는 편이 staging 실수와 cleanup drift를 줄이기 쉬웠다.
+- cleanup order도 같은 원칙이 적용됐고, bucket inventory를 만든 뒤에는 `policy/contracts -> runtime/retention -> shell/ui -> browser coverage -> docs/smokes`처럼 stage order까지 먼저 고정해 두는 편이 cross-bucket staging bleed와 불필요한 partial commit 결정을 줄이기 쉬웠다.
+- completed mission list framing도 같은 원칙이 유지됐고, row scanability를 높일 때는 새 `mission.status`나 extra runtime field를 만들기보다 linked task `Done` + saved close-out artifact 기준으로 `active / completed` framing과 next-cycle-ready copy만 얹는 편이 drift를 막기 가장 쉬웠다.
+- council preview도 같은 원칙이 유지됐고, `Mission`에서 recommendation과 alignment를 더 잘 보이게 만들 때는 별도 mission shadow field를 만들지 않고 existing `councilSession.summary / recommendation / selectedPlan / alignment`만 재조합하는 편이 drift를 막기 가장 쉬웠다.
+- active mission detail의 preview가 여러 strip로 불어나기 시작하면 정보를 더 추가하기보다 `Council / Execution / Deliverables / Current Best Next Step`를 하나의 compact snapshot으로 접는 편이 scanability를 훨씬 빨리 회복시켰다. 이때도 기존 preview helper를 재사용하면 runtime semantics를 건드리지 않고 density만 줄일 수 있었다.
+- compact snapshot으로 접은 뒤에도 사용자는 "그래서 어디로 가야 하는가"를 바로 묻게 되므로, 각 preview 줄에 owning surface와 handoff copy를 붙이는 편이 별도 CTA를 늘리지 않고도 navigation intent를 훨씬 명확하게 만들었다.
+- mission list row는 detail보다 훨씬 빨리 훑는 표면이라서, row에는 모든 provenance를 다시 늘어놓기보다 `한 줄 상태 요약 + 한 줄 next owner + 최소 token`만 남기는 편이 실제 scanability를 크게 높였다. 자세한 provenance는 selected mission detail에 두는 편이 더 낫다.
+- selected mission detail도 같은 원칙이 적용됐고, helper copy는 상태 설명을 반복하기보다 surface 역할과 다음 읽기 경로만 짧게 남기는 편이 훨씬 읽기 쉬웠다. copy tighten은 structure나 semantics를 바꾸지 않고도 제품 감각을 빠르게 올릴 수 있었다.
+- browser smoke도 같은 원칙을 따라야 했고, first-run shell이 `Mission`으로 바뀐 뒤에는 기존 `Taskboard` bootstrap selector를 계속 기대하기보다 `Mission -> Start With This Project -> Taskboard` handoff를 명시적으로 밟는 편이 stale regression을 가장 작게 정리했다.
+- provider opt-in browser smoke도 같은 원칙이 유지됐고, project-level provider summary는 계속 `Taskboard`에서 coarse readiness만 확인하되, first-run 진입 자체는 `Mission`에서 시작한 뒤 명시적으로 `Taskboard`로 handoff하는 편이 미션-first shell 이후 stale bootstrap expectation을 가장 작게 정리했다.
+- retention도 같은 원칙이 유지됐고, Tier A/B/C rules를 이미 정규화해 둔 상태라면 첫 slice는 곧바로 delete/archive/GC를 여는 것보다 explicit operator invocation이 필요한 inspect-only retention consumer preview를 먼저 두는 편이 provenance drift를 가장 작게 막았다.
+- retention apply도 같은 원칙이 유지됐고, destructive action을 한 번에 넓히기보다 `archive -> delete -> gc`를 explicit 상태 전이로 나누고 Tier A는 fail-closed로 막아 둔 편이 inspectability와 provenance safety를 함께 유지하기 가장 쉬웠다.
+- execution preview도 같은 원칙이 유지됐고, `Mission`에서 latest stage / current gate / blocked reason을 더 잘 보이게 만들 때는 새 mission execution state를 만들기보다 existing `run`, `approval bridge`, `inbox`, `task.flags`를 조합하는 편이 drift를 막기 가장 쉬웠다.
+- deliverables preview도 같은 원칙이 유지됐고, `Mission`에서 latest artifact / review / approval 상태를 더 잘 보이게 만들 때는 새 mission delivery state를 만들기보다 existing artifact ordering, review status, approval summary를 그대로 재조합하는 편이 drift를 막기 가장 쉬웠다.
+- current best next-step framing도 같은 원칙이 유지됐고, `Mission`에서 무엇을 눌러야 하는지 더 직접적으로 보여주려면 새 action graph를 만들기보다 existing council / execution / deliverables / completion preview를 우선순위만 정해 조합하는 편이 drift를 막기 가장 쉬웠다.

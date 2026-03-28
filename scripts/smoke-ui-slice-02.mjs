@@ -90,7 +90,8 @@ async function main() {
     const indexHtml = await indexResponse.text();
 
     assert.equal(indexResponse.status, 200);
-    assert.match(indexHtml, /Ops Shell/);
+    assert.match(indexHtml, /AI Orchestration/);
+    assert.match(indexHtml, /Advanced Ops Mode/);
     assert.match(indexHtml, /Taskboard/);
 
     const createPayload = await fetchJson(`${baseUrl}/api/tasks`, {

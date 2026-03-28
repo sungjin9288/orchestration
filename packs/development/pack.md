@@ -174,7 +174,8 @@ These are not artifact types in the current core loop:
 - `verification`
 
 Current storage and browse rules:
-- All artifact history is retained in v1 because delete/archive/GC capability is out of scope.
+- Tier A artifact history remains fully retained and protected.
+- Tier B and Tier C cleanup may only run through the explicit retention consumer; no hidden/background cleanup is allowed.
 - `Artifacts` may browse latest generated outputs first, but Tier B artifacts remain history-retained and should not be collapsed into single mutable slots.
 - Structured preview is always best-effort with raw fallback. No structured-only artifact exists in the current shell contract.
 - Raw stored artifact content plus runtime metadata remain the source of truth. Client-derived relations and structured previews are convenience only.
@@ -280,6 +281,6 @@ Artifact expectations:
 - Decide again when: Before adding another provider adapter or before widening live execution beyond reviewer into commit-package, local commit, release-package, or close-out.
 
 ### Future Cleanup Policy
-- Why still open: Retention tiers are normalized, but no delete/archive/GC capability exists in v1.
-- Current temporary default: retain full history; tiers define auditability and browse policy only.
-- Decide again when: Before any cleanup capability is added.
+- Why still open: Retention tiers are normalized and the explicit retention consumer may now preview/apply archive/delete/gc, but automatic cleanup and any weakening of Tier A protection remain out of scope.
+- Current temporary default: Tier A stays protected, Tier B remains archive-only and inspectable, Tier C may archive/delete/gc only through explicit operator invocation, and hidden cleanup is forbidden.
+- Decide again when: Before adding bulk/background cleanup or widening retention behavior beyond the explicit consumer.

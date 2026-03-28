@@ -6,6 +6,7 @@ const path = require('path');
 const {
   APPROVAL_STATUS,
   ARTIFACT_CATALOG,
+  ARTIFACT_RETENTION_TIER,
   BUILDER_ACTION,
   COMMIT_ACTION,
   DECISION_INBOX_ALLOWED_KIND_BY_SOURCE_TYPE,
@@ -15,6 +16,9 @@ const {
   PACKS,
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,
+  RETENTION_CONSUMER_ACTION,
+  RETENTION_CONSUMER_DISPOSITION,
+  RETENTION_CONSUMER_STATUS,
   REVIEW_STATUS,
   RUN_STATUS,
   TASK_LIFECYCLE,
@@ -113,6 +117,26 @@ function createRuntimeService(options = {}) {
     }
 
     return normalizeProjectRecord(project);
+  }
+
+  function assertMission(missionId, state) {
+    const mission = state.missions[missionId];
+
+    if (!mission) {
+      throw new Error(`Mission not found: ${missionId}`);
+    }
+
+    return mission;
+  }
+
+  function assertCouncilSession(councilSessionId, state) {
+    const councilSession = state.councilSessions[councilSessionId];
+
+    if (!councilSession) {
+      throw new Error(`Council session not found: ${councilSessionId}`);
+    }
+
+    return councilSession;
   }
 
   function assertTask(taskId, state) {
@@ -475,7 +499,7 @@ function createRuntimeService(options = {}) {
       return '';
     }
 
-    return store.readArtifact(path.basename(artifact.path));
+    return store.readArtifact(artifact.path);
   }
 
   function getMarkdownSection(content, heading) {
@@ -522,6 +546,461 @@ function createRuntimeService(options = {}) {
     if (!Object.prototype.hasOwnProperty.call(ARTIFACT_CATALOG, type)) {
       throw new Error(`Unsupported artifact type: ${type}`);
     }
+  }
+
+  function compareByCreatedDesc(left, right) {
+    const leftValue = left.createdAt || '';
+    const rightValue = right.createdAt || '';
+
+    if (leftValue === rightValue) {
+      return String(left.id || '').localeCompare(String(right.id || ''));
+    }
+
+    return rightValue.localeCompare(leftValue);
+  }
+
+  function cloneJsonValue(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function getArtifactRetentionState(artifact) {
+    const retention = artifact?.retention && typeof artifact.retention === 'object' ? artifact.retention : {};
+    const status = Object.values(RETENTION_CONSUMER_STATUS).includes(retention.status)
+      ? retention.status
+      : RETENTION_CONSUMER_STATUS.ACTIVE;
+
+    return {
+      actionLog: Array.isArray(retention.actionLog) ? retention.actionLog : [],
+      lastAction: normalizeOptionalString(retention.lastAction),
+      lastActionAt: normalizeOptionalString(retention.lastActionAt),
+      status,
+    };
+  }
+
+  function ensureArtifactRetentionState(artifact) {
+    artifact.retention = getArtifactRetentionState(artifact);
+    return artifact.retention;
+  }
+
+  function validateRetentionConsumerScope(state, projectId, taskId) {
+    if (projectId) {
+      assertProject(projectId, state);
+    }
+
+    if (taskId) {
+      const scopedTask = assertTask(taskId, state);
+
+      if (projectId && scopedTask.projectId !== projectId) {
+        throw new Error(`Task ${scopedTask.id} does not belong to project ${projectId}`);
+      }
+    }
+  }
+
+  function listRetentionScopedArtifacts(state, projectId, taskId) {
+    return Object.values(state.artifacts || {})
+      .filter((artifact) => {
+        const task = state.tasks[artifact.taskId];
+
+        if (!task) {
+          return false;
+        }
+
+        if (taskId && task.id !== taskId) {
+          return false;
+        }
+
+        if (projectId && task.projectId !== projectId) {
+          return false;
+        }
+
+        return true;
+      })
+      .sort(compareByCreatedDesc);
+  }
+
+  function listRetentionFutureEligibleActions(retentionTier) {
+    if (retentionTier === ARTIFACT_RETENTION_TIER.TIER_A) {
+      return [];
+    }
+
+    if (retentionTier === ARTIFACT_RETENTION_TIER.TIER_B) {
+      return [RETENTION_CONSUMER_ACTION.ARCHIVE];
+    }
+
+    return [
+      RETENTION_CONSUMER_ACTION.ARCHIVE,
+      RETENTION_CONSUMER_ACTION.DELETE,
+      RETENTION_CONSUMER_ACTION.GC,
+    ];
+  }
+
+  function listRetentionAvailableActions(retentionTier, retentionStatus) {
+    if (retentionTier === ARTIFACT_RETENTION_TIER.TIER_A) {
+      return [];
+    }
+
+    if (retentionTier === ARTIFACT_RETENTION_TIER.TIER_B) {
+      return retentionStatus === RETENTION_CONSUMER_STATUS.ACTIVE
+        ? [RETENTION_CONSUMER_ACTION.ARCHIVE]
+        : [];
+    }
+
+    if (retentionStatus === RETENTION_CONSUMER_STATUS.ACTIVE) {
+      return [RETENTION_CONSUMER_ACTION.ARCHIVE, RETENTION_CONSUMER_ACTION.DELETE];
+    }
+
+    if (retentionStatus === RETENTION_CONSUMER_STATUS.ARCHIVED) {
+      return [RETENTION_CONSUMER_ACTION.DELETE];
+    }
+
+    if (retentionStatus === RETENTION_CONSUMER_STATUS.DELETED) {
+      return [RETENTION_CONSUMER_ACTION.GC];
+    }
+
+    return [];
+  }
+
+  function getRetentionCurrentPolicy(retentionTier, retentionStatus) {
+    if (retentionTier === ARTIFACT_RETENTION_TIER.TIER_A) {
+      return 'protected-history-retained';
+    }
+
+    if (retentionTier === ARTIFACT_RETENTION_TIER.TIER_B) {
+      return retentionStatus === RETENTION_CONSUMER_STATUS.ARCHIVED
+        ? 'archived-inspectable-history-retained'
+        : 'latest-centered-browse-with-history-retained';
+    }
+
+    if (retentionStatus === RETENTION_CONSUMER_STATUS.ARCHIVED) {
+      return 'archived-inspectable-awaiting-explicit-delete';
+    }
+
+    if (retentionStatus === RETENTION_CONSUMER_STATUS.DELETED) {
+      return 'deleted-inspectable-awaiting-explicit-gc';
+    }
+
+    if (retentionStatus === RETENTION_CONSUMER_STATUS.GC) {
+      return 'gc-tombstone-retained';
+    }
+
+    return 'retain-history-until-explicit-consumer';
+  }
+
+  function getRetentionReason(retentionTier, retentionStatus) {
+    if (retentionTier === ARTIFACT_RETENTION_TIER.TIER_A) {
+      return 'Tier A provenance-critical artifacts stay protected under DEC-030.';
+    }
+
+    if (retentionTier === ARTIFACT_RETENTION_TIER.TIER_B) {
+      return retentionStatus === RETENTION_CONSUMER_STATUS.ARCHIVED
+        ? 'Tier B artifacts remain inspectable after explicit archive while history stays retained.'
+        : 'Tier B artifacts remain inspectable and latest-centered until explicitly archived.';
+    }
+
+    if (retentionStatus === RETENTION_CONSUMER_STATUS.ARCHIVED) {
+      return 'Tier C artifacts may be archived first so the operator can inspect them before an explicit delete.';
+    }
+
+    if (retentionStatus === RETENTION_CONSUMER_STATUS.DELETED) {
+      return 'Tier C artifacts stay inspectable after explicit delete until a later explicit gc removes raw content.';
+    }
+
+    if (retentionStatus === RETENTION_CONSUMER_STATUS.GC) {
+      return 'Tier C raw content has been garbage-collected, but the artifact tombstone remains inspectable.';
+    }
+
+    return 'Tier C artifacts are the first cleanup candidates when an explicit operator action is implemented.';
+  }
+
+  function getArtifactContentPayload(artifact) {
+    const retention = getArtifactRetentionState(artifact);
+    const pathExists = fs.existsSync(artifact.path);
+
+    if (pathExists) {
+      return {
+        content: store.readArtifact(artifact.path),
+        contentAvailable: true,
+        contentUnavailableReason: null,
+      };
+    }
+
+    if (retention.status === RETENTION_CONSUMER_STATUS.GC) {
+      return {
+        content: null,
+        contentAvailable: false,
+        contentUnavailableReason:
+          'Artifact content was garbage-collected by the explicit retention consumer.',
+      };
+    }
+
+    return {
+      content: null,
+      contentAvailable: false,
+      contentUnavailableReason: 'Artifact content is unavailable at the recorded path.',
+    };
+  }
+
+  function buildRetentionConsumerArtifactEntry(artifact, state) {
+    const task = assertTask(artifact.taskId, state);
+    const catalogEntry = ARTIFACT_CATALOG[artifact.type];
+    const retention = getArtifactRetentionState(artifact);
+    const pathExists = fs.existsSync(artifact.path);
+    const futureEligibleActions = listRetentionFutureEligibleActions(catalogEntry.retentionTier);
+    const availableActions = listRetentionAvailableActions(
+      catalogEntry.retentionTier,
+      retention.status,
+    );
+    let consumerDisposition = RETENTION_CONSUMER_DISPOSITION.CLEANUP_CANDIDATE;
+
+    if (catalogEntry.retentionTier === ARTIFACT_RETENTION_TIER.TIER_A) {
+      consumerDisposition = RETENTION_CONSUMER_DISPOSITION.PROTECTED;
+    } else if (
+      catalogEntry.retentionTier === ARTIFACT_RETENTION_TIER.TIER_B ||
+      retention.status === RETENTION_CONSUMER_STATUS.ARCHIVED ||
+      retention.status === RETENTION_CONSUMER_STATUS.DELETED
+    ) {
+      consumerDisposition = RETENTION_CONSUMER_DISPOSITION.INSPECT_BEFORE_ACTION;
+    }
+
+    return {
+      actionLog: retention.actionLog,
+      availableActions,
+      contentAvailable:
+        pathExists && retention.status !== RETENTION_CONSUMER_STATUS.GC,
+      consumerDisposition,
+      createdAt: artifact.createdAt,
+      currentPolicy: getRetentionCurrentPolicy(catalogEntry.retentionTier, retention.status),
+      futureEligibleActions,
+      id: artifact.id,
+      lastAction: retention.lastAction,
+      lastActionAt: retention.lastActionAt,
+      latestCenteredBrowse: Boolean(catalogEntry.latestCenteredBrowse),
+      path: artifact.path,
+      pathExists,
+      previewMode: catalogEntry.previewMode,
+      projectId: task.projectId,
+      provenanceCritical: Boolean(catalogEntry.provenanceCritical),
+      reason: getRetentionReason(catalogEntry.retentionTier, retention.status),
+      retentionStatus: retention.status,
+      retentionTier: catalogEntry.retentionTier,
+      runId: artifact.runId,
+      taskId: artifact.taskId,
+      type: artifact.type,
+    };
+  }
+
+  function buildRetentionConsumerSummaryPayload(state, input = {}) {
+    const projectId = normalizeOptionalString(input.projectId);
+    const taskId = normalizeOptionalString(input.taskId);
+    const artifacts = listRetentionScopedArtifacts(state, projectId, taskId).map((artifact) =>
+      buildRetentionConsumerArtifactEntry(artifact, state),
+    );
+
+    return {
+      action: input.action || RETENTION_CONSUMER_ACTION.PREVIEW,
+      affectedArtifactIds: Array.isArray(input.affectedArtifactIds)
+        ? [...input.affectedArtifactIds]
+        : [],
+      applyActionsImplemented: Boolean(input.applyActionsImplemented),
+      appliedAt: input.appliedAt || null,
+      artifacts,
+      explicitOperatorInvocationRequired: true,
+      hiddenCleanupAllowed: false,
+      inspectedAt: input.inspectedAt || new Date().toISOString(),
+      scope: {
+        projectId,
+        taskId,
+      },
+      summary: {
+        archivedArtifacts: artifacts.filter(
+          (artifact) => artifact.retentionStatus === RETENTION_CONSUMER_STATUS.ARCHIVED,
+        ).length,
+        cleanupCandidateArtifacts: artifacts.filter(
+          (artifact) =>
+            artifact.consumerDisposition ===
+            RETENTION_CONSUMER_DISPOSITION.CLEANUP_CANDIDATE,
+        ).length,
+        deletedArtifacts: artifacts.filter(
+          (artifact) => artifact.retentionStatus === RETENTION_CONSUMER_STATUS.DELETED,
+        ).length,
+        gcArtifacts: artifacts.filter(
+          (artifact) => artifact.retentionStatus === RETENTION_CONSUMER_STATUS.GC,
+        ).length,
+        inspectBeforeActionArtifacts: artifacts.filter(
+          (artifact) =>
+            artifact.consumerDisposition ===
+            RETENTION_CONSUMER_DISPOSITION.INSPECT_BEFORE_ACTION,
+        ).length,
+        protectedArtifacts: artifacts.filter(
+          (artifact) =>
+            artifact.consumerDisposition === RETENTION_CONSUMER_DISPOSITION.PROTECTED,
+        ).length,
+        totalArtifacts: artifacts.length,
+      },
+    };
+  }
+
+  function previewRetentionConsumer(input = {}) {
+    const state = store.loadState();
+    const requestedProjectId = normalizeOptionalString(input.projectId);
+    const requestedTaskId = normalizeOptionalString(input.taskId);
+
+    validateRetentionConsumerScope(state, requestedProjectId, requestedTaskId);
+
+    return buildRetentionConsumerSummaryPayload(state, {
+      action: RETENTION_CONSUMER_ACTION.PREVIEW,
+      applyActionsImplemented: false,
+      inspectedAt: new Date().toISOString(),
+      projectId: requestedProjectId,
+      taskId: requestedTaskId,
+    });
+  }
+
+  function applyRetentionConsumer(input = {}) {
+    const state = store.loadState();
+    const requestedProjectId = normalizeOptionalString(input.projectId);
+    const requestedTaskId = normalizeOptionalString(input.taskId);
+    const action = normalizeOptionalString(input.action);
+    const note = normalizeOptionalString(input.note);
+    const artifactIds = uniqueReasons(
+      Array.isArray(input.artifactIds)
+        ? input.artifactIds.map((artifactId) => normalizeOptionalString(artifactId))
+        : [],
+    );
+
+    validateRetentionConsumerScope(state, requestedProjectId, requestedTaskId);
+
+    if (
+      action !== RETENTION_CONSUMER_ACTION.ARCHIVE &&
+      action !== RETENTION_CONSUMER_ACTION.DELETE &&
+      action !== RETENTION_CONSUMER_ACTION.GC
+    ) {
+      throw new Error('Retention action must be archive, delete, or gc');
+    }
+
+    if (artifactIds.length === 0) {
+      throw new Error('artifactIds must contain at least one artifact id');
+    }
+
+    const scopedArtifacts = listRetentionScopedArtifacts(state, requestedProjectId, requestedTaskId);
+    const scopedArtifactsById = new Map(scopedArtifacts.map((artifact) => [artifact.id, artifact]));
+    const targetArtifacts = artifactIds.map((artifactId) => {
+      const artifact = scopedArtifactsById.get(artifactId);
+
+      if (!artifact) {
+        throw new Error(`Artifact ${artifactId} is outside the requested retention scope`);
+      }
+
+      return artifact;
+    });
+    const evaluatedTargets = targetArtifacts.map((artifact) =>
+      buildRetentionConsumerArtifactEntry(artifact, state),
+    );
+    const rejectedTarget = evaluatedTargets.find(
+      (artifact) => !artifact.availableActions.includes(action),
+    );
+
+    if (rejectedTarget) {
+      const error = new Error(
+        `Artifact ${rejectedTarget.id} does not allow retention action ${action} while status is ${rejectedTarget.retentionStatus}`,
+      );
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const now = new Date().toISOString();
+    const rollbackRecords = [];
+
+    try {
+      for (const artifact of targetArtifacts) {
+        const retention = ensureArtifactRetentionState(artifact);
+        const previousPath = artifact.path;
+        const previousRetention = cloneJsonValue(retention);
+        const previousContent = fs.existsSync(previousPath)
+          ? store.readArtifact(previousPath)
+          : null;
+
+        if (!previousContent && !fs.existsSync(previousPath)) {
+          const error = new Error(
+            `Artifact ${artifact.id} content is unavailable at ${artifact.path}`,
+          );
+          error.statusCode = 409;
+          throw error;
+        }
+
+        let nextPath = previousPath;
+        let nextStatus = retention.status;
+
+        if (action === RETENTION_CONSUMER_ACTION.ARCHIVE) {
+          nextPath = store.moveArtifactToArchive(previousPath);
+          nextStatus = RETENTION_CONSUMER_STATUS.ARCHIVED;
+        } else if (action === RETENTION_CONSUMER_ACTION.DELETE) {
+          nextPath = store.moveArtifactToDeleted(previousPath);
+          nextStatus = RETENTION_CONSUMER_STATUS.DELETED;
+        } else if (action === RETENTION_CONSUMER_ACTION.GC) {
+          store.removeArtifactAtPath(previousPath);
+          nextStatus = RETENTION_CONSUMER_STATUS.GC;
+        }
+
+        artifact.path = nextPath;
+        artifact.retention = {
+          ...retention,
+          actionLog: [
+            ...retention.actionLog,
+            {
+              action,
+              actedAt: now,
+              note,
+              pathAfter:
+                action === RETENTION_CONSUMER_ACTION.GC ? null : nextPath,
+              pathBefore: previousPath,
+              statusAfter: nextStatus,
+            },
+          ],
+          lastAction: action,
+          lastActionAt: now,
+          status: nextStatus,
+        };
+
+        rollbackRecords.push({
+          artifact,
+          nextPath,
+          previousContent,
+          previousPath,
+          previousRetention,
+        });
+      }
+
+      store.saveState(state);
+    } catch (error) {
+      for (const record of rollbackRecords.reverse()) {
+        record.artifact.path = record.previousPath;
+        record.artifact.retention = record.previousRetention;
+
+        if (record.nextPath && record.nextPath !== record.previousPath && fs.existsSync(record.nextPath)) {
+          fs.rmSync(record.nextPath, { force: true });
+        }
+
+        if (record.previousContent !== null) {
+          store.writeArtifactAtPath(record.previousPath, record.previousContent);
+        }
+      }
+
+      store.saveState(state);
+      throw error;
+    }
+
+    const updatedState = store.loadState();
+
+    return buildRetentionConsumerSummaryPayload(updatedState, {
+      action,
+      affectedArtifactIds: artifactIds,
+      applyActionsImplemented: true,
+      appliedAt: now,
+      inspectedAt: now,
+      projectId: requestedProjectId,
+      taskId: requestedTaskId,
+    });
   }
 
   function normalizeDecisionInboxShape(input = {}) {
@@ -1151,6 +1630,10 @@ function createRuntimeService(options = {}) {
     if (existingProject) {
       normalizeProjectRecord(existingProject);
       state.activeProjectId = existingProject.id;
+      state.selectedMissionId =
+        Object.values(state.missions)
+          .filter((mission) => mission.projectId === existingProject.id)
+          .sort(compareRecordsByCreatedDesc)[0]?.id || null;
       store.saveState(state);
       return normalizeProjectRecord(state.projects[existingProject.id]);
     }
@@ -1169,6 +1652,7 @@ function createRuntimeService(options = {}) {
       updatedAt: now,
     };
     state.activeProjectId = id;
+    state.selectedMissionId = null;
     store.saveState(state);
 
     return normalizeProjectRecord(state.projects[id]);
@@ -1185,6 +1669,10 @@ function createRuntimeService(options = {}) {
 
     normalizeProjectRecord(project);
     state.activeProjectId = project.id;
+    state.selectedMissionId =
+      Object.values(state.missions)
+        .filter((mission) => mission.projectId === project.id)
+        .sort(compareRecordsByCreatedDesc)[0]?.id || null;
     store.saveState(state);
 
     return normalizeProjectRecord(state.projects[project.id]);
@@ -1202,10 +1690,143 @@ function createRuntimeService(options = {}) {
     return normalizeProjectRecord(state.projects[project.id]);
   }
 
-  function createTask(input) {
+  function createMission(input) {
     const state = store.loadState();
     const project = assertProject(input.projectId, state);
+    const title = String(input.title || '').trim();
+    const goal = String(input.goal || '').trim();
+    const constraints = String(input.constraints || '').trim();
 
+    if (!title) {
+      throw new Error('Mission title is required');
+    }
+
+    if (!goal) {
+      throw new Error('Mission goal is required');
+    }
+
+    const id = nextId(state, 'mission');
+    const now = new Date().toISOString();
+
+    state.missions[id] = {
+      id,
+      projectId: project.id,
+      title,
+      goal,
+      constraints,
+      status: 'draft',
+      linkedTaskId: null,
+      councilSessionId: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.selectedMissionId = id;
+    store.saveState(state);
+
+    return state.missions[id];
+  }
+
+  function buildCouncilSessionRecord(state, mission, now) {
+    const constraintsPresent = Boolean(String(mission.constraints || '').trim());
+    const openQuestions = constraintsPresent
+      ? [
+          '기록된 constraints 안에서 첫 결과물을 한 개의 bounded slice로 유지해도 되는가?',
+          'alignment 이후 advanced ops에서 어떤 evidence를 가장 먼저 확인해야 하는가?',
+        ]
+      : [
+          '첫 실행 범위를 한 파일 또는 한 흐름으로 더 좁힐 필요가 있는가?',
+          'alignment 이후 advanced ops에서 어떤 evidence를 가장 먼저 확인해야 하는가?',
+        ];
+
+    return {
+      id: nextId(state, 'councilSession'),
+      missionId: mission.id,
+      status: 'pending-alignment',
+      participants: [
+        {
+          role: 'Conductor',
+          focus: 'alignment checkpoint and bounded handoff',
+        },
+        {
+          role: 'Strategist',
+          focus: 'user goal, outcome framing, and scope control',
+        },
+        {
+          role: 'Architect',
+          focus: 'system boundary and semantic safety',
+        },
+        {
+          role: 'Decomposer',
+          focus: 'first slice breakdown and execution handoff',
+        },
+      ],
+      summary:
+        'Council은 mission을 하나의 bounded slice로 정렬하고, downstream execution은 아직 시작하지 않은 채 explicit alignment만 요구한다.',
+      recommendation:
+        'Approve Recommendation으로 첫 bounded slice를 정렬하고, 이후 execution auto chain은 다음 slice에서 planner -> architect -> task-breaker -> builder preflight까지 연결한다.',
+      openQuestions,
+      transcript: [
+        {
+          role: 'Strategist',
+          stance: 'goal framing',
+          content: `우선순위는 "${mission.goal}"를 가장 짧은 검증 경로로 바꾸는 것이다. 첫 결과물은 하나의 bounded slice로 제한한다.`,
+        },
+        {
+          role: 'Architect',
+          stance: 'boundary protection',
+          content: constraintsPresent
+            ? `기록된 constraints("${mission.constraints}")를 그대로 유지하고 broader semantics 변경은 피해야 한다.`
+            : '명시된 constraints가 없더라도 broader semantics 변경은 피하고 현재 project boundary 안에서만 다뤄야 한다.',
+        },
+        {
+          role: 'Decomposer',
+          stance: 'execution cut',
+          content:
+            'linked task는 하나만 만들고, 첫 handoff는 execution provenance를 유지할 수 있는 bounded task 하나로 자른다.',
+        },
+        {
+          role: 'Conductor',
+          stance: 'recommendation',
+          content: `추천안은 "${mission.title}"를 single-task bounded execution으로 정렬한 뒤, user alignment를 먼저 받고 advanced ops handoff를 여는 것이다.`,
+        },
+      ],
+      selectedPlan: {
+        title: 'Single bounded slice',
+        scope: mission.title,
+        nextStep: 'Approve Recommendation',
+      },
+      alignment: {
+        action: null,
+        decidedAt: null,
+        status: 'pending',
+      },
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+
+  function getMission(missionId) {
+    const state = store.loadState();
+    return assertMission(missionId, state);
+  }
+
+  function getCouncilSession(councilSessionId) {
+    const state = store.loadState();
+    return assertCouncilSession(councilSessionId, state);
+  }
+
+  function selectMission(missionId) {
+    const state = store.loadState();
+    const mission = assertMission(missionId, state);
+
+    state.activeProjectId = mission.projectId;
+    state.selectedMissionId = mission.id;
+    store.saveState(state);
+
+    return state.missions[mission.id];
+  }
+
+  function createTaskRecord(state, project, input, mission = null) {
     if (!input.title) {
       throw new Error('Task title is required');
     }
@@ -1216,6 +1837,7 @@ function createRuntimeService(options = {}) {
     state.tasks[id] = {
       id,
       projectId: project.id,
+      missionId: mission?.id || null,
       title: input.title,
       intent: input.intent || '',
       lifecycleState: TASK_LIFECYCLE.INBOX,
@@ -1237,9 +1859,164 @@ function createRuntimeService(options = {}) {
       createdAt: now,
       updatedAt: now,
     };
-    store.saveState(state);
 
     return state.tasks[id];
+  }
+
+  function createTask(input) {
+    const state = store.loadState();
+    const project = assertProject(input.projectId, state);
+    const mission = input.missionId ? assertMission(input.missionId, state) : null;
+
+    if (mission && mission.projectId !== project.id) {
+      throw new Error(`Mission ${mission.id} is not linked to project ${project.id}`);
+    }
+
+    const task = createTaskRecord(state, project, input, mission);
+    store.saveState(state);
+
+    return task;
+  }
+
+  function createLinkedTaskForMission(input) {
+    const state = store.loadState();
+    const mission = assertMission(input.missionId, state);
+    const project = assertProject(mission.projectId, state);
+
+    if (mission.linkedTaskId && state.tasks[mission.linkedTaskId]) {
+      throw new Error(`Mission ${mission.id} already has a linked task: ${mission.linkedTaskId}`);
+    }
+
+    mission.linkedTaskId = null;
+    const task = createTaskRecord(
+      state,
+      project,
+      {
+        title: String(input.title || mission.title || '').trim(),
+        intent: String(input.intent || mission.goal || '').trim(),
+      },
+      mission,
+    );
+    const now = new Date().toISOString();
+
+    mission.linkedTaskId = task.id;
+    mission.status = 'executing';
+    mission.updatedAt = now;
+    state.activeProjectId = project.id;
+    state.selectedMissionId = mission.id;
+    store.saveState(state);
+
+    return {
+      mission: state.missions[mission.id],
+      task: state.tasks[task.id],
+    };
+  }
+
+  function createCouncilSessionForMission(input) {
+    const state = store.loadState();
+    const mission = assertMission(input.missionId, state);
+    const now = new Date().toISOString();
+
+    if (mission.councilSessionId && state.councilSessions[mission.councilSessionId]) {
+      throw new Error(
+        `Mission ${mission.id} already has a council session: ${mission.councilSessionId}`,
+      );
+    }
+
+    const councilSession = buildCouncilSessionRecord(state, mission, now);
+
+    state.councilSessions[councilSession.id] = councilSession;
+    mission.councilSessionId = councilSession.id;
+
+    if (!mission.linkedTaskId) {
+      mission.status = 'aligning';
+    }
+
+    mission.updatedAt = now;
+    state.activeProjectId = mission.projectId;
+    state.selectedMissionId = mission.id;
+    store.saveState(state);
+
+    return {
+      councilSession: state.councilSessions[councilSession.id],
+      mission: state.missions[mission.id],
+    };
+  }
+
+  function approveCouncilRecommendation(input) {
+    const state = store.loadState();
+    const mission = assertMission(input.missionId, state);
+
+    if (!mission.councilSessionId) {
+      throw new Error(`Mission ${mission.id} does not have a council session`);
+    }
+
+    const councilSession = assertCouncilSession(mission.councilSessionId, state);
+    const now = new Date().toISOString();
+
+    if (councilSession.missionId !== mission.id) {
+      throw new Error(
+        `Council session ${councilSession.id} is not linked to mission ${mission.id}`,
+      );
+    }
+
+    if (councilSession.alignment?.status === 'approved') {
+      const error = new Error(
+        `Council session ${councilSession.id} is already approved for mission ${mission.id}`,
+      );
+      error.statusCode = 409;
+      throw error;
+    }
+
+    councilSession.status = 'approved';
+    councilSession.alignment = {
+      action: 'approve-recommendation',
+      decidedAt: now,
+      status: 'approved',
+    };
+    councilSession.updatedAt = now;
+    mission.status = mission.linkedTaskId ? 'executing' : 'aligned';
+    mission.updatedAt = now;
+    state.activeProjectId = mission.projectId;
+    state.selectedMissionId = mission.id;
+    store.saveState(state);
+
+    return {
+      councilSession: state.councilSessions[councilSession.id],
+      mission: state.missions[mission.id],
+    };
+  }
+
+  function syncMissionExecutionStateFromTask(input) {
+    const state = store.loadState();
+    const mission = assertMission(input.missionId, state);
+    const taskId = input.taskId || mission.linkedTaskId || null;
+    const task = taskId ? assertTask(taskId, state) : null;
+    const now = new Date().toISOString();
+    let nextStatus = mission.status || 'draft';
+
+    if (!task) {
+      nextStatus = mission.councilSessionId ? 'aligned' : 'draft';
+    } else if (task.missionId !== mission.id) {
+      throw new Error(`Task ${task.id} is not linked to mission ${mission.id}`);
+    } else if (
+      task.lifecycleState === TASK_LIFECYCLE.DONE &&
+      task.review?.status === REVIEW_STATUS.PASSED
+    ) {
+      nextStatus = 'completed';
+    } else if (task.flags?.blocked || task.flags?.waitingDecision) {
+      nextStatus = 'blocked';
+    } else {
+      nextStatus = 'executing';
+    }
+
+    mission.status = nextStatus;
+    mission.updatedAt = now;
+    state.activeProjectId = mission.projectId;
+    state.selectedMissionId = mission.id;
+    store.saveState(state);
+
+    return state.missions[mission.id];
   }
 
   function getTask(taskId) {
@@ -1926,9 +2703,11 @@ function createRuntimeService(options = {}) {
       throw new Error(`Artifact not found: ${artifactId}`);
     }
 
+    const contentPayload = getArtifactContentPayload(artifact);
+
     return {
       ...artifact,
-      content: store.readArtifact(path.basename(artifact.path)),
+      ...contentPayload,
     };
   }
 
@@ -1962,26 +2741,34 @@ function createRuntimeService(options = {}) {
 
   return {
     appendLog,
+    approveCouncilRecommendation,
     assertTaskCanRunBuilderLiveMutation,
     assertTaskCanRunBuilderPreflight,
     assertTaskCanRunTaskBreaker,
     completeRun,
     createApprovalPlaceholder,
+    createCouncilSessionForMission,
     createDecisionInboxItem,
+    createLinkedTaskForMission,
+    createMission,
     createProject,
     createTask,
+    applyRetentionConsumer,
     ensureCommitActionAllowed,
     finalizeBuilderLiveMutationSuccess,
     finishRunWithReviewPending,
     getArtifact,
     getApproval,
+    getCouncilSession,
     getDecisionInboxItem,
     getLogs,
+    getMission,
     getProject,
     getRun,
     getSnapshot,
     getTask,
     getTaskGuardSummary,
+    previewRetentionConsumer,
     listApprovals,
     listDecisionInboxItems,
     listTaskGuardSummaries,
@@ -1993,9 +2780,11 @@ function createRuntimeService(options = {}) {
     resetRuntime,
     setProjectProviderConfig,
     setTaskWorktreeRef,
+    selectMission,
     selectProject,
     startRun,
     startPlaceholderRun,
+    syncMissionExecutionStateFromTask,
     transitionTaskLifecycle,
   };
 }

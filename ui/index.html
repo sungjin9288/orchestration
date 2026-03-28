@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Orchestration 1.0 Ops Shell</title>
+    <title>Orchestration 1.0 AI Orchestration</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="/styles.css">
   </head>
@@ -12,7 +12,8 @@
       <header class="shell-header">
         <div>
           <p class="eyebrow">Orchestration 1.0</p>
-          <h1>Ops Shell</h1>
+          <h1>AI Orchestration</h1>
+          <p class="shell-lead">Mission, Council, Execution, and Deliverables are now the default product path. Taskboard, Logs, Artifacts, and Decision Inbox stay available as Advanced Ops Mode.</p>
         </div>
         <div class="header-actions">
           <button id="refresh-button" class="refresh-button" type="button">Refresh</button>
@@ -44,14 +45,32 @@
       </section>
 
       <nav class="primary-nav" aria-label="Primary surfaces">
-        <button class="nav-button is-active" data-surface="taskboard" type="button">Taskboard</button>
-        <button class="nav-button" data-surface="logs" type="button">Logs</button>
-        <button class="nav-button" data-surface="artifacts" type="button">Artifacts</button>
-        <button class="nav-button" data-surface="decision-inbox" type="button">Decision Inbox</button>
+        <div class="nav-group" data-nav-group="primary-orchestration">
+          <p class="nav-group-label">Primary Orchestration</p>
+          <div class="nav-button-row">
+            <button class="nav-button is-active" data-surface="mission" type="button">Mission</button>
+            <button class="nav-button" data-surface="council" type="button">Council</button>
+            <button class="nav-button" data-surface="execution" type="button">Execution</button>
+            <button class="nav-button" data-surface="deliverables" type="button">Deliverables</button>
+          </div>
+        </div>
+        <div class="nav-group" data-nav-group="advanced-ops">
+          <p class="nav-group-label">Advanced Ops Mode</p>
+          <div class="nav-button-row">
+            <button class="nav-button" data-surface="taskboard" type="button">Taskboard</button>
+            <button class="nav-button" data-surface="logs" type="button">Logs</button>
+            <button class="nav-button" data-surface="artifacts" type="button">Artifacts</button>
+            <button class="nav-button" data-surface="decision-inbox" type="button">Decision Inbox</button>
+          </div>
+        </div>
       </nav>
 
       <main class="surface-stack">
-        <section id="surface-taskboard" class="surface is-active" aria-label="Taskboard"></section>
+        <section id="surface-mission" class="surface is-active" aria-label="Mission"></section>
+        <section id="surface-council" class="surface" aria-label="Council"></section>
+        <section id="surface-execution" class="surface" aria-label="Execution"></section>
+        <section id="surface-deliverables" class="surface" aria-label="Deliverables"></section>
+        <section id="surface-taskboard" class="surface" aria-label="Taskboard"></section>
         <section id="surface-logs" class="surface" aria-label="Logs"></section>
         <section id="surface-artifacts" class="surface" aria-label="Artifacts"></section>
         <section id="surface-decision-inbox" class="surface" aria-label="Decision Inbox"></section>

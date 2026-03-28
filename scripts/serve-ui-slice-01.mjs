@@ -470,23 +470,190 @@ function getRunLogsPayload(runId) {
 }
 
 function getArtifactPayload(artifactId) {
-  const snapshot = readSnapshotReadonly();
-  const artifact = snapshot.artifacts[artifactId];
+  try {
+    const artifact = runtime.getArtifact(artifactId);
 
-  if (!artifact) {
+    return {
+      artifactCatalog: ARTIFACT_CATALOG,
+      runtimeRoot: options.runtimeRoot,
+      artifact,
+    };
+  } catch (_error) {
     return null;
   }
+}
 
-  const filename = path.basename(artifact.path);
-
+function buildAutoChainStageRecord(stage, result = {}) {
   return {
-    artifactCatalog: ARTIFACT_CATALOG,
-    runtimeRoot: options.runtimeRoot,
-    artifact: {
-      ...artifact,
-      content: store.readArtifact(filename),
-    },
+    artifactId: result.artifact?.id || null,
+    approvalId: result.approval?.id || null,
+    inboxItemId: result.decisionInboxItem?.id || result.item?.id || null,
+    nextStage: result.nextStage || null,
+    runId: result.run?.id || null,
+    stage,
+    taskId: result.task?.id || null,
+    targetArtifactId: result.approval?.targetArtifactId || null,
+    targetRunId: result.approval?.targetRunId || null,
   };
+}
+
+async function runMissionAlignmentAutoChain(missionId) {
+  const approved = runtime.approveCouncilRecommendation({
+    missionId,
+  });
+  let mission = approved.mission;
+  const councilSession = approved.councilSession;
+  let task = null;
+  let approval = null;
+  let approvalItem = null;
+  let lastResult = null;
+  const stageResults = [];
+  const linkedTaskCreated = !mission.linkedTaskId;
+
+  if (mission.linkedTaskId) {
+    task = runtime.getTask(mission.linkedTaskId);
+  } else {
+    const linkedTaskResult = runtime.createLinkedTaskForMission({
+      missionId,
+    });
+    mission = linkedTaskResult.mission;
+    task = linkedTaskResult.task;
+  }
+
+  try {
+    const plannerResult = await executionCoordinator.runPlanner({
+      taskId: task.id,
+      routingOutcome: buildTaskRoutingOutcome(task),
+    });
+    lastResult = plannerResult;
+    stageResults.push(buildAutoChainStageRecord('planner', plannerResult));
+
+    if (plannerResult.decisionInboxItem || plannerResult.nextStage !== 'architect') {
+      return {
+        approval,
+        approvalItem,
+        councilSession,
+        lastResult,
+        linkedTaskCreated,
+        mission: runtime.syncMissionExecutionStateFromTask({
+          missionId,
+          taskId: task.id,
+        }),
+        stageResults,
+        stopReason: plannerResult.decisionInboxItem ? 'waiting-decision' : plannerResult.nextStage,
+        stoppedAt: 'planner',
+        task: runtime.getTask(task.id),
+      };
+    }
+
+    const architectResult = await executionCoordinator.runArchitect({
+      taskId: task.id,
+    });
+    lastResult = architectResult;
+    stageResults.push(buildAutoChainStageRecord('architect', architectResult));
+
+    if (architectResult.decisionInboxItem || architectResult.nextStage !== 'task-breaker') {
+      return {
+        approval,
+        approvalItem,
+        councilSession,
+        lastResult,
+        linkedTaskCreated,
+        mission: runtime.syncMissionExecutionStateFromTask({
+          missionId,
+          taskId: task.id,
+        }),
+        stageResults,
+        stopReason: architectResult.decisionInboxItem
+          ? 'waiting-decision'
+          : architectResult.nextStage,
+        stoppedAt: 'architect',
+        task: runtime.getTask(task.id),
+      };
+    }
+
+    const taskBreakerResult = await executionCoordinator.runTaskBreaker({
+      taskId: task.id,
+    });
+    lastResult = taskBreakerResult;
+    stageResults.push(buildAutoChainStageRecord('task-breaker', taskBreakerResult));
+
+    if (taskBreakerResult.decisionInboxItem || taskBreakerResult.nextStage !== 'builder') {
+      return {
+        approval,
+        approvalItem,
+        councilSession,
+        lastResult,
+        linkedTaskCreated,
+        mission: runtime.syncMissionExecutionStateFromTask({
+          missionId,
+          taskId: task.id,
+        }),
+        stageResults,
+        stopReason: taskBreakerResult.decisionInboxItem
+          ? 'waiting-decision'
+          : taskBreakerResult.nextStage,
+        stoppedAt: 'task-breaker',
+        task: runtime.getTask(task.id),
+      };
+    }
+
+    const preflightResult = await executionCoordinator.runBuilderPreflight({
+      taskId: task.id,
+    });
+    lastResult = preflightResult;
+    stageResults.push(buildAutoChainStageRecord('builder-preflight', preflightResult));
+
+    if (!preflightResult.decisionInboxItem &&
+        preflightResult.nextStage === 'request-builder-live-mutation-approval') {
+      approval = runtime.requestBuilderLiveMutationApproval({
+        taskId: task.id,
+      });
+      approvalItem = runtime.getDecisionInboxItem(approval.inboxItemId);
+      stageResults.push(
+        buildAutoChainStageRecord('request-builder-live-mutation-approval', {
+          approval,
+          item: approvalItem,
+          task,
+        }),
+      );
+    }
+
+    return {
+      approval,
+      approvalItem,
+      councilSession,
+      lastResult,
+      linkedTaskCreated,
+      mission: runtime.syncMissionExecutionStateFromTask({
+        missionId,
+        taskId: task.id,
+      }),
+      stageResults,
+      stopReason:
+        preflightResult.decisionInboxItem
+          ? 'waiting-decision'
+          : approval
+            ? 'waiting-approval'
+            : preflightResult.nextStage,
+      stoppedAt:
+        approval ? 'request-builder-live-mutation-approval' : 'builder-preflight',
+      task: runtime.getTask(task.id),
+    };
+  } catch (error) {
+    if (task?.id) {
+      try {
+        runtime.syncMissionExecutionStateFromTask({
+          missionId,
+          taskId: task.id,
+        });
+      } catch (_syncError) {
+        // Preserve the original auto-chain failure.
+      }
+    }
+
+    throw error;
+  }
 }
 
 const server = createServer(async (request, response) => {
@@ -684,6 +851,206 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  if (method === 'POST' && url.pathname === '/api/missions') {
+    try {
+      const input = await readJsonBody(request);
+      const snapshot = readSnapshotReadonly();
+      const activeProject = getActiveProject(snapshot);
+      const autoDraftCouncil = input.autoDraftCouncil === true;
+      const title = String(input.title || '').trim();
+      const goal = String(input.goal || '').trim();
+      const constraints = String(input.constraints || '').trim();
+
+      if (!activeProject) {
+        json(response, 400, { error: 'Active project is required before creating missions' });
+        return;
+      }
+
+      const mission = runtime.createMission({
+        constraints,
+        goal,
+        projectId: activeProject.id,
+        title,
+      });
+      const autodraftResult = autoDraftCouncil
+        ? runtime.createCouncilSessionForMission({
+            missionId: mission.id,
+          })
+        : null;
+
+      json(
+        response,
+        201,
+        buildSnapshotResponse({
+          councilSession: autodraftResult?.councilSession || null,
+          mission: autodraftResult?.mission || mission,
+          mutation: {
+            councilSessionId: autodraftResult?.councilSession?.id || null,
+            kind: autoDraftCouncil ? 'create-mission-autodraft-council' : 'create-mission',
+            missionId: (autodraftResult?.mission || mission).id,
+            projectId: activeProject.id,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      json(response, 400, { error: error.message || 'Invalid mission request body' });
+      return;
+    }
+  }
+
+  const missionSelectMatch = url.pathname.match(/^\/api\/missions\/([^/]+)\/select$/);
+
+  if (method === 'POST' && missionSelectMatch) {
+    try {
+      const missionId = decodeURIComponent(missionSelectMatch[1]);
+      const mission = runtime.selectMission(missionId);
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          mission,
+          mutation: {
+            kind: 'select-mission',
+            missionId: mission.id,
+            projectId: mission.projectId,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, { error: error.message || 'Mission selection failed' });
+      return;
+    }
+  }
+
+  const missionCreateLinkedTaskMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/create-linked-task$/,
+  );
+
+  if (method === 'POST' && missionCreateLinkedTaskMatch) {
+    try {
+      const missionId = decodeURIComponent(missionCreateLinkedTaskMatch[1]);
+      const input = await readJsonBody(request);
+      const result = runtime.createLinkedTaskForMission({
+        intent: String(input.intent || '').trim(),
+        missionId,
+        title: String(input.title || '').trim(),
+      });
+
+      json(
+        response,
+        201,
+        buildSnapshotResponse({
+          mission: result.mission,
+          mutation: {
+            kind: 'create-linked-task-for-mission',
+            missionId: result.mission.id,
+            taskId: result.task.id,
+          },
+          task: result.task,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode =
+        /already has a linked task/i.test(error.message)
+          ? 409
+          : /not found/i.test(error.message)
+            ? 404
+            : 400;
+      json(response, statusCode, { error: error.message || 'Mission linked task creation failed' });
+      return;
+    }
+  }
+
+  const missionDraftCouncilMatch = url.pathname.match(/^\/api\/missions\/([^/]+)\/draft-council$/);
+
+  if (method === 'POST' && missionDraftCouncilMatch) {
+    try {
+      const missionId = decodeURIComponent(missionDraftCouncilMatch[1]);
+      const result = runtime.createCouncilSessionForMission({
+        missionId,
+      });
+
+      json(
+        response,
+        201,
+        buildSnapshotResponse({
+          councilSession: result.councilSession,
+          mission: result.mission,
+          mutation: {
+            councilSessionId: result.councilSession.id,
+            kind: 'draft-council-for-mission',
+            missionId: result.mission.id,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode =
+        /already has a council session/i.test(error.message)
+          ? 409
+          : /not found/i.test(error.message)
+            ? 404
+            : 400;
+      json(response, statusCode, { error: error.message || 'Council draft failed' });
+      return;
+    }
+  }
+
+  const missionApproveCouncilMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/approve-council$/,
+  );
+
+  if (method === 'POST' && missionApproveCouncilMatch) {
+    try {
+      const missionId = decodeURIComponent(missionApproveCouncilMatch[1]);
+      const result = await runMissionAlignmentAutoChain(missionId);
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          approval: result.approval ? runtime.getApproval(result.approval.id) : null,
+          councilSession: result.councilSession,
+          item: result.approvalItem,
+          mission: result.mission,
+          mutation: {
+            approvalId: result.approval?.id || null,
+            autoChain: {
+              linkedTaskCreated: result.linkedTaskCreated,
+              stageResults: result.stageResults,
+              stopReason: result.stopReason,
+              stoppedAt: result.stoppedAt,
+            },
+            councilSessionId: result.councilSession.id,
+            kind: 'approve-council-for-mission',
+            lastArtifactId:
+              result.approval?.targetArtifactId ||
+              result.lastResult?.artifact?.id ||
+              null,
+            lastRunId: result.lastResult?.run?.id || null,
+            missionId: result.mission.id,
+            taskId: result.task?.id || null,
+          },
+          runLogs: result.lastResult?.run?.id ? getRunLogsPayload(result.lastResult.run.id) : null,
+          task: result.task,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Council recommendation approval failed',
+      });
+      return;
+    }
+  }
+
   if (method === 'POST' && url.pathname === '/api/tasks') {
     try {
       const input = await readJsonBody(request);
@@ -722,6 +1089,38 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       json(response, 400, { error: error.message || 'Invalid request body' });
+      return;
+    }
+  }
+
+  if (method === 'POST' && url.pathname === '/api/retention-consumer/preview') {
+    try {
+      const input = await readJsonBody(request);
+      const retentionConsumer = runtime.previewRetentionConsumer({
+        projectId: typeof input.projectId === 'string' ? input.projectId : null,
+        taskId: typeof input.taskId === 'string' ? input.taskId : null,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          mutation: {
+            action: retentionConsumer.action,
+            applyActionsImplemented: retentionConsumer.applyActionsImplemented,
+            kind: 'preview-retention-consumer',
+            projectId: retentionConsumer.scope.projectId,
+            taskId: retentionConsumer.scope.taskId,
+          },
+          retentionConsumer,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      json(response, statusCode, {
+        error: error.message || 'Retention consumer preview failed',
+      });
       return;
     }
   }
@@ -850,6 +1249,39 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
       json(response, statusCode, { error: error.message || 'Architect run failed' });
+      return;
+    }
+  }
+
+  if (method === 'POST' && url.pathname === '/api/retention-consumer/apply') {
+    try {
+      const input = await readJsonBody(request);
+      const retentionConsumer = runtime.applyRetentionConsumer({
+        action: input.action,
+        artifactIds: input.artifactIds,
+        note: input.note,
+        projectId: input.projectId,
+        taskId: input.taskId,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          mutation: {
+            action: retentionConsumer.action,
+            artifactIds: retentionConsumer.affectedArtifactIds,
+            kind: 'apply-retention-consumer',
+            projectId: retentionConsumer.scope.projectId,
+            taskId: retentionConsumer.scope.taskId,
+          },
+          retentionConsumer,
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, { error: error.message || 'Retention consumer apply failed' });
       return;
     }
   }

@@ -3,13 +3,24 @@
 const fs = require('fs');
 const path = require('path');
 
-const { REVIEW_STATUS, createEmptyState } = require('./contracts');
+const { RETENTION_CONSUMER_STATUS, REVIEW_STATUS, createEmptyState } = require('./contracts');
 
 function createFileStore(options = {}) {
   const runtimeRoot = options.runtimeRoot || path.join(process.cwd(), 'var', 'runtime');
   const statePath = path.join(runtimeRoot, 'state.json');
   const logsDir = path.join(runtimeRoot, 'logs');
   const artifactsDir = path.join(runtimeRoot, 'artifacts');
+  const archivedArtifactsDir = path.join(artifactsDir, 'archive');
+  const deletedArtifactsDir = path.join(artifactsDir, 'deleted');
+
+  function createDefaultArtifactRetentionState() {
+    return {
+      actionLog: [],
+      lastAction: null,
+      lastActionAt: null,
+      status: RETENTION_CONSUMER_STATUS.ACTIVE,
+    };
+  }
 
   function normalizeState(state) {
     const emptyState = createEmptyState();
@@ -20,6 +31,8 @@ function createFileStore(options = {}) {
         ...emptyState.sequences,
         ...(state.sequences || {}),
       },
+      missions: state.missions || {},
+      councilSessions: state.councilSessions || {},
       projects: state.projects || {},
       tasks: state.tasks || {},
       runs: state.runs || {},
@@ -27,6 +40,54 @@ function createFileStore(options = {}) {
       decisionInboxItems: state.decisionInboxItems || {},
       approvals: state.approvals || {},
     };
+
+    for (const mission of Object.values(normalizedState.missions)) {
+      mission.goal = mission.goal || '';
+      mission.constraints = mission.constraints || '';
+      mission.status = mission.status || 'draft';
+
+      if (mission.linkedTaskId === undefined) {
+        mission.linkedTaskId = null;
+      }
+
+      if (mission.councilSessionId === undefined) {
+        mission.councilSessionId = null;
+      }
+    }
+
+    for (const councilSession of Object.values(normalizedState.councilSessions)) {
+      councilSession.status = councilSession.status || 'pending-alignment';
+      councilSession.participants = Array.isArray(councilSession.participants)
+        ? councilSession.participants
+        : [];
+      councilSession.summary = councilSession.summary || '';
+      councilSession.recommendation = councilSession.recommendation || '';
+      councilSession.openQuestions = Array.isArray(councilSession.openQuestions)
+        ? councilSession.openQuestions
+        : [];
+      councilSession.transcript = Array.isArray(councilSession.transcript)
+        ? councilSession.transcript
+        : [];
+      councilSession.selectedPlan =
+        councilSession.selectedPlan && typeof councilSession.selectedPlan === 'object'
+          ? councilSession.selectedPlan
+          : {
+              scope: '',
+              title: '',
+            };
+      councilSession.alignment =
+        councilSession.alignment && typeof councilSession.alignment === 'object'
+          ? {
+              action: councilSession.alignment.action || null,
+              decidedAt: councilSession.alignment.decidedAt || null,
+              status: councilSession.alignment.status || 'pending',
+            }
+          : {
+              action: null,
+              decidedAt: null,
+              status: 'pending',
+            };
+    }
 
     for (const task of Object.values(normalizedState.tasks)) {
       task.flags = {
@@ -49,6 +110,20 @@ function createFileStore(options = {}) {
       if (task.worktreeRef === undefined) {
         task.worktreeRef = null;
       }
+
+      if (task.missionId === undefined) {
+        task.missionId = null;
+      }
+    }
+
+    for (const artifact of Object.values(normalizedState.artifacts)) {
+      const existingRetention =
+        artifact.retention && typeof artifact.retention === 'object' ? artifact.retention : {};
+      artifact.retention = {
+        ...createDefaultArtifactRetentionState(),
+        ...existingRetention,
+        actionLog: Array.isArray(existingRetention.actionLog) ? existingRetention.actionLog : [],
+      };
     }
 
     normalizedState.schemaVersion = emptyState.schemaVersion;
@@ -58,6 +133,8 @@ function createFileStore(options = {}) {
   function ensureDirs() {
     fs.mkdirSync(logsDir, { recursive: true });
     fs.mkdirSync(artifactsDir, { recursive: true });
+    fs.mkdirSync(archivedArtifactsDir, { recursive: true });
+    fs.mkdirSync(deletedArtifactsDir, { recursive: true });
   }
 
   function ensureStateFile() {
@@ -106,9 +183,58 @@ function createFileStore(options = {}) {
     return artifactPath;
   }
 
-  function readArtifact(filename) {
-    const artifactPath = path.join(artifactsDir, filename);
+  function resolveArtifactPath(location) {
+    if (path.isAbsolute(location)) {
+      return location;
+    }
+
+    return path.join(artifactsDir, location);
+  }
+
+  function readArtifact(location) {
+    const artifactPath = resolveArtifactPath(location);
     return fs.readFileSync(artifactPath, 'utf8');
+  }
+
+  function writeArtifactAtPath(artifactPath, content) {
+    ensureDirs();
+    fs.mkdirSync(path.dirname(artifactPath), { recursive: true });
+    fs.writeFileSync(artifactPath, content);
+    return artifactPath;
+  }
+
+  function moveArtifactToArchive(artifactPath) {
+    ensureDirs();
+    const resolvedSource = resolveArtifactPath(artifactPath);
+    const targetPath = path.join(archivedArtifactsDir, path.basename(resolvedSource));
+
+    if (resolvedSource === targetPath) {
+      return targetPath;
+    }
+
+    fs.rmSync(targetPath, { force: true });
+    fs.renameSync(resolvedSource, targetPath);
+    return targetPath;
+  }
+
+  function moveArtifactToDeleted(artifactPath) {
+    ensureDirs();
+    const resolvedSource = resolveArtifactPath(artifactPath);
+    const targetPath = path.join(deletedArtifactsDir, path.basename(resolvedSource));
+
+    if (resolvedSource === targetPath) {
+      return targetPath;
+    }
+
+    fs.rmSync(targetPath, { force: true });
+    fs.renameSync(resolvedSource, targetPath);
+    return targetPath;
+  }
+
+  function removeArtifactAtPath(artifactPath) {
+    const resolvedPath = resolveArtifactPath(artifactPath);
+    fs.rmSync(resolvedPath, { force: true });
+    return resolvedPath;
   }
 
   function reset() {
@@ -118,16 +244,23 @@ function createFileStore(options = {}) {
 
   return {
     appendLogRecord,
+    archivedArtifactsDir,
     artifactsDir,
+    deletedArtifactsDir,
     loadState,
     logsDir,
+    moveArtifactToArchive,
+    moveArtifactToDeleted,
     readArtifact,
     readLogRecords,
+    removeArtifactAtPath,
+    resolveArtifactPath,
     reset,
     runtimeRoot,
     saveState,
     statePath,
     writeArtifact,
+    writeArtifactAtPath,
   };
 }
 
