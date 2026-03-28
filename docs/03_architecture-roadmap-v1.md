@@ -5,7 +5,7 @@ This document defines the current implemented baseline, architecture boundary, a
 
 ## Current Phase Position
 - the v1 control-plane baseline is complete and remains the authoritative shipped execution substrate
-- the next product step is not "more Taskboard-first consolidation" but the post-v1 AI orchestration pivot described in `docs/06_ai-orchestration-pivot.md`
+- the accepted post-v1 AI orchestration pivot described in `docs/06_ai-orchestration-pivot.md` is now implemented on current `main`; it is no longer a pending next product step
 - future work should reuse the current runtime, coordinator, artifact, approval, and review engine rather than replacing it
 - the existing shell remains available as `advanced ops mode`; it is not the intended default first-time product experience anymore
 
