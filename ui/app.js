@@ -13324,6 +13324,7 @@ function renderLogs(data) {
       ? logs.map((entry) => `[${entry.ts}] ${entry.level.toUpperCase()} ${entry.message}`).join('\n')
       : '이 run에 대한 로그 기록이 없습니다.';
   const logsDetailSnapshot = getLogsDetailSnapshot(selectedRun, selectedTask, runBundle, logs);
+  const logsDetailEvidenceState = getExecutionEvidenceRail(selectedTask, data);
   const selectedTaskApprovals = selectedTask
     ? data.approvals.filter((approval) => approval.taskId === selectedTask.id && approval.status === 'pending')
     : [];
@@ -13519,7 +13520,14 @@ function renderLogs(data) {
           eyebrow: '관제실 판단 요약',
           heading: '현재 run과 다음 확인을 먼저 보는 로그 상세',
           copy: selectedTask?.title || 'run을 고르면 현재 run과 다음 확인만 먼저 판단합니다.',
-          tokens: logsDetailSnapshot.tokens,
+          tokens: [
+            createToken(
+              `현재:${logsDetailEvidenceState.currentOwnerLabel}`,
+              logsDetailEvidenceState.blockedReason ? 'danger' : 'accent',
+            ),
+            createToken(`다음:${logsDetailEvidenceState.nextHandoffLabel}`, 'neutral'),
+            ...logsDetailSnapshot.tokens,
+          ],
           cards: [
             {
               label: '현재 상태',
