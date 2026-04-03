@@ -21,15 +21,16 @@ assert.match(appJs, /function getArtifactDetailSnapshot\(selectedArtifactMeta, s
 assert.match(appJs, /function getInboxDetailSnapshot\(selectedItem, selectedTask, selectedApproval\)/);
 
 assert.match(appJs, /eyebrow: '관제실 판단 요약'/);
-assert.match(appJs, /heading: '현재 상태와 다음 확인을 먼저 보는 로그 상세'/);
-assert.match(appJs, /heading: '현재 상태와 다음 확인을 먼저 보는 증적 상세'/);
-assert.match(appJs, /heading: '현재 상태와 다음 확인을 먼저 보는 결재 상세'/);
+assert.match(appJs, /heading: '현재 run과 다음 확인을 먼저 보는 로그 상세'/);
+assert.match(appJs, /heading: '현재 증적과 다음 확인을 먼저 보는 증적 상세'/);
+assert.match(appJs, /heading: '현재 상태와 다음 처리를 먼저 보는 결재 상세'/);
 assert.match(appJs, /label: '현재 상태'/);
 assert.match(appJs, /label: '핵심 이유'/);
 assert.match(appJs, /label: '다음 확인'/);
-assert.match(appJs, /run을 고르면 현재 상태와 다음 확인만 먼저 판단합니다\./);
-assert.match(appJs, /증적을 고르면 현재 상태와 다음 확인만 먼저 판단합니다\./);
-assert.match(appJs, /결재를 고르면 현재 상태와 다음 확인만 먼저 판단합니다\./);
+assert.match(appJs, /label: '다음 처리'/);
+assert.match(appJs, /run을 고르면 현재 run과 다음 확인만 먼저 판단합니다\./);
+assert.match(appJs, /증적을 고르면 현재 증적과 다음 확인만 먼저 판단합니다\./);
+assert.match(appJs, /결재를 고르면 현재 상태와 다음 처리만 먼저 판단합니다\./);
 assert.match(appJs, /연결선과 원문 확인/);
 assert.match(appJs, /미리보기와 원문 확인/);
 assert.match(appJs, /승인 또는 반려/);
@@ -61,11 +62,11 @@ console.log(
       ok: true,
       hqOpsDetailDensity: {
         headings: [
-          '현재 상태와 다음 확인을 먼저 보는 로그 상세',
-          '현재 상태와 다음 확인을 먼저 보는 증적 상세',
-          '현재 상태와 다음 확인을 먼저 보는 결재 상세',
+          '현재 run과 다음 확인을 먼저 보는 로그 상세',
+          '현재 증적과 다음 확인을 먼저 보는 증적 상세',
+          '현재 상태와 다음 처리를 먼저 보는 결재 상세',
         ],
-        labels: ['현재 상태', '핵심 이유', '다음 확인'],
+        labels: ['현재 상태', '핵심 이유', '다음 확인/다음 처리'],
         executionGate: {
           missionStatus: executingMission.status,
           waitingApproval: executingTask.flags.waitingApproval,
