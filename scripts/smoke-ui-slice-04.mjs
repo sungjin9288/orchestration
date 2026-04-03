@@ -97,8 +97,8 @@ async function main() {
 
     assert.equal(appJsResponse.status, 200);
     assert.equal(stylesResponse.status, 200);
-    assert.match(appJs, /Run Task-Breaker/);
-    assert.match(appJs, /Generated Subtasks/);
+    assert.match(appJs, /태스크 분해 실행/);
+    assert.match(appJs, /생성된 하위 작업/);
     assert.match(appJs, /run-task-breaker/);
     assert.match(stylesCss, /\.breakdown-structured/);
 
@@ -196,7 +196,7 @@ async function main() {
 
     assert.match(
       noArchitectureError.error,
-      /latest architecture artifact required|Architecture artifact is required before task-breaker run/i,
+      /latest architecture artifact required|Architecture artifact is required before task-breaker run|최신 설계 아티팩트가 필요합니다\./i,
     );
     assert.equal(
       Object.keys(noArchitectureAfter.snapshot.runs).length,
@@ -238,7 +238,10 @@ async function main() {
     );
     const approvalBlockedAfter = await fetchJson(`${baseUrl}/api/snapshot`);
 
-    assert.match(approvalBlockedError.error, /cannot run task-breaker while gates remain active: pending approvals/i);
+    assert.match(
+      approvalBlockedError.error,
+      /cannot run task-breaker while gates remain active: pending approvals|대기 중인 승인/i,
+    );
     assert.equal(
       Object.keys(approvalBlockedAfter.snapshot.runs).length,
       Object.keys(approvalBlockedBefore.snapshot.runs).length,

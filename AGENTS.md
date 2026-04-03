@@ -3,6 +3,32 @@
 ## Purpose
 Build Orchestration 1.0 as a local-first, single-user-first, ops-first control plane.
 
+## Codex Operating Rules
+
+### Default Flow
+- Start non-trivial work with `$repo-intake`.
+- Follow `$orchestration-freeze-gate` for runtime, UI, docs, tasks, smoke slices, and any change that can widen scope or alter baseline behavior.
+- Finish with `$verify-gate` before close-out.
+- Use `$task-ledger-sync` when `tasks/todo.md` or `tasks/lessons.md` should change as part of the work.
+- Do not use `$release-evidence` by default; add it only when the task explicitly refreshes an existing QA, smoke, or handoff artifact flow.
+
+### Source Of Truth
+- Keep repo docs and task files as source of truth.
+- Preserve the frozen baseline unless the task explicitly widens scope.
+- If a new discovery conflicts with the current docs, report the conflict and update docs only when the task scope supports it.
+
+### Skill And MCP Expansion
+- Add `$playwright` and Playwright MCP only when a real browser or UI slice needs runtime proof.
+- Add `$linear` and Linear MCP only when the task is tied to tracked issue, project, or operations follow-up work.
+- Keep optional live-provider verification non-blocking unless the task explicitly targets that boundary.
+- If extra skills or MCPs are added, state briefly why they were needed.
+
+### Execution Rules
+- Choose the smallest vertical slice that satisfies the task.
+- Do not silently change architecture, workflow boundaries, or downstream semantics.
+- Distinguish required synthetic gates from optional live-provider reruns in both execution and reporting.
+- Record environment visibility and runtime evidence exactly rather than inferring hidden state.
+
 ## Non-negotiable Rules
 - local-first, single-user-first, ops-first
 - source of truth for policy/contracts is repo files

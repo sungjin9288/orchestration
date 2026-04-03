@@ -93,8 +93,9 @@ async function main() {
       'utf8',
     );
 
-    assert.match(appJsSource, /First-Run Bootstrap/);
-    assert.match(appJsSource, /Register Project/);
+    assert.match(appJsSource, /function getProjectBootstrapState\(data\)/);
+    assert.match(appJsSource, /title: '최초 진입 준비'/);
+    assert.match(appJsSource, /title: '프로젝트 등록부'/);
     assert.match(appJsSource, /select-project/);
     assert.match(serveUiSource, /\/api\/projects/);
     assert.match(serveUiSource, /\/select/);
@@ -104,7 +105,7 @@ async function main() {
     });
 
     assert.equal(blockedTaskCreate.response.status, 400);
-    assert.match(blockedTaskCreate.payload.error, /Active project is required/);
+    assert.match(blockedTaskCreate.payload.error, /태스크를 만들기 전에 활성 프로젝트가 필요합니다\./);
 
     const firstProjectCreate = await postJson('/api/projects', {
       name: 'orchestration',

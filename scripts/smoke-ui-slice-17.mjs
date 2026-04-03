@@ -62,15 +62,16 @@ async function main() {
 
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
-    assert.match(indexHtml, /<title>Orchestration 1\.0 AI Orchestration<\/title>/);
-    assert.match(indexHtml, /<h1>AI Orchestration<\/h1>/);
-    assert.match(indexHtml, /Primary Orchestration/);
-    assert.match(indexHtml, /Advanced Ops Mode/);
+    assert.match(indexHtml, /<title>오케스트레이션 1\.0 AI 전략 본부<\/title>/);
+    assert.match(indexHtml, /<h1>AI 전략 본부<\/h1>/);
+    assert.match(indexHtml, /본부 운영 표면/);
+    assert.match(indexHtml, /고급 운영 모드/);
     assert.match(indexHtml, /data-nav-group="primary-orchestration"/);
     assert.match(indexHtml, /data-nav-group="advanced-ops"/);
-    assert.match(appJs, /Taskboard is the detailed execution control surface/);
-    assert.match(appJs, /Taskboard, Logs, Artifacts, and Decision Inbox now sit behind the orchestration-first path/);
-    assert.match(appJs, /Decision Inbox stays available for explicit approval and decision handling/);
+    assert.match(appJs, /const SURFACE_DISPLAY_NAMES = \{/);
+    assert.match(appJs, /mission: '미션'/);
+    assert.match(appJs, /taskboard: '작업판'/);
+    assert.match(appJs, /'decision-inbox': '결정함'/);
 
     console.log(
       JSON.stringify(
@@ -78,9 +79,9 @@ async function main() {
           ok: true,
           runtimeRoot,
           shell: {
-            title: 'AI Orchestration',
-            primaryGroup: 'Primary Orchestration',
-            advancedOpsGroup: 'Advanced Ops Mode',
+            title: 'AI 전략 본부',
+            primaryGroup: '본부 운영 표면',
+            advancedOpsGroup: '고급 운영 모드',
           },
         },
         null,

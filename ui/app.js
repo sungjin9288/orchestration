@@ -1,5 +1,49 @@
 const SURFACE_IDS = ['mission', 'council', 'execution', 'deliverables', 'taskboard', 'logs', 'artifacts', 'decision-inbox'];
 const TASK_LIFECYCLE_ORDER = ['Inbox', 'In Progress', 'Review', 'Done'];
+const SURFACE_DISPLAY_NAMES = {
+  artifacts: '아티팩트',
+  council: '협의회',
+  'decision-inbox': '결정함',
+  deliverables: '산출물',
+  execution: '실행',
+  logs: '로그',
+  mission: '미션',
+  taskboard: '작업판',
+};
+const SURFACE_DOCK_METADATA = {
+  artifacts: {
+    copy: '현재 증적과 연결 근거를 확인합니다.',
+    kicker: 'Evidence',
+  },
+  council: {
+    copy: '참모진이 추천안과 방향을 정렬합니다.',
+    kicker: 'Council',
+  },
+  'decision-inbox': {
+    copy: '현재 안건과 다음 처리를 판단합니다.',
+    kicker: 'Gate',
+  },
+  deliverables: {
+    copy: '현재 보고 판단과 다음 행동을 확인합니다.',
+    kicker: 'Report',
+  },
+  execution: {
+    copy: '현재 작전 판단과 다음 행동을 조정합니다.',
+    kicker: 'Execute',
+  },
+  logs: {
+    copy: '현재 run과 다음 확인을 빠르게 훑습니다.',
+    kicker: 'Runs',
+  },
+  mission: {
+    copy: '현재 안건 판단과 바로 이동을 시작합니다.',
+    kicker: 'Intake',
+  },
+  taskboard: {
+    copy: '현재 실행 셀과 다음 실행을 조정합니다.',
+    kicker: 'Cells',
+  },
+};
 
 const state = {
   surface: 'mission',
@@ -41,8 +85,18 @@ const elements = {
   activeProjectName: document.querySelector('#active-project-name'),
   activeProjectPath: document.querySelector('#active-project-path'),
   runtimeRoot: document.querySelector('#runtime-root'),
+  runtimeStatusCopy: document.querySelector('#runtime-status-copy'),
   activeRunCount: document.querySelector('#active-run-count'),
+  activeRunCopy: document.querySelector('#active-run-copy'),
   pendingGateCount: document.querySelector('#pending-gate-count'),
+  pendingGateCopy: document.querySelector('#pending-gate-copy'),
+  surfaceFocusStrip: document.querySelector('#surface-focus-strip'),
+  summaryCards: {
+    project: document.querySelector('#summary-card-project'),
+    runtime: document.querySelector('#summary-card-runtime'),
+    runs: document.querySelector('#summary-card-runs'),
+    gates: document.querySelector('#summary-card-gates'),
+  },
   surfaces: {
     mission: document.querySelector('#surface-mission'),
     council: document.querySelector('#surface-council'),
@@ -67,7 +121,7 @@ function escapeHtml(value) {
 
 function formatDate(value) {
   if (!value) {
-    return 'Not recorded';
+    return '기록 없음';
   }
 
   const date = new Date(value);
@@ -79,11 +133,115 @@ function formatDate(value) {
   return date.toLocaleString();
 }
 
+const COUNCIL_CAST_ORDER = ['Conductor', 'Strategist', 'Architect', 'Decomposer'];
+const ORCHESTRATION_FLOW_STEPS = [
+  {
+    id: 'intake',
+    label: '안건 접수',
+    owner: '운영자 · 안건 데스크',
+    surface: 'mission',
+    summary: '현재 안건 판단과 바로 이동을 시작합니다.',
+  },
+  {
+    id: 'council',
+    label: '참모 회의',
+    owner: '총지휘관 + 참모진',
+    surface: 'council',
+    summary: '직급별 AI가 같은 안건을 함께 읽고 정렬합니다.',
+  },
+  {
+    id: 'execution',
+    label: '실행 방향',
+    owner: '선임 실행관 · 작전 지휘실',
+    surface: 'execution',
+    summary: '현재 작전 판단과 다음 행동을 조정합니다.',
+  },
+  {
+    id: 'deliverables',
+    label: '결과 보고',
+    owner: '결과 보고실 · 관제실',
+    surface: 'deliverables',
+    summary: '현재 보고 판단과 다음 행동을 확인합니다.',
+  },
+];
+const ORCHESTRATION_RULES = [
+  '프로젝트 지정 후 실행',
+  '리뷰 후 완료',
+  '승인 후 커밋',
+  '한정된 실행 유지',
+];
+const COUNCIL_CAST_METADATA = {
+  Conductor: {
+    archetype: '정렬 책임',
+    avatarLabel: '지휘 아바타',
+    avatarMood: '본부 상황판을 보며 최종 방향을 고정합니다.',
+    avatarStyle: 'lead',
+    commandLine: '최종 추천안과 인계 승인 흐름을 한 지점에서 총괄합니다.',
+    deskLabel: '본부 중앙 데스크',
+    deskProp: '상황판 · 최종 승인 봉투',
+    displayName: '지휘자',
+    mark: 'CN',
+    officeLine: '최종 방향 결정과 인계 승인석',
+    orderLabel: '지휘 서열 1',
+    previewLine: '정렬 승인과 다음 인계를 한 지점으로 모읍니다.',
+    rank: '총지휘관',
+    tone: 'accent',
+  },
+  Strategist: {
+    archetype: '목표 정리',
+    avatarLabel: '전략 아바타',
+    avatarMood: '우선순위 표와 목표 문장을 동시에 정리합니다.',
+    avatarStyle: 'strategist',
+    commandLine: '목표 해석과 범위 제한을 맡는 수석 참모입니다.',
+    deskLabel: '전략실 창가 데스크',
+    deskProp: '우선순위 보드 · 전략 차트',
+    displayName: '전략가',
+    mark: 'ST',
+    officeLine: '목표와 우선순위를 다듬는 검토석',
+    orderLabel: '지휘 서열 2',
+    previewLine: '원하는 결과를 더 선명하게 좁히고 범위를 다듬습니다.',
+    rank: '수석 전략관',
+    tone: 'success',
+  },
+  Architect: {
+    archetype: '경계 보호',
+    avatarLabel: '설계 아바타',
+    avatarMood: '경계 도면을 펼친 채 파급 범위를 봉인합니다.',
+    avatarStyle: 'architect',
+    commandLine: '설계 파급을 막고 시스템 경계를 봉인하는 참모입니다.',
+    deskLabel: '설계 검토 데스크',
+    deskProp: '경계 도면 · 구조 메모판',
+    displayName: '설계자',
+    mark: 'AR',
+    officeLine: '구조 리스크와 경계를 봉쇄하는 자리',
+    orderLabel: '지휘 서열 3',
+    previewLine: '의미론 경계를 지키고 파급 범위를 작게 유지합니다.',
+    rank: '수석 설계관',
+    tone: 'warning',
+  },
+  Decomposer: {
+    archetype: '첫 실행 단위',
+    avatarLabel: '실행 아바타',
+    avatarMood: '첫 실행 셀과 체크포인트를 짧게 편성합니다.',
+    avatarStyle: 'decomposer',
+    commandLine: '첫 실행 단위를 편성하고 바로 인계 가능한 수준으로 자릅니다.',
+    deskLabel: '실행 편성 데스크',
+    deskProp: '체크포인트 보드 · 실행 큐',
+    displayName: '분해자',
+    mark: 'DC',
+    officeLine: '첫 실행 셀과 체크포인트를 편성하는 자리',
+    orderLabel: '지휘 서열 4',
+    previewLine: '의도를 곧바로 넘길 수 있는 첫 실행 단위로 자릅니다.',
+    rank: '선임 실행관',
+    tone: 'neutral',
+  },
+};
+
 function formatWorktreeOptionLabel(option) {
   const parts = [option.branch || 'detached', option.path];
 
   if (option.isCurrentProjectPath) {
-    parts.push('current project_path');
+    parts.push('현재 project_path');
   }
 
   return parts.join(' · ');
@@ -100,6 +258,861 @@ function sortByCreatedDesc(left, right) {
   return rightValue.localeCompare(leftValue);
 }
 
+function getCouncilCastEntry(role, councilSession) {
+  const meta = COUNCIL_CAST_METADATA[role] || {
+    archetype: '보이는 역할',
+    avatarLabel: '임시 아바타',
+    avatarMood: '현재 안건을 화면 위에 고정합니다.',
+    avatarStyle: 'neutral',
+    commandLine: '현재 추천안을 화면 위에 고정하는 역할입니다.',
+    deskLabel: '임시 데스크',
+    deskProp: '현재 안건 메모',
+    mark: String(role || '?').slice(0, 2).toUpperCase(),
+    officeLine: '현재 안건을 화면 위에 고정하는 자리',
+    orderLabel: '지휘 서열 미지정',
+    previewLine: '협의회 추천안을 화면 위에 고정합니다.',
+    rank: '임시 참모',
+    tone: 'neutral',
+  };
+  const participant = Array.isArray(councilSession?.participants)
+    ? councilSession.participants.find((entry) => entry.role === role) || null
+    : null;
+  const transcriptEntry = Array.isArray(councilSession?.transcript)
+    ? councilSession.transcript.find((entry) => entry.role === role) || null
+    : null;
+
+  return {
+    archetype: meta.archetype,
+    avatarLabel: meta.avatarLabel,
+    avatarMood: meta.avatarMood,
+    avatarStyle: meta.avatarStyle,
+    commandLine: meta.commandLine,
+    deskLabel: meta.deskLabel,
+    deskProp: meta.deskProp,
+    displayName: meta.displayName || role,
+    focus: participant?.focus || meta.previewLine,
+    mark: meta.mark,
+    officeLine: meta.officeLine,
+    orderLabel: meta.orderLabel,
+    previewLine: meta.previewLine,
+    rank: meta.rank,
+    role,
+    tone: meta.tone,
+    transcriptContent: transcriptEntry?.content || null,
+    transcriptStance: transcriptEntry?.stance || null,
+  };
+}
+
+function getCompanySignalEntries(options = {}) {
+  const mission = options.mission || null;
+  const councilSession = options.councilSession || null;
+  const linkedTask = options.linkedTask || null;
+  const completionReady = Boolean(options.completionReady);
+  const missionStatus = mission ? getMissionStatusDisplay(mission.status) : '초안 전';
+  const missionTone = mission ? getMissionStatusTone(mission.status) : 'warning';
+  const councilStatus = councilSession
+    ? getAlignmentStatusDisplay(councilSession.alignment?.status || 'pending')
+    : '대기';
+  const councilTone = councilSession
+    ? getAlignmentTone(councilSession.alignment?.status || 'pending')
+    : 'warning';
+  const executionStatus = !linkedTask
+    ? '준비 전'
+    : linkedTask.flags?.waitingApproval
+      ? '승인 대기'
+      : linkedTask.flags?.blocked
+        ? '차단'
+        : linkedTask.flags?.waitingDecision
+          ? '결정 대기'
+          : getTaskLifecycleDisplay(linkedTask.lifecycleState);
+  const executionTone = !linkedTask
+    ? 'warning'
+    : linkedTask.flags?.blocked
+      ? 'danger'
+      : linkedTask.flags?.waitingApproval
+        ? 'accent'
+        : linkedTask.flags?.waitingDecision
+          ? 'warning'
+          : linkedTask.lifecycleState === 'Done'
+            ? 'success'
+            : 'neutral';
+  const deliverablesStatus = completionReady
+    ? 'close-out 완료'
+    : linkedTask
+      ? `리뷰 ${getReviewStatusDisplay(linkedTask.review?.status || 'pending')}`
+      : '보고 전';
+  const deliverablesTone = completionReady
+    ? 'success'
+    : linkedTask
+      ? getReviewTone(linkedTask.review?.status || 'pending')
+      : 'warning';
+  const gateStatus = linkedTask?.flags?.waitingApproval
+    ? '승인 대기'
+    : linkedTask?.flags?.waitingDecision
+      ? '결정 대기'
+      : completionReady
+        ? '정리됨'
+        : councilSession
+          ? '게이트 안정'
+          : '열림 전';
+  const gateTone = linkedTask?.flags?.waitingApproval
+    ? 'accent'
+    : linkedTask?.flags?.waitingDecision
+      ? 'warning'
+      : completionReady
+        ? 'success'
+        : 'neutral';
+  return [
+    {
+      surface: 'mission',
+      label: '안건',
+      status: missionStatus,
+      copy: mission ? '현재 안건 판단이 회사 heartbeat의 첫 줄입니다.' : '첫 안건이 올라오면 회사 heartbeat가 여기서 시작됩니다.',
+      tone: missionTone,
+    },
+    {
+      surface: 'council',
+      label: '회의',
+      status: councilStatus,
+      copy: councilSession ? '네 참모가 같은 안건 아래에서 방향을 맞춥니다.' : '참모 착석 전이라 회의 heartbeat가 아직 열리지 않았습니다.',
+      tone: councilTone,
+    },
+    {
+      surface: 'execution',
+      label: '실행',
+      status: executionStatus,
+      copy: linkedTask ? '현재 셀이 같은 안건의 다음 작전을 끌고 갑니다.' : '회의 정렬 뒤에 첫 실행 셀이 이 줄을 이어받습니다.',
+      tone: executionTone,
+    },
+    {
+      surface: 'deliverables',
+      label: '보고',
+      status: deliverablesStatus,
+      copy: completionReady ? '종료 정리와 보고 묶음이 이미 같은 경로를 닫았습니다.' : '리뷰와 보고 묶음이 다음 회사를 위한 근거를 남깁니다.',
+      tone: deliverablesTone,
+    },
+    {
+      surface: 'decision-inbox',
+      label: '게이트',
+      status: gateStatus,
+      copy: linkedTask?.flags?.waitingApproval || linkedTask?.flags?.waitingDecision
+        ? '사람 gate가 풀리면 heartbeat가 바로 다음 표면으로 이어집니다.'
+        : '열린 사람 gate가 없으면 같은 안건이 다음 줄로 자연스럽게 넘어갑니다.',
+      tone: gateTone,
+    },
+  ];
+}
+
+function renderCharterSignalStrip(options = {}) {
+  const mission = options.mission || null;
+  const councilSession = options.councilSession || null;
+  const linkedTask = options.linkedTask || null;
+  const cards = getCompanySignalEntries(options);
+
+  return `
+    <section class="relation-strip charter-signal-strip">
+      <div class="card-title-row card-title-row-tight">
+        <strong>company signal</strong>
+        ${mission ? createToken(`안건:${mission.id}`, 'neutral') : createToken('안건:대기', 'warning')}
+        ${councilSession ? createToken(`회의:${getCouncilStatusDisplay(councilSession.status)}`, getCouncilStatusTone(councilSession.status)) : createToken('회의:대기', 'warning')}
+        ${linkedTask ? createToken(`실행:${linkedTask.id}`, 'accent') : createToken('실행:대기', 'warning')}
+      </div>
+      <p class="detail-copy detail-copy-compact charter-signal-intro">
+        home에서 본 회사 pulse가 여기선 현재 안건 heartbeat로 더 촘촘하게 이어집니다.
+      </p>
+      <div class="charter-signal-grid">
+        ${cards
+          .map(
+            (card) => `
+              <article class="charter-signal-chip charter-signal-chip-${escapeHtml(card.surface)}">
+                <div class="charter-signal-head">
+                  <span class="charter-signal-dot charter-signal-dot-${escapeHtml(card.tone)}"></span>
+                  <strong class="charter-signal-label">${escapeHtml(card.label)}</strong>
+                </div>
+                <p class="charter-signal-status">${escapeHtml(card.status)}</p>
+                <p class="charter-signal-copy">${escapeHtml(card.copy)}</p>
+              </article>
+            `,
+          )
+          .join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderOrchestrationCharter(options = {}) {
+  const councilSession = options.councilSession || null;
+  const mission = options.mission || null;
+  const missionId = mission?.id || '';
+  const linkedTask = options.linkedTask || null;
+  const completionReady = Boolean(options.completionReady);
+  const agendaTitle = String(options.agendaTitle || '아직 정해진 안건 없음').trim();
+  const agendaGoal = String(
+    options.agendaGoal || '안건이 올라오면 목표와 범위를 먼저 고정합니다.',
+  ).trim();
+  const castEntries = Array.isArray(options.castEntries) && options.castEntries.length
+    ? options.castEntries
+    : COUNCIL_CAST_ORDER.map((role) => getCouncilCastEntry(role, councilSession));
+  const activeStepIndex = completionReady
+    ? 3
+    : linkedTask
+      ? 2
+      : councilSession
+        ? 1
+        : mission
+          ? 0
+          : 0;
+  const flowEntries = ORCHESTRATION_FLOW_STEPS.map((step, index) => {
+    const isActive = index === activeStepIndex;
+    const isComplete = index < activeStepIndex;
+
+    return {
+      ...step,
+      statusLabel: isActive ? '현재 단계' : isComplete ? '완료됨' : '다음 단계',
+      tone: isActive ? 'accent' : isComplete ? 'success' : 'neutral',
+      className: isActive
+        ? 'charter-flow-step charter-flow-step-active'
+        : isComplete
+          ? 'charter-flow-step charter-flow-step-complete'
+          : 'charter-flow-step',
+    };
+  });
+
+  return `
+    <section class="briefing-charter">
+      <article class="charter-card charter-card-goal">
+        <p class="charter-label">목표 헌장</p>
+        <strong class="charter-title">${escapeHtml(agendaTitle)}</strong>
+        <p class="charter-copy">${escapeHtml(agendaGoal)}</p>
+      </article>
+      <article class="charter-card">
+        <p class="charter-label">참모 구성</p>
+        <div class="charter-crew-list">
+          ${castEntries
+            .map(
+              (castEntry) => `
+                <div class="charter-crew-item">
+                  <strong class="charter-crew-rank">${escapeHtml(castEntry.rank)}</strong>
+                  <div class="charter-crew-copy">
+                    <span class="charter-crew-name">${escapeHtml(castEntry.displayName)}</span>
+                    <span class="charter-crew-duty">${escapeHtml(castEntry.commandLine)}</span>
+                  </div>
+                </div>
+              `,
+            )
+            .join('')}
+        </div>
+      </article>
+      <article class="charter-card">
+        <p class="charter-label">진행 흐름</p>
+        <div class="charter-flow">
+          ${flowEntries
+            .map(
+              (step, index) => `
+              <button
+                class="${step.className}"
+                type="button"
+                data-action="open-surface-for-mission"
+                data-id="${escapeHtml(missionId)}"
+                data-target-surface="${escapeHtml(step.surface)}"
+                ${missionId ? '' : 'disabled'}
+              >
+                <strong class="charter-step-count">${index + 1}</strong>
+                <div class="charter-step-copy">
+                  <strong>${escapeHtml(step.label)}</strong>
+                  <span class="charter-step-owner">${escapeHtml(step.owner)}</span>
+                  <span>${escapeHtml(step.summary)}</span>
+                </div>
+                <span class="charter-flow-status">${createToken(step.statusLabel, step.tone)}</span>
+              </button>
+            `,
+            )
+            .join('')}
+        </div>
+      </article>
+      <article class="charter-card">
+        <p class="charter-label">운영 기준</p>
+        <div class="token-row token-row-compact">
+          ${ORCHESTRATION_RULES.map((rule) => createToken(rule, 'neutral')).join('')}
+        </div>
+        <p class="charter-copy">
+          귀여운 HQ 연출은 방향 표시만 맡고, 실제 실행은 bounded execution과 review/approval gate를 그대로 따릅니다.
+        </p>
+      </article>
+    </section>
+    ${renderCharterSignalStrip({ mission, councilSession, linkedTask, completionReady })}
+  `;
+}
+
+function renderCouncilCastCards(councilSession, options = {}) {
+  const compact = Boolean(options.compact);
+  const cardClassName = compact ? 'cast-card cast-card-compact' : 'cast-card';
+  const gridClassName = compact ? 'cast-grid cast-grid-compact' : 'cast-grid';
+  const roles = Array.isArray(councilSession?.participants) && councilSession.participants.length > 0
+    ? COUNCIL_CAST_ORDER.filter((role) =>
+        councilSession.participants.some((participant) => participant.role === role),
+      )
+    : COUNCIL_CAST_ORDER;
+
+  return `
+    <div class="${gridClassName}">
+      ${roles
+        .map((role) => {
+          const castEntry = getCouncilCastEntry(role, councilSession);
+          const isLead = role === COUNCIL_CAST_ORDER[0];
+          const articleClassName = `${cardClassName} cast-card-${castEntry.tone}${isLead ? ' cast-card-lead' : ''}`;
+
+          return `
+            <article class="${articleClassName}">
+              <div class="cast-mark-stack">
+                <div class="cast-mark cast-mark-${castEntry.tone}">${escapeHtml(castEntry.mark)}</div>
+                <div class="cast-order">${escapeHtml(castEntry.orderLabel)}</div>
+              </div>
+              <div class="cast-body">
+                <div class="cast-rank-row">
+                  <strong class="cast-rank">${escapeHtml(castEntry.rank)}</strong>
+                  ${createToken(castEntry.archetype, castEntry.tone)}
+                </div>
+                <div class="card-title-row ${compact ? 'card-title-row-tight' : ''}">
+                  <strong>${escapeHtml(castEntry.displayName)}</strong>
+                  ${isLead ? createToken('최종 권고', 'accent') : createToken('참모진', 'neutral')}
+                </div>
+                <div class="cast-station-row">
+                  <strong class="cast-station">${escapeHtml(castEntry.deskLabel)}</strong>
+                  <span class="cast-station-copy">${escapeHtml(castEntry.officeLine)}</span>
+                </div>
+                <div class="cast-avatar-panel cast-avatar-panel-${castEntry.tone}">
+                  <div class="cast-avatar-shell cast-avatar-shell-${castEntry.tone} cast-avatar-shell-${castEntry.avatarStyle}">
+                    <div class="cast-avatar-head"></div>
+                    <div class="cast-avatar-body"></div>
+                    <div class="cast-avatar-eye cast-avatar-eye-left"></div>
+                    <div class="cast-avatar-eye cast-avatar-eye-right"></div>
+                    <div class="cast-avatar-smile"></div>
+                    <div class="cast-avatar-accessory cast-avatar-accessory-${castEntry.avatarStyle}"></div>
+                    <div class="cast-avatar-badge">${escapeHtml(castEntry.mark)}</div>
+                  </div>
+                  <div class="cast-avatar-copy">
+                    <strong class="cast-avatar-label">${escapeHtml(castEntry.avatarLabel)}</strong>
+                    <span class="cast-avatar-mood">${escapeHtml(castEntry.avatarMood)}</span>
+                    <span class="cast-avatar-prop">${escapeHtml(castEntry.deskProp)}</span>
+                  </div>
+                </div>
+                <p class="cast-command">${escapeHtml(castEntry.commandLine)}</p>
+                <p class="cast-subtitle">${escapeHtml(castEntry.focus)}</p>
+                ${
+                  castEntry.transcriptStance
+                    ? `
+                      <div class="token-row token-row-compact">
+                        ${createToken(castEntry.transcriptStance, 'neutral')}
+                      </div>
+                    `
+                    : ''
+                }
+                <p class="cast-quote ${compact ? 'cast-quote-compact' : ''}">
+                  ${escapeHtml(castEntry.transcriptContent || castEntry.previewLine)}
+                </p>
+              </div>
+            </article>
+          `;
+        })
+        .join('')}
+    </div>
+  `;
+}
+
+function renderCouncilBoardroomStage(options = {}) {
+  const councilSession = options.councilSession || null;
+  const mission = options.mission || null;
+  const linkedTask = options.linkedTask || null;
+  const completionReady = Boolean(options.completionReady);
+  const compact = Boolean(options.compact);
+  const stageClassName = compact ? 'boardroom-stage boardroom-stage-compact' : 'boardroom-stage';
+  const heroClassName = compact
+    ? 'briefing-hero briefing-hero-compact surface-entry-frame'
+    : 'briefing-hero surface-entry-frame';
+  const agendaTitle = String(
+    options.agendaTitle ||
+      councilSession?.selectedPlan?.scope ||
+      state.missionDraftTitle ||
+      '아직 올라온 안건 없음',
+  ).trim();
+  const agendaGoal = String(
+    options.agendaGoal ||
+      councilSession?.summary ||
+      state.missionDraftGoal ||
+      '안건이 올라오면 착석한 참모진이 회의를 열고 목표와 방향을 함께 정합니다.',
+  ).trim();
+  const meetingStatus = councilSession
+    ? getAlignmentStatusDisplay(councilSession.alignment?.status || 'pending')
+    : '안건 대기';
+  const meetingPhase = councilSession ? getCouncilStatusDisplay(councilSession.status) : '착석 전';
+  const castEntries = COUNCIL_CAST_ORDER.map((role) => getCouncilCastEntry(role, councilSession));
+  const [leadEntry, leftEntry, rightEntry, bottomEntry] = castEntries;
+  const activeStepIndex = completionReady
+    ? 3
+    : linkedTask
+      ? 2
+      : councilSession
+        ? 1
+        : mission
+          ? 0
+          : 0;
+  const briefingSteps = ORCHESTRATION_FLOW_STEPS.map((step, index) => {
+    const isActive = index === activeStepIndex;
+    const isComplete = index < activeStepIndex;
+    const toneClassName = isActive
+      ? 'briefing-step briefing-step-active'
+      : isComplete
+        ? 'briefing-step briefing-step-complete'
+        : 'briefing-step';
+
+    return `
+      <span class="${toneClassName}">
+        <span class="briefing-step-number">${index + 1}</span>
+        <span class="briefing-step-copy">
+          <strong class="briefing-step-label">${escapeHtml(step.label)}</strong>
+          <span class="briefing-step-state">${escapeHtml(
+            isActive ? '현재 단계' : isComplete ? '완료됨' : '다음 단계',
+          )}</span>
+        </span>
+      </span>
+    `;
+  }).join('');
+
+  const renderSeat = (castEntry, className) => `
+    <article class="boardroom-seat ${className} boardroom-seat-${castEntry.tone}">
+      <div class="boardroom-seat-presence">
+        <div class="boardroom-avatar-wrap">
+          <div class="boardroom-avatar boardroom-avatar-${castEntry.tone}">${escapeHtml(castEntry.mark)}</div>
+          <div class="boardroom-seat-presence-copy">
+            <strong class="boardroom-seat-desk">${escapeHtml(castEntry.deskLabel)}</strong>
+            <span class="boardroom-seat-station">${escapeHtml(castEntry.officeLine)}</span>
+          </div>
+        </div>
+        ${createToken('착석 완료', castEntry.tone)}
+      </div>
+      <div class="boardroom-seat-portrait boardroom-seat-portrait-${castEntry.tone}">
+        <div class="boardroom-seat-avatar-shell boardroom-seat-avatar-shell-${castEntry.tone} boardroom-seat-avatar-shell-${castEntry.avatarStyle}">
+          <div class="boardroom-seat-avatar-head"></div>
+          <div class="boardroom-seat-avatar-body"></div>
+          <div class="boardroom-seat-avatar-eye boardroom-seat-avatar-eye-left"></div>
+          <div class="boardroom-seat-avatar-eye boardroom-seat-avatar-eye-right"></div>
+          <div class="boardroom-seat-avatar-smile"></div>
+          <div class="boardroom-seat-avatar-accessory boardroom-seat-avatar-accessory-${castEntry.avatarStyle}"></div>
+          <div class="boardroom-seat-avatar-badge">${escapeHtml(castEntry.mark)}</div>
+        </div>
+        <div class="boardroom-seat-avatar-copy">
+          <strong class="boardroom-seat-avatar-label">${escapeHtml(castEntry.avatarLabel)}</strong>
+          <span class="boardroom-seat-avatar-mood">${escapeHtml(castEntry.avatarMood)}</span>
+          <span class="boardroom-seat-avatar-prop">${escapeHtml(castEntry.deskProp)}</span>
+        </div>
+      </div>
+      <div class="boardroom-seat-head">
+        <strong class="boardroom-seat-rank">${escapeHtml(castEntry.rank)}</strong>
+        ${createToken(castEntry.archetype, castEntry.tone)}
+      </div>
+      <div class="boardroom-seat-name-row">
+        <span class="boardroom-seat-name">${escapeHtml(castEntry.displayName)}</span>
+        <span class="boardroom-seat-order">${escapeHtml(castEntry.orderLabel)}</span>
+      </div>
+      <p class="boardroom-seat-copy">${escapeHtml(castEntry.commandLine)}</p>
+      <p class="boardroom-seat-focus">${escapeHtml(castEntry.focus)}</p>
+    </article>
+  `;
+
+  return `
+    <section class="${heroClassName}">
+      <div class="briefing-copy">
+        <p class="eyebrow">본부 브리핑실</p>
+        <h2>${escapeHtml(options.heading || '안건을 올리면 참모진이 바로 회의를 시작합니다')}</h2>
+        <p class="panel-copy">
+          ${escapeHtml(
+            options.copy ||
+              '안건을 올리면 귀여운 참모진이 각자 자리에서 바로 읽고, 회의로 목표와 방향을 정리합니다.',
+          )}
+        </p>
+        <div class="token-row">
+          ${createToken('참모진 착석', 'accent')}
+          ${createToken(`회의:${meetingPhase}`, 'neutral')}
+          ${createToken(`방향:${meetingStatus}`, councilSession ? getAlignmentTone(councilSession.alignment?.status || 'pending') : 'warning')}
+        </div>
+        ${renderOrchestrationCharter({ agendaGoal, agendaTitle, castEntries, councilSession })}
+        <div class="briefing-steps">${briefingSteps}</div>
+      </div>
+      <div class="${stageClassName}">
+        ${renderSeat(leadEntry, 'boardroom-seat-lead')}
+        ${renderSeat(leftEntry, 'boardroom-seat-left')}
+        <section class="boardroom-table">
+          <p class="boardroom-table-label">오늘의 안건</p>
+          <strong class="boardroom-table-title">${escapeHtml(agendaTitle)}</strong>
+          <p class="boardroom-table-copy">${escapeHtml(agendaGoal)}</p>
+          <div class="token-row token-row-compact">
+            ${createToken(`참모:${castEntries.length}석`, 'neutral')}
+            ${createToken(`회의:${meetingPhase}`, 'accent')}
+            ${createToken(`방향:${meetingStatus}`, councilSession ? getAlignmentTone(councilSession.alignment?.status || 'pending') : 'warning')}
+          </div>
+          <p class="boardroom-table-foot">
+            각 직급 AI가 자기 자리에서 같은 안건을 읽고, 회의 결론을 하나의 실행 방향으로 모읍니다.
+          </p>
+        </section>
+        ${renderSeat(rightEntry, 'boardroom-seat-right')}
+        ${renderSeat(bottomEntry, 'boardroom-seat-bottom')}
+      </div>
+    </section>
+  `;
+}
+
+function renderExecutionCommandDeck(options = {}) {
+  const mission = options.mission || null;
+  const councilSession = options.councilSession || null;
+  const task = options.task || null;
+  const latestRun = options.latestRun || null;
+  const approvalBridge = options.approvalBridge || null;
+  const completionReady = Boolean(options.completionReady);
+  const gateCopy = String(options.gateCopy || '아직 확정된 작전 지시가 없습니다.').trim();
+  const gateLabel = approvalBridge?.actionLabel || '지시 정리 중';
+  const latestRunNextStage = latestRun?.summary?.nextStage || null;
+  const executionCommandSignals = getCompanySignalEntries({
+    mission,
+    councilSession,
+    linkedTask: task,
+    completionReady,
+  }).filter((entry) => ['council', 'execution', 'deliverables', 'decision-inbox'].includes(entry.surface));
+  const latestRunSummary = latestRun
+    ? `${formatDate(latestRun.startedAt)} 기준 ${getExecutionRoleDisplay(latestRun.role || latestRun.kind || 'none')}이 ${getRunStatusDisplay(latestRun.status)} 상태입니다.${latestRunNextStage ? ` 다음 단계는 ${getExecutionStageDisplay(latestRunNextStage)}입니다.` : ''}`
+    : '회의 결론이 실행 셀로 내려오면 첫 작전 보고가 이곳에 나타납니다.';
+
+  return `
+    <section class="briefing-hero briefing-hero-compact surface-entry-frame">
+      <div class="briefing-copy">
+        <p class="eyebrow">작전 지휘실</p>
+        <h2>회의에서 정한 방향을 실행 셀에 내리는 작전실</h2>
+        <p class="panel-copy">
+          참모 회의에서 고른 결론이 여기서 현재 지시, 승인선, 실행 보고로 압축됩니다.
+        </p>
+        <div class="token-row">
+          ${mission ? createToken(`안건:${mission.id}`, 'neutral') : ''}
+          ${task ? createToken(`실행셀:${task.id}`, 'accent') : createToken('실행셀:없음', 'warning')}
+          ${task ? createToken(`상태:${getTaskLifecycleDisplay(task.lifecycleState)}`, 'neutral') : ''}
+          ${createToken(`지시:${gateLabel}`, approvalBridge?.currentApproval?.status === 'pending' ? 'accent' : 'neutral')}
+        </div>
+        <div class="execution-command-signal-row">
+          ${executionCommandSignals
+            .map(
+              (entry) => `
+                <div class="execution-command-signal execution-command-signal-${escapeHtml(entry.surface)}">
+                  <span class="execution-command-signal-dot execution-command-signal-dot-${escapeHtml(entry.tone)}"></span>
+                  <span class="execution-command-signal-label">${escapeHtml(entry.label)}</span>
+                  <strong class="execution-command-signal-status">${escapeHtml(entry.status)}</strong>
+                </div>
+              `,
+            )
+            .join('')}
+        </div>
+      </div>
+      <div class="command-deck">
+        <section class="command-deck-card">
+          <p class="command-deck-label">현재 지시</p>
+          <strong class="command-deck-title">${escapeHtml(gateLabel)}</strong>
+          <p class="command-deck-copy">${escapeHtml(gateCopy)}</p>
+        </section>
+        <section class="command-deck-card">
+          <p class="command-deck-label">최근 보고</p>
+          <strong class="command-deck-title">${escapeHtml(latestRun ? `${getRunStatusDisplay(latestRun.status)} 보고` : '보고 대기')}</strong>
+          <p class="command-deck-copy">${escapeHtml(latestRunSummary)}</p>
+        </section>
+      </div>
+    </section>
+  `;
+}
+
+function renderNarrativeDeck(options = {}) {
+  const eyebrow = String(options.eyebrow || '본부 브리핑').trim();
+  const heading = String(options.heading || '현재 표면을 요약합니다.').trim();
+  const copy = String(options.copy || '').trim();
+  const tokens = Array.isArray(options.tokens) ? options.tokens.filter(Boolean) : [];
+  const cards = Array.isArray(options.cards) ? options.cards.filter(Boolean) : [];
+  const deckClassName = options.wide === false ? 'command-deck command-deck-detail' : 'command-deck command-deck-wide';
+  const heroClassName = `briefing-hero briefing-hero-compact${options.entryFrame === true ? ' surface-entry-frame' : ''}`;
+
+  return `
+    <section class="${heroClassName}">
+      <div class="briefing-copy">
+        <p class="eyebrow">${escapeHtml(eyebrow)}</p>
+        <h2>${escapeHtml(heading)}</h2>
+        <p class="panel-copy">${escapeHtml(copy)}</p>
+        ${tokens.length > 0 ? `<div class="token-row">${tokens.join('')}</div>` : ''}
+        ${options.signalRow || ''}
+      </div>
+      <div class="${deckClassName}">
+        ${cards
+          .map(
+            (card) => `
+              <section class="command-deck-card">
+                <p class="command-deck-label">${escapeHtml(card.label || '요약')}</p>
+                <strong class="command-deck-title">${escapeHtml(card.title || '대기 중')}</strong>
+                <p class="command-deck-copy">${escapeHtml(card.copy || '')}</p>
+              </section>
+            `,
+          )
+          .join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderDeliverablesReportDeck(options = {}) {
+  const mission = options.mission || null;
+  const councilSession = options.councilSession || null;
+  const task = options.task || null;
+  const currentArtifact = options.currentArtifact || null;
+  const latestApproval = options.latestApproval || null;
+  const approvalBridge = options.approvalBridge || null;
+  const latestReviewStatus = options.latestReviewStatus || 'pending';
+  const missionCompletionReady = Boolean(options.missionCompletionReady);
+  const deliverablesSignalEntries = getCompanySignalEntries({
+    mission,
+    councilSession,
+    linkedTask: task,
+    completionReady: missionCompletionReady,
+  });
+  const deliverablesReportSignals = ['execution', 'deliverables', 'decision-inbox', 'mission']
+    .map((surface) => deliverablesSignalEntries.find((entry) => entry.surface === surface))
+    .filter(Boolean);
+  const reportTitle = currentArtifact
+    ? `${getArtifactTypeDisplay(currentArtifact.type)} 보고`
+    : '보고 대기';
+  const reportCopy = currentArtifact
+    ? `${currentArtifact.id} 번들이 ${formatDate(currentArtifact.createdAt)} 기준 현재 보고 묶음의 맨 위에 있습니다.`
+    : '회의와 작전실에서 올라온 결과 묶음이 아직 없습니다.';
+  const approvalTitle = latestApproval
+    ? `${getApprovalStatusDisplay(latestApproval.status)} 결재`
+    : '열린 결재 없음';
+  const approvalCopy = latestApproval
+    ? `${getApprovalActionLabel(latestApproval.allowedNextAction) || latestApproval.scope} 안건이 ${latestApproval.targetArtifactId || '현재 보고 묶음'} 기준으로 ${getApprovalStatusDisplay(latestApproval.status)} 상태입니다.`
+    : '현재 보고실에는 사람이 처리할 결재 안건이 없습니다.';
+  const nextTitle = missionCompletionReady ? '다음 안건 준비' : approvalBridge?.actionLabel || '작전실 후속';
+  const nextCopy = missionCompletionReady
+    ? '종료 보고가 봉인됐습니다. 미션으로 돌아가 다음 안건을 올릴 수 있습니다.'
+    : approvalBridge?.nextStepCopy || '작전실에서 현재 지시를 계속 전진합니다.';
+
+  return renderNarrativeDeck({
+    eyebrow: '결과 보고실',
+    heading: '회의와 작전실에서 올라온 묶음을 본부 보고용으로 정리합니다',
+    copy: '착석한 참모진이 정한 방향이 실제로 어떤 보고 묶음과 결재선으로 쌓였는지 이 방에서 빠르게 읽습니다.',
+    entryFrame: true,
+    tokens: [
+      mission ? createToken(`안건:${mission.id}`, 'neutral') : '',
+      task ? createToken(`실행셀:${task.id}`, 'accent') : createToken('실행셀:없음', 'warning'),
+      createToken(`리뷰:${getReviewStatusDisplay(latestReviewStatus)}`, getReviewTone(latestReviewStatus)),
+      createToken(`완료:${missionCompletionReady ? '봉인' : '진행중'}`, missionCompletionReady ? 'success' : 'warning'),
+    ],
+    signalRow: `
+      <div class="deliverables-report-signal-row">
+        ${deliverablesReportSignals
+          .map(
+            (entry) => `
+              <div class="deliverables-report-signal deliverables-report-signal-${escapeHtml(entry.surface)}">
+                <span class="deliverables-report-signal-dot deliverables-report-signal-dot-${escapeHtml(entry.tone)}"></span>
+                <span class="deliverables-report-signal-label">${escapeHtml(entry.label)}</span>
+                <strong class="deliverables-report-signal-status">${escapeHtml(entry.status)}</strong>
+              </div>
+            `,
+          )
+          .join('')}
+      </div>
+    `,
+    cards: [
+      {
+        label: '현재 보고 묶음',
+        title: reportTitle,
+        copy: reportCopy,
+      },
+      {
+        label: '결재선',
+        title: approvalTitle,
+        copy: approvalCopy,
+      },
+      {
+        label: '다음 후속',
+        title: nextTitle,
+        copy: nextCopy,
+      },
+    ],
+  });
+}
+
+function renderDeliverablesShelfSignalRow(entries = [], surfaces = []) {
+  const selectedEntries = surfaces
+    .map((surface) => entries.find((entry) => entry.surface === surface))
+    .filter(Boolean);
+
+  if (selectedEntries.length === 0) {
+    return '';
+  }
+
+  return `
+    <div class="deliverables-shelf-signal-row">
+      ${selectedEntries
+        .map(
+          (entry) => `
+            <div class="deliverables-shelf-signal deliverables-shelf-signal-${escapeHtml(entry.surface)}">
+              <span class="deliverables-shelf-signal-dot deliverables-shelf-signal-dot-${escapeHtml(entry.tone)}"></span>
+              <span class="deliverables-shelf-signal-label">${escapeHtml(entry.label)}</span>
+              <strong class="deliverables-shelf-signal-status">${escapeHtml(entry.status)}</strong>
+            </div>
+          `,
+        )
+        .join('')}
+    </div>
+  `;
+}
+
+function renderDeliverablesOpsEntryRow(entries = []) {
+  if (entries.length === 0) {
+    return '';
+  }
+
+  return `
+    <div class="deliverables-ops-entry-row">
+      ${entries
+        .map(
+          (entry) => `
+            <div class="deliverables-ops-entry deliverables-ops-entry-${escapeHtml(entry.surface)}">
+              <div class="deliverables-ops-entry-head">
+                <span class="deliverables-ops-entry-dot deliverables-ops-entry-dot-${escapeHtml(entry.tone)}"></span>
+                <span class="deliverables-ops-entry-label">${escapeHtml(entry.label)}</span>
+              </div>
+              <strong class="deliverables-ops-entry-status">${escapeHtml(entry.status)}</strong>
+            </div>
+          `,
+        )
+        .join('')}
+    </div>
+  `;
+}
+
+function renderTaskboardOpsEntrySignalRow(entries = []) {
+  if (entries.length === 0) {
+    return '';
+  }
+
+  return `
+    <div class="taskboard-ops-entry-signal-row">
+      ${entries
+        .map(
+          (entry) => `
+            <div class="taskboard-ops-entry-signal taskboard-ops-entry-signal-${escapeHtml(entry.surface)}">
+              <span class="taskboard-ops-entry-signal-dot taskboard-ops-entry-signal-dot-${escapeHtml(entry.tone)}"></span>
+              <span class="taskboard-ops-entry-signal-label">${escapeHtml(entry.label)}</span>
+              <strong class="taskboard-ops-entry-signal-status">${escapeHtml(entry.status)}</strong>
+            </div>
+          `,
+        )
+        .join('')}
+    </div>
+  `;
+}
+
+function getAdvancedOpsEntrySignals(options = {}) {
+  const data = options.data || {};
+  const task = options.task || null;
+  const currentRun =
+    options.currentRun || (task?.latestRunId ? data.runMap?.get(task.latestRunId) || null : null);
+  const currentArtifact =
+    options.currentArtifact ||
+    (task && Array.isArray(data.artifacts)
+      ? getTaskArtifacts(task.id, data.artifacts).sort(sortByCreatedDesc)[0] || null
+      : null);
+  const currentInboxItem =
+    options.currentInboxItem || (task ? getPreferredTaskInboxItem(task.id, data) : null);
+  const pendingApprovalCount = Number.isFinite(options.pendingApprovalCount)
+    ? options.pendingApprovalCount
+    : 0;
+  const pendingDecisionCount = Number.isFinite(options.pendingDecisionCount)
+    ? options.pendingDecisionCount
+    : 0;
+
+  return [
+    {
+      surface: 'taskboard',
+      label: '작업판',
+      status: task ? getTaskLifecycleDisplay(task.lifecycleState) : '셀 없음',
+      tone: task ? getTaskLifecycleTone(task.lifecycleState) : 'warning',
+    },
+    {
+      surface: 'logs',
+      label: '로그',
+      status: currentRun ? getRunStatusDisplay(currentRun.status) : 'run 없음',
+      tone: currentRun ? getRunTone(currentRun.status) : 'neutral',
+    },
+    {
+      surface: 'artifacts',
+      label: '보관',
+      status: currentArtifact ? getArtifactTypeDisplay(currentArtifact.type) : '증적 없음',
+      tone:
+        currentArtifact?.type === 'close-out'
+          ? 'success'
+          : currentArtifact
+            ? 'accent'
+            : 'neutral',
+    },
+    {
+      surface: 'decision-inbox',
+      label: '결재',
+      status: currentInboxItem
+        ? `${getInboxKindDisplay(currentInboxItem.kind)} ${getInboxStatusDisplay(currentInboxItem.status)}`
+        : pendingApprovalCount > 0
+          ? `승인 ${pendingApprovalCount}건`
+          : pendingDecisionCount > 0
+            ? `확인 ${pendingDecisionCount}건`
+            : '대기 없음',
+      tone: currentInboxItem
+        ? getInboxTone(currentInboxItem)
+        : pendingApprovalCount > 0
+          ? 'accent'
+          : pendingDecisionCount > 0
+            ? 'warning'
+            : 'success',
+    },
+  ];
+}
+
+function renderAdvancedOpsEntrySignalRow(entries = []) {
+  if (entries.length === 0) {
+    return '';
+  }
+
+  return `
+    <div class="advanced-ops-entry-signal-row">
+      ${entries
+        .map(
+          (entry) => `
+            <div class="advanced-ops-entry-signal advanced-ops-entry-signal-${escapeHtml(entry.surface)}">
+              <span class="advanced-ops-entry-signal-dot advanced-ops-entry-signal-dot-${escapeHtml(entry.tone)}"></span>
+              <span class="advanced-ops-entry-signal-label">${escapeHtml(entry.label)}</span>
+              <strong class="advanced-ops-entry-signal-status">${escapeHtml(entry.status)}</strong>
+            </div>
+          `,
+        )
+        .join('')}
+    </div>
+  `;
+}
+
+function renderOpsCenterDeck(options = {}) {
+  return renderNarrativeDeck({
+    eyebrow: options.eyebrow || '본부 관제실',
+    heading: options.heading || '심층 근거를 들여다보는 관제실',
+    copy:
+      options.copy ||
+      '회의실과 작전실 아래에 남는 원문 기록, 증적, 결재선은 관제실에서 확인합니다.',
+    entryFrame: options.entryFrame === true,
+    tokens: options.tokens || [],
+    cards: options.cards || [],
+  });
+}
+
 function createEmptyDerivedState() {
   return {
     activeProjectLinkedWorktrees: {
@@ -113,6 +1126,7 @@ function createEmptyDerivedState() {
     closeOutReadinessSummaries: {},
     commitExecutionReadinessSummaries: {},
     commitPackageReadinessSummaries: {},
+    executionEntrySummaries: {},
     providerExecutionSummaries: {},
     releasePackageReadinessSummaries: {},
     reviewerReadinessSummaries: {},
@@ -255,21 +1269,21 @@ function getDerived() {
 function getProjectBootstrapState(data) {
   if (data.projects.length === 0) {
     return {
-      copy: 'Register the first project before task creation or execution.',
-      title: 'First-Run Bootstrap',
+      copy: '태스크 생성이나 실행 전에 첫 프로젝트를 먼저 등록합니다.',
+      title: '최초 진입 준비',
     };
   }
 
   if (!data.activeProject) {
     return {
-      copy: 'Select the current project before task creation or execution.',
-      title: 'Project Selection Required',
+      copy: '태스크 생성이나 실행 전에 현재 프로젝트를 먼저 고릅니다.',
+      title: '프로젝트 선택 필요',
     };
   }
 
   return {
-    copy: 'The bootstrap path closes once a project is active. The next step is the first task.',
-    title: 'Project Registry',
+    copy: '프로젝트가 활성화되면 준비 경로는 닫히고, 다음 단계는 첫 태스크입니다.',
+    title: '프로젝트 등록부',
   };
 }
 
@@ -297,6 +1311,34 @@ function getMissionStatusTone(status) {
   return 'neutral';
 }
 
+function getMissionStatusDisplay(status) {
+  if (status === 'aligning') {
+    return '정렬 중';
+  }
+
+  if (status === 'aligned') {
+    return '정렬 완료';
+  }
+
+  if (status === 'executing') {
+    return '실행 중';
+  }
+
+  if (status === 'completed') {
+    return '완료';
+  }
+
+  if (status === 'blocked') {
+    return '차단';
+  }
+
+  if (status === 'draft') {
+    return '초안';
+  }
+
+  return status || '알 수 없음';
+}
+
 function getCouncilStatusTone(status) {
   if (status === 'approved') {
     return 'success';
@@ -309,6 +1351,361 @@ function getCouncilStatusTone(status) {
   return 'neutral';
 }
 
+function getCouncilStatusDisplay(status) {
+  if (status === 'pending-alignment') {
+    return '정렬 대기';
+  }
+
+  if (status === 'approved') {
+    return '승인됨';
+  }
+
+  return status || '알 수 없음';
+}
+
+function getTaskLifecycleDisplay(state) {
+  if (state === 'Inbox') {
+    return '받은함';
+  }
+
+  if (state === 'In Progress') {
+    return '진행 중';
+  }
+
+  if (state === 'Review') {
+    return '리뷰';
+  }
+
+  if (state === 'Done') {
+    return '완료';
+  }
+
+  return state || '알 수 없음';
+}
+
+function getTaskLifecycleTone(state) {
+  if (state === 'Done') {
+    return 'success';
+  }
+
+  if (state === 'Review') {
+    return 'accent';
+  }
+
+  if (state === 'In Progress') {
+    return 'warning';
+  }
+
+  return 'neutral';
+}
+
+function getAlignmentStatusDisplay(status) {
+  if (status === 'approved') {
+    return '승인됨';
+  }
+
+  if (status === 'pending') {
+    return '대기';
+  }
+
+  return status || '알 수 없음';
+}
+
+function getReviewStatusDisplay(status) {
+  if (status === 'passed') {
+    return '통과';
+  }
+
+  if (status === 'changes_requested') {
+    return '수정 요청';
+  }
+
+  if (status === 'pending') {
+    return '대기';
+  }
+
+  return status || '알 수 없음';
+}
+
+function getApprovalStatusDisplay(status) {
+  if (status === 'approved') {
+    return '승인';
+  }
+
+  if (status === 'rejected') {
+    return '반려';
+  }
+
+  if (status === 'pending') {
+    return '대기';
+  }
+
+  if (status === 'stale') {
+    return '오래됨';
+  }
+
+  if (status === 'none') {
+    return '없음';
+  }
+
+  return status || '알 수 없음';
+}
+
+function getRunStatusDisplay(status) {
+  if (status === 'running') {
+    return '실행 중';
+  }
+
+  if (status === 'completed') {
+    return '완료';
+  }
+
+  if (status === 'failed') {
+    return '실패';
+  }
+
+  if (status === 'pending') {
+    return '대기';
+  }
+
+  return status || '알 수 없음';
+}
+
+function getExecutionRoleDisplay(role) {
+  if (role === 'planner') return '기획 셀';
+  if (role === 'architect') return '설계 셀';
+  if (role === 'task-breaker') return '분해 셀';
+  if (role === 'builder-preflight') return '사전점검 셀';
+  if (role === 'builder-live-mutation') return '라이브변경 셀';
+  if (role === 'reviewer') return '리뷰 셀';
+  if (role === 'commit-packager' || role === 'commit-package') return '커밋 정리 셀';
+  if (role === 'release-packager' || role === 'release-package') return '릴리스 정리 셀';
+  if (role === 'close-out') return '종료 정리 셀';
+  if (role === 'none') return '없음';
+  return role || '알 수 없음';
+}
+
+function getExecutionStageDisplay(stage) {
+  if (stage === 'planner') return '기획 수립';
+  if (stage === 'architect') return '설계 정리';
+  if (stage === 'task-breaker') return '실행 분해';
+  if (stage === 'builder-preflight') return '사전 점검';
+  if (stage === 'builder-live-mutation') return '라이브 변경';
+  if (stage === 'reviewer') return '리뷰 검토';
+  if (stage === 'commit-package') return '커밋 패키지';
+  if (stage === 'commit-intent') return '커밋 승인';
+  if (stage === 'release-package') return '릴리스 패키지';
+  if (stage === 'release-ready') return '릴리스 승인';
+  if (stage === 'close-out') return '종료 정리';
+  return stage || '알 수 없음';
+}
+
+function getEvidenceRailStatusDisplay(status) {
+  if (status === 'complete') {
+    return '인계 완료';
+  }
+
+  if (status === 'current') {
+    return '현재 담당';
+  }
+
+  if (status === 'blocked') {
+    return '보류';
+  }
+
+  return '대기';
+}
+
+function getEvidenceRailStatusTone(status) {
+  if (status === 'complete') {
+    return 'success';
+  }
+
+  if (status === 'current') {
+    return 'accent';
+  }
+
+  if (status === 'blocked') {
+    return 'danger';
+  }
+
+  return 'neutral';
+}
+
+function getEvidenceRailHandoffDisplay(value) {
+  const normalized = String(value || '').trim();
+
+  if (!normalized) {
+    return '없음';
+  }
+
+  const directMap = {
+    Strategist: 'Strategist',
+    Architect: 'Architect',
+    Decomposer: 'Decomposer',
+    Maker: 'Maker',
+    Critic: 'Critic',
+    architect: 'Architect',
+    builder: 'Maker',
+    'builder-live-mutation': '라이브 변경',
+    'builder-live-mutation approval': '라이브 변경 승인',
+    'builder-preflight': 'Maker',
+    'close-out': '종료 정리',
+    'commit-intent': '커밋 승인',
+    'commit-package': '커밋 패키지',
+    'execution cell creation': '실행 셀 생성',
+    'human gate': '사람 게이트',
+    'release-package': '릴리스 패키지',
+    'release-ready': '릴리스 승인',
+    reviewer: 'Critic',
+    'task-breaker': 'Decomposer',
+  };
+
+  return directMap[normalized] || normalized;
+}
+
+function getInboxKindDisplay(kind) {
+  if (kind === 'approval') {
+    return '승인';
+  }
+
+  if (kind === 'decision') {
+    return '결정';
+  }
+
+  if (kind === 'review') {
+    return '리뷰';
+  }
+
+  return kind || '알 수 없음';
+}
+
+function getInboxStatusDisplay(status) {
+  if (status === 'pending') {
+    return '대기중';
+  }
+
+  if (status === 'resolved') {
+    return '해결됨';
+  }
+
+  return status || '알 수 없음';
+}
+
+function getInboxResolutionActionDisplay(action) {
+  if (action === 'approve') {
+    return '승인';
+  }
+
+  if (action === 'reject') {
+    return '반려';
+  }
+
+  if (action === 'resolve') {
+    return '해결';
+  }
+
+  return action || '알 수 없음';
+}
+
+function getBooleanDisplay(value) {
+  return value ? '예' : '아니오';
+}
+
+function getArtifactTypeDisplay(type) {
+  if (type === 'plan') return '계획';
+  if (type === 'architecture') return '설계';
+  if (type === 'breakdown') return '분해';
+  if (type === 'preflight') return 'preflight';
+  if (type === 'change-summary') return '변경요약';
+  if (type === 'patch') return '패치';
+  if (type === 'diff') return 'diff';
+  if (type === 'review') return '리뷰';
+  if (type === 'commit-package') return '커밋패키지';
+  if (type === 'commit-result') return '커밋결과';
+  if (type === 'release-package') return '릴리스패키지';
+  if (type === 'close-out') return '종료정리';
+  if (type === 'output') return '출력';
+  return type || '알 수 없음';
+}
+
+function getExecutionModeDisplay(mode) {
+  if (mode === 'live-mutation') return '라이브변경';
+  if (mode === 'commit-package') return '커밋패키지';
+  if (mode === 'release-package') return '릴리스패키지';
+  if (mode === 'close-out') return '종료정리';
+  return mode || '알 수 없음';
+}
+
+function getReviewerVerdictDisplay(verdict) {
+  if (verdict === 'pass') return '통과';
+  if (verdict === 'fail') return '실패';
+  if (verdict === 'changes_requested') return '수정요청';
+  return verdict || '알 수 없음';
+}
+
+function getDeliveryStanceDisplay(stance) {
+  if (stance === 'local-demo-only') return '로컬데모전용';
+  if (stance === 'local-only') return '로컬전용';
+  return stance || '알 수 없음';
+}
+
+function getPackageStatusDisplay(status) {
+  if (status === 'current') return '현재';
+  if (status === 'stale') return '오래됨';
+  if (status === 'latest') return '최신';
+  if (status === 'missing') return '없음';
+  return status || '알 수 없음';
+}
+
+function getProviderReadinessDisplay(status) {
+  if (status === 'ready') return '준비됨';
+  if (status === 'not-configured') return '미설정';
+  if (status === 'error') return '오류';
+  if (status === 'unknown') return '알 수 없음';
+  return status || '알 수 없음';
+}
+
+function getRunRelationLabelDisplay(label) {
+  if (label === 'commit-executor run') return '커밋실행 run';
+  if (label === 'commit-packager run') return '커밋패키저 run';
+  if (label === 'reviewer run') return '리뷰어 run';
+  if (label === 'release-packager run') return '릴리스패키저 run';
+  if (label === 'close-out run') return '종료정리 run';
+  if (label === 'run') return 'run';
+  return label || 'run';
+}
+
+function getGuardReasonDisplay(reason) {
+  const normalizedReason = String(reason || '').trim();
+
+  if (!normalizedReason) {
+    return '알 수 없는 사유';
+  }
+
+  const directMap = {
+    'select a task': '태스크를 먼저 선택하세요.',
+    'wait for the current action to finish': '현재 작업이 끝날 때까지 기다리세요.',
+    'runtime guard unavailable': 'runtime 가드 요약을 아직 확인할 수 없습니다.',
+    'runtime request summary unavailable': 'runtime 요청 요약을 아직 확인할 수 없습니다.',
+    'reviewer readiness unavailable': '리뷰어 준비도를 아직 확인할 수 없습니다.',
+    'commit-package readiness unavailable': '커밋패키지 준비도를 아직 확인할 수 없습니다.',
+    'commit execution readiness unavailable': '로컬 커밋 준비도를 아직 확인할 수 없습니다.',
+    'release-package readiness unavailable': '릴리스패키지 준비도를 아직 확인할 수 없습니다.',
+    'close-out readiness unavailable': '종료 정리 준비도를 아직 확인할 수 없습니다.',
+    'latest plan artifact required': '최신 계획 아티팩트가 필요합니다.',
+    'latest architecture artifact required': '최신 설계 아티팩트가 필요합니다.',
+    'latest breakdown artifact required': '최신 분해 아티팩트가 필요합니다.',
+    'latest preflight artifact required': '최신 preflight 아티팩트가 필요합니다.',
+  };
+
+  if (directMap[normalizedReason]) {
+    return directMap[normalizedReason];
+  }
+
+  return normalizedReason;
+}
+
 function getAlignmentTone(status) {
   if (status === 'approved') {
     return 'success';
@@ -319,10 +1716,10 @@ function getAlignmentTone(status) {
 
 function getProjectGateCopy(data, surfaceName) {
   if (data.projects.length === 0) {
-    return `Register a project in Advanced Ops Mode before using ${surfaceName}.`;
+    return `고급 운영 모드에서 프로젝트를 등록한 뒤 ${surfaceName}을 엽니다.`;
   }
 
-  return `Select the current project in Advanced Ops Mode before using ${surfaceName}.`;
+  return `고급 운영 모드에서 현재 프로젝트를 고른 뒤 ${surfaceName}을 엽니다.`;
 }
 
 function renderProjectGateSurface(title, copy) {
@@ -336,14 +1733,102 @@ function renderProjectGateSurface(title, copy) {
   `;
 }
 
-function renderAdvancedOpsNotice(copy) {
+function renderSurfaceLeadStrip(options = {}) {
+  const {
+    title = '',
+    copy = '',
+    note = '',
+    tokens = [],
+  } = options;
+
   return `
-    <section class="ops-mode-banner">
-      <div class="card-title-row">
-        <strong>Advanced Ops Mode</strong>
-        ${createToken('detailed control', 'warning')}
+    <section class="surface-lead-strip surface-entry-frame">
+      <div class="surface-lead-head">
+        <div>
+          <h2>${escapeHtml(title)}</h2>
+          ${copy ? `<p class="panel-copy panel-copy-tight">${escapeHtml(copy)}</p>` : ''}
+        </div>
+        ${
+          tokens.length > 0
+            ? `<div class="token-row token-row-compact">${tokens.filter(Boolean).join('')}</div>`
+            : ''
+        }
       </div>
-      <p class="detail-copy">${escapeHtml(copy)}</p>
+      ${note ? `<p class="detail-copy detail-copy-compact surface-lead-note">${escapeHtml(note)}</p>` : ''}
+    </section>
+  `;
+}
+
+function renderViewportHandoffStrip(options = {}) {
+  const {
+    eyebrow = '브리핑 인계선',
+    heading = '',
+    copy = '',
+    tokens = [],
+    cards = [],
+  } = options;
+  const validCards = Array.isArray(cards)
+    ? cards.filter((card) => card && (card.title || card.copy))
+    : [];
+
+  return `
+    <section class="surface-lead-strip viewport-handoff-strip surface-entry-frame">
+      <div class="surface-lead-head">
+        <div>
+          <p class="eyebrow">${escapeHtml(eyebrow)}</p>
+          <h2>${escapeHtml(heading)}</h2>
+          ${copy ? `<p class="panel-copy panel-copy-tight">${escapeHtml(copy)}</p>` : ''}
+        </div>
+        ${
+          tokens.length > 0
+            ? `<div class="token-row token-row-compact">${tokens.filter(Boolean).join('')}</div>`
+            : ''
+        }
+      </div>
+      <div class="viewport-handoff-grid">
+        ${validCards
+          .map(
+            (card) => `
+              <article class="viewport-handoff-card${card.emphasis ? ' viewport-handoff-card-emphasis' : ''}">
+                <p class="viewport-handoff-label">${escapeHtml(card.label || '')}</p>
+                ${
+                  card.signal
+                    ? `
+                      <div class="viewport-handoff-signal viewport-handoff-signal-${escapeHtml(card.signal.tone || 'neutral')}">
+                        <span class="viewport-handoff-signal-dot viewport-handoff-signal-dot-${escapeHtml(card.signal.tone || 'neutral')}"></span>
+                        <span class="viewport-handoff-signal-label">${escapeHtml(card.signal.label || 'signal')}</span>
+                        <strong class="viewport-handoff-signal-status">${escapeHtml(card.signal.status || '')}</strong>
+                      </div>
+                    `
+                    : ''
+                }
+                <strong class="viewport-handoff-title">${escapeHtml(card.title || '')}</strong>
+                <p class="viewport-handoff-copy">${escapeHtml(card.copy || '')}</p>
+                ${
+                  card.button
+                    ? `
+                      <button
+                        class="secondary-button viewport-handoff-button"
+                        type="button"
+                        data-action="${escapeHtml(card.button.action)}"
+                        ${card.button.id ? `data-id="${escapeHtml(card.button.id)}"` : ''}
+                        ${
+                          card.button.targetSurface
+                            ? `data-target-surface="${escapeHtml(card.button.targetSurface)}"`
+                            : ''
+                        }
+                        ${card.button.disabled ? 'disabled' : ''}
+                      >
+                        ${escapeHtml(card.button.label)}
+                      </button>
+                    `
+                    : ''
+                }
+              </article>
+            `,
+          )
+          .join('')}
+      </div>
     </section>
   `;
 }
@@ -357,7 +1842,7 @@ function buildLinkedWorktreeFallbackName(option) {
     .split('/')
     .filter(Boolean);
 
-  return option?.branch || pathParts[pathParts.length - 1] || 'linked-worktree';
+  return option?.branch || pathParts[pathParts.length - 1] || '연결-워크트리';
 }
 
 function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
@@ -367,8 +1852,8 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
 
   if (!task.worktreeRef) {
     return {
-      copy: 'task.worktreeRef is not set.',
-      label: 'worktree:not-set',
+      copy: 'task.worktreeRef가 아직 설정되지 않았습니다.',
+      label: '워크트리:미설정',
       status: 'not-set',
       switchOption: null,
       tone: 'neutral',
@@ -377,8 +1862,8 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
 
   if (matchedOption?.isCurrentProjectPath) {
     return {
-      copy: 'task.worktreeRef matches the current active project_path.',
-      label: 'worktree:matches-active-project',
+      copy: 'task.worktreeRef가 현재 project_path와 일치합니다.',
+      label: '워크트리:현재프로젝트일치',
       status: 'matches-active-project',
       switchOption: null,
       tone: 'success',
@@ -387,8 +1872,8 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
 
   if (matchedOption) {
     return {
-      copy: `task.worktreeRef points to ${formatWorktreeOptionLabel(matchedOption)} while the active project_path remains ${activeProjectLinkedWorktrees.projectPath || 'unset'}.`,
-      label: 'worktree:mismatch',
+      copy: `task.worktreeRef는 ${formatWorktreeOptionLabel(matchedOption)}를 가리키지만 현재 project_path는 ${activeProjectLinkedWorktrees.projectPath || '미설정'}로 남아 있습니다.`,
+      label: '워크트리:불일치',
       status: 'mismatch',
       switchOption: matchedOption,
       tone: 'warning',
@@ -397,8 +1882,8 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
 
   if (activeProjectLinkedWorktrees.notice) {
     return {
-      copy: `Linked worktree detection is unavailable for the current project_path. Stored task.worktreeRef is ${task.worktreeRef}.`,
-      label: 'worktree:unavailable',
+      copy: `현재 project_path에서는 연결 워크트리 탐지를 사용할 수 없습니다. 저장된 task.worktreeRef는 ${task.worktreeRef}입니다.`,
+      label: '워크트리:탐지불가',
       status: 'unavailable',
       switchOption: null,
       tone: 'neutral',
@@ -406,8 +1891,8 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
   }
 
   return {
-    copy: 'Stored task.worktreeRef is outside the current detected linked worktree list.',
-    label: 'worktree:outside-detected-list',
+    copy: '저장된 task.worktreeRef가 현재 탐지된 연결 워크트리 목록 밖에 있습니다.',
+    label: '워크트리:탐지목록밖',
     status: 'outside-detected-list',
     switchOption: null,
     tone: 'warning',
@@ -421,10 +1906,10 @@ function renderLinkedWorktreeSwitchPanel(data, projectActionDisabled) {
     return `
       <section class="linked-worktree-panel relation-strip">
         <div class="card-title-row">
-          <strong>Detected Linked Worktrees</strong>
-          ${createToken('linked-worktrees:inactive', 'neutral')}
+          <strong>탐지된 연결 워크트리</strong>
+          ${createToken('연결워크트리:비활성', 'neutral')}
         </div>
-        <p class="detail-copy">Select a registered project to inspect linked worktree roots.</p>
+        <p class="detail-copy">등록된 프로젝트를 골라 연결 워크트리 루트를 확인합니다.</p>
       </section>
     `;
   }
@@ -433,18 +1918,18 @@ function renderLinkedWorktreeSwitchPanel(data, projectActionDisabled) {
   const body = options.length
     ? options
         .map((option) => {
-          const buttonLabel = option.isCurrentProjectPath ? 'Current Active Project' : 'Switch Active Project';
+          const buttonLabel = option.isCurrentProjectPath ? '현재 활성 프로젝트' : '활성 프로젝트 전환';
 
           return `
             <div class="linked-worktree-row relation-strip">
               <div class="card-title-row">
                 <strong>${escapeHtml(option.branch || buildLinkedWorktreeFallbackName(option))}</strong>
                 <div class="token-row">
-                  ${option.isCurrentProjectPath ? createToken('active project_path', 'success') : ''}
+                  ${option.isCurrentProjectPath ? createToken('현재 project_path', 'success') : ''}
                   ${
                     option.registeredProjectId
-                      ? createToken(`registered:${option.registeredProjectName || option.registeredProjectId}`, 'neutral')
-                      : createToken('unregistered', 'warning')
+                      ? createToken(`등록됨:${option.registeredProjectName || option.registeredProjectId}`, 'neutral')
+                      : createToken('미등록', 'warning')
                   }
                 </div>
               </div>
@@ -461,8 +1946,8 @@ function renderLinkedWorktreeSwitchPanel(data, projectActionDisabled) {
                 </button>
                 <p class="form-help">${
                   option.registeredProjectId
-                    ? 'Reuses the existing project select flow.'
-                    : 'Reuses project registration, then makes the linked root active.'
+                    ? '기존 프로젝트 선택 흐름을 그대로 재사용합니다.'
+                    : '프로젝트 등록 흐름을 재사용한 뒤 연결 루트를 활성화합니다.'
                 }</p>
               </div>
             </div>
@@ -471,8 +1956,8 @@ function renderLinkedWorktreeSwitchPanel(data, projectActionDisabled) {
         .join('')
     : `
         <div class="empty-state empty-state-inline">
-          <strong>No linked worktrees detected</strong>
-          <p>${escapeHtml(activeProjectLinkedWorktrees.notice || 'This project currently exposes no dedicated linked worktree roots.')}</p>
+          <strong>탐지된 연결 워크트리 없음</strong>
+          <p>${escapeHtml(activeProjectLinkedWorktrees.notice || '이 프로젝트에는 별도 연결 워크트리 루트가 아직 드러나지 않았습니다.')}</p>
         </div>
       `;
 
@@ -480,8 +1965,8 @@ function renderLinkedWorktreeSwitchPanel(data, projectActionDisabled) {
     <section class="linked-worktree-panel">
       <div class="panel-header panel-header-compact">
         <div>
-          <h4>Detected Linked Worktrees</h4>
-          <p class="panel-copy">Current active project 기준으로 detected linked roots만 보여준다. Main worktree는 여기서 제외된다.</p>
+          <h4>탐지된 연결 워크트리</h4>
+          <p class="panel-copy">현재 활성 project 기준으로 탐지된 연결 루트만 보여줍니다. main worktree는 여기서 제외합니다.</p>
         </div>
       </div>
       <div class="linked-worktree-list">
@@ -575,15 +2060,15 @@ function getApprovalActionLabel(action) {
   }
 
   if (action === 'builder-live-mutation') {
-    return 'builder live mutation';
+    return '라이브 변경';
   }
 
   if (action === 'commit-intent') {
-    return 'local commit';
+    return '로컬 커밋';
   }
 
   if (action === 'release-ready') {
-    return 'release package';
+    return '릴리스 패키지';
   }
 
   return action;
@@ -591,24 +2076,24 @@ function getApprovalActionLabel(action) {
 
 function describeApprovalTarget(approval, targetArtifact) {
   if (targetArtifact) {
-    return `${targetArtifact.type} ${targetArtifact.id}`;
+    return `아티팩트 ${targetArtifact.id} (${targetArtifact.type})`;
   }
 
   if (approval?.targetArtifactId) {
-    return `artifact ${approval.targetArtifactId}`;
+    return `아티팩트 ${approval.targetArtifactId}`;
   }
 
-  return 'the current bounded artifact';
+  return '현재 한정된 아티팩트';
 }
 
 function getTaskApprovalBridge(task, data) {
   if (!task) {
     return {
       actionLabel: null,
-      bridgeCopy: 'No approval bridge exists yet for this mission.',
+      bridgeCopy: '이 미션에는 아직 승인 브리지 자체가 없습니다.',
       currentApproval: null,
       currentGateItem: null,
-      nextStepCopy: 'Next operator step: stay on Mission or Council until execution creates the first gate.',
+      nextStepCopy: '다음 운영 단계: 실행이 첫 게이트를 만들기 전까지는 미션 또는 협의회에 머뭅니다.',
       pendingInboxItem: null,
       targetArtifact: null,
     };
@@ -639,12 +2124,12 @@ function getTaskApprovalBridge(task, data) {
     ) {
       return {
         actionLabel,
-        bridgeCopy: `Council approval already advanced this mission to preflight. The current human gate is ${currentApproval.id}, which approves builder live mutation against ${targetLabel}.`,
+        bridgeCopy: `협의회 승인으로 이 미션은 이미 preflight까지 진행됐습니다. 현재 사람 게이트는 ${currentApproval.id}이며, ${targetLabel} 기준 라이브 변경을 승인합니다.`,
         currentApproval,
         currentGateItem,
         nextStepCopy: pendingInboxItem
-          ? `Open Advanced Ops Mode -> Decision Inbox -> approve ${pendingInboxItem.id}, then return to Taskboard and run Live Mutation.`
-          : 'Open Advanced Ops Mode and approve the current builder live mutation gate before running Live Mutation.',
+          ? `고급 운영 모드 -> 결정함에서 ${pendingInboxItem.id}를 승인한 뒤, 실행으로 돌아와 라이브 변경을 실행합니다.`
+          : '고급 운영 모드에서 현재 라이브 변경 승인 게이트를 먼저 처리한 뒤 라이브 변경을 실행합니다.',
         pendingInboxItem,
         targetArtifact,
       };
@@ -656,10 +2141,10 @@ function getTaskApprovalBridge(task, data) {
     ) {
       return {
         actionLabel,
-        bridgeCopy: `${currentApproval.id} already approved builder live mutation for ${targetLabel}.`,
+        bridgeCopy: `${currentApproval.id}가 ${targetLabel} 기준 라이브 변경을 이미 승인했습니다.`,
         currentApproval,
         currentGateItem,
-        nextStepCopy: 'Open Advanced Ops Mode -> Taskboard and run Live Mutation.',
+        nextStepCopy: '실행에서 라이브 변경을 바로 실행합니다.',
         pendingInboxItem,
         targetArtifact,
       };
@@ -671,12 +2156,12 @@ function getTaskApprovalBridge(task, data) {
     ) {
       return {
         actionLabel,
-        bridgeCopy: `The current human gate is ${currentApproval.id}, which approves local commit intent against ${targetLabel}.`,
+        bridgeCopy: `현재 사람 게이트는 ${currentApproval.id}이며, ${targetLabel} 기준 로컬 커밋 의도를 승인합니다.`,
         currentApproval,
         currentGateItem,
         nextStepCopy: pendingInboxItem
-          ? `Approve ${pendingInboxItem.id} on Execution, then return here for Resume Approved Local Commit when readiness turns green.`
-          : 'Approve the current commit gate on Execution, then return here for Resume Approved Local Commit when readiness turns green.',
+          ? `실행에서 ${pendingInboxItem.id}를 승인한 뒤, readiness가 초록으로 바뀌면 승인된 로컬 커밋 이어가기를 실행합니다.`
+          : '실행에서 현재 커밋 게이트를 승인한 뒤, readiness가 초록으로 바뀌면 승인된 로컬 커밋 이어가기를 실행합니다.',
         pendingInboxItem,
         targetArtifact,
       };
@@ -688,11 +2173,10 @@ function getTaskApprovalBridge(task, data) {
     ) {
       return {
         actionLabel,
-        bridgeCopy: `${currentApproval.id} already approved local commit intent for ${targetLabel}.`,
+        bridgeCopy: `${currentApproval.id}가 ${targetLabel} 기준 로컬 커밋 의도를 이미 승인했습니다.`,
         currentApproval,
         currentGateItem,
-        nextStepCopy:
-          'Run Resume Approved Local Commit on Execution when the current commit bundle readiness is green.',
+        nextStepCopy: '현재 커밋 번들 readiness가 초록이면 실행에서 승인된 로컬 커밋 이어가기를 실행합니다.',
         pendingInboxItem,
         targetArtifact,
       };
@@ -704,12 +2188,12 @@ function getTaskApprovalBridge(task, data) {
     ) {
       return {
         actionLabel,
-        bridgeCopy: `The current human gate is ${currentApproval.id}, which approves release readiness against ${targetLabel}.`,
+        bridgeCopy: `현재 사람 게이트는 ${currentApproval.id}이며, ${targetLabel} 기준 릴리스 readiness를 승인합니다.`,
         currentApproval,
         currentGateItem,
         nextStepCopy: pendingInboxItem
-          ? `Approve ${pendingInboxItem.id} on Execution, then return here for Resume Approved Close Out when readiness turns green.`
-          : 'Approve the current release gate on Execution, then return here for Resume Approved Close Out when readiness turns green.',
+          ? `실행에서 ${pendingInboxItem.id}를 승인한 뒤, readiness가 초록으로 바뀌면 승인된 종료 정리를 이어갑니다.`
+          : '실행에서 현재 릴리스 게이트를 승인한 뒤, readiness가 초록으로 바뀌면 승인된 종료 정리를 이어갑니다.',
         pendingInboxItem,
         targetArtifact,
       };
@@ -721,11 +2205,10 @@ function getTaskApprovalBridge(task, data) {
     ) {
       return {
         actionLabel,
-        bridgeCopy: `${currentApproval.id} already approved release readiness for ${targetLabel}.`,
+        bridgeCopy: `${currentApproval.id}가 ${targetLabel} 기준 릴리스 readiness를 이미 승인했습니다.`,
         currentApproval,
         currentGateItem,
-        nextStepCopy:
-          'Run Resume Approved Close Out on Execution when the current release bundle readiness is green.',
+        nextStepCopy: '현재 릴리스 번들 readiness가 초록이면 실행에서 승인된 종료 정리를 이어갑니다.',
         pendingInboxItem,
         targetArtifact,
       };
@@ -733,12 +2216,12 @@ function getTaskApprovalBridge(task, data) {
 
     return {
       actionLabel,
-      bridgeCopy: `${currentApproval.id} is ${currentApproval.status} for ${actionLabel || currentApproval.scope || 'the current approval'}, targeting ${targetLabel}.`,
+      bridgeCopy: `${currentApproval.id}는 ${targetLabel} 기준 ${actionLabel || currentApproval.scope || '현재 승인'}에 대해 ${currentApproval.status} 상태입니다.`,
       currentApproval,
       currentGateItem,
       nextStepCopy: pendingInboxItem
-        ? `Open Advanced Ops Mode -> Decision Inbox -> review ${pendingInboxItem.id}.`
-        : 'Open Advanced Ops Mode and inspect the current approval record.',
+        ? `고급 운영 모드 -> 결정함에서 ${pendingInboxItem.id}를 검토합니다.`
+        : '고급 운영 모드에서 현재 승인 기록을 확인합니다.',
       pendingInboxItem,
       targetArtifact,
     };
@@ -747,10 +2230,10 @@ function getTaskApprovalBridge(task, data) {
   if (currentGateItem?.status === 'pending') {
     return {
       actionLabel: null,
-      bridgeCopy: `${currentGateItem.id} is the current pending ${currentGateItem.kind} gate for this mission.`,
+      bridgeCopy: `${currentGateItem.id}가 이 미션의 현재 대기 중 ${currentGateItem.kind} 게이트입니다.`,
       currentApproval: null,
       currentGateItem,
-      nextStepCopy: 'Open Advanced Ops Mode -> Decision Inbox and resolve the current gate.',
+      nextStepCopy: '고급 운영 모드 -> 결정함에서 현재 게이트를 처리합니다.',
       pendingInboxItem: null,
       targetArtifact: null,
     };
@@ -758,10 +2241,10 @@ function getTaskApprovalBridge(task, data) {
 
   return {
     actionLabel: null,
-    bridgeCopy: 'No approval bridge is active right now.',
+    bridgeCopy: '지금 활성화된 승인 브리지는 없습니다.',
     currentApproval: null,
     currentGateItem,
-    nextStepCopy: 'Stay on the primary surfaces until a new execution gate appears.',
+    nextStepCopy: '새 실행 게이트가 나타날 때까지 기본 표면에서 현재 상태를 유지합니다.',
     pendingInboxItem: null,
     targetArtifact: null,
   };
@@ -808,6 +2291,7 @@ function getPreferredTaskInboxItem(taskId, data) {
 }
 
 function getTaskBreakerAvailability(task, data) {
+  const summary = task ? data.derived?.executionEntrySummaries?.[task.id]?.taskBreaker || null : null;
   const guardSummary = task ? data.derived?.taskGuardSummaries?.[task.id]?.taskBreaker || null : null;
   const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
   const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
@@ -816,6 +2300,12 @@ function getTaskBreakerAvailability(task, data) {
 
   if (!task) {
     reasons.push('select a task');
+  }
+
+  if (!summary) {
+    reasons.push('task-breaker readiness unavailable');
+  } else if (!summary.allowed && summary.reasons?.length) {
+    reasons.push(...summary.reasons);
   }
 
   if (guardSummary?.reasons?.length) {
@@ -838,6 +2328,9 @@ function getTaskBreakerAvailability(task, data) {
 }
 
 function getBuilderPreflightAvailability(task, data) {
+  const summary = task
+    ? data.derived?.executionEntrySummaries?.[task.id]?.builderPreflight || null
+    : null;
   const guardSummary = task
     ? data.derived?.taskGuardSummaries?.[task.id]?.builderPreflight || null
     : null;
@@ -849,6 +2342,12 @@ function getBuilderPreflightAvailability(task, data) {
 
   if (!task) {
     reasons.push('select a task');
+  }
+
+  if (!summary) {
+    reasons.push('builder preflight readiness unavailable');
+  } else if (!summary.allowed && summary.reasons?.length) {
+    reasons.push(...summary.reasons);
   }
 
   if (guardSummary?.reasons?.length) {
@@ -869,6 +2368,114 @@ function getBuilderPreflightAvailability(task, data) {
     pendingBlockingDecisionItemIds: guardSummary?.pendingBlockingDecisionItemIds || [],
     reasons: [...new Set(reasons)],
   };
+}
+
+function getPlannerAvailability(task, data) {
+  const summary = task ? data.derived?.executionEntrySummaries?.[task.id]?.planner || null : null;
+  const reasons = [];
+
+  if (!task) {
+    reasons.push('select a task');
+  }
+
+  if (!summary) {
+    reasons.push('planner readiness unavailable');
+  } else if (!summary.allowed && summary.reasons?.length) {
+    reasons.push(...summary.reasons);
+  }
+
+  if (state.loading || state.mutating) {
+    reasons.push('wait for the current action to finish');
+  }
+
+  return {
+    disabled: !summary?.allowed || reasons.length > 0,
+    reasons: [...new Set(reasons)],
+    summary: summary || {
+      allowed: false,
+      reasons: ['planner readiness unavailable'],
+    },
+  };
+}
+
+function getPrimaryBlockedReason(reasons, fallback) {
+  const primaryReason = Array.isArray(reasons) ? reasons.find(Boolean) : null;
+
+  return primaryReason || fallback;
+}
+
+function getArchitectAvailability(task, data) {
+  const summary = task ? data.derived?.executionEntrySummaries?.[task.id]?.architect || null : null;
+  const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
+  const reasons = [];
+
+  if (!task) {
+    reasons.push('select a task');
+  }
+
+  if (!summary) {
+    reasons.push('architect readiness unavailable');
+  } else if (!summary.allowed && summary.reasons?.length) {
+    reasons.push(...summary.reasons);
+  }
+
+  if (state.loading || state.mutating) {
+    reasons.push('wait for the current action to finish');
+  }
+
+  return {
+    disabled: !summary?.allowed || reasons.length > 0,
+    latestPlanArtifact,
+    reasons: [...new Set(reasons)],
+    summary: summary || {
+      allowed: false,
+      reasons: ['architect readiness unavailable'],
+    },
+  };
+}
+
+function getDevelopmentPackExecutionGateReason(task, data) {
+  if (!task) {
+    return null;
+  }
+
+  const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
+  const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
+  const latestBreakdownArtifact = getLatestTaskArtifact(task, data, 'breakdown');
+  const latestPreflightArtifact = getLatestTaskArtifact(task, data, 'preflight');
+  const plannerState = getPlannerAvailability(task, data);
+  const architectState = getArchitectAvailability(task, data);
+  const taskBreakerState = getTaskBreakerAvailability(task, data);
+  const builderPreflightState = getBuilderPreflightAvailability(task, data);
+
+  if (!latestPlanArtifact && plannerState.reasons.length > 0) {
+    return plannerState.reasons[0];
+  }
+
+  if (latestPlanArtifact && !latestArchitectureArtifact && architectState.reasons.length > 0) {
+    return architectState.reasons[0];
+  }
+
+  if (
+    latestPlanArtifact &&
+    latestArchitectureArtifact &&
+    !latestBreakdownArtifact &&
+    taskBreakerState.reasons.length > 0
+  ) {
+    return taskBreakerState.reasons[0];
+  }
+
+  if (
+    latestPlanArtifact &&
+    latestArchitectureArtifact &&
+    latestBreakdownArtifact &&
+    !latestPreflightArtifact &&
+    builderPreflightState.reasons.length > 0
+  ) {
+    return builderPreflightState.reasons[0];
+  }
+
+  return null;
 }
 
 function getBuilderLiveMutationSummaries(task, data) {
@@ -1097,11 +2704,11 @@ function getMissionCouncilPreview(mission, data) {
     openQuestionsCount,
     participantCount,
     previewLine: councilSession
-      ? `${selectedPlanTitle || recommendation || summary || 'Recommendation ready'}. Alignment ${alignmentStatus}.`
-      : 'No council recommendation recorded yet.',
-    recommendationPreview: recommendation || summary || 'No recommendation recorded.',
-    selectedPlanTitle: selectedPlanTitle || 'No selected plan recorded.',
-    selectedPlanScope: councilSession?.selectedPlan?.scope || 'No selected scope recorded.',
+      ? `${selectedPlanTitle || recommendation || summary || '추천안 준비됨'}. 정렬 상태 ${getAlignmentStatusDisplay(alignmentStatus)}.`
+      : '아직 협의회 추천안이 없습니다.',
+    recommendationPreview: recommendation || summary || '아직 추천안이 없습니다.',
+    selectedPlanTitle: selectedPlanTitle || '선택된 계획 없음',
+    selectedPlanScope: councilSession?.selectedPlan?.scope || '선택된 범위 없음',
   };
 }
 
@@ -1115,14 +2722,14 @@ function getMissionExecutionPreview(mission, data) {
     return {
       actionLabel: null,
       approvalBridge: null,
-      blockedReason: 'No linked task exists yet.',
-      gatePreview: 'No execution gate is active because no linked task exists yet.',
+      blockedReason: '연결된 태스크가 아직 없습니다.',
+      gatePreview: '연결된 태스크가 아직 없어서 실행 게이트도 없습니다.',
       latestRun: null,
       latestRunNextStage: null,
       latestRunRole: null,
       linkedTask,
       preferredInboxItem: null,
-      stagePreview: 'No execution run has been recorded yet.',
+      stagePreview: '아직 기록된 실행 run이 없습니다.',
     };
   }
 
@@ -1131,33 +2738,455 @@ function getMissionExecutionPreview(mission, data) {
   const latestRunRole = latestRun?.role || latestRun?.kind || 'none';
   const approvalBridge = getTaskApprovalBridge(linkedTask, data);
   const preferredInboxItem = getPreferredTaskInboxItem(linkedTask.id, data);
+  const executionGateReason = getDevelopmentPackExecutionGateReason(linkedTask, data);
   const blockedReason =
-    preferredInboxItem?.status === 'pending'
+    executionGateReason ||
+    (preferredInboxItem?.status === 'pending'
       ? preferredInboxItem.prompt || preferredInboxItem.title
       : linkedTask.flags?.waitingApproval
-        ? 'Builder live mutation approval is pending.'
+        ? '빌더 라이브 변경 승인이 대기 중입니다.'
         : linkedTask.flags?.waitingDecision
-          ? 'A blocking decision is pending.'
+          ? '막고 있는 결정 항목이 대기 중입니다.'
           : linkedTask.flags?.blocked
-            ? 'The linked task is currently blocked.'
-            : 'No blocking reason is active.';
+            ? '연결된 태스크가 현재 blocked 상태입니다.'
+            : '현재 활성화된 차단 사유는 없습니다.');
 
   return {
     actionLabel: approvalBridge.actionLabel || preferredInboxItem?.kind || null,
     approvalBridge,
     blockedReason,
-    gatePreview: approvalBridge.bridgeCopy || 'No execution gate is active right now.',
+    executionBlocked: Boolean(executionGateReason),
+    gatePreview:
+      approvalBridge.bridgeCopy ||
+      (executionGateReason
+        ? `현재 실행은 ${executionGateReason} 전까지 진행할 수 없습니다.`
+        : '지금 활성화된 실행 게이트는 없습니다.'),
     latestRun,
     latestRunNextStage,
     latestRunRole,
     linkedTask,
     preferredInboxItem,
     stagePreview: latestRun
-      ? `Latest execution stage: ${latestRunRole}${
-          latestRunNextStage ? ` -> ${latestRunNextStage}` : ''
-        } (${latestRun.status}).`
-      : 'No execution run has been recorded yet.',
+      ? `가장 최근 작전 보고: ${getExecutionRoleDisplay(latestRunRole)}${
+          latestRunNextStage ? ` -> ${getExecutionStageDisplay(latestRunNextStage)}` : ''
+        } (${getRunStatusDisplay(latestRun.status)}).`
+      : '아직 기록된 실행 run이 없습니다.',
   };
+}
+
+function getExecutionEvidenceRail(task, data) {
+  const buildCheckpoint = (input) => ({
+    artifactId: input.artifactId || null,
+    blockedReason: input.blockedReason || null,
+    currentOwner: false,
+    evidenceLabel: input.evidenceLabel,
+    evidenceMeta: input.evidenceMeta || null,
+    nextHandoff: false,
+    nextHandoffLabel: input.nextHandoffLabel || '없음',
+    nextRoleId: input.nextRoleId || null,
+    note: input.note || null,
+    roleId: input.roleId,
+    status: input.status,
+    subtitle: input.subtitle,
+    title: input.title,
+  });
+  const buildWaitingCheckpoint = (roleId, subtitle, note) =>
+    buildCheckpoint({
+      roleId,
+      title: roleId,
+      subtitle,
+      status: 'waiting',
+      evidenceLabel: `${subtitle} 대기`,
+      note,
+    });
+
+  if (!task) {
+    const checkpoints = [
+      buildWaitingCheckpoint('Strategist', 'plan', '연결된 실행 셀이 아직 없습니다.'),
+      buildWaitingCheckpoint('Architect', 'architecture', '연결된 실행 셀이 아직 없습니다.'),
+      buildWaitingCheckpoint('Decomposer', 'breakdown', '연결된 실행 셀이 아직 없습니다.'),
+      buildWaitingCheckpoint('Maker', 'preflight / builder', '연결된 실행 셀이 아직 없습니다.'),
+      buildWaitingCheckpoint('Critic', 'review', '연결된 실행 셀이 아직 없습니다.'),
+    ];
+
+    checkpoints[0].currentOwner = true;
+
+    return {
+      blockedReason: '연결된 태스크가 아직 없습니다.',
+      checkpoints,
+      currentOwnerLabel: '인계 대기',
+      nextHandoffLabel: getEvidenceRailHandoffDisplay('execution cell creation'),
+    };
+  }
+
+  const summarizeArtifactRun = (artifact) => {
+    const run = artifact?.runId ? data.runMap.get(artifact.runId) || null : null;
+    return {
+      artifact,
+      meta: run ? `run ${run.id} · ${getRunStatusDisplay(run.status)}` : null,
+      run,
+    };
+  };
+  const joinMeta = (parts) => parts.filter(Boolean).join(' · ');
+  const executionSummaries = data.derived?.executionEntrySummaries?.[task.id] || {};
+  const reviewerSummary = data.derived?.reviewerReadinessSummaries?.[task.id] || null;
+  const builderLiveMutationState = getBuilderLiveMutationSummaries(task, data);
+  const taskApprovals = getTaskApprovals(task.id, data.approvals).sort(sortByCreatedDesc);
+  const taskInboxItems = getTaskInboxItems(task.id, data.inboxItems).sort(sortByCreatedDesc);
+  const latestBuilderApproval =
+    taskApprovals.find((approval) => approval.allowedNextAction === 'builder-live-mutation') || null;
+  const pendingBuilderApprovalItem =
+    taskInboxItems.find(
+      (item) =>
+        item.status === 'pending' &&
+        item.kind === 'approval' &&
+        item.sourceId === latestBuilderApproval?.id,
+    ) ||
+    taskInboxItems.find((item) => item.status === 'pending' && item.kind === 'approval') ||
+    null;
+  const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
+  const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
+  const latestBreakdownArtifact = getLatestTaskArtifact(task, data, 'breakdown');
+  const latestPreflightArtifact = getLatestTaskArtifact(task, data, 'preflight');
+  const latestReviewArtifact = getLatestTaskArtifact(task, data, 'review');
+  const latestBuilderMutationArtifact =
+    getLatestTaskArtifact(task, data, 'change-summary') ||
+    getLatestTaskArtifact(task, data, 'diff') ||
+    getLatestTaskArtifact(task, data, 'patch');
+  const latestBuilderMutationRun =
+    (latestBuilderMutationArtifact?.runId
+      ? data.runMap.get(latestBuilderMutationArtifact.runId) || null
+      : null) ||
+    data.runs
+      .filter(
+        (run) =>
+          run.taskId === task.id &&
+          (run.role === 'builder-live-mutation' || run.summary?.executionMode === 'live-mutation'),
+      )
+      .sort(sortByCreatedDesc)[0] ||
+    null;
+  const latestPlan = summarizeArtifactRun(latestPlanArtifact);
+  const latestArchitecture = summarizeArtifactRun(latestArchitectureArtifact);
+  const latestBreakdown = summarizeArtifactRun(latestBreakdownArtifact);
+  const latestPreflight = summarizeArtifactRun(latestPreflightArtifact);
+  const latestReview = summarizeArtifactRun(latestReviewArtifact);
+  const reviewStatus = task.review?.status || 'pending';
+  const executionBlockedReason = getDevelopmentPackExecutionGateReason(task, data);
+
+  const strategistReason = getPrimaryBlockedReason(executionSummaries.planner?.reasons, null);
+  const strategistCheckpoint = latestPlanArtifact
+    ? buildCheckpoint({
+        roleId: 'Strategist',
+        title: 'Strategist',
+        subtitle: 'plan',
+        status: 'complete',
+        artifactId: latestPlanArtifact.id,
+        evidenceLabel: `plan ${latestPlanArtifact.id}`,
+        evidenceMeta: latestPlan.meta,
+        note: `다음 인계: ${getEvidenceRailHandoffDisplay('Architect')}`,
+        nextHandoffLabel: getEvidenceRailHandoffDisplay('Architect'),
+        nextRoleId: 'Architect',
+      })
+    : buildCheckpoint({
+        roleId: 'Strategist',
+        title: 'Strategist',
+        subtitle: 'plan',
+        status: strategistReason ? 'blocked' : 'current',
+        evidenceLabel: 'plan 대기',
+        blockedReason: strategistReason ? getGuardReasonDisplay(strategistReason) : null,
+        note: `다음 인계: ${getEvidenceRailHandoffDisplay('Architect')}`,
+        nextHandoffLabel: getEvidenceRailHandoffDisplay('Architect'),
+        nextRoleId: 'Architect',
+      });
+
+  const architectReason = getPrimaryBlockedReason(executionSummaries.architect?.reasons, null);
+  const architectCheckpoint = latestArchitectureArtifact
+    ? buildCheckpoint({
+        roleId: 'Architect',
+        title: 'Architect',
+        subtitle: 'architecture',
+        status: 'complete',
+        artifactId: latestArchitectureArtifact.id,
+        evidenceLabel: `architecture ${latestArchitectureArtifact.id}`,
+        evidenceMeta: latestArchitecture.meta,
+        note: `다음 인계: ${getEvidenceRailHandoffDisplay('Decomposer')}`,
+        nextHandoffLabel: getEvidenceRailHandoffDisplay('Decomposer'),
+        nextRoleId: 'Decomposer',
+      })
+    : !latestPlanArtifact
+      ? buildWaitingCheckpoint('Architect', 'architecture', 'plan artifact가 아직 없습니다.')
+      : buildCheckpoint({
+          roleId: 'Architect',
+          title: 'Architect',
+          subtitle: 'architecture',
+          status: architectReason ? 'blocked' : 'current',
+          evidenceLabel: 'architecture 대기',
+          blockedReason: architectReason ? getGuardReasonDisplay(architectReason) : null,
+          note: `다음 인계: ${getEvidenceRailHandoffDisplay('Decomposer')}`,
+          nextHandoffLabel: getEvidenceRailHandoffDisplay('Decomposer'),
+          nextRoleId: 'Decomposer',
+        });
+
+  const decomposerReason = getPrimaryBlockedReason(executionSummaries.taskBreaker?.reasons, null);
+  const decomposerCheckpoint = latestBreakdownArtifact
+    ? buildCheckpoint({
+        roleId: 'Decomposer',
+        title: 'Decomposer',
+        subtitle: 'breakdown',
+        status: 'complete',
+        artifactId: latestBreakdownArtifact.id,
+        evidenceLabel: `breakdown ${latestBreakdownArtifact.id}`,
+        evidenceMeta: latestBreakdown.meta,
+        note: `다음 인계: ${getEvidenceRailHandoffDisplay('Maker')}`,
+        nextHandoffLabel: getEvidenceRailHandoffDisplay('Maker'),
+        nextRoleId: 'Maker',
+      })
+    : !latestArchitectureArtifact
+      ? buildWaitingCheckpoint('Decomposer', 'breakdown', 'architecture artifact가 아직 없습니다.')
+      : buildCheckpoint({
+          roleId: 'Decomposer',
+          title: 'Decomposer',
+          subtitle: 'breakdown',
+          status: decomposerReason ? 'blocked' : 'current',
+          evidenceLabel: 'breakdown 대기',
+          blockedReason: decomposerReason ? getGuardReasonDisplay(decomposerReason) : null,
+          note: `다음 인계: ${getEvidenceRailHandoffDisplay('Maker')}`,
+          nextHandoffLabel: getEvidenceRailHandoffDisplay('Maker'),
+          nextRoleId: 'Maker',
+        });
+
+  const builderApprovalDisplayStatus =
+    builderLiveMutationState.guardSummary.latestApprovalDisplayStatus ||
+    builderLiveMutationState.requestSummary.latestApprovalDisplayStatus ||
+    latestBuilderApproval?.status ||
+    'none';
+  const makerEvidenceMeta = joinMeta([
+    latestPreflight.meta,
+    latestBuilderApproval
+      ? `승인 ${latestBuilderApproval.id} · ${getApprovalStatusDisplay(builderApprovalDisplayStatus)}`
+      : null,
+    latestBuilderMutationRun
+      ? `live ${latestBuilderMutationRun.id} · ${getRunStatusDisplay(latestBuilderMutationRun.status)}`
+      : null,
+  ]);
+  const builderPreflightReason = getPrimaryBlockedReason(
+    executionSummaries.builderPreflight?.reasons,
+    null,
+  );
+  const makerRequestReason = getPrimaryBlockedReason(
+    builderLiveMutationState.requestSummary.reasons,
+    null,
+  );
+  const makerGuardReason = getPrimaryBlockedReason(
+    builderLiveMutationState.guardSummary.reasons,
+    null,
+  );
+  let makerCheckpoint = buildWaitingCheckpoint(
+    'Maker',
+    'preflight / builder',
+    'breakdown artifact가 아직 없습니다.',
+  );
+
+  if (latestBuilderMutationRun || latestReviewArtifact) {
+    makerCheckpoint = buildCheckpoint({
+      roleId: 'Maker',
+      title: 'Maker',
+      subtitle: 'preflight / builder',
+      status: 'complete',
+      artifactId: latestPreflightArtifact?.id || null,
+      evidenceLabel: latestPreflightArtifact ? `preflight ${latestPreflightArtifact.id}` : 'preflight 없음',
+      evidenceMeta: makerEvidenceMeta || null,
+      note: `다음 인계: ${getEvidenceRailHandoffDisplay('Critic')}`,
+      nextHandoffLabel: getEvidenceRailHandoffDisplay('Critic'),
+      nextRoleId: 'Critic',
+    });
+  } else if (latestPreflightArtifact) {
+    const blockedReason =
+      executionBlockedReason ||
+      pendingBuilderApprovalItem?.prompt ||
+      latestBuilderApproval?.prompt ||
+      makerGuardReason ||
+      makerRequestReason ||
+      null;
+    const nextHandoffLabel =
+      latestBuilderApproval?.status === 'approved' && builderLiveMutationState.guardSummary.allowed
+        ? getEvidenceRailHandoffDisplay('builder-live-mutation')
+        : getEvidenceRailHandoffDisplay('builder-live-mutation approval');
+    const status =
+      pendingBuilderApprovalItem || latestBuilderApproval?.status === 'pending'
+        ? 'blocked'
+        : blockedReason && !builderLiveMutationState.requestSummary.allowed && !builderLiveMutationState.guardSummary.allowed
+          ? 'blocked'
+          : 'current';
+
+    makerCheckpoint = buildCheckpoint({
+      roleId: 'Maker',
+      title: 'Maker',
+      subtitle: 'preflight / builder',
+      status,
+      artifactId: latestPreflightArtifact.id,
+      evidenceLabel: `preflight ${latestPreflightArtifact.id}`,
+      evidenceMeta: makerEvidenceMeta || null,
+      blockedReason: status === 'blocked' ? getGuardReasonDisplay(blockedReason) : null,
+      note: `다음 인계: ${nextHandoffLabel}`,
+      nextHandoffLabel,
+    });
+  } else if (latestBreakdownArtifact) {
+    const blockedReason = executionBlockedReason || builderPreflightReason || null;
+    makerCheckpoint = buildCheckpoint({
+      roleId: 'Maker',
+      title: 'Maker',
+      subtitle: 'preflight / builder',
+      status: blockedReason ? 'blocked' : 'current',
+      evidenceLabel: 'preflight 대기',
+      blockedReason: blockedReason ? getGuardReasonDisplay(blockedReason) : null,
+      note: `다음 인계: ${getEvidenceRailHandoffDisplay('builder-live-mutation approval')}`,
+      nextHandoffLabel: getEvidenceRailHandoffDisplay('builder-live-mutation approval'),
+    });
+  }
+
+  const criticEvidenceMeta = joinMeta([
+    latestReview.meta,
+    latestReviewArtifact ? `상태 ${getReviewStatusDisplay(reviewStatus)}` : null,
+    !latestReviewArtifact && latestBuilderMutationRun
+      ? `builder ${latestBuilderMutationRun.id} · ${getRunStatusDisplay(latestBuilderMutationRun.status)}`
+      : null,
+  ]);
+  const criticReason = getPrimaryBlockedReason(reviewerSummary?.reasons, null);
+  const criticNextHandoffLabel = getEvidenceRailHandoffDisplay(
+    latestReview.run?.summary?.nextStage || 'human gate',
+  );
+  const criticCheckpoint = latestReviewArtifact
+    ? buildCheckpoint({
+        roleId: 'Critic',
+        title: 'Critic',
+        subtitle: 'review',
+        status: 'complete',
+        artifactId: latestReviewArtifact.id,
+        evidenceLabel: `review ${latestReviewArtifact.id}`,
+        evidenceMeta: criticEvidenceMeta || null,
+        note: `다음 인계: ${criticNextHandoffLabel}`,
+        nextHandoffLabel: criticNextHandoffLabel,
+      })
+    : latestBuilderMutationRun
+      ? buildCheckpoint({
+          roleId: 'Critic',
+          title: 'Critic',
+          subtitle: 'review',
+          status: criticReason ? 'blocked' : 'current',
+          evidenceLabel: 'review 대기',
+          evidenceMeta: criticEvidenceMeta || null,
+          blockedReason: criticReason ? getGuardReasonDisplay(criticReason) : null,
+          note: `다음 인계: ${getEvidenceRailHandoffDisplay('human gate')}`,
+          nextHandoffLabel: getEvidenceRailHandoffDisplay('human gate'),
+        })
+      : buildWaitingCheckpoint('Critic', 'review', 'builder live-mutation 증적이 아직 없습니다.');
+
+  const checkpoints = [
+    strategistCheckpoint,
+    architectCheckpoint,
+    decomposerCheckpoint,
+    makerCheckpoint,
+    criticCheckpoint,
+  ];
+  const lastCompletedCheckpoint = [...checkpoints].reverse().find((checkpoint) => checkpoint.status === 'complete') || null;
+  const activeCheckpoint =
+    checkpoints.find((checkpoint) => checkpoint.status === 'blocked') ||
+    checkpoints.find((checkpoint) => checkpoint.status === 'current') ||
+    lastCompletedCheckpoint ||
+    checkpoints[0];
+
+  if (activeCheckpoint) {
+    activeCheckpoint.currentOwner = true;
+
+    if (activeCheckpoint.nextRoleId) {
+      const nextCheckpoint = checkpoints.find((checkpoint) => checkpoint.roleId === activeCheckpoint.nextRoleId);
+
+      if (nextCheckpoint) {
+        nextCheckpoint.nextHandoff = true;
+      }
+    }
+  }
+
+  return {
+    blockedReason: activeCheckpoint?.blockedReason || null,
+    checkpoints,
+    currentOwnerLabel: activeCheckpoint?.title || '인계 대기',
+    nextHandoffLabel: activeCheckpoint?.nextHandoffLabel || '없음',
+  };
+}
+
+function renderExecutionEvidenceRail(rail, options = {}) {
+  if (!rail) {
+    return '';
+  }
+
+  const compact = Boolean(options.compact);
+  const eyebrow = options.eyebrow || '증적 인계선';
+  const heading = options.heading || '회의 역할과 실행 증적을 같은 선으로 묶습니다';
+  const copy =
+    options.copy || '이 rail은 현재 task, run, artifact, readiness, review truth만 읽습니다.';
+  const railClassName = `relation-strip evidence-rail${compact ? ' evidence-rail-compact' : ''}`;
+
+  return `
+    <section class="${railClassName}">
+      <div class="evidence-rail-head">
+        <div>
+          <p class="detail-key evidence-rail-eyebrow">${escapeHtml(eyebrow)}</p>
+          <strong class="evidence-rail-heading">${escapeHtml(heading)}</strong>
+          <p class="detail-copy detail-copy-compact evidence-rail-copy">${escapeHtml(copy)}</p>
+        </div>
+        <div class="token-row token-row-compact">
+          ${createToken(`현재:${rail.currentOwnerLabel}`, rail.blockedReason ? 'danger' : 'accent')}
+          ${createToken(`다음:${rail.nextHandoffLabel}`, 'neutral')}
+          ${rail.blockedReason ? createToken('보류사유 있음', 'danger') : createToken('읽기전용', 'neutral')}
+        </div>
+      </div>
+      ${
+        rail.blockedReason
+          ? `<p class="detail-copy detail-copy-compact evidence-rail-blocked-copy">${escapeHtml(rail.blockedReason)}</p>`
+          : ''
+      }
+      <div class="evidence-rail-grid">
+        ${rail.checkpoints
+          .map(
+            (checkpoint) => `
+              <article class="evidence-rail-card evidence-rail-card-${checkpoint.status}${
+                checkpoint.currentOwner ? ' evidence-rail-card-owner' : ''
+              }${checkpoint.nextHandoff ? ' evidence-rail-card-next' : ''}">
+                <div class="card-title-row card-title-row-tight evidence-rail-card-head">
+                  <strong class="evidence-rail-card-title">${escapeHtml(checkpoint.title)}</strong>
+                  ${createToken(
+                    getEvidenceRailStatusDisplay(checkpoint.status),
+                    getEvidenceRailStatusTone(checkpoint.status),
+                  )}
+                  ${checkpoint.currentOwner ? createToken('현재', checkpoint.status === 'blocked' ? 'danger' : 'accent') : ''}
+                  ${checkpoint.nextHandoff ? createToken('다음', 'neutral') : ''}
+                </div>
+                <p class="evidence-rail-card-subtitle">${escapeHtml(checkpoint.subtitle)}</p>
+                <p class="detail-copy detail-copy-compact evidence-rail-card-evidence">${escapeHtml(checkpoint.evidenceLabel)}</p>
+                ${
+                  checkpoint.evidenceMeta
+                    ? `<p class="detail-copy detail-copy-compact evidence-rail-card-meta">${escapeHtml(checkpoint.evidenceMeta)}</p>`
+                    : ''
+                }
+                ${
+                  checkpoint.note
+                    ? `<p class="detail-copy detail-copy-compact evidence-rail-card-note">${escapeHtml(checkpoint.note)}</p>`
+                    : ''
+                }
+                ${
+                  checkpoint.blockedReason
+                    ? `<p class="detail-copy detail-copy-compact evidence-rail-card-blocked">${escapeHtml(checkpoint.blockedReason)}</p>`
+                    : ''
+                }
+              </article>
+            `,
+          )
+          .join('')}
+      </div>
+    </section>
+  `;
 }
 
 function getMissionDeliverablesPreview(mission, data) {
@@ -1173,7 +3202,7 @@ function getMissionDeliverablesPreview(mission, data) {
       latestApproval: null,
       latestReviewStatus: 'pending',
       linkedTask,
-      previewLine: 'No deliverables yet because no linked task exists.',
+      previewLine: '연결된 태스크가 아직 없어서 산출물도 없습니다.',
     };
   }
 
@@ -1216,16 +3245,16 @@ function getMissionDeliverablesPreview(mission, data) {
     latestReviewStatus,
     linkedTask,
     previewLine: currentDeliverableArtifact
-      ? `${currentDeliverableArtifact.type} ${currentDeliverableArtifact.id}; review ${latestReviewStatus}; approval ${latestApproval?.status || 'none'}.`
-      : `No artifact package yet; review ${latestReviewStatus}; approval ${latestApproval?.status || 'none'}.`,
+      ? `${currentDeliverableArtifact.type} ${currentDeliverableArtifact.id}; 리뷰 ${getReviewStatusDisplay(latestReviewStatus)}; 승인 ${getApprovalStatusDisplay(latestApproval?.status || 'none')}.`
+      : `아직 아티팩트 패키지가 없습니다; 리뷰 ${getReviewStatusDisplay(latestReviewStatus)}; 승인 ${getApprovalStatusDisplay(latestApproval?.status || 'none')}.`,
   };
 }
 
 function getMissionNextActionPreview(mission, previews) {
   if (!mission) {
     return {
-      actionLabel: 'Start With Mission',
-      summary: 'Mission is the current best next step because no mission is selected yet.',
+      actionLabel: '미션부터 시작',
+      summary: '아직 선택된 미션이 없으므로 지금 가장 먼저 열어야 할 표면은 미션입니다.',
       surface: 'mission',
       tone: 'warning',
     };
@@ -1233,9 +3262,9 @@ function getMissionNextActionPreview(mission, previews) {
 
   if (previews.completion?.completionReady) {
     return {
-      actionLabel: 'Prepare Next Mission',
+      actionLabel: '다음 미션 준비',
       summary:
-        'Mission is the current best next step because the bounded path is already sealed and the next mission draft can be prepared safely from current constraints.',
+        '현재 한정된 경로가 이미 닫혔으므로, 다음 미션 초안을 여는 가장 안전한 다음 단계는 미션입니다.',
       surface: 'mission',
       tone: 'success',
     };
@@ -1243,9 +3272,9 @@ function getMissionNextActionPreview(mission, previews) {
 
   if (!previews.council?.councilSession) {
     return {
-      actionLabel: 'Draft Council',
+      actionLabel: '협의회 초안 만들기',
       summary:
-        'Council is the current best next step because no visible recommendation exists yet for this mission.',
+        '이 미션에는 아직 보이는 추천안이 없으므로, 지금 가장 먼저 열어야 할 표면은 협의회입니다.',
       surface: 'council',
       tone: 'warning',
     };
@@ -1253,9 +3282,9 @@ function getMissionNextActionPreview(mission, previews) {
 
   if (previews.council.alignmentStatus !== 'approved') {
     return {
-      actionLabel: 'Open Council',
+      actionLabel: '협의회 열기',
       summary:
-        'Council is the current best next step because the recommendation is visible but alignment is still pending.',
+        '추천안은 보이지만 정렬 승인이 아직 끝나지 않았으므로, 지금 가장 먼저 열어야 할 표면은 협의회입니다.',
       surface: 'council',
       tone: 'warning',
     };
@@ -1263,25 +3292,899 @@ function getMissionNextActionPreview(mission, previews) {
 
   if (!previews.execution?.linkedTask) {
     return {
-      actionLabel: 'Create Linked Task',
+      actionLabel: '연결 태스크 만들기',
       summary:
-        'Mission is the current best next step because the recommendation is aligned but no linked task exists yet.',
+        '추천안 정렬은 끝났지만 연결 태스크가 아직 없으므로, 지금 가장 먼저 돌아가야 할 표면은 미션입니다.',
       surface: 'mission',
       tone: 'accent',
     };
   }
 
   return {
-    actionLabel: 'Open Execution',
-    summary: `Execution is the current best next step because ${previews.execution.gatePreview}`,
+    actionLabel: '실행 열기',
+    summary: `지금 가장 먼저 열어야 할 표면은 실행이며, 이유는 ${previews.execution.gatePreview}`,
     surface: 'execution',
     tone: 'accent',
   };
 }
 
-function renderMissionSnapshotList(items) {
+function getMissionBriefControlSnapshot(mission, previews) {
+  if (!mission) {
+    return {
+      currentCopy: '왼쪽에서 안건을 하나 고르면 현재 판단과 다음 이동이 이곳에 바로 열립니다.',
+      currentTitle: '안건 선택 필요',
+      nextCopy: '먼저 안건을 선택해야 회의실과 작전실 이동 판단이 생깁니다.',
+      nextTitle: '안건부터 선택',
+      reasonCopy: '선택된 안건이 없으면 지금 어느 단계인지와 다음 이동도 정해지지 않습니다.',
+      reasonTitle: '판단 근거 없음',
+    };
+  }
+
+  const nextSurfaceLabel = getSurfaceDisplayName(previews.nextActionPreview?.surface || 'mission');
+
+  if (previews.completion?.completionReady) {
+    return {
+      currentCopy: '현재 안건은 종료 정리까지 봉인되어 다음 안건 준비 단계로 넘어갈 수 있습니다.',
+      currentTitle: '종료 정리 완료',
+      nextCopy: '미션으로 돌아가 다음 안건 초안을 바로 열 수 있습니다.',
+      nextTitle: `${nextSurfaceLabel} 바로 열기`,
+      reasonCopy:
+        previews.deliverables?.previewLine ||
+        'close-out 경로가 닫혀 결과 보고가 봉인된 상태입니다.',
+      reasonTitle: '봉인 근거',
+    };
+  }
+
+  if (!previews.council?.councilSession) {
+    return {
+      currentCopy: '아직 보이는 추천안이 없어서 참모 회의를 먼저 열어야 합니다.',
+      currentTitle: '회의 초안 필요',
+      nextCopy: `${nextSurfaceLabel}에서 ${previews.nextActionPreview.actionLabel}를 바로 시작합니다.`,
+      nextTitle: `${nextSurfaceLabel} 바로 열기`,
+      reasonCopy: previews.council?.previewLine || previews.nextActionPreview.summary,
+      reasonTitle: '회의 준비 상태',
+    };
+  }
+
+  if (previews.council.alignmentStatus !== 'approved') {
+    return {
+      currentCopy: '추천안은 보이지만 아직 정렬 승인이 끝나지 않아 회의실 판단이 먼저입니다.',
+      currentTitle: '정렬 승인 대기',
+      nextCopy: `${nextSurfaceLabel}에서 ${previews.nextActionPreview.actionLabel}를 바로 검토합니다.`,
+      nextTitle: `${nextSurfaceLabel} 바로 열기`,
+      reasonCopy: previews.council.previewLine || previews.nextActionPreview.summary,
+      reasonTitle: '회의 판단 근거',
+    };
+  }
+
+  if (!previews.execution?.linkedTask) {
+    return {
+      currentCopy: '추천안 정렬은 끝났지만 실행 셀이 아직 연결되지 않아 미션에서 연결을 먼저 만들어야 합니다.',
+      currentTitle: '실행 셀 연결 필요',
+      nextCopy: `${nextSurfaceLabel}에서 ${previews.nextActionPreview.actionLabel}를 이어갑니다.`,
+      nextTitle: `${nextSurfaceLabel} 바로 열기`,
+      reasonCopy: previews.execution?.blockedReason || previews.nextActionPreview.summary,
+      reasonTitle: '작전 전제',
+    };
+  }
+
+  if (previews.execution.linkedTask.flags?.waitingApproval) {
+    return {
+      currentCopy: '현재 실행은 사람 승인을 기다리고 있으므로 승인 판단이 가장 먼저입니다.',
+      currentTitle: '승인 판단 필요',
+      nextCopy: `${nextSurfaceLabel}에서 ${previews.nextActionPreview.actionLabel}를 바로 처리합니다.`,
+      nextTitle: `${nextSurfaceLabel} 바로 열기`,
+      reasonCopy: previews.execution.gatePreview || previews.execution.blockedReason,
+      reasonTitle: '현재 게이트',
+    };
+  }
+
+  if (previews.execution.linkedTask.flags?.waitingDecision) {
+    return {
+      currentCopy: '현재 실행은 막고 있는 결정 항목을 먼저 해소해야 전진할 수 있습니다.',
+      currentTitle: '결정 판단 필요',
+      nextCopy: `${nextSurfaceLabel}에서 ${previews.nextActionPreview.actionLabel}를 이어갑니다.`,
+      nextTitle: `${nextSurfaceLabel} 바로 열기`,
+      reasonCopy: previews.execution.blockedReason || previews.execution.gatePreview,
+      reasonTitle: '막힌 이유',
+    };
+  }
+
+  if (previews.execution.linkedTask.flags?.blocked) {
+    return {
+      currentCopy: '현재 실행 셀이 blocked 상태라서 차단 근거를 먼저 확인해야 합니다.',
+      currentTitle: '작전 차단 상태',
+      nextCopy: `${nextSurfaceLabel}에서 ${previews.nextActionPreview.actionLabel}를 다시 확인합니다.`,
+      nextTitle: `${nextSurfaceLabel} 바로 열기`,
+      reasonCopy: previews.execution.blockedReason || previews.execution.gatePreview,
+      reasonTitle: '차단 근거',
+    };
+  }
+
+  return {
+    currentCopy: '현재 안건은 실행 경로 안에서 계속 전진할 수 있는 상태입니다.',
+    currentTitle: '작전 진행 중',
+    nextCopy: `${nextSurfaceLabel}에서 ${previews.nextActionPreview.actionLabel}를 이어갑니다.`,
+    nextTitle: `${nextSurfaceLabel} 바로 열기`,
+    reasonCopy: previews.execution.stagePreview || previews.execution.gatePreview,
+    reasonTitle: '현재 게이트',
+  };
+}
+
+function getCouncilControlSnapshot(mission, councilSession, linkedTask) {
+  if (!mission || !councilSession) {
+    return {
+      currentCopy: '안건을 고르고 참모 회의 초안을 열면 회의 판단판이 이곳에 나타납니다.',
+      currentTitle: '회의 초안 필요',
+      nextCopy: '먼저 안건을 고른 뒤 참모 회의를 시작합니다.',
+      nextTitle: '안건부터 선택',
+      reasonCopy: '현재는 선택된 회의 세션이 없어 요약과 권고를 판단할 근거가 비어 있습니다.',
+      reasonTitle: '판단 근거 없음',
+    };
+  }
+
+  if (councilSession.alignment?.status === 'approved' && linkedTask) {
+    return {
+      currentCopy: '결론 승인이 이미 끝나 작전실로 넘길 준비가 완료됐습니다.',
+      currentTitle: '결론 승인 완료',
+      nextCopy: '작전실을 열어 연결 태스크와 현재 승인선을 이어서 확인합니다.',
+      nextTitle: '작전실 바로 열기',
+      reasonCopy:
+        councilSession.selectedPlan?.title ||
+        councilSession.recommendation ||
+        councilSession.summary ||
+        '승인된 결론이 기록돼 있습니다.',
+      reasonTitle: '채택 근거',
+    };
+  }
+
+  if (councilSession.alignment?.status === 'approved') {
+    return {
+      currentCopy: '결론 승인은 끝났지만 아직 연결 실행 셀이 없어 안건에서 실행 연결을 먼저 만들어야 합니다.',
+      currentTitle: '실행 연결 필요',
+      nextCopy: '안건 브리프로 돌아가 실행 셀 연결을 이어갑니다.',
+      nextTitle: '안건 브리프 열기',
+      reasonCopy:
+        councilSession.selectedPlan?.scope ||
+        councilSession.recommendation ||
+        '승인된 결론은 있지만 연결 실행 셀이 없습니다.',
+      reasonTitle: '인계 근거',
+    };
+  }
+
+  return {
+    currentCopy: '추천안은 보이지만 아직 명시적 결론 승인이 끝나지 않아 회의 판단이 먼저입니다.',
+    currentTitle: '결론 승인 필요',
+    nextCopy: '아래 결론 승인 블록에서 승인 여부를 바로 결정합니다.',
+    nextTitle: '회의 결론 승인',
+    reasonCopy:
+      councilSession.recommendation ||
+      councilSession.summary ||
+      councilSession.selectedPlan?.title ||
+      '아직 기록된 권고 방향이 없습니다.',
+    reasonTitle: '현재 권고',
+  };
+}
+
+function getExecutionControlSnapshot(task, latestRun, approvalBridge, gateCopy, summaries = {}) {
+  if (!task) {
+    return {
+      currentCopy: '연결 실행 셀이 생기면 현재 작전 판단판이 이곳에 나타납니다.',
+      currentTitle: '실행 셀 없음',
+      nextCopy: '안건이나 회의에서 먼저 실행 셀을 연결합니다.',
+      nextTitle: '안건으로 돌아가기',
+      reasonCopy: '현재는 선택된 실행 셀이 없어 승인선과 최신 보고를 판단할 근거가 없습니다.',
+      reasonTitle: '작전 근거 없음',
+    };
+  }
+
+  if (task.flags?.waitingApproval) {
+    return {
+      currentCopy: '사람 승인이 남아 있어 현재 작전은 승인선 처리 전까지 멈춰 있습니다.',
+      currentTitle: '승인선 대기',
+      nextCopy: '아래 지휘 승인선에서 현재 지시 승인을 먼저 처리합니다.',
+      nextTitle: '현재 지시 승인',
+      reasonCopy: gateCopy || approvalBridge.bridgeCopy || '현재 승인 게이트가 열려 있습니다.',
+      reasonTitle: '현재 게이트',
+    };
+  }
+
+  if (task.flags?.waitingDecision) {
+    return {
+      currentCopy: '결정 항목이 남아 있어 현재 작전은 그 판단이 끝나기 전까지 전진하지 않습니다.',
+      currentTitle: '결정 처리 필요',
+      nextCopy: '관제실 결재함이나 아래 보류 사유에서 현재 결정을 먼저 해소합니다.',
+      nextTitle: '결정 처리',
+      reasonCopy: gateCopy || '현재 실행을 막는 결정 항목이 있습니다.',
+      reasonTitle: '막힌 이유',
+    };
+  }
+
+  if (task.flags?.blocked) {
+    return {
+      currentCopy: '현재 실행 셀이 blocked 상태라서 차단 근거부터 다시 봐야 합니다.',
+      currentTitle: '작전 차단 상태',
+      nextCopy: '아래 보류 사유와 사전 점검 준비를 다시 확인합니다.',
+      nextTitle: '차단 원인 확인',
+      reasonCopy: gateCopy || '현재 차단 사유가 기록돼 있습니다.',
+      reasonTitle: '차단 근거',
+    };
+  }
+
+  if (summaries.closeOutAllowed) {
+    return {
+      currentCopy: '현재 작전 경로는 종료 정리까지 바로 이어갈 수 있는 상태입니다.',
+      currentTitle: '종료 정리 가능',
+      nextCopy: '아래 지휘 승인선과 종료 후속 흐름을 확인한 뒤 종료 정리를 이어갑니다.',
+      nextTitle: '종료 정리 이어가기',
+      reasonCopy: approvalBridge.nextStepCopy || gateCopy || '현재 종료 경로가 열려 있습니다.',
+      reasonTitle: '후속 경로',
+    };
+  }
+
+  if (summaries.releaseAllowed) {
+    return {
+      currentCopy: '현재 작전 경로는 릴리스 패키지 준비까지 전진할 수 있는 상태입니다.',
+      currentTitle: '릴리스 준비 가능',
+      nextCopy: '아래 지휘 승인선에서 릴리스 후속을 이어갑니다.',
+      nextTitle: '릴리스 패키지 준비',
+      reasonCopy: approvalBridge.nextStepCopy || gateCopy || '현재 릴리스 경로가 열려 있습니다.',
+      reasonTitle: '후속 경로',
+    };
+  }
+
+  if (summaries.commitAllowed) {
+    return {
+      currentCopy: '현재 작전 경로는 커밋 패키지 또는 로컬 커밋 단계까지 이어질 수 있습니다.',
+      currentTitle: '커밋 경로 열림',
+      nextCopy: '아래 지휘 승인선에서 커밋 후속을 이어갑니다.',
+      nextTitle: '커밋 경로 확인',
+      reasonCopy: approvalBridge.nextStepCopy || gateCopy || '현재 커밋 경로가 열려 있습니다.',
+      reasonTitle: '후속 경로',
+    };
+  }
+
+  return {
+    currentCopy: '현재 실행 셀은 작전 경로 안에서 계속 전진할 수 있는 상태입니다.',
+    currentTitle: latestRun ? `${getRunStatusDisplay(latestRun.status)} 보고` : '작전 진행 중',
+    nextCopy: '아래 지휘 승인선과 사전 점검 준비를 따라 다음 실행을 이어갑니다.',
+    nextTitle: '현재 작전 계속',
+    reasonCopy:
+      approvalBridge.nextStepCopy ||
+      gateCopy ||
+      (latestRun
+        ? `${getExecutionRoleDisplay(latestRun.role || latestRun.kind || 'none')} 기준 최신 보고가 있습니다.`
+        : '아직 최신 보고가 없어 기본 작전 경로를 따릅니다.'),
+    reasonTitle: '현재 게이트',
+  };
+}
+
+function getExecutionLeftSnapshot(task, latestRun, executionControl, artifacts = {}) {
+  if (!task) {
+    return {
+      currentCopy: executionControl.currentCopy,
+      currentTitle: executionControl.currentTitle,
+      nextCopy: executionControl.nextCopy,
+      nextTitle: executionControl.nextTitle,
+      reasonCopy: '현재는 연결 실행 셀이 없어 최신 보고나 준비 체인을 근거로 묶어 보여 줄 수 없습니다.',
+      reasonTitle: '연결 근거 없음',
+    };
+  }
+
+  const prepLabels = [
+    artifacts.latestPlanArtifact ? '계획' : null,
+    artifacts.latestArchitectureArtifact ? '설계' : null,
+    artifacts.latestBreakdownArtifact ? '분해' : null,
+    artifacts.latestPreflightArtifact ? '사전 점검' : null,
+  ].filter(Boolean);
+  const latestRunRole = latestRun?.role || latestRun?.kind || 'none';
+
+  if (prepLabels.length > 0 && latestRun) {
+    return {
+      currentCopy: executionControl.currentCopy,
+      currentTitle: executionControl.currentTitle,
+      nextCopy: executionControl.nextCopy,
+      nextTitle: executionControl.nextTitle,
+      reasonCopy: `${prepLabels.join(' · ')} 준비 체인과 ${getExecutionRoleDisplay(latestRunRole)} 최신 보고가 함께 연결돼 있어 현재 작전 판단을 뒷받침합니다.`,
+      reasonTitle: '준비 체인 + 최신 보고',
+    };
+  }
+
+  if (prepLabels.length > 0) {
+    return {
+      currentCopy: executionControl.currentCopy,
+      currentTitle: executionControl.currentTitle,
+      nextCopy: executionControl.nextCopy,
+      nextTitle: executionControl.nextTitle,
+      reasonCopy: `${prepLabels.join(' · ')} 준비 체인이 연결돼 있어 현재 작전이 어느 단계까지 준비됐는지 바로 확인할 수 있습니다.`,
+      reasonTitle: `준비 체인 ${prepLabels.length}단계`,
+    };
+  }
+
+  if (latestRun) {
+    return {
+      currentCopy: executionControl.currentCopy,
+      currentTitle: executionControl.currentTitle,
+      nextCopy: executionControl.nextCopy,
+      nextTitle: executionControl.nextTitle,
+      reasonCopy: `${getExecutionRoleDisplay(latestRunRole)}의 최신 실행 보고가 ${getRunStatusDisplay(latestRun.status)} 상태로 남아 있어 현재 작전 판단의 직접 근거가 됩니다.`,
+      reasonTitle: '최신 실행 보고 기준',
+    };
+  }
+
+  return {
+    currentCopy: executionControl.currentCopy,
+    currentTitle: executionControl.currentTitle,
+    nextCopy: executionControl.nextCopy,
+    nextTitle: executionControl.nextTitle,
+    reasonCopy: '아직 최신 보고가 없어 기본 작전 경로와 현재 승인 게이트를 기준으로만 판단합니다.',
+    reasonTitle: '기본 작전 경로',
+  };
+}
+
+function getDeliverablesControlSnapshot(
+  mission,
+  task,
+  currentArtifact,
+  latestApproval,
+  approvalBridge,
+  latestReviewStatus,
+  missionCompletionReady,
+) {
+  if (!mission || !task) {
+    return {
+      currentCopy: '연결 태스크가 생기면 결과 보고실 판단판이 이곳에 나타납니다.',
+      currentTitle: '보고 묶음 없음',
+      nextCopy: '먼저 안건과 실행 셀을 연결한 뒤 보고 묶음을 만듭니다.',
+      nextTitle: '안건으로 돌아가기',
+      reasonCopy: '현재는 연결 태스크가 없어 보고, 리뷰, 결재선을 판단할 근거가 없습니다.',
+      reasonTitle: '보고 근거 없음',
+    };
+  }
+
+  if (missionCompletionReady) {
+    return {
+      currentCopy: '현재 안건은 종료 정리까지 봉인되어 결과 보고가 닫힌 상태입니다.',
+      currentTitle: '종료 보고 봉인',
+      nextCopy: '미션으로 돌아가 다음 안건을 시작하거나 관제실에서 봉인된 번들을 확인합니다.',
+      nextTitle: '다음 안건 준비',
+      reasonCopy:
+        currentArtifact
+          ? `${currentArtifact.type} ${currentArtifact.id}가 현재 종료 보고 묶음의 맨 위에 있습니다.`
+          : '종료 보고 묶음이 봉인됐습니다.',
+      reasonTitle: '봉인 근거',
+    };
+  }
+
+  if (latestApproval?.status === 'pending') {
+    return {
+      currentCopy: '사람 결재가 남아 있어 현재 보고 묶음은 결재선 판단이 먼저입니다.',
+      currentTitle: '결재선 대기',
+      nextCopy: '실행이나 관제실에서 현재 결재 안건을 먼저 처리합니다.',
+      nextTitle: '결재 안건 확인',
+      reasonCopy: approvalBridge.bridgeCopy || '현재 보고 묶음에 대한 결재가 대기 중입니다.',
+      reasonTitle: '현재 결재',
+    };
+  }
+
+  if (latestReviewStatus !== 'approved') {
+    return {
+      currentCopy: '아직 리뷰가 닫히지 않아 현재 보고 묶음은 리뷰 판단이 먼저입니다.',
+      currentTitle: `리뷰 ${getReviewStatusDisplay(latestReviewStatus)}`,
+      nextCopy: '실행으로 돌아가 리뷰 보고나 후속 패키지를 먼저 정리합니다.',
+      nextTitle: '실행 경로 확인',
+      reasonCopy:
+        currentArtifact
+          ? `${currentArtifact.type} ${currentArtifact.id} 기준으로 리뷰 상태가 ${getReviewStatusDisplay(latestReviewStatus)}입니다.`
+          : `현재 리뷰 상태는 ${getReviewStatusDisplay(latestReviewStatus)}입니다.`,
+      reasonTitle: '리뷰 근거',
+    };
+  }
+
+  return {
+    currentCopy: '현재 보고 묶음은 최신 결과를 보여 주며 다음 결재나 종료 보고를 기다리는 상태입니다.',
+    currentTitle: currentArtifact ? `${getArtifactTypeDisplay(currentArtifact.type)} 보고` : '보고 대기',
+    nextCopy: '결재선과 현재 결재 안건을 확인한 뒤 필요하면 실행이나 관제실로 이동합니다.',
+    nextTitle: '결재선 확인',
+    reasonCopy:
+      approvalBridge.nextStepCopy ||
+      (currentArtifact
+        ? `${currentArtifact.type} ${currentArtifact.id}가 현재 보고실의 맨 위에 있습니다.`
+        : '현재 보고 묶음이 아직 비어 있습니다.'),
+    reasonTitle: '현재 보고 기준',
+  };
+}
+
+function getDeliverablesLeftSnapshot(mission, task, currentArtifact, deliverablesControl, artifacts = {}) {
+  if (!mission || !task) {
+    return {
+      currentCopy: deliverablesControl.currentCopy,
+      currentTitle: deliverablesControl.currentTitle,
+      nextCopy: deliverablesControl.nextCopy,
+      nextTitle: deliverablesControl.nextTitle,
+      reasonCopy: '연결 태스크와 보고 묶음이 아직 없어 상류 보고나 후속 전달선을 근거로 묶을 수 없습니다.',
+      reasonTitle: '연결 근거 없음',
+    };
+  }
+
+  const upstreamLabels = [
+    artifacts.latestPlanArtifact ? '계획' : null,
+    artifacts.latestArchitectureArtifact ? '설계' : null,
+    artifacts.latestBreakdownArtifact ? '분해' : null,
+    artifacts.latestPreflightArtifact ? '사전 점검' : null,
+  ].filter(Boolean);
+  const downstreamLabels = [
+    artifacts.latestChangeSummaryArtifact ? '변경 요약' : null,
+    artifacts.latestPatchArtifact ? '패치' : null,
+    artifacts.latestDiffArtifact ? '차이 검토' : null,
+    artifacts.latestReviewArtifact ? '리뷰' : null,
+    artifacts.latestCommitPackageArtifact ? '커밋 패키지' : null,
+    artifacts.latestCommitResultArtifact ? '커밋 결과' : null,
+    artifacts.latestReleasePackageArtifact ? '릴리스 패키지' : null,
+    artifacts.latestCloseOutArtifact ? '종료 보고' : null,
+  ].filter(Boolean);
+
+  if (upstreamLabels.length > 0 && downstreamLabels.length > 0) {
+    return {
+      currentCopy: deliverablesControl.currentCopy,
+      currentTitle: deliverablesControl.currentTitle,
+      nextCopy: deliverablesControl.nextCopy,
+      nextTitle: deliverablesControl.nextTitle,
+      reasonCopy: `${upstreamLabels.join(' · ')} 상류 준비 보고와 ${downstreamLabels.join(' · ')} 후속 전달 보고가 같은 안건 묶음으로 연결돼 있습니다.`,
+      reasonTitle: '상류 + 후속 보고 연결',
+    };
+  }
+
+  if (downstreamLabels.length > 0) {
+    return {
+      currentCopy: deliverablesControl.currentCopy,
+      currentTitle: deliverablesControl.currentTitle,
+      nextCopy: deliverablesControl.nextCopy,
+      nextTitle: deliverablesControl.nextTitle,
+      reasonCopy: `${downstreamLabels.join(' · ')} 후속 전달 보고가 현재 보고실 판단의 직접 근거입니다.`,
+      reasonTitle: `후속 전달 ${downstreamLabels.length}건`,
+    };
+  }
+
+  if (upstreamLabels.length > 0) {
+    return {
+      currentCopy: deliverablesControl.currentCopy,
+      currentTitle: deliverablesControl.currentTitle,
+      nextCopy: deliverablesControl.nextCopy,
+      nextTitle: deliverablesControl.nextTitle,
+      reasonCopy: `${upstreamLabels.join(' · ')} 상류 준비 보고가 현재 결과 보고실 판단의 기본 근거로 남아 있습니다.`,
+      reasonTitle: `상류 준비 ${upstreamLabels.length}건`,
+    };
+  }
+
+  if (currentArtifact) {
+    return {
+      currentCopy: deliverablesControl.currentCopy,
+      currentTitle: deliverablesControl.currentTitle,
+      nextCopy: deliverablesControl.nextCopy,
+      nextTitle: deliverablesControl.nextTitle,
+      reasonCopy: `${getArtifactTypeDisplay(currentArtifact.type)} ${currentArtifact.id}가 현재 보고 묶음의 맨 위에 있어 최신 결과 판단의 기준이 됩니다.`,
+      reasonTitle: '최신 보고 기준',
+    };
+  }
+
+  return {
+    currentCopy: deliverablesControl.currentCopy,
+    currentTitle: deliverablesControl.currentTitle,
+    nextCopy: deliverablesControl.nextCopy,
+    nextTitle: deliverablesControl.nextTitle,
+    reasonCopy: '아직 보고 묶음이 없어 리뷰와 결재선보다 앞단의 생성 흐름을 먼저 만들어야 합니다.',
+    reasonTitle: '보고 묶음 대기',
+  };
+}
+
+function getMissionSurfaceRailEntries(mission, previews) {
+  const completionReady = Boolean(previews.completion?.completionReady);
+  const councilSession = previews.council?.councilSession || null;
+  const councilStatus = councilSession
+    ? getAlignmentStatusDisplay(previews.council.alignmentStatus)
+    : '초안 전';
+  const councilTone = councilSession
+    ? getAlignmentTone(previews.council.alignmentStatus)
+    : 'warning';
+  const linkedTask = previews.execution?.linkedTask || null;
+  const executionStatus = !linkedTask
+    ? '태스크 전'
+    : linkedTask.flags?.waitingApproval
+      ? '승인 대기'
+      : linkedTask.flags?.blocked
+        ? '차단'
+        : linkedTask.flags?.waitingDecision
+          ? '결정 대기'
+          : getTaskLifecycleDisplay(linkedTask.lifecycleState);
+  const executionTone = !linkedTask
+    ? 'warning'
+    : linkedTask.flags?.blocked
+      ? 'danger'
+      : linkedTask.flags?.waitingApproval
+        ? 'accent'
+        : linkedTask.flags?.waitingDecision
+          ? 'warning'
+          : linkedTask.lifecycleState === 'Done'
+            ? 'success'
+            : 'neutral';
+  const latestApprovalStatus = previews.deliverables?.latestApproval?.status || 'none';
+  const latestReviewStatus = previews.deliverables?.latestReviewStatus || 'pending';
+  const deliverablesStatus = completionReady
+    ? '완료'
+    : latestApprovalStatus !== 'none'
+      ? getApprovalStatusDisplay(latestApprovalStatus)
+      : latestReviewStatus !== 'pending'
+        ? `리뷰 ${getReviewStatusDisplay(latestReviewStatus)}`
+        : previews.deliverables?.currentDeliverableArtifact
+          ? '증적 있음'
+          : '보고 전';
+  const deliverablesTone = completionReady
+    ? 'success'
+    : latestApprovalStatus !== 'none'
+      ? getApprovalTone(latestApprovalStatus)
+      : latestReviewStatus !== 'pending'
+        ? getReviewTone(latestReviewStatus)
+        : previews.deliverables?.currentDeliverableArtifact
+          ? 'neutral'
+          : 'warning';
+
+  return [
+    {
+      label: '안건',
+      status: completionReady ? '다음 안건' : getMissionStatusDisplay(mission?.status),
+      surface: 'mission',
+      tone: completionReady ? 'success' : getMissionStatusTone(mission?.status),
+    },
+    {
+      label: '회의',
+      status: councilStatus,
+      surface: 'council',
+      tone: councilTone,
+    },
+    {
+      label: '실행',
+      status: executionStatus,
+      surface: 'execution',
+      tone: executionTone,
+    },
+    {
+      label: '보고',
+      status: deliverablesStatus,
+      surface: 'deliverables',
+      tone: deliverablesTone,
+    },
+  ].map((entry) => ({
+    ...entry,
+    isNext: previews.nextActionPreview?.surface === entry.surface,
+  }));
+}
+
+function getTaskboardTaskSnapshot(task, data) {
+  if (!task) {
+    return {
+      currentCopy: '아직 실행 셀이 없습니다.',
+      nextCopy: data.activeProject ? '다음: 새 실행 셀 추가' : '다음: 프로젝트 선택',
+      tokens: [createToken('실행셀:없음', 'warning')],
+    };
+  }
+
+  const approvalSummary = getTaskApprovalSummary(task, data.approvals);
+  const decisionSummary = getTaskDecisionSummary(task, data.inboxItems);
+  const latestRun = task.latestRunId ? data.runMap.get(task.latestRunId) : null;
+  const currentCopy = task.flags?.blocked
+    ? '현재 차단 해소가 먼저 필요한 실행 셀입니다.'
+    : task.flags?.waitingApproval
+      ? '현재 사람 승인선을 기다리는 실행 셀입니다.'
+      : task.flags?.waitingDecision
+        ? '현재 결정을 기다리는 실행 셀입니다.'
+        : latestRun
+          ? `현재 ${getRunStatusDisplay(latestRun.status)} 이후 후속 실행을 이어갈 수 있습니다.`
+          : '현재 첫 실행을 아직 시작하지 않은 셀입니다.';
+  const nextCopy = task.flags?.waitingApproval
+    ? '다음: 결재함에서 승인 처리'
+    : task.flags?.waitingDecision
+      ? '다음: 결재함에서 결정 처리'
+      : task.flags?.blocked
+        ? '다음: 작업판 상세에서 보류 사유 확인'
+        : latestRun
+          ? '다음: 작업판 상세에서 후속 실행 확인'
+          : '다음: 작업판 상세에서 플래너 실행';
+
+  return {
+    currentCopy,
+    nextCopy,
+    tokens: [
+      createToken(`리뷰:${getReviewStatusDisplay(task.review?.status || 'pending')}`, getReviewTone(task.review?.status)),
+      approvalSummary.pending > 0 ? createToken(`승인:${approvalSummary.pending}`, 'accent') : '',
+      decisionSummary.pendingTotal > 0 ? createToken(`결정:${decisionSummary.pendingTotal}`, 'warning') : '',
+      latestRun ? createToken(`run:${getRunStatusDisplay(latestRun.status)}`, getRunTone(latestRun.status)) : '',
+    ].filter(Boolean),
+  };
+}
+
+function getRunListSnapshot(run, task, data) {
+  const approvalSummary = task ? getTaskApprovalSummary(task, data.approvals) : { pending: 0 };
+  const decisionSummary = task ? getTaskDecisionSummary(task, data.inboxItems) : { pendingTotal: 0 };
+
+  let currentCopy = `${getRunStatusDisplay(run.status)} 상태의 실행 보고입니다.`;
+  if (task?.flags?.waitingApproval) {
+    currentCopy = '승인선 직전 상태를 남긴 실행 보고입니다.';
+  } else if (task?.flags?.waitingDecision) {
+    currentCopy = '결정 처리 직전 상태를 남긴 실행 보고입니다.';
+  } else if (task?.flags?.blocked) {
+    currentCopy = '차단 사유를 먼저 봐야 하는 실행 보고입니다.';
+  } else if (run.status === 'running') {
+    currentCopy = '현재 진행 중인 실행 보고입니다.';
+  } else if (run.status === 'failed') {
+    currentCopy = '실패 원인 확인이 먼저 필요한 실행 보고입니다.';
+  }
+
+  let nextCopy = '다음: 원문 로그 확인';
+  if (task?.flags?.waitingApproval) {
+    nextCopy = '다음: 승인선과 로그 상세 확인';
+  } else if (task?.flags?.waitingDecision) {
+    nextCopy = '다음: 결재함과 로그 상세 확인';
+  } else if (task?.flags?.blocked) {
+    nextCopy = '다음: 차단 이유와 로그 상세 확인';
+  } else if (run.status === 'failed') {
+    nextCopy = '다음: 원문 로그와 연결 증적 확인';
+  } else if (run.status === 'running') {
+    nextCopy = '다음: 진행 로그와 최근 출력 확인';
+  }
+
+  return {
+    title: task?.title || run.id,
+    metaCopy: `${run.id} · ${task ? getTaskLifecycleDisplay(task.lifecycleState) : '실행 셀 대기'}`,
+    currentCopy,
+    nextCopy,
+    tokens: [
+      createToken(getRunStatusDisplay(run.status), getRunTone(run.status)),
+      approvalSummary.pending > 0 ? createToken(`승인:${approvalSummary.pending}`, 'accent') : '',
+      decisionSummary.pendingTotal > 0 ? createToken(`결정:${decisionSummary.pendingTotal}`, 'warning') : '',
+      createToken(formatDate(run.startedAt), 'neutral'),
+    ].filter(Boolean),
+  };
+}
+
+function getArtifactListSnapshot(artifact, task, data) {
+  const previewMode = getArtifactCatalogEntry(artifact, data)?.previewMode || 'structured-or-raw';
+  const typeDisplay = getArtifactTypeDisplay(artifact.type);
+
+  let currentCopy = `${typeDisplay} 기준 증적입니다.`;
+  if (artifact.type === 'preflight') {
+    currentCopy = '실행 전 범위와 점검 기준을 묶은 증적입니다.';
+  } else if (artifact.type === 'review') {
+    currentCopy = '리뷰 판단과 후속 실행을 묶는 핵심 증적입니다.';
+  } else if (artifact.type === 'commit-package' || artifact.type === 'release-package') {
+    currentCopy = '결재선과 다음 후속을 묶는 보고 증적입니다.';
+  } else if (task) {
+    currentCopy = `${getTaskLifecycleDisplay(task.lifecycleState)} 상태 실행 셀에 연결된 ${typeDisplay}입니다.`;
+  }
+
+  const nextCopy =
+    previewMode === 'raw-only' ? '다음: 원문만 바로 확인' : '다음: 미리보기와 원문 확인';
+
+  return {
+    title: typeDisplay,
+    metaCopy: `${task?.title || artifact.id} · ${artifact.id}`,
+    currentCopy,
+    nextCopy,
+    tokens: [
+      renderArtifactPolicyTokens(artifact, data),
+      createToken(`run:${artifact.runId}`, 'neutral'),
+      createToken(formatDate(artifact.createdAt), 'neutral'),
+    ].filter(Boolean),
+  };
+}
+
+function getInboxListSnapshot(item, task, approval) {
+  let currentCopy = `${getInboxStatusDisplay(item.status)} 상태의 결재 안건입니다.`;
+  if (item.status === 'resolved') {
+    currentCopy = '이미 처리돼 기록만 확인하면 되는 안건입니다.';
+  } else if (item.kind === 'approval') {
+    currentCopy = '사람 승인 판단이 남아 있는 결재 안건입니다.';
+  } else if (item.kind === 'decision') {
+    currentCopy = '해결 판단이 남아 있는 결재 안건입니다.';
+  }
+
+  let nextCopy = '다음: 처리 메모 확인';
+  if (item.status === 'pending' && item.kind === 'approval') {
+    nextCopy = '다음: 승인 또는 반려 검토';
+  } else if (item.status === 'pending' && item.kind === 'decision') {
+    nextCopy = '다음: 해결 처리 검토';
+  } else if (item.status === 'pending') {
+    nextCopy = '다음: 결재 상세 확인';
+  }
+
+  return {
+    title: item.title,
+    metaCopy: task
+      ? `${task.title} · ${getTaskLifecycleDisplay(task.lifecycleState)}`
+      : `${item.taskId} · 실행 셀 대기`,
+    currentCopy,
+    nextCopy,
+    tokens: [
+      createToken(getInboxKindDisplay(item.kind), getInboxTone(item)),
+      createToken(
+        getInboxStatusDisplay(item.status),
+        item.status === 'pending' ? 'warning' : 'success',
+      ),
+      item.blocksTask ? createToken('태스크차단', 'danger') : '',
+      approval ? createToken(`범위:${approval.scope}`, 'neutral') : '',
+    ].filter(Boolean),
+  };
+}
+
+function getLogsDetailSnapshot(selectedRun, selectedTask, runBundle, logs = []) {
+  const currentTitle = selectedRun ? `${getRunStatusDisplay(selectedRun.status)} run` : 'run 선택 대기';
+  const currentCopy = selectedRun
+    ? `${formatDate(selectedRun.startedAt)} 기준으로 기록된 실행 보고입니다.`
+    : '왼쪽 목록에서 run을 고르면 현재 실행 상태를 먼저 판단할 수 있습니다.';
+
+  let reasonTitle = selectedTask ? selectedTask.title : '실행 셀 맥락 대기';
+  let reasonCopy = selectedTask
+    ? `${getTaskLifecycleDisplay(selectedTask.lifecycleState)} 상태의 실행 셀과 연결돼 있습니다.`
+    : '아직 연결된 실행 셀 맥락이 보이지 않습니다.';
+
+  if (selectedTask?.flags?.waitingApproval) {
+    reasonCopy = '사람 승인선을 기다리는 실행 셀과 연결된 run입니다.';
+  } else if (selectedTask?.flags?.waitingDecision) {
+    reasonCopy = '결정함 처리 결과를 기다리는 실행 셀과 연결된 run입니다.';
+  } else if (selectedTask?.flags?.blocked) {
+    reasonCopy = '차단 사유를 먼저 해소해야 하는 실행 셀과 연결된 run입니다.';
+  }
+
+  const nextTitle = selectedRun ? '연결선과 원문 확인' : 'run 먼저 고르기';
+  const nextCopy = selectedRun
+    ? `${runBundle ? '보고 연결선과 ' : ''}${logs.length > 0 ? `${logs.length}줄 실행 원문` : '원문 로그 없음'}을 아래에서 바로 확인합니다.`
+    : 'run을 고르면 기록 시각, 연결선, 원문 로그가 아래에 열립니다.';
+
+  return {
+    currentTitle,
+    currentCopy,
+    reasonTitle,
+    reasonCopy,
+    nextTitle,
+    nextCopy,
+    tokens: [
+      selectedRun ? createToken(getRunStatusDisplay(selectedRun.status), getRunTone(selectedRun.status)) : '',
+      selectedTask ? createToken(getTaskLifecycleDisplay(selectedTask.lifecycleState), 'neutral') : '',
+      selectedTask?.review
+        ? createToken(
+            `리뷰:${getReviewStatusDisplay(selectedTask.review.status)}`,
+            getReviewTone(selectedTask.review.status),
+          )
+        : '',
+      selectedTask?.flags?.blocked ? createToken('차단', 'danger') : '',
+      selectedTask?.flags?.waitingApproval ? createToken('승인대기', 'accent') : '',
+      selectedTask?.flags?.waitingDecision ? createToken('결정대기', 'warning') : '',
+    ].filter(Boolean),
+  };
+}
+
+function getArtifactDetailSnapshot(selectedArtifactMeta, selectedArtifactTask, data, policySummary = '') {
+  const currentTitle = selectedArtifactMeta
+    ? `${getArtifactTypeDisplay(selectedArtifactMeta.type)} 묶음`
+    : '증적 선택 대기';
+  const currentCopy = selectedArtifactMeta
+    ? `${selectedArtifactMeta.id}이 ${formatDate(selectedArtifactMeta.createdAt)} 기준으로 보관돼 있습니다.`
+    : '왼쪽 목록에서 증적을 고르면 현재 상태와 원문 확인 흐름이 먼저 열립니다.';
+  const reasonTitle = selectedArtifactTask ? selectedArtifactTask.title : '실행 셀 맥락 대기';
+  const reasonCopy = selectedArtifactTask
+    ? `${getTaskLifecycleDisplay(selectedArtifactTask.lifecycleState)} 상태의 실행 셀에 연결된 증적입니다.${policySummary ? ` ${policySummary}` : ''}`
+    : policySummary || '아직 연결된 실행 셀 맥락이 보이지 않습니다.';
+  const nextTitle = selectedArtifactMeta ? '미리보기와 원문 확인' : '증적 먼저 고르기';
+  const nextCopy = selectedArtifactMeta
+    ? '증적 연결선, 보고 미리보기, 보관 원문을 아래에서 순서대로 확인합니다.'
+    : '증적을 고르면 연결선과 구조화 미리보기, 저장 원문이 아래에 열립니다.';
+
+  return {
+    currentTitle,
+    currentCopy,
+    reasonTitle,
+    reasonCopy,
+    nextTitle,
+    nextCopy,
+    tokens: [
+      selectedArtifactMeta ? createToken(getArtifactTypeDisplay(selectedArtifactMeta.type), 'neutral') : '',
+      selectedArtifactMeta ? renderArtifactPolicyTokens(selectedArtifactMeta, data) : '',
+      selectedArtifactTask ? createToken(getTaskLifecycleDisplay(selectedArtifactTask.lifecycleState), 'neutral') : '',
+      selectedArtifactTask?.review
+        ? createToken(
+            `리뷰:${getReviewStatusDisplay(selectedArtifactTask.review.status)}`,
+            getReviewTone(selectedArtifactTask.review.status),
+          )
+        : '',
+    ].filter(Boolean),
+  };
+}
+
+function getInboxDetailSnapshot(selectedItem, selectedTask, selectedApproval) {
+  const currentTitle = selectedItem
+    ? `${getInboxStatusDisplay(selectedItem.status)} ${getInboxKindDisplay(selectedItem.kind)}`
+    : '결재 선택 대기';
+  const currentCopy = selectedItem
+    ? `${selectedItem.title} 안건을 현재 처리 중입니다.`
+    : '왼쪽 목록에서 결재를 고르면 현재 상태와 다음 처리만 먼저 판단할 수 있습니다.';
+
+  let reasonTitle = selectedTask ? selectedTask.title : selectedItem?.taskId || '영향 실행 셀 대기';
+  let reasonCopy = selectedTask
+    ? `${getTaskLifecycleDisplay(selectedTask.lifecycleState)} 상태의 실행 셀에 영향을 줍니다.`
+    : '아직 연결된 실행 셀 맥락이 보이지 않습니다.';
+
+  if (selectedApproval) {
+    reasonCopy = `${getApprovalActionLabel(selectedApproval.allowedNextAction) || selectedApproval.scope} 결재가 ${getApprovalStatusDisplay(selectedApproval.status)} 상태입니다.`;
+  } else if (selectedItem?.blocksTask) {
+    reasonCopy = '이 안건은 처리 전까지 연결 실행 셀을 계속 차단합니다.';
+  }
+
+  let nextTitle = '결재 먼저 고르기';
+  let nextCopy = '항목을 고르면 영향 실행 셀과 처리 메모가 아래에 열립니다.';
+
+  if (selectedItem?.status === 'pending' && selectedItem.kind === 'approval') {
+    nextTitle = '승인 또는 반려';
+    nextCopy = '아래 처리 블록에서 승인 또는 반려를 바로 결정합니다.';
+  } else if (selectedItem?.status === 'pending' && selectedItem.kind === 'decision') {
+    nextTitle = '해결 처리';
+    nextCopy = '아래 처리 블록에서 해결 처리와 메모를 남깁니다.';
+  } else if (selectedItem) {
+    nextTitle = '처리 메모 확인';
+    nextCopy = '아래 처리 메모와 결재 기록을 확인합니다.';
+  }
+
+  return {
+    currentTitle,
+    currentCopy,
+    reasonTitle,
+    reasonCopy,
+    nextTitle,
+    nextCopy,
+    tokens: [
+      selectedItem ? createToken(getInboxKindDisplay(selectedItem.kind), getInboxTone(selectedItem)) : '',
+      selectedItem
+        ? createToken(
+            getInboxStatusDisplay(selectedItem.status),
+            selectedItem.status === 'pending' ? 'warning' : 'success',
+          )
+        : '',
+      selectedItem?.blocksTask ? createToken('태스크차단', 'danger') : '',
+      selectedTask ? createToken(getTaskLifecycleDisplay(selectedTask.lifecycleState), 'neutral') : '',
+      selectedApproval
+        ? createToken(
+            `결재:${getApprovalStatusDisplay(selectedApproval.status)}`,
+            getApprovalTone(selectedApproval.status),
+          )
+        : '',
+    ].filter(Boolean),
+  };
+}
+
+function renderMissionSnapshotList(items, options = {}) {
+  const { compact = false } = options;
+
   if (!Array.isArray(items) || items.length === 0) {
-    return '<p class="detail-copy">No snapshot items are available yet.</p>';
+    return '<p class="detail-copy">아직 미션 스냅샷 항목이 없습니다.</p>';
+  }
+
+  if (compact) {
+    return `
+      <div class="brief-snapshot-list">
+        ${items
+          .map(
+            (item) => `
+              <div class="brief-snapshot-row">
+                <div class="brief-snapshot-main">
+                  <strong>${escapeHtml(item.label)}</strong>
+                  <p class="brief-snapshot-copy">${escapeHtml(item.copy)}</p>
+                </div>
+                ${createToken(getSurfaceDisplayName(item.surface), item.tone || 'neutral')}
+              </div>
+            `,
+          )
+          .join('')}
+      </div>
+    `;
   }
 
   return `
@@ -1291,7 +4194,7 @@ function renderMissionSnapshotList(items) {
           (item) => `
             <li>
               <strong>${escapeHtml(item.label)}</strong>
-              ${createToken(`surface:${item.surface}`, item.tone || 'neutral')}
+              ${createToken(`표면:${getSurfaceDisplayName(item.surface)}`, item.tone || 'neutral')}
               : ${escapeHtml(item.copy)}
               ${item.handoffCopy ? ` ${escapeHtml(item.handoffCopy)}` : ''}
             </li>
@@ -1947,25 +4850,25 @@ function renderStructuredBreakdown(parsed, options = {}) {
   const includeVerification = options.includeVerification !== false;
   const includeReviewTrigger = options.includeReviewTrigger !== false;
   const sections = [
-    renderBreakdownList('Ordered Sub-Tasks', parsed.orderedSubTasks, { ordered: true }),
-    includeCheckpoints ? renderBreakdownList('Checkpoints', parsed.checkpoints) : '',
+    renderBreakdownList('정렬된 하위 작업', parsed.orderedSubTasks, { ordered: true }),
+    includeCheckpoints ? renderBreakdownList('체크포인트', parsed.checkpoints) : '',
     includeExpectedArtifacts
-      ? renderBreakdownList('Expected Artifacts Per Checkpoint', parsed.expectedArtifacts)
+      ? renderBreakdownList('체크포인트별 기대 아티팩트', parsed.expectedArtifacts)
       : '',
     includeVerification
-      ? renderBreakdownList('Verification Checkpoints', parsed.verificationCheckpoints)
+      ? renderBreakdownList('검증 체크포인트', parsed.verificationCheckpoints)
       : '',
     includeReviewTrigger
-      ? renderBreakdownList('Review Trigger Point', parsed.reviewTriggerPoints)
+      ? renderBreakdownList('리뷰 트리거 지점', parsed.reviewTriggerPoints)
       : '',
     includeStopConditions
       ? renderBreakdownList(
-          'Stop-And-Escalate Conditions',
+          '중단 및 에스컬레이션 조건',
           parsed.stopAndEscalateConditions,
         )
       : '',
     includeExecutionBoundary
-      ? renderBreakdownList('Execution Boundary Summary', parsed.executionBoundarySummary)
+      ? renderBreakdownList('실행 경계 요약', parsed.executionBoundarySummary)
       : '',
   ]
     .filter(Boolean)
@@ -1989,16 +4892,16 @@ function renderStructuredPreflight(parsed) {
   }
 
   const sections = [
-    renderBreakdownList('Target Files', parsed.targetFiles),
-    renderBreakdownList('Intended Changes', parsed.intendedChanges),
-    renderBreakdownList('Risks', parsed.risks),
-    renderBreakdownList('Verification Plan', parsed.verificationPlan),
+    renderBreakdownList('대상 파일', parsed.targetFiles),
+    renderBreakdownList('의도된 변경', parsed.intendedChanges),
+    renderBreakdownList('위험 요소', parsed.risks),
+    renderBreakdownList('검증 계획', parsed.verificationPlan),
     renderBreakdownList(
-      'Review Evidence Expectations',
+      '리뷰 증거 기대값',
       parsed.reviewEvidenceExpectations,
     ),
-    renderBreakdownList('Escalation Triggers', parsed.escalationTriggers),
-    renderBreakdownList('Input Summary', parsed.inputSummary),
+    renderBreakdownList('에스컬레이션 트리거', parsed.escalationTriggers),
+    renderBreakdownList('입력 요약', parsed.inputSummary),
   ]
     .filter(Boolean)
     .join('');
@@ -2032,45 +4935,45 @@ function renderStructuredChangeSummary(parsed) {
         ${parsed.approvalId ? createToken(`approval:${parsed.approvalId}`, 'neutral') : ''}
         ${
           parsed.targetFileAllowlistCount !== null
-            ? createToken(`allowlist:${parsed.targetFileAllowlistCount}`, 'neutral')
+            ? createToken(`허용목록:${parsed.targetFileAllowlistCount}`, 'neutral')
             : ''
         }
         ${
           parsed.preparedFileUpdates !== null
-            ? createToken(`updates:${parsed.preparedFileUpdates}`, 'neutral')
+            ? createToken(`업데이트:${parsed.preparedFileUpdates}`, 'neutral')
             : ''
         }
         ${
           parsed.fileUpdates.length > 0
-            ? createToken(`file updates:${parsed.fileUpdates.length}`, 'neutral')
+            ? createToken(`파일업데이트:${parsed.fileUpdates.length}`, 'neutral')
             : ''
         }
         ${
           parsed.reviewerExecuted
-            ? createToken(`reviewer:${parsed.reviewerExecuted}`, 'warning')
+            ? createToken(`리뷰어:${parsed.reviewerExecuted}`, 'warning')
             : ''
         }
         ${
           parsed.commitOrReleaseExecuted
-            ? createToken(`commit/release:${parsed.commitOrReleaseExecuted}`, 'warning')
+            ? createToken(`커밋/릴리스:${parsed.commitOrReleaseExecuted}`, 'warning')
             : ''
         }
       </div>
-      ${renderBreakdownList('Change Summary', parsed.changeSummary)}
-      ${renderBreakdownList('Target Files', parsed.targetFiles)}
+      ${renderBreakdownList('변경 요약', parsed.changeSummary)}
+      ${renderBreakdownList('대상 파일', parsed.targetFiles)}
       ${
         parsed.fileUpdates.length > 0
           ? `
             <section class="breakdown-section">
-              <p class="detail-key">File Updates</p>
+              <p class="detail-key">파일 업데이트</p>
               <p class="detail-copy">${escapeHtml(getPreviewRedactionCopy())}</p>
               <ul class="breakdown-list">
                 ${parsed.fileUpdates
                   .map((update) => {
                     const detail =
                       update.encoding || update.payloadStored
-                        ? `${update.path} (${update.encoding || 'stored'} payload redacted in preview)`
-                        : `${update.path} (preview redacted)`;
+                        ? `${update.path} (${update.encoding || 'stored'} payload는 preview에서 가려짐)`
+                        : `${update.path} (preview 가려짐)`;
                     return `<li>${escapeHtml(detail)}</li>`;
                   })
                   .join('')}
@@ -2079,8 +4982,8 @@ function renderStructuredChangeSummary(parsed) {
           `
           : ''
       }
-      ${renderBreakdownList('Risks', parsed.risks)}
-      ${renderBreakdownList('Verification Notes', parsed.verificationNotes)}
+      ${renderBreakdownList('위험 요소', parsed.risks)}
+      ${renderBreakdownList('검증 메모', parsed.verificationNotes)}
     </div>
   `;
 }
@@ -2094,52 +4997,52 @@ function renderStructuredReview(parsed, taskReviewStatus = null) {
     <div class="breakdown-structured review-structured">
       ${parsed.title ? `<p class="breakdown-title">${escapeHtml(parsed.title)}</p>` : ''}
       <div class="token-row">
-        ${parsed.verdict ? createToken(`verdict:${parsed.verdict}`, getReviewerVerdictTone(parsed.verdict)) : ''}
+        ${parsed.verdict ? createToken(`판정:${getReviewerVerdictDisplay(parsed.verdict)}`, getReviewerVerdictTone(parsed.verdict)) : ''}
         ${
           parsed.mappedReviewStatus
             ? createToken(
-                `mapped review:${parsed.mappedReviewStatus}`,
+                `매핑리뷰:${getReviewStatusDisplay(parsed.mappedReviewStatus)}`,
                 getReviewTone(parsed.mappedReviewStatus),
               )
             : ''
         }
         ${
           taskReviewStatus
-            ? createToken(`task review:${taskReviewStatus}`, getReviewTone(taskReviewStatus))
+            ? createToken(`태스크리뷰:${getReviewStatusDisplay(taskReviewStatus)}`, getReviewTone(taskReviewStatus))
             : ''
         }
         ${
           parsed.sourceBuilderRunId
-            ? createToken(`source run:${parsed.sourceBuilderRunId}`, 'neutral')
+            ? createToken(`소스run:${parsed.sourceBuilderRunId}`, 'neutral')
             : ''
         }
-        ${createToken(`evidence:${parsed.evidence.length}`, 'neutral')}
+        ${createToken(`증거:${parsed.evidence.length}`, 'neutral')}
         ${
           parsed.findings.length > 0
-            ? createToken(`findings:${parsed.findings.length}`, 'danger')
-            : createToken('findings:0', 'success')
+            ? createToken(`발견:${parsed.findings.length}`, 'danger')
+            : createToken('발견:0', 'success')
         }
         ${
           parsed.blockingIssue === true
-            ? createToken('blocking issue:yes', 'danger')
+            ? createToken('차단이슈:예', 'danger')
             : parsed.blockingIssue === false
-              ? createToken('blocking issue:no', 'success')
+              ? createToken('차단이슈:아니오', 'success')
               : ''
         }
         ${
           parsed.decisionRequired === true
-            ? createToken('decision required:yes', 'warning')
+            ? createToken('결정필요:예', 'warning')
             : parsed.decisionRequired === false
-              ? createToken('decision required:no', 'success')
+              ? createToken('결정필요:아니오', 'success')
               : ''
         }
       </div>
-      ${renderBreakdownList('Evidence Reviewed', parsed.evidence)}
-      ${renderBreakdownList('Findings', parsed.findings)}
-      ${renderBreakdownList('Contract Compliance', parsed.contractCompliance)}
-      ${renderBreakdownList('Verification Evidence', parsed.verificationEvidence)}
-      ${renderBreakdownList('Next Action', parsed.nextAction)}
-      ${renderBreakdownList('Accepted Risks', parsed.acceptedRisks)}
+      ${renderBreakdownList('검토한 증거', parsed.evidence)}
+      ${renderBreakdownList('발견 사항', parsed.findings)}
+      ${renderBreakdownList('계약 준수', parsed.contractCompliance)}
+      ${renderBreakdownList('검증 증거', parsed.verificationEvidence)}
+      ${renderBreakdownList('다음 액션', parsed.nextAction)}
+      ${renderBreakdownList('수용된 위험', parsed.acceptedRisks)}
     </div>
   `;
 }
@@ -2155,12 +5058,12 @@ function renderStructuredCommitPackage(parsed) {
       <div class="token-row">
         ${
           parsed.sourceReviewerRunId
-            ? createToken(`reviewer:${parsed.sourceReviewerRunId}`, 'neutral')
+            ? createToken(`리뷰어:${parsed.sourceReviewerRunId}`, 'neutral')
             : ''
         }
         ${
           parsed.sourceBuilderRunId
-            ? createToken(`builder:${parsed.sourceBuilderRunId}`, 'neutral')
+            ? createToken(`빌더:${parsed.sourceBuilderRunId}`, 'neutral')
             : ''
         }
         ${
@@ -2170,18 +5073,18 @@ function renderStructuredCommitPackage(parsed) {
         }
         ${
           parsed.builderLiveMutationApprovalId
-            ? createToken(`builder approval:${parsed.builderLiveMutationApprovalId}`, 'neutral')
+            ? createToken(`빌더승인:${parsed.builderLiveMutationApprovalId}`, 'neutral')
             : ''
         }
         ${
           parsed.reviewerMappedStatus
-            ? createToken(`mapped review:${parsed.reviewerMappedStatus}`, 'success')
+            ? createToken(`매핑리뷰:${getReviewStatusDisplay(parsed.reviewerMappedStatus)}`, 'success')
             : ''
         }
         ${
           parsed.reviewerRawVerdict
             ? createToken(
-                `raw verdict:${parsed.reviewerRawVerdict}`,
+                `원시판정:${getReviewerVerdictDisplay(parsed.reviewerRawVerdict)}`,
                 getReviewerVerdictTone(parsed.reviewerRawVerdict),
               )
             : ''
@@ -2189,7 +5092,7 @@ function renderStructuredCommitPackage(parsed) {
         ${
           parsed.gitCommitExecuted !== null
             ? createToken(
-                `git commit:${parsed.gitCommitExecuted ? 'yes' : 'no'}`,
+                `git commit:${getBooleanDisplay(parsed.gitCommitExecuted)}`,
                 parsed.gitCommitExecuted ? 'warning' : 'success',
               )
             : ''
@@ -2197,7 +5100,7 @@ function renderStructuredCommitPackage(parsed) {
         ${
           parsed.mergeExecuted !== null
             ? createToken(
-                `merge:${parsed.mergeExecuted ? 'yes' : 'no'}`,
+                `merge:${getBooleanDisplay(parsed.mergeExecuted)}`,
                 parsed.mergeExecuted ? 'warning' : 'success',
               )
             : ''
@@ -2205,57 +5108,57 @@ function renderStructuredCommitPackage(parsed) {
         ${
           parsed.releaseExecuted !== null
             ? createToken(
-                `release:${parsed.releaseExecuted ? 'yes' : 'no'}`,
+                `release:${getBooleanDisplay(parsed.releaseExecuted)}`,
                 parsed.releaseExecuted ? 'warning' : 'success',
               )
             : ''
         }
       </div>
       ${renderBreakdownList(
-        'Source Reviewer Bundle',
+        '소스 리뷰어 번들',
         [
-          parsed.sourceReviewerRunId ? `source reviewer run: ${parsed.sourceReviewerRunId}` : null,
-          parsed.reviewArtifactId ? `review artifact: ${parsed.reviewArtifactId}` : null,
-          parsed.sourceBuilderRunId ? `source builder run: ${parsed.sourceBuilderRunId}` : null,
+          parsed.sourceReviewerRunId ? `소스 리뷰어 run: ${parsed.sourceReviewerRunId}` : null,
+          parsed.reviewArtifactId ? `리뷰 아티팩트: ${parsed.reviewArtifactId}` : null,
+          parsed.sourceBuilderRunId ? `소스 빌더 run: ${parsed.sourceBuilderRunId}` : null,
           parsed.builderLiveMutationApprovalId
-            ? `builder live mutation approval: ${parsed.builderLiveMutationApprovalId}`
+            ? `빌더 라이브 변경 승인: ${parsed.builderLiveMutationApprovalId}`
             : null,
-          parsed.preflightArtifactId ? `target preflight artifact: ${parsed.preflightArtifactId}` : null,
+          parsed.preflightArtifactId ? `대상 preflight 아티팩트: ${parsed.preflightArtifactId}` : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Source Builder Bundle',
+        '소스 빌더 번들',
         [
-          parsed.planArtifactId ? `plan artifact: ${parsed.planArtifactId}` : null,
-          parsed.architectureArtifactId ? `architecture artifact: ${parsed.architectureArtifactId}` : null,
-          parsed.breakdownArtifactId ? `breakdown artifact: ${parsed.breakdownArtifactId}` : null,
-          parsed.changeSummaryArtifactId ? `change-summary artifact: ${parsed.changeSummaryArtifactId}` : null,
-          parsed.patchArtifactId ? `patch artifact: ${parsed.patchArtifactId}` : null,
-          parsed.diffArtifactId ? `diff artifact: ${parsed.diffArtifactId}` : null,
+          parsed.planArtifactId ? `계획 아티팩트: ${parsed.planArtifactId}` : null,
+          parsed.architectureArtifactId ? `설계 아티팩트: ${parsed.architectureArtifactId}` : null,
+          parsed.breakdownArtifactId ? `분해 아티팩트: ${parsed.breakdownArtifactId}` : null,
+          parsed.changeSummaryArtifactId ? `변경요약 아티팩트: ${parsed.changeSummaryArtifactId}` : null,
+          parsed.patchArtifactId ? `패치 아티팩트: ${parsed.patchArtifactId}` : null,
+          parsed.diffArtifactId ? `diff 아티팩트: ${parsed.diffArtifactId}` : null,
         ].filter(Boolean),
       )}
-      ${renderBreakdownList('Changed Files', parsed.changedFiles)}
+      ${renderBreakdownList('변경 파일', parsed.changedFiles)}
       ${renderBreakdownList(
-        'Verification Evidence',
+        '검증 증거',
         [
-          parsed.reviewerMappedStatus ? `reviewer mapped status: ${parsed.reviewerMappedStatus}` : null,
-          parsed.reviewerRawVerdict ? `reviewer raw verdict: ${parsed.reviewerRawVerdict}` : null,
-          parsed.reviewArtifactId ? `review artifact: ${parsed.reviewArtifactId}` : null,
-          parsed.diffArtifactId ? `diff artifact: ${parsed.diffArtifactId}` : null,
-          parsed.patchArtifactId ? `patch artifact: ${parsed.patchArtifactId}` : null,
+          parsed.reviewerMappedStatus ? `리뷰어 매핑 상태: ${getReviewStatusDisplay(parsed.reviewerMappedStatus)}` : null,
+          parsed.reviewerRawVerdict ? `리뷰어 원시 판정: ${getReviewerVerdictDisplay(parsed.reviewerRawVerdict)}` : null,
+          parsed.reviewArtifactId ? `리뷰 아티팩트: ${parsed.reviewArtifactId}` : null,
+          parsed.diffArtifactId ? `diff 아티팩트: ${parsed.diffArtifactId}` : null,
+          parsed.patchArtifactId ? `패치 아티팩트: ${parsed.patchArtifactId}` : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Execution Safety',
+        '실행 안전성',
         [
           parsed.gitCommitExecuted !== null
-            ? `git commit executed: ${parsed.gitCommitExecuted ? 'yes' : 'no'}`
+            ? `git commit 실행: ${getBooleanDisplay(parsed.gitCommitExecuted)}`
             : null,
           parsed.mergeExecuted !== null
-            ? `merge executed: ${parsed.mergeExecuted ? 'yes' : 'no'}`
+            ? `merge 실행: ${getBooleanDisplay(parsed.mergeExecuted)}`
             : null,
           parsed.releaseExecuted !== null
-            ? `release executed: ${parsed.releaseExecuted ? 'yes' : 'no'}`
+            ? `release 실행: ${getBooleanDisplay(parsed.releaseExecuted)}`
             : null,
         ].filter(Boolean),
       )}
@@ -2275,22 +5178,22 @@ function renderStructuredCommitResult(parsed) {
         ${parsed.commitSha ? createToken(`sha:${parsed.commitSha}`, 'success') : ''}
         ${
           parsed.commitApprovalId
-            ? createToken(`commit approval:${parsed.commitApprovalId}`, 'neutral')
+            ? createToken(`커밋승인:${parsed.commitApprovalId}`, 'neutral')
             : ''
         }
         ${
           parsed.commitPackageArtifactId
-            ? createToken(`commit-package:${parsed.commitPackageArtifactId}`, 'neutral')
+            ? createToken(`커밋패키지:${parsed.commitPackageArtifactId}`, 'neutral')
             : ''
         }
         ${
           parsed.sourceReviewerRunId
-            ? createToken(`reviewer:${parsed.sourceReviewerRunId}`, 'neutral')
+            ? createToken(`리뷰어:${parsed.sourceReviewerRunId}`, 'neutral')
             : ''
         }
         ${
           parsed.sourceBuilderRunId
-            ? createToken(`builder:${parsed.sourceBuilderRunId}`, 'neutral')
+            ? createToken(`빌더:${parsed.sourceBuilderRunId}`, 'neutral')
             : ''
         }
         ${
@@ -2301,7 +5204,7 @@ function renderStructuredCommitResult(parsed) {
         ${
           parsed.gitCommitExecuted !== null
             ? createToken(
-                `git commit:${parsed.gitCommitExecuted ? 'yes' : 'no'}`,
+                `git commit:${getBooleanDisplay(parsed.gitCommitExecuted)}`,
                 parsed.gitCommitExecuted ? 'success' : 'warning',
               )
             : ''
@@ -2309,7 +5212,7 @@ function renderStructuredCommitResult(parsed) {
         ${
           parsed.pushExecuted !== null
             ? createToken(
-                `push:${parsed.pushExecuted ? 'yes' : 'no'}`,
+                `push:${getBooleanDisplay(parsed.pushExecuted)}`,
                 parsed.pushExecuted ? 'danger' : 'success',
               )
             : ''
@@ -2317,7 +5220,7 @@ function renderStructuredCommitResult(parsed) {
         ${
           parsed.mergeExecuted !== null
             ? createToken(
-                `merge:${parsed.mergeExecuted ? 'yes' : 'no'}`,
+                `merge:${getBooleanDisplay(parsed.mergeExecuted)}`,
                 parsed.mergeExecuted ? 'danger' : 'success',
               )
             : ''
@@ -2325,85 +5228,85 @@ function renderStructuredCommitResult(parsed) {
         ${
           parsed.releaseExecuted !== null
             ? createToken(
-                `release:${parsed.releaseExecuted ? 'yes' : 'no'}`,
+                `release:${getBooleanDisplay(parsed.releaseExecuted)}`,
                 parsed.releaseExecuted ? 'danger' : 'success',
               )
             : ''
         }
       </div>
       ${renderBreakdownList(
-        'Provenance',
+        '증적 연결',
         [
           parsed.commitPackageArtifactId
-            ? `source commit-package artifact: ${parsed.commitPackageArtifactId}`
+            ? `소스 커밋패키지 아티팩트: ${parsed.commitPackageArtifactId}`
             : null,
-          parsed.commitApprovalId ? `commit approval: ${parsed.commitApprovalId}` : null,
-          parsed.sourceReviewerRunId ? `source reviewer run: ${parsed.sourceReviewerRunId}` : null,
-          parsed.reviewArtifactId ? `source review artifact: ${parsed.reviewArtifactId}` : null,
-          parsed.sourceBuilderRunId ? `source builder run: ${parsed.sourceBuilderRunId}` : null,
+          parsed.commitApprovalId ? `커밋 승인: ${parsed.commitApprovalId}` : null,
+          parsed.sourceReviewerRunId ? `소스 리뷰어 run: ${parsed.sourceReviewerRunId}` : null,
+          parsed.reviewArtifactId ? `소스 리뷰 아티팩트: ${parsed.reviewArtifactId}` : null,
+          parsed.sourceBuilderRunId ? `소스 빌더 run: ${parsed.sourceBuilderRunId}` : null,
           parsed.sourceBuilderApprovalId
-            ? `source builder approval: ${parsed.sourceBuilderApprovalId}`
+            ? `소스 빌더 승인: ${parsed.sourceBuilderApprovalId}`
             : null,
           parsed.preflightArtifactId
-            ? `target preflight artifact: ${parsed.preflightArtifactId}`
+            ? `대상 preflight 아티팩트: ${parsed.preflightArtifactId}`
             : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Commit',
+        '커밋',
         [
-          parsed.commitSha ? `commit sha: ${parsed.commitSha}` : null,
-          parsed.commitMessage ? `commit message: ${parsed.commitMessage}` : null,
+          parsed.commitSha ? `커밋 sha: ${parsed.commitSha}` : null,
+          parsed.commitMessage ? `커밋 메시지: ${parsed.commitMessage}` : null,
         ].filter(Boolean),
       )}
-      ${renderBreakdownList('Committed Files', parsed.committedFiles)}
+      ${renderBreakdownList('커밋된 파일', parsed.committedFiles)}
       ${renderBreakdownList(
-        'Validation',
+        '검증',
         [
-          parsed.scopeFileCount !== null ? `scope file count: ${parsed.scopeFileCount}` : null,
+          parsed.scopeFileCount !== null ? `범위 파일 수: ${parsed.scopeFileCount}` : null,
           parsed.repoChangedFileCountBeforeCommit !== null
-            ? `repo changed file count before commit: ${parsed.repoChangedFileCountBeforeCommit}`
+            ? `커밋 전 repo 변경 파일 수: ${parsed.repoChangedFileCountBeforeCommit}`
             : null,
           parsed.dirtyFileCountBeforeCommit !== null
-            ? `dirty file count before commit: ${parsed.dirtyFileCountBeforeCommit}`
+            ? `커밋 전 dirty 파일 수: ${parsed.dirtyFileCountBeforeCommit}`
             : null,
           parsed.stagedFileCountBeforeCommit !== null
-            ? `staged file count before commit: ${parsed.stagedFileCountBeforeCommit}`
+            ? `커밋 전 staged 파일 수: ${parsed.stagedFileCountBeforeCommit}`
             : null,
           parsed.untrackedFileCountBeforeCommit !== null
-            ? `untracked file count before commit: ${parsed.untrackedFileCountBeforeCommit}`
+            ? `커밋 전 untracked 파일 수: ${parsed.untrackedFileCountBeforeCommit}`
             : null,
           parsed.stagedFileCountAfterGitAdd !== null
-            ? `staged file count after git add: ${parsed.stagedFileCountAfterGitAdd}`
+            ? `git add 후 staged 파일 수: ${parsed.stagedFileCountAfterGitAdd}`
             : null,
           parsed.dirtyFileCountAfterGitAdd !== null
-            ? `dirty file count after git add: ${parsed.dirtyFileCountAfterGitAdd}`
+            ? `git add 후 dirty 파일 수: ${parsed.dirtyFileCountAfterGitAdd}`
             : null,
           parsed.untrackedFileCountAfterGitAdd !== null
-            ? `untracked file count after git add: ${parsed.untrackedFileCountAfterGitAdd}`
+            ? `git add 후 untracked 파일 수: ${parsed.untrackedFileCountAfterGitAdd}`
             : null,
           parsed.committedFilesMatchedScope !== null
-            ? `committed files matched scope: ${parsed.committedFilesMatchedScope ? 'yes' : 'no'}`
+            ? `커밋 파일이 범위와 일치: ${getBooleanDisplay(parsed.committedFilesMatchedScope)}`
             : null,
           parsed.repoCleanAfterCommit !== null
-            ? `repo clean after commit: ${parsed.repoCleanAfterCommit ? 'yes' : 'no'}`
+            ? `커밋 후 repo clean: ${getBooleanDisplay(parsed.repoCleanAfterCommit)}`
             : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Safety',
+        '안전성',
         [
           parsed.gitCommitExecuted !== null
-            ? `git commit executed: ${parsed.gitCommitExecuted ? 'yes' : 'no'}`
+            ? `git commit 실행: ${getBooleanDisplay(parsed.gitCommitExecuted)}`
             : null,
           parsed.pushExecuted !== null
-            ? `push executed: ${parsed.pushExecuted ? 'yes' : 'no'}`
+            ? `push 실행: ${getBooleanDisplay(parsed.pushExecuted)}`
             : null,
           parsed.mergeExecuted !== null
-            ? `merge executed: ${parsed.mergeExecuted ? 'yes' : 'no'}`
+            ? `merge 실행: ${getBooleanDisplay(parsed.mergeExecuted)}`
             : null,
           parsed.releaseExecuted !== null
-            ? `release executed: ${parsed.releaseExecuted ? 'yes' : 'no'}`
+            ? `release 실행: ${getBooleanDisplay(parsed.releaseExecuted)}`
             : null,
         ].filter(Boolean),
       )}
@@ -2421,25 +5324,25 @@ function renderStructuredReleasePackage(parsed) {
       ${parsed.title ? `<p class="breakdown-title">${escapeHtml(parsed.title)}</p>` : ''}
       <div class="token-row">
         ${parsed.commitSha ? createToken(`sha:${parsed.commitSha}`, 'success') : ''}
-        ${parsed.deliveryStance ? createToken(`delivery:${parsed.deliveryStance}`, 'neutral') : ''}
+        ${parsed.deliveryStance ? createToken(`전달:${getDeliveryStanceDisplay(parsed.deliveryStance)}`, 'neutral') : ''}
         ${
           parsed.commitResultArtifactId
-            ? createToken(`commit-result:${parsed.commitResultArtifactId}`, 'neutral')
+            ? createToken(`커밋결과:${parsed.commitResultArtifactId}`, 'neutral')
             : ''
         }
         ${
           parsed.commitPackageArtifactId
-            ? createToken(`commit-package:${parsed.commitPackageArtifactId}`, 'neutral')
+            ? createToken(`커밋패키지:${parsed.commitPackageArtifactId}`, 'neutral')
             : ''
         }
         ${
           parsed.sourceReviewerRunId
-            ? createToken(`reviewer:${parsed.sourceReviewerRunId}`, 'neutral')
+            ? createToken(`리뷰어:${parsed.sourceReviewerRunId}`, 'neutral')
             : ''
         }
         ${
           parsed.sourceBuilderRunId
-            ? createToken(`builder:${parsed.sourceBuilderRunId}`, 'neutral')
+            ? createToken(`빌더:${parsed.sourceBuilderRunId}`, 'neutral')
             : ''
         }
         ${
@@ -2450,20 +5353,20 @@ function renderStructuredReleasePackage(parsed) {
         ${
           parsed.releaseApprovalRequired !== null
             ? createToken(
-                `release approval:${parsed.releaseApprovalRequired ? 'yes' : 'no'}`,
+                `릴리스승인:${getBooleanDisplay(parsed.releaseApprovalRequired)}`,
                 parsed.releaseApprovalRequired ? 'warning' : 'success',
               )
             : ''
         }
         ${
           parsed.releaseReadyAction
-            ? createToken(`action:${parsed.releaseReadyAction}`, 'neutral')
+            ? createToken(`액션:${getApprovalActionLabel(parsed.releaseReadyAction) || parsed.releaseReadyAction}`, 'neutral')
             : ''
         }
         ${
           parsed.pushExecuted !== null
             ? createToken(
-                `push:${parsed.pushExecuted ? 'yes' : 'no'}`,
+                `push:${getBooleanDisplay(parsed.pushExecuted)}`,
                 parsed.pushExecuted ? 'danger' : 'success',
               )
             : ''
@@ -2471,7 +5374,7 @@ function renderStructuredReleasePackage(parsed) {
         ${
           parsed.publishExecuted !== null
             ? createToken(
-                `publish:${parsed.publishExecuted ? 'yes' : 'no'}`,
+                `publish:${getBooleanDisplay(parsed.publishExecuted)}`,
                 parsed.publishExecuted ? 'danger' : 'success',
               )
             : ''
@@ -2479,74 +5382,74 @@ function renderStructuredReleasePackage(parsed) {
         ${
           parsed.externalReleaseExecuted !== null
             ? createToken(
-                `external release:${parsed.externalReleaseExecuted ? 'yes' : 'no'}`,
+                `외부릴리스:${getBooleanDisplay(parsed.externalReleaseExecuted)}`,
                 parsed.externalReleaseExecuted ? 'danger' : 'success',
               )
             : ''
         }
       </div>
       ${renderBreakdownList(
-        'Source Local Commit Bundle',
+        '소스 로컬 커밋 번들',
         [
           parsed.commitResultArtifactId
-            ? `source commit-result artifact: ${parsed.commitResultArtifactId}`
+            ? `소스 커밋결과 아티팩트: ${parsed.commitResultArtifactId}`
             : null,
           parsed.commitPackageArtifactId
-            ? `source commit-package artifact: ${parsed.commitPackageArtifactId}`
+            ? `소스 커밋패키지 아티팩트: ${parsed.commitPackageArtifactId}`
             : null,
-          parsed.commitApprovalId ? `commit approval: ${parsed.commitApprovalId}` : null,
-          parsed.sourceReviewerRunId ? `source reviewer run: ${parsed.sourceReviewerRunId}` : null,
-          parsed.reviewArtifactId ? `source review artifact: ${parsed.reviewArtifactId}` : null,
-          parsed.sourceBuilderRunId ? `source builder run: ${parsed.sourceBuilderRunId}` : null,
+          parsed.commitApprovalId ? `커밋 승인: ${parsed.commitApprovalId}` : null,
+          parsed.sourceReviewerRunId ? `소스 리뷰어 run: ${parsed.sourceReviewerRunId}` : null,
+          parsed.reviewArtifactId ? `소스 리뷰 아티팩트: ${parsed.reviewArtifactId}` : null,
+          parsed.sourceBuilderRunId ? `소스 빌더 run: ${parsed.sourceBuilderRunId}` : null,
           parsed.sourceBuilderApprovalId
-            ? `source builder approval: ${parsed.sourceBuilderApprovalId}`
+            ? `소스 빌더 승인: ${parsed.sourceBuilderApprovalId}`
             : null,
-          parsed.preflightArtifactId ? `target preflight artifact: ${parsed.preflightArtifactId}` : null,
+          parsed.preflightArtifactId ? `대상 preflight 아티팩트: ${parsed.preflightArtifactId}` : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Source Builder Bundle',
+        '소스 빌더 번들',
         [
-          parsed.planArtifactId ? `plan artifact: ${parsed.planArtifactId}` : null,
-          parsed.architectureArtifactId ? `architecture artifact: ${parsed.architectureArtifactId}` : null,
-          parsed.breakdownArtifactId ? `breakdown artifact: ${parsed.breakdownArtifactId}` : null,
-          parsed.changeSummaryArtifactId ? `change-summary artifact: ${parsed.changeSummaryArtifactId}` : null,
-          parsed.patchArtifactId ? `patch artifact: ${parsed.patchArtifactId}` : null,
-          parsed.diffArtifactId ? `diff artifact: ${parsed.diffArtifactId}` : null,
+          parsed.planArtifactId ? `계획 아티팩트: ${parsed.planArtifactId}` : null,
+          parsed.architectureArtifactId ? `설계 아티팩트: ${parsed.architectureArtifactId}` : null,
+          parsed.breakdownArtifactId ? `분해 아티팩트: ${parsed.breakdownArtifactId}` : null,
+          parsed.changeSummaryArtifactId ? `변경요약 아티팩트: ${parsed.changeSummaryArtifactId}` : null,
+          parsed.patchArtifactId ? `패치 아티팩트: ${parsed.patchArtifactId}` : null,
+          parsed.diffArtifactId ? `diff 아티팩트: ${parsed.diffArtifactId}` : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Release Candidate',
+        '릴리스 후보',
         [
-          parsed.commitSha ? `commit sha: ${parsed.commitSha}` : null,
-          parsed.commitMessage ? `commit message: ${parsed.commitMessage}` : null,
-          parsed.deliveryStance ? `delivery stance: ${parsed.deliveryStance}` : null,
+          parsed.commitSha ? `커밋 sha: ${parsed.commitSha}` : null,
+          parsed.commitMessage ? `커밋 메시지: ${parsed.commitMessage}` : null,
+          parsed.deliveryStance ? `전달 stance: ${getDeliveryStanceDisplay(parsed.deliveryStance)}` : null,
         ].filter(Boolean),
       )}
-      ${renderBreakdownList('Committed Files', parsed.committedFiles)}
+      ${renderBreakdownList('커밋된 파일', parsed.committedFiles)}
       ${renderBreakdownList(
-        'Human Gate',
+        '사람 게이트',
         [
           parsed.releaseApprovalRequired !== null
-            ? `release approval required: ${parsed.releaseApprovalRequired ? 'yes' : 'no'}`
+            ? `릴리스 승인 필요: ${getBooleanDisplay(parsed.releaseApprovalRequired)}`
             : null,
-          parsed.releaseReadyAction ? `allowed next action: ${parsed.releaseReadyAction}` : null,
+          parsed.releaseReadyAction ? `허용된 다음 액션: ${getApprovalActionLabel(parsed.releaseReadyAction) || parsed.releaseReadyAction}` : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Execution Safety',
+        '실행 안전성',
         [
           parsed.localCommitBundleExecuted !== null
-            ? `local commit bundle executed: ${parsed.localCommitBundleExecuted ? 'yes' : 'no'}`
+            ? `로컬 커밋 번들 실행: ${getBooleanDisplay(parsed.localCommitBundleExecuted)}`
             : null,
           parsed.pushExecuted !== null
-            ? `push executed: ${parsed.pushExecuted ? 'yes' : 'no'}`
+            ? `push 실행: ${getBooleanDisplay(parsed.pushExecuted)}`
             : null,
           parsed.publishExecuted !== null
-            ? `publish executed: ${parsed.publishExecuted ? 'yes' : 'no'}`
+            ? `publish 실행: ${getBooleanDisplay(parsed.publishExecuted)}`
             : null,
           parsed.externalReleaseExecuted !== null
-            ? `external release executed: ${parsed.externalReleaseExecuted ? 'yes' : 'no'}`
+            ? `외부 릴리스 실행: ${getBooleanDisplay(parsed.externalReleaseExecuted)}`
             : null,
         ].filter(Boolean),
       )}
@@ -2565,34 +5468,34 @@ function renderStructuredCloseOut(parsed) {
       <div class="token-row">
         ${
           parsed.lifecycleTransition
-            ? createToken(`transition:${parsed.lifecycleTransition}`, 'success')
+            ? createToken(`전환:${parsed.lifecycleTransition}`, 'success')
             : ''
         }
         ${
           parsed.releasePackageArtifactId
-            ? createToken(`release-package:${parsed.releasePackageArtifactId}`, 'neutral')
+            ? createToken(`릴리스패키지:${parsed.releasePackageArtifactId}`, 'neutral')
             : ''
         }
         ${
           parsed.commitResultArtifactId
-            ? createToken(`commit-result:${parsed.commitResultArtifactId}`, 'neutral')
+            ? createToken(`커밋결과:${parsed.commitResultArtifactId}`, 'neutral')
             : ''
         }
         ${
           parsed.commitPackageArtifactId
-            ? createToken(`commit-package:${parsed.commitPackageArtifactId}`, 'neutral')
+            ? createToken(`커밋패키지:${parsed.commitPackageArtifactId}`, 'neutral')
             : ''
         }
         ${parsed.commitSha ? createToken(`sha:${parsed.commitSha}`, 'success') : ''}
-        ${parsed.deliveryStance ? createToken(`delivery:${parsed.deliveryStance}`, 'neutral') : ''}
+        ${parsed.deliveryStance ? createToken(`전달:${getDeliveryStanceDisplay(parsed.deliveryStance)}`, 'neutral') : ''}
         ${
           parsed.sourceReviewerRunId
-            ? createToken(`reviewer:${parsed.sourceReviewerRunId}`, 'neutral')
+            ? createToken(`리뷰어:${parsed.sourceReviewerRunId}`, 'neutral')
             : ''
         }
         ${
           parsed.sourceBuilderRunId
-            ? createToken(`builder:${parsed.sourceBuilderRunId}`, 'neutral')
+            ? createToken(`빌더:${parsed.sourceBuilderRunId}`, 'neutral')
             : ''
         }
         ${
@@ -2603,7 +5506,7 @@ function renderStructuredCloseOut(parsed) {
         ${
           parsed.repoCleanBeforeCloseOut !== null
             ? createToken(
-                `repo clean:${parsed.repoCleanBeforeCloseOut ? 'yes' : 'no'}`,
+                `repo정상:${getBooleanDisplay(parsed.repoCleanBeforeCloseOut)}`,
                 parsed.repoCleanBeforeCloseOut ? 'success' : 'warning',
               )
             : ''
@@ -2611,7 +5514,7 @@ function renderStructuredCloseOut(parsed) {
         ${
           parsed.pushExecuted !== null
             ? createToken(
-                `push:${parsed.pushExecuted ? 'yes' : 'no'}`,
+                `push:${getBooleanDisplay(parsed.pushExecuted)}`,
                 parsed.pushExecuted ? 'danger' : 'success',
               )
             : ''
@@ -2619,7 +5522,7 @@ function renderStructuredCloseOut(parsed) {
         ${
           parsed.publishExecuted !== null
             ? createToken(
-                `publish:${parsed.publishExecuted ? 'yes' : 'no'}`,
+                `publish:${getBooleanDisplay(parsed.publishExecuted)}`,
                 parsed.publishExecuted ? 'danger' : 'success',
               )
             : ''
@@ -2627,97 +5530,97 @@ function renderStructuredCloseOut(parsed) {
         ${
           parsed.externalReleaseExecuted !== null
             ? createToken(
-                `external release:${parsed.externalReleaseExecuted ? 'yes' : 'no'}`,
+                `외부릴리스:${getBooleanDisplay(parsed.externalReleaseExecuted)}`,
                 parsed.externalReleaseExecuted ? 'danger' : 'success',
               )
             : ''
         }
       </div>
       ${renderBreakdownList(
-        'Done Transition',
+        '완료 전환',
         [
-          parsed.releaseApprovalId ? `source release approval: ${parsed.releaseApprovalId}` : null,
+          parsed.releaseApprovalId ? `소스 릴리스 승인: ${parsed.releaseApprovalId}` : null,
           parsed.releasePackageArtifactId
-            ? `source release-package artifact: ${parsed.releasePackageArtifactId}`
+            ? `소스 릴리스패키지 아티팩트: ${parsed.releasePackageArtifactId}`
             : null,
-          parsed.closeOutRunId ? `close-out run: ${parsed.closeOutRunId}` : null,
-          parsed.closedOutAt ? `closed out at: ${parsed.closedOutAt}` : null,
-          parsed.lifecycleTransition ? `lifecycle transition: ${parsed.lifecycleTransition}` : null,
+          parsed.closeOutRunId ? `종료 정리 run: ${parsed.closeOutRunId}` : null,
+          parsed.closedOutAt ? `종료 시각: ${parsed.closedOutAt}` : null,
+          parsed.lifecycleTransition ? `라이프사이클 전환: ${parsed.lifecycleTransition}` : null,
           parsed.lifecycleStateBefore
-            ? `task lifecycle before close-out: ${parsed.lifecycleStateBefore}`
+            ? `종료 전 태스크 라이프사이클: ${parsed.lifecycleStateBefore}`
             : null,
           parsed.lifecycleStateAfter
-            ? `task lifecycle after close-out: ${parsed.lifecycleStateAfter}`
+            ? `종료 후 태스크 라이프사이클: ${parsed.lifecycleStateAfter}`
             : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Source Release Bundle',
+        '소스 릴리스 번들',
         [
           parsed.releasePackageArtifactId
-            ? `source release-package artifact: ${parsed.releasePackageArtifactId}`
+            ? `소스 릴리스패키지 아티팩트: ${parsed.releasePackageArtifactId}`
             : null,
           parsed.commitResultArtifactId
-            ? `source commit-result artifact: ${parsed.commitResultArtifactId}`
+            ? `소스 커밋결과 아티팩트: ${parsed.commitResultArtifactId}`
             : null,
           parsed.commitPackageArtifactId
-            ? `source commit-package artifact: ${parsed.commitPackageArtifactId}`
+            ? `소스 커밋패키지 아티팩트: ${parsed.commitPackageArtifactId}`
             : null,
-          parsed.commitSha ? `commit sha: ${parsed.commitSha}` : null,
-          parsed.deliveryStance ? `delivery stance: ${parsed.deliveryStance}` : null,
+          parsed.commitSha ? `커밋 sha: ${parsed.commitSha}` : null,
+          parsed.deliveryStance ? `전달 stance: ${getDeliveryStanceDisplay(parsed.deliveryStance)}` : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Source Review Bundle',
+        '소스 리뷰 번들',
         [
-          parsed.sourceReviewerRunId ? `source reviewer run: ${parsed.sourceReviewerRunId}` : null,
-          parsed.reviewArtifactId ? `source review artifact: ${parsed.reviewArtifactId}` : null,
+          parsed.sourceReviewerRunId ? `소스 리뷰어 run: ${parsed.sourceReviewerRunId}` : null,
+          parsed.reviewArtifactId ? `소스 리뷰 아티팩트: ${parsed.reviewArtifactId}` : null,
           parsed.reviewerMappedStatus
-            ? `reviewer mapped status: ${parsed.reviewerMappedStatus}`
+            ? `리뷰어 매핑 상태: ${getReviewStatusDisplay(parsed.reviewerMappedStatus)}`
             : null,
-          parsed.reviewerRawVerdict ? `reviewer raw verdict: ${parsed.reviewerRawVerdict}` : null,
+          parsed.reviewerRawVerdict ? `리뷰어 원시 판정: ${getReviewerVerdictDisplay(parsed.reviewerRawVerdict)}` : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Source Builder Bundle',
+        '소스 빌더 번들',
         [
-          parsed.sourceBuilderRunId ? `source builder run: ${parsed.sourceBuilderRunId}` : null,
+          parsed.sourceBuilderRunId ? `소스 빌더 run: ${parsed.sourceBuilderRunId}` : null,
           parsed.sourceBuilderApprovalId
-            ? `source builder approval: ${parsed.sourceBuilderApprovalId}`
+            ? `소스 빌더 승인: ${parsed.sourceBuilderApprovalId}`
             : null,
-          parsed.preflightArtifactId ? `target preflight artifact: ${parsed.preflightArtifactId}` : null,
-          parsed.planArtifactId ? `plan artifact: ${parsed.planArtifactId}` : null,
-          parsed.architectureArtifactId ? `architecture artifact: ${parsed.architectureArtifactId}` : null,
-          parsed.breakdownArtifactId ? `breakdown artifact: ${parsed.breakdownArtifactId}` : null,
-          parsed.changeSummaryArtifactId ? `change-summary artifact: ${parsed.changeSummaryArtifactId}` : null,
-          parsed.patchArtifactId ? `patch artifact: ${parsed.patchArtifactId}` : null,
-          parsed.diffArtifactId ? `diff artifact: ${parsed.diffArtifactId}` : null,
+          parsed.preflightArtifactId ? `대상 preflight 아티팩트: ${parsed.preflightArtifactId}` : null,
+          parsed.planArtifactId ? `계획 아티팩트: ${parsed.planArtifactId}` : null,
+          parsed.architectureArtifactId ? `설계 아티팩트: ${parsed.architectureArtifactId}` : null,
+          parsed.breakdownArtifactId ? `분해 아티팩트: ${parsed.breakdownArtifactId}` : null,
+          parsed.changeSummaryArtifactId ? `변경요약 아티팩트: ${parsed.changeSummaryArtifactId}` : null,
+          parsed.patchArtifactId ? `패치 아티팩트: ${parsed.patchArtifactId}` : null,
+          parsed.diffArtifactId ? `diff 아티팩트: ${parsed.diffArtifactId}` : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Worktree Verification',
+        '워크트리 검증',
         [
           parsed.repoCleanBeforeCloseOut !== null
-            ? `repo clean before close-out: ${parsed.repoCleanBeforeCloseOut ? 'yes' : 'no'}`
+            ? `종료 전 repo clean: ${getBooleanDisplay(parsed.repoCleanBeforeCloseOut)}`
             : null,
-          parsed.dirtyFileCount !== null ? `dirty file count: ${parsed.dirtyFileCount}` : null,
-          parsed.stagedFileCount !== null ? `staged file count: ${parsed.stagedFileCount}` : null,
+          parsed.dirtyFileCount !== null ? `dirty 파일 수: ${parsed.dirtyFileCount}` : null,
+          parsed.stagedFileCount !== null ? `staged 파일 수: ${parsed.stagedFileCount}` : null,
           parsed.untrackedFileCount !== null
-            ? `untracked file count: ${parsed.untrackedFileCount}`
+            ? `untracked 파일 수: ${parsed.untrackedFileCount}`
             : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
-        'Release Safety',
+        '릴리스 안전성',
         [
           parsed.pushExecuted !== null
-            ? `push executed: ${parsed.pushExecuted ? 'yes' : 'no'}`
+            ? `push 실행: ${getBooleanDisplay(parsed.pushExecuted)}`
             : null,
           parsed.publishExecuted !== null
-            ? `publish executed: ${parsed.publishExecuted ? 'yes' : 'no'}`
+            ? `publish 실행: ${getBooleanDisplay(parsed.publishExecuted)}`
             : null,
           parsed.externalReleaseExecuted !== null
-            ? `external release executed: ${parsed.externalReleaseExecuted ? 'yes' : 'no'}`
+            ? `외부 릴리스 실행: ${getBooleanDisplay(parsed.externalReleaseExecuted)}`
             : null,
         ].filter(Boolean),
       )}
@@ -2734,10 +5637,10 @@ function renderStructuredUnifiedDiff(parsed, label) {
     <div class="breakdown-structured">
       <div class="token-row">
         ${createToken(label, 'neutral')}
-        ${createToken(`files:${parsed.files.length}`, 'neutral')}
-        ${createToken(`hunks:${parsed.hunkCount}`, 'neutral')}
+        ${createToken(`파일:${parsed.files.length}`, 'neutral')}
+        ${createToken(`hunk:${parsed.hunkCount}`, 'neutral')}
       </div>
-      ${renderBreakdownList('Files', parsed.files)}
+      ${renderBreakdownList('파일', parsed.files)}
     </div>
   `;
 }
@@ -2778,15 +5681,15 @@ function getArtifactMeaningBadge(entry) {
   }
 
   if (entry.retentionTier === 'tier-a-provenance-critical') {
-    return { label: 'provenance-critical', tone: 'warning' };
+    return { label: '증적 핵심', tone: 'warning' };
   }
 
   if (entry.retentionTier === 'tier-b-latest-centered-history-retained') {
-    return { label: 'latest-centered browse', tone: 'accent' };
+    return { label: '최신 우선 탐색', tone: 'accent' };
   }
 
   if (entry.retentionTier === 'tier-c-generic-fallback') {
-    return { label: 'generic fallback', tone: 'neutral' };
+    return { label: '일반 보존', tone: 'neutral' };
   }
 
   return null;
@@ -2798,11 +5701,11 @@ function getArtifactPreviewBadge(entry) {
   }
 
   if (entry.previewMode === 'structured-with-raw-fallback') {
-    return { label: 'structured preview + raw fallback', tone: 'success' };
+    return { label: '구조화 미리보기 + 원문 대체', tone: 'success' };
   }
 
   if (entry.previewMode === 'raw-only') {
-    return { label: 'raw only', tone: 'neutral' };
+    return { label: '원문만 제공', tone: 'neutral' };
   }
 
   return null;
@@ -2832,19 +5735,19 @@ function getArtifactPolicySummary(artifact, data) {
 }
 
 function getStructuredPreviewLeadCopy() {
-  return 'Structured preview is best-effort. Stored raw content below remains the source of truth.';
+  return '구조화 미리보기는 best-effort입니다. 아래 저장된 원문이 source of truth로 남습니다.';
 }
 
 function getPreviewRedactionCopy() {
-  return 'Preview redacts stored repo content inside File Updates. Stored raw content below remains the source of truth.';
+  return '미리보기는 File Updates 안의 저장된 repo 내용을 가립니다. 아래 저장된 원문이 source of truth로 남습니다.';
 }
 
 function getStructuredPreviewFallbackCopy() {
-  return 'Structured preview is unavailable for this artifact instance. Showing stored raw content.';
+  return '이 아티팩트 인스턴스에서는 구조화 미리보기를 만들 수 없습니다. 저장된 원문을 보여줍니다.';
 }
 
 function getRawOnlyPreviewCopy() {
-  return 'This artifact type is raw-only in the current contract. No structured view is derived.';
+  return '현재 계약에서는 이 아티팩트 타입이 원문 전용입니다. 구조화된 뷰는 만들지 않습니다.';
 }
 
 function getReviewTone(status) {
@@ -3521,7 +6424,7 @@ function renderRelationStrip(context) {
     context.run.id !== context.builderRun?.id &&
     context.run.id !== context.reviewerRun?.id
       ? renderRelationButton(
-          `${context.runLabel || 'run'}:${context.run.id}`,
+          `${getRunRelationLabelDisplay(context.runLabel || 'run')}:${context.run.id}`,
           'select-run',
           context.run.id,
           'neutral',
@@ -3531,7 +6434,7 @@ function renderRelationStrip(context) {
   const relationButtons = [
     context.releasePackageArtifact
       ? renderRelationButton(
-          `release-package:${context.releasePackageArtifact.id}`,
+          `${getArtifactTypeDisplay('release-package')}:${context.releasePackageArtifact.id}`,
           'select-artifact',
           context.releasePackageArtifact.id,
           'neutral',
@@ -3540,7 +6443,7 @@ function renderRelationStrip(context) {
       : '',
     context.commitResultArtifact
       ? renderRelationButton(
-          `commit-result:${context.commitResultArtifact.id}`,
+          `${getArtifactTypeDisplay('commit-result')}:${context.commitResultArtifact.id}`,
           'select-artifact',
           context.commitResultArtifact.id,
           'neutral',
@@ -3549,7 +6452,7 @@ function renderRelationStrip(context) {
       : '',
     context.commitPackageArtifact
       ? renderRelationButton(
-          `commit-package:${context.commitPackageArtifact.id}`,
+          `${getArtifactTypeDisplay('commit-package')}:${context.commitPackageArtifact.id}`,
           'select-artifact',
           context.commitPackageArtifact.id,
           'neutral',
@@ -3558,7 +6461,7 @@ function renderRelationStrip(context) {
       : '',
     context.reviewerRun
       ? renderRelationButton(
-          `reviewer:${context.reviewerRun.id}`,
+          `리뷰어:${context.reviewerRun.id}`,
           'select-run',
           context.reviewerRun.id,
           'neutral',
@@ -3567,7 +6470,7 @@ function renderRelationStrip(context) {
       : '',
     context.reviewArtifact
       ? renderRelationButton(
-          `review:${context.reviewArtifact.id}`,
+          `${getArtifactTypeDisplay('review')}:${context.reviewArtifact.id}`,
           'select-artifact',
           context.reviewArtifact.id,
           'neutral',
@@ -3576,7 +6479,7 @@ function renderRelationStrip(context) {
       : '',
     context.builderRun
       ? renderRelationButton(
-          `builder:${context.builderRun.id}`,
+          `빌더:${context.builderRun.id}`,
           'select-run',
           context.builderRun.id,
           'neutral',
@@ -3585,7 +6488,7 @@ function renderRelationStrip(context) {
       : '',
     context.preflightArtifact
       ? renderRelationButton(
-          `preflight:${context.preflightArtifact.id}`,
+          `${getArtifactTypeDisplay('preflight')}:${context.preflightArtifact.id}`,
           'select-artifact',
           context.preflightArtifact.id,
           'neutral',
@@ -3594,7 +6497,7 @@ function renderRelationStrip(context) {
       : '',
     context.changeSummaryArtifact
       ? renderRelationButton(
-          `change-summary:${context.changeSummaryArtifact.id}`,
+          `${getArtifactTypeDisplay('change-summary')}:${context.changeSummaryArtifact.id}`,
           'select-artifact',
           context.changeSummaryArtifact.id,
           'neutral',
@@ -3603,7 +6506,7 @@ function renderRelationStrip(context) {
       : '',
     context.patchArtifact
       ? renderRelationButton(
-          `patch:${context.patchArtifact.id}`,
+          `${getArtifactTypeDisplay('patch')}:${context.patchArtifact.id}`,
           'select-artifact',
           context.patchArtifact.id,
           'neutral',
@@ -3612,7 +6515,7 @@ function renderRelationStrip(context) {
       : '',
     context.diffArtifact
       ? renderRelationButton(
-          `diff:${context.diffArtifact.id}`,
+          `${getArtifactTypeDisplay('diff')}:${context.diffArtifact.id}`,
           'select-artifact',
           context.diffArtifact.id,
           'neutral',
@@ -3624,11 +6527,16 @@ function renderRelationStrip(context) {
     .filter(Boolean)
     .join('');
   const contextTokens = [
-    context.executionMode ? createToken(`mode:${context.executionMode}`, 'neutral') : '',
-    context.approvalId ? createToken(`approval:${context.approvalId}`, 'neutral') : '',
-    context.rawVerdict ? createToken(`verdict:${context.rawVerdict}`, getReviewerVerdictTone(context.rawVerdict)) : '',
+    context.executionMode ? createToken(`모드:${getExecutionModeDisplay(context.executionMode)}`, 'neutral') : '',
+    context.approvalId ? createToken(`승인:${context.approvalId}`, 'neutral') : '',
+    context.rawVerdict
+      ? createToken(
+          `판정:${getReviewerVerdictDisplay(context.rawVerdict)}`,
+          getReviewerVerdictTone(context.rawVerdict),
+        )
+      : '',
     context.changedFiles.length > 0
-      ? createToken(`changed files:${context.changedFiles.length}`, 'neutral')
+      ? createToken(`변경파일:${context.changedFiles.length}`, 'neutral')
       : '',
   ]
     .filter(Boolean)
@@ -3642,7 +6550,7 @@ function renderRelationStrip(context) {
     <div class="relation-strip">
       ${contextTokens ? `<div class="token-row">${contextTokens}</div>` : ''}
       ${relationButtons ? `<div class="relation-button-row">${relationButtons}</div>` : ''}
-      ${renderCompactList('Changed Files', context.changedFiles, 4)}
+      ${renderCompactList('변경 파일', context.changedFiles, 4)}
     </div>
   `;
 }
@@ -3664,7 +6572,12 @@ function getInboxTone(item) {
 }
 
 function renderReasonList(title, items) {
-  return renderCompactList(title, items, Array.isArray(items) ? items.length : 0);
+  const normalizedItems = Array.isArray(items) ? items.map((item) => getGuardReasonDisplay(item)) : items;
+  return renderCompactList(
+    title,
+    normalizedItems,
+    Array.isArray(normalizedItems) ? normalizedItems.length : 0,
+  );
 }
 
 function findPendingApprovalItemByAction(taskId, data, allowedNextAction, matcher = null) {
@@ -3693,23 +6606,31 @@ function renderPreselectedPendingItemHint(item, approval, options = {}) {
   }
 
   const helpText =
-    options.helpText || 'Approval actions stay on the current surface and mirror the server snapshot as-is.';
+    options.helpText || '승인 처리는 현재 표면에 남고 서버 스냅샷을 그대로 따릅니다.';
+  const hintSignalRow = options.signalRow
+    ? `
+      <div class="breakdown-inbox-signal-row">
+        ${options.signalRow}
+      </div>
+    `
+    : '';
 
   return `
     <div class="breakdown-inbox-hint">
       <div class="token-row">
-        ${createToken(`preselected inbox:${item.id}`, 'warning')}
-        ${createToken(item.kind, getInboxTone(item))}
-        ${item.blocksTask ? createToken('blocksTask', 'danger') : ''}
-        ${approval ? createToken(`scope:${approval.scope}`, 'neutral') : ''}
+        ${createToken(`선택된 결정함:${item.id}`, 'warning')}
+        ${createToken(getInboxKindDisplay(item.kind), getInboxTone(item))}
+        ${item.blocksTask ? createToken('태스크 차단', 'danger') : ''}
+        ${approval ? createToken(`범위:${approval.scope}`, 'neutral') : ''}
         ${
           approval?.allowedNextAction
-            ? createToken(`action:${approval.allowedNextAction}`, 'neutral')
+            ? createToken(`액션:${getApprovalActionLabel(approval.allowedNextAction)}`, 'neutral')
             : ''
         }
       </div>
       <p class="detail-copy">${escapeHtml(item.title)}</p>
-      <p class="detail-copy">${escapeHtml(item.prompt || 'No prompt recorded.')}</p>
+      <p class="detail-copy">${escapeHtml(item.prompt || '기록된 안내 문구가 없습니다.')}</p>
+      ${hintSignalRow}
       ${
         item.kind === 'approval'
           ? `
@@ -3722,7 +6643,7 @@ function renderPreselectedPendingItemHint(item, approval, options = {}) {
                 data-verb="approve"
                 ${state.loading || state.mutating ? 'disabled' : ''}
               >
-                Approve
+                승인
               </button>
               <button
                 class="danger-button"
@@ -3732,51 +6653,19 @@ function renderPreselectedPendingItemHint(item, approval, options = {}) {
                 data-verb="reject"
                 ${state.loading || state.mutating ? 'disabled' : ''}
               >
-                Reject
+                반려
               </button>
               <p class="form-help">${escapeHtml(helpText)}</p>
             </div>
           `
-          : '<p class="form-help">Decision resolution remains in Decision Inbox for this slice.</p>'
+          : '<p class="form-help">이 slice에서는 결정 처리를 결정함 표면에 남깁니다.</p>'
       }
     </div>
   `;
 }
 
 function getSurfaceDisplayName(surface) {
-  if (surface === 'mission') {
-    return 'Mission';
-  }
-
-  if (surface === 'council') {
-    return 'Council';
-  }
-
-  if (surface === 'execution') {
-    return 'Execution';
-  }
-
-  if (surface === 'deliverables') {
-    return 'Deliverables';
-  }
-
-  if (surface === 'decision-inbox') {
-    return 'Decision Inbox';
-  }
-
-  if (surface === 'taskboard') {
-    return 'Taskboard';
-  }
-
-  if (surface === 'artifacts') {
-    return 'Artifacts';
-  }
-
-  if (surface === 'logs') {
-    return 'Logs';
-  }
-
-  return surface || 'Current surface';
+  return SURFACE_DISPLAY_NAMES[surface] || surface || '현재 표면';
 }
 
 function renderTaskDetailNavigationHint(task, options = {}) {
@@ -3784,8 +6673,8 @@ function renderTaskDetailNavigationHint(task, options = {}) {
     return '';
   }
 
-  const label = options.label || 'Open Task Detail';
-  const helpText = options.helpText || 'Open Task Detail to continue on the bounded execution surface.';
+  const label = options.label || '태스크 상세 열기';
+  const helpText = options.helpText || '실행을 이어가려면 태스크 상세를 엽니다.';
 
   return `
     <div class="breakdown-inbox-hint">
@@ -3825,18 +6714,21 @@ function renderCommitPackagePanel(task, data, options = {}) {
         : 'missing';
   const relationContext = buildCommitPackageRelationContext(task, data, summary);
   const actionHelp = summary.allowed
-    ? `Creates or reuses a commit-package artifact for ${summary.sourceReviewerRunId || 'the latest passing reviewer bundle'} and opens a commit approval inbox item without running git commit, merge, or release.`
-    : `Prepare Commit Package stays disabled until ${
-        (summary.reasons || []).join('; ') || 'the latest passing reviewer bundle is ready'
-      }.`;
+    ? `최신 reviewer 번들 ${summary.sourceReviewerRunId || '기준 reviewer 결과'}를 바탕으로 commit-package 아티팩트를 만들고 commit 승인 안건을 엽니다. 외부 전달은 계속 막아 둡니다.`
+    : `커밋 패키지 준비는 ${
+        (summary.reasons || []).map((reason) => getGuardReasonDisplay(reason)).join('; ') ||
+        '최신 reviewer 번들이 준비될 때까지'
+      } 대기합니다.`;
   const localCommitDisplayStatus =
     commitExecutionState.summary.latestApprovalDisplayStatus ||
     getCommitApprovalDisplayStatus(commitExecutionState.summary);
   const localCommitHelp = commitExecutionState.summary.allowed
-    ? `Resume Approved Local Commit runs a local git commit from commit-package ${commitExecutionState.summary.commitPackageArtifactId || 'the current package'} and lands on the saved commit-result artifact. Push, merge, and release remain disabled.`
-    : `Resume Approved Local Commit stays disabled until ${
-        (commitExecutionState.summary.reasons || []).join('; ') || 'the approved local commit bundle is ready'
-      }.`;
+    ? `승인된 commit-package ${commitExecutionState.summary.commitPackageArtifactId || '기준 패키지'}에서 로컬 커밋을 실행하고 commit-result 아티팩트로 이어집니다. 외부 전달은 계속 비활성입니다.`
+    : `로컬 커밋은 ${
+        (commitExecutionState.summary.reasons || [])
+          .map((reason) => getGuardReasonDisplay(reason))
+          .join('; ') || '승인된 로컬 커밋 번들이 준비될 때까지'
+      } 대기합니다.`;
   const actionSurface =
     options.includeAction === false || !allowExecutingActions
       ? ''
@@ -3849,7 +6741,7 @@ function renderCommitPackagePanel(task, data, options = {}) {
             data-id="${escapeHtml(task.id)}"
             ${disabled ? 'disabled' : ''}
           >
-            Prepare Commit Package
+            커밋 패키지 준비
           </button>
           <p class="form-help">${escapeHtml(actionHelp)}</p>
         </div>
@@ -3862,17 +6754,17 @@ function renderCommitPackagePanel(task, data, options = {}) {
           <div class="token-row">
             ${
               commitExecutionState.summary.allowed
-                ? createToken('local commit:ready', 'success')
-                : createToken('local commit:blocked', 'warning')
+                ? createToken('로컬커밋:준비됨', 'success')
+                : createToken('로컬커밋:차단', 'warning')
             }
             ${createToken(
-              `commit approval:${localCommitDisplayStatus}`,
+              `커밋승인:${getApprovalStatusDisplay(localCommitDisplayStatus)}`,
               getApprovalDisplayTone(localCommitDisplayStatus),
             )}
             ${
               commitExecutionState.summary.commitPackageArtifactId
                 ? createToken(
-                    `package:${commitExecutionState.summary.commitPackageArtifactId}`,
+                    `패키지:${commitExecutionState.summary.commitPackageArtifactId}`,
                     'neutral',
                   )
                 : ''
@@ -3880,19 +6772,19 @@ function renderCommitPackagePanel(task, data, options = {}) {
             ${
               commitExecutionState.summary.existingCommitResultArtifactId
                 ? createToken(
-                    `existing result:${commitExecutionState.summary.existingCommitResultArtifactId}`,
+                    `기존결과:${commitExecutionState.summary.existingCommitResultArtifactId}`,
                     commitExecutionState.summary.conflict ? 'warning' : 'neutral',
                   )
                 : ''
             }
             ${
               commitExecutionState.summary.sourceReviewerRunId
-                ? createToken(`reviewer:${commitExecutionState.summary.sourceReviewerRunId}`, 'neutral')
+                ? createToken(`리뷰어:${commitExecutionState.summary.sourceReviewerRunId}`, 'neutral')
                 : ''
             }
             ${
               commitExecutionState.summary.sourceBuilderRunId
-                ? createToken(`builder:${commitExecutionState.summary.sourceBuilderRunId}`, 'neutral')
+                ? createToken(`빌더:${commitExecutionState.summary.sourceBuilderRunId}`, 'neutral')
                 : ''
             }
             ${
@@ -3906,27 +6798,27 @@ function renderCommitPackagePanel(task, data, options = {}) {
             ${
               commitExecutionState.summary.changedFileCount
                 ? createToken(
-                    `changed files:${commitExecutionState.summary.changedFileCount}`,
+                    `변경파일:${commitExecutionState.summary.changedFileCount}`,
                     'neutral',
                   )
                 : ''
             }
             ${
               commitExecutionState.summary.commitMessagePresent
-                ? createToken('commit message:present', 'success')
-                : createToken('commit message:missing', 'warning')
+                ? createToken('커밋메시지:있음', 'success')
+                : createToken('커밋메시지:없음', 'warning')
             }
           </div>
           <p class="detail-copy">
-            Local commit enablement comes directly from commitExecutionReadiness. The UI does not infer commit semantics beyond loading and mutation state, and push, merge, and release remain disabled.
+            로컬 커밋 가능 여부는 로컬 커밋 준비도 요약을 그대로 따릅니다. UI는 loading/mutation 상태만 얹고, push, merge, release는 계속 비활성 상태로 둡니다.
           </p>
           ${
             commitExecutionState.summary.reasons?.length
               ? renderReasonList(
-                  'Local Commit Disabled By',
+                  '로컬 커밋 비활성 사유',
                   commitExecutionState.summary.reasons,
                 )
-              : '<p class="detail-copy">Local commit is ready for the current approved commit-package bundle.</p>'
+              : '<p class="detail-copy">현재 승인된 커밋패키지 번들 기준으로 로컬 커밋이 준비됐습니다.</p>'
           }
           <div class="form-actions form-actions-inline">
             ${
@@ -3939,14 +6831,14 @@ function renderCommitPackagePanel(task, data, options = {}) {
                     data-id="${escapeHtml(task.id)}"
                     ${commitExecutionState.disabled ? 'disabled' : ''}
                   >
-                    Resume Approved Local Commit
+                    승인된 로컬 커밋 이어가기
                   </button>
                   <p class="form-help">${escapeHtml(localCommitHelp)}</p>
                 `
                 : `
                   <p class="form-help">
                     ${escapeHtml(
-                      `${getSurfaceDisplayName(currentSurface)} stays navigation-only for commit follow-up. Open Task Detail to use Resume Approved Local Commit.`,
+                      `${getSurfaceDisplayName(currentSurface)}는 커밋 후속 처리에서 탐색 전용으로 남습니다. 승인된 로컬 커밋 이어가기는 태스크 상세에서 실행합니다.`,
                     )}
                   </p>
                 `
@@ -3958,9 +6850,9 @@ function renderCommitPackagePanel(task, data, options = {}) {
     allowExecutingActions
       ? ''
       : renderTaskDetailNavigationHint(task, {
-          label: 'Open Task Detail Commit Guard',
+          label: '태스크 상세 커밋 가드 열기',
           helpText:
-            'Execution stays on Task Detail. Artifacts and Decision Inbox remain navigation-only for commit continuation.',
+            '실행은 태스크 상세에 남고, 아티팩트와 결정함은 커밋 이어가기 동안 탐색 전용으로 유지됩니다.',
         });
 
   return `
@@ -3968,15 +6860,15 @@ function renderCommitPackagePanel(task, data, options = {}) {
       <div class="token-row">
         ${
           summary.allowed
-            ? createToken('commit-package:ready', 'success')
-            : createToken('commit-package:blocked', 'warning')
+            ? createToken('커밋패키지:준비됨', 'success')
+            : createToken('커밋패키지:차단', 'warning')
         }
         ${createToken(
-          `commit approval:${displayStatus}`,
+          `커밋승인:${getApprovalStatusDisplay(displayStatus)}`,
           getApprovalDisplayTone(displayStatus),
         )}
         ${createToken(
-          `package:${packageStatus}`,
+          `패키지:${getPackageStatusDisplay(packageStatus)}`,
           packageStatus === 'current'
             ? 'success'
             : packageStatus === 'stale'
@@ -3985,24 +6877,24 @@ function renderCommitPackagePanel(task, data, options = {}) {
         )}
         ${
           summary.latestApprovalId
-            ? createToken(`approval:${summary.latestApprovalId}`, 'neutral')
+            ? createToken(`승인:${summary.latestApprovalId}`, 'neutral')
             : ''
         }
         ${
           summary.currentCommitPackageArtifactId
-            ? createToken(`current package:${summary.currentCommitPackageArtifactId}`, 'neutral')
+            ? createToken(`현재패키지:${summary.currentCommitPackageArtifactId}`, 'neutral')
             : summary.latestCommitPackageArtifactId
-              ? createToken(`latest package:${summary.latestCommitPackageArtifactId}`, 'neutral')
+              ? createToken(`최신패키지:${summary.latestCommitPackageArtifactId}`, 'neutral')
               : ''
         }
         ${
           summary.sourceReviewerRunId
-            ? createToken(`reviewer:${summary.sourceReviewerRunId}`, 'neutral')
+            ? createToken(`리뷰어:${summary.sourceReviewerRunId}`, 'neutral')
             : ''
         }
         ${
           summary.sourceBuilderRunId
-            ? createToken(`builder:${summary.sourceBuilderRunId}`, 'neutral')
+            ? createToken(`빌더:${summary.sourceBuilderRunId}`, 'neutral')
             : ''
         }
         ${
@@ -4010,19 +6902,19 @@ function renderCommitPackagePanel(task, data, options = {}) {
             ? createToken(`preflight:${summary.targetPreflightArtifactId}`, 'neutral')
             : ''
         }
-        ${createToken(`surface:${currentSurface}`, 'neutral')}
+        ${createToken(`표면:${getSurfaceDisplayName(currentSurface)}`, 'neutral')}
       </div>
       <p class="detail-copy">
-        Commit-package readiness comes directly from the coordinator. This panel only reflects that summary and keeps actual git commit, merge, and release disabled.
+        커밋패키지 준비도는 coordinator 요약을 그대로 따릅니다. 이 패널은 그 상태만 보여주고 실제 git commit, merge, release는 계속 비활성 상태로 둡니다.
       </p>
       ${
         summary.reasons?.length
-          ? renderReasonList('Commit Package Guard Reasons', summary.reasons)
-          : '<p class="detail-copy">No commit-package guard reasons remain for the latest passing reviewer bundle.</p>'
+          ? renderReasonList('커밋 패키지 가드 사유', summary.reasons)
+          : '<p class="detail-copy">최신 통과 reviewer 번들에 남은 커밋패키지 가드 사유가 없습니다.</p>'
       }
       ${
         renderRelationStrip(relationContext) ||
-        '<p class="detail-copy">No commit-package relation context is available yet.</p>'
+        '<p class="detail-copy">아직 커밋패키지 연결 맥락이 없습니다.</p>'
       }
       ${actionSurface}
       ${localCommitActionSurface}
@@ -4048,10 +6940,11 @@ function renderReleasePackagePanel(task, data, options = {}) {
         : 'missing';
   const relationContext = buildReleasePackageRelationContext(task, data, summary);
   const actionHelp = summary.allowed
-    ? `Creates or reuses a release-package artifact from commit-result ${summary.commitResultArtifactId || 'the latest local commit bundle'} and opens a release approval inbox item. Push, publish, and external release remain disabled.`
-    : `Prepare Release Package stays disabled until ${
-        (summary.reasons || []).join('; ') || 'the latest successful local commit bundle is ready'
-      }.`;
+    ? `커밋결과 ${summary.commitResultArtifactId || '기준 로컬 커밋 번들'}에서 릴리스 패키지를 만들고 릴리스 승인 안건을 엽니다. 외부 전달은 계속 비활성입니다.`
+    : `릴리스 패키지 준비는 ${
+        (summary.reasons || []).map((reason) => getGuardReasonDisplay(reason)).join('; ') ||
+        '최신 성공 로컬 커밋 번들이 준비될 때까지'
+      } 대기합니다.`;
   const actionSurface =
     options.includeAction === false
       ? ''
@@ -4061,13 +6954,13 @@ function renderReleasePackagePanel(task, data, options = {}) {
               class="primary-button"
               type="button"
               data-action="run-release-package"
-              data-id="${escapeHtml(task.id)}"
-              ${disabled ? 'disabled' : ''}
-            >
-              Prepare Release Package
-            </button>
-            <p class="form-help">${escapeHtml(actionHelp)}</p>
-          </div>
+            data-id="${escapeHtml(task.id)}"
+            ${disabled ? 'disabled' : ''}
+          >
+            릴리스 패키지 준비
+          </button>
+          <p class="form-help">${escapeHtml(actionHelp)}</p>
+        </div>
         `;
 
   return `
@@ -4075,15 +6968,15 @@ function renderReleasePackagePanel(task, data, options = {}) {
       <div class="token-row">
         ${
           summary.allowed
-            ? createToken('release-package:ready', 'success')
-            : createToken('release-package:blocked', 'warning')
+            ? createToken('릴리스패키지:준비됨', 'success')
+            : createToken('릴리스패키지:차단', 'warning')
         }
         ${createToken(
-          `release approval:${displayStatus}`,
+          `릴리스승인:${getApprovalStatusDisplay(displayStatus)}`,
           getApprovalDisplayTone(displayStatus),
         )}
         ${createToken(
-          `package:${packageStatus}`,
+          `패키지:${getPackageStatusDisplay(packageStatus)}`,
           packageStatus === 'current'
             ? 'success'
             : packageStatus === 'stale'
@@ -4092,24 +6985,24 @@ function renderReleasePackagePanel(task, data, options = {}) {
         )}
         ${
           summary.latestApprovalId
-            ? createToken(`approval:${summary.latestApprovalId}`, 'neutral')
+            ? createToken(`승인:${summary.latestApprovalId}`, 'neutral')
             : ''
         }
         ${
           summary.currentReleasePackageArtifactId
-            ? createToken(`current package:${summary.currentReleasePackageArtifactId}`, 'neutral')
+            ? createToken(`현재패키지:${summary.currentReleasePackageArtifactId}`, 'neutral')
             : summary.latestReleasePackageArtifactId
-              ? createToken(`latest package:${summary.latestReleasePackageArtifactId}`, 'neutral')
+              ? createToken(`최신패키지:${summary.latestReleasePackageArtifactId}`, 'neutral')
               : ''
         }
         ${
           summary.commitResultArtifactId
-            ? createToken(`commit-result:${summary.commitResultArtifactId}`, 'neutral')
+            ? createToken(`${getArtifactTypeDisplay('commit-result')}:${summary.commitResultArtifactId}`, 'neutral')
             : ''
         }
         ${
           summary.commitPackageArtifactId
-            ? createToken(`commit-package:${summary.commitPackageArtifactId}`, 'neutral')
+            ? createToken(`${getArtifactTypeDisplay('commit-package')}:${summary.commitPackageArtifactId}`, 'neutral')
             : ''
         }
         ${
@@ -4119,17 +7012,17 @@ function renderReleasePackagePanel(task, data, options = {}) {
         }
         ${
           summary.deliveryStance
-            ? createToken(`delivery:${summary.deliveryStance}`, 'neutral')
+            ? createToken(`전달:${getDeliveryStanceDisplay(summary.deliveryStance)}`, 'neutral')
             : ''
         }
         ${
           summary.sourceReviewerRunId
-            ? createToken(`reviewer:${summary.sourceReviewerRunId}`, 'neutral')
+            ? createToken(`리뷰어:${summary.sourceReviewerRunId}`, 'neutral')
             : ''
         }
         ${
           summary.sourceBuilderRunId
-            ? createToken(`builder:${summary.sourceBuilderRunId}`, 'neutral')
+            ? createToken(`빌더:${summary.sourceBuilderRunId}`, 'neutral')
             : ''
         }
         ${
@@ -4137,19 +7030,19 @@ function renderReleasePackagePanel(task, data, options = {}) {
             ? createToken(`preflight:${summary.targetPreflightArtifactId}`, 'neutral')
             : ''
         }
-        ${createToken(`surface:${currentSurface}`, 'neutral')}
+        ${createToken(`표면:${getSurfaceDisplayName(currentSurface)}`, 'neutral')}
       </div>
       <p class="detail-copy">
-        Release-package readiness comes directly from the coordinator. This panel only reflects that summary and keeps push, publish, and external release disabled.
+        릴리스패키지 준비도는 coordinator 요약을 그대로 따릅니다. 이 패널은 그 상태만 보여주고 push, publish, external release는 계속 비활성 상태로 둡니다.
       </p>
       ${
         summary.reasons?.length
-          ? renderReasonList('Release Package Guard Reasons', summary.reasons)
-          : '<p class="detail-copy">No release-package guard reasons remain for the current local commit bundle.</p>'
+          ? renderReasonList('릴리스 패키지 가드 사유', summary.reasons)
+          : '<p class="detail-copy">현재 로컬 커밋 번들에 남은 릴리스패키지 가드 사유가 없습니다.</p>'
       }
       ${
         renderRelationStrip(relationContext) ||
-        '<p class="detail-copy">No release-package provenance relation is available yet.</p>'
+        '<p class="detail-copy">아직 릴리스패키지 provenance 연결이 없습니다.</p>'
       }
       ${actionSurface}
     </div>
@@ -4173,10 +7066,11 @@ function renderCloseOutPanel(task, data, options = {}) {
       : 'missing';
   const relationContext = buildCloseOutRelationContext(task, data, summary);
   const actionHelp = summary.allowed
-    ? `Resume Approved Close Out runs close-out from release-package ${summary.currentReleasePackageArtifactId || 'the current approved bundle'}, captures a close-out artifact, and transitions Review -> Done without push, publish, or external release.`
-    : `Close Out stays disabled until ${
-        (summary.reasons || []).join('; ') || 'the current approved release bundle is ready'
-      }.`;
+    ? `승인된 릴리스패키지 ${summary.currentReleasePackageArtifactId || '기준 번들'}에서 종료 정리를 실행하고 종료정리 아티팩트를 남깁니다. 외부 전달은 계속 비활성입니다.`
+    : `종료 정리는 ${
+        (summary.reasons || []).map((reason) => getGuardReasonDisplay(reason)).join('; ') ||
+        '현재 승인된 릴리스 번들이 준비될 때까지'
+      } 대기합니다.`;
   const actionSurface =
     options.includeAction === false
       ? ''
@@ -4192,14 +7086,14 @@ function renderCloseOutPanel(task, data, options = {}) {
                     data-id="${escapeHtml(task.id)}"
                     ${disabled ? 'disabled' : ''}
                   >
-                    Resume Approved Close Out
+                    승인된 종료 정리 이어가기
                   </button>
                   <p class="form-help">${escapeHtml(actionHelp)}</p>
                 `
                 : `
                   <p class="form-help">
                     ${escapeHtml(
-                      `${getSurfaceDisplayName(currentSurface)} stays navigation-only for close-out follow-up. Open Task Detail to use Resume Approved Close Out.`,
+                      `${getSurfaceDisplayName(currentSurface)}는 종료 정리 후속 처리에서 탐색 전용으로 남습니다. 승인된 종료 정리 이어가기는 태스크 상세에서 실행합니다.`,
                     )}
                   </p>
                 `
@@ -4210,9 +7104,9 @@ function renderCloseOutPanel(task, data, options = {}) {
     allowExecutingActions || !summary.allowed
       ? ''
       : renderTaskDetailNavigationHint(task, {
-          label: 'Open Task Detail Close-Out Guard',
+          label: '태스크 상세 종료 정리 가드 열기',
           helpText:
-            'Execution stays on Task Detail. Artifacts and Decision Inbox remain navigation-only for close-out continuation.',
+            '실행은 태스크 상세에 남고, 아티팩트와 결정함은 종료 정리 이어가기 동안 탐색 전용으로 유지됩니다.',
         });
 
   return `
@@ -4220,44 +7114,48 @@ function renderCloseOutPanel(task, data, options = {}) {
       <div class="token-row">
         ${
           summary.allowed
-            ? createToken('close-out:ready', 'success')
-            : createToken('close-out:blocked', 'warning')
+            ? createToken('종료정리:준비됨', 'success')
+            : createToken('종료정리:차단', 'warning')
         }
         ${createToken(
-          `release approval:${displayStatus}`,
+          `릴리스승인:${getApprovalStatusDisplay(displayStatus)}`,
           getApprovalDisplayTone(displayStatus),
         )}
         ${createToken(
-          `package:${packageStatus}`,
+          `패키지:${getPackageStatusDisplay(packageStatus)}`,
           packageStatus === 'current' ? 'success' : 'neutral',
         )}
         ${
           summary.currentReleasePackageArtifactId
-            ? createToken(`current package:${summary.currentReleasePackageArtifactId}`, 'neutral')
+            ? createToken(`현재패키지:${summary.currentReleasePackageArtifactId}`, 'neutral')
             : summary.latestReleasePackageArtifactId
-              ? createToken(`latest package:${summary.latestReleasePackageArtifactId}`, 'neutral')
+              ? createToken(`최신패키지:${summary.latestReleasePackageArtifactId}`, 'neutral')
               : ''
         }
         ${
           summary.commitResultArtifactId
-            ? createToken(`commit-result:${summary.commitResultArtifactId}`, 'neutral')
+            ? createToken(`${getArtifactTypeDisplay('commit-result')}:${summary.commitResultArtifactId}`, 'neutral')
             : ''
         }
         ${
           summary.commitPackageArtifactId
-            ? createToken(`commit-package:${summary.commitPackageArtifactId}`, 'neutral')
+            ? createToken(`${getArtifactTypeDisplay('commit-package')}:${summary.commitPackageArtifactId}`, 'neutral')
             : ''
         }
         ${summary.commitSha ? createToken(`sha:${summary.commitSha}`, 'success') : ''}
-        ${summary.deliveryStance ? createToken(`delivery:${summary.deliveryStance}`, 'neutral') : ''}
+        ${
+          summary.deliveryStance
+            ? createToken(`전달:${getDeliveryStanceDisplay(summary.deliveryStance)}`, 'neutral')
+            : ''
+        }
         ${
           summary.sourceReviewerRunId
-            ? createToken(`reviewer:${summary.sourceReviewerRunId}`, 'neutral')
+            ? createToken(`리뷰어:${summary.sourceReviewerRunId}`, 'neutral')
             : ''
         }
         ${
           summary.sourceBuilderRunId
-            ? createToken(`builder:${summary.sourceBuilderRunId}`, 'neutral')
+            ? createToken(`빌더:${summary.sourceBuilderRunId}`, 'neutral')
             : ''
         }
         ${
@@ -4267,27 +7165,27 @@ function renderCloseOutPanel(task, data, options = {}) {
         }
         ${
           summary.repoClean
-            ? createToken('repo:clean', 'success')
-            : createToken('repo:blocked', 'warning')
+            ? createToken('repo:정상', 'success')
+            : createToken('repo:차단', 'warning')
         }
         ${
           summary.existingCloseOutArtifactId
-            ? createToken(`existing close-out:${summary.existingCloseOutArtifactId}`, summary.conflict ? 'warning' : 'neutral')
+            ? createToken(`기존종료정리:${summary.existingCloseOutArtifactId}`, summary.conflict ? 'warning' : 'neutral')
             : ''
         }
-        ${createToken(`surface:${currentSurface}`, 'neutral')}
+        ${createToken(`표면:${getSurfaceDisplayName(currentSurface)}`, 'neutral')}
       </div>
       <p class="detail-copy">
-        Close-out enablement comes directly from closeOutReadiness. The UI only layers loading/mutating state on top, and push, publish, and external release remain disabled.
+        종료 정리 가능 여부는 종료 정리 준비도 요약을 그대로 따릅니다. UI는 loading/mutating 상태만 얹고, push, publish, external release는 계속 비활성 상태로 둡니다.
       </p>
       ${
         summary.reasons?.length
-          ? renderReasonList('Close Out Guard Reasons', summary.reasons)
-          : '<p class="detail-copy">No close-out guard reasons remain for the current approved release bundle.</p>'
+          ? renderReasonList('종료 정리 가드 사유', summary.reasons)
+          : '<p class="detail-copy">현재 승인된 릴리스 번들에 남은 종료 정리 가드 사유가 없습니다.</p>'
       }
       ${
         renderRelationStrip(relationContext) ||
-        '<p class="detail-copy">No close-out provenance relation is available yet.</p>'
+        '<p class="detail-copy">아직 종료정리 provenance 연결이 없습니다.</p>'
       }
       ${actionSurface}
       ${navigationHint}
@@ -4304,66 +7202,68 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
   const requestDisabled = state.loading || state.mutating || !requestSummary.allowed;
   const runDisabled = state.loading || state.mutating || !guardSummary.allowed;
   const requestHelp = requestSummary.allowed
-    ? `Creates a new approval inbox item for ${requestSummary.currentPreflightArtifactId}.`
-    : `Approval request stays disabled until ${
-        (requestSummary.reasons || []).join('; ') || 'the latest preflight is ready'
-      }.`;
+    ? `${requestSummary.currentPreflightArtifactId} 기준으로 새 승인 안건을 엽니다.`
+    : `승인 요청은 ${
+        (requestSummary.reasons || []).map((reason) => getGuardReasonDisplay(reason)).join('; ') ||
+        '최신 preflight가 준비될 때까지'
+      } 대기합니다.`;
   const runHelp = guardSummary.allowed
-    ? `Runs limited live mutation for ${guardSummary.currentPreflightArtifactId} and stores change-summary, patch, and diff artifacts.`
-    : `Live mutation stays disabled until ${
-        (guardSummary.reasons || []).join('; ') || 'the latest approved preflight pair is ready'
-      }.`;
+    ? `${guardSummary.currentPreflightArtifactId} 기준 라이브 변경을 실행하고 변경요약, 패치, diff 아티팩트를 남깁니다.`
+    : `라이브 변경은 ${
+        (guardSummary.reasons || []).map((reason) => getGuardReasonDisplay(reason)).join('; ') ||
+        '최신 승인된 preflight 쌍이 준비될 때까지'
+      } 대기합니다.`;
 
   return `
     <div class="guard-summary">
       <div class="token-row">
         ${
           guardSummary.allowed
-            ? createToken('live mutation guard:ready', 'success')
-            : createToken('live mutation guard:blocked', 'danger')
+            ? createToken('라이브변경가드:준비됨', 'success')
+            : createToken('라이브변경가드:차단', 'danger')
         }
         ${createToken(
-          `latest approval:${guardSummary.latestApprovalDisplayStatus || 'none'}`,
+          `최신승인:${getApprovalStatusDisplay(guardSummary.latestApprovalDisplayStatus || 'none')}`,
           getApprovalDisplayTone(guardSummary.latestApprovalDisplayStatus || 'none'),
         )}
         ${
           requestSummary.currentPreflightArtifactId
-            ? createToken(`current preflight:${requestSummary.currentPreflightArtifactId}`, 'neutral')
-            : createToken('current preflight:none', 'warning')
+            ? createToken(`현재preflight:${requestSummary.currentPreflightArtifactId}`, 'neutral')
+            : createToken('현재preflight:없음', 'warning')
         }
         ${
           guardSummary.targetPreflightArtifactId
-            ? createToken(`approval target:${guardSummary.targetPreflightArtifactId}`, 'neutral')
+            ? createToken(`승인대상:${guardSummary.targetPreflightArtifactId}`, 'neutral')
             : ''
         }
         ${
           guardSummary.targetFileCount
-            ? createToken(`target files:${guardSummary.targetFileCount}`, 'neutral')
-            : createToken('target files:none', 'warning')
+            ? createToken(`대상파일:${guardSummary.targetFileCount}`, 'neutral')
+            : createToken('대상파일:없음', 'warning')
         }
         ${
           requestSummary.allowed
-            ? createToken('request:available', 'success')
-            : createToken('request:disabled', requestSummary.conflict ? 'danger' : 'warning')
+            ? createToken('요청:가능', 'success')
+            : createToken('요청:비활성', requestSummary.conflict ? 'danger' : 'warning')
         }
         ${
           guardSummary.allowed
-            ? createToken('run:available', 'success')
-            : createToken('run:disabled', 'warning')
+            ? createToken('실행:가능', 'success')
+            : createToken('실행:비활성', 'warning')
         }
       </div>
       <p class="detail-copy">
-        Runtime-derived summary for limited builder live mutation. Execution stays bounded to the latest preflight target files, then hands off to reviewer without auto-starting commit paths.
+        제한된 빌더 라이브 변경에 대한 runtime 요약입니다. 실행은 최신 preflight 대상 파일에만 한정되고, 커밋 경로를 자동 시작하지 않은 채 리뷰어에게 넘깁니다.
       </p>
       ${
         guardSummary.reasons?.length
-          ? renderReasonList('Live Mutation Guard Reasons', guardSummary.reasons)
-          : '<p class="detail-copy">No live mutation guard reasons remain for the latest preflight target.</p>'
+          ? renderReasonList('라이브 변경 가드 사유', guardSummary.reasons)
+          : '<p class="detail-copy">최신 preflight 대상에 남은 라이브 변경 가드 사유가 없습니다.</p>'
       }
       ${
         requestSummary.reasons?.length
-          ? renderReasonList('Approval Request Disabled By', requestSummary.reasons)
-          : '<p class="detail-copy">Approval request is available for the latest preflight target.</p>'
+          ? renderReasonList('승인 요청 비활성 사유', requestSummary.reasons)
+          : '<p class="detail-copy">최신 preflight 대상 기준으로 승인 요청이 가능합니다.</p>'
       }
       ${
         options.includeRequestAction === false
@@ -4377,7 +7277,7 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
                 data-id="${escapeHtml(task.id)}"
                 ${requestDisabled ? 'disabled' : ''}
               >
-                Request Live Mutation Approval
+                라이브 변경 승인 요청
               </button>
               <p class="form-help">${escapeHtml(requestHelp)}</p>
             </div>
@@ -4389,7 +7289,7 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
                 data-id="${escapeHtml(task.id)}"
                 ${runDisabled ? 'disabled' : ''}
               >
-                Run Live Mutation
+                라이브 변경 실행
               </button>
               <p class="form-help">${escapeHtml(runHelp)}</p>
             </div>
@@ -4500,7 +7400,7 @@ async function fetchJson(url) {
   const response = await fetch(url, { headers: { Accept: 'application/json' } });
 
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+    throw new Error(`요청이 실패했습니다: ${response.status} ${response.statusText}`);
   }
 
   return response.json();
@@ -4518,7 +7418,7 @@ async function postJson(url, body) {
   const payload = await response.json();
 
   if (!response.ok) {
-    throw new Error(payload.error || `Request failed: ${response.status} ${response.statusText}`);
+    throw new Error(payload.error || `요청이 실패했습니다: ${response.status} ${response.statusText}`);
   }
 
   return payload;
@@ -4639,7 +7539,7 @@ async function refreshData() {
 
   state.loading = true;
   state.error = null;
-  elements.refreshStatus.textContent = 'Refreshing runtime snapshot…';
+  elements.refreshStatus.textContent = 'runtime snapshot 다시 읽는 중…';
 
   try {
     applySnapshotPayload(await fetchJson('/api/snapshot'));
@@ -4647,11 +7547,11 @@ async function refreshData() {
     ensureSelection(data);
     await hydrateSelectedDetails();
     render();
-    elements.refreshStatus.textContent = `Updated ${formatDate(state.payload?.generatedAt)}`;
+    elements.refreshStatus.textContent = `최근 갱신 ${formatDate(state.payload?.generatedAt)}`;
   } catch (error) {
     state.error = error;
     render();
-    elements.refreshStatus.textContent = 'Failed to load runtime snapshot';
+    elements.refreshStatus.textContent = 'runtime snapshot 연결 실패';
   } finally {
     state.loading = false;
     render();
@@ -4933,16 +7833,16 @@ async function submitCreateProject(options = {}) {
       );
 
   if (!name) {
-    throw new Error('Project name is required');
+    throw new Error('프로젝트 이름이 필요합니다.');
   }
 
   if (!projectPath) {
-    throw new Error('project_path is required');
+    throw new Error('project_path가 필요합니다.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = 'Registering project…';
+  elements.refreshStatus.textContent = '프로젝트를 등록하는 중…';
   render();
 
   try {
@@ -4961,7 +7861,7 @@ async function submitCreateProject(options = {}) {
     if (options.successSurface) {
       state.surface = options.successSurface;
     }
-    elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
+    elements.refreshStatus.textContent = `활성 프로젝트를 ${payload.project.name}(으)로 설정했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -4973,12 +7873,12 @@ async function submitUpdateProjectProvider() {
   const activeProject = data.activeProject;
 
   if (!activeProject) {
-    throw new Error('Active project is required before updating provider config');
+    throw new Error('프로바이더 설정을 바꾸려면 활성 프로젝트가 필요합니다.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Updating provider for ${activeProject.name}…`;
+  elements.refreshStatus.textContent = `${activeProject.name}의 프로바이더 설정을 업데이트하는 중…`;
   render();
 
   try {
@@ -4996,7 +7896,7 @@ async function submitUpdateProjectProvider() {
     applySnapshotPayload(payload);
     syncProjectProviderDraft(payload.project || null);
     render();
-    elements.refreshStatus.textContent = `Provider updated for ${payload.project.name}`;
+    elements.refreshStatus.textContent = `${payload.project.name}의 프로바이더 설정을 업데이트했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5009,16 +7909,16 @@ async function submitCreateLinkedWorktree() {
   const slug = state.linkedWorktreeDraftSlug.trim();
 
   if (!activeProject) {
-    throw new Error('Active project is required before creating a linked worktree');
+    throw new Error('연결 워크트리를 만들려면 활성 프로젝트가 필요합니다.');
   }
 
   if (!slug) {
-    throw new Error('linked worktree slug is required');
+    throw new Error('연결 워크트리 슬러그가 필요합니다.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Creating linked worktree ${slug}…`;
+  elements.refreshStatus.textContent = `연결 워크트리 ${slug} 생성 중…`;
   render();
 
   try {
@@ -5031,7 +7931,7 @@ async function submitCreateLinkedWorktree() {
 
     state.linkedWorktreeDraftSlug = '';
     await applyProjectScopePayload(payload);
-    elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
+    elements.refreshStatus.textContent = `활성 프로젝트를 ${payload.project.name}(으)로 설정했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5042,7 +7942,7 @@ async function submitSelectProject(projectId) {
   const dataBefore = getDerived();
 
   if (!projectId || !dataBefore.snapshot.projects[projectId]) {
-    throw new Error('Select a registered project');
+    throw new Error('등록된 프로젝트를 먼저 선택하세요.');
   }
 
   if (projectId === dataBefore.activeProject?.id) {
@@ -5051,14 +7951,14 @@ async function submitSelectProject(projectId) {
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Switching active project to ${projectId}…`;
+  elements.refreshStatus.textContent = `활성 프로젝트를 ${projectId}(으)로 전환하는 중…`;
   render();
 
   try {
     const payload = await postJson(`/api/projects/${encodeURIComponent(projectId)}/select`);
 
     await applyProjectScopePayload(payload);
-    elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
+    elements.refreshStatus.textContent = `활성 프로젝트를 ${payload.project.name}(으)로 설정했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5069,7 +7969,7 @@ async function submitCreateMission() {
   const data = getDerived();
 
   if (!data.activeProject) {
-    throw new Error('Active project is required before creating missions');
+    throw new Error('미션을 만들려면 활성 프로젝트가 필요합니다.');
   }
 
   const title = state.missionDraftTitle.trim();
@@ -5077,16 +7977,16 @@ async function submitCreateMission() {
   const constraints = state.missionDraftConstraints.trim();
 
   if (!title) {
-    throw new Error('Mission title is required');
+    throw new Error('미션 제목이 필요합니다.');
   }
 
   if (!goal) {
-    throw new Error('Mission goal is required');
+    throw new Error('미션 목표가 필요합니다.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = 'Creating mission and drafting council…';
+  elements.refreshStatus.textContent = '미션을 만들고 협의회를 초안 작성하는 중…';
   render();
 
   try {
@@ -5108,8 +8008,8 @@ async function submitCreateMission() {
     state.surface = payload.councilSession?.id ? 'council' : 'mission';
     render();
     elements.refreshStatus.textContent = payload.councilSession?.id
-      ? `Created mission ${payload.mission.id} and drafted council ${payload.councilSession.id}`
-      : `Created mission ${payload.mission.id}`;
+      ? `미션 ${payload.mission.id}을 만들고 협의회 ${payload.councilSession.id}를 초안 작성했습니다`
+      : `미션 ${payload.mission.id}을 만들었습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5120,12 +8020,12 @@ async function submitSelectMission(missionId) {
   const data = getDerived();
 
   if (!missionId || !data.missionMap.has(missionId)) {
-    throw new Error('Select a mission');
+    throw new Error('미션을 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Selecting mission ${missionId}…`;
+  elements.refreshStatus.textContent = `미션 ${missionId}을 선택하는 중…`;
   render();
 
   try {
@@ -5137,7 +8037,7 @@ async function submitSelectMission(missionId) {
     await hydrateSelectedDetails();
     state.surface = 'mission';
     render();
-    elements.refreshStatus.textContent = `Selected mission ${payload.mission.id}`;
+    elements.refreshStatus.textContent = `미션 ${payload.mission.id}을 선택했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5149,12 +8049,12 @@ async function submitCreateLinkedTaskForMission(missionId) {
   const mission = data.missionMap.get(missionId) || null;
 
   if (!mission) {
-    throw new Error('Select a mission before creating a linked task');
+    throw new Error('연결된 태스크를 만들기 전에 미션을 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Creating linked task for ${missionId}…`;
+  elements.refreshStatus.textContent = `미션 ${missionId}용 연결 태스크를 만드는 중…`;
   render();
 
   try {
@@ -5169,7 +8069,7 @@ async function submitCreateLinkedTaskForMission(missionId) {
     await hydrateSelectedDetails();
     state.surface = 'mission';
     render();
-    elements.refreshStatus.textContent = `Created linked task ${payload.task.id}`;
+    elements.refreshStatus.textContent = `연결 태스크 ${payload.task.id}를 만들었습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5181,12 +8081,12 @@ async function submitDraftCouncilForMission(missionId) {
   const mission = data.missionMap.get(missionId) || null;
 
   if (!mission) {
-    throw new Error('Select a mission before drafting council');
+    throw new Error('협의회를 초안 작성하기 전에 미션을 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Drafting council for ${missionId}…`;
+  elements.refreshStatus.textContent = `미션 ${missionId}의 협의회를 초안 작성하는 중…`;
   render();
 
   try {
@@ -5200,7 +8100,7 @@ async function submitDraftCouncilForMission(missionId) {
     await hydrateSelectedDetails();
     state.surface = 'council';
     render();
-    elements.refreshStatus.textContent = `Drafted council ${payload.councilSession.id}`;
+    elements.refreshStatus.textContent = `협의회 ${payload.councilSession.id}를 초안 작성했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5212,12 +8112,12 @@ async function submitApproveCouncilForMission(missionId) {
   const mission = data.missionMap.get(missionId) || null;
 
   if (!mission) {
-    throw new Error('Select a mission before approving council');
+    throw new Error('협의회 추천안을 승인하기 전에 미션을 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Approving recommendation for ${missionId}…`;
+  elements.refreshStatus.textContent = `미션 ${missionId}의 추천안을 승인하는 중…`;
   render();
 
   try {
@@ -5240,7 +8140,7 @@ async function submitApproveCouncilForMission(missionId) {
     await hydrateSelectedDetails();
     state.surface = 'execution';
     render();
-    elements.refreshStatus.textContent = `Aligned mission ${payload.mission.id} and advanced execution to ${payload.mutation?.autoChain?.stoppedAt || 'execution'}`;
+    elements.refreshStatus.textContent = `미션 ${payload.mission.id}을 정렬했고 실행을 ${payload.mutation?.autoChain?.stoppedAt || 'execution'} 단계까지 진행했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5251,19 +8151,19 @@ async function submitCreateTask() {
   const data = getDerived();
 
   if (!data.activeProject) {
-    throw new Error('Active project is required before creating tasks');
+    throw new Error('태스크를 만들려면 활성 프로젝트가 필요합니다.');
   }
 
   const title = state.taskDraftTitle.trim();
   const intent = state.taskDraftIntent.trim();
 
   if (!title) {
-    throw new Error('Task title is required');
+    throw new Error('태스크 제목이 필요합니다.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = 'Creating task…';
+  elements.refreshStatus.textContent = '태스크를 만드는 중…';
   render();
 
   try {
@@ -5287,7 +8187,7 @@ async function submitCreateTask() {
     state.selectionSeeded = true;
     state.surface = 'taskboard';
     render();
-    elements.refreshStatus.textContent = `Created task ${payload.task.id}`;
+    elements.refreshStatus.textContent = `태스크 ${payload.task.id}를 만들었습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5298,12 +8198,12 @@ async function runPlanner(taskId) {
   const data = getDerived();
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before starting planner run');
+    throw new Error('planner 실행을 시작하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Starting planner run for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 planner 실행을 시작하는 중…`;
   render();
 
   try {
@@ -5318,7 +8218,7 @@ async function runPlanner(taskId) {
     });
     await hydrateSelectedDetails();
     render();
-    elements.refreshStatus.textContent = `Planner run ${payload.mutation.runId} completed`;
+    elements.refreshStatus.textContent = `planner 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5330,12 +8230,12 @@ async function runArchitect(taskId) {
   const currentSurface = state.surface;
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before starting architect run');
+    throw new Error('architect 실행을 시작하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Starting architect run for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 architect 실행을 시작하는 중…`;
   render();
 
   try {
@@ -5351,7 +8251,7 @@ async function runArchitect(taskId) {
     await hydrateSelectedDetails();
     state.surface = resolvePostMutationSurface(currentSurface, payload, 'artifacts');
     render();
-    elements.refreshStatus.textContent = `Architect run ${payload.mutation.runId} completed`;
+    elements.refreshStatus.textContent = `architect 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5363,12 +8263,12 @@ async function runTaskBreaker(taskId) {
   const currentSurface = state.surface;
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before starting task-breaker run');
+    throw new Error('task-breaker 실행을 시작하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Starting task-breaker run for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 task-breaker 실행을 시작하는 중…`;
   render();
 
   try {
@@ -5384,7 +8284,7 @@ async function runTaskBreaker(taskId) {
     await hydrateSelectedDetails();
     state.surface = resolvePostMutationSurface(currentSurface, payload, 'artifacts');
     render();
-    elements.refreshStatus.textContent = `Task-breaker run ${payload.mutation.runId} completed`;
+    elements.refreshStatus.textContent = `task-breaker 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5395,12 +8295,12 @@ async function runBuilderPreflight(taskId) {
   const data = getDerived();
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before starting builder preflight');
+    throw new Error('builder preflight를 시작하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Starting builder preflight for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 builder preflight를 시작하는 중…`;
   render();
 
   try {
@@ -5418,7 +8318,7 @@ async function runBuilderPreflight(taskId) {
     await hydrateSelectedDetails();
     state.surface = 'artifacts';
     render();
-    elements.refreshStatus.textContent = `Builder preflight run ${payload.mutation.runId} completed`;
+    elements.refreshStatus.textContent = `builder preflight 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5430,12 +8330,12 @@ async function requestBuilderLiveMutationApproval(taskId) {
   const currentSurface = state.surface;
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before requesting builder live mutation approval');
+    throw new Error('builder 라이브 변경 승인을 요청하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Requesting live mutation approval for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 라이브 변경 승인을 요청하는 중…`;
   render();
 
   try {
@@ -5453,7 +8353,7 @@ async function requestBuilderLiveMutationApproval(taskId) {
     await hydrateSelectedDetails();
     state.surface = currentSurface;
     render();
-    elements.refreshStatus.textContent = `Requested live mutation approval ${payload.mutation.approvalId}`;
+    elements.refreshStatus.textContent = `라이브 변경 승인 ${payload.mutation.approvalId}를 요청했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5464,12 +8364,12 @@ async function runBuilderLiveMutation(taskId) {
   const data = getDerived();
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before running builder live mutation');
+    throw new Error('builder 라이브 변경을 실행하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Running live mutation for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 라이브 변경을 실행하는 중…`;
   render();
 
   try {
@@ -5486,7 +8386,7 @@ async function runBuilderLiveMutation(taskId) {
     await hydrateSelectedDetails();
     state.surface = 'logs';
     render();
-    elements.refreshStatus.textContent = `Builder live mutation run ${payload.mutation.runId} completed`;
+    elements.refreshStatus.textContent = `builder 라이브 변경 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5498,12 +8398,12 @@ async function runReviewer(taskId) {
   const currentSurface = state.surface;
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before running reviewer');
+    throw new Error('reviewer를 실행하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Running reviewer for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 reviewer를 실행하는 중…`;
   render();
 
   try {
@@ -5519,7 +8419,7 @@ async function runReviewer(taskId) {
     await hydrateSelectedDetails();
     state.surface = resolvePostMutationSurface(currentSurface, payload, 'artifacts');
     render();
-    elements.refreshStatus.textContent = `Reviewer run ${payload.mutation.runId} completed`;
+    elements.refreshStatus.textContent = `reviewer 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5531,12 +8431,12 @@ async function runCommitPackage(taskId) {
   const currentSurface = state.surface;
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before preparing a commit package');
+    throw new Error('커밋 패키지를 준비하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Preparing commit package for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 커밋 패키지를 준비하는 중…`;
   render();
 
   try {
@@ -5554,7 +8454,7 @@ async function runCommitPackage(taskId) {
     await hydrateSelectedDetails();
     state.surface = currentSurface;
     render();
-    elements.refreshStatus.textContent = `Commit package run ${payload.mutation.runId} completed`;
+    elements.refreshStatus.textContent = `커밋 패키지 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5565,12 +8465,12 @@ async function runLocalCommit(taskId) {
   const data = getDerived();
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before running local commit');
+    throw new Error('로컬 커밋을 실행하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Running local commit for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 로컬 커밋을 실행하는 중…`;
   render();
 
   try {
@@ -5585,7 +8485,7 @@ async function runLocalCommit(taskId) {
     await hydrateSelectedDetails();
     state.surface = 'artifacts';
     render();
-    elements.refreshStatus.textContent = `Local commit run ${payload.mutation.runId} completed`;
+    elements.refreshStatus.textContent = `로컬 커밋 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5597,12 +8497,12 @@ async function runReleasePackage(taskId) {
   const currentSurface = state.surface;
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before preparing a release package');
+    throw new Error('릴리스 패키지를 준비하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Preparing release package for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 릴리스 패키지를 준비하는 중…`;
   render();
 
   try {
@@ -5621,7 +8521,7 @@ async function runReleasePackage(taskId) {
         ? currentSurface
         : 'artifacts';
     render();
-    elements.refreshStatus.textContent = `Release package run ${payload.mutation.runId} completed`;
+    elements.refreshStatus.textContent = `릴리스 패키지 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5632,12 +8532,12 @@ async function runCloseOut(taskId) {
   const data = getDerived();
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before running close-out');
+    throw new Error('종료 정리를 실행하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Running close-out for ${taskId}…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 종료 정리를 실행하는 중…`;
   render();
 
   try {
@@ -5652,7 +8552,7 @@ async function runCloseOut(taskId) {
     await hydrateSelectedDetails();
     state.surface = 'artifacts';
     render();
-    elements.refreshStatus.textContent = `Close-out run ${payload.mutation.runId} completed`;
+    elements.refreshStatus.textContent = `종료 정리 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5686,7 +8586,7 @@ async function updateTaskWorktreeRef(taskId, worktreeRef) {
   const data = getDerived();
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('Select a task before updating task.worktreeRef');
+    throw new Error('task.worktreeRef를 바꾸기 전에 태스크를 먼저 선택하세요.');
   }
 
   const isClearing = worktreeRef === null;
@@ -5694,8 +8594,8 @@ async function updateTaskWorktreeRef(taskId, worktreeRef) {
   state.error = null;
   state.mutating = true;
   elements.refreshStatus.textContent = isClearing
-    ? `Clearing task.worktreeRef for ${taskId}…`
-    : `Applying linked worktree for ${taskId}…`;
+    ? `태스크 ${taskId}의 task.worktreeRef를 비우는 중…`
+    : `태스크 ${taskId}에 연결 워크트리를 적용하는 중…`;
   render();
 
   try {
@@ -5711,8 +8611,8 @@ async function updateTaskWorktreeRef(taskId, worktreeRef) {
     await hydrateSelectedDetails();
     render();
     elements.refreshStatus.textContent = isClearing
-      ? `Cleared task.worktreeRef for ${taskId}`
-      : `Updated task.worktreeRef for ${taskId}`;
+      ? `태스크 ${taskId}의 task.worktreeRef를 비웠습니다`
+      : `태스크 ${taskId}의 task.worktreeRef를 업데이트했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5723,13 +8623,13 @@ async function applySelectedTaskWorktree(taskId) {
   const select = document.querySelector('#task-worktree-select');
 
   if (!select) {
-    throw new Error('No linked worktree selection is available');
+    throw new Error('연결 워크트리 선택 항목이 없습니다.');
   }
 
   const worktreeRef = select.value.trim();
 
   if (!worktreeRef) {
-    throw new Error('Select a linked worktree before applying');
+    throw new Error('적용할 연결 워크트리를 먼저 선택하세요.');
   }
 
   await updateTaskWorktreeRef(taskId, worktreeRef);
@@ -5746,11 +8646,11 @@ async function switchActiveProjectWorktree(worktreePath) {
     (activeProjectLinkedWorktrees.options || []).find((candidate) => candidate.path === worktreePath) || null;
 
   if (!data.activeProject) {
-    throw new Error('Active project is required before switching to a linked worktree');
+    throw new Error('연결 워크트리로 전환하려면 활성 프로젝트가 필요합니다.');
   }
 
   if (!option) {
-    throw new Error('Select a detected linked worktree before switching active project');
+    throw new Error('활성 프로젝트를 전환하기 전에 탐지된 연결 워크트리를 먼저 선택하세요.');
   }
 
   if (option.isCurrentProjectPath) {
@@ -5766,7 +8666,7 @@ async function switchActiveProjectWorktree(worktreePath) {
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `Registering linked worktree ${worktreePath} as the active project…`;
+  elements.refreshStatus.textContent = `연결 워크트리 ${worktreePath}를 활성 프로젝트로 등록하는 중…`;
   render();
 
   try {
@@ -5776,7 +8676,7 @@ async function switchActiveProjectWorktree(worktreePath) {
     });
 
     await applyProjectScopePayload(payload);
-    elements.refreshStatus.textContent = `Active project set to ${payload.project.name}`;
+    elements.refreshStatus.textContent = `활성 프로젝트를 ${payload.project.name}(으)로 설정했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -5790,12 +8690,12 @@ async function runInboxAction(itemId, verb) {
   const previousArtifactId = state.selectedArtifactId;
 
   if (!item) {
-    throw new Error('Select a pending inbox item before taking action');
+    throw new Error('처리할 대기 결정함 항목을 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `${verb} ${itemId}…`;
+  elements.refreshStatus.textContent = `${getInboxResolutionActionDisplay(verb)} ${itemId} 처리 중…`;
   render();
 
   try {
@@ -5813,7 +8713,7 @@ async function runInboxAction(itemId, verb) {
     });
     await hydrateSelectedDetails();
     render();
-    elements.refreshStatus.textContent = `${verb} ${payload.mutation.itemId} completed`;
+    elements.refreshStatus.textContent = `${payload.mutation.itemId} ${getInboxResolutionActionDisplay(verb)} 완료`;
   } finally {
     state.mutating = false;
     render();
@@ -5824,61 +8724,532 @@ function renderSummary(data) {
   const activeProject = data.activeProject;
   const activeRuns = data.runs.filter((run) => run.status === 'running').length;
   const pendingGates = data.inboxItems.filter((item) => item.status === 'pending').length;
+  const runtimeAvailable = Boolean(state.payload?.runtimeRoot);
+  const runtimeStatusCopy = state.error
+    ? 'snapshot 복구 필요'
+    : state.loading
+      ? 'snapshot 다시 읽는 중'
+      : runtimeAvailable
+        ? 'runtime bridge 연결 유지'
+        : 'runtime root 대기 중';
+  const activeRunCopy = activeRuns > 0
+    ? '지금 흐르고 있는 실행'
+    : data.runs.length > 0
+      ? '열린 실행은 없고 기록만 남아 있음'
+      : '아직 시작된 실행 없음';
+  const pendingGateCopy = pendingGates > 0 ? '사람 검토가 필요한 게이트' : '열린 검토 게이트 없음';
 
-  elements.activeProjectName.textContent = activeProject?.name || 'No project selected';
-  elements.activeProjectPath.textContent = activeProject?.projectPath || 'project_path required before execution';
-  elements.runtimeRoot.textContent = state.payload?.runtimeRoot || 'Unavailable';
+  elements.activeProjectName.textContent = activeProject?.name || '선택된 프로젝트 없음';
+  elements.activeProjectPath.textContent = activeProject?.projectPath || '실행 전 project_path가 필요합니다';
+  elements.runtimeRoot.textContent = state.payload?.runtimeRoot || '사용 불가';
+  elements.runtimeStatusCopy.textContent = runtimeStatusCopy;
   elements.activeRunCount.textContent = String(activeRuns);
+  elements.activeRunCopy.textContent = activeRunCopy;
   elements.pendingGateCount.textContent = String(pendingGates);
+  elements.pendingGateCopy.textContent = pendingGateCopy;
+  elements.summaryCards.project?.classList.toggle('is-muted', !activeProject);
+  elements.summaryCards.runtime?.classList.toggle('is-ready', runtimeAvailable && !state.error);
+  elements.summaryCards.runtime?.classList.toggle('is-blocked', Boolean(state.error));
+  elements.summaryCards.runs?.classList.toggle('is-live', activeRuns > 0);
+  elements.summaryCards.gates?.classList.toggle('is-alert', pendingGates > 0);
   elements.refreshButton.disabled = state.loading || state.mutating;
 }
 
-function renderNav(data) {
-  const pendingInboxCount = data.inboxItems.filter((item) => item.status === 'pending').length;
-  const artifactCount = data.artifacts.length;
-  const councilCount = data.councilSessions.length;
-  const executionCount = data.missions.filter((mission) => Boolean(mission.linkedTaskId)).length;
-  const deliverableCount = data.missions.filter((mission) => Boolean(mission.linkedTaskId)).length;
-  const missionCount = data.missions.length;
-  const runCount = data.runs.length;
-  const taskCount = data.tasks.length;
+function getSurfaceDockCount(data, surface) {
+  if (surface === 'mission') {
+    return data.missions.length;
+  }
 
+  if (surface === 'council') {
+    return data.councilSessions.length;
+  }
+
+  if (surface === 'execution') {
+    return data.missions.filter((mission) => Boolean(mission.linkedTaskId)).length;
+  }
+
+  if (surface === 'deliverables') {
+    return data.missions.filter((mission) => Boolean(mission.linkedTaskId)).length;
+  }
+
+  if (surface === 'taskboard') {
+    return data.tasks.length;
+  }
+
+  if (surface === 'logs') {
+    return data.runs.length;
+  }
+
+  if (surface === 'artifacts') {
+    return data.artifacts.length;
+  }
+
+  if (surface === 'decision-inbox') {
+    return data.inboxItems.filter((item) => item.status === 'pending').length;
+  }
+
+  return 0;
+}
+
+function renderSurfaceFocusCard(card) {
+  if (!card) {
+    return '';
+  }
+
+  return `
+    <article
+      class="surface-focus-card ${card.emphasis ? 'surface-focus-card-emphasis' : ''} ${card.kind ? `surface-focus-card-${card.kind}` : ''}"
+      ${card.kind ? `data-card-kind="${escapeHtml(card.kind)}"` : ''}
+    >
+      <p class="surface-focus-label">${escapeHtml(card.label)}</p>
+      <h3 class="surface-focus-title">${escapeHtml(card.title)}</h3>
+      <p class="surface-focus-copy">${escapeHtml(card.copy)}</p>
+      ${card.tokens?.length ? `<div class="token-row token-row-compact">${card.tokens.join('')}</div>` : ''}
+      ${
+        card.action
+          ? `
+            <button
+              class="${card.action.tone === 'secondary' ? 'secondary-button' : 'primary-button'} surface-focus-button"
+              type="button"
+              data-action="open-surface"
+              data-target-surface="${escapeHtml(card.action.targetSurface)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              ${escapeHtml(card.action.label)}
+            </button>
+          `
+          : ''
+      }
+    </article>
+  `;
+}
+
+function renderHomeCompanyPulseStrip(options) {
+  const surface = options.surface;
+  const selectedMission = options.selectedMission || null;
+  const selectedCouncil = options.selectedCouncil || null;
+  const activeTask = options.activeTask || null;
+  const selectedArtifact = options.selectedArtifact || null;
+  const pendingGateCount = options.pendingGateCount || 0;
+  const missionStatus = selectedMission ? getMissionStatusDisplay(selectedMission.status) : '초안 전';
+  const missionTone = selectedMission ? getMissionStatusTone(selectedMission.status) : 'warning';
+  const councilAlignmentStatus = selectedCouncil
+    ? getAlignmentStatusDisplay(selectedCouncil.alignment?.status || 'pending')
+    : '대기';
+  const councilTone = selectedCouncil
+    ? getAlignmentTone(selectedCouncil.alignment?.status || 'pending')
+    : 'warning';
+  const councilPhase = selectedCouncil ? getCouncilStatusDisplay(selectedCouncil.status) : '정렬 전';
+  const executionStatus = !activeTask
+    ? '준비 전'
+    : activeTask.flags?.waitingApproval
+      ? '승인 대기'
+      : activeTask.flags?.blocked
+        ? '차단'
+        : activeTask.flags?.waitingDecision
+          ? '결정 대기'
+          : getTaskLifecycleDisplay(activeTask.lifecycleState);
+  const executionTone = !activeTask
+    ? 'warning'
+    : activeTask.flags?.blocked
+      ? 'danger'
+      : activeTask.flags?.waitingApproval
+        ? 'accent'
+        : activeTask.flags?.waitingDecision
+          ? 'warning'
+          : activeTask.lifecycleState === 'Done'
+            ? 'success'
+            : 'neutral';
+  const deliverablesStatus = selectedArtifact
+    ? getArtifactTypeDisplay(selectedArtifact.type)
+    : activeTask
+      ? `리뷰 ${getReviewStatusDisplay(activeTask.review?.status || 'pending')}`
+      : '준비 전';
+  const deliverablesTone = selectedArtifact
+    ? selectedArtifact.type === 'close-out'
+      ? 'success'
+      : 'neutral'
+    : activeTask
+      ? getReviewTone(activeTask.review?.status || 'pending')
+      : 'warning';
+  const gateTone = pendingGateCount > 0
+    ? activeTask?.flags?.waitingApproval
+      ? 'accent'
+      : activeTask?.flags?.blocked
+        ? 'danger'
+        : 'warning'
+    : 'success';
+  const pulseActiveSurface = ['taskboard', 'logs', 'artifacts'].includes(surface) ? 'execution' : surface;
+  const pulseCards = [
+    {
+      surface: 'mission',
+      kicker: 'Mission',
+      role: '안건 라인',
+      title: selectedMission ? selectedMission.title : '안건 대기',
+      copy: selectedMission
+        ? `${missionStatus} 안건이 회의실과 작전실로 같은 경로를 이어 갑니다.`
+        : '첫 안건을 접수하면 회의실과 작전실 pulse가 같이 깨어납니다.',
+      foot: `Mission · ${missionStatus}`,
+      tone: missionTone,
+    },
+    {
+      surface: 'council',
+      kicker: 'Council',
+      role: '참모 heartbeat',
+      title: selectedCouncil?.selectedPlan?.title || '회의 대기',
+      copy: selectedCouncil
+        ? `${selectedCouncil.participants?.length || 0}명 참모가 ${councilAlignmentStatus} 상태로 방향을 맞춥니다.`
+        : '안건을 올리면 네 참모가 바로 같은 안건 아래에 착석합니다.',
+      foot: `Council · ${councilPhase}`,
+      tone: councilTone,
+    },
+    {
+      surface: 'execution',
+      kicker: 'Execution',
+      role: '작전 desk',
+      title: activeTask ? activeTask.title : '작전 대기',
+      copy: !activeTask
+        ? '회의 결론이 정리되면 첫 실행 셀이 회사 동선을 이어받습니다.'
+        : activeTask.flags?.waitingApproval
+          ? '승인선이 풀리면 현재 경로가 바로 다음 작전으로 이어집니다.'
+          : activeTask.flags?.waitingDecision
+            ? '결정 처리 뒤에 현재 셀이 다시 다음 작전을 붙잡습니다.'
+            : activeTask.flags?.blocked
+              ? '차단 사유가 풀려야 회사 heartbeat가 다시 앞으로 갑니다.'
+              : `${executionStatus} 셀이 같은 안건의 다음 행동을 끌고 갑니다.`,
+      foot: `Execution · ${executionStatus}`,
+      tone: executionTone,
+    },
+    {
+      surface: 'deliverables',
+      kicker: 'Report',
+      role: '보고 lane',
+      title: selectedArtifact ? `${getArtifactTypeDisplay(selectedArtifact.type)} 보고` : '보고 대기',
+      copy: selectedArtifact
+        ? `${selectedArtifact.id}가 현재 보고 묶음의 첫 기준으로 남아 있습니다.`
+        : activeTask
+          ? `리뷰 ${getReviewStatusDisplay(activeTask.review?.status || 'pending')}와 승인선이 현재 보고 리듬을 잡고 있습니다.`
+          : '실행 셀이 연결되면 close-out 묶음이 보고 lane으로 올라옵니다.',
+      foot: `Deliverables · ${deliverablesStatus}`,
+      tone: deliverablesTone,
+    },
+    {
+      surface: 'decision-inbox',
+      kicker: 'Gate',
+      role: '사람 gate',
+      title: pendingGateCount > 0 ? `게이트 ${pendingGateCount}건` : '게이트 안정',
+      copy: pendingGateCount > 0
+        ? activeTask?.flags?.waitingApproval
+          ? '승인선 처리 뒤에 후속 작전이 다시 열립니다.'
+          : activeTask?.flags?.waitingDecision
+            ? '결정 처리 뒤에 후속 작전이 다시 열립니다.'
+            : '결정함 처리 뒤에 다음 표면 handoff가 다시 이어집니다.'
+        : '열린 사람 게이트가 없어 같은 안건이 바로 다음 단계로 이어집니다.',
+      foot: pendingGateCount > 0 ? `Decision Inbox · ${pendingGateCount}건 대기` : 'Decision Inbox · 정리됨',
+      tone: gateTone,
+    },
+  ];
+
+  return `
+    <section class="relation-strip company-pulse-strip" data-surface="${escapeHtml(surface)}">
+      <div class="card-title-row card-title-row-tight">
+        <strong>company pulse</strong>
+        ${createToken(`현재:${getSurfaceDisplayName(surface)}`, 'accent')}
+        ${selectedMission ? createToken(`안건:${selectedMission.id}`, 'neutral') : createToken('안건:대기', 'warning')}
+        ${
+          pendingGateCount > 0
+            ? createToken(`게이트:${pendingGateCount}`, gateTone)
+            : createToken('게이트:안정', 'success')
+        }
+      </div>
+      <p class="detail-copy detail-copy-compact company-pulse-intro">
+        같은 안건이 회의, 실행, 보고, 사람 게이트를 지나며 작은 회사 heartbeat처럼 이어집니다.
+      </p>
+      <div class="company-pulse-grid">
+        ${pulseCards
+          .map(
+            (card) => `
+              <article class="company-pulse-card company-pulse-card-${escapeHtml(card.surface)} ${pulseActiveSurface === card.surface ? 'is-active' : ''}">
+                <div class="company-pulse-head">
+                  <div class="company-pulse-headline">
+                    <span class="company-pulse-signal company-pulse-signal-${escapeHtml(card.tone)}"></span>
+                    <strong class="company-pulse-role">${escapeHtml(card.role)}</strong>
+                  </div>
+                  ${createToken(card.kicker, 'neutral')}
+                </div>
+                <h3 class="company-pulse-title">${escapeHtml(card.title)}</h3>
+                <p class="company-pulse-copy">${escapeHtml(card.copy)}</p>
+                <p class="company-pulse-foot">${escapeHtml(card.foot)}</p>
+              </article>
+            `,
+          )
+          .join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderSurfaceFocusStrip(data) {
+  if (!elements.surfaceFocusStrip) {
+    return;
+  }
+
+  const surface = state.surface;
+  const metadata = SURFACE_DOCK_METADATA[surface] || {};
+  const selectedMission = data.missionMap.get(state.selectedMissionId) || data.missions[0] || null;
+  const selectedTask =
+    data.taskMap.get(state.selectedTaskId) ||
+    (selectedMission?.linkedTaskId ? data.taskMap.get(selectedMission.linkedTaskId) || null : null) ||
+    null;
+  const selectedRun =
+    data.runMap.get(state.selectedRunId) ||
+    (selectedTask?.latestRunId ? data.runMap.get(selectedTask.latestRunId) || null : null) ||
+    null;
+  const selectedArtifact =
+    data.artifactMap.get(state.selectedArtifactId) ||
+    (selectedTask ? data.artifacts.find((artifact) => artifact.taskId === selectedTask.id) || null : null) ||
+    null;
+  const selectedInboxItem =
+    data.inboxItemMap.get(state.selectedInboxItemId) ||
+    (selectedTask ? getPreferredTaskInboxItem(selectedTask.id, data) : null) ||
+    null;
+  const selectedCouncil =
+    selectedMission?.councilSessionId ? data.councilSessionMap.get(selectedMission.councilSessionId) || null : null;
+  const activeTask =
+    selectedTask ||
+    (selectedRun ? data.taskMap.get(selectedRun.taskId) || null : null) ||
+    (selectedArtifact ? data.taskMap.get(selectedArtifact.taskId) || null : null) ||
+    (selectedInboxItem ? data.taskMap.get(selectedInboxItem.taskId) || null : null) ||
+    null;
+  const dockCount = getSurfaceDockCount(data, surface);
+  const pendingGateCount = data.inboxItems.filter((item) => item.status === 'pending').length;
+
+  const dockCard = {
+    kind: 'dock',
+    label: '현재 도크',
+    title: `${getSurfaceDisplayName(surface)} · ${dockCount}`,
+    copy: metadata.copy || '현재 도크에서 같은 읽기 규칙으로 아래 표면을 이어서 봅니다.',
+    emphasis: true,
+    tokens: [
+      createToken(`도크:${metadata.kicker || 'Surface'}`, 'accent'),
+      createToken(`항목:${dockCount}`, 'neutral'),
+      data.activeProject ? createToken(`프로젝트:${data.activeProject.name}`, 'success') : createToken('프로젝트:없음', 'warning'),
+    ],
+  };
+
+  let focusCard = {
+    kind: 'focus',
+    label: '현재 포커스',
+    title: '선택된 항목 없음',
+    copy: '왼쪽 도크에서 항목 하나를 고르면 아래 본문이 같은 시야 안에서 이어집니다.',
+    tokens: [createToken('포커스:대기', 'warning')],
+  };
+
+  if (surface === 'mission' && selectedMission) {
+    focusCard = {
+      label: '현재 포커스',
+      title: selectedMission.title,
+      copy: '선택된 안건의 현재 판단과 바로 이동이 아래에 이어집니다.',
+      tokens: [
+        createToken(`상태:${getMissionStatusDisplay(selectedMission.status)}`, getMissionStatusTone(selectedMission.status)),
+        selectedMission.linkedTaskId ? createToken(`실행:${selectedMission.linkedTaskId}`, 'neutral') : createToken('실행:미연결', 'warning'),
+      ],
+    };
+  }
+
+  if (surface === 'council' && (selectedCouncil || selectedMission)) {
+    focusCard = {
+      label: '현재 포커스',
+      title: selectedCouncil?.selectedPlan?.title || selectedMission?.title || '열린 협의회 없음',
+      copy:
+        selectedCouncil?.recommendation ||
+        selectedCouncil?.summary ||
+        '선택된 협의회의 추천안과 transcript가 아래에 이어집니다.',
+      tokens: [
+        createToken(
+          `상태:${getCouncilStatusDisplay(selectedCouncil?.status || 'pending-alignment')}`,
+          getCouncilStatusTone(selectedCouncil?.status),
+        ),
+        createToken(`참석:${selectedCouncil?.participants?.length || 0}`, 'neutral'),
+      ],
+    };
+  }
+
+  if (surface === 'execution' && activeTask) {
+    focusCard = {
+      label: '현재 포커스',
+      title: activeTask.title,
+      copy: '선택된 실행 셀의 현재 판단과 다음 행동이 아래에 이어집니다.',
+      tokens: [
+        createToken(`상태:${getTaskLifecycleDisplay(activeTask.lifecycleState)}`, 'accent'),
+        activeTask.review ? createToken(`리뷰:${getReviewStatusDisplay(activeTask.review.status)}`, getReviewTone(activeTask.review.status)) : '',
+      ].filter(Boolean),
+    };
+  }
+
+  if (surface === 'taskboard' && activeTask) {
+    focusCard = {
+      label: '현재 포커스',
+      title: activeTask.title,
+      copy: activeTask.intent || '선택된 실행 셀의 현재 상태와 다음 행동이 아래에 이어집니다.',
+      tokens: [
+        createToken(`상태:${getTaskLifecycleDisplay(activeTask.lifecycleState)}`, 'accent'),
+        activeTask.review ? createToken(`리뷰:${getReviewStatusDisplay(activeTask.review.status)}`, getReviewTone(activeTask.review.status)) : '',
+      ].filter(Boolean),
+    };
+  }
+
+  if (surface === 'deliverables' && (activeTask || selectedMission)) {
+    focusCard = {
+      label: '현재 포커스',
+      title: selectedMission?.title || activeTask?.title || '열린 결과 보고 없음',
+      copy: '선택된 보고 흐름의 현재 판단과 다음 행동, 연결 근거가 아래에 이어집니다.',
+      tokens: [
+        selectedMission ? createToken(`미션:${getMissionStatusDisplay(selectedMission.status)}`, getMissionStatusTone(selectedMission.status)) : '',
+        activeTask ? createToken(`실행:${getTaskLifecycleDisplay(activeTask.lifecycleState)}`, 'neutral') : '',
+      ].filter(Boolean),
+    };
+  }
+
+  if (surface === 'logs' && selectedRun) {
+    focusCard = {
+      label: '현재 포커스',
+      title: `${getExecutionRoleDisplay(selectedRun.role)} · ${selectedRun.id}`,
+      copy:
+        selectedRun.summary?.nextStage
+          ? `현재 run은 ${getRunStatusDisplay(selectedRun.status)}이고 다음 확인은 ${getExecutionStageDisplay(selectedRun.summary.nextStage)}입니다.`
+          : '선택된 run의 현재 상태와 다음 확인이 아래에 이어집니다.',
+      tokens: [
+        createToken(`상태:${getRunStatusDisplay(selectedRun.status)}`, getRunTone(selectedRun.status)),
+        activeTask ? createToken(`셀:${activeTask.id}`, 'neutral') : '',
+      ].filter(Boolean),
+    };
+  }
+
+  if (surface === 'artifacts' && selectedArtifact) {
+    focusCard = {
+      label: '현재 포커스',
+      title: `${getArtifactTypeDisplay(selectedArtifact.type)} · ${selectedArtifact.id}`,
+      copy: '선택된 증적의 현재 상태와 다음 확인, 연결 근거가 아래에 이어집니다.',
+      tokens: [
+        createToken(`유형:${getArtifactTypeDisplay(selectedArtifact.type)}`, 'accent'),
+        ...[
+          renderArtifactPolicyTokens(selectedArtifact, data),
+        ].filter(Boolean),
+      ],
+    };
+  }
+
+  if (surface === 'decision-inbox' && selectedInboxItem) {
+    focusCard = {
+      label: '현재 포커스',
+      title: selectedInboxItem.title,
+      copy:
+        selectedInboxItem.status === 'pending'
+          ? '선택된 안건의 현재 상태와 다음 처리가 아래에 이어집니다.'
+          : '선택된 안건의 현재 상태와 최근 처리 맥락이 아래에 이어집니다.',
+      tokens: [
+        createToken(`종류:${getInboxKindDisplay(selectedInboxItem.kind)}`, getInboxTone(selectedInboxItem)),
+        createToken(`상태:${getInboxStatusDisplay(selectedInboxItem.status)}`, selectedInboxItem.status === 'resolved' ? 'success' : 'warning'),
+      ],
+    };
+  }
+
+  let checkCard = {
+    kind: 'check',
+    label: '지금 체크',
+    title: '읽는 기준 고정',
+    copy: '도크에서 항목을 고르고, 아래 surface에서 판단과 provenance를 이어서 읽습니다.',
+    tokens: [createToken('규칙:도크 -> 본문', 'neutral')],
+  };
+
+  if (state.error) {
+    checkCard = {
+      label: '지금 체크',
+      title: 'runtime 연결 끊김',
+      copy: state.error.message || 'runtime snapshot 연결부터 복구해야 아래 surface가 다시 열립니다.',
+      tokens: [createToken('snapshot:오류', 'danger')],
+    };
+  } else if (pendingGateCount > 0) {
+    checkCard = {
+      label: '지금 체크',
+      title: `사람 게이트 ${pendingGateCount}건`,
+      copy:
+        activeTask?.flags?.waitingApproval || activeTask?.flags?.waitingDecision
+          ? '현재 포커스가 사람 승인 또는 결정을 기다리고 있습니다. 결정함 확인이 아래 본문보다 먼저입니다.'
+          : '열린 결정함 항목이 남아 있어 사람 게이트를 먼저 확인하는 편이 자연스럽습니다.',
+      tokens: [
+        createToken(`대기:${pendingGateCount}`, 'warning'),
+        activeTask?.flags?.waitingApproval ? createToken('승인대기', 'accent') : '',
+        activeTask?.flags?.waitingDecision ? createToken('결정대기', 'warning') : '',
+      ].filter(Boolean),
+      action:
+        surface !== 'decision-inbox'
+          ? {
+              label: '결정함 먼저 열기',
+              targetSurface: 'decision-inbox',
+              tone: 'primary',
+            }
+          : null,
+    };
+  } else if (activeTask?.flags?.blocked) {
+    checkCard = {
+      label: '지금 체크',
+      title: '차단 상태',
+      copy: '현재 포커스가 막혀 있습니다. 아래 본문에서 차단 이유와 다음 실행을 먼저 확인하면 됩니다.',
+      tokens: [createToken('차단', 'danger')],
+    };
+  } else if (selectedRun) {
+    checkCard = {
+      label: '지금 체크',
+      title: `run ${getRunStatusDisplay(selectedRun.status)}`,
+      copy: '원문 로그보다 먼저 현재 run과 다음 확인 토큰을 읽으면 판단 속도가 훨씬 빨라집니다.',
+      tokens: [createToken(`run:${selectedRun.id}`, getRunTone(selectedRun.status))],
+    };
+  } else if (selectedMission) {
+    checkCard = {
+      label: '지금 체크',
+      title: `미션 ${getMissionStatusDisplay(selectedMission.status)}`,
+      copy: '현재 미션 상태를 먼저 잡아 두면 아래 handoff deck과 상세 패널이 더 자연스럽게 이어집니다.',
+      tokens: [createToken(`상태:${getMissionStatusDisplay(selectedMission.status)}`, getMissionStatusTone(selectedMission.status))],
+    };
+  }
+
+  elements.surfaceFocusStrip.innerHTML = `
+    <div class="surface-focus-grid" data-surface="${escapeHtml(surface)}">
+      ${renderSurfaceFocusCard(dockCard)}
+      ${renderSurfaceFocusCard(focusCard)}
+      ${renderSurfaceFocusCard(checkCard)}
+    </div>
+    ${renderHomeCompanyPulseStrip({
+      surface,
+      selectedMission,
+      selectedCouncil,
+      activeTask,
+      selectedArtifact,
+      pendingGateCount,
+    })}
+  `;
+}
+
+function renderNav(data) {
   for (const button of elements.navButtons) {
     const surface = button.dataset.surface;
     const isActive = surface === state.surface;
     button.classList.toggle('is-active', isActive);
+    const count = getSurfaceDockCount(data, surface);
 
-    let count = 0;
-    if (surface === 'mission') {
-      count = missionCount;
-    }
-    if (surface === 'council') {
-      count = councilCount;
-    }
-    if (surface === 'execution') {
-      count = executionCount;
-    }
-    if (surface === 'deliverables') {
-      count = deliverableCount;
-    }
-    if (surface === 'taskboard') {
-      count = taskCount;
-    }
-    if (surface === 'logs') {
-      count = runCount;
-    }
-    if (surface === 'artifacts') {
-      count = artifactCount;
-    }
-    if (surface === 'decision-inbox') {
-      count = pendingInboxCount;
-    }
-
-    const label =
-      button.dataset.surface === 'decision-inbox'
-        ? 'Decision Inbox'
-        : button.dataset.surface.charAt(0).toUpperCase() + button.dataset.surface.slice(1);
-    button.textContent = `${label} (${count})`;
+    const label = getSurfaceDisplayName(button.dataset.surface);
+    const metadata = SURFACE_DOCK_METADATA[surface] || {};
+    button.innerHTML = `
+      <span class="nav-button-topline">
+        <span class="nav-button-kicker">${escapeHtml(metadata.kicker || 'Surface')}</span>
+        <span class="nav-button-count">${escapeHtml(String(count))}</span>
+      </span>
+      <span class="nav-button-title">${escapeHtml(label)}</span>
+      <span class="nav-button-meta">${escapeHtml(metadata.copy || '')}</span>
+    `;
+    button.setAttribute('aria-label', `${label} ${count}개`);
   }
 }
 
@@ -5888,12 +9259,12 @@ function renderProjectBootstrapPanel(data, options = {}) {
   const bootstrapState = missionMode
     ? data.projects.length === 0
       ? {
-          copy: 'Register the first local project here, then move directly into mission creation.',
-          title: 'Mission Start',
+          copy: '여기서 첫 로컬 프로젝트를 등록한 뒤 바로 미션 생성으로 넘어갑니다.',
+          title: '미션 시작',
         }
       : {
-          copy: 'Select a registered project here or register a new one, then continue on the mission path.',
-          title: 'Mission Project Access',
+          copy: '여기서 등록된 프로젝트를 고르거나 새로 등록한 뒤 미션 경로를 이어갑니다.',
+          title: '미션 프로젝트 진입',
         }
     : getProjectBootstrapState(data);
   const projectActionDisabled = state.loading || state.mutating;
@@ -5929,25 +9300,30 @@ function renderProjectBootstrapPanel(data, options = {}) {
                       <strong>${escapeHtml(project.name)}</strong>
                       ${
                         project.id === data.activeProject?.id
-                          ? createToken('active', 'success')
-                          : createToken('registered', 'neutral')
+                          ? createToken('활성', 'success')
+                          : createToken('등록됨', 'neutral')
                       }
                     </div>
                     <p class="list-copy">${escapeHtml(project.projectPath)}</p>
                     <div class="token-row">
                       ${createToken(project.pack || 'development', 'neutral')}
-                      ${createToken(`readiness:${project.readiness || 'unknown'}`, 'neutral')}
+                      ${createToken(
+                        `준비도:${getProviderReadinessDisplay(project.readiness || 'unknown')}`,
+                        'neutral',
+                      )}
                       ${
                         missionMode
                           ? ''
-                          : createToken(`provider:${providerConfig.adapter}`, providerConfig.mode === 'live' ? 'accent' : 'neutral')
+                          : createToken(`프로바이더:${providerConfig.adapter}`, providerConfig.mode === 'live' ? 'accent' : 'neutral')
                       }
                       ${
                         missionMode
                           ? ''
                           : providerSummary
                             ? createToken(
-                                `provider readiness:${providerSummary.readiness || 'unknown'}`,
+                                `프로바이더준비:${getProviderReadinessDisplay(
+                                  providerSummary.readiness || 'unknown',
+                                )}`,
                                 providerSummary.allowed
                                   ? 'success'
                                   : providerSummary.readiness === 'error'
@@ -5966,8 +9342,8 @@ function renderProjectBootstrapPanel(data, options = {}) {
       `
     : `
         <div class="empty-state">
-          <strong>No registered projects</strong>
-          <p>Start by registering a local project path.</p>
+          <strong>등록된 프로젝트 없음</strong>
+          <p>로컬 프로젝트 경로를 먼저 등록하세요.</p>
         </div>
       `;
 
@@ -5978,10 +9354,10 @@ function renderProjectBootstrapPanel(data, options = {}) {
           <h3>${escapeHtml(bootstrapState.title)}</h3>
           <p class="panel-copy">${escapeHtml(bootstrapState.copy)}</p>
         </div>
-        ${
-          data.activeProject
-            ? `<div class="token-row">
-                ${createToken(`active:${data.activeProject.name}`, 'success')}
+          ${
+            data.activeProject
+              ? `<div class="token-row">
+                ${createToken(`활성:${data.activeProject.name}`, 'success')}
               </div>`
             : ''
         }
@@ -5994,15 +9370,17 @@ function renderProjectBootstrapPanel(data, options = {}) {
             <form class="task-create-form project-create-form" data-form="update-project-provider">
               <div class="panel-header">
                 <div>
-                  <h4>Execution Provider</h4>
-                  <p class="panel-copy">Project-level opt-in only. Default stays local-stub, and live mode never falls back silently.</p>
+                  <h4>실행 프로바이더</h4>
+                  <p class="panel-copy">프로젝트 단위 opt-in만 허용합니다. 기본값은 local-stub를 유지하고, live 모드는 절대 조용히 fallback하지 않습니다.</p>
                 </div>
                 <div class="token-row">
-                  ${createToken(`provider:${activeProjectProviderConfig.adapter}`, activeProjectProviderConfig.mode === 'live' ? 'accent' : 'neutral')}
+                  ${createToken(`프로바이더:${activeProjectProviderConfig.adapter}`, activeProjectProviderConfig.mode === 'live' ? 'accent' : 'neutral')}
                   ${
                     activeProjectProviderSummary
                       ? createToken(
-                          `provider readiness:${activeProjectProviderSummary.readiness || 'unknown'}`,
+                          `프로바이더준비:${getProviderReadinessDisplay(
+                            activeProjectProviderSummary.readiness || 'unknown',
+                          )}`,
                           activeProjectProviderSummary.allowed
                             ? 'success'
                             : activeProjectProviderSummary.readiness === 'error'
@@ -6015,7 +9393,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
               </div>
               <div class="field-grid">
                 <label class="field">
-                  <span class="field-label">Mode</span>
+                  <span class="field-label">모드</span>
                   <select
                     name="editProjectProviderMode"
                     ${projectActionDisabled ? 'disabled' : ''}
@@ -6028,7 +9406,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                   state.projectProviderDraftMode === 'live'
                     ? `
                       <label class="field">
-                        <span class="field-label">Model</span>
+                        <span class="field-label">모델</span>
                         <input
                           type="text"
                           name="editProjectProviderModel"
@@ -6038,7 +9416,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                         >
                       </label>
                       <label class="field">
-                        <span class="field-label">API Key Env Var</span>
+                        <span class="field-label">API Key 환경변수</span>
                         <input
                           type="text"
                           name="editProjectProviderApiKeyVar"
@@ -6053,13 +9431,13 @@ function renderProjectBootstrapPanel(data, options = {}) {
               </div>
               <div class="form-actions">
                 <button class="secondary-button" type="submit" ${projectActionDisabled ? 'disabled' : ''}>
-                  Update Provider
+                  프로바이더 업데이트
                 </button>
                 <p class="form-help">
                   ${
                     activeProjectProviderSummary?.reasons?.length
                       ? escapeHtml(activeProjectProviderSummary.reasons[0])
-                      : 'Only non-secret metadata is stored here. Live mode enables planner, architect, task-breaker, builder preflight, builder live mutation, and reviewer when model and env are valid. Commit-package, local commit, release-package, and close-out remain explicit downstream local steps.'
+                      : '여기에는 비밀이 아닌 metadata만 저장합니다. live 모드는 model과 env가 유효할 때 planner, architect, task-breaker, builder preflight, builder live mutation, reviewer를 활성화하고, commit-package, local commit, release-package, close-out은 계속 명시적인 downstream local step으로 남깁니다.'
                   }
                 </p>
               </div>
@@ -6073,7 +9451,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
             <form class="task-create-form project-create-form" data-form="create-linked-worktree">
               <div class="field-grid">
                 <label class="field">
-                  <span class="field-label">Worktree Slug</span>
+                  <span class="field-label">워크트리 slug</span>
                   <input
                     type="text"
                     name="linkedWorktreeSlug"
@@ -6085,9 +9463,9 @@ function renderProjectBootstrapPanel(data, options = {}) {
               </div>
               <div class="form-actions">
                 <button class="secondary-button" type="submit" ${linkedWorktreeActionDisabled ? 'disabled' : ''}>
-                  Create Linked Worktree
+                  연결 워크트리 만들기
                 </button>
-                <p class="form-help">Creates branch <code>worktree/&lt;slug&gt;</code> at sibling <code>${escapeHtml(`${activeProjectBaseName}--<slug>`)}</code>, then reuses project register/select to make the new linked root active. Existing branch or path collisions fail so use the detected switch list instead.</p>
+                <p class="form-help">형제 경로 <code>${escapeHtml(`${activeProjectBaseName}--<slug>`)}</code>에 <code>worktree/&lt;slug&gt;</code> 브랜치를 만들고, 기존 프로젝트 등록/선택 흐름을 재사용해 새 linked root를 활성 상태로 전환합니다. 기존 브랜치나 경로 충돌이 있으면 실패하므로 그 경우에는 탐지된 전환 목록을 사용합니다.</p>
               </div>
             </form>
           `
@@ -6096,7 +9474,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
       <form class="task-create-form project-create-form" data-form="${missionMode ? 'create-project-from-mission' : 'create-project'}">
         <div class="field-grid">
           <label class="field">
-            <span class="field-label">Project Name</span>
+            <span class="field-label">프로젝트 이름</span>
             <input
               type="text"
               name="projectName"
@@ -6106,7 +9484,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
             >
           </label>
           <label class="field">
-            <span class="field-label">project_path</span>
+            <span class="field-label">프로젝트 경로 (project_path)</span>
             <input
               type="text"
               name="projectPath"
@@ -6119,7 +9497,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
             !missionMode
               ? `
                 <label class="field">
-                  <span class="field-label">Provider Mode</span>
+                  <span class="field-label">프로바이더 모드</span>
                   <select
                     name="projectProviderMode"
                     ${projectActionDisabled ? 'disabled' : ''}
@@ -6135,7 +9513,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
             !missionMode && createProjectProviderMode === 'live'
               ? `
                 <label class="field">
-                  <span class="field-label">Provider Model</span>
+                  <span class="field-label">프로바이더 모델</span>
                   <input
                     type="text"
                     name="projectProviderModel"
@@ -6145,7 +9523,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                   >
                 </label>
                 <label class="field">
-                  <span class="field-label">API Key Env Var</span>
+                  <span class="field-label">API Key 환경변수</span>
                   <input
                     type="text"
                     name="projectProviderApiKeyVar"
@@ -6160,15 +9538,15 @@ function renderProjectBootstrapPanel(data, options = {}) {
         </div>
         <div class="form-actions">
           <button class="secondary-button" type="submit" ${projectActionDisabled ? 'disabled' : ''}>
-            ${missionMode ? 'Start With This Project' : 'Register Project'}
+            ${missionMode ? '이 프로젝트로 시작' : '프로젝트 등록'}
           </button>
           <p class="form-help">
             ${
               missionMode
-                ? 'Mission registration always starts local-stub by default. Provider and linked worktree controls stay in Advanced Ops Mode.'
+                ? '미션 진입은 항상 local-stub 기본값으로 시작합니다. 프로바이더와 연결 워크트리 제어는 고급 운영 모드에 남습니다.'
                 : createProjectProviderMode === 'live'
-                ? 'Live mode stores non-secret opt-in metadata only. Planner, architect, task-breaker, builder preflight, builder live mutation, and reviewer can execute live when model and env are valid; commit-package, local commit, release-package, and close-out stay explicit local follow-up.'
-                : 'Registration stores the project, keeps local-stub as the default execution provider, and makes the project active.'
+                ? 'live 모드는 비밀이 아닌 opt-in metadata만 저장합니다. model과 env가 유효할 때 planner, architect, task-breaker, builder preflight, builder live mutation, reviewer가 live로 실행되고, commit-package, local commit, release-package, close-out은 계속 명시적인 local follow-up으로 남습니다.'
+                : '프로젝트를 등록하고 local-stub를 기본 실행 프로바이더로 유지한 채 해당 프로젝트를 활성 상태로 만듭니다.'
             }
           </p>
         </div>
@@ -6184,11 +9562,11 @@ function renderMission(data) {
         <section class="surface-panel">
           <div class="panel-header">
             <div>
-              <h2>Mission</h2>
-              <p class="panel-copy">Pick the project first, then create the mission.</p>
+              <h2>미션</h2>
+              <p class="panel-copy">프로젝트를 먼저 고른 뒤 미션을 만듭니다.</p>
             </div>
             <div class="token-row">
-              ${createToken(`registered-projects:${data.projects.length}`, data.projects.length > 0 ? 'neutral' : 'warning')}
+              ${createToken(`등록 프로젝트:${data.projects.length}`, data.projects.length > 0 ? 'neutral' : 'warning')}
             </div>
           </div>
           ${renderProjectBootstrapPanel(data, { mode: 'mission' })}
@@ -6196,24 +9574,24 @@ function renderMission(data) {
         <aside class="detail-card">
           <div class="panel-header">
             <div>
-              <h2>Mission Entry</h2>
-              <p class="panel-copy">Project starts here. Advanced Ops keeps provider, worktree, and operator detail.</p>
+              <h2>미션 진입</h2>
+              <p class="panel-copy">프로젝트 선택은 여기서 시작하고, 프로바이더와 worktree 같은 세부 제어는 고급 운영 모드에 남깁니다.</p>
             </div>
           </div>
           <div class="stack">
             <section class="relation-strip">
               <div class="card-title-row">
-                <strong>Recommended First Step</strong>
-                ${createToken('orchestration-first', 'success')}
+                <strong>권장 첫 단계</strong>
+                ${createToken('오케스트레이션 우선', 'success')}
               </div>
-              <p class="detail-copy">Pick a project above, then create the first mission.</p>
+              <p class="detail-copy">위에서 프로젝트를 고른 뒤 첫 미션을 만드세요.</p>
             </section>
             <section class="relation-strip">
               <div class="card-title-row">
-                <strong>Still In Advanced Ops</strong>
-                ${createToken('provider/worktree/detail', 'warning')}
+                <strong>고급 운영에 남는 것</strong>
+                ${createToken('프로바이더/worktree/세부 제어', 'warning')}
               </div>
-              <p class="detail-copy">Provider, worktree, logs, artifacts, and decisions stay in Advanced Ops.</p>
+              <p class="detail-copy">프로바이더, worktree, 로그, 아티팩트, 결정함은 고급 운영 모드에 남습니다.</p>
             </section>
           </div>
         </aside>
@@ -6233,44 +9611,113 @@ function renderMission(data) {
     deliverables: selectedMissionDeliverablesPreview,
     execution: selectedMissionExecutionPreview,
   });
+  const selectedMissionBriefControl = getMissionBriefControlSnapshot(selectedMission, {
+    completion: selectedMissionCompletion,
+    council: selectedMissionCouncilPreview,
+    deliverables: selectedMissionDeliverablesPreview,
+    execution: selectedMissionExecutionPreview,
+    nextActionPreview: selectedMissionNextActionPreview,
+  });
   const linkedTask = selectedMissionCompletion.linkedTask;
   const closeOutState = selectedMissionCompletion.closeOutState;
   const missionCompletionReady = selectedMissionCompletion.completionReady;
   const missionCompletionArtifactId = selectedMissionCompletion.closeOutArtifactId;
   const missionCompletionReleasePackageId = selectedMissionCompletion.releasePackageArtifactId;
   const selectedCouncilSession = selectedMissionCouncilPreview.councilSession;
+  const missionEvidenceRail = renderExecutionEvidenceRail(getExecutionEvidenceRail(linkedTask, data), {
+    eyebrow: '역할 인계 미리보기',
+    heading: '회의에서 실행으로 넘어갈 증적만 먼저 봅니다',
+    copy: 'Mission은 linked task의 artifact, run, readiness, review truth만 compact preview로 읽습니다.',
+    compact: true,
+  });
+  const missionNextSurface = selectedMissionNextActionPreview.surface || 'mission';
+  const missionSignalBySurface = Object.fromEntries(
+    getCompanySignalEntries({
+      mission: selectedMission,
+      councilSession: selectedCouncilSession,
+      linkedTask,
+      completionReady: missionCompletionReady,
+    }).map((entry) => [entry.surface, entry]),
+  );
+  const missionViewportStrip = renderViewportHandoffStrip({
+    eyebrow: '브리핑 인계선',
+    heading: '브리핑실 아래는 입력선과 판단선으로 나눕니다',
+    copy:
+      '왼쪽은 안건을 접수하고 고르며, 오른쪽은 현재 판단과 다음 표면만 먼저 보여 줍니다.',
+    tokens: [
+      createToken(
+        `안건수:${data.missions.length}`,
+        data.missions.length > 0 ? 'neutral' : 'warning',
+      ),
+      createToken(`다음:${getSurfaceDisplayName(missionNextSurface)}`, selectedMissionNextActionPreview.tone),
+      selectedMission ? createToken(`선택안건:${selectedMission.id}`, 'accent') : createToken('선택안건:없음', 'warning'),
+    ],
+    cards: [
+      {
+        label: '왼쪽 데스크',
+        title: '안건 접수 + 진행 안건',
+        copy: '제목과 목표를 올리고, 바로 아래에서 지금 움직이는 안건만 짧게 고릅니다.',
+        signal: missionSignalBySurface.mission,
+      },
+      {
+        label: '오른쪽 판단판',
+        title: '현재 판단 + 다음 이동',
+        copy: '선택된 안건의 상태와 가장 먼저 열어야 할 표면만 먼저 정리합니다.',
+        signal: missionSignalBySurface['decision-inbox'],
+      },
+      {
+        label: '지금 열기',
+        title: selectedMission
+          ? `${getSurfaceDisplayName(missionNextSurface)} · ${selectedMissionNextActionPreview.actionLabel}`
+          : '먼저 안건 접수',
+        copy: selectedMission
+          ? selectedMissionNextActionPreview.summary
+          : '왼쪽 데스크에서 첫 안건을 올리면 회의실과 판단판이 함께 열립니다.',
+        emphasis: true,
+        signal: missionSignalBySurface[missionNextSurface] || missionSignalBySurface.mission,
+        button:
+          selectedMission && missionNextSurface !== 'mission'
+            ? {
+                action: 'open-surface-for-mission',
+                id: selectedMission.id,
+                targetSurface: missionNextSurface,
+                label: `${getSurfaceDisplayName(missionNextSurface)} 열기`,
+                disabled: state.loading || state.mutating,
+              }
+            : null,
+      },
+    ],
+  });
   const selectedMissionActiveSnapshotItems = missionCompletionReady
     ? []
     : [
         {
-          label: 'Council Preview',
+          label: '회의',
           copy: selectedCouncilSession
-            ? `${selectedMissionCouncilPreview.recommendationPreview} Alignment ${selectedMissionCouncilPreview.alignmentStatus}.`
-            : 'Draft council to populate the current recommendation.',
-          handoffCopy: 'See Council for recommendation detail and alignment.',
+            ? `정렬 ${getAlignmentStatusDisplay(selectedMissionCouncilPreview.alignmentStatus)} · ${selectedMissionCouncilPreview.selectedPlanTitle}`
+            : '참모 회의 초안이 아직 없습니다.',
           surface: 'council',
           tone: selectedCouncilSession
             ? getAlignmentTone(selectedMissionCouncilPreview.alignmentStatus)
             : 'warning',
         },
         {
-          label: 'Execution Preview',
-          copy: selectedMissionExecutionPreview.stagePreview,
-          handoffCopy: 'See Execution for current gate and blocked reason.',
+          label: '작전',
+          copy: linkedTask
+            ? `${getTaskLifecycleDisplay(linkedTask.lifecycleState)} · ${selectedMissionExecutionPreview.actionLabel}`
+            : '연결된 실행 셀이 아직 없습니다.',
           surface: 'execution',
           tone: 'accent',
         },
         {
-          label: 'Deliverables Preview',
-          copy: selectedMissionDeliverablesPreview.previewLine,
-          handoffCopy: 'See Deliverables for artifact, review, and approval detail.',
+          label: '보고',
+          copy: `${selectedMissionDeliverablesPreview.currentDeliverableArtifact?.type || '아티팩트 없음'} · 리뷰 ${getReviewStatusDisplay(selectedMissionDeliverablesPreview.latestReviewStatus)} · 승인 ${getApprovalStatusDisplay(selectedMissionDeliverablesPreview.latestApproval?.status || 'none')}`,
           surface: 'deliverables',
           tone: 'neutral',
         },
         {
-          label: 'Current Best Next Step',
-          copy: selectedMissionNextActionPreview.summary,
-          handoffCopy: `Current owner surface is ${getSurfaceDisplayName(selectedMissionNextActionPreview.surface)}.`,
+          label: '다음',
+          copy: `${getSurfaceDisplayName(selectedMissionNextActionPreview.surface)}에서 ${selectedMissionNextActionPreview.actionLabel}`,
           surface: selectedMissionNextActionPreview.surface,
           tone: selectedMissionNextActionPreview.tone,
         },
@@ -6293,12 +9740,12 @@ function renderMission(data) {
   }));
   const activeMissionEntries = missionEntries.filter(({ completion }) => !completion.completionReady);
   const completedMissionEntries = missionEntries.filter(({ completion }) => completion.completionReady);
-  const renderMissionRows = (entries, emptyTitle, emptyCopy) => {
+  const renderMissionRows = (entries, emptyTitle, emptyCopy, emptyStateClass) => {
     if (entries.length === 0) {
       return `
-        <div class="empty-state empty-state-inline">
-          <strong>${escapeHtml(emptyTitle)}</strong>
-          <p>${escapeHtml(emptyCopy)}</p>
+        <div class="empty-state empty-state-inline mission-empty-state mission-empty-state-row ${escapeHtml(emptyStateClass)}">
+          <strong class="mission-empty-title">${escapeHtml(emptyTitle)}</strong>
+          <p class="mission-empty-copy">${escapeHtml(emptyCopy)}</p>
         </div>
       `;
     }
@@ -6309,86 +9756,129 @@ function renderMission(data) {
           .map(({ mission, completion, councilPreview, deliverablesPreview, executionPreview, nextActionPreview }) => {
             const missionTask = completion.linkedTask;
             const missionSurfaceLabel = getSurfaceDisplayName(nextActionPreview.surface);
+            const missionSignalBySurface = Object.fromEntries(
+              getCompanySignalEntries({
+                mission,
+                councilSession: councilPreview.councilSession,
+                linkedTask: missionTask,
+                completionReady: completion.completionReady,
+              }).map((entry) => [entry.surface, entry]),
+            );
+            const missionRailEntries = getMissionSurfaceRailEntries(mission, {
+              completion,
+              council: councilPreview,
+              deliverables: deliverablesPreview,
+              execution: executionPreview,
+              nextActionPreview,
+            });
             const missionRowSummary = completion.completionReady
-              ? `Completed · close-out artifact ${completion.closeOutArtifactId}. Linked task ${mission.linkedTaskId || 'none'} is sealed and next cycle is ready on Mission.`
-              : `Council · ${councilPreview.alignmentStatus}. Execution · ${
-                  missionTask ? missionTask.lifecycleState : 'no linked task'
-                }. Deliverables · ${
-                  deliverablesPreview.currentDeliverableArtifact?.type || 'none'
-                }, review ${deliverablesPreview.latestReviewStatus}, approval ${
-                  deliverablesPreview.latestApproval?.status || 'none'
-                }.`;
+              ? `종료 정리 ${completion.closeOutArtifactId || '준비 중'} · 다음 안건을 바로 준비할 수 있습니다.`
+              : `회의 ${getAlignmentStatusDisplay(councilPreview.alignmentStatus)} · 실행 ${
+                  missionTask ? getTaskLifecycleDisplay(missionTask.lifecycleState) : '준비 전'
+                }`;
             const missionRowNextCopy = completion.completionReady
-              ? 'Next owner · Mission via Prepare Next Mission.'
-              : `Next owner · ${missionSurfaceLabel} via ${nextActionPreview.actionLabel}.`;
+              ? '다음: 미션에서 다음 안건 준비'
+              : `다음: ${missionSurfaceLabel}에서 ${nextActionPreview.actionLabel}`;
             const missionRowTokens = completion.completionReady
               ? `
-                  ${createToken('completion:sealed', 'success')}
-                  ${createToken('next-cycle:ready', 'success')}
+                  ${createToken('완료:봉인', 'success')}
                   ${
                     mission.linkedTaskId
-                      ? createToken(`linked-task:${mission.linkedTaskId}`, 'accent')
-                      : createToken('linked-task:none', 'warning')
+                      ? createToken(`연결태스크:${mission.linkedTaskId}`, 'accent')
+                      : createToken('연결태스크:없음', 'warning')
                   }
                   ${
                     completion.closeOutArtifactId
                       ? createToken(`close-out:${completion.closeOutArtifactId}`, 'neutral')
                       : ''
                   }
+                  ${createToken('다음안건:준비', 'success')}
                 `
               : `
                   ${
-                    mission.linkedTaskId
-                      ? createToken(`linked-task:${mission.linkedTaskId}`, 'accent')
-                      : createToken('linked-task:none', 'warning')
-                  }
-                  ${
-                    missionTask ? createToken(`task:${missionTask.lifecycleState}`, 'neutral') : ''
-                  }
-                  ${
                     councilPreview.councilSession
                       ? createToken(
-                          `alignment:${councilPreview.alignmentStatus}`,
+                          `정렬:${getAlignmentStatusDisplay(councilPreview.alignmentStatus)}`,
                           getAlignmentTone(councilPreview.alignmentStatus),
                         )
-                      : createToken('alignment:none', 'warning')
+                      : createToken('정렬:없음', 'warning')
                   }
                   ${
-                    executionPreview.actionLabel
-                      ? createToken(`gate:${executionPreview.actionLabel}`, 'neutral')
-                      : ''
+                    missionTask
+                      ? createToken(`실행:${getTaskLifecycleDisplay(missionTask.lifecycleState)}`, 'neutral')
+                      : createToken('실행:준비 전', 'warning')
                   }
                   ${
                     deliverablesPreview.currentDeliverableArtifact
-                      ? createToken(
-                          `artifact:${deliverablesPreview.currentDeliverableArtifact.type}`,
-                          'neutral',
-                        )
-                      : ''
+                      ? createToken(`보고:${deliverablesPreview.currentDeliverableArtifact.type}`, 'neutral')
+                      : createToken('보고:없음', 'neutral')
                   }
-                  ${createToken(`next:${nextActionPreview.surface}`, nextActionPreview.tone)}
-                  ${missionTask?.flags?.waitingApproval ? createToken('waitingApproval', 'accent') : ''}
-                  ${missionTask?.flags?.waitingDecision ? createToken('waitingDecision', 'warning') : ''}
-                  ${missionTask?.flags?.blocked ? createToken('blocked', 'danger') : ''}
+                  ${createToken(`다음:${missionSurfaceLabel}`, nextActionPreview.tone)}
+                  ${
+                    missionTask?.flags?.waitingApproval
+                      ? createToken('승인대기', 'accent')
+                      : missionTask?.flags?.blocked
+                        ? createToken('차단', 'danger')
+                        : missionTask?.flags?.waitingDecision
+                          ? createToken('결정대기', 'warning')
+                          : ''
+                  }
                 `;
 
             return `
-              <button
-                class="list-button ${mission.id === selectedMission?.id ? 'is-selected' : ''}"
-                type="button"
-                data-action="select-mission"
-                data-id="${escapeHtml(mission.id)}"
-                ${state.loading || state.mutating ? 'disabled' : ''}
+              <article class="card mission-row-card ${mission.id === selectedMission?.id ? 'is-selected' : ''}">
+                <button
+                  class="list-button mission-row-button"
+                  type="button"
+                  data-action="select-mission"
+                  data-id="${escapeHtml(mission.id)}"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
                 >
-                  <div class="card-title-row">
+                  <div class="card-title-row mission-row-head">
                     <strong>${escapeHtml(mission.title)}</strong>
-                    ${createToken(mission.status || 'draft', getMissionStatusTone(mission.status))}
+                    <div class="token-row token-row-compact">
+                      ${createToken(getMissionStatusDisplay(mission.status), getMissionStatusTone(mission.status))}
+                      ${createToken(`다음:${missionSurfaceLabel}`, nextActionPreview.tone)}
+                    </div>
                   </div>
-                  <p class="list-copy">${escapeHtml(mission.goal || 'No mission goal recorded.')}</p>
-                  <p class="detail-copy">${escapeHtml(missionRowSummary)}</p>
-                  <p class="detail-copy">${escapeHtml(missionRowNextCopy)}</p>
-                  <div class="token-row">${missionRowTokens}</div>
-              </button>
+                  <p class="list-copy list-copy-compact mission-row-goal">${escapeHtml(mission.goal || '기록된 미션 목표가 없습니다.')}</p>
+                  <p class="list-copy list-copy-compact mission-row-summary">${escapeHtml(missionRowSummary)}</p>
+                  <div class="mission-row-foot">
+                    <div class="token-row token-row-compact">${missionRowTokens}</div>
+                    <p class="list-copy list-copy-compact mission-row-next">${escapeHtml(missionRowNextCopy)}</p>
+                  </div>
+                </button>
+                <div class="mission-row-rail">
+                  ${missionRailEntries
+                    .map((entry) => {
+                      const railSignal = missionSignalBySurface[entry.surface] || {
+                        label: entry.label,
+                        status: entry.status,
+                        tone: entry.tone,
+                      };
+
+                      return `
+                        <button
+                          class="mission-row-rail-button ${entry.isNext ? 'mission-row-rail-button-next' : ''}"
+                          type="button"
+                          data-action="open-surface-for-mission"
+                          data-id="${escapeHtml(mission.id)}"
+                          data-target-surface="${escapeHtml(entry.surface)}"
+                          ${state.loading || state.mutating ? 'disabled' : ''}
+                        >
+                          <div class="mission-row-rail-signal mission-row-rail-signal-${escapeHtml(railSignal.tone || 'neutral')}">
+                            <span class="mission-row-rail-signal-dot"></span>
+                            <span class="mission-row-rail-signal-label">${escapeHtml(railSignal.label || 'signal')}</span>
+                            <strong class="mission-row-rail-signal-status">${escapeHtml(railSignal.status || '')}</strong>
+                          </div>
+                          <strong class="mission-row-rail-label">${escapeHtml(entry.label)}</strong>
+                          <span class="mission-row-rail-status">${escapeHtml(entry.status)}</span>
+                        </button>
+                      `;
+                    })
+                    .join('')}
+                </div>
+              </article>
             `;
           })
           .join('')}
@@ -6400,89 +9890,118 @@ function renderMission(data) {
         <div class="stack">
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Active Missions</strong>
+              <strong>진행 중인 미션</strong>
               <div class="token-row">
-                ${createToken(`count:${activeMissionEntries.length}`, activeMissionEntries.length > 0 ? 'neutral' : 'warning')}
+                ${createToken(`수:${activeMissionEntries.length}`, activeMissionEntries.length > 0 ? 'neutral' : 'warning')}
               </div>
             </div>
-            <p class="detail-copy">Current bounded work stays here.</p>
+            <p class="detail-copy detail-copy-compact">지금 움직이는 안건만 모읍니다.</p>
           </section>
           ${renderMissionRows(
             activeMissionEntries,
-            'No active missions',
-            'Prepare the next mission when the next bounded cycle is ready.',
+            '진행 중인 미션 없음',
+            '위 접수 데스크에서 새 안건을 열면 바로 이 줄에 이어집니다.',
+            'mission-empty-state-active-row',
           )}
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Completed Missions</strong>
+              <strong>완료된 미션</strong>
               <div class="token-row">
-                ${createToken(`count:${completedMissionEntries.length}`, completedMissionEntries.length > 0 ? 'success' : 'neutral')}
+                ${createToken(`수:${completedMissionEntries.length}`, completedMissionEntries.length > 0 ? 'success' : 'neutral')}
               </div>
             </div>
-            <p class="detail-copy">Sealed rows wait here for the next cycle.</p>
+            <p class="detail-copy detail-copy-compact">봉인된 안건은 이 줄에 보관합니다.</p>
           </section>
           ${renderMissionRows(
             completedMissionEntries,
-            'No completed missions yet',
-            'Completed rows land here after close-out seals the path.',
+            '완료된 미션 없음',
+            'close-out까지 끝난 안건이 생기면 이 줄에 차곡히 보관됩니다.',
+            'mission-empty-state-complete-row',
           )}
         </div>
       `
     : `
-        <div class="empty-state">
-          <strong>No missions yet</strong>
-          <p>Create the first mission above, then add the linked task when execution is needed.</p>
+        <div class="empty-state mission-empty-state mission-empty-state-list">
+          <strong class="mission-empty-title">미션 없음</strong>
+          <p class="mission-empty-copy">위 접수 데스크에서 첫 안건을 만들면 이곳에 바로 쌓입니다.</p>
         </div>
       `;
 
   elements.surfaces.mission.innerHTML = `
-    <div class="surface-grid">
+    <div class="stack">
+      ${renderCouncilBoardroomStage({
+        agendaGoal:
+          state.missionDraftGoal ||
+          selectedMission?.goal ||
+          '안건을 올리면 참모진이 회의를 열고 목표, 범위, 방향을 먼저 정리합니다.',
+        agendaTitle: state.missionDraftTitle || selectedMission?.title || '오늘 논의할 안건을 올리세요',
+        completionReady: missionCompletionReady,
+        compact: true,
+        copy:
+          '안건만 접수하면 네 참모가 바로 회의를 열고 목표와 방향을 먼저 정합니다.',
+        heading: '오늘의 안건을 접수하면 참모진이 바로 회의를 엽니다',
+        councilSession: selectedCouncilSession,
+        linkedTask,
+        mission: selectedMission,
+      })}
+      ${missionViewportStrip}
+      <div class="surface-grid">
       <section class="surface-panel">
         <div class="panel-header panel-header-tight">
           <div>
-            <h2>Mission</h2>
-            <p class="panel-copy panel-copy-tight">Intent starts here. Task-level execution stays in Advanced Ops.</p>
+            <h2>안건 접수</h2>
+            <p class="panel-copy panel-copy-tight">왼쪽은 입력과 안건 선택만 남깁니다.</p>
           </div>
           <div class="token-row token-row-compact">
-            ${createToken(`project:${data.activeProject.name}`, 'success')}
-            ${createToken(`missions:${data.missions.length}`, 'neutral')}
+            ${createToken(`프로젝트:${data.activeProject.name}`, 'success')}
+            ${createToken(`미션수:${data.missions.length}`, 'neutral')}
           </div>
         </div>
-        <form class="task-create-form task-create-form-compact" data-form="create-mission">
-          <div class="field-grid field-grid-compact">
+        <form class="task-create-form task-create-form-compact mission-order-desk" data-form="create-mission">
+          <div class="mission-order-head">
+            <div class="stack">
+              <strong>안건 접수 데스크</strong>
+              <p class="detail-copy detail-copy-compact">안건을 접수하면 바로 참모 회의로 이어집니다.</p>
+            </div>
+            <div class="token-row token-row-compact">
+              ${createToken('빠른 접수', 'accent')}
+              ${createToken('즉시 착석', 'success')}
+            </div>
+          </div>
+          <div class="mission-order-main">
             <label class="field field-compact">
-              <span class="field-label">Title</span>
+              <span class="field-label">안건</span>
               <input
                 type="text"
                 name="missionTitle"
                 value="${escapeHtml(state.missionDraftTitle)}"
-                placeholder="Mission title"
+                placeholder="무엇을 논의할지 한 줄로 적으세요"
                 ${missionCreateDisabled ? 'disabled' : ''}
               >
             </label>
             <label class="field field-compact">
-              <span class="field-label">Goal</span>
+              <span class="field-label">목표</span>
               <textarea
                 name="missionGoal"
                 rows="3"
-                placeholder="What should the system make or improve?"
+                placeholder="이번 회의가 끝날 때 무엇이 정리돼 있어야 하는지 적으세요"
                 ${missionCreateDisabled ? 'disabled' : ''}
               >${escapeHtml(state.missionDraftGoal)}</textarea>
             </label>
+          </div>
+          <div class="mission-order-foot">
             <label class="field field-compact">
-              <span class="field-label">Scope</span>
+              <span class="field-label">경계 (선택)</span>
               <textarea
                 name="missionConstraints"
-                rows="3"
-                placeholder="Scope limits or acceptance hints"
+                rows="2"
+                placeholder="이번 안건에서 넘지 않을 범위나 꼭 지킬 제약을 적으세요"
                 ${missionCreateDisabled ? 'disabled' : ''}
               >${escapeHtml(state.missionDraftConstraints)}</textarea>
             </label>
-          </div>
-          <div class="form-actions form-actions-inline form-actions-compact">
-            <button class="primary-button" type="submit" ${missionCreateDisabled ? 'disabled' : ''}>Create Mission</button>
-            <div class="token-row">
-              ${createToken('council:auto-draft', 'success')}
+            <div class="form-actions form-actions-inline form-actions-compact mission-order-actions">
+              <button class="primary-button" type="submit" ${missionCreateDisabled ? 'disabled' : ''}>안건 접수</button>
+              <p class="form-help">접수 즉시 참모 회의 초안이 열리고, 승인 전까지는 작전실로 넘어가지 않습니다.</p>
             </div>
           </div>
         </form>
@@ -6491,109 +10010,145 @@ function renderMission(data) {
       <aside class="detail-card">
         <div class="panel-header panel-header-tight">
           <div>
-            <h2>Mission Detail</h2>
-            <p class="panel-copy panel-copy-tight">Mission stays primary. Advanced Ops stays secondary.</p>
+            <h2>안건 브리프</h2>
+            <p class="panel-copy panel-copy-tight">오른쪽은 현재 판단과 다음 이동만 먼저 봅니다.</p>
           </div>
         </div>
         ${
           selectedMission
             ? `
-              <div class="token-row token-row-compact">
-                ${createToken(selectedMission.status || 'draft', getMissionStatusTone(selectedMission.status))}
-                ${
+              ${renderNarrativeDeck({
+                wide: false,
+                eyebrow: '안건 판단판',
+                heading: '현재 판단과 바로 이동만 먼저 봅니다',
+                copy: '오른쪽 패널은 긴 설명보다 지금 결정할 상태와 가장 먼저 열어야 할 표면을 먼저 보여 줍니다.',
+                tokens: [
+                  createToken(
+                    getMissionStatusDisplay(selectedMission.status),
+                    getMissionStatusTone(selectedMission.status),
+                  ),
                   selectedMission.linkedTaskId
-                    ? createToken(`linked-task:${selectedMission.linkedTaskId}`, 'accent')
-                    : createToken('linked-task:none', 'warning')
-                }
-              </div>
+                    ? createToken(`연결태스크:${selectedMission.linkedTaskId}`, 'accent')
+                    : createToken('연결태스크:없음', 'warning'),
+                  createToken(
+                    `다음:${getSurfaceDisplayName(selectedMissionNextActionPreview.surface)}`,
+                    selectedMissionNextActionPreview.tone,
+                  ),
+                ],
+                cards: [
+                  {
+                    label: '현재 판단',
+                    title: selectedMissionBriefControl.currentTitle,
+                    copy: selectedMissionBriefControl.currentCopy,
+                  },
+                  {
+                    label: '바로 이동',
+                    title: selectedMissionBriefControl.nextTitle,
+                    copy: selectedMissionBriefControl.nextCopy,
+                  },
+                  {
+                    label: '이유',
+                    title: selectedMissionBriefControl.reasonTitle,
+                    copy: selectedMissionBriefControl.reasonCopy,
+                  },
+                ],
+              })}
               <div class="stack">
                 <section class="relation-strip relation-strip-compact">
                   <div class="card-title-row card-title-row-tight">
                     <strong>${escapeHtml(selectedMission.title)}</strong>
                   </div>
-                  <p class="detail-copy detail-copy-compact">${escapeHtml(selectedMission.goal || 'No mission goal recorded.')}</p>
+                  <p class="detail-copy detail-copy-compact">${escapeHtml(selectedMission.goal || '기록된 미션 목표가 없습니다.')}</p>
                 </section>
+                ${missionEvidenceRail}
                 ${
                   missionCompletionReady
                     ? `
                       <section class="relation-strip">
                         <div class="card-title-row">
-                          <strong>Execution Preview</strong>
+                          <strong>작전실 인계 미리보기</strong>
                         </div>
                         <div class="token-row">
                           ${
-                            linkedTask ? createToken(`task:${linkedTask.lifecycleState}`, 'neutral') : createToken('task:none', 'warning')
+                            linkedTask
+                              ? createToken(`태스크:${getTaskLifecycleDisplay(linkedTask.lifecycleState)}`, 'neutral')
+                              : createToken('태스크:없음', 'warning')
                           }
                           ${
                             selectedMissionExecutionPreview.actionLabel
-                              ? createToken(`gate:${selectedMissionExecutionPreview.actionLabel}`, 'neutral')
-                              : createToken('gate:none', 'warning')
+                              ? createToken(`게이트:${selectedMissionExecutionPreview.actionLabel}`, 'neutral')
+                              : createToken('게이트:없음', 'warning')
                           }
-                          ${linkedTask?.flags?.blocked ? createToken('blocked', 'danger') : ''}
-                          ${linkedTask?.flags?.waitingApproval ? createToken('waitingApproval', 'accent') : ''}
-                          ${linkedTask?.flags?.waitingDecision ? createToken('waitingDecision', 'warning') : ''}
+                          ${
+                            selectedMissionExecutionPreview.executionBlocked
+                              ? createToken('실행차단', 'danger')
+                              : ''
+                          }
+                          ${linkedTask?.flags?.blocked ? createToken('차단', 'danger') : ''}
+                            ${linkedTask?.flags?.waitingApproval ? createToken('승인대기', 'accent') : ''}
+                            ${linkedTask?.flags?.waitingDecision ? createToken('결정대기', 'warning') : ''}
                         </div>
                         <p class="detail-copy">${escapeHtml(selectedMissionExecutionPreview.stagePreview)}</p>
                         <p class="detail-copy">
-                          <strong>Current Gate Preview</strong>: ${escapeHtml(selectedMissionExecutionPreview.gatePreview)}
+                          <strong>현재 지시 미리보기</strong>: ${escapeHtml(selectedMissionExecutionPreview.gatePreview)}
                         </p>
                         <p class="detail-copy">
-                          <strong>Blocked Reason</strong>: ${escapeHtml(selectedMissionExecutionPreview.blockedReason)}
+                          <strong>보류 사유</strong>: ${escapeHtml(selectedMissionExecutionPreview.blockedReason)}
                         </p>
                       </section>
                       <section class="relation-strip">
                         <div class="card-title-row">
-                          <strong>Deliverables Preview</strong>
+                          <strong>회의 결과물 미리보기</strong>
                         </div>
                         <div class="token-row">
                           ${
                             selectedMissionDeliverablesPreview.currentDeliverableArtifact
                               ? createToken(
-                                  `artifact:${selectedMissionDeliverablesPreview.currentDeliverableArtifact.type}`,
+                                  `아티팩트:${selectedMissionDeliverablesPreview.currentDeliverableArtifact.type}`,
                                   'neutral',
                                 )
-                              : createToken('artifact:none', 'warning')
+                              : createToken('아티팩트:없음', 'warning')
                           }
                           ${createToken(
-                            `review:${selectedMissionDeliverablesPreview.latestReviewStatus}`,
+                            `리뷰:${getReviewStatusDisplay(selectedMissionDeliverablesPreview.latestReviewStatus)}`,
                             getReviewTone(selectedMissionDeliverablesPreview.latestReviewStatus),
                           )}
                           ${
                             selectedMissionDeliverablesPreview.latestApproval
                               ? createToken(
-                                  `approval:${selectedMissionDeliverablesPreview.latestApproval.status}`,
+                                  `승인:${getApprovalStatusDisplay(selectedMissionDeliverablesPreview.latestApproval.status)}`,
                                   getApprovalTone(selectedMissionDeliverablesPreview.latestApproval.status),
                                 )
-                              : createToken('approval:none', 'neutral')
+                              : createToken('승인:없음', 'neutral')
                           }
                         </div>
                         <p class="detail-copy">
-                          <strong>Latest Artifact Preview</strong>: ${escapeHtml(
+                          <strong>최신 아티팩트 미리보기</strong>: ${escapeHtml(
                             selectedMissionDeliverablesPreview.currentDeliverableArtifact
-                              ? `${selectedMissionDeliverablesPreview.currentDeliverableArtifact.type} ${selectedMissionDeliverablesPreview.currentDeliverableArtifact.id} is the current bounded output head.`
-                              : 'No artifact package exists yet.',
+                              ? `${selectedMissionDeliverablesPreview.currentDeliverableArtifact.type} ${selectedMissionDeliverablesPreview.currentDeliverableArtifact.id}가 현재 한정된 출력의 머리입니다.`
+                              : '아직 아티팩트 패키지가 없습니다.',
                           )}
                         </p>
                         <p class="detail-copy">
-                          <strong>Review State</strong>: ${escapeHtml(
-                            `Current review status is ${selectedMissionDeliverablesPreview.latestReviewStatus}.`,
+                          <strong>리뷰 상태</strong>: ${escapeHtml(
+                            `현재 리뷰 상태는 ${getReviewStatusDisplay(selectedMissionDeliverablesPreview.latestReviewStatus)}입니다.`,
                           )}
                         </p>
                         <p class="detail-copy">
-                          <strong>Approval State</strong>: ${escapeHtml(
+                          <strong>승인 상태</strong>: ${escapeHtml(
                             selectedMissionDeliverablesPreview.latestApproval
-                              ? `${selectedMissionDeliverablesPreview.latestApproval.id} is ${selectedMissionDeliverablesPreview.latestApproval.status}.`
-                              : 'No approval record exists yet.',
+                              ? `${selectedMissionDeliverablesPreview.latestApproval.id}는 ${getApprovalStatusDisplay(selectedMissionDeliverablesPreview.latestApproval.status)} 상태입니다.`
+                              : '아직 승인 기록이 없습니다.',
                           )}
                         </p>
                       </section>
                       <section class="relation-strip">
                         <div class="card-title-row">
-                          <strong>Current Best Next Step</strong>
+                          <strong>다음 지시</strong>
                         </div>
                         <div class="token-row">
-                          ${createToken(`surface:${selectedMissionNextActionPreview.surface}`, selectedMissionNextActionPreview.tone)}
-                          ${createToken(`action:${selectedMissionNextActionPreview.actionLabel}`, 'neutral')}
+                          ${createToken(`표면:${getSurfaceDisplayName(selectedMissionNextActionPreview.surface)}`, selectedMissionNextActionPreview.tone)}
+                          ${createToken(`액션:${selectedMissionNextActionPreview.actionLabel}`, 'neutral')}
                         </div>
                         <p class="detail-copy">${escapeHtml(selectedMissionNextActionPreview.summary)}</p>
                       </section>
@@ -6601,58 +10156,58 @@ function renderMission(data) {
                     : `
                       <section class="relation-strip">
                         <div class="card-title-row">
-                          <strong>Mission Snapshot</strong>
+                          <strong>브리프 핵심 4줄</strong>
                           <div class="token-row">
                             ${
                               selectedCouncilSession
                                 ? createToken(
-                                    `alignment:${selectedMissionCouncilPreview.alignmentStatus}`,
+                                    `정렬:${getAlignmentStatusDisplay(selectedMissionCouncilPreview.alignmentStatus)}`,
                                     getAlignmentTone(selectedMissionCouncilPreview.alignmentStatus),
                                   )
-                                : createToken('alignment:none', 'warning')
+                                : createToken('정렬:없음', 'warning')
                             }
                             ${
                               linkedTask
-                                ? createToken(`task:${linkedTask.lifecycleState}`, 'neutral')
-                                : createToken('task:none', 'warning')
+                                ? createToken(`태스크:${getTaskLifecycleDisplay(linkedTask.lifecycleState)}`, 'neutral')
+                                : createToken('태스크:없음', 'warning')
                             }
                             ${
                               selectedMissionDeliverablesPreview.latestApproval
                                 ? createToken(
-                                    `approval:${selectedMissionDeliverablesPreview.latestApproval.status}`,
+                                    `승인:${getApprovalStatusDisplay(selectedMissionDeliverablesPreview.latestApproval.status)}`,
                                     getApprovalTone(selectedMissionDeliverablesPreview.latestApproval.status),
                                   )
-                                : createToken('approval:none', 'neutral')
+                                : createToken('승인:없음', 'neutral')
                             }
                             ${createToken(
-                              `surface:${selectedMissionNextActionPreview.surface}`,
+                              `표면:${getSurfaceDisplayName(selectedMissionNextActionPreview.surface)}`,
                               selectedMissionNextActionPreview.tone,
                             )}
-                            ${createToken(`action:${selectedMissionNextActionPreview.actionLabel}`, 'neutral')}
+                            ${createToken(`액션:${selectedMissionNextActionPreview.actionLabel}`, 'neutral')}
                           </div>
                         </div>
-                        <p class="detail-copy">One strip keeps council, execution, deliverables, and next step together.</p>
-                        ${renderMissionSnapshotList(selectedMissionActiveSnapshotItems)}
+                        <p class="detail-copy detail-copy-compact">지금 판단할 상태만 네 줄로 봅니다.</p>
+                        ${renderMissionSnapshotList(selectedMissionActiveSnapshotItems, { compact: true })}
                       </section>
                     `
                 }
                 <section class="relation-strip">
                   <div class="card-title-row">
-                    <strong>Linked Task</strong>
+                    <strong>실행 셀 연결</strong>
                   </div>
                   <p class="detail-copy">
                     ${
                       linkedTask
-                        ? escapeHtml(`${linkedTask.id} is ready in ${linkedTask.lifecycleState}.`)
-                        : 'No linked task exists yet for this mission.'
+                        ? escapeHtml(`${linkedTask.id}가 ${getTaskLifecycleDisplay(linkedTask.lifecycleState)} 상태로 연결돼 있습니다.`)
+                        : '이 안건에는 아직 연결된 실행 셀이 없습니다.'
                     }
                   </p>
                 </section>
                 <section class="relation-strip">
                   <div class="card-title-row">
-                    <strong>Mission Actions</strong>
+                    <strong>브리프 액션</strong>
                   </div>
-                  <p class="detail-copy">Primary actions live here. Advanced Ops stays secondary.</p>
+                  <p class="detail-copy">회의실, 작전실, 관제실 기본 동선만 엽니다.</p>
                   <div class="form-actions form-actions-inline">
                     ${
                       selectedCouncilSession
@@ -6664,10 +10219,10 @@ function renderMission(data) {
                             data-id="${escapeHtml(selectedMission.id)}"
                             ${state.loading || state.mutating ? 'disabled' : ''}
                           >
-                            Open Council
+                            회의실 열기
                           </button>
                         `
-                        : `
+                      : `
                           <button
                             class="secondary-button"
                             type="button"
@@ -6675,7 +10230,7 @@ function renderMission(data) {
                             data-id="${escapeHtml(selectedMission.id)}"
                             ${state.loading || state.mutating ? 'disabled' : ''}
                           >
-                            Draft Council
+                            참모 회의 초안 만들기
                           </button>
                         `
                     }
@@ -6686,7 +10241,7 @@ function renderMission(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${linkedTaskCreateDisabled ? 'disabled' : ''}
                     >
-                      Create Linked Task
+                      실행 셀 만들기
                     </button>
                     ${
                       linkedTask
@@ -6698,7 +10253,7 @@ function renderMission(data) {
                             data-id="${escapeHtml(selectedMission.id)}"
                             ${state.loading || state.mutating ? 'disabled' : ''}
                           >
-                            Open Execution
+                            작전실 열기
                           </button>
                         `
                         : ''
@@ -6715,7 +10270,7 @@ function renderMission(data) {
                             data-id="${escapeHtml(selectedMission.id)}"
                             ${state.loading || state.mutating ? 'disabled' : ''}
                           >
-                            Prepare Next Mission
+                            다음 안건 준비
                           </button>
                         </div>
                       `
@@ -6729,32 +10284,32 @@ function renderMission(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Advanced Ops Mode
+                      관제실 열기
                     </button>
-                    <p class="form-help">Linked task setup stays on the v1 engine. Advanced Ops remains secondary.</p>
+                    <p class="form-help">세부 제어와 provenance는 관제실에 남기고, 여기선 안건 동선만 엽니다.</p>
                   </div>
                 </section>
                 <section class="relation-strip">
                   <div class="card-title-row">
-                    <strong>Mission Completion</strong>
+                    <strong>안건 종료 보고</strong>
                   </div>
                   <div class="token-row">
                     ${
                           linkedTask
                             ? createToken(
-                                `task:${linkedTask.lifecycleState}`,
+                                `태스크:${getTaskLifecycleDisplay(linkedTask.lifecycleState)}`,
                                 linkedTask.lifecycleState === 'Done' ? 'success' : 'neutral',
                               )
-                            : createToken('task:none', 'warning')
+                            : createToken('태스크:없음', 'warning')
                         }
                         ${
                           missionCompletionReady
-                            ? createToken('state:complete', 'success')
-                            : createToken('state:open', 'warning')
+                            ? createToken('상태:완료', 'success')
+                            : createToken('상태:진행 중', 'warning')
                         }
                         ${
                           missionCompletionArtifactId
-                            ? createToken(`close-out:${missionCompletionArtifactId}`, 'neutral')
+                            ? createToken(`종료정리:${missionCompletionArtifactId}`, 'neutral')
                             : ''
                         }
                   </div>
@@ -6762,117 +10317,121 @@ function renderMission(data) {
                     ${
                       missionCompletionReady
                         ? escapeHtml(
-                            `${selectedMission.title} completed the bounded orchestration path and closed through close-out artifact ${missionCompletionArtifactId}.`,
+                            `${selectedMission.title}은 종료 정리 아티팩트 ${missionCompletionArtifactId}로 경로를 닫았습니다.`,
                           )
-                        : 'Mission completion summary appears here after the linked task reaches Done through the bounded close-out path.'
+                        : '연결 태스크가 종료 정리를 마치면 이곳에 미션 완료 요약이 뜹니다.'
                     }
                   </p>
                   <p class="detail-copy">
-                    <strong>Current Mission State</strong>: ${
+                    <strong>현재 안건 상태</strong>: ${
                       missionCompletionReady
                         ? escapeHtml(
-                            `Task ${linkedTask.id} is Done. Source release bundle ${missionCompletionReleasePackageId || 'unknown'} is anchored to the saved close-out result.`,
+                            `태스크 ${linkedTask.id}는 완료입니다. close-out 결과는 소스 릴리스 번들 ${missionCompletionReleasePackageId || '알 수 없음'}에 연결돼 있습니다.`,
                           )
                         : linkedTask
                           ? escapeHtml(
-                              `Task ${linkedTask.id} is currently ${linkedTask.lifecycleState}. Complete the bounded path through close-out to seal mission completion.`,
+                              `태스크 ${linkedTask.id}는 현재 ${getTaskLifecycleDisplay(linkedTask.lifecycleState)} 상태입니다. 종료 정리가 끝나면 미션 완료가 봉인됩니다.`,
                             )
-                          : 'No linked task exists yet.'
+                          : '아직 연결된 태스크가 없습니다.'
                     }
                   </p>
                   <p class="detail-copy">
-                    <strong>Next Safe Follow-Up</strong>: ${
+                    <strong>다음 안전한 지시</strong>: ${
                       missionCompletionReady
-                        ? 'Review the saved close-out bundle on Deliverables, then start a new mission or revise this mission for the next bounded outcome. Push, publish, and external release remain out of scope here.'
-                        : 'Use Council or Execution to keep advancing the current bounded path. Completion stays unset until the close-out bundle is saved.'
+                        ? '저장된 종료 정리 번들을 확인한 뒤 새 미션을 시작하거나 이 미션을 다시 다듬습니다. push, publish, 외부 릴리스는 범위 밖입니다.'
+                        : '협의회나 실행에서 현재 경로를 계속 전진합니다. 종료 정리 번들이 저장돼야 완료가 닫힙니다.'
                     }
                   </p>
                 </section>
                 <section class="relation-strip">
                   <div class="card-title-row">
-                    <strong>Council</strong>
+                    <strong>착석 참모진</strong>
+                    ${createToken('착석 참모진', 'accent')}
                   </div>
                   ${
                     selectedCouncilSession
                       ? `
                         <div class="token-row">
+                          ${createToken('직급 체계', 'accent')}
                           ${createToken(
-                            `alignment:${selectedMissionCouncilPreview.alignmentStatus}`,
+                            `정렬:${getAlignmentStatusDisplay(selectedMissionCouncilPreview.alignmentStatus)}`,
                             getAlignmentTone(selectedMissionCouncilPreview.alignmentStatus),
                           )}
                           ${createToken(
-                            `participants:${selectedMissionCouncilPreview.participantCount}`,
+                            `참여자:${selectedMissionCouncilPreview.participantCount}`,
                             'neutral',
                           )}
                           ${
                             selectedMissionCouncilPreview.openQuestionsCount > 0
                               ? createToken(
-                                  `open-questions:${selectedMissionCouncilPreview.openQuestionsCount}`,
+                                  `열린질문:${selectedMissionCouncilPreview.openQuestionsCount}`,
                                   'warning',
                                 )
-                              : createToken('open-questions:0', 'success')
+                              : createToken('열린질문:0', 'success')
                           }
                         </div>
                       `
                       : ''
                   }
+                  ${renderCouncilCastCards(selectedCouncilSession, { compact: true })}
                   <p class="detail-copy">
                     ${
                       selectedCouncilSession
                         ? escapeHtml(
-                            `${selectedCouncilSession.id} is ${selectedCouncilSession.status} with alignment ${selectedCouncilSession.alignment?.status || 'pending'}.`,
+                            `${selectedCouncilSession.id}는 ${getCouncilStatusDisplay(selectedCouncilSession.status)} 상태이고, 직급이 보이는 네 참모진이 현재 정렬을 ${getAlignmentStatusDisplay(selectedCouncilSession.alignment?.status || 'pending')}으로 묶고 있습니다.`,
                           )
-                        : 'No council session yet for this mission.'
+                        : '참모 회의를 열면 직급을 가진 네 참모가 바로 같은 안건을 두고 앉습니다.'
                     }
                   </p>
                   <p class="detail-copy">
                     ${
                       selectedCouncilSession
                         ? escapeHtml(
-                            `Recommendation Preview: ${selectedMissionCouncilPreview.recommendationPreview}`,
+                            `추천안 미리보기: ${selectedMissionCouncilPreview.recommendationPreview}`,
                           )
-                        : 'Recommendation Preview: Draft council to populate the current recommendation.'
+                        : '추천안 미리보기: 협의회를 초안으로 만들어 현재 추천안을 채웁니다.'
                     }
                   </p>
                   <p class="detail-copy">
                     ${
                       selectedCouncilSession
                         ? escapeHtml(
-                            `Alignment State: ${selectedMissionCouncilPreview.alignmentStatus}. Selected plan ${selectedMissionCouncilPreview.selectedPlanTitle}.`,
+                            `정렬 상태: ${getAlignmentStatusDisplay(selectedMissionCouncilPreview.alignmentStatus)}. 선택된 계획은 ${selectedMissionCouncilPreview.selectedPlanTitle}입니다.`,
                           )
-                        : 'Alignment State: unavailable until a council session exists.'
+                        : '정렬 상태: 협의회 세션이 생기기 전까지는 비어 있습니다.'
                     }
                   </p>
                 </section>
                 <section class="relation-strip">
                   <div class="card-title-row">
-                    <strong>Constraints</strong>
+                    <strong>회의 경계</strong>
                   </div>
-                  <p class="detail-copy">${escapeHtml(selectedMission.constraints || 'No explicit constraints recorded.')}</p>
+                  <p class="detail-copy">${escapeHtml(selectedMission.constraints || '기록된 제약 조건이 없습니다.')}</p>
                 </section>
                 <section class="relation-strip">
                   <div class="card-title-row">
-                    <strong>Advanced Ops Mode</strong>
+                    <strong>관제실 직행</strong>
                   </div>
-                  <p class="detail-copy">Secondary escape hatch for full Taskboard control.</p>
+                  <p class="detail-copy">세부 로그, 작업판, 증적 조작이 필요할 때 여는 별도 관제실입니다.</p>
                   <p class="detail-copy">
                     ${
                       linkedTask
-                        ? escapeHtml(`Opens Taskboard with linked task ${linkedTask.id} selected.`)
-                        : 'Opens Taskboard without changing mission scope.'
+                        ? escapeHtml(`연결 태스크 ${linkedTask.id}를 선택한 상태로 작업판을 엽니다.`)
+                        : '미션 범위를 바꾸지 않고 작업판을 엽니다.'
                     }
                   </p>
                 </section>
               </div>
             `
             : `
-              <div class="empty-state">
-                <strong>No mission selected</strong>
-                <p>Select or create a mission.</p>
+              <div class="empty-state mission-empty-state mission-empty-state-detail">
+                <strong class="mission-empty-title">선택된 안건 없음</strong>
+                <p class="mission-empty-copy">왼쪽 목록에서 안건을 고르거나 위 데스크에서 새 안건을 접수합니다.</p>
               </div>
             `
         }
       </aside>
+      </div>
     </div>
   `;
 }
@@ -6880,8 +10439,8 @@ function renderMission(data) {
 function renderCouncil(data) {
   if (!data.activeProject) {
     elements.surfaces.council.innerHTML = renderProjectGateSurface(
-      'Council Unavailable',
-      'Register or select a project on Taskboard before opening council.',
+      '협의회 사용 불가',
+      '협의회를 열기 전에 미션 또는 고급 운영 모드에서 프로젝트를 먼저 고릅니다.',
     );
     return;
   }
@@ -6895,13 +10454,19 @@ function renderCouncil(data) {
     selectedMission?.linkedTaskId && data.taskMap.has(selectedMission.linkedTaskId)
       ? data.taskMap.get(selectedMission.linkedTaskId)
       : null;
+  const selectedMissionCompletion = getMissionCompletionSummary(selectedMission, data);
+  const councilControl = getCouncilControlSnapshot(
+    selectedMission,
+    selectedCouncilSession,
+    linkedTask,
+  );
 
   if (!selectedMission) {
     elements.surfaces.council.innerHTML = `
       <div class="surface-panel">
         <div class="empty-state empty-state-strong">
-          <strong>No mission selected</strong>
-          <p>Create or select a mission on the Mission surface before opening council.</p>
+          <strong>선택된 안건 없음</strong>
+          <p>참모 회의를 열기 전에 안건 표면에서 안건을 만들거나 선택합니다.</p>
         </div>
       </div>
     `;
@@ -6915,31 +10480,91 @@ function renderCouncil(data) {
     state.mutating ||
     !selectedCouncilSession ||
     selectedCouncilSession.alignment?.status === 'approved';
-  const participantCards = selectedCouncilSession
-    ? selectedCouncilSession.participants
-        .map(
-          (participant) => `
-            <section class="relation-strip">
-              <div class="card-title-row">
-                <strong>${escapeHtml(participant.role)}</strong>
-                ${createToken('visible role', 'neutral')}
-              </div>
-              <p class="detail-copy">${escapeHtml(participant.focus || 'No focus recorded.')}</p>
-            </section>
-          `,
-        )
-        .join('')
-    : '';
+  const councilNextSurface =
+    selectedCouncilSession?.alignment?.status === 'approved'
+      ? linkedTask
+        ? 'execution'
+        : 'mission'
+      : 'council';
+  const councilHeartbeatStrip = renderCouncilHeartbeatStrip(
+    selectedMission,
+    selectedCouncilSession,
+    linkedTask,
+  );
+  const councilEvidenceRail = renderExecutionEvidenceRail(
+    getExecutionEvidenceRail(linkedTask, data),
+    {
+      eyebrow: '결론 증적선',
+      heading: '참모 결론이 실제 실행 증적으로 어디까지 넘어왔는지 봅니다',
+      copy: '회의 결론 아래에서 현재 owner, 증적, 보류 사유, 다음 인계만 그대로 읽습니다.',
+    },
+  );
+  const councilSignalBySurface = Object.fromEntries(
+    getCompanySignalEntries({
+      mission: selectedMission,
+      councilSession: selectedCouncilSession,
+      linkedTask,
+      completionReady: selectedMissionCompletion.completionReady,
+    }).map((entry) => [entry.surface, entry]),
+  );
+  const councilViewportStrip = renderViewportHandoffStrip({
+    eyebrow: '회의 인계선',
+    heading: '회의실 아래는 기록선과 결론선으로 나눕니다',
+    copy:
+      '왼쪽은 안건 맥락과 발언을 남기고, 오른쪽은 결론과 다음 이동만 먼저 보여 줍니다.',
+    tokens: [
+      createToken(
+        `정렬:${getAlignmentStatusDisplay(selectedCouncilSession?.alignment?.status || 'pending')}`,
+        getAlignmentTone(selectedCouncilSession?.alignment?.status || 'pending'),
+      ),
+      createToken(
+        `참모:${selectedCouncilSession?.participants?.length || 4}석`,
+        selectedCouncilSession ? 'neutral' : 'warning',
+      ),
+      createToken(`다음:${getSurfaceDisplayName(councilNextSurface)}`, councilNextSurface === 'execution' ? 'accent' : 'neutral'),
+    ],
+    cards: [
+      {
+        label: '왼쪽 회의록',
+        title: '안건 맥락 + 착석 참모',
+        copy: '안건 맥락, 직급이 보이는 참모진, 회의 발언만 왼쪽에 남깁니다.',
+        signal: councilSignalBySurface.council,
+      },
+      {
+        label: '오른쪽 결론판',
+        title: '결론 + 승인 + 다음 이동',
+        copy: '권고 방향과 현재 승인 여부를 먼저 보고, 깊은 회의록은 뒤로 미룹니다.',
+        signal: councilSignalBySurface['decision-inbox'],
+      },
+      {
+        label: '지금 열기',
+        title: councilControl.nextTitle,
+        copy: councilControl.nextCopy,
+        emphasis: true,
+        signal: councilSignalBySurface[councilNextSurface] || councilSignalBySurface.council,
+        button:
+          selectedMission && councilNextSurface !== 'council'
+            ? {
+                action: 'open-surface-for-mission',
+                id: selectedMission.id,
+                targetSurface: councilNextSurface,
+                label: `${getSurfaceDisplayName(councilNextSurface)} 열기`,
+                disabled: state.loading || state.mutating,
+              }
+            : null,
+      },
+    ],
+  });
   const transcriptCards = selectedCouncilSession
     ? selectedCouncilSession.transcript
         .map(
           (entry) => `
-            <section class="relation-strip">
-              <div class="card-title-row">
-                <strong>${escapeHtml(entry.role)}</strong>
+            <section class="relation-strip transcript-card">
+              <div class="card-title-row card-title-row-tight transcript-card-head">
+                <strong class="transcript-card-role">${escapeHtml(getCouncilCastEntry(entry.role, selectedCouncilSession).displayName)}</strong>
                 ${entry.stance ? createToken(entry.stance, 'neutral') : ''}
               </div>
-              <p class="detail-copy">${escapeHtml(entry.content || '')}</p>
+              <p class="detail-copy detail-copy-compact transcript-card-copy">${escapeHtml(entry.content || '')}</p>
             </section>
           `,
         )
@@ -6947,34 +10572,50 @@ function renderCouncil(data) {
     : '';
 
   elements.surfaces.council.innerHTML = `
-    <div class="surface-grid">
+    <div class="stack">
+      ${renderCouncilBoardroomStage({
+        agendaGoal:
+          selectedMission.goal ||
+          '안건이 올라오면 착석한 참모진이 회의를 열고 목표와 방향을 먼저 정리합니다.',
+        agendaTitle: selectedMission.title || '오늘 논의할 안건',
+        completionReady: selectedMissionCompletion.completionReady,
+        copy:
+          '여기는 참모진이 실제로 앉아 회의하는 방처럼 보여야 합니다. 각 캐릭터는 서열과 담당 임무를 가진 채 같은 안건을 보고 방향을 고릅니다.',
+        heading: '착석한 AI 참모진이 안건을 두고 목표와 방향을 정하는 회의실',
+        councilSession: selectedCouncilSession,
+        linkedTask,
+        mission: selectedMission,
+      })}
+      ${councilHeartbeatStrip}
+      ${councilViewportStrip}
+      <div class="surface-grid">
       <section class="surface-panel">
-        <div class="panel-header">
+        <div class="panel-header panel-header-tight">
           <div>
-            <h2>Council</h2>
-            <p class="panel-copy">Visible role roster, transcript, and one alignment checkpoint sit above the existing execution engine.</p>
+            <h2>참모 회의</h2>
+            <p class="panel-copy panel-copy-tight">왼쪽은 안건 맥락과 발언만 남깁니다.</p>
           </div>
           <div class="token-row">
-            ${createToken(`project:${data.activeProject.name}`, 'success')}
-            ${createToken(`mission:${selectedMission.id}`, 'neutral')}
-            ${createToken(`sessions:${data.councilSessions.length}`, 'neutral')}
+            ${createToken(`프로젝트:${data.activeProject.name}`, 'success')}
+            ${createToken(`미션:${selectedMission.id}`, 'neutral')}
+            ${createToken(`세션수:${data.councilSessions.length}`, 'neutral')}
           </div>
         </div>
         <section class="relation-strip">
           <div class="card-title-row">
             <strong>${escapeHtml(selectedMission.title)}</strong>
-            ${createToken(selectedMission.status || 'draft', getMissionStatusTone(selectedMission.status))}
+            ${createToken(getMissionStatusDisplay(selectedMission.status), getMissionStatusTone(selectedMission.status))}
             ${
               selectedCouncilSession
                 ? createToken(
-                    selectedCouncilSession.status,
+                    getCouncilStatusDisplay(selectedCouncilSession.status),
                     getCouncilStatusTone(selectedCouncilSession.status),
                   )
-                : createToken('council:none', 'warning')
+                : createToken('협의회:없음', 'warning')
             }
           </div>
-          <p class="detail-copy">${escapeHtml(selectedMission.goal || 'No mission goal recorded.')}</p>
-          <p class="detail-copy">${escapeHtml(selectedMission.constraints || 'No explicit constraints recorded.')}</p>
+          <p class="detail-copy">${escapeHtml(selectedMission.goal || '기록된 미션 목표가 없습니다.')}</p>
+          <p class="detail-copy">${escapeHtml(selectedMission.constraints || '기록된 제약 조건이 없습니다.')}</p>
           ${
             !selectedCouncilSession
               ? `
@@ -6986,9 +10627,9 @@ function renderCouncil(data) {
                     data-id="${escapeHtml(selectedMission.id)}"
                     ${councilDraftDisabled ? 'disabled' : ''}
                   >
-                    Draft Council
+                    참모 회의 초안 만들기
                   </button>
-                  <p class="form-help">Draft one visible multi-role recommendation before any automatic downstream execution exists.</p>
+                  <p class="form-help">안건이 올라온 뒤 첫 회의록과 결론 초안을 먼저 엽니다.</p>
                 </div>
               `
               : ''
@@ -6999,16 +10640,18 @@ function renderCouncil(data) {
             ? `
               <div class="stack">
                 <section class="relation-strip">
-                  <div class="card-title-row">
-                    <strong>Participant Roster</strong>
+                  <div class="card-title-row card-title-row-tight">
+                    <strong>착석 참모진</strong>
+                    ${createToken('참모진', 'accent')}
                   </div>
-                  <div class="stack">
-                    ${participantCards}
-                  </div>
+                  <p class="detail-copy detail-copy-compact">
+                    같은 네 AI가 직급과 담당 임무를 가진 참모진으로 계속 남아 있어서, 결론이 숨은 메타데이터가 아니라 실제 회의 참가자처럼 읽힙니다.
+                  </p>
+                  ${renderCouncilCastCards(selectedCouncilSession)}
                 </section>
                 <section class="relation-strip">
                   <div class="card-title-row">
-                    <strong>Transcript</strong>
+                    <strong>회의 발언 기록</strong>
                   </div>
                   <div class="stack">
                     ${transcriptCards}
@@ -7017,75 +10660,104 @@ function renderCouncil(data) {
               </div>
             `
             : `
-              <div class="empty-state">
-                <strong>No council session yet</strong>
-                <p>Draft council to make the role roster, transcript, recommendation, and alignment checkpoint visible.</p>
+              <div class="empty-state council-empty-state council-empty-state-main">
+                <strong class="council-empty-title">참모 회의 세션 없음</strong>
+                <p class="council-empty-copy">참모 회의를 열면 역할군, 결론, 승인 지점이 이곳에 뜹니다.</p>
+                ${renderCouncilCastCards(null)}
               </div>
             `
         }
       </section>
       <aside class="detail-card">
-        <div class="panel-header">
+        <div class="panel-header panel-header-tight">
           <div>
-            <h2>Recommendation</h2>
-            <p class="panel-copy">Approve Recommendation now auto-creates the linked task, advances planner through builder preflight, and stops at the existing approval or decision gate.</p>
+            <h2>회의 결론</h2>
+            <p class="panel-copy panel-copy-tight">오른쪽은 결론, 승인, 다음 이동만 먼저 봅니다.</p>
           </div>
         </div>
         ${
           selectedCouncilSession
             ? `
-              <div class="token-row">
-                ${createToken(selectedCouncilSession.id, 'neutral')}
-                ${createToken(
-                  `alignment:${selectedCouncilSession.alignment?.status || 'pending'}`,
-                  getAlignmentTone(selectedCouncilSession.alignment?.status || 'pending'),
-                )}
-                ${
+              ${renderNarrativeDeck({
+                wide: false,
+                eyebrow: '회의 판단판',
+                heading: '회의 결론과 다음 이동만 먼저 봅니다',
+                copy: '오른쪽 패널은 긴 회의록 대신 현재 결론과 다음 표면만 먼저 보여 줍니다.',
+                tokens: [
+                  createToken(selectedCouncilSession.id, 'neutral'),
+                  createToken(
+                    `정렬:${selectedCouncilSession.alignment?.status || 'pending'}`,
+                    getAlignmentTone(selectedCouncilSession.alignment?.status || 'pending'),
+                  ),
                   linkedTask
-                    ? createToken(`linked-task:${linkedTask.id}`, 'accent')
-                    : createToken('linked-task:none', 'warning')
-                }
-              </div>
-              <div class="stack">
-                <section class="relation-strip">
-                  <div class="card-title-row">
-                    <strong>Summary</strong>
+                    ? createToken(`연결태스크:${linkedTask.id}`, 'accent')
+                    : createToken('연결태스크:없음', 'warning'),
+                ],
+                cards: [
+                  {
+                    label: '현재 판단',
+                    title: councilControl.currentTitle,
+                    copy: councilControl.currentCopy,
+                  },
+                  {
+                    label: '바로 이동',
+                    title: councilControl.nextTitle,
+                    copy: councilControl.nextCopy,
+                  },
+                  {
+                    label: '이유',
+                    title: councilControl.reasonTitle,
+                    copy: councilControl.reasonCopy,
+                  },
+                ],
+              })}
+              <div class="stack council-outcome-stack">
+                <section class="relation-strip council-outcome-card council-outcome-card-summary">
+                  <div class="card-title-row card-title-row-tight council-outcome-head">
+                    <strong class="council-outcome-title">회의 요약</strong>
                   </div>
-                  <p class="detail-copy">${escapeHtml(selectedCouncilSession.summary || 'No summary recorded.')}</p>
+                  <p class="detail-copy detail-copy-compact council-outcome-copy">${escapeHtml(selectedCouncilSession.summary || '기록된 요약이 없습니다.')}</p>
                 </section>
-                <section class="relation-strip">
-                  <div class="card-title-row">
-                    <strong>Recommendation</strong>
+                <section class="relation-strip council-outcome-card council-outcome-card-recommendation">
+                  <div class="card-title-row card-title-row-tight council-outcome-head">
+                    <strong class="council-outcome-title">권고 방향</strong>
                   </div>
-                  <p class="detail-copy">${escapeHtml(selectedCouncilSession.recommendation || 'No recommendation recorded.')}</p>
+                  <p class="detail-copy detail-copy-compact council-outcome-copy">${escapeHtml(selectedCouncilSession.recommendation || '기록된 추천안이 없습니다.')}</p>
                 </section>
-                <section class="relation-strip">
-                  <div class="card-title-row">
-                    <strong>Selected Plan</strong>
+                <section class="relation-strip council-outcome-card council-outcome-card-plan">
+                  <div class="card-title-row card-title-row-tight council-outcome-head">
+                    <strong class="council-outcome-title">채택 후보</strong>
                   </div>
-                  <p class="detail-copy">${escapeHtml(selectedCouncilSession.selectedPlan?.title || 'No selected plan recorded.')}</p>
-                  <p class="detail-copy">${escapeHtml(selectedCouncilSession.selectedPlan?.scope || 'No selected scope recorded.')}</p>
+                  <p class="detail-copy detail-copy-compact council-outcome-copy">${escapeHtml(selectedCouncilSession.selectedPlan?.title || '기록된 선택 계획이 없습니다.')}</p>
+                  <p class="detail-copy detail-copy-compact council-outcome-copy council-outcome-copy-muted">${escapeHtml(selectedCouncilSession.selectedPlan?.scope || '기록된 선택 범위가 없습니다.')}</p>
                 </section>
-                <section class="relation-strip">
-                  <div class="card-title-row">
-                    <strong>Open Questions</strong>
+                ${councilEvidenceRail}
+                <section class="relation-strip council-outcome-card council-outcome-card-questions">
+                  <div class="card-title-row card-title-row-tight council-outcome-head">
+                    <strong class="council-outcome-title">추가 확인 질문</strong>
                   </div>
-                  <div class="stack">
+                  <div class="stack council-outcome-question-list">
                     ${selectedCouncilSession.openQuestions
                       .map(
                         (question) => `
-                          <p class="detail-copy">${escapeHtml(question)}</p>
+                          <p class="detail-copy detail-copy-compact council-outcome-copy council-outcome-question">${escapeHtml(question)}</p>
                         `,
                       )
                       .join('')}
                   </div>
                 </section>
-                <section class="relation-strip">
-                  <div class="card-title-row">
-                    <strong>Alignment Checkpoint</strong>
+                <section class="relation-strip detail-block detail-block-action council-approval-block">
+                  <div class="council-approval-head">
+                    <div>
+                      <p class="detail-key">지금 승인</p>
+                      <p class="council-approval-copy">이 결론을 승인하면 builder preflight까지만 넘기고, 다음 게이트에서 멈춥니다.</p>
+                    </div>
+                    <div class="token-row token-row-compact">
+                      ${createToken('결론 승인', selectedCouncilSession.alignment?.status === 'approved' ? 'success' : 'accent')}
+                      ${linkedTask ? createToken('작전 연결', 'neutral') : createToken('연결 대기', 'warning')}
+                    </div>
                   </div>
-                  <p class="detail-copy">Approve Recommendation creates the linked task when needed, runs planner through builder preflight, and then stops at the existing gate.</p>
-                  <div class="form-actions">
+                  <div class="form-actions council-approval-row">
                     <button
                       class="primary-button"
                       type="button"
@@ -7093,7 +10765,7 @@ function renderCouncil(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${approveDisabled ? 'disabled' : ''}
                     >
-                      Approve Recommendation
+                      회의 결론 승인
                     </button>
                     <button
                       class="secondary-button"
@@ -7102,7 +10774,7 @@ function renderCouncil(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Revise Mission
+                      안건 다시 다듬기
                     </button>
                     <button
                       class="secondary-button"
@@ -7111,7 +10783,7 @@ function renderCouncil(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Advanced Ops Mode
+                      관제실 열기
                     </button>
                     ${
                       linkedTask
@@ -7119,57 +10791,148 @@ function renderCouncil(data) {
                           <button
                             class="secondary-button"
                             type="button"
-                            data-action="open-execution"
-                            data-id="${escapeHtml(selectedMission.id)}"
-                            ${state.loading || state.mutating ? 'disabled' : ''}
-                          >
-                            Open Execution
-                          </button>
-                        `
+                          data-action="open-execution"
+                          data-id="${escapeHtml(selectedMission.id)}"
+                          ${state.loading || state.mutating ? 'disabled' : ''}
+                        >
+                          작전실 열기
+                        </button>
+                      `
                         : ''
                     }
                   </div>
-                  <p class="form-help">
+                  <p class="form-help council-approval-help">
                     ${
                       selectedCouncilSession.alignment?.status === 'approved'
                         ? escapeHtml(
-                            `Aligned at ${formatDate(selectedCouncilSession.alignment?.decidedAt)}. Open Execution to inspect the linked task, latest run stage, approval bridge, and next operator step.`,
+                            `${formatDate(selectedCouncilSession.alignment?.decidedAt)}에 결론이 승인됐습니다. 이제 작전실과 관제실에서 다음 지시를 확인합니다.`,
                           )
-                        : 'Alignment stays explicit and single-step. Downstream execution starts only when this recommendation is approved.'
+                        : '결론 승인이 끝나야 후속 작전이 열립니다.'
                     }
                   </p>
                 </section>
               </div>
             `
             : `
-              <div class="empty-state">
-                <strong>Council recommendation unavailable</strong>
-                <p>Draft council from the selected mission to populate the recommendation and alignment checkpoint.</p>
+              <div class="empty-state council-empty-state council-empty-state-detail">
+                <strong class="council-empty-title">참모 회의 결론 없음</strong>
+                <p class="council-empty-copy">선택된 안건에서 참모 회의를 열면 결론과 승인 지점이 채워집니다.</p>
               </div>
             `
         }
       </aside>
+      </div>
     </div>
+  `;
+}
+
+function renderCouncilHeartbeatStrip(mission, councilSession, linkedTask) {
+  const castEntries = COUNCIL_CAST_ORDER.map((role) => getCouncilCastEntry(role, councilSession));
+  const councilHeartbeatSignals = getCompanySignalEntries({
+    mission,
+    councilSession,
+    linkedTask,
+    completionReady: false,
+  }).filter((entry) => ['mission', 'council', 'execution', 'decision-inbox'].includes(entry.surface));
+  const heartbeatTone = councilSession
+    ? councilSession.alignment?.status === 'approved'
+      ? 'success'
+      : 'accent'
+    : 'warning';
+  const heartbeatStatus = councilSession
+    ? councilSession.alignment?.status === 'approved'
+      ? linkedTask
+        ? '인계 완료'
+        : '정렬 완료'
+      : '정렬 중'
+    : '대기 중';
+  const heartbeatCards = castEntries
+    .map((castEntry) => {
+      const heartbeatCopy = councilSession
+        ? councilSession.alignment?.status === 'approved'
+          ? linkedTask
+            ? `${linkedTask.id} 기준 후속 판단으로 인계를 마쳤습니다.`
+            : `${castEntry.displayName} 관점 정렬은 끝났고 실행 연결만 남았습니다.`
+          : castEntry.focus
+        : castEntry.previewLine;
+      const heartbeatFoot = councilSession
+        ? councilSession.alignment?.status === 'approved'
+          ? linkedTask
+            ? '실행 heartbeat'
+            : '인계선 대기'
+          : '회의 heartbeat'
+        : '착석 준비';
+
+      return `
+        <article class="council-heartbeat-card council-heartbeat-card-${castEntry.tone}">
+          <div class="council-heartbeat-head">
+            <span class="council-heartbeat-pulse council-heartbeat-pulse-${heartbeatTone}"></span>
+            <strong class="council-heartbeat-role">${escapeHtml(castEntry.displayName)}</strong>
+            ${createToken(heartbeatStatus, heartbeatTone)}
+          </div>
+          <p class="council-heartbeat-rank">${escapeHtml(castEntry.rank)}</p>
+          <p class="council-heartbeat-copy">${escapeHtml(heartbeatCopy)}</p>
+          <p class="council-heartbeat-foot">${escapeHtml(heartbeatFoot)}</p>
+        </article>
+      `;
+    })
+    .join('');
+
+  return `
+    <section class="relation-strip council-heartbeat-strip">
+      <div class="card-title-row card-title-row-tight">
+        <strong>참모 heartbeat</strong>
+        ${createToken(
+          `회의:${councilSession ? getCouncilStatusDisplay(councilSession.status) : '대기'}`,
+          councilSession ? getCouncilStatusTone(councilSession.status) : 'warning',
+        )}
+        ${createToken(
+          `정렬:${councilSession ? getAlignmentStatusDisplay(councilSession.alignment?.status || 'pending') : '대기'}`,
+          heartbeatTone,
+        )}
+        ${mission ? createToken(`안건:${mission.id}`, 'neutral') : ''}
+      </div>
+      <p class="detail-copy detail-copy-compact council-heartbeat-intro">
+        같은 네 참모가 안건 아래에서 계속 깨어 있고, 정렬과 인계 상태가 heartbeat로 이어집니다.
+      </p>
+      <div class="council-heartbeat-signal-row">
+        ${councilHeartbeatSignals
+          .map(
+            (entry) => `
+              <div class="council-heartbeat-signal council-heartbeat-signal-${escapeHtml(entry.tone)}">
+                <span class="council-heartbeat-signal-dot"></span>
+                <span class="council-heartbeat-signal-label">${escapeHtml(entry.label)}</span>
+                <strong class="council-heartbeat-signal-status">${escapeHtml(entry.status)}</strong>
+              </div>
+            `,
+          )
+          .join('')}
+      </div>
+      <div class="council-heartbeat-grid">
+        ${heartbeatCards}
+      </div>
+    </section>
   `;
 }
 
 function renderExecution(data) {
   if (!data.activeProject) {
     elements.surfaces.execution.innerHTML = renderProjectGateSurface(
-      'Execution Unavailable',
-      'Register or select a project on Mission, or use Advanced Ops Mode when you need manual project control before opening execution.',
+      '작전실 사용 불가',
+      '작전실을 열기 전에 안건에서 프로젝트를 고르거나, 수동 제어가 필요하면 관제실을 사용합니다.',
     );
     return;
   }
 
   const selectedMission = data.missionMap.get(state.selectedMissionId) || data.missions[0] || null;
+  const selectedCouncilSession = getMissionCouncilPreview(selectedMission, data).councilSession;
 
   if (!selectedMission) {
     elements.surfaces.execution.innerHTML = `
       <div class="surface-panel">
         <div class="empty-state empty-state-strong">
-          <strong>No mission selected</strong>
-          <p>Create or select a mission before opening execution.</p>
+          <strong>선택된 안건 없음</strong>
+          <p>작전실을 열기 전에 안건을 만들거나 선택합니다.</p>
         </div>
       </div>
     `;
@@ -7187,19 +10950,19 @@ function renderExecution(data) {
         <section class="surface-panel">
           <div class="panel-header">
             <div>
-              <h2>Execution</h2>
-              <p class="panel-copy">Execution stays empty until a linked task exists for the selected mission.</p>
+              <h2>작전실</h2>
+              <p class="panel-copy">선택된 안건에 연결 실행 셀이 생기기 전까지는 작전실이 비어 있습니다.</p>
             </div>
           </div>
           <div class="empty-state">
-            <strong>No linked task yet</strong>
-            <p>Approve Recommendation on Council to auto-create the first linked task, or create one manually from Mission.</p>
+            <strong>연결 실행 셀 없음</strong>
+            <p>참모 회의에서 결론을 승인해 첫 실행 셀을 자동으로 만들거나, 안건 브리프에서 수동으로 만듭니다.</p>
           </div>
         </section>
         <aside class="detail-card">
           <div class="panel-header">
             <div>
-              <h2>Next Action</h2>
+              <h2>다음 지시</h2>
             </div>
           </div>
           <div class="form-actions">
@@ -7210,7 +10973,7 @@ function renderExecution(data) {
               data-id="${escapeHtml(selectedMission.id)}"
               ${state.loading || state.mutating ? 'disabled' : ''}
             >
-              Open Council
+              회의실 열기
             </button>
             <button
               class="secondary-button"
@@ -7219,7 +10982,7 @@ function renderExecution(data) {
               data-id="${escapeHtml(selectedMission.id)}"
               ${state.loading || state.mutating ? 'disabled' : ''}
             >
-              Open Advanced Ops Mode
+              관제실 열기
             </button>
           </div>
         </aside>
@@ -7232,6 +10995,7 @@ function renderExecution(data) {
   const latestRunNextStage = latestRun?.summary?.nextStage || null;
   const latestRunRole = latestRun?.role || latestRun?.kind || 'none';
   const preferredInboxItem = getPreferredTaskInboxItem(linkedTask.id, data);
+  const executionEntryGateReason = getDevelopmentPackExecutionGateReason(linkedTask, data);
   const taskBreakerState = getTaskBreakerAvailability(linkedTask, data);
   const builderPreflightState = getBuilderPreflightAvailability(linkedTask, data);
   const builderLiveMutationState = getBuilderLiveMutationSummaries(linkedTask, data);
@@ -7239,6 +11003,12 @@ function renderExecution(data) {
   const commitPackageState = getCommitPackageAvailability(linkedTask, data);
   const commitExecutionState = getCommitExecutionAvailability(linkedTask, data);
   const releasePackageState = getReleasePackageAvailability(linkedTask, data);
+  const closeOutState = getCloseOutAvailability(linkedTask, data);
+  const latestCloseOutArtifact = getLatestTaskArtifact(linkedTask, data, 'close-out');
+  const executionCompletionReady = Boolean(
+    linkedTask.lifecycleState === 'Done' &&
+      (latestCloseOutArtifact || closeOutState.summary?.existingCloseOutArtifactId),
+  );
   const approvalBridge = getTaskApprovalBridge(linkedTask, data);
   const canApproveCurrentGate = Boolean(
     approvalBridge.pendingInboxItem &&
@@ -7265,6 +11035,7 @@ function renderExecution(data) {
   const canPrepareCommitPackage = Boolean(commitPackageState.summary.allowed);
   const canRunLocalCommit = Boolean(commitExecutionState.summary.allowed);
   const canPrepareReleasePackage = Boolean(releasePackageState.summary.allowed);
+  const canRunCloseOut = Boolean(closeOutState.summary.allowed);
   const latestPlanArtifact = taskBreakerState.latestPlanArtifact;
   const latestArchitectureArtifact = taskBreakerState.latestArchitectureArtifact;
   const latestBreakdownArtifact = taskBreakerState.latestBreakdownArtifact;
@@ -7280,62 +11051,108 @@ function renderExecution(data) {
     preferredInboxItem?.status === 'pending'
       ? preferredInboxItem.prompt || preferredInboxItem.title
       : linkedTask.flags?.waitingApproval
-        ? 'Builder live mutation approval is pending.'
+        ? '빌더 라이브 변경 승인이 대기 중입니다.'
         : linkedTask.flags?.waitingDecision
-          ? 'A blocking decision is pending.'
-          : builderLiveMutationState.requestSummary.allowed
-            ? `Preflight ${builderLiveMutationState.requestSummary.currentPreflightArtifactId} is ready for builder live mutation approval.`
-            : 'No blocking gate is active.';
+          ? '막고 있는 결정 항목이 대기 중입니다.'
+          : executionEntryGateReason
+            ? executionEntryGateReason
+        : builderLiveMutationState.requestSummary.allowed
+            ? `Preflight ${builderLiveMutationState.requestSummary.currentPreflightArtifactId}가 빌더 라이브 변경 승인 준비 상태입니다.`
+            : '현재 활성화된 차단 게이트는 없습니다.';
+  const executionControl = getExecutionControlSnapshot(
+    linkedTask,
+    latestRun,
+    approvalBridge,
+    gateCopy,
+    {
+      closeOutAllowed: canRunCloseOut,
+      commitAllowed: canPrepareCommitPackage || canRunLocalCommit,
+      releaseAllowed: canPrepareReleasePackage,
+    },
+  );
+  const executionLeft = getExecutionLeftSnapshot(linkedTask, latestRun, executionControl, {
+    latestArchitectureArtifact,
+    latestBreakdownArtifact,
+    latestPlanArtifact,
+    latestPreflightArtifact,
+  });
+  const executionEvidenceRail = renderExecutionEvidenceRail(
+    getExecutionEvidenceRail(linkedTask, data),
+    {
+      eyebrow: '실행 증적선',
+      heading: '회의 인계와 현재 실행 증적을 같은 선으로 읽습니다',
+      copy: '현재 owner, role별 evidence, 보류 사유, 다음 handoff만 요약합니다.',
+    },
+  );
 
   elements.surfaces.execution.innerHTML = `
+    <div class="stack">
+      ${renderExecutionCommandDeck({
+        approvalBridge,
+        completionReady: executionCompletionReady,
+        councilSession: selectedCouncilSession,
+        gateCopy,
+        latestRun,
+        mission: selectedMission,
+        task: linkedTask,
+      })}
     <div class="surface-grid">
       <section class="surface-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Execution</h2>
-            <p class="panel-copy">Compact execution summary for the selected mission. Detailed run control remains in Advanced Ops Mode.</p>
-          </div>
-          <div class="token-row">
-            ${createToken(`mission:${selectedMission.id}`, 'neutral')}
-            ${createToken(`task:${linkedTask.id}`, 'accent')}
-            ${createToken(linkedTask.lifecycleState, 'neutral')}
-          </div>
-        </div>
+        ${renderNarrativeDeck({
+          wide: false,
+          eyebrow: '작전 개요판',
+          heading: '작전실',
+          copy: '작전실 왼쪽 패널도 현재 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다.',
+          tokens: [
+            createToken(`안건:${selectedMission.id}`, 'neutral'),
+            createToken(`실행셀:${linkedTask.id}`, 'accent'),
+            createToken(getTaskLifecycleDisplay(linkedTask.lifecycleState), 'neutral'),
+            createToken(`리뷰:${getReviewStatusDisplay(linkedTask.review?.status || 'pending')}`, getReviewTone(linkedTask.review?.status)),
+            linkedTask.flags?.blocked ? createToken('차단', 'danger') : '',
+            linkedTask.flags?.waitingApproval ? createToken('승인대기', 'accent') : '',
+            linkedTask.flags?.waitingDecision ? createToken('결정대기', 'warning') : '',
+          ].filter(Boolean),
+          cards: [
+            {
+              label: '현재 판단',
+              title: executionLeft.currentTitle,
+              copy: executionLeft.currentCopy,
+            },
+            {
+              label: '다음 행동',
+              title: executionLeft.nextTitle,
+              copy: executionLeft.nextCopy,
+            },
+            {
+              label: '연결 근거',
+              title: executionLeft.reasonTitle,
+              copy: executionLeft.reasonCopy,
+            },
+          ],
+        })}
+        ${executionEvidenceRail}
 
         <section class="relation-strip">
           <div class="card-title-row">
-            <strong>Lifecycle</strong>
+            <strong>최신 실행 보고</strong>
           </div>
           <div class="token-row">
-            ${createToken(`review:${linkedTask.review?.status || 'pending'}`, getReviewTone(linkedTask.review?.status))}
-            ${linkedTask.flags?.blocked ? createToken('blocked', 'danger') : ''}
-            ${linkedTask.flags?.waitingApproval ? createToken('waitingApproval', 'accent') : ''}
-            ${linkedTask.flags?.waitingDecision ? createToken('waitingDecision', 'warning') : ''}
-          </div>
-          <p class="detail-copy">${escapeHtml(linkedTask.intent || selectedMission.goal || 'No execution intent recorded.')}</p>
-        </section>
-
-        <section class="relation-strip">
-          <div class="card-title-row">
-            <strong>Latest Run Stage</strong>
-          </div>
-          <div class="token-row">
-            ${latestRun ? createToken(`run:${latestRun.id}`, getRunTone(latestRun.status)) : createToken('run:none', 'neutral')}
-            ${latestRun ? createToken(`role:${latestRunRole}`, 'neutral') : ''}
-            ${latestRunNextStage ? createToken(`next:${latestRunNextStage}`, 'neutral') : ''}
+            ${latestRun ? createToken(`run:${latestRun.id}`, getRunTone(latestRun.status)) : createToken('run:없음', 'neutral')}
+            ${latestRun ? createToken(`역할:${getExecutionRoleDisplay(latestRunRole)}`, 'neutral') : ''}
+            ${latestRunNextStage ? createToken(`다음:${getExecutionStageDisplay(latestRunNextStage)}`, 'neutral') : ''}
           </div>
           <p class="detail-copy">
             ${
               latestRun
-                ? escapeHtml(`${formatDate(latestRun.startedAt)}에 시작된 latest run 기준 요약이다.`)
-                : 'No execution run has been recorded yet.'
+                ? escapeHtml(`${formatDate(latestRun.startedAt)}에 시작된 최신 보고 기준 요약입니다.`)
+                : '아직 기록된 실행 보고가 없습니다.'
             }
           </p>
         </section>
 
         <section class="relation-strip">
           <div class="card-title-row">
-            <strong>Upstream Chain</strong>
+            <strong>회의에서 내려온 준비 체인</strong>
           </div>
           <div class="token-row">
             ${latestPlanArtifact ? createToken(`plan:${latestPlanArtifact.id}`, 'success') : createToken('plan:none', 'warning')}
@@ -7343,57 +11160,86 @@ function renderExecution(data) {
             ${latestBreakdownArtifact ? createToken(`breakdown:${latestBreakdownArtifact.id}`, 'neutral') : createToken('breakdown:none', 'neutral')}
             ${latestPreflightArtifact ? createToken(`preflight:${latestPreflightArtifact.id}`, 'neutral') : createToken('preflight:none', 'neutral')}
           </div>
-          <p class="detail-copy">Approve Recommendation auto chain은 planner부터 builder preflight까지만 진행되고, 이후는 기존 gate semantics를 따른다.</p>
+          <p class="detail-copy">회의 결론 승인 자동 체인은 planner부터 builder preflight까지만 진행되고, 이후는 기존 게이트 semantics를 따릅니다.</p>
         </section>
       </section>
 
       <aside class="detail-card">
         <div class="panel-header">
           <div>
-            <h2>Current Gate</h2>
-            <p class="panel-copy">Execution은 current approval bridge, gate 상태, 그리고 preflight readiness를 compact하게 보여준다.</p>
+            <h2>작전 지휘 메모</h2>
+            <p class="panel-copy">여기서는 승인선, 보류 사유, 사전 점검만 먼저 봅니다.</p>
           </div>
         </div>
+        ${renderNarrativeDeck({
+          wide: false,
+          eyebrow: '작전 판단판',
+          heading: '현재 작전 판단과 다음 후속만 먼저 봅니다',
+          copy: '오른쪽 패널은 긴 provenance 대신 현재 게이트와 바로 할 후속만 먼저 보여 줍니다.',
+          tokens: [
+            createToken(getTaskLifecycleDisplay(linkedTask.lifecycleState), 'neutral'),
+            linkedTask.flags?.waitingApproval ? createToken('승인대기', 'accent') : '',
+            linkedTask.flags?.waitingDecision ? createToken('결정대기', 'warning') : '',
+            linkedTask.flags?.blocked ? createToken('차단', 'danger') : '',
+          ].filter(Boolean),
+          cards: [
+            {
+              label: '현재 판단',
+              title: executionControl.currentTitle,
+              copy: executionControl.currentCopy,
+            },
+            {
+              label: '바로 이동',
+              title: executionControl.nextTitle,
+              copy: executionControl.nextCopy,
+            },
+            {
+              label: '이유',
+              title: executionControl.reasonTitle,
+              copy: executionControl.reasonCopy,
+            },
+          ],
+        })}
         <div class="stack">
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Approval Bridge</strong>
+              <strong>지휘 승인선</strong>
             </div>
             <div class="token-row">
               ${
                 approvalBridge.currentApproval
                   ? createToken(
-                      `approval:${approvalBridge.currentApproval.id}`,
+                      `승인:${approvalBridge.currentApproval.id}`,
                       getApprovalTone(approvalBridge.currentApproval.status),
                     )
-                  : createToken('approval:none', 'neutral')
+                  : createToken('승인:없음', 'neutral')
               }
               ${
                 approvalBridge.actionLabel
-                  ? createToken(`action:${approvalBridge.actionLabel}`, 'neutral')
+                  ? createToken(`액션:${approvalBridge.actionLabel}`, 'neutral')
                   : ''
               }
               ${
                 approvalBridge.targetArtifact
-                  ? createToken(`target:${approvalBridge.targetArtifact.type}`, 'neutral')
+                  ? createToken(`대상:${approvalBridge.targetArtifact.type}`, 'neutral')
                   : ''
               }
               ${
                 approvalBridge.targetArtifact
-                  ? createToken(`artifact:${approvalBridge.targetArtifact.id}`, 'neutral')
+                  ? createToken(`아티팩트:${approvalBridge.targetArtifact.id}`, 'neutral')
                   : ''
               }
               ${
                 approvalBridge.pendingInboxItem
                   ? createToken(
-                      `inbox:${approvalBridge.pendingInboxItem.id}`,
+                      `결정함:${approvalBridge.pendingInboxItem.id}`,
                       getInboxTone(approvalBridge.pendingInboxItem),
                     )
                   : ''
               }
             </div>
             <p class="detail-copy">${escapeHtml(approvalBridge.bridgeCopy)}</p>
-            <p class="detail-copy"><strong>Next Operator Step</strong>: ${escapeHtml(approvalBridge.nextStepCopy)}</p>
+            <p class="detail-copy"><strong>다음 지시</strong>: ${escapeHtml(approvalBridge.nextStepCopy)}</p>
             ${
               canApproveCurrentGate
                 ? `
@@ -7406,10 +11252,10 @@ function renderExecution(data) {
                       data-verb="approve"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Approve Current Gate
+                      현재 지시 승인
                     </button>
                   </div>
-                  <p class="form-help">This reuses the existing pending builder approval record and keeps detailed task, log, artifact, and inbox control in Advanced Ops Mode.</p>
+                  <p class="form-help">기존 pending builder 승인 기록을 그대로 재사용하며, 세부 태스크/로그/아티팩트/결정함 제어는 관제실에 남깁니다.</p>
                 `
                 : ''
             }
@@ -7425,10 +11271,10 @@ function renderExecution(data) {
                       data-verb="approve"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Approve Current Commit Gate
+                      커밋 지시 승인
                     </button>
                   </div>
-                  <p class="form-help">This reuses the existing pending commit approval record. Local commit, release, and close-out still stay in Advanced Ops Mode after this approval is resolved.</p>
+                  <p class="form-help">기존 pending commit 승인 기록을 그대로 처리합니다. 이후 후속 단계는 계속 관제실에 남습니다.</p>
                 `
                 : ''
             }
@@ -7444,10 +11290,10 @@ function renderExecution(data) {
                       data-verb="approve"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Approve Current Release Gate
+                      릴리스 지시 승인
                     </button>
                   </div>
-                  <p class="form-help">This reuses the existing pending release approval record. Close-out still stays bounded and continues from Execution only after current release readiness turns green.</p>
+                  <p class="form-help">기존 pending release 승인 기록을 그대로 처리합니다. 종료 정리는 release readiness가 준비된 뒤 실행에서 이어집니다.</p>
                 `
                 : ''
             }
@@ -7462,10 +11308,10 @@ function renderExecution(data) {
                       data-id="${escapeHtml(linkedTask.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Run Live Mutation
+                      작전 변경 실행
                     </button>
                   </div>
-                  <p class="form-help">The current builder approval is already approved. This CTA reuses the existing live mutation task route, then lands on Logs for the bounded mutation bundle.</p>
+                  <p class="form-help">현재 builder 승인은 이미 승인됐습니다. 이 CTA는 라이브 변경 route를 따라 한정된 변경 번들을 로그로 남깁니다.</p>
                 `
                 : ''
             }
@@ -7480,10 +11326,10 @@ function renderExecution(data) {
                       data-id="${escapeHtml(linkedTask.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Run Reviewer
+                      리뷰어 실행
                     </button>
                   </div>
-                  <p class="form-help">The latest live mutation bundle is ready for reviewer inspection from the primary orchestration path. This CTA reuses the existing reviewer route and then lands on Artifacts.</p>
+                  <p class="form-help">최신 라이브 변경 번들이 준비됐습니다. 이 CTA는 reviewer route를 따라 아티팩트로 이어집니다.</p>
                 `
                 : ''
             }
@@ -7498,10 +11344,10 @@ function renderExecution(data) {
                       data-id="${escapeHtml(linkedTask.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Prepare Commit Package
+                      커밋 패키지 준비
                     </button>
                   </div>
-                  <p class="form-help">The latest passing reviewer bundle is ready. This CTA reuses the existing commit-package route and opens the current commit approval without running local commit, release, or close-out.</p>
+                  <p class="form-help">최신 reviewer 번들이 준비됐습니다. 이 CTA는 commit-package route를 따라 현재 commit 승인을 엽니다.</p>
                 `
                 : ''
             }
@@ -7516,10 +11362,10 @@ function renderExecution(data) {
                       data-id="${escapeHtml(linkedTask.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Resume Approved Local Commit
+                      승인된 로컬 커밋 이어가기
                     </button>
                   </div>
-                  <p class="form-help">The current commit bundle is ready. This CTA reuses the existing local commit route, then lands on Artifacts with the saved commit-result bundle. Release and close-out still stay in Advanced Ops Mode.</p>
+                  <p class="form-help">현재 commit 번들이 준비됐습니다. 이 CTA는 local commit route를 따라 commit-result 번들로 이어집니다.</p>
                 `
                 : ''
             }
@@ -7534,10 +11380,10 @@ function renderExecution(data) {
                       data-id="${escapeHtml(linkedTask.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Prepare Release Package
+                      릴리스 패키지 준비
                     </button>
                   </div>
-                  <p class="form-help">The latest successful local commit bundle is ready. This CTA reuses the existing release-package route, then opens the current release approval without enabling push, publish, or close-out on the primary shell.</p>
+                  <p class="form-help">최신 local commit 번들이 준비됐습니다. 이 CTA는 release-package route를 따라 현재 release 승인을 엽니다.</p>
                 `
                 : ''
             }
@@ -7552,10 +11398,10 @@ function renderExecution(data) {
                       data-id="${escapeHtml(linkedTask.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Resume Approved Close Out
+                      승인된 종료 정리 이어가기
                     </button>
                   </div>
-                  <p class="form-help">The current approved release bundle is ready. This CTA reuses the existing close-out route, then lands on Artifacts with the saved close-out bundle. External delivery still stays in Advanced Ops Mode.</p>
+                  <p class="form-help">현재 승인된 release 번들이 준비됐습니다. 이 CTA는 close-out route를 따라 close-out 번들로 이어집니다.</p>
                 `
                 : ''
             }
@@ -7563,16 +11409,16 @@ function renderExecution(data) {
 
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Blocked Reason</strong>
+              <strong>작전 보류 사유</strong>
             </div>
             <p class="detail-copy">${escapeHtml(gateCopy)}</p>
             <div class="token-row">
-              ${preferredInboxItem?.status === 'pending' ? createToken(`inbox:${preferredInboxItem.id}`, getInboxTone(preferredInboxItem)) : ''}
-              ${preferredInboxItem?.kind ? createToken(`kind:${preferredInboxItem.kind}`, 'neutral') : ''}
+              ${preferredInboxItem?.status === 'pending' ? createToken(`결정함:${preferredInboxItem.id}`, getInboxTone(preferredInboxItem)) : ''}
+              ${preferredInboxItem?.kind ? createToken(`종류:${preferredInboxItem.kind}`, 'neutral') : ''}
               ${
                 builderLiveMutationState.requestSummary.latestApprovalDisplayStatus
                   ? createToken(
-                      `approval:${builderLiveMutationState.requestSummary.latestApprovalDisplayStatus}`,
+                      `승인:${getApprovalStatusDisplay(builderLiveMutationState.requestSummary.latestApprovalDisplayStatus)}`,
                       builderLiveMutationState.requestSummary.latestApprovalDisplayStatus === 'pending'
                         ? 'accent'
                         : 'neutral',
@@ -7584,11 +11430,11 @@ function renderExecution(data) {
 
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Preflight Readiness</strong>
+              <strong>사전 점검 준비</strong>
             </div>
             <div class="token-row">
               ${createToken(
-                builderLiveMutationState.requestSummary.allowed ? 'ready-for-approval' : 'not-ready',
+                builderLiveMutationState.requestSummary.allowed ? '승인준비완료' : '준비안됨',
                 builderLiveMutationState.requestSummary.allowed ? 'success' : 'warning',
               )}
               ${
@@ -7603,18 +11449,18 @@ function renderExecution(data) {
             <p class="detail-copy">
               ${
                 builderLiveMutationState.requestSummary.allowed
-                  ? '현재 preflight artifact 기준으로 builder live mutation approval gate가 생성된 상태다.'
+                  ? '현재 preflight 아티팩트 기준으로 builder 라이브 변경 승인 게이트가 생성된 상태입니다.'
                   : escapeHtml(
                       (builderLiveMutationState.requestSummary.reasons || []).join('; ') ||
-                        'Preflight readiness is not available yet.',
+                        '아직 preflight readiness를 확인할 수 없습니다.',
                     )
               }
             </p>
             ${
               parsedPreflight
                 ? `
-                  ${renderCompactList('Target Files', parsedPreflight.targetFiles)}
-                  ${renderCompactList('Risks', parsedPreflight.risks)}
+                  ${renderCompactList('대상 파일', parsedPreflight.targetFiles)}
+                  ${renderCompactList('위험 요소', parsedPreflight.risks)}
                 `
                 : ''
             }
@@ -7622,32 +11468,33 @@ function renderExecution(data) {
 
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Next Actions</strong>
+              <strong>즉시 이동</strong>
             </div>
             <div class="form-actions">
               <button
                 class="secondary-button"
                 type="button"
-                data-action="open-council"
-                data-id="${escapeHtml(selectedMission.id)}"
-                ${state.loading || state.mutating ? 'disabled' : ''}
-              >
-                Open Council
-              </button>
-              <button
-                class="secondary-button"
-                type="button"
-                data-action="open-advanced-ops"
-                data-id="${escapeHtml(selectedMission.id)}"
-                ${state.loading || state.mutating ? 'disabled' : ''}
-              >
-                Open Advanced Ops Mode
-              </button>
-            </div>
-            <p class="form-help">If the current gate is still pending, open Advanced Ops Mode, resolve it in Decision Inbox, then return to Taskboard for the next bounded execution action.</p>
+              data-action="open-council"
+              data-id="${escapeHtml(selectedMission.id)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              회의실 열기
+            </button>
+            <button
+              class="secondary-button"
+              type="button"
+              data-action="open-advanced-ops"
+              data-id="${escapeHtml(selectedMission.id)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              관제실 열기
+            </button>
+          </div>
+          <p class="form-help">현재 지시가 아직 pending이면 관제실에서 결정함을 처리한 뒤, 다음 한정된 작전 액션으로 돌아옵니다.</p>
           </section>
         </div>
       </aside>
+    </div>
     </div>
   `;
 }
@@ -7655,8 +11502,8 @@ function renderExecution(data) {
 function renderDeliverables(data) {
   if (!data.activeProject) {
     elements.surfaces.deliverables.innerHTML = renderProjectGateSurface(
-      'Deliverables Unavailable',
-      'Register or select a project on Mission, or use Advanced Ops Mode when you need manual project control before opening deliverables.',
+      '산출물 사용 불가',
+      '산출물을 열기 전에 미션에서 프로젝트를 고르거나, 수동 제어가 필요하면 고급 운영 모드를 사용합니다.',
     );
     return;
   }
@@ -7667,8 +11514,8 @@ function renderDeliverables(data) {
     elements.surfaces.deliverables.innerHTML = `
       <div class="surface-panel">
         <div class="empty-state empty-state-strong">
-          <strong>No mission selected</strong>
-          <p>Create or select a mission before opening deliverables.</p>
+          <strong>선택된 미션 없음</strong>
+          <p>산출물을 열기 전에 미션을 만들거나 선택합니다.</p>
         </div>
       </div>
     `;
@@ -7686,19 +11533,19 @@ function renderDeliverables(data) {
         <section class="surface-panel">
           <div class="panel-header">
             <div>
-              <h2>Deliverables</h2>
-              <p class="panel-copy">Deliverables stay empty until the selected mission owns one linked task.</p>
+              <h2>산출물</h2>
+              <p class="panel-copy">선택된 미션에 연결 태스크 하나가 생기기 전까지는 산출물이 비어 있습니다.</p>
             </div>
           </div>
           <div class="empty-state">
-            <strong>No linked task yet</strong>
-            <p>Approve Recommendation on Council first. Deliverables only summarize artifact, review, and approval state that already exists on the current engine.</p>
+            <strong>연결 태스크 없음</strong>
+            <p>먼저 협의회에서 추천안을 승인합니다. 산출물은 현재 엔진에 이미 존재하는 아티팩트, 리뷰, 승인 상태만 요약합니다.</p>
           </div>
         </section>
         <aside class="detail-card">
           <div class="panel-header">
             <div>
-              <h2>Advanced Ops Detail</h2>
+              <h2>고급 운영 상세</h2>
             </div>
           </div>
           <div class="form-actions">
@@ -7709,7 +11556,7 @@ function renderDeliverables(data) {
               data-id="${escapeHtml(selectedMission.id)}"
               ${state.loading || state.mutating ? 'disabled' : ''}
             >
-              Open Advanced Ops Mode
+              고급 운영 모드 열기
             </button>
           </div>
         </aside>
@@ -7722,6 +11569,7 @@ function renderDeliverables(data) {
   const taskApprovals = getTaskApprovals(linkedTask.id, data.approvals).sort(sortByCreatedDesc);
   const approvalSummary = getTaskApprovalSummary(linkedTask, data.approvals);
   const preferredInboxItem = getPreferredTaskInboxItem(linkedTask.id, data);
+  const latestRunForOps = linkedTask.latestRunId ? data.runMap.get(linkedTask.latestRunId) || null : null;
   const latestArtifact = taskArtifacts[0] || null;
   const latestPlanArtifact = getLatestTaskArtifact(linkedTask, data, 'plan');
   const latestArchitectureArtifact = getLatestTaskArtifact(linkedTask, data, 'architecture');
@@ -7736,6 +11584,7 @@ function renderDeliverables(data) {
   const latestReleasePackageArtifact = getLatestTaskArtifact(linkedTask, data, 'release-package');
   const latestCloseOutArtifact = getLatestTaskArtifact(linkedTask, data, 'close-out');
   const latestApproval = taskApprovals[0] || null;
+  const selectedCouncilSession = getMissionCouncilPreview(selectedMission, data).councilSession;
   const approvalBridge = getTaskApprovalBridge(linkedTask, data);
   const reviewerState = getReviewerAvailability(linkedTask, data);
   const commitPackageState = getCommitPackageAvailability(linkedTask, data);
@@ -7777,7 +11626,70 @@ function renderDeliverables(data) {
   const canRunCloseOut = Boolean(closeOutState.summary.allowed);
   const latestReviewStatus = linkedTask.review?.status || 'pending';
   const latestReviewNote =
-    linkedTask.review?.resolution?.note || 'No review resolution note recorded yet.';
+    linkedTask.review?.resolution?.note || '아직 기록된 리뷰 해결 메모가 없습니다.';
+  const executionGateReason = getDevelopmentPackExecutionGateReason(linkedTask, data);
+  const deliverablesActionSignals = getCompanySignalEntries({
+    mission: selectedMission,
+    councilSession: selectedCouncilSession,
+    linkedTask,
+    completionReady: missionCompletionReady,
+  });
+  const reviewActionSignalRow = renderDeliverablesShelfSignalRow(deliverablesActionSignals, [
+    'execution',
+    'deliverables',
+    'decision-inbox',
+  ]);
+  const approvalActionSignalRow = renderDeliverablesShelfSignalRow(deliverablesActionSignals, [
+    'decision-inbox',
+    'execution',
+    'deliverables',
+  ]);
+  const closeOutActionSignalRow = renderDeliverablesShelfSignalRow(
+    deliverablesActionSignals,
+    missionCompletionReady ? ['deliverables', 'mission'] : ['execution', 'deliverables'],
+  );
+  const opsActionSignalRow = renderDeliverablesShelfSignalRow(deliverablesActionSignals, [
+    'deliverables',
+    'decision-inbox',
+  ]);
+  const deliverablesOpsEntrySignals = [
+    {
+      surface: 'taskboard',
+      label: '작업판',
+      status: getTaskLifecycleDisplay(linkedTask.lifecycleState),
+      tone: getTaskLifecycleTone(linkedTask.lifecycleState),
+    },
+    {
+      surface: 'logs',
+      label: '로그',
+      status: latestRunForOps ? getRunStatusDisplay(latestRunForOps.status) : 'run 없음',
+      tone: latestRunForOps ? getRunTone(latestRunForOps.status) : 'neutral',
+    },
+    {
+      surface: 'artifacts',
+      label: '보관',
+      status: latestArtifact ? getArtifactTypeDisplay(latestArtifact.type) : '증적 없음',
+      tone: missionCompletionReady ? 'success' : latestArtifact ? 'accent' : 'neutral',
+    },
+    {
+      surface: 'decision-inbox',
+      label: '결재',
+      status: preferredInboxItem
+        ? `${getInboxKindDisplay(preferredInboxItem.kind)} ${getInboxStatusDisplay(preferredInboxItem.status)}`
+        : approvalSummary.pending > 0
+          ? `승인 ${approvalSummary.pending}건`
+          : '대기 없음',
+      tone: preferredInboxItem
+        ? getInboxTone(preferredInboxItem)
+        : approvalSummary.pending > 0
+          ? 'accent'
+          : 'success',
+    },
+  ];
+  const opsEntrySignalRow = renderDeliverablesOpsEntryRow(deliverablesOpsEntrySignals);
+  const opsEntryHelperCopy = executionGateReason
+    ? `현재 실행 입구는 ${executionGateReason} 전까지 여기서 멈춥니다. 관제실은 차단 근거와 다음 표면만 먼저 엽니다.`
+    : '보고실은 의도적으로 간결한 요약에서 멈춥니다. 작업판, 로그, 증적 보관실, 결재함은 관제실 쪽 세부 운영 경로로 남습니다.';
   const currentDeliverableArtifact =
     latestCloseOutArtifact ||
     latestReleasePackageArtifact ||
@@ -7792,107 +11704,176 @@ function renderDeliverables(data) {
     latestArchitectureArtifact ||
     latestPlanArtifact ||
     latestArtifact;
+  const deliverablesDeck = renderDeliverablesReportDeck({
+    councilSession: selectedCouncilSession,
+    mission: selectedMission,
+    task: linkedTask,
+    currentArtifact: currentDeliverableArtifact,
+    latestApproval,
+    approvalBridge,
+    latestReviewStatus,
+    missionCompletionReady,
+  });
+  const deliverablesControl = getDeliverablesControlSnapshot(
+    selectedMission,
+    linkedTask,
+    currentDeliverableArtifact,
+    latestApproval,
+    approvalBridge,
+    latestReviewStatus,
+    missionCompletionReady,
+  );
+  const deliverablesLeft = getDeliverablesLeftSnapshot(
+    selectedMission,
+    linkedTask,
+    currentDeliverableArtifact,
+    deliverablesControl,
+    {
+      latestArchitectureArtifact,
+      latestBreakdownArtifact,
+      latestChangeSummaryArtifact,
+      latestCloseOutArtifact,
+      latestCommitPackageArtifact,
+      latestCommitResultArtifact,
+      latestDiffArtifact,
+      latestPatchArtifact,
+      latestPlanArtifact,
+      latestPreflightArtifact,
+      latestReleasePackageArtifact,
+      latestReviewArtifact,
+    },
+  );
 
   elements.surfaces.deliverables.innerHTML = `
-    <div class="surface-grid">
+    <div class="stack">
+      ${deliverablesDeck}
+      <div class="surface-grid">
       <section class="surface-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Deliverables</h2>
-            <p class="panel-copy">Compact summary of the latest artifact package, review state, and approval state for the selected mission.</p>
-          </div>
-          <div class="token-row">
-            ${createToken(`mission:${selectedMission.id}`, 'neutral')}
-            ${createToken(`task:${linkedTask.id}`, 'accent')}
-            ${createToken(`artifacts:${taskArtifacts.length}`, 'neutral')}
-          </div>
+        ${renderNarrativeDeck({
+          wide: false,
+          eyebrow: '보고 개요판',
+          heading: '결과 보고실',
+          copy: '결과 보고실 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다.',
+          tokens: [
+            createToken(`미션:${selectedMission.id}`, 'neutral'),
+            createToken(`태스크:${linkedTask.id}`, 'accent'),
+            createToken(`아티팩트수:${taskArtifacts.length}`, 'neutral'),
+            currentDeliverableArtifact
+              ? createToken(`현재:${getArtifactTypeDisplay(currentDeliverableArtifact.type)}`, 'success')
+              : createToken('현재:없음', 'warning'),
+            latestArtifact ? createToken(`최근쓰기:${getArtifactTypeDisplay(latestArtifact.type)}`, 'neutral') : '',
+          ].filter(Boolean),
+          cards: [
+            {
+              label: '현재 판단',
+              title: deliverablesLeft.currentTitle,
+              copy: deliverablesLeft.currentCopy,
+            },
+            {
+              label: '다음 행동',
+              title: deliverablesLeft.nextTitle,
+              copy: deliverablesLeft.nextCopy,
+            },
+            {
+              label: '연결 근거',
+              title: deliverablesLeft.reasonTitle,
+              copy: deliverablesLeft.reasonCopy,
+            },
+          ],
+        })}
+        <div class="stack">
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>상류 준비 보고</strong>
+            </div>
+            <div class="token-row">
+              ${latestPlanArtifact ? createToken(`plan:${latestPlanArtifact.id}`, 'success') : createToken('plan:none', 'warning')}
+              ${latestArchitectureArtifact ? createToken(`architecture:${latestArchitectureArtifact.id}`, 'success') : createToken('architecture:none', 'warning')}
+              ${latestBreakdownArtifact ? createToken(`breakdown:${latestBreakdownArtifact.id}`, 'neutral') : createToken('breakdown:none', 'neutral')}
+              ${latestPreflightArtifact ? createToken(`preflight:${latestPreflightArtifact.id}`, 'neutral') : createToken('preflight:none', 'neutral')}
+            </div>
+            <p class="detail-copy">기획부터 사전 점검까지의 묶음이 이후 라이브 변경이나 리뷰 보고가 올라오기 전까지 현재 상류 보고선으로 남습니다.</p>
+          </section>
+          <section class="relation-strip">
+            <div class="card-title-row">
+              <strong>후속 전달 보고</strong>
+            </div>
+            <div class="token-row">
+              ${latestChangeSummaryArtifact ? createToken(`change-summary:${latestChangeSummaryArtifact.id}`, 'neutral') : createToken('change-summary:none', 'neutral')}
+              ${latestPatchArtifact ? createToken(`patch:${latestPatchArtifact.id}`, 'neutral') : createToken('patch:none', 'neutral')}
+              ${latestDiffArtifact ? createToken(`diff:${latestDiffArtifact.id}`, 'neutral') : createToken('diff:none', 'neutral')}
+              ${latestReviewArtifact ? createToken(`review:${latestReviewArtifact.id}`, 'neutral') : createToken('review:none', 'neutral')}
+              ${latestCommitPackageArtifact ? createToken(`commit-package:${latestCommitPackageArtifact.id}`, 'neutral') : ''}
+              ${latestCommitResultArtifact ? createToken(`commit-result:${latestCommitResultArtifact.id}`, 'neutral') : ''}
+              ${latestReleasePackageArtifact ? createToken(`release-package:${latestReleasePackageArtifact.id}`, 'neutral') : ''}
+              ${latestCloseOutArtifact ? createToken(`close-out:${latestCloseOutArtifact.id}`, 'neutral') : ''}
+            </div>
+            <p class="detail-copy">
+              ${
+                latestChangeSummaryArtifact || latestReviewArtifact || latestCommitPackageArtifact || latestReleasePackageArtifact || latestCloseOutArtifact
+                  ? '후속 패키지 아티팩트가 이미 존재하며, 새 실행 affordance를 추가하지 않고 여기에서 계속 보입니다.'
+                  : '아직 후속 변경/리뷰/커밋/릴리스/종료 정리 패키지가 없습니다. 현재 한정된 진행은 아직 그 이후 의미론 전에서 멈춰 있습니다.'
+              }
+            </p>
+          </section>
         </div>
-
-        <section class="relation-strip">
-          <div class="card-title-row">
-            <strong>Latest Artifact Package</strong>
-          </div>
-          <div class="token-row">
-            ${
-              currentDeliverableArtifact
-                ? createToken(`current:${currentDeliverableArtifact.type}`, 'success')
-                : createToken('current:none', 'warning')
-            }
-            ${currentDeliverableArtifact ? createToken(currentDeliverableArtifact.id, 'neutral') : ''}
-            ${latestArtifact ? createToken(`latest-write:${latestArtifact.type}`, 'neutral') : ''}
-          </div>
-          <p class="detail-copy">
-            ${
-              currentDeliverableArtifact
-                ? escapeHtml(
-                    `${currentDeliverableArtifact.type} artifact ${currentDeliverableArtifact.id} is the current top of the bounded deliverable stack as of ${formatDate(currentDeliverableArtifact.createdAt)}.`,
-                  )
-                : 'No artifact package exists yet for this mission.'
-            }
-          </p>
-          <div class="stack">
-            <section class="relation-strip">
-              <div class="card-title-row">
-                <strong>Execution Package</strong>
-              </div>
-              <div class="token-row">
-                ${latestPlanArtifact ? createToken(`plan:${latestPlanArtifact.id}`, 'success') : createToken('plan:none', 'warning')}
-                ${latestArchitectureArtifact ? createToken(`architecture:${latestArchitectureArtifact.id}`, 'success') : createToken('architecture:none', 'warning')}
-                ${latestBreakdownArtifact ? createToken(`breakdown:${latestBreakdownArtifact.id}`, 'neutral') : createToken('breakdown:none', 'neutral')}
-                ${latestPreflightArtifact ? createToken(`preflight:${latestPreflightArtifact.id}`, 'neutral') : createToken('preflight:none', 'neutral')}
-              </div>
-              <p class="detail-copy">Planner through builder preflight artifacts remain the current upstream package for this mission until a later bounded step advances mutation or review.</p>
-            </section>
-            <section class="relation-strip">
-              <div class="card-title-row">
-                <strong>Delivery Package</strong>
-              </div>
-              <div class="token-row">
-                ${latestChangeSummaryArtifact ? createToken(`change-summary:${latestChangeSummaryArtifact.id}`, 'neutral') : createToken('change-summary:none', 'neutral')}
-                ${latestPatchArtifact ? createToken(`patch:${latestPatchArtifact.id}`, 'neutral') : createToken('patch:none', 'neutral')}
-                ${latestDiffArtifact ? createToken(`diff:${latestDiffArtifact.id}`, 'neutral') : createToken('diff:none', 'neutral')}
-                ${latestReviewArtifact ? createToken(`review:${latestReviewArtifact.id}`, 'neutral') : createToken('review:none', 'neutral')}
-                ${latestCommitPackageArtifact ? createToken(`commit-package:${latestCommitPackageArtifact.id}`, 'neutral') : ''}
-                ${latestCommitResultArtifact ? createToken(`commit-result:${latestCommitResultArtifact.id}`, 'neutral') : ''}
-                ${latestReleasePackageArtifact ? createToken(`release-package:${latestReleasePackageArtifact.id}`, 'neutral') : ''}
-                ${latestCloseOutArtifact ? createToken(`close-out:${latestCloseOutArtifact.id}`, 'neutral') : ''}
-              </div>
-              <p class="detail-copy">
-                ${
-                  latestChangeSummaryArtifact || latestReviewArtifact || latestCommitPackageArtifact || latestReleasePackageArtifact || latestCloseOutArtifact
-                    ? 'Downstream package artifacts already exist and remain visible here without adding any new execution affordance.'
-                    : 'No downstream mutation, review, commit, release, or close-out package exists yet. Current bounded progress still stops before those later semantics.'
-                }
-              </p>
-            </section>
-          </div>
-        </section>
       </section>
 
       <aside class="detail-card">
         <div class="panel-header">
           <div>
-            <h2>Latest State</h2>
-            <p class="panel-copy">Deliverables stays summary-only. It now highlights the current approval target and still hands detailed control off to Advanced Ops Mode.</p>
+            <h2>최신 보고 현황</h2>
+            <p class="panel-copy">보고실은 결재선과 다음 이동을 요약하고, 깊은 점검은 관제실로 넘깁니다.</p>
           </div>
         </div>
+        ${renderNarrativeDeck({
+          wide: false,
+          eyebrow: '보고 판단판',
+          heading: '현재 보고 상태와 다음 후속만 먼저 봅니다',
+          copy: '결과 보고실 오른쪽 패널은 현재 보고 묶음, 결재선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다.',
+          tokens: [
+            createToken(`리뷰:${getReviewStatusDisplay(latestReviewStatus)}`, getReviewTone(latestReviewStatus)),
+            latestApproval
+              ? createToken(`승인:${getApprovalStatusDisplay(latestApproval.status)}`, getApprovalTone(latestApproval.status))
+              : createToken('승인:없음', 'neutral'),
+            missionCompletionReady ? createToken('완료:봉인', 'success') : '',
+          ].filter(Boolean),
+          cards: [
+            {
+              label: '현재 판단',
+              title: deliverablesControl.currentTitle,
+              copy: deliverablesControl.currentCopy,
+            },
+            {
+              label: '바로 이동',
+              title: deliverablesControl.nextTitle,
+              copy: deliverablesControl.nextCopy,
+            },
+            {
+              label: '이유',
+              title: deliverablesControl.reasonTitle,
+              copy: deliverablesControl.reasonCopy,
+            },
+          ],
+        })}
         <div class="stack">
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Latest Review State</strong>
+              <strong>리뷰 보고</strong>
             </div>
             <div class="token-row">
-              ${createToken(`required:${linkedTask.review?.required ? 'yes' : 'no'}`, linkedTask.review?.required ? 'warning' : 'neutral')}
-              ${createToken(`status:${latestReviewStatus}`, getReviewTone(latestReviewStatus))}
-              ${createToken(`verification:${linkedTask.review?.verificationArtifactIds?.length || 0}`, 'neutral')}
-              ${latestReviewArtifact ? createToken(`artifact:${latestReviewArtifact.id}`, 'neutral') : createToken('artifact:none', 'neutral')}
+              ${createToken(`필수:${linkedTask.review?.required ? '예' : '아니오'}`, linkedTask.review?.required ? 'warning' : 'neutral')}
+              ${createToken(`상태:${getReviewStatusDisplay(latestReviewStatus)}`, getReviewTone(latestReviewStatus))}
+              ${createToken(`검증:${linkedTask.review?.verificationArtifactIds?.length || 0}`, 'neutral')}
+              ${latestReviewArtifact ? createToken(`아티팩트:${latestReviewArtifact.id}`, 'neutral') : createToken('아티팩트:없음', 'neutral')}
               ${
                 reviewerState.summary.sourceBuilderRunId
-                  ? createToken(`source run:${reviewerState.summary.sourceBuilderRunId}`, 'neutral')
+                  ? createToken(`소스run:${reviewerState.summary.sourceBuilderRunId}`, 'neutral')
                   : ''
               }
             </div>
             <p class="detail-copy">${escapeHtml(latestReviewNote)}</p>
+            ${reviewActionSignalRow}
             ${
               canRunReviewer
                 ? `
@@ -7904,10 +11885,10 @@ function renderDeliverables(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Execution To Run Reviewer
+                      실행으로 이동해 리뷰어 실행
                     </button>
                   </div>
-                  <p class="form-help">Primary reviewer CTA lives on Execution after the bounded live mutation bundle is available.</p>
+                  <p class="form-help">리뷰어 실행은 한정된 라이브 변경 번들이 준비되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -7922,10 +11903,10 @@ function renderDeliverables(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Execution To Prepare Commit Package
+                      실행으로 이동해 커밋 패키지 준비
                     </button>
                   </div>
-                  <p class="form-help">Primary commit-package CTA lives on Execution after the latest passing reviewer bundle is available.</p>
+                  <p class="form-help">커밋 패키지 준비는 최신 reviewer 번들이 준비되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -7940,10 +11921,10 @@ function renderDeliverables(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Execution To Approve Commit Gate
+                      실행으로 이동해 커밋 게이트 승인
                     </button>
                   </div>
-                  <p class="form-help">Primary commit approval CTA lives on Execution after the current commit package opens a pending commit approval.</p>
+                  <p class="form-help">커밋 승인은 현재 commit package가 pending 승인을 열면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -7958,10 +11939,10 @@ function renderDeliverables(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Execution To Run Local Commit
+                      실행으로 이동해 로컬 커밋 실행
                     </button>
                   </div>
-                  <p class="form-help">Primary local commit CTA lives on Execution once the current approved commit bundle is ready.</p>
+                  <p class="form-help">로컬 커밋은 현재 승인된 commit 번들이 준비되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -7976,10 +11957,10 @@ function renderDeliverables(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Execution To Prepare Release Package
+                      실행으로 이동해 릴리스 패키지 준비
                     </button>
                   </div>
-                  <p class="form-help">Primary release-package CTA lives on Execution once the latest successful local commit bundle is ready.</p>
+                  <p class="form-help">릴리스 패키지 준비는 최신 local commit 번들이 준비되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -7994,10 +11975,10 @@ function renderDeliverables(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Execution To Approve Release Gate
+                      실행으로 이동해 릴리스 게이트 승인
                     </button>
                   </div>
-                  <p class="form-help">Primary release approval CTA lives on Execution after the current release package opens a pending release approval.</p>
+                  <p class="form-help">릴리스 승인은 현재 release package가 pending 승인을 열면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -8012,10 +11993,10 @@ function renderDeliverables(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Execution To Run Close Out
+                      실행으로 이동해 종료 정리 실행
                     </button>
                   </div>
-                  <p class="form-help">Primary close-out CTA lives on Execution once the current approved release bundle is ready.</p>
+                  <p class="form-help">종료 정리는 현재 승인된 release 번들이 준비되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -8023,41 +12004,41 @@ function renderDeliverables(data) {
 
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Latest Approval State</strong>
+              <strong>결재선 현황</strong>
             </div>
             <div class="token-row">
-              ${createToken(`pending:${approvalSummary.pending}`, approvalSummary.pending > 0 ? 'accent' : 'neutral')}
-              ${createToken(`approved:${approvalSummary.approved}`, approvalSummary.approved > 0 ? 'success' : 'neutral')}
-              ${createToken(`rejected:${approvalSummary.rejected}`, approvalSummary.rejected > 0 ? 'danger' : 'neutral')}
+              ${createToken(`대기:${approvalSummary.pending}`, approvalSummary.pending > 0 ? 'accent' : 'neutral')}
+              ${createToken(`승인:${approvalSummary.approved}`, approvalSummary.approved > 0 ? 'success' : 'neutral')}
+              ${createToken(`반려:${approvalSummary.rejected}`, approvalSummary.rejected > 0 ? 'danger' : 'neutral')}
               ${
                 latestApproval?.allowedNextAction
                   ? createToken(
-                      `action:${getApprovalActionLabel(latestApproval.allowedNextAction)}`,
+                      `액션:${getApprovalActionLabel(latestApproval.allowedNextAction)}`,
                       'neutral',
                     )
                   : ''
               }
               ${
                 latestApproval
-                  ? createToken(`latest:${latestApproval.status}`, getApprovalTone(latestApproval.status))
-                  : createToken('latest:none', 'neutral')
+                  ? createToken(`최신:${getApprovalStatusDisplay(latestApproval.status)}`, getApprovalTone(latestApproval.status))
+                  : createToken('최신:없음', 'neutral')
               }
             </div>
             <p class="detail-copy">
               ${
                 latestApproval
                   ? escapeHtml(
-                      `${latestApproval.id} is ${latestApproval.status} for ${latestApproval.allowedNextAction || latestApproval.scope}, targeting ${latestApproval.targetArtifactId || 'the current bounded artifact'}.`,
+                      `${latestApproval.id}는 ${getApprovalActionLabel(latestApproval.allowedNextAction) || latestApproval.scope}에 대해 ${getApprovalStatusDisplay(latestApproval.status)} 상태이며, 대상은 ${latestApproval.targetArtifactId || '현재 한정된 아티팩트'}입니다.`,
                     )
-                  : 'No approval record exists yet for this mission.'
+                  : '이 미션에는 아직 승인 기록이 없습니다.'
               }
             </p>
             ${
               preferredInboxItem?.status === 'pending'
                 ? `
                   <div class="token-row">
-                    ${createToken(`inbox:${preferredInboxItem.id}`, getInboxTone(preferredInboxItem))}
-                    ${createToken(`kind:${preferredInboxItem.kind}`, 'neutral')}
+                    ${createToken(`결정함:${preferredInboxItem.id}`, getInboxTone(preferredInboxItem))}
+                    ${createToken(`종류:${preferredInboxItem.kind}`, 'neutral')}
                   </div>
                 `
                 : ''
@@ -8066,38 +12047,39 @@ function renderDeliverables(data) {
 
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Current Approval Target</strong>
+              <strong>현재 결재 안건</strong>
             </div>
             <div class="token-row">
               ${
                 approvalBridge.currentApproval
                   ? createToken(
-                      `approval:${approvalBridge.currentApproval.id}`,
+                      `승인:${approvalBridge.currentApproval.id}`,
                       getApprovalTone(approvalBridge.currentApproval.status),
                     )
-                  : createToken('approval:none', 'neutral')
+                  : createToken('승인:없음', 'neutral')
               }
               ${
                 approvalBridge.targetArtifact
-                  ? createToken(`target:${approvalBridge.targetArtifact.type}`, 'neutral')
+                  ? createToken(`대상:${approvalBridge.targetArtifact.type}`, 'neutral')
                   : ''
               }
               ${
                 approvalBridge.targetArtifact
-                  ? createToken(`artifact:${approvalBridge.targetArtifact.id}`, 'neutral')
+                  ? createToken(`아티팩트:${approvalBridge.targetArtifact.id}`, 'neutral')
                   : ''
               }
               ${
                 approvalBridge.pendingInboxItem
                   ? createToken(
-                      `inbox:${approvalBridge.pendingInboxItem.id}`,
+                      `결정함:${approvalBridge.pendingInboxItem.id}`,
                       getInboxTone(approvalBridge.pendingInboxItem),
                     )
                   : ''
               }
             </div>
             <p class="detail-copy">${escapeHtml(approvalBridge.bridgeCopy)}</p>
-            <p class="detail-copy"><strong>Next Operator Step</strong>: ${escapeHtml(approvalBridge.nextStepCopy)}</p>
+            <p class="detail-copy"><strong>다음 운영 단계</strong>: ${escapeHtml(approvalBridge.nextStepCopy)}</p>
+            ${approvalActionSignalRow}
             ${
               canApproveCurrentGate
                 ? `
@@ -8109,10 +12091,10 @@ function renderDeliverables(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Execution
+                      실행 열기
                     </button>
                   </div>
-                  <p class="form-help">Primary approval CTA lives on Execution. Deliverables keeps this surface summary-only.</p>
+                  <p class="form-help">승인은 실행 표면에서 처리하고, 산출물은 요약 전용으로 남습니다.</p>
                 `
                 : ''
             }
@@ -8127,10 +12109,10 @@ function renderDeliverables(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Execution To Run Live Mutation
+                      실행으로 이동해 라이브 변경 실행
                     </button>
                   </div>
-                  <p class="form-help">The bounded live mutation CTA is available on Execution after the current builder gate is approved.</p>
+                  <p class="form-help">라이브 변경 실행은 현재 builder 게이트가 승인되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -8138,32 +12120,32 @@ function renderDeliverables(data) {
 
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Mission Completion</strong>
+              <strong>안건 종료 보고</strong>
             </div>
             <div class="token-row">
-              ${createToken(`mission:${selectedMission.status || 'draft'}`, getMissionStatusTone(selectedMission.status))}
+              ${createToken(`미션:${getMissionStatusDisplay(selectedMission.status)}`, getMissionStatusTone(selectedMission.status))}
               ${
                 linkedTask
                   ? createToken(
-                      `task:${linkedTask.lifecycleState}`,
+                      `태스크:${getTaskLifecycleDisplay(linkedTask.lifecycleState)}`,
                       linkedTask.lifecycleState === 'Done' ? 'success' : 'neutral',
                     )
-                  : createToken('task:none', 'warning')
+                  : createToken('태스크:없음', 'warning')
               }
               ${
                 missionCompletionReady
-                  ? createToken('completion:sealed', 'success')
-                  : createToken('completion:open', 'warning')
+                  ? createToken('완료:봉인', 'success')
+                  : createToken('완료:열림', 'warning')
               }
               ${
                 missionCompletionArtifactId
-                  ? createToken(`close-out:${missionCompletionArtifactId}`, 'neutral')
+                  ? createToken(`종료정리:${missionCompletionArtifactId}`, 'neutral')
                   : ''
               }
               ${
                 closeOutState.summary.currentReleasePackageArtifactId
                   ? createToken(
-                      `release-package:${closeOutState.summary.currentReleasePackageArtifactId}`,
+                      `릴리스패키지:${closeOutState.summary.currentReleasePackageArtifactId}`,
                       'neutral',
                     )
                   : ''
@@ -8173,18 +12155,19 @@ function renderDeliverables(data) {
               ${
                 missionCompletionReady
                   ? escapeHtml(
-                      `Current Mission State: bounded delivery is sealed by close-out artifact ${missionCompletionArtifactId} for task ${linkedTask.id}.`,
+                      `현재 미션 상태: 태스크 ${linkedTask.id}의 한정된 전달은 종료 정리 아티팩트 ${missionCompletionArtifactId}로 봉인됐습니다.`,
                     )
-                  : 'Current Mission State: bounded delivery is still open. Deliverables will pin the close-out bundle here after the mission reaches Done.'
+                  : '현재 미션 상태: 한정된 전달은 아직 열려 있습니다. 미션이 완료에 도달하면 산출물이 종료 정리 번들을 이곳에 고정합니다.'
               }
             </p>
             <p class="detail-copy">
-              <strong>Next Safe Follow-Up</strong>: ${
+              <strong>다음 안전한 후속 단계</strong>: ${
                 missionCompletionReady
-                  ? 'Use the saved close-out bundle as the final bounded summary, then start the next mission or open Advanced Ops Mode for deeper provenance inspection. External delivery remains disabled here.'
-                  : 'Keep advancing the current bounded path from Execution. This surface remains summary-only until the close-out bundle is saved.'
+                  ? '저장된 종료 정리 번들을 최종 한정 요약으로 보고, 다음 미션을 시작하거나 더 깊은 provenance 확인이 필요하면 고급 운영 모드를 엽니다. 외부 전달은 여전히 비활성입니다.'
+                  : '실행에서 현재 한정된 경로를 계속 전진합니다. 종료 정리 번들이 저장되기 전까지 이 표면은 요약 전용으로 남습니다.'
               }
             </p>
+            ${closeOutActionSignalRow}
             ${
               missionCompletionReady
                 ? `
@@ -8196,10 +12179,10 @@ function renderDeliverables(data) {
                       data-id="${escapeHtml(selectedMission.id)}"
                       ${state.loading || state.mutating ? 'disabled' : ''}
                     >
-                      Open Mission To Start Next Cycle
+                      미션으로 이동해 다음 사이클 시작
                     </button>
                   </div>
-                  <p class="form-help">Mission holds the next-cycle entry. Use it to prepare the next bounded mission draft without reopening execution.</p>
+                  <p class="form-help">다음 사이클은 미션에서 시작합니다. 실행을 다시 열지 않고 다음 초안을 준비합니다.</p>
                 `
                 : ''
             }
@@ -8207,9 +12190,11 @@ function renderDeliverables(data) {
 
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>Advanced Ops Detail</strong>
+              <strong>관제실 직행</strong>
             </div>
-            <p class="detail-copy">Deliverables intentionally stops at compact summary. Taskboard, Logs, Artifacts, and Decision Inbox remain the detailed operator path.</p>
+            <p class="detail-copy">${escapeHtml(opsEntryHelperCopy)}</p>
+            ${opsActionSignalRow}
+            ${opsEntrySignalRow}
             <div class="form-actions">
               <button
                 class="secondary-button"
@@ -8218,20 +12203,195 @@ function renderDeliverables(data) {
                 data-id="${escapeHtml(selectedMission.id)}"
                 ${state.loading || state.mutating ? 'disabled' : ''}
               >
-                Open Advanced Ops Mode
+                관제실 열기
               </button>
             </div>
           </section>
         </div>
       </aside>
+      </div>
     </div>
   `;
 }
 
 function renderTaskboard(data) {
   const selectedTask = data.taskMap.get(state.selectedTaskId) || null;
+  const focusedTask = selectedTask || data.tasks[0] || null;
   const createDisabled = !data.activeProject || state.loading || state.mutating;
   const bootstrapPanel = renderProjectBootstrapPanel(data);
+  const pendingApprovals = data.approvals.filter((approval) => approval.status === 'pending');
+  const pendingInboxItems = data.inboxItems.filter((item) => item.status === 'pending');
+  const focusedTaskArtifacts = focusedTask ? getTaskArtifacts(focusedTask.id, data.artifacts).sort(sortByCreatedDesc) : [];
+  const focusedTaskLatestArtifact = focusedTaskArtifacts[0] || null;
+  const focusedTaskLatestRun = focusedTask?.latestRunId ? data.runMap.get(focusedTask.latestRunId) || null : null;
+  const focusedTaskPreferredInboxItem = focusedTask ? getPreferredTaskInboxItem(focusedTask.id, data) : null;
+
+  const focusedTaskSnapshot = getTaskboardTaskSnapshot(focusedTask, data);
+  const taskboardImmediateCard =
+    pendingApprovals.length > 0
+      ? {
+          title: `결재함에서 승인 ${pendingApprovals.length}건 처리`,
+          copy: '사람 승인이 남아 있어 지금은 결재함을 먼저 여는 편이 가장 빠릅니다.',
+          button: {
+            action: 'open-surface',
+            label: '결재함 열기',
+            targetSurface: 'decision-inbox',
+            disabled: state.loading || state.mutating,
+          },
+          tone: 'accent',
+        }
+      : pendingInboxItems.length > 0
+        ? {
+            title: `결재함에서 확인 ${pendingInboxItems.length}건 처리`,
+            copy: '결정이나 확인이 남아 있어 지금은 결재함에서 현재 안건을 먼저 정리합니다.',
+            button: {
+              action: 'open-surface',
+              label: '결재함 열기',
+              targetSurface: 'decision-inbox',
+              disabled: state.loading || state.mutating,
+            },
+            tone: 'warning',
+          }
+        : focusedTask
+          ? {
+              title: `${focusedTask.title} 상세 보기`,
+              copy: focusedTaskSnapshot.nextCopy,
+              button: {
+                action: 'open-taskboard-task',
+                id: focusedTask.id,
+                label: '선택 셀 고정',
+                disabled: state.loading || state.mutating,
+              },
+              tone: 'neutral',
+            }
+          : {
+              title: '첫 실행 셀 추가',
+              copy: '왼쪽에서 첫 실행 셀을 추가하면 오른쪽 상세 판단이 바로 열립니다.',
+              button: null,
+              tone: 'warning',
+            };
+  const taskboardViewportStrip = renderViewportHandoffStrip({
+    eyebrow: '작업 인계선',
+    heading: '작업판 아래는 레인과 상세 판단으로 나눕니다',
+    copy:
+      '왼쪽은 실행 셀 목록과 빠른 추가를 맡고, 오른쪽은 선택된 셀의 상태와 다음 실행만 먼저 보여 줍니다.',
+    tokens: [
+      data.activeProject
+        ? createToken(`프로젝트:${data.activeProject.name}`, 'success')
+        : createToken('프로젝트:선택 필요', 'warning'),
+      createToken(`실행셀:${data.tasks.length}`, data.tasks.length > 0 ? 'neutral' : 'warning'),
+      createToken(
+        `바로:${pendingApprovals.length > 0 || pendingInboxItems.length > 0 ? '결재함' : '작업판 상세'}`,
+        taskboardImmediateCard.tone,
+      ),
+    ],
+    cards: [
+      {
+        label: '왼쪽 레인',
+        title: '실행 셀 목록 + 빠른 추가',
+        copy: '레인에서 셀을 고르고, 바로 아래 접수 폼에서 새 셀을 추가합니다.',
+      },
+      {
+        label: '오른쪽 상세',
+        title: focusedTask ? '현재 상태 + 다음 실행' : '선택 셀 대기',
+        copy: focusedTask
+          ? '선택된 셀의 보류 이유, 다음 실행, provenance는 오른쪽 상세에서 이어 봅니다.'
+          : '실행 셀을 하나 고르면 오른쪽 판단판이 바로 열립니다.',
+      },
+      {
+        label: '지금 열기',
+        title: taskboardImmediateCard.title,
+        copy: taskboardImmediateCard.copy,
+        emphasis: true,
+        button: taskboardImmediateCard.button,
+      },
+    ],
+  });
+  const taskboardOpsEntrySignals = [
+    {
+      surface: 'taskboard',
+      label: '작업판',
+      status: focusedTask ? getTaskLifecycleDisplay(focusedTask.lifecycleState) : '셀 없음',
+      tone: focusedTask ? getTaskLifecycleTone(focusedTask.lifecycleState) : 'warning',
+    },
+    {
+      surface: 'logs',
+      label: '로그',
+      status: focusedTaskLatestRun ? getRunStatusDisplay(focusedTaskLatestRun.status) : 'run 없음',
+      tone: focusedTaskLatestRun ? getRunTone(focusedTaskLatestRun.status) : 'neutral',
+    },
+    {
+      surface: 'artifacts',
+      label: '보관',
+      status: focusedTaskLatestArtifact ? getArtifactTypeDisplay(focusedTaskLatestArtifact.type) : '증적 없음',
+      tone:
+        focusedTaskLatestArtifact?.type === 'close-out'
+          ? 'success'
+          : focusedTaskLatestArtifact
+            ? 'accent'
+            : 'neutral',
+    },
+    {
+      surface: 'decision-inbox',
+      label: '결재',
+      status: focusedTaskPreferredInboxItem
+        ? `${getInboxKindDisplay(focusedTaskPreferredInboxItem.kind)} ${getInboxStatusDisplay(focusedTaskPreferredInboxItem.status)}`
+        : pendingApprovals.length > 0
+          ? `승인 ${pendingApprovals.length}건`
+          : pendingInboxItems.length > 0
+            ? `확인 ${pendingInboxItems.length}건`
+            : '대기 없음',
+      tone: focusedTaskPreferredInboxItem
+        ? getInboxTone(focusedTaskPreferredInboxItem)
+        : pendingApprovals.length > 0
+          ? 'accent'
+          : pendingInboxItems.length > 0
+            ? 'warning'
+            : 'success',
+    },
+  ];
+  const taskboardOpsEntrySignalRow = renderTaskboardOpsEntrySignalRow(taskboardOpsEntrySignals);
+  const taskboardDeck = renderOpsCenterDeck({
+    entryFrame: true,
+    heading: '선택된 실행 셀만 세 칸으로 요약하는 작업판',
+    copy: '아래 deck은 현재 셀 판단만 먼저 남기고, 새 셀 추가는 바로 아래 접수 폼으로 넘깁니다.',
+    tokens: [
+      data.activeProject
+        ? createToken(`프로젝트:${data.activeProject.name}`, 'success')
+        : createToken('프로젝트:선택 필요', 'warning'),
+      createToken(`실행셀:${data.tasks.length}`, data.tasks.length > 0 ? 'neutral' : 'warning'),
+      createToken(`대기승인:${pendingApprovals.length}`, pendingApprovals.length > 0 ? 'accent' : 'neutral'),
+    ],
+    signalRow: taskboardOpsEntrySignalRow,
+    cards: [
+      {
+        label: '현재 셀',
+        title: focusedTask ? focusedTask.title : '실행 셀 대기',
+        copy: focusedTaskSnapshot.currentCopy,
+      },
+      {
+        label: '다음 행동',
+        title: focusedTask ? focusedTaskSnapshot.nextCopy.replace('다음: ', '') : '새 실행 셀 추가',
+        copy: focusedTaskSnapshot.nextCopy,
+      },
+      {
+        label: '승인선',
+        title:
+          pendingApprovals.length > 0
+            ? `${pendingApprovals.length}건 승인 대기`
+            : pendingInboxItems.length > 0
+              ? `${pendingInboxItems.length}건 확인 대기`
+              : '현재 승인 대기 없음',
+        copy:
+          pendingApprovals.length > 0
+            ? '사람 승인이 필요한 안건이 남아 있습니다.'
+            : pendingInboxItems.length > 0
+              ? '결정 또는 확인이 필요한 안건이 남아 있습니다.'
+              : '지금 바로 막힌 승인선은 없습니다.',
+      },
+    ],
+  });
+
   const lanes = groupTasksByLifecycle(data.tasks)
     .map(([laneName, tasks]) => {
       const cards = tasks.length
@@ -8240,26 +12400,37 @@ function renderTaskboard(data) {
               const approvalSummary = getTaskApprovalSummary(task, data.approvals);
               const decisionSummary = getTaskDecisionSummary(task, data.inboxItems);
               const latestRun = task.latestRunId ? data.runMap.get(task.latestRunId) : null;
+              const taskSnapshot = getTaskboardTaskSnapshot(task, data);
 
               return `
-                <article class="card ${task.id === selectedTask?.id ? 'is-selected' : ''}">
+                <article class="card taskboard-task-card ${task.id === selectedTask?.id ? 'is-selected' : ''}">
                   <button class="card-button" type="button" data-action="select-task" data-id="${escapeHtml(task.id)}">
-                    <div class="card-title-row">
+                    <div class="card-title-row taskboard-task-head">
                       <h4 class="card-title">${escapeHtml(task.title)}</h4>
-                      ${createToken(task.lifecycleState, 'neutral')}
+                      <div class="token-row token-row-compact">
+                        ${createToken(getTaskLifecycleDisplay(task.lifecycleState), 'neutral')}
+                      </div>
                     </div>
-                    <p class="card-copy">${escapeHtml(task.intent || 'No intent recorded.')}</p>
-                    <div class="token-row">
-                      ${createToken(`review:${task.review?.status || 'pending'}`, getReviewTone(task.review?.status))}
-                      ${task.flags?.blocked ? createToken('blocked', 'danger') : ''}
-                      ${task.flags?.waitingApproval ? createToken('waitingApproval', 'accent') : ''}
-                      ${task.flags?.waitingDecision ? createToken('waitingDecision', 'warning') : ''}
-                    </div>
-                    <div class="meta-row">
-                      ${createToken(`artifacts:${(task.artifactIds || []).length}`, 'neutral')}
-                      ${createToken(`pending inbox:${decisionSummary.pendingTotal}`, decisionSummary.pendingTotal > 0 ? 'warning' : 'success')}
-                      ${createToken(`approvals:${approvalSummary.pending}/${approvalSummary.total}`, approvalSummary.pending > 0 ? 'accent' : 'neutral')}
-                      ${latestRun ? createToken(`run:${latestRun.status}`, getRunTone(latestRun.status)) : createToken('run:none', 'neutral')}
+                    <p class="card-copy detail-copy-compact taskboard-task-intent">${escapeHtml(task.intent || '기록된 의도가 없습니다.')}</p>
+                    <p class="card-copy detail-copy-compact taskboard-task-summary">${escapeHtml(taskSnapshot.currentCopy)}</p>
+                    <div class="taskboard-task-foot">
+                      <div class="token-row token-row-compact">
+                        ${taskSnapshot.tokens.join('')}
+                        ${task.flags?.blocked ? createToken('차단', 'danger') : ''}
+                        ${task.flags?.waitingApproval ? createToken('승인대기', 'accent') : ''}
+                        ${task.flags?.waitingDecision ? createToken('결정대기', 'warning') : ''}
+                        ${
+                          approvalSummary.total > 0
+                            ? createToken(`승인선:${approvalSummary.pending}/${approvalSummary.total}`, approvalSummary.pending > 0 ? 'accent' : 'neutral')
+                            : ''
+                        }
+                        ${
+                          decisionSummary.pendingTotal > 0
+                            ? createToken(`결재함:${decisionSummary.pendingTotal}`, 'warning')
+                            : ''
+                        }
+                      </div>
+                      <p class="card-copy detail-copy-compact taskboard-task-next">${escapeHtml(taskSnapshot.nextCopy)}</p>
                     </div>
                   </button>
                 </article>
@@ -8268,15 +12439,15 @@ function renderTaskboard(data) {
             .join('')
         : `
             <div class="empty-state">
-              <strong>No tasks</strong>
-              <p>This lifecycle lane is empty.</p>
+              <strong>태스크 없음</strong>
+              <p>이 라이프사이클 레인은 비어 있습니다.</p>
             </div>
           `;
 
       return `
         <section class="lane">
           <div class="lane-header">
-            <h3>${escapeHtml(laneName)}</h3>
+            <h3>${escapeHtml(getTaskLifecycleDisplay(laneName))}</h3>
             <span class="lane-count">${tasks.length}</span>
           </div>
           <div class="stack">${cards}</div>
@@ -8290,43 +12461,47 @@ function renderTaskboard(data) {
   elements.surfaces.taskboard.innerHTML = `
     <div class="surface-grid">
       <section class="surface-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Taskboard</h2>
-            <p class="panel-copy">Taskboard is the detailed execution control surface for project setup, lifecycle, gate handling, and downstream follow-up.</p>
-          </div>
-          <p class="runtime-note">Planner + architect + task-breaker + builder preflight + live mutation approval + limited live mutation write + reviewer + commit-package prepare + local commit + release-package prepare + close-out enabled</p>
-        </div>
-        ${renderAdvancedOpsNotice('Taskboard, Logs, Artifacts, and Decision Inbox now sit behind the orchestration-first path. Use this surface when mission-level flow needs detailed operator control.')}
+        ${taskboardViewportStrip}
+        ${taskboardDeck}
         ${bootstrapPanel}
         ${
           data.activeProject
             ? `
-              <form class="task-create-form" data-form="create-task">
-                <div class="field-grid">
-                  <label class="field">
-                    <span class="field-label">Title</span>
+              <form class="task-create-form task-create-form-compact taskboard-order-desk" data-form="create-task">
+                <div class="taskboard-order-head">
+                  <div class="stack">
+                    <strong>새 실행 셀</strong>
+                    <p class="detail-copy detail-copy-compact">여기서는 새 셀만 빠르게 추가합니다. 현재 상태 판단은 위 카드에서 끝냅니다.</p>
+                  </div>
+                  <div class="token-row token-row-compact">
+                    ${createToken('제목만으로 시작', 'accent')}
+                    ${createToken('의도는 선택', 'neutral')}
+                  </div>
+                </div>
+                <div class="field-grid field-grid-compact">
+                  <label class="field field-compact">
+                    <span class="field-label">제목</span>
                     <input
                       type="text"
                       name="title"
                       value="${escapeHtml(state.taskDraftTitle)}"
-                      placeholder="Thin-slice task title"
+                      placeholder="얇은 슬라이스 태스크 제목"
                       ${createDisabled ? 'disabled' : ''}
                     >
                   </label>
-                  <label class="field">
-                    <span class="field-label">Intent</span>
+                  <label class="field field-compact">
+                    <span class="field-label">의도</span>
                     <textarea
                       name="intent"
-                      rows="3"
-                      placeholder="Optional intended outcome and acceptance hint"
+                      rows="2"
+                      placeholder="선택 사항: 원하는 결과나 경계만 짧게 적으세요"
                       ${createDisabled ? 'disabled' : ''}
                     >${escapeHtml(state.taskDraftIntent)}</textarea>
                   </label>
                 </div>
-                <div class="form-actions">
-                  <button class="primary-button" type="submit" ${createDisabled ? 'disabled' : ''}>Create Task</button>
-                  <p class="form-help">Creates a task in ${escapeHtml(data.activeProject.name)}.</p>
+                <div class="form-actions form-actions-inline form-actions-compact taskboard-order-actions">
+                  <button class="primary-button" type="submit" ${createDisabled ? 'disabled' : ''}>실행 셀 추가</button>
+                  <p class="form-help">${escapeHtml(data.activeProject.name)}에 바로 추가하고, 세부 제어는 선택된 셀 상세에서 이어갑니다.</p>
                 </div>
               </form>
             `
@@ -8336,16 +12511,16 @@ function renderTaskboard(data) {
           !data.activeProject
             ? `
               <div class="empty-state">
-                <strong>No active project</strong>
-                <p>Register or select a project above before creating the first task.</p>
+                <strong>활성 프로젝트 없음</strong>
+                <p>첫 태스크를 만들기 전에 위에서 프로젝트를 등록하거나 고릅니다.</p>
               </div>
             `
             : data.tasks.length > 0
             ? `<div class="lane-grid">${lanes}</div>`
             : `
               <div class="empty-state">
-                <strong>No tasks yet</strong>
-                <p>The active project is ready. Create the first thin-slice task to enter the core loop.</p>
+                <strong>아직 태스크 없음</strong>
+                <p>활성 프로젝트는 준비됐습니다. 첫 실행 셀을 추가하면 바로 작업판 흐름이 시작됩니다.</p>
               </div>
             `
         }
@@ -8359,10 +12534,10 @@ function renderTaskDetail(task, data) {
   if (!task) {
     return `
       <aside class="detail-card">
-        <h2>Task Detail</h2>
+        <h2>태스크 상세</h2>
         <div class="empty-state">
-          <strong>No task selected</strong>
-          <p>Select a task card to inspect run, artifact, review, and decision state.</p>
+          <strong>선택된 태스크 없음</strong>
+          <p>태스크 카드를 골라 run, 아티팩트, 리뷰, 결정 상태를 확인합니다.</p>
         </div>
       </aside>
     `;
@@ -8372,13 +12547,19 @@ function renderTaskDetail(task, data) {
   const taskArtifacts = getTaskArtifacts(task.id, data.artifacts);
   const taskApprovals = getTaskApprovals(task.id, data.approvals);
   const taskInboxItems = getTaskInboxItems(task.id, data.inboxItems);
+  const pendingTaskApprovals = taskApprovals.filter((approval) => approval.status === 'pending');
+  const pendingTaskInboxItems = taskInboxItems.filter((item) => item.status === 'pending');
+  const preferredTaskInboxItem = getPreferredTaskInboxItem(task.id, data);
   const latestRun = task.latestRunId ? data.runMap.get(task.latestRunId) : null;
+  const plannerState = getPlannerAvailability(task, data);
+  const architectState = getArchitectAvailability(task, data);
   const taskBreakerState = getTaskBreakerAvailability(task, data);
   const builderPreflightState = getBuilderPreflightAvailability(task, data);
   const latestPlanArtifact = taskBreakerState.latestPlanArtifact;
   const latestArchitectureArtifact = taskBreakerState.latestArchitectureArtifact;
   const latestBreakdownArtifact = taskBreakerState.latestBreakdownArtifact;
   const latestPreflightArtifact = builderPreflightState.latestPreflightArtifact;
+  const executionGateReason = getDevelopmentPackExecutionGateReason(task, data);
   const latestBreakdownDetail =
     state.selectedTaskBreakdownArtifact?.id === latestBreakdownArtifact?.id
       ? state.selectedTaskBreakdownArtifact
@@ -8420,10 +12601,26 @@ function renderTaskDetail(task, data) {
     preselectedPendingItem?.kind === 'approval' && preselectedPendingItem.sourceId
       ? data.approvals.find((approval) => approval.id === preselectedPendingItem.sourceId) || null
       : null;
-  const plannerDisabled = state.loading || state.mutating;
-  const architectDisabled = state.loading || state.mutating || !latestPlanArtifact;
+  const plannerDisabled = plannerState.disabled;
+  const architectDisabled = architectState.disabled;
   const taskBreakerDisabled = taskBreakerState.disabled;
   const builderPreflightDisabled = builderPreflightState.disabled;
+  const plannerBlockedReason = getPrimaryBlockedReason(
+    plannerState.reasons,
+    'planner readiness unavailable',
+  );
+  const architectBlockedReason = getPrimaryBlockedReason(
+    architectState.reasons,
+    'architect readiness unavailable',
+  );
+  const taskBreakerBlockedReason = getPrimaryBlockedReason(
+    taskBreakerState.reasons,
+    'task-breaker readiness unavailable',
+  );
+  const builderPreflightBlockedReason = getPrimaryBlockedReason(
+    builderPreflightState.reasons,
+    'builder preflight readiness unavailable',
+  );
   const worktreeApplyDisabled =
     state.loading ||
     state.mutating ||
@@ -8431,6 +12628,8 @@ function renderTaskDetail(task, data) {
   const worktreeClearDisabled = state.loading || state.mutating || !task.worktreeRef;
   const reviewerState = getReviewerAvailability(task, data);
   const commitPackageState = getCommitPackageAvailability(task, data);
+  const commitExecutionState = getCommitExecutionAvailability(task, data);
+  const releasePackageState = getReleasePackageAvailability(task, data);
   const closeOutState = getCloseOutAvailability(task, data);
   const showBuilderApprovalHint =
     Boolean(preselectedPendingItem) &&
@@ -8442,47 +12641,175 @@ function renderTaskDetail(task, data) {
   const showReleaseApprovalHint =
     preselectedPendingItem?.kind === 'approval' &&
     preselectedApproval?.allowedNextAction === 'release-ready';
+  const taskSnapshot = getTaskboardTaskSnapshot(task, data);
+  const pendingTaskApproval = pendingTaskApprovals[0] || null;
+  const pendingTaskDecision = pendingTaskInboxItems[0] || null;
+  const latestTaskArtifact = taskArtifacts[0] || null;
+  const taskboardDetailSignalRow = renderTaskboardOpsEntrySignalRow([
+    {
+      surface: 'taskboard',
+      label: '작업판',
+      status: getTaskLifecycleDisplay(task.lifecycleState),
+      tone: getTaskLifecycleTone(task.lifecycleState),
+    },
+    {
+      surface: 'logs',
+      label: '로그',
+      status: latestRun ? getRunStatusDisplay(latestRun.status) : 'run 없음',
+      tone: latestRun ? getRunTone(latestRun.status) : 'neutral',
+    },
+    {
+      surface: 'artifacts',
+      label: '보관',
+      status: latestTaskArtifact ? getArtifactTypeDisplay(latestTaskArtifact.type) : '증적 없음',
+      tone:
+        latestTaskArtifact?.type === 'close-out'
+          ? 'success'
+          : latestTaskArtifact
+            ? 'accent'
+            : 'neutral',
+    },
+    {
+      surface: 'decision-inbox',
+      label: '결재',
+      status: preferredTaskInboxItem
+        ? `${getInboxKindDisplay(preferredTaskInboxItem.kind)} ${getInboxStatusDisplay(preferredTaskInboxItem.status)}`
+        : pendingTaskApprovals.length > 0
+          ? `승인 ${pendingTaskApprovals.length}건`
+          : pendingTaskInboxItems.length > 0
+            ? `확인 ${pendingTaskInboxItems.length}건`
+            : '대기 없음',
+      tone: preferredTaskInboxItem
+        ? getInboxTone(preferredTaskInboxItem)
+        : pendingTaskApprovals.length > 0
+          ? 'accent'
+          : pendingTaskInboxItems.length > 0
+            ? 'warning'
+            : 'success',
+    },
+  ]);
+  const detailHoldTitle = task.flags?.waitingApproval
+    ? '승인선 대기'
+    : task.flags?.waitingDecision
+      ? '결정 대기'
+      : executionGateReason || task.flags?.blocked
+        ? '차단 상태'
+        : '보류 없음';
+  const detailHoldCopy = task.flags?.waitingApproval
+    ? `${getApprovalActionLabel(pendingTaskApproval?.allowedNextAction) || '현재 승인'} 안건이 아직 승인 대기입니다.`
+    : task.flags?.waitingDecision
+      ? `${pendingTaskDecision?.title || '현재 결정'} 처리가 남아 있습니다.`
+      : executionGateReason
+        ? executionGateReason
+        : task.flags?.blocked
+        ? [
+            builderPreflightBlockedReason,
+            reviewerState.reasons?.[0],
+            commitPackageState.summary.reasons?.[0],
+            commitExecutionState.summary.reasons?.[0],
+            releasePackageState.summary.reasons?.[0],
+            closeOutState.summary.reasons?.[0],
+          ].find(Boolean) || '현재 차단 사유를 아래 상세에서 확인합니다.'
+        : '현재 보류 사유는 없습니다.';
+  let detailNextTitle = '세부 실행 확인';
+  let detailNextCopy = '아래 상세 블록에서 현재 단계 제어와 provenance를 이어서 확인합니다.';
+
+  if (task.flags?.waitingApproval) {
+    detailNextTitle = '승인 처리';
+    detailNextCopy = '결재함이나 승인 패널에서 현재 승인선을 먼저 처리합니다.';
+  } else if (task.flags?.waitingDecision) {
+    detailNextTitle = '결정 처리';
+    detailNextCopy = '결재함에서 현재 결정을 먼저 처리합니다.';
+  } else if (closeOutState.summary.allowed) {
+    detailNextTitle = '종료 정리';
+    detailNextCopy = '종료 정리를 이어가며 안건 종료 보고를 닫을 수 있습니다.';
+  } else if (releasePackageState.summary.allowed) {
+    detailNextTitle = '릴리스 패키지';
+    detailNextCopy = '릴리스 패키지를 준비하고 다음 승인선을 확인합니다.';
+  } else if (commitExecutionState.summary.allowed) {
+    detailNextTitle = '로컬 커밋';
+    detailNextCopy = '승인된 커밋 패키지 기준으로 로컬 커밋을 이어갈 수 있습니다.';
+  } else if (commitPackageState.summary.allowed) {
+    detailNextTitle = '커밋 패키지';
+    detailNextCopy = '리뷰 통과 이후 커밋 패키지를 준비할 수 있습니다.';
+  } else if (reviewerState.summary.allowed) {
+    detailNextTitle = '리뷰어 실행';
+    detailNextCopy = '최신 변경 번들을 점검해 리뷰 보고를 남길 수 있습니다.';
+  } else if (!latestPlanArtifact) {
+    detailNextTitle = '플래너 실행';
+    detailNextCopy = '첫 계획을 만들며 실행 셀의 시작점을 엽니다.';
+  } else if (!latestArchitectureArtifact) {
+    detailNextTitle = '설계 실행';
+    detailNextCopy = '현재 계획 위에 설계 방향을 확정합니다.';
+  } else if (!latestBreakdownArtifact) {
+    detailNextTitle = '태스크 분해';
+    detailNextCopy = '설계 이후 첫 실행 단위로 태스크를 자릅니다.';
+  } else if (!latestPreflightArtifact) {
+    detailNextTitle = '사전 점검 준비';
+    detailNextCopy = '실행 전 preflight를 먼저 남겨 다음 승인선을 엽니다.';
+  }
 
   return `
     <aside class="detail-card">
       <div>
-        <p class="eyebrow">Task Detail</p>
+        <p class="eyebrow">태스크 상세</p>
         <h2>${escapeHtml(task.title)}</h2>
       </div>
-
-      <div class="detail-block">
-        <p class="detail-copy">${escapeHtml(task.intent || 'No intent recorded.')}</p>
-        <div class="token-row">
-          ${createToken(task.lifecycleState, 'neutral')}
-          ${createToken(`review:${task.review?.status || 'pending'}`, getReviewTone(task.review?.status))}
-          ${task.flags?.blocked ? createToken('blocked', 'danger') : ''}
-          ${task.flags?.waitingApproval ? createToken('waitingApproval', 'accent') : ''}
-          ${task.flags?.waitingDecision ? createToken('waitingDecision', 'warning') : ''}
-        </div>
-      </div>
+      ${renderNarrativeDeck({
+        eyebrow: '작업판 판단 요약',
+        heading: '현재 상태와 다음 실행을 먼저 보는 상세',
+        copy: task.intent || '기록된 의도가 없으면 현재 상태와 다음 실행만 먼저 확인합니다.',
+        tokens: [
+          createToken(getTaskLifecycleDisplay(task.lifecycleState), 'neutral'),
+          ...taskSnapshot.tokens,
+          task.flags?.blocked ? createToken('차단', 'danger') : '',
+          !task.flags?.blocked && executionGateReason ? createToken('실행차단', 'danger') : '',
+          task.flags?.waitingApproval ? createToken('승인대기', 'accent') : '',
+          task.flags?.waitingDecision ? createToken('결정대기', 'warning') : '',
+        ].filter(Boolean),
+        cards: [
+          {
+            label: '현재 상태',
+            title: getTaskLifecycleDisplay(task.lifecycleState),
+            copy: taskSnapshot.currentCopy,
+          },
+          {
+            label: '막힌 이유',
+            title: detailHoldTitle,
+            copy: detailHoldCopy,
+          },
+          {
+            label: '다음 실행',
+            title: detailNextTitle,
+            copy: detailNextCopy,
+          },
+        ],
+        wide: false,
+      })}
 
       <div class="detail-block">
         <div class="kv-grid">
           <div class="kv-item">
-            <p class="detail-key">Latest Run</p>
-            <strong>${escapeHtml(latestRun?.id || 'None')}</strong>
-            <p class="detail-copy">${latestRun ? `${escapeHtml(latestRun.status)} · ${escapeHtml(formatDate(latestRun.startedAt))}` : 'No run recorded'}</p>
+            <p class="detail-key">최신 run</p>
+            <strong>${escapeHtml(latestRun?.id || '없음')}</strong>
+            <p class="detail-copy">${latestRun ? `${escapeHtml(getRunStatusDisplay(latestRun.status))} · ${escapeHtml(formatDate(latestRun.startedAt))}` : '기록된 run이 없습니다.'}</p>
           </div>
           <div class="kv-item">
-            <p class="detail-key">Worktree</p>
-            <strong>${escapeHtml(task.worktreeRef || 'Not linked')}</strong>
+            <p class="detail-key">워크트리</p>
+            <strong>${escapeHtml(task.worktreeRef || '연결 안 됨')}</strong>
             <p class="detail-copy">${
               currentWorktreeOption
                 ? escapeHtml(formatWorktreeOptionLabel(currentWorktreeOption))
                 : task.worktreeRef
-                  ? 'Stored task.worktreeRef is outside the current detected linked worktree list.'
-                  : 'task.worktreeRef is not set.'
+                  ? '저장된 task.worktreeRef가 현재 탐지된 연결 워크트리 목록 밖에 있습니다.'
+                  : 'task.worktreeRef가 아직 설정되지 않았습니다.'
             }</p>
           </div>
         </div>
+        <div class="taskboard-detail-signal-row">${taskboardDetailSignalRow}</div>
         <div class="relation-strip">
           <div class="card-title-row">
-            <strong>task.worktreeRef vs active project_path</strong>
+            <strong>task.worktreeRef와 현재 project_path</strong>
             ${createToken(worktreeRelation.label, worktreeRelation.tone)}
           </div>
           <p class="detail-copy">${escapeHtml(worktreeRelation.copy)}</p>
@@ -8496,8 +12823,8 @@ function renderTaskDetail(task, data) {
                     data-action="switch-active-project-worktree"
                     data-path="${escapeHtml(worktreeRelation.switchOption.path)}"
                     ${state.loading || state.mutating ? 'disabled' : ''}
-                  >
-                    Switch Active Project
+                >
+                    활성 프로젝트 전환
                   </button>
                 </div>
               `
@@ -8505,7 +12832,7 @@ function renderTaskDetail(task, data) {
           }
         </div>
         <label class="field">
-          <span class="field-label">Detected Linked Worktrees</span>
+          <span class="field-label">탐지된 연결 워크트리</span>
           <select id="task-worktree-select" ${worktreeApplyDisabled ? 'disabled' : ''}>
             ${
               detectedWorktreeOptions.length > 0
@@ -8520,7 +12847,7 @@ function renderTaskDetail(task, data) {
                       `,
                     )
                     .join('')
-                : '<option value="">No linked worktrees detected</option>'
+                : '<option value="">탐지된 연결 워크트리 없음</option>'
             }
           </select>
         </label>
@@ -8532,7 +12859,7 @@ function renderTaskDetail(task, data) {
             data-id="${escapeHtml(task.id)}"
             ${worktreeApplyDisabled ? 'disabled' : ''}
           >
-            Apply Worktree
+            워크트리 적용
           </button>
           <button
             class="secondary-button"
@@ -8541,20 +12868,20 @@ function renderTaskDetail(task, data) {
             data-id="${escapeHtml(task.id)}"
             ${worktreeClearDisabled ? 'disabled' : ''}
           >
-            Clear Worktree
+            워크트리 지우기
           </button>
         </div>
         ${
           worktreeDetectionNotice
             ? `<p class="detail-copy">${escapeHtml(worktreeDetectionNotice)}</p>`
             : detectedWorktreeOptions.length > 0
-              ? '<p class="form-help">Stores task.worktreeRef only. release-package and close-out still require active project_path to resolve to the same linked worktree root.</p>'
-              : '<p class="detail-copy">No linked worktrees were detected from the current project_path.</p>'
+              ? '<p class="form-help">task.worktreeRef만 저장합니다. release-package와 close-out은 여전히 현재 project_path와 같은 연결 워크트리 루트로 풀려야 합니다.</p>'
+              : '<p class="detail-copy">현재 project_path에서 탐지된 연결 워크트리가 없습니다.</p>'
         }
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">Role Runs</p>
+        <p class="detail-key">역할 run</p>
         <div class="token-row">
           ${
             latestPlanArtifact
@@ -8579,14 +12906,14 @@ function renderTaskDetail(task, data) {
           ${
             taskBreakerState.pendingBlockingDecisionItemIds.length > 0
               ? createToken(
-                  `blocking decision:${taskBreakerState.pendingBlockingDecisionItemIds.length}`,
+                  `차단결정:${taskBreakerState.pendingBlockingDecisionItemIds.length}`,
                   'danger',
                 )
               : ''
           }
           ${
             taskBreakerState.pendingApprovalIds.length > 0
-              ? createToken(`pending approval:${taskBreakerState.pendingApprovalIds.length}`, 'accent')
+              ? createToken(`대기승인:${taskBreakerState.pendingApprovalIds.length}`, 'accent')
               : ''
           }
         </div>
@@ -8598,7 +12925,7 @@ function renderTaskDetail(task, data) {
             data-id="${escapeHtml(task.id)}"
             ${plannerDisabled ? 'disabled' : ''}
           >
-            Run Planner
+            플래너 실행
           </button>
           <button
             class="primary-button"
@@ -8607,7 +12934,7 @@ function renderTaskDetail(task, data) {
             data-id="${escapeHtml(task.id)}"
             ${architectDisabled ? 'disabled' : ''}
           >
-            Run Architect
+            설계 실행
           </button>
           <button
             class="primary-button"
@@ -8616,7 +12943,7 @@ function renderTaskDetail(task, data) {
             data-id="${escapeHtml(task.id)}"
             ${taskBreakerDisabled ? 'disabled' : ''}
           >
-            Run Task-Breaker
+            태스크 분해 실행
           </button>
           <button
             class="primary-button"
@@ -8625,40 +12952,54 @@ function renderTaskDetail(task, data) {
             data-id="${escapeHtml(task.id)}"
             ${builderPreflightDisabled ? 'disabled' : ''}
           >
-            Run Builder Preflight
+            빌더 preflight 실행
           </button>
           <p class="form-help">
             ${
+              plannerDisabled
+                ? `플래너는 ${escapeHtml(plannerBlockedReason)} 전까지 비활성입니다.`
+                : '플래너는 현재 안건 범위를 plan 아티팩트로 정리하고 architect를 다음 단계로 남깁니다.'
+            }
+          </p>
+          <p class="form-help">
+            ${
+              architectDisabled
+                ? `설계 실행은 ${escapeHtml(architectBlockedReason)} 전까지 비활성입니다.`
+                : `설계 실행은 ${escapeHtml(architectState.latestPlanArtifact?.id || '최신 plan 아티팩트')}를 읽고 architecture 아티팩트를 남긴 뒤 태스크 분해로 넘깁니다.`
+            }
+          </p>
+          <p class="form-help">
+            ${
               taskBreakerDisabled
-                ? `Task-Breaker stays disabled until ${escapeHtml(taskBreakerState.reasons.join('; '))}.`
-                : `Task-Breaker reads ${escapeHtml(latestPlanArtifact?.id || 'latest plan artifact')} and ${escapeHtml(latestArchitectureArtifact?.id || 'latest architecture artifact')}, writes a breakdown artifact, and only preselects a blocking Decision Inbox item without leaving Artifacts.`
+                ? `태스크 분해는 ${escapeHtml(taskBreakerBlockedReason)} 전까지 비활성입니다.`
+                : `태스크 분해는 ${escapeHtml(latestPlanArtifact?.id || '최신 plan 아티팩트')}와 ${escapeHtml(latestArchitectureArtifact?.id || '최신 architecture 아티팩트')}를 읽고 breakdown 아티팩트를 쓴 뒤, 아티팩트 표면을 벗어나지 않은 채 차단 결정함 항목만 미리 고릅니다.`
             }
           </p>
           <p class="form-help">
             ${
               builderPreflightDisabled
-                ? `Builder preflight stays disabled until ${escapeHtml(builderPreflightState.reasons.join('; '))}.`
-                : `Builder preflight reads ${escapeHtml(builderPreflightState.latestPlanArtifact?.id || 'latest plan artifact')}, ${escapeHtml(builderPreflightState.latestArchitectureArtifact?.id || 'latest architecture artifact')}, and ${escapeHtml(builderPreflightState.latestBreakdownArtifact?.id || 'latest breakdown artifact')}, then writes a no-write preflight artifact and leaves reviewer as an explicit downstream step.`
+                ? `빌더 preflight는 ${escapeHtml(builderPreflightBlockedReason)} 전까지 비활성입니다.`
+                : `빌더 preflight는 ${escapeHtml(builderPreflightState.latestPlanArtifact?.id || '최신 plan 아티팩트')}, ${escapeHtml(builderPreflightState.latestArchitectureArtifact?.id || '최신 architecture 아티팩트')}, ${escapeHtml(builderPreflightState.latestBreakdownArtifact?.id || '최신 breakdown 아티팩트')}를 읽고 no-write preflight 아티팩트를 남긴 뒤 리뷰어를 명시적 후속 단계로 남깁니다.`
             }
           </p>
         </div>
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">Generated Subtasks</p>
+        <p class="detail-key">생성된 하위 작업</p>
         ${
           latestBreakdownArtifact && parsedBreakdown
             ? `
               <div class="token-row">
                 ${createToken(`source:${latestBreakdownArtifact.id}`, 'neutral')}
-                ${createToken('derived view', 'neutral')}
+                ${createToken('파생 뷰', 'neutral')}
                 ${
                   preselectedPendingItem
-                    ? createToken(`preselected inbox:${preselectedPendingItem.id}`, 'warning')
+                    ? createToken(`선택된 결정함:${preselectedPendingItem.id}`, 'warning')
                     : ''
                 }
               </div>
-              <p class="detail-copy">Best-effort parsing of the latest breakdown artifact. Raw markdown remains available on Artifacts.</p>
+              <p class="detail-copy">최신 breakdown 아티팩트를 best-effort로 파싱했습니다. 원문 markdown은 아티팩트 표면에 그대로 남습니다.</p>
               ${renderStructuredBreakdown(parsedBreakdown, {
                 includeExecutionBoundary: false,
                 includeExpectedArtifacts: false,
@@ -8669,42 +13010,42 @@ function renderTaskDetail(task, data) {
               ? `
                 <div class="token-row">
                   ${createToken(`source:${latestBreakdownArtifact.id}`, 'neutral')}
-                  ${createToken('raw fallback only', 'warning')}
+                  ${createToken('원문 대체만 가능', 'warning')}
                 </div>
-                <p class="detail-copy">The latest breakdown artifact could not be structured. Open the raw markdown from Artifacts for the full content.</p>
+                <p class="detail-copy">최신 breakdown 아티팩트를 구조화하지 못했습니다. 전체 내용은 아티팩트 표면의 원문 markdown에서 확인합니다.</p>
               `
-              : '<p class="detail-copy">No breakdown artifact yet. Run task-breaker after plan and architecture artifacts are ready.</p>'
+              : '<p class="detail-copy">아직 breakdown 아티팩트가 없습니다. plan과 architecture 아티팩트가 준비된 뒤 태스크 분해를 실행합니다.</p>'
         }
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">Latest Builder Preflight</p>
+        <p class="detail-key">최신 빌더 preflight</p>
         ${
           latestPreflightArtifact && parsedPreflight
             ? `
               <div class="token-row">
                 ${createToken(`source:${latestPreflightArtifact.id}`, 'neutral')}
-                ${createToken('compact summary', 'neutral')}
-                ${createToken(`target files:${parsedPreflight.targetFiles.length}`, 'neutral')}
-                ${createToken(`risks:${parsedPreflight.risks.length}`, parsedPreflight.risks.length > 0 ? 'warning' : 'success')}
+                ${createToken('간결 요약', 'neutral')}
+                ${createToken(`대상파일:${parsedPreflight.targetFiles.length}`, 'neutral')}
+                ${createToken(`위험:${parsedPreflight.risks.length}`, parsedPreflight.risks.length > 0 ? 'warning' : 'success')}
               </div>
-              <p class="detail-copy">Best-effort compact summary only. Open Artifacts for the full structured preview and raw markdown.</p>
-              ${renderCompactList('Target Files', parsedPreflight.targetFiles)}
-              ${renderCompactList('Risks', parsedPreflight.risks)}
-              ${renderCompactList('Verification Plan', parsedPreflight.verificationPlan)}
+              <p class="detail-copy">best-effort 간결 요약만 제공합니다. 전체 구조화 미리보기와 원문 markdown은 아티팩트 표면에서 확인합니다.</p>
+              ${renderCompactList('대상 파일', parsedPreflight.targetFiles)}
+              ${renderCompactList('위험 요소', parsedPreflight.risks)}
+              ${renderCompactList('검증 계획', parsedPreflight.verificationPlan)}
               ${renderBuilderLiveMutationApprovalPanel(task, data)}
             `
             : latestPreflightArtifact
               ? `
                 <div class="token-row">
                   ${createToken(`source:${latestPreflightArtifact.id}`, 'neutral')}
-                  ${createToken('raw fallback only', 'warning')}
+                  ${createToken('원문 대체만 가능', 'warning')}
                 </div>
-                <p class="detail-copy">Structured parsing failed. Open Artifacts for the raw markdown fallback.</p>
+                <p class="detail-copy">구조화 파싱에 실패했습니다. 원문 markdown 대체는 아티팩트 표면에서 확인합니다.</p>
                 ${renderBuilderLiveMutationApprovalPanel(task, data)}
               `
-              : `
-                <p class="detail-copy">No builder preflight artifact yet. Run builder preflight after plan, architecture, and breakdown artifacts are ready.</p>
+            : `
+                <p class="detail-copy">아직 빌더 preflight 아티팩트가 없습니다. plan, architecture, breakdown 아티팩트가 준비된 뒤 빌더 preflight를 실행합니다.</p>
                 ${renderBuilderLiveMutationApprovalPanel(task, data)}
               `
         }
@@ -8719,24 +13060,24 @@ function renderTaskDetail(task, data) {
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">Review</p>
+        <p class="detail-key">리뷰</p>
         <div class="pill-list">
-          ${createToken(`required:${task.review?.required ? 'yes' : 'no'}`, task.review?.required ? 'warning' : 'neutral')}
-          ${createToken(`status:${task.review?.status || 'pending'}`, getReviewTone(task.review?.status))}
-          ${createToken(`verification:${task.review?.verificationArtifactIds?.length || 0}`, 'neutral')}
+          ${createToken(`필수:${task.review?.required ? '예' : '아니오'}`, task.review?.required ? 'warning' : 'neutral')}
+          ${createToken(`상태:${getReviewStatusDisplay(task.review?.status || 'pending')}`, getReviewTone(task.review?.status))}
+          ${createToken(`검증:${task.review?.verificationArtifactIds?.length || 0}`, 'neutral')}
           ${
             reviewerState.summary.sourceBuilderRunId
-              ? createToken(`source run:${reviewerState.summary.sourceBuilderRunId}`, 'neutral')
+              ? createToken(`소스run:${reviewerState.summary.sourceBuilderRunId}`, 'neutral')
               : ''
           }
         </div>
-        <p class="detail-copy">${escapeHtml(task.review?.resolution?.note || 'No review resolution note recorded.')}</p>
+        <p class="detail-copy">${escapeHtml(task.review?.resolution?.note || '기록된 리뷰 해결 메모가 없습니다.')}</p>
         <div class="guard-summary">
           <div class="token-row">
             ${
               reviewerState.summary.allowed
-                ? createToken('reviewer:ready', 'success')
-                : createToken('reviewer:blocked', 'warning')
+                ? createToken('리뷰어:준비됨', 'success')
+                : createToken('리뷰어:차단', 'warning')
             }
             ${
               reviewerState.summary.preflightArtifactId
@@ -8758,56 +13099,56 @@ function renderTaskDetail(task, data) {
                 ? createToken(`diff:${reviewerState.summary.diffArtifactId}`, 'neutral')
                 : ''
             }
-            ${
-              reviewerState.summary.existingReviewerRunId
-                ? createToken(`existing reviewer:${reviewerState.summary.existingReviewerRunId}`, 'warning')
-                : ''
-            }
-          </div>
           ${
-            reviewerState.reasons.length > 0
-              ? renderReasonList('Reviewer Disabled By', reviewerState.reasons)
-              : '<p class="detail-copy">Reviewer can inspect the latest builder live mutation bundle without any new code mutation.</p>'
+            reviewerState.summary.existingReviewerRunId
+              ? createToken(`기존리뷰어:${reviewerState.summary.existingReviewerRunId}`, 'warning')
+              : ''
           }
-          <div class="form-actions form-actions-inline">
+        </div>
+        ${
+          reviewerState.reasons.length > 0
+            ? renderReasonList('리뷰어 비활성 사유', reviewerState.reasons)
+            : '<p class="detail-copy">리뷰어는 새 코드 변경 없이 최신 builder 라이브 변경 번들을 점검할 수 있습니다.</p>'
+        }
+        <div class="form-actions form-actions-inline">
             <button
               class="primary-button"
               type="button"
               data-action="run-reviewer"
-              data-id="${escapeHtml(task.id)}"
-              ${reviewerState.disabled ? 'disabled' : ''}
-            >
-              Run Reviewer
-            </button>
-            <p class="form-help">
-              ${
-                reviewerState.disabled
-                  ? `Run Reviewer stays disabled until ${escapeHtml(reviewerState.reasons.join('; '))}.`
-                  : `Run Reviewer reads builder run ${escapeHtml(reviewerState.summary.sourceBuilderRunId)} and writes a terminal review artifact without commit or release actions.`
-              }
-            </p>
-          </div>
+            data-id="${escapeHtml(task.id)}"
+            ${reviewerState.disabled ? 'disabled' : ''}
+          >
+            리뷰어 실행
+          </button>
+          <p class="form-help">
+            ${
+              reviewerState.disabled
+                ? `리뷰어 실행은 ${escapeHtml(reviewerState.reasons.join('; '))} 전까지 비활성 상태입니다.`
+                : `리뷰어 실행은 builder run ${escapeHtml(reviewerState.summary.sourceBuilderRunId)}을 읽고 commit이나 release 없이 최종 review 아티팩트를 기록합니다.`
+            }
+          </p>
         </div>
       </div>
+    </div>
 
-      <div class="detail-block">
-        <p class="detail-key">Commit Package</p>
-        <div class="pill-list">
-          ${createToken(
-            `ready:${commitPackageState.summary.allowed ? 'yes' : 'no'}`,
-            commitPackageState.summary.allowed ? 'success' : 'warning',
-          )}
-          ${createToken(
-            `commit approval:${getCommitApprovalDisplayStatus(commitPackageState.summary)}`,
-            getApprovalDisplayTone(getCommitApprovalDisplayStatus(commitPackageState.summary)),
-          )}
-          ${
-            commitPackageState.summary.currentCommitPackageArtifactId
-              ? createToken(
-                  `current package:${commitPackageState.summary.currentCommitPackageArtifactId}`,
-                  'neutral',
-                )
-              : ''
+    <div class="detail-block">
+      <p class="detail-key">커밋 패키지</p>
+      <div class="pill-list">
+        ${createToken(
+          `준비:${commitPackageState.summary.allowed ? '예' : '아니오'}`,
+          commitPackageState.summary.allowed ? 'success' : 'warning',
+        )}
+        ${createToken(
+          `커밋승인:${getApprovalStatusDisplay(getCommitApprovalDisplayStatus(commitPackageState.summary))}`,
+          getApprovalDisplayTone(getCommitApprovalDisplayStatus(commitPackageState.summary)),
+        )}
+        ${
+          commitPackageState.summary.currentCommitPackageArtifactId
+            ? createToken(
+                `현재패키지:${commitPackageState.summary.currentCommitPackageArtifactId}`,
+                'neutral',
+              )
+            : ''
           }
         </div>
         ${renderCommitPackagePanel(task, data, { currentSurface: 'taskboard' })}
@@ -8815,40 +13156,40 @@ function renderTaskDetail(task, data) {
           showCommitApprovalHint
             ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
                 helpText:
-                  'Approval actions stay on the current surface and mirror the server snapshot as-is.',
+                  '승인 액션은 현재 표면에 남고 서버 스냅샷을 그대로 따릅니다.',
               })
             : ''
         }
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">Release Package</p>
+        <p class="detail-key">릴리스 패키지</p>
         ${renderReleasePackagePanel(task, data, { currentSurface: 'taskboard' })}
         ${
           showReleaseApprovalHint
             ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
                 helpText:
-                  'Approval actions stay on the current surface and mirror the server snapshot as-is. Push, publish, and external release remain disabled.',
+                  '승인 액션은 현재 표면에 남고 서버 스냅샷을 그대로 따릅니다. push, publish, external release는 계속 비활성 상태입니다.',
               })
             : ''
         }
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">Close Out</p>
+        <p class="detail-key">종료 정리</p>
         <div class="pill-list">
           ${createToken(
-            `ready:${closeOutState.summary.allowed ? 'yes' : 'no'}`,
+            `준비:${closeOutState.summary.allowed ? '예' : '아니오'}`,
             closeOutState.summary.allowed ? 'success' : 'warning',
           )}
           ${createToken(
-            `release approval:${getCloseOutApprovalDisplayStatus(closeOutState.summary)}`,
+            `릴리스승인:${getApprovalStatusDisplay(getCloseOutApprovalDisplayStatus(closeOutState.summary))}`,
             getApprovalDisplayTone(getCloseOutApprovalDisplayStatus(closeOutState.summary)),
           )}
           ${
             closeOutState.summary.existingCloseOutArtifactId
               ? createToken(
-                  `existing close-out:${closeOutState.summary.existingCloseOutArtifactId}`,
+                  `기존종료정리:${closeOutState.summary.existingCloseOutArtifactId}`,
                   closeOutState.summary.conflict ? 'warning' : 'neutral',
                 )
               : ''
@@ -8858,28 +13199,28 @@ function renderTaskDetail(task, data) {
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">Approvals</p>
+        <p class="detail-key">승인 기록</p>
         ${
           taskApprovals.length > 0
             ? taskApprovals
                 .map(
                   (approval) => `
                     <div class="kv-item">
-                      <strong>${escapeHtml(approval.allowedNextAction || approval.scope)}</strong>
+                      <strong>${escapeHtml(getApprovalActionLabel(approval.allowedNextAction) || approval.scope)}</strong>
                       <div class="token-row">
-                        ${createToken(approval.status, getApprovalTone(approval.status))}
-                        ${createToken(`scope:${approval.scope}`, 'neutral')}
+                        ${createToken(getApprovalStatusDisplay(approval.status), getApprovalTone(approval.status))}
+                        ${createToken(`범위:${approval.scope}`, 'neutral')}
                       </div>
                     </div>
                   `,
                 )
                 .join('')
-            : '<p class="detail-copy">No approval records linked to this task.</p>'
+            : '<p class="detail-copy">이 태스크에 연결된 승인 기록이 없습니다.</p>'
         }
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">Decision History</p>
+        <p class="detail-key">결정 기록</p>
         ${
           taskInboxItems.length > 0
             ? taskInboxItems
@@ -8888,25 +13229,25 @@ function renderTaskDetail(task, data) {
                     <div class="kv-item">
                       <strong>${escapeHtml(item.title)}</strong>
                       <div class="token-row">
-                        ${createToken(item.kind, getInboxTone(item))}
-                        ${createToken(item.status, item.status === 'pending' ? 'warning' : 'success')}
-                        ${item.blocksTask ? createToken('blocksTask', 'danger') : ''}
-                        ${item.id === selectedInboxItem?.id ? createToken('preselected', 'accent') : ''}
+                        ${createToken(getInboxKindDisplay(item.kind), getInboxTone(item))}
+                        ${createToken(getInboxStatusDisplay(item.status), item.status === 'pending' ? 'warning' : 'success')}
+                        ${item.blocksTask ? createToken('태스크차단', 'danger') : ''}
+                        ${item.id === selectedInboxItem?.id ? createToken('미리선택', 'accent') : ''}
                       </div>
-                      <p class="detail-copy">${escapeHtml(item.prompt || item.resolution?.note || 'No prompt recorded.')}</p>
+                      <p class="detail-copy">${escapeHtml(item.prompt || item.resolution?.note || '기록된 안내 문구가 없습니다.')}</p>
                     </div>
                   `,
                 )
                 .join('')
-            : '<p class="detail-copy">No decision inbox items linked to this task.</p>'
+            : '<p class="detail-copy">이 태스크에 연결된 결정함 항목이 없습니다.</p>'
         }
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">Linked Outputs</p>
+        <p class="detail-key">연결된 출력</p>
         <div class="token-row">
-          ${createToken(`runs:${taskRuns.length}`, 'neutral')}
-          ${createToken(`artifacts:${taskArtifacts.length}`, 'neutral')}
+          ${createToken(`run수:${taskRuns.length}`, 'neutral')}
+          ${createToken(`아티팩트수:${taskArtifacts.length}`, 'neutral')}
         </div>
       </div>
     </aside>
@@ -8916,8 +13257,8 @@ function renderTaskDetail(task, data) {
 function renderLogs(data) {
   if (!data.activeProject) {
     elements.surfaces.logs.innerHTML = renderProjectGateSurface(
-      'Logs Unavailable',
-      getProjectGateCopy(data, 'Logs'),
+      '로그 사용 불가',
+      getProjectGateCopy(data, '로그'),
     );
     return;
   }
@@ -8926,28 +13267,145 @@ function renderLogs(data) {
   const selectedTask = selectedRun
     ? data.taskMap.get(selectedRun.taskId)
     : data.taskMap.get(state.selectedTaskId) || null;
+  const selectedMission = data.missionMap.get(state.selectedMissionId) || null;
   const runBundle = selectedRun ? getRunArtifactBundle(selectedRun, data) : null;
   const logs = state.selectedRunLogs?.logs || [];
   const logText =
     logs.length > 0
       ? logs.map((entry) => `[${entry.ts}] ${entry.level.toUpperCase()} ${entry.message}`).join('\n')
-      : 'No log records available for this run.';
+      : '이 run에 대한 로그 기록이 없습니다.';
+  const logsDetailSnapshot = getLogsDetailSnapshot(selectedRun, selectedTask, runBundle, logs);
+  const selectedTaskApprovals = selectedTask
+    ? data.approvals.filter((approval) => approval.taskId === selectedTask.id && approval.status === 'pending')
+    : [];
+  const selectedTaskInboxItems = selectedTask
+    ? data.inboxItems.filter((item) => item.taskId === selectedTask.id && item.status === 'pending')
+    : [];
+  const selectedTaskPendingDecisions = selectedTaskInboxItems.filter((item) => item.kind !== 'approval');
+  const logsPreferredInboxItem = selectedTask ? getPreferredTaskInboxItem(selectedTask.id, data) : null;
+  const logsOpsEntrySignals = getAdvancedOpsEntrySignals({
+    data,
+    task: selectedTask,
+    currentRun: selectedRun,
+    currentInboxItem: logsPreferredInboxItem,
+    pendingApprovalCount: selectedTaskApprovals.length,
+    pendingDecisionCount: selectedTaskPendingDecisions.length,
+  });
+  const logsOpsEntrySignalRow = renderAdvancedOpsEntrySignalRow(logsOpsEntrySignals);
+  const logsDetailSignalRow = `
+    <div class="logs-detail-signal-row">
+      ${logsOpsEntrySignalRow}
+    </div>
+  `;
+  const logsImmediateCard = selectedTaskApprovals.length > 0
+    ? {
+        title: `결재함에서 승인 ${selectedTaskApprovals.length}건 처리`,
+        copy: '현재 run보다 먼저 사람이 승인해야 할 게이트가 있어 지금은 결재함을 먼저 여는 편이 빠릅니다.',
+        button: {
+          action: 'open-surface',
+          label: '결재함 열기',
+          targetSurface: 'decision-inbox',
+          disabled: state.loading || state.mutating,
+        },
+      }
+    : selectedTaskInboxItems.length > 0
+      ? {
+          title: `결재함에서 확인 ${selectedTaskInboxItems.length}건 처리`,
+          copy: '현재 run보다 먼저 사람이 정리해야 할 결정이 남아 있어 결재함으로 먼저 이동하는 편이 빠릅니다.',
+          button: {
+            action: 'open-surface',
+            label: '결재함 열기',
+            targetSurface: 'decision-inbox',
+            disabled: state.loading || state.mutating,
+          },
+        }
+      : selectedTask
+        ? {
+            title: `${selectedTask.title} 열기`,
+            copy: '현재 run이 걸린 실행 셀로 돌아가면 승인선과 다음 액션을 바로 이어서 볼 수 있습니다.',
+            button: {
+              action: 'open-taskboard-task',
+              id: selectedTask.id,
+              label: '영향 셀 열기',
+              disabled: state.loading || state.mutating,
+            },
+          }
+      : selectedRun
+        ? {
+            title: `${selectedRun.id} 원문 보기`,
+            copy: '지금은 오른쪽 상세에서 이 run의 상태와 원문 로그를 먼저 읽으면 됩니다.',
+            button: null,
+          }
+      : selectedRun
+        ? {
+            title: `${selectedRun.id} 원문 보기`,
+            copy: '지금은 오른쪽 상세에서 이 run의 상태와 원문 로그를 먼저 읽으면 됩니다.',
+            button: null,
+          }
+        : {
+            title: 'run 하나 고르기',
+            copy: '왼쪽 run 목록에서 한 건을 고르면 오른쪽 판단과 원문 로그가 바로 채워집니다.',
+            button: null,
+          };
+  const logsViewportStrip = renderViewportHandoffStrip({
+    eyebrow: '로그 인계선',
+    heading: '로그실 아래는 run 목록과 현재 run으로 나눕니다',
+    copy:
+      '왼쪽은 run 목록을 보고, 오른쪽은 선택된 run의 현재 상태와 다음 확인만 먼저 봅니다.',
+    tokens: [
+      selectedMission ? createToken(`안건:${selectedMission.id}`, 'neutral') : '',
+      selectedTask ? createToken(`실행셀:${selectedTask.id}`, 'accent') : createToken('실행셀:대기', 'warning'),
+      createToken(`바로:${selectedTask ? '영향 셀' : selectedRun ? '현재 run' : 'run 선택'}`, selectedTask ? 'accent' : 'neutral'),
+    ].filter(Boolean),
+    cards: [
+      {
+        label: '왼쪽 목록',
+        title: 'run 목록 + 현재 상태',
+        copy: '왼쪽에서 run을 고르고, 상태와 다음 확인만 짧게 비교합니다.',
+      },
+      {
+        label: '오른쪽 판단',
+        title: selectedRun ? '현재 run + 원문 확인' : '선택 run 대기',
+        copy: selectedRun
+          ? '오른쪽 상세에서 현재 run, 다음 확인, 연결선, 원문 로그를 순서대로 확인합니다.'
+          : 'run을 하나 고르면 오른쪽 판단과 원문 로그가 함께 열립니다.',
+      },
+      {
+        label: '지금 열기',
+        title: logsImmediateCard.title,
+        copy: logsImmediateCard.copy,
+        emphasis: true,
+        button: logsImmediateCard.button,
+      },
+    ],
+  });
 
   const runList = data.runs.length
     ? data.runs
         .map((run) => {
           const runTask = data.taskMap.get(run.taskId);
+          const runSnapshot = getRunListSnapshot(run, runTask, data);
 
           return `
-            <button class="list-button ${run.id === selectedRun?.id ? 'is-selected' : ''}" type="button" data-action="select-run" data-id="${escapeHtml(run.id)}">
-              <div class="card-title-row">
-                <strong>${escapeHtml(run.id)}</strong>
-                ${createToken(run.status, getRunTone(run.status))}
+            <button class="card list-button ops-list-button ${run.id === selectedRun?.id ? 'is-selected' : ''}" type="button" data-action="select-run" data-id="${escapeHtml(run.id)}">
+              <div class="ops-list-head">
+                <div class="card-title-row card-title-row-tight mission-row-head">
+                  <strong>${escapeHtml(runSnapshot.title)}</strong>
+                  ${createToken(getRunStatusDisplay(run.status), getRunTone(run.status))}
+                </div>
+                <p class="list-copy list-copy-compact ops-list-meta">${escapeHtml(runSnapshot.metaCopy)}</p>
               </div>
-              <p class="list-copy">${escapeHtml(runTask?.title || 'Unknown task')}</p>
-              <div class="token-row">
-                ${createToken(`started:${formatDate(run.startedAt)}`, 'neutral')}
-                ${run.finishedAt ? createToken(`finished:${formatDate(run.finishedAt)}`, 'neutral') : ''}
+              <div class="ops-list-summary">
+                <p class="ops-list-label">현재 상태</p>
+                <p class="list-copy list-copy-compact">${escapeHtml(runSnapshot.currentCopy)}</p>
+              </div>
+              <div class="ops-list-summary">
+                <p class="ops-list-label">다음 확인</p>
+                <p class="list-copy list-copy-compact ops-list-next">${escapeHtml(runSnapshot.nextCopy)}</p>
+              </div>
+              <div class="token-row token-row-compact">
+                ${runSnapshot.tokens.join('')}
+                ${run.finishedAt ? createToken(`종료:${formatDate(run.finishedAt)}`, 'neutral') : ''}
               </div>
             </button>
           `;
@@ -8955,79 +13413,135 @@ function renderLogs(data) {
         .join('')
     : `
       <div class="empty-state">
-        <strong>No runs yet</strong>
-        <p>Start task execution before using the Logs surface.</p>
+        <strong>아직 run 없음</strong>
+        <p>로그를 보기 전에 태스크 실행을 시작합니다.</p>
       </div>
     `;
 
+  const logsDeck = renderOpsCenterDeck({
+    entryFrame: true,
+    heading: '선택된 run만 세 칸으로 요약하는 로그실',
+    copy: '아래 deck은 현재 run과 다음 확인만 먼저 요약하고, 원문 확인은 오른쪽 상세로 넘깁니다.',
+    tokens: [
+      selectedMission ? createToken(`안건:${selectedMission.id}`, 'neutral') : '',
+      selectedTask ? createToken(`실행셀:${selectedTask.id}`, 'accent') : createToken('실행셀:대기', 'warning'),
+      createToken(`run:${selectedRun?.id || data.runs.length}`, 'neutral'),
+    ],
+    signalRow: logsOpsEntrySignalRow,
+    cards: [
+      {
+        label: '현재 run',
+        title: selectedRun ? selectedRun.id : 'run 선택 대기',
+        copy: selectedRun
+          ? logsDetailSnapshot.currentCopy
+          : '왼쪽 목록에서 run을 고르면 현재 run 판단이 바로 채워집니다.',
+      },
+      {
+        label: '다음 확인',
+        title: selectedRun ? logsDetailSnapshot.nextTitle : 'run 하나 고르기',
+        copy: selectedRun
+          ? logsDetailSnapshot.nextCopy
+          : '왼쪽 목록에서 run을 하나 고르면 오른쪽 판단과 원문 로그가 함께 열립니다.',
+      },
+      {
+        label: '현재 맥락',
+        title: selectedTask ? selectedTask.title : '실행 셀 대기',
+        copy: selectedTask
+          ? `${getTaskLifecycleDisplay(selectedTask.lifecycleState)} 상태의 실행 셀과 연결돼 있습니다.`
+          : '아직 연결된 실행 셀 맥락이 보이지 않습니다.',
+      },
+    ],
+  });
+
   elements.surfaces.logs.innerHTML = `
-    <div class="surface-grid surface-grid-wide">
+    <div class="stack">
+      ${logsViewportStrip}
+      ${logsDeck}
+      <div class="surface-grid surface-grid-wide">
       <section class="surface-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Logs</h2>
-            <p class="panel-copy">Advanced operator logs for run-level execution output, linkage, and gate context.</p>
-          </div>
-        </div>
-        ${renderAdvancedOpsNotice('Logs remains an advanced inspection surface. Mission, Council, Execution, and Deliverables stay the primary product path.')}
         <div class="list-column">${runList}</div>
       </section>
       <aside class="detail-card">
         <div>
-          <p class="eyebrow">Run Detail</p>
-          <h2>${escapeHtml(selectedRun?.id || 'No run selected')}</h2>
+          <p class="eyebrow">run 기록</p>
+          <h2>${escapeHtml(selectedRun?.id || '선택된 run 없음')}</h2>
         </div>
+        ${renderNarrativeDeck({
+          eyebrow: '관제실 판단 요약',
+          heading: '현재 run과 다음 확인을 먼저 보는 로그 상세',
+          copy: selectedTask?.title || 'run을 고르면 현재 run과 다음 확인만 먼저 판단합니다.',
+          tokens: logsDetailSnapshot.tokens,
+          cards: [
+            {
+              label: '현재 상태',
+              title: logsDetailSnapshot.currentTitle,
+              copy: logsDetailSnapshot.currentCopy,
+            },
+            {
+              label: '핵심 이유',
+              title: logsDetailSnapshot.reasonTitle,
+              copy: logsDetailSnapshot.reasonCopy,
+            },
+            {
+              label: '다음 확인',
+              title: logsDetailSnapshot.nextTitle,
+              copy: logsDetailSnapshot.nextCopy,
+            },
+          ],
+          wide: false,
+        })}
         ${
           selectedRun
             ? `
-              <div class="detail-block">
-                <div class="token-row">
-                  ${createToken(selectedRun.status, getRunTone(selectedRun.status))}
-                  ${selectedTask ? createToken(selectedTask.lifecycleState, 'neutral') : ''}
-                  ${selectedTask?.review ? createToken(`review:${selectedTask.review.status}`, getReviewTone(selectedTask.review.status)) : ''}
-                  ${selectedTask?.flags?.blocked ? createToken('blocked', 'danger') : ''}
-                  ${selectedTask?.flags?.waitingApproval ? createToken('waitingApproval', 'accent') : ''}
-                  ${selectedTask?.flags?.waitingDecision ? createToken('waitingDecision', 'warning') : ''}
+              <div class="detail-block detail-block-compact">
+                <p class="detail-key">run 기본 정보</p>
+                <div class="token-row token-row-compact">
+                  ${createToken(getRunStatusDisplay(selectedRun.status), getRunTone(selectedRun.status))}
+                  ${selectedTask ? createToken(getTaskLifecycleDisplay(selectedTask.lifecycleState), 'neutral') : ''}
+                  ${selectedTask?.review ? createToken(`리뷰:${getReviewStatusDisplay(selectedTask.review.status)}`, getReviewTone(selectedTask.review.status)) : ''}
+                  ${selectedTask?.flags?.blocked ? createToken('차단', 'danger') : ''}
+                  ${selectedTask?.flags?.waitingApproval ? createToken('승인대기', 'accent') : ''}
+                  ${selectedTask?.flags?.waitingDecision ? createToken('결정대기', 'warning') : ''}
                 </div>
-                <p class="detail-copy">${escapeHtml(selectedTask?.title || 'Unknown task')}</p>
-                <p class="detail-copy mono">${escapeHtml(selectedRun.logPath)}</p>
-              </div>
-              <div class="detail-block">
-                <p class="detail-key">Timestamps</p>
-                <div class="kv-grid">
-                  <div class="kv-item">
+                ${logsDetailSignalRow}
+                <div class="kv-grid kv-grid-compact">
+                  <div class="kv-item kv-item-compact">
+                    <strong>${escapeHtml(selectedTask?.title || '알 수 없는 태스크')}</strong>
+                    <p class="detail-copy detail-copy-compact">연결 실행 셀</p>
+                  </div>
+                  <div class="kv-item kv-item-compact">
                     <strong>${escapeHtml(formatDate(selectedRun.startedAt))}</strong>
-                    <p class="detail-copy">Started</p>
-                  </div>
-                  <div class="kv-item">
-                    <strong>${escapeHtml(formatDate(selectedRun.finishedAt))}</strong>
-                    <p class="detail-copy">Finished</p>
+                    <p class="detail-copy detail-copy-compact">
+                      ${escapeHtml(formatDate(selectedRun.finishedAt))} 종료
+                    </p>
                   </div>
                 </div>
+                <p class="detail-copy detail-copy-compact mono">${escapeHtml(selectedRun.logPath)}</p>
               </div>
-              <div class="detail-block">
-                <p class="detail-key">Run Linkage</p>
-                <p class="detail-copy">Client-first links from the selected run to its input preflight and saved mutation artifacts.</p>
+              <div class="detail-block detail-block-compact">
+                <p class="detail-key">보고 연결선</p>
+                <p class="detail-copy detail-copy-compact">실행과 증적 연결만 짧게 봅니다.</p>
                 ${
                   runBundle
                     ? renderRelationStrip(runBundle) ||
-                      '<p class="detail-copy">No direct artifact linkage recorded for this run.</p>'
-                    : '<p class="detail-copy">No direct artifact linkage recorded for this run.</p>'
+                      '<p class="detail-copy">이 run에 직접 연결된 아티팩트 기록이 없습니다.</p>'
+                    : '<p class="detail-copy">이 run에 직접 연결된 아티팩트 기록이 없습니다.</p>'
                 }
               </div>
               <div class="detail-block">
-                <p class="detail-key">Output</p>
-                <pre class="log-viewer">${escapeHtml(logText)}</pre>
+                <p class="detail-key">실행 원문 로그</p>
+                <pre class="log-viewer log-viewer-compact">${escapeHtml(logText)}</pre>
               </div>
             `
             : `
               <div class="empty-state">
-                <strong>No run selected</strong>
-                <p>Select a run from the left column to inspect its output.</p>
+                <strong>선택된 run 없음</strong>
+                <p>왼쪽 목록에서 run을 골라 출력 내용을 확인합니다.</p>
               </div>
             `
         }
       </aside>
+      </div>
     </div>
   `;
 }
@@ -9035,8 +13549,8 @@ function renderLogs(data) {
 function renderArtifacts(data) {
   if (!data.activeProject) {
     elements.surfaces.artifacts.innerHTML = renderProjectGateSurface(
-      'Artifacts Unavailable',
-      getProjectGateCopy(data, 'Artifacts'),
+      '아티팩트 사용 불가',
+      getProjectGateCopy(data, '아티팩트'),
     );
     return;
   }
@@ -9120,154 +13634,332 @@ function renderArtifacts(data) {
   const showReleaseApprovalHint =
     preselectedPendingItem?.kind === 'approval' &&
     preselectedApproval?.allowedNextAction === 'release-ready';
+  const artifactDetailSnapshot = getArtifactDetailSnapshot(
+    selectedArtifactMeta,
+    selectedArtifactTask,
+    data,
+    selectedArtifactPolicySummary,
+  );
+  const selectedArtifactApprovals = selectedArtifactTask
+    ? data.approvals.filter((approval) => approval.taskId === selectedArtifactTask.id && approval.status === 'pending')
+    : [];
+  const selectedArtifactInboxItems = selectedArtifactTask
+    ? data.inboxItems.filter((item) => item.taskId === selectedArtifactTask.id && item.status === 'pending')
+    : [];
+  const selectedArtifactPendingDecisions = selectedArtifactInboxItems.filter(
+    (item) => item.kind !== 'approval',
+  );
+  const artifactsPreferredInboxItem = selectedArtifactTask
+    ? getPreferredTaskInboxItem(selectedArtifactTask.id, data)
+    : null;
+  const artifactSourceRun =
+    selectedArtifactMeta?.runId ? data.runMap.get(selectedArtifactMeta.runId) || null : null;
+  const artifactsOpsEntrySignals = getAdvancedOpsEntrySignals({
+    data,
+    task: selectedArtifactTask,
+    currentRun: artifactSourceRun,
+    currentArtifact: selectedArtifactMeta,
+    currentInboxItem: artifactsPreferredInboxItem,
+    pendingApprovalCount: selectedArtifactApprovals.length,
+    pendingDecisionCount: selectedArtifactPendingDecisions.length,
+  });
+  const artifactsOpsEntrySignalRow = renderAdvancedOpsEntrySignalRow(artifactsOpsEntrySignals);
+  const artifactsImmediateCard = selectedArtifactApprovals.length > 0
+    ? {
+        title: `결재함에서 승인 ${selectedArtifactApprovals.length}건 처리`,
+        copy: '현재 증적보다 먼저 사람이 승인해야 할 게이트가 있어 지금은 결재함을 먼저 여는 편이 빠릅니다.',
+        button: {
+          action: 'open-surface',
+          label: '결재함 열기',
+          targetSurface: 'decision-inbox',
+          disabled: state.loading || state.mutating,
+        },
+      }
+    : selectedArtifactInboxItems.length > 0
+      ? {
+          title: `결재함에서 확인 ${selectedArtifactInboxItems.length}건 처리`,
+          copy: '현재 증적보다 먼저 사람이 정리해야 할 결정이 남아 있어 결재함으로 먼저 이동하는 편이 빠릅니다.',
+          button: {
+            action: 'open-surface',
+            label: '결재함 열기',
+            targetSurface: 'decision-inbox',
+            disabled: state.loading || state.mutating,
+          },
+        }
+      : selectedArtifactTask
+        ? {
+            title: `${selectedArtifactTask.title} 열기`,
+            copy: '현재 증적이 걸린 실행 셀로 돌아가면 승인선과 다음 액션을 바로 이어서 볼 수 있습니다.',
+            button: {
+              action: 'open-taskboard-task',
+              id: selectedArtifactTask.id,
+              label: '영향 셀 열기',
+              disabled: state.loading || state.mutating,
+            },
+          }
+      : selectedArtifactMeta
+        ? {
+            title: `${selectedArtifactMeta.id} 미리보기`,
+            copy: '지금은 오른쪽 상세에서 이 증적의 상태와 연결선을 먼저 읽으면 됩니다.',
+            button: null,
+          }
+        : {
+            title: '증적 하나 고르기',
+            copy: '왼쪽 목록에서 증적을 하나 고르면 오른쪽 판단과 미리보기가 바로 채워집니다.',
+            button: null,
+          };
   const artifactList = data.artifacts.length
     ? data.artifacts
-        .map(
-          (artifact) => `
-            <button class="list-button ${artifact.id === selectedArtifactMeta?.id ? 'is-selected' : ''}" type="button" data-action="select-artifact" data-id="${escapeHtml(artifact.id)}">
-              <div class="card-title-row">
-                <strong>${escapeHtml(artifact.id)}</strong>
-                ${createToken(artifact.type, 'neutral')}
+        .map((artifact) => {
+          const artifactTask = data.taskMap.get(artifact.taskId) || null;
+          const artifactSnapshot = getArtifactListSnapshot(artifact, artifactTask, data);
+
+          return `
+            <button class="card list-button ops-list-button ${artifact.id === selectedArtifactMeta?.id ? 'is-selected' : ''}" type="button" data-action="select-artifact" data-id="${escapeHtml(artifact.id)}">
+              <div class="ops-list-head">
+                <div class="card-title-row card-title-row-tight mission-row-head">
+                  <strong>${escapeHtml(artifactSnapshot.title)}</strong>
+                  ${createToken(artifact.type, 'neutral')}
+                </div>
+                <p class="list-copy list-copy-compact ops-list-meta">${escapeHtml(artifactSnapshot.metaCopy)}</p>
               </div>
-              <p class="list-copy">${escapeHtml(data.taskMap.get(artifact.taskId)?.title || 'Unknown task')}</p>
-              <div class="token-row">
-                ${renderArtifactPolicyTokens(artifact, data)}
-                ${createToken(`run:${artifact.runId}`, 'neutral')}
-                ${createToken(formatDate(artifact.createdAt), 'neutral')}
+              <div class="ops-list-summary">
+                <p class="ops-list-label">현재 상태</p>
+                <p class="list-copy list-copy-compact">${escapeHtml(artifactSnapshot.currentCopy)}</p>
+              </div>
+              <div class="ops-list-summary">
+                <p class="ops-list-label">다음 확인</p>
+                <p class="list-copy list-copy-compact ops-list-next">${escapeHtml(artifactSnapshot.nextCopy)}</p>
+              </div>
+              <div class="token-row token-row-compact">
+                ${artifactSnapshot.tokens.join('')}
               </div>
             </button>
-          `,
-        )
+          `;
+        })
         .join('')
     : `
       <div class="empty-state">
-        <strong>No artifacts</strong>
-        <p>Artifacts appear after runtime execution or review evidence is recorded.</p>
+        <strong>아직 아티팩트 없음</strong>
+        <p>아티팩트는 runtime 실행이나 리뷰 증거가 기록된 뒤 나타납니다.</p>
       </div>
     `;
+  const artifactsViewportStrip = renderViewportHandoffStrip({
+    eyebrow: '증적 인계선',
+    heading: '보관실 아래는 증적 목록과 현재 증적으로 나눕니다',
+    copy:
+      '왼쪽은 증적 목록을 보고, 오른쪽은 선택된 증적의 현재 상태와 다음 확인만 먼저 봅니다.',
+    tokens: [
+      createToken(`증적:${data.artifacts.length}`, 'neutral'),
+      selectedArtifactMeta
+        ? createToken(`현재:${getArtifactTypeDisplay(selectedArtifactMeta.type)}`, 'accent')
+        : createToken('현재:선택대기', 'warning'),
+      createToken(
+        `바로:${selectedArtifactTask ? '영향 셀' : selectedArtifactMeta ? '현재 증적' : '증적 선택'}`,
+        selectedArtifactTask ? 'accent' : 'neutral',
+      ),
+    ],
+    cards: [
+      {
+        label: '왼쪽 목록',
+        title: '증적 목록 + 현재 상태',
+        copy: '왼쪽에서 증적을 고르고, 상태와 다음 확인만 짧게 비교합니다.',
+      },
+      {
+        label: '오른쪽 판단',
+        title: selectedArtifactMeta ? '현재 증적 + 미리보기' : '선택 증적 대기',
+        copy: selectedArtifactMeta
+          ? '오른쪽 상세에서 현재 증적, 다음 확인, 연결선, 구조 미리보기나 저장 원문을 순서대로 확인합니다.'
+          : '증적을 하나 고르면 오른쪽 판단과 미리보기가 함께 열립니다.',
+      },
+      {
+        label: '지금 열기',
+        title: artifactsImmediateCard.title,
+        copy: artifactsImmediateCard.copy,
+        emphasis: true,
+        button: artifactsImmediateCard.button,
+      },
+    ],
+  });
+
+  const artifactsDeck = renderOpsCenterDeck({
+    entryFrame: true,
+    heading: '선택된 증적만 세 칸으로 요약하는 보관실',
+    copy: '아래 deck은 현재 증적과 다음 확인만 먼저 요약하고, 구조 미리보기와 원문은 오른쪽 상세로 넘깁니다.',
+    tokens: [
+      createToken(`증적:${data.artifacts.length}`, 'neutral'),
+      selectedArtifactMeta
+        ? createToken(`현재:${getArtifactTypeDisplay(selectedArtifactMeta.type)}`, 'accent')
+        : createToken('현재:선택대기', 'warning'),
+      selectedArtifactTask ? createToken(`실행셀:${selectedArtifactTask.id}`, 'neutral') : '',
+    ],
+    signalRow: artifactsOpsEntrySignalRow,
+    cards: [
+      {
+        label: '현재 증적',
+        title: selectedArtifactMeta ? selectedArtifactMeta.id : '증적 선택 대기',
+        copy: selectedArtifactMeta
+          ? artifactDetailSnapshot.currentCopy
+          : '왼쪽 목록에서 증적을 고르면 현재 증적 판단이 바로 채워집니다.',
+      },
+      {
+        label: '다음 확인',
+        title: selectedArtifactMeta ? artifactDetailSnapshot.nextTitle : '증적 하나 고르기',
+        copy: selectedArtifactMeta
+          ? artifactDetailSnapshot.nextCopy
+          : '왼쪽 목록에서 증적을 하나 고르면 오른쪽 판단과 미리보기가 함께 열립니다.',
+      },
+      {
+        label: '현재 맥락',
+        title: selectedArtifactTask ? selectedArtifactTask.title : '실행 셀 대기',
+        copy: selectedArtifactTask
+          ? `${getTaskLifecycleDisplay(selectedArtifactTask.lifecycleState)} 상태의 실행 셀에 연결된 증적입니다.`
+          : '아직 연결된 실행 셀 맥락이 보이지 않습니다.',
+      },
+    ],
+  });
 
   elements.surfaces.artifacts.innerHTML = `
-    <div class="surface-grid surface-grid-wide">
+    <div class="stack">
+      ${artifactsViewportStrip}
+      ${artifactsDeck}
+      <div class="surface-grid surface-grid-wide">
       <section class="surface-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Artifacts</h2>
-            <p class="panel-copy">Advanced artifact inspection with latest-first evidence, provenance, and raw stored content.</p>
-            <p class="panel-copy">Badges show browse priority and preview mode. All artifact history stays retained in v1.</p>
-          </div>
-        </div>
-        ${renderAdvancedOpsNotice('Artifacts is intentionally an advanced provenance surface. Deliverables stays summary-only and links back here only when deep inspection is required.')}
         <div class="list-column">${artifactList}</div>
       </section>
       <aside class="detail-card">
         <div>
-          <p class="eyebrow">Artifact Detail</p>
-          <h2>${escapeHtml(selectedArtifactMeta?.id || 'No artifact selected')}</h2>
+          <p class="eyebrow">증적 상세</p>
+          <h2>${escapeHtml(selectedArtifactMeta?.id || '선택된 증적 없음')}</h2>
         </div>
+        ${renderNarrativeDeck({
+          eyebrow: '관제실 판단 요약',
+          heading: '현재 증적과 다음 확인을 먼저 보는 증적 상세',
+          copy: selectedArtifactTask?.title || '증적을 고르면 현재 증적과 다음 확인만 먼저 판단합니다.',
+          tokens: artifactDetailSnapshot.tokens,
+          cards: [
+            {
+              label: '현재 상태',
+              title: artifactDetailSnapshot.currentTitle,
+              copy: artifactDetailSnapshot.currentCopy,
+            },
+            {
+              label: '핵심 이유',
+              title: artifactDetailSnapshot.reasonTitle,
+              copy: artifactDetailSnapshot.reasonCopy,
+            },
+            {
+              label: '다음 확인',
+              title: artifactDetailSnapshot.nextTitle,
+              copy: artifactDetailSnapshot.nextCopy,
+            },
+          ],
+          wide: false,
+        })}
         ${
           selectedArtifactMeta
             ? `
-              <div class="detail-block">
-                <div class="token-row">
+              <div class="detail-block detail-block-compact">
+                <p class="detail-key">증적 기본 정보</p>
+                <div class="token-row token-row-compact">
                   ${createToken(selectedArtifactMeta.type, 'neutral')}
                   ${renderArtifactPolicyTokens(selectedArtifactMeta, data)}
-                  ${selectedArtifactTask ? createToken(selectedArtifactTask.lifecycleState, 'neutral') : ''}
-                  ${selectedArtifactTask?.review ? createToken(`review:${selectedArtifactTask.review.status}`, getReviewTone(selectedArtifactTask.review.status)) : ''}
+                  ${selectedArtifactTask ? createToken(getTaskLifecycleDisplay(selectedArtifactTask.lifecycleState), 'neutral') : ''}
+                  ${selectedArtifactTask?.review ? createToken(`리뷰:${getReviewStatusDisplay(selectedArtifactTask.review.status)}`, getReviewTone(selectedArtifactTask.review.status)) : ''}
                 </div>
-                <p class="detail-copy">${escapeHtml(selectedArtifactTask?.title || 'Unknown task')}</p>
-                <p class="detail-copy mono">${escapeHtml(selectedArtifactMeta.path)}</p>
+                <div class="kv-grid kv-grid-compact">
+                  <div class="kv-item kv-item-compact">
+                    <strong>${escapeHtml(selectedArtifactTask?.title || '알 수 없는 태스크')}</strong>
+                    <p class="detail-copy detail-copy-compact">연결 실행 셀</p>
+                  </div>
+                  <div class="kv-item kv-item-compact">
+                    <strong>${escapeHtml(formatDate(selectedArtifactMeta.createdAt))}</strong>
+                    <p class="detail-copy detail-copy-compact">저장 시각</p>
+                  </div>
+                </div>
+                <p class="detail-copy detail-copy-compact mono">${escapeHtml(selectedArtifactMeta.path)}</p>
                 ${
                   selectedArtifactPolicySummary
-                    ? `<p class="detail-copy">${escapeHtml(selectedArtifactPolicySummary)}</p>`
+                    ? `<p class="detail-copy detail-copy-compact">${escapeHtml(selectedArtifactPolicySummary)}</p>`
                     : ''
                 }
               </div>
-              <div class="detail-block">
-                <p class="detail-key">Provenance</p>
-                <p class="detail-copy">This strip is convenience only. Stored raw content and runtime metadata remain the source of truth.</p>
+              <div class="detail-block detail-block-compact">
+                <p class="detail-key">증적 연결선</p>
+                <p class="detail-copy detail-copy-compact">연결 요약만 먼저 봅니다.</p>
                 ${
                   renderRelationStrip(artifactRelationContext) ||
-                  '<p class="detail-copy">No direct run or artifact linkage recorded for this artifact.</p>'
+                  '<p class="detail-copy">이 아티팩트에 직접 연결된 run 또는 아티팩트 기록이 없습니다.</p>'
                 }
               </div>
               <div class="detail-block">
-                <p class="detail-key">Preview</p>
+                <p class="detail-key">보고 미리보기</p>
                 ${
                   selectedArtifactMeta.type === 'breakdown' && parsedBreakdown
                     ? `
-                      <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                       ${renderStructuredBreakdown(parsedBreakdown)}
                     `
                     : selectedArtifactMeta.type === 'breakdown'
-                      ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
+                      ? '<p class="detail-copy detail-copy-compact">구조 요약이 없으면 원문으로 확인합니다.</p>'
                       : selectedArtifactMeta.type === 'preflight' && parsedPreflight
                         ? `
-                          <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                           ${renderStructuredPreflight(parsedPreflight)}
                         `
                         : selectedArtifactMeta.type === 'preflight'
-                          ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
+                          ? '<p class="detail-copy detail-copy-compact">구조 요약이 없으면 원문으로 확인합니다.</p>'
                         : selectedArtifactMeta.type === 'change-summary' && parsedChangeSummary
                           ? `
-                            <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                             ${renderStructuredChangeSummary(parsedChangeSummary)}
                           `
                           : selectedArtifactMeta.type === 'change-summary'
-                            ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
+                            ? '<p class="detail-copy detail-copy-compact">구조 요약이 없으면 원문으로 확인합니다.</p>'
                           : selectedArtifactMeta.type === 'review' && parsedReview
                             ? `
-                              <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                               ${renderStructuredReview(parsedReview, selectedArtifactTask?.review?.status || null)}
                             `
                             : selectedArtifactMeta.type === 'review'
-                              ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
+                              ? '<p class="detail-copy detail-copy-compact">구조 요약이 없으면 원문으로 확인합니다.</p>'
                             : selectedArtifactMeta.type === 'commit-package' && parsedCommitPackage
                               ? `
-                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredCommitPackage(parsedCommitPackage)}
                               `
                               : selectedArtifactMeta.type === 'commit-package'
-                                ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
+                                ? '<p class="detail-copy detail-copy-compact">구조 요약이 없으면 원문으로 확인합니다.</p>'
                             : selectedArtifactMeta.type === 'commit-result' && parsedCommitResult
                               ? `
-                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredCommitResult(parsedCommitResult)}
                               `
                               : selectedArtifactMeta.type === 'commit-result'
-                                ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
+                                ? '<p class="detail-copy detail-copy-compact">구조 요약이 없으면 원문으로 확인합니다.</p>'
                             : selectedArtifactMeta.type === 'release-package' && parsedReleasePackage
                               ? `
-                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredReleasePackage(parsedReleasePackage)}
                               `
                               : selectedArtifactMeta.type === 'release-package'
-                                ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
+                                ? '<p class="detail-copy detail-copy-compact">구조 요약이 없으면 원문으로 확인합니다.</p>'
                             : selectedArtifactMeta.type === 'close-out' && parsedCloseOut
                               ? `
-                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredCloseOut(parsedCloseOut)}
                               `
                               : selectedArtifactMeta.type === 'close-out'
-                                ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
+                                ? '<p class="detail-copy detail-copy-compact">구조 요약이 없으면 원문으로 확인합니다.</p>'
                             : selectedArtifactMeta.type === 'patch' && parsedUnifiedDiff
                               ? `
-                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredUnifiedDiff(parsedUnifiedDiff, 'planned patch')}
                               `
                             : selectedArtifactMeta.type === 'patch'
-                              ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
+                              ? '<p class="detail-copy detail-copy-compact">구조 요약이 없으면 원문으로 확인합니다.</p>'
                             : selectedArtifactMeta.type === 'diff' && parsedUnifiedDiff
                               ? `
-                                <p class="detail-copy">${escapeHtml(getStructuredPreviewLeadCopy())}</p>
                                 ${renderStructuredUnifiedDiff(parsedUnifiedDiff, 'observed diff')}
                               `
                               : selectedArtifactMeta.type === 'diff'
-                                ? `<p class="detail-copy">${escapeHtml(getStructuredPreviewFallbackCopy())}</p>`
+                                ? '<p class="detail-copy detail-copy-compact">구조 요약이 없으면 원문으로 확인합니다.</p>'
                       : ''
                 }
                 ${
                   selectedArtifactPolicyEntry?.previewMode === 'raw-only'
-                    ? `<p class="detail-copy">${escapeHtml(getRawOnlyPreviewCopy())}</p>`
+                    ? '<p class="detail-copy detail-copy-compact">이 증적은 원문만 확인합니다.</p>'
                     : ''
                 }
                 ${
@@ -9308,7 +14000,8 @@ function renderArtifacts(data) {
                   showBuilderApprovalHint &&
                   selectedArtifactMeta.type === 'preflight'
                     ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
-                        helpText: 'Approval actions stay on Artifacts and mirror the server snapshot as-is.',
+                        signalRow: artifactsOpsEntrySignalRow,
+                        helpText: '승인 액션은 아티팩트 표면에 남고 서버 스냅샷을 그대로 따릅니다.',
                       })
                     : ''
                 }
@@ -9319,7 +14012,8 @@ function renderArtifacts(data) {
                     selectedArtifactMeta.type === 'commit-package' ||
                     selectedArtifactMeta.type === 'commit-result')
                     ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
-                        helpText: 'Approval actions stay on Artifacts and mirror the server snapshot as-is.',
+                        signalRow: artifactsOpsEntrySignalRow,
+                        helpText: '승인 액션은 아티팩트 표면에 남고 서버 스냅샷을 그대로 따릅니다.',
                       })
                     : ''
                 }
@@ -9329,24 +14023,26 @@ function renderArtifacts(data) {
                   (selectedArtifactMeta.type === 'commit-result' ||
                     selectedArtifactMeta.type === 'release-package')
                     ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
+                        signalRow: artifactsOpsEntrySignalRow,
                         helpText:
-                          'Approval actions stay on Artifacts and mirror the server snapshot as-is. Push, publish, and external release remain disabled.',
+                          '승인 액션은 아티팩트 표면에 남고 서버 스냅샷을 그대로 따릅니다. push, publish, external release는 계속 비활성 상태입니다.',
                       })
                     : ''
                 }
-                <p class="detail-key">Stored Raw Content</p>
-                <p class="detail-copy">Stored raw content below remains the source of truth.</p>
-                <pre class="artifact-preview">${escapeHtml(state.selectedArtifact?.content || 'No preview content available.')}</pre>
+                <p class="detail-key">보관 원문</p>
+                <p class="detail-copy detail-copy-compact">저장 원문이 최종 source of truth입니다.</p>
+                <pre class="artifact-preview artifact-preview-compact">${escapeHtml(state.selectedArtifact?.content || '미리보기 가능한 내용이 없습니다.')}</pre>
               </div>
             `
             : `
               <div class="empty-state">
-                <strong>No artifact selected</strong>
-                <p>Select an artifact to inspect its stored content and source linkage.</p>
+                <strong>선택된 증적 없음</strong>
+                <p>증적을 골라 저장된 원문과 소스 연결을 확인합니다.</p>
               </div>
             `
         }
       </aside>
+      </div>
     </div>
   `;
 }
@@ -9354,8 +14050,8 @@ function renderArtifacts(data) {
 function renderDecisionInbox(data) {
   if (!data.activeProject) {
     elements.surfaces['decision-inbox'].innerHTML = renderProjectGateSurface(
-      'Decision Inbox Unavailable',
-      getProjectGateCopy(data, 'Decision Inbox'),
+      '결정함 사용 불가',
+      getProjectGateCopy(data, '결정함'),
     );
     return;
   }
@@ -9368,13 +14064,94 @@ function renderDecisionInbox(data) {
     ? data.approvals.find((approval) => approval.id === selectedItem.sourceId) || null
     : null;
   const inboxActionDisabled = state.loading || state.mutating;
+  const selectedMission = data.missionMap.get(state.selectedMissionId) || null;
+  const inboxDetailSnapshot = getInboxDetailSnapshot(selectedItem, selectedTask, selectedApproval);
+  const pendingApprovalItems = pendingItems.filter((item) => item.kind === 'approval');
+  const pendingDecisionItems = pendingItems.filter((item) => item.kind !== 'approval');
+  const decisionOpsEntrySignals = getAdvancedOpsEntrySignals({
+    data,
+    task: selectedTask,
+    currentInboxItem: selectedItem,
+    pendingApprovalCount: pendingApprovalItems.length,
+    pendingDecisionCount: pendingDecisionItems.length,
+  });
+  const decisionOpsEntrySignalRow = renderAdvancedOpsEntrySignalRow(decisionOpsEntrySignals);
+  const decisionActionSignalRow = `
+    <div class="decision-action-signal-row">
+      ${decisionOpsEntrySignalRow}
+    </div>
+  `;
+  const decisionImmediateCard = selectedTask
+    ? {
+        title: `${selectedTask.title} 열기`,
+        copy: '현재 결재가 묶인 실행 셀을 작업판에서 다시 보고 후속 단계를 이어갑니다.',
+        button: {
+          action: 'open-taskboard-task',
+          id: selectedTask.id,
+          label: '영향 셀 열기',
+          disabled: state.loading || state.mutating,
+        },
+      }
+    : pendingItems.length > 0
+      ? {
+          title: `대기 결재 ${pendingItems.length}건 확인`,
+          copy: '왼쪽 대기 큐에서 한 건을 고르면 오른쪽 처리 판단이 바로 채워집니다.',
+          button: null,
+        }
+      : {
+          title: '최근 처리 기록 보기',
+          copy: '대기 안건이 없으면 왼쪽 최근 처리 열에서 감사 추적을 이어서 확인합니다.',
+          button: null,
+        };
+  const decisionViewportStrip = renderViewportHandoffStrip({
+    eyebrow: '결재 인계선',
+    heading: '결재함 아래는 큐와 처리 판단으로 나눕니다',
+    copy:
+      '왼쪽은 대기 안건과 최근 처리 큐를 보고, 오른쪽은 현재 선택 항목의 상태와 다음 처리만 먼저 봅니다.',
+    tokens: [
+      selectedMission ? createToken(`안건:${selectedMission.id}`, 'neutral') : '',
+      createToken(`대기:${pendingItems.length}`, pendingItems.length > 0 ? 'warning' : 'success'),
+      createToken(`바로:${selectedTask ? '영향 셀' : pendingItems.length > 0 ? '대기 큐' : '최근 처리'}`, selectedTask ? 'accent' : 'neutral'),
+    ].filter(Boolean),
+    cards: [
+      {
+        label: '왼쪽 큐',
+        title: '대기 결재 + 최근 처리',
+        copy: '왼쪽 두 열에서 지금 막힌 안건과 방금 끝난 처리 기록을 고릅니다.',
+      },
+      {
+        label: '오른쪽 판단',
+        title: selectedItem ? '현재 상태 + 처리' : '선택 항목 대기',
+        copy: selectedItem
+          ? '오른쪽 상세에서 승인, 반려, 해결과 다음 연결을 바로 판단합니다.'
+          : '항목을 하나 고르면 오른쪽 처리 판단과 액션이 함께 열립니다.',
+      },
+      {
+        label: '지금 열기',
+        title: decisionImmediateCard.title,
+        copy: decisionImmediateCard.copy,
+        emphasis: true,
+        button: decisionImmediateCard.button,
+      },
+    ],
+  });
   let actionSurface = '';
 
   if (selectedItem?.status === 'pending' && selectedItem.kind === 'approval') {
     actionSurface = `
-      <div class="detail-block">
-        <p class="detail-key">Actions</p>
-        <div class="form-actions form-actions-inline">
+      <div class="detail-block detail-block-action decision-action-block">
+        <div class="decision-action-head">
+          <div>
+            <p class="detail-key">지금 처리</p>
+            <p class="decision-action-copy">이 안건은 여기서 승인 또는 반려만 결정합니다.</p>
+          </div>
+          <div class="token-row token-row-compact">
+            ${createToken('승인 요청', 'accent')}
+            ${selectedApproval ? createToken(getApprovalActionLabel(selectedApproval.allowedNextAction) || selectedApproval.scope, 'neutral') : ''}
+          </div>
+        </div>
+        ${decisionActionSignalRow}
+        <div class="form-actions form-actions-inline decision-action-row">
           <button
             class="primary-button"
             type="button"
@@ -9383,7 +14160,7 @@ function renderDecisionInbox(data) {
             data-verb="approve"
             ${inboxActionDisabled ? 'disabled' : ''}
           >
-            Approve
+            승인
           </button>
           <button
             class="danger-button"
@@ -9393,17 +14170,26 @@ function renderDecisionInbox(data) {
             data-verb="reject"
             ${inboxActionDisabled ? 'disabled' : ''}
           >
-            Reject
+            반려
           </button>
-          <p class="form-help">Approval items only allow approve or reject in this slice.</p>
         </div>
+        <p class="form-help decision-action-help">선택한 결재만 여기서 처리하고, 실행 흐름은 아래 연결 맥락을 따릅니다.</p>
       </div>
     `;
   } else if (selectedItem?.status === 'pending' && selectedItem.kind === 'decision') {
     actionSurface = `
-      <div class="detail-block">
-        <p class="detail-key">Actions</p>
-        <div class="form-actions form-actions-inline">
+      <div class="detail-block detail-block-action decision-action-block">
+        <div class="decision-action-head">
+          <div>
+            <p class="detail-key">지금 처리</p>
+            <p class="decision-action-copy">이 안건은 여기서 해결만 기록하고 다음 실행 판단으로 넘깁니다.</p>
+          </div>
+          <div class="token-row token-row-compact">
+            ${createToken('결정 처리', 'warning')}
+          </div>
+        </div>
+        ${decisionActionSignalRow}
+        <div class="form-actions form-actions-inline decision-action-row">
           <button
             class="secondary-button"
             type="button"
@@ -9412,111 +14198,217 @@ function renderDecisionInbox(data) {
             data-verb="resolve"
             ${inboxActionDisabled ? 'disabled' : ''}
           >
-            Resolve
+            해결
           </button>
-          <p class="form-help">Decision items only allow resolve in this slice.</p>
         </div>
+        <p class="form-help decision-action-help">해결 뒤 흐름은 영향 셀과 현재 guard를 따라 이어집니다.</p>
       </div>
     `;
   } else if (selectedItem?.status === 'pending') {
     actionSurface = `
-      <div class="detail-block">
-        <p class="detail-key">Actions</p>
-        <p class="detail-copy">No write action is available for this inbox item in ui-slice-03.</p>
+      <div class="detail-block detail-block-action decision-action-block">
+        <div class="decision-action-head">
+          <div>
+            <p class="detail-key">지금 처리</p>
+            <p class="decision-action-copy">이 안건은 결정함에서 상태만 확인하고 다른 surface로 이어집니다.</p>
+          </div>
+          <div class="token-row token-row-compact">
+            ${createToken('읽기 전용', 'neutral')}
+          </div>
+        </div>
+        ${decisionActionSignalRow}
+        <p class="detail-copy">이 결정함 항목에는 ui-slice-03에서 허용된 쓰기 액션이 없습니다.</p>
       </div>
     `;
   }
 
-  const renderInboxList = (items, title, emptyCopy) => `
+  const renderInboxList = (items, options) => `
     <section class="surface-panel">
-      <div class="panel-header">
+      <div class="panel-header panel-header-tight">
         <div>
-          <h2>${escapeHtml(title)}</h2>
-          <p class="panel-copy">${escapeHtml(emptyCopy)}</p>
+          <h2>${escapeHtml(options.title)}</h2>
+          <p class="panel-copy panel-copy-tight">${escapeHtml(options.copy)}</p>
+        </div>
+        <div class="token-row token-row-compact">
+          ${createToken(`${options.countLabel}:${items.length}`, options.countTone)}
+          ${options.scopeToken ? createToken(options.scopeToken, 'neutral') : ''}
         </div>
       </div>
       ${
         items.length > 0
           ? `<div class="list-column">
               ${items
-                .map(
-                  (item) => `
-                    <button class="list-button ${item.id === selectedItem?.id ? 'is-selected' : ''}" type="button" data-action="select-inbox-item" data-id="${escapeHtml(item.id)}">
-                      <div class="card-title-row">
-                        <strong>${escapeHtml(item.title)}</strong>
-                        ${createToken(item.kind, getInboxTone(item))}
+                .map((item) => {
+                  const inboxTask = data.taskMap.get(item.taskId) || null;
+                  const inboxApproval = item.sourceId
+                    ? data.approvals.find((approval) => approval.id === item.sourceId) || null
+                    : null;
+                  const inboxSnapshot = getInboxListSnapshot(item, inboxTask, inboxApproval);
+
+                  return `
+                    <button class="card list-button ops-list-button ${item.id === selectedItem?.id ? 'is-selected' : ''}" type="button" data-action="select-inbox-item" data-id="${escapeHtml(item.id)}">
+                      <div class="ops-list-head">
+                        <div class="card-title-row card-title-row-tight mission-row-head">
+                          <strong>${escapeHtml(inboxSnapshot.title)}</strong>
+                          ${createToken(getInboxKindDisplay(item.kind), getInboxTone(item))}
+                        </div>
+                        <p class="list-copy list-copy-compact ops-list-meta">${escapeHtml(inboxSnapshot.metaCopy)}</p>
                       </div>
-                      <p class="list-copy">${escapeHtml(data.taskMap.get(item.taskId)?.title || 'Unknown task')}</p>
-                      <div class="token-row">
-                        ${createToken(item.status, item.status === 'pending' ? 'warning' : 'success')}
-                        ${item.blocksTask ? createToken('blocksTask', 'danger') : ''}
+                      <div class="ops-list-summary">
+                        <p class="ops-list-label">현재 상태</p>
+                        <p class="list-copy list-copy-compact">${escapeHtml(inboxSnapshot.currentCopy)}</p>
+                      </div>
+                      <div class="ops-list-summary">
+                        <p class="ops-list-label">다음 확인</p>
+                        <p class="list-copy list-copy-compact ops-list-next">${escapeHtml(inboxSnapshot.nextCopy)}</p>
+                      </div>
+                      <div class="token-row token-row-compact">
+                        ${inboxSnapshot.tokens.join('')}
                         ${createToken(formatDate(item.updatedAt || item.createdAt), 'neutral')}
                       </div>
                     </button>
-                  `,
-                )
+                  `;
+                })
                 .join('')}
             </div>`
           : `
             <div class="empty-state">
-              <strong>None</strong>
-              <p>${escapeHtml(emptyCopy)}</p>
+              <strong>없음</strong>
+              <p>${escapeHtml(options.emptyCopy)}</p>
             </div>
           `
       }
     </section>
   `;
 
+  const decisionDeck = renderOpsCenterDeck({
+    entryFrame: true,
+    heading: '선택된 결재 안건만 세 칸으로 요약하는 결재함',
+    copy: '아래 deck은 현재 안건과 다음 처리만 먼저 요약하고, 실제 선택과 처리 버튼은 바로 아래에서 이어갑니다.',
+    tokens: [
+      selectedMission ? createToken(`안건:${selectedMission.id}`, 'neutral') : '',
+      createToken(`대기:${pendingItems.length}`, pendingItems.length > 0 ? 'warning' : 'success'),
+      createToken(`처리됨:${resolvedItems.length}`, 'neutral'),
+    ],
+    signalRow: decisionOpsEntrySignalRow,
+    cards: [
+      {
+        label: '현재 안건',
+        title: selectedItem ? selectedItem.title : '선택 대기',
+        copy: selectedItem
+          ? inboxDetailSnapshot.currentCopy
+          : '왼쪽 큐에서 항목을 고르면 현재 상태 판단이 바로 채워집니다.',
+      },
+      {
+        label: '다음 처리',
+        title: selectedItem ? inboxDetailSnapshot.nextTitle : pendingItems.length > 0 ? '대기 큐 처리' : '최근 처리 확인',
+        copy: selectedItem
+          ? inboxDetailSnapshot.nextCopy
+          : pendingItems.length > 0
+            ? '왼쪽 대기 큐에서 한 건을 고르면 오른쪽 처리 판단과 액션이 함께 열립니다.'
+            : '대기 안건이 없으면 최근 처리 열에서 감사 추적을 이어서 확인합니다.',
+      },
+      {
+        label: '현재 맥락',
+        title: selectedTask ? selectedTask.title : '영향 실행 셀 대기',
+        copy: selectedTask
+          ? `${getTaskLifecycleDisplay(selectedTask.lifecycleState)} 상태의 실행 셀과 연결된 ${getInboxKindDisplay(selectedItem?.kind || 'decision')} 안건입니다.`
+          : '아직 연결된 실행 셀 맥락이 보이지 않습니다.',
+      },
+    ],
+  });
+
   elements.surfaces['decision-inbox'].innerHTML = `
-    <div class="surface-grid surface-grid-inbox">
+    <div class="stack">
+      ${decisionViewportStrip}
+      ${decisionDeck}
+      <div class="surface-grid surface-grid-inbox">
       <section class="surface-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Decision Inbox</h2>
-            <p class="panel-copy">Advanced decision handling for pending and resolved review, decision, and approval items.</p>
-          </div>
-        </div>
-        ${renderAdvancedOpsNotice('Decision Inbox stays available for explicit approval and decision handling, but it is no longer the primary orchestration entry path.')}
-        ${renderInboxList(pendingItems, 'Pending Queue', 'Human-required gates still waiting on resolution.')}
+        ${renderInboxList(pendingItems, {
+          title: '대기 결재',
+          copy: '지금 막힌 게이트만 고르고 바로 처리합니다.',
+          emptyCopy: '사람의 처리를 기다리는 게이트가 아직 남아 있습니다.',
+          countLabel: '대기',
+          countTone: pendingItems.length > 0 ? 'warning' : 'success',
+          scopeToken: '지금 처리',
+        })}
       </section>
-      ${renderInboxList(resolvedItems, 'Resolved Recent', 'Resolved decisions and approvals remain visible for audit.')}
+      ${renderInboxList(resolvedItems, {
+        title: '최근 처리',
+        copy: '방금 끝난 승인과 해결만 감사 추적으로 확인합니다.',
+        emptyCopy: '해결된 결정과 승인은 감사 추적을 위해 계속 보입니다.',
+        countLabel: '처리됨',
+        countTone: 'neutral',
+        scopeToken: '감사 추적',
+      })}
       <aside class="detail-card">
         <div>
-          <p class="eyebrow">Inbox Detail</p>
-          <h2>${escapeHtml(selectedItem?.title || 'No inbox item selected')}</h2>
+          <p class="eyebrow">결재 상세</p>
+          <h2>${escapeHtml(selectedItem?.title || '선택된 결재 없음')}</h2>
         </div>
+        ${renderNarrativeDeck({
+          eyebrow: '관제실 판단 요약',
+          heading: '현재 상태와 다음 처리를 먼저 보는 결재 상세',
+          copy: selectedItem?.prompt || '결재를 고르면 현재 상태와 다음 처리만 먼저 판단합니다.',
+          tokens: inboxDetailSnapshot.tokens,
+          cards: [
+            {
+              label: '현재 상태',
+              title: inboxDetailSnapshot.currentTitle,
+              copy: inboxDetailSnapshot.currentCopy,
+            },
+            {
+              label: '핵심 이유',
+              title: inboxDetailSnapshot.reasonTitle,
+              copy: inboxDetailSnapshot.reasonCopy,
+            },
+            {
+              label: '다음 처리',
+              title: inboxDetailSnapshot.nextTitle,
+              copy: inboxDetailSnapshot.nextCopy,
+            },
+          ],
+          wide: false,
+        })}
         ${
           selectedItem
             ? `
-              <div class="detail-block">
-                <div class="token-row">
-                  ${createToken(selectedItem.kind, getInboxTone(selectedItem))}
-                  ${createToken(selectedItem.status, selectedItem.status === 'pending' ? 'warning' : 'success')}
-                  ${selectedItem.blocksTask ? createToken('blocksTask', 'danger') : ''}
+              <div class="detail-block detail-block-compact">
+                <p class="detail-key">결재 기본 정보</p>
+                <div class="token-row token-row-compact">
+                  ${createToken(getInboxKindDisplay(selectedItem.kind), getInboxTone(selectedItem))}
+                  ${createToken(getInboxStatusDisplay(selectedItem.status), selectedItem.status === 'pending' ? 'warning' : 'success')}
+                  ${selectedItem.blocksTask ? createToken('태스크차단', 'danger') : ''}
                 </div>
-                <p class="detail-copy">${escapeHtml(selectedItem.prompt || 'No prompt recorded.')}</p>
-              </div>
-              <div class="detail-block">
-                <p class="detail-key">Affected Task</p>
-                <strong>${escapeHtml(selectedTask?.title || selectedItem.taskId)}</strong>
-                <div class="token-row">
-                  ${selectedTask ? createToken(selectedTask.lifecycleState, 'neutral') : ''}
-                  ${selectedTask?.review ? createToken(`review:${selectedTask.review.status}`, getReviewTone(selectedTask.review.status)) : ''}
-                  ${selectedTask?.flags?.blocked ? createToken('blocked', 'danger') : ''}
-                  ${selectedTask?.flags?.waitingApproval ? createToken('waitingApproval', 'accent') : ''}
-                  ${selectedTask?.flags?.waitingDecision ? createToken('waitingDecision', 'warning') : ''}
+                <p class="detail-copy detail-copy-compact">${escapeHtml(selectedItem.prompt || '기록된 안내 문구가 없습니다.')}</p>
+                <div class="kv-grid kv-grid-compact">
+                  <div class="kv-item kv-item-compact">
+                    <strong>${escapeHtml(selectedTask?.title || selectedItem.taskId)}</strong>
+                    <p class="detail-copy detail-copy-compact">영향 실행 셀</p>
+                  </div>
+                  <div class="kv-item kv-item-compact">
+                    <strong>${escapeHtml(formatDate(selectedItem.updatedAt || selectedItem.createdAt))}</strong>
+                    <p class="detail-copy detail-copy-compact">최근 갱신</p>
+                  </div>
+                </div>
+                <div class="token-row token-row-compact">
+                  ${selectedTask ? createToken(getTaskLifecycleDisplay(selectedTask.lifecycleState), 'neutral') : ''}
+                  ${selectedTask?.review ? createToken(`리뷰:${getReviewStatusDisplay(selectedTask.review.status)}`, getReviewTone(selectedTask.review.status)) : ''}
+                  ${selectedTask?.flags?.blocked ? createToken('차단', 'danger') : ''}
+                  ${selectedTask?.flags?.waitingApproval ? createToken('승인대기', 'accent') : ''}
+                  ${selectedTask?.flags?.waitingDecision ? createToken('결정대기', 'warning') : ''}
                 </div>
               </div>
               ${
                 selectedApproval
                   ? `
                     <div class="detail-block">
-                      <p class="detail-key">Approval Record</p>
+                      <p class="detail-key">결재 기록</p>
                       <div class="kv-item">
-                        <strong>${escapeHtml(selectedApproval.allowedNextAction || selectedApproval.scope)}</strong>
+                        <strong>${escapeHtml(getApprovalActionLabel(selectedApproval.allowedNextAction) || selectedApproval.scope)}</strong>
                         <div class="token-row">
-                          ${createToken(selectedApproval.status, getApprovalTone(selectedApproval.status))}
-                          ${createToken(`scope:${selectedApproval.scope}`, 'neutral')}
+                          ${createToken(getApprovalStatusDisplay(selectedApproval.status), getApprovalTone(selectedApproval.status))}
+                          ${createToken(`범위:${selectedApproval.scope}`, 'neutral')}
                         </div>
                       </div>
                     </div>
@@ -9528,7 +14420,7 @@ function renderDecisionInbox(data) {
                 selectedApproval?.allowedNextAction === 'builder-live-mutation'
                   ? `
                     <div class="detail-block">
-                      <p class="detail-key">Live Mutation Approval</p>
+                      <p class="detail-key">라이브 변경 결재</p>
                       ${renderBuilderLiveMutationApprovalPanel(selectedTask, data)}
                     </div>
                   `
@@ -9539,7 +14431,7 @@ function renderDecisionInbox(data) {
                 selectedApproval?.allowedNextAction === 'commit-intent'
                   ? `
                     <div class="detail-block">
-                      <p class="detail-key">Commit Execution</p>
+                      <p class="detail-key">커밋 지시</p>
                       ${renderCommitPackagePanel(selectedTask, data, {
                         currentSurface: 'decision-inbox',
                       })}
@@ -9552,7 +14444,7 @@ function renderDecisionInbox(data) {
                 selectedApproval?.allowedNextAction === 'release-ready'
                   ? `
                     <div class="detail-block">
-                      <p class="detail-key">Release Package</p>
+                      <p class="detail-key">릴리스 보고</p>
                       ${renderReleasePackagePanel(selectedTask, data, {
                         currentSurface: 'decision-inbox',
                         includeAction: false,
@@ -9566,7 +14458,7 @@ function renderDecisionInbox(data) {
                 selectedApproval?.allowedNextAction === 'release-ready'
                   ? `
                     <div class="detail-block">
-                      <p class="detail-key">Close Out</p>
+                      <p class="detail-key">안건 종료 보고</p>
                       ${renderCloseOutPanel(selectedTask, data, {
                         currentSurface: 'decision-inbox',
                       })}
@@ -9575,34 +14467,35 @@ function renderDecisionInbox(data) {
                   : ''
               }
               <div class="detail-block">
-                <p class="detail-key">Resolution</p>
-                <p class="detail-copy">${escapeHtml(selectedItem.resolution?.note || 'Still pending or no resolution note recorded.')}</p>
-                <div class="token-row">
-                  ${selectedItem.resolution?.action ? createToken(`action:${selectedItem.resolution.action}`, 'success') : ''}
-                  ${createToken(`updated:${formatDate(selectedItem.updatedAt)}`, 'neutral')}
+                <p class="detail-key">처리 메모</p>
+                <p class="detail-copy detail-copy-compact">${escapeHtml(selectedItem.resolution?.note || '기록된 처리 메모가 없습니다.')}</p>
+                <div class="token-row token-row-compact">
+                  ${selectedItem.resolution?.action ? createToken(`처리:${getInboxResolutionActionDisplay(selectedItem.resolution.action)}`, 'success') : ''}
+                  ${createToken(`갱신:${formatDate(selectedItem.updatedAt)}`, 'neutral')}
                 </div>
               </div>
               ${actionSurface}
             `
             : `
               <div class="empty-state">
-                <strong>No inbox item selected</strong>
-                <p>Select an item to inspect task context and recorded resolution state.</p>
+                <strong>선택된 결재 없음</strong>
+                <p>항목을 골라 태스크 맥락과 기록된 해결 상태를 확인합니다.</p>
               </div>
             `
         }
       </aside>
+      </div>
     </div>
   `;
 }
 
 function renderError(error) {
-  const message = escapeHtml(error?.message || 'Unknown error');
+  const message = escapeHtml(error?.message || '알 수 없는 오류');
 
   for (const surface of Object.values(elements.surfaces)) {
     surface.innerHTML = `
       <div class="empty-state">
-        <strong>Runtime unavailable</strong>
+        <strong>runtime 사용 불가</strong>
         <p>${message}</p>
       </div>
     `;
@@ -9614,6 +14507,7 @@ function render() {
 
   renderSummary(data);
   renderNav(data);
+  renderSurfaceFocusStrip(data);
 
   for (const surfaceId of SURFACE_IDS) {
     elements.surfaces[surfaceId].classList.toggle('is-active', surfaceId === state.surface);
@@ -9637,6 +14531,22 @@ function render() {
 document.addEventListener('click', async (event) => {
   const navButton = event.target.closest('[data-surface]');
   const actionButton = event.target.closest('[data-action]');
+
+  if (actionButton?.dataset.action === 'open-surface') {
+    state.surface = actionButton.dataset.targetSurface || state.surface;
+    render();
+    return;
+  }
+
+  if (actionButton?.dataset.action === 'open-surface-for-mission') {
+    if (actionButton.dataset.id) {
+      syncSelectionsFromMission(actionButton.dataset.id);
+    }
+
+    state.surface = actionButton.dataset.targetSurface || 'mission';
+    render();
+    return;
+  }
 
   if (navButton) {
     await handleSurfaceChange(navButton.dataset.surface);
@@ -9722,7 +14632,7 @@ document.addEventListener('click', async (event) => {
 
       await handleSelection(actionButton.dataset.action, actionButton.dataset.id);
     } catch (error) {
-      elements.refreshStatus.textContent = error.message || 'Action failed';
+      elements.refreshStatus.textContent = error.message || '작업 처리에 실패했습니다.';
       render();
     }
   }
@@ -9830,7 +14740,7 @@ document.addEventListener('submit', async (event) => {
     try {
       await submitCreateLinkedWorktree();
     } catch (error) {
-      elements.refreshStatus.textContent = error.message || 'Linked worktree creation failed';
+      elements.refreshStatus.textContent = error.message || '연결 워크트리 생성에 실패했습니다.';
       render();
     }
     return;
@@ -9842,7 +14752,7 @@ document.addEventListener('submit', async (event) => {
     try {
       await submitCreateProject();
     } catch (error) {
-      elements.refreshStatus.textContent = error.message || 'Project registration failed';
+      elements.refreshStatus.textContent = error.message || '프로젝트 등록에 실패했습니다.';
       render();
     }
     return;
@@ -9857,7 +14767,7 @@ document.addEventListener('submit', async (event) => {
         successSurface: 'mission',
       });
     } catch (error) {
-      elements.refreshStatus.textContent = error.message || 'Mission project registration failed';
+      elements.refreshStatus.textContent = error.message || '미션용 프로젝트 등록에 실패했습니다.';
       render();
     }
     return;
@@ -9869,7 +14779,8 @@ document.addEventListener('submit', async (event) => {
     try {
       await submitUpdateProjectProvider();
     } catch (error) {
-      elements.refreshStatus.textContent = error.message || 'Project provider update failed';
+      elements.refreshStatus.textContent =
+        error.message || '프로젝트 프로바이더 설정 갱신에 실패했습니다.';
       render();
     }
     return;
@@ -9881,7 +14792,7 @@ document.addEventListener('submit', async (event) => {
     try {
       await submitCreateMission();
     } catch (error) {
-      elements.refreshStatus.textContent = error.message || 'Mission creation failed';
+      elements.refreshStatus.textContent = error.message || '미션 생성에 실패했습니다.';
       render();
     }
     return;
@@ -9896,7 +14807,7 @@ document.addEventListener('submit', async (event) => {
   try {
     await submitCreateTask();
   } catch (error) {
-    elements.refreshStatus.textContent = error.message || 'Task creation failed';
+    elements.refreshStatus.textContent = error.message || '태스크 생성에 실패했습니다.';
     render();
   }
 });
