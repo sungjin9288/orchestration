@@ -866,6 +866,7 @@ function renderDeliverablesReportDeck(options = {}) {
   const councilSession = options.councilSession || null;
   const task = options.task || null;
   const currentArtifact = options.currentArtifact || null;
+  const evidenceRail = options.evidenceRail || null;
   const latestApproval = options.latestApproval || null;
   const approvalBridge = options.approvalBridge || null;
   const latestReviewStatus = options.latestReviewStatus || 'pending';
@@ -904,6 +905,8 @@ function renderDeliverablesReportDeck(options = {}) {
     tokens: [
       mission ? createToken(`안건:${mission.id}`, 'neutral') : '',
       task ? createToken(`실행셀:${task.id}`, 'accent') : createToken('실행셀:없음', 'warning'),
+      evidenceRail ? createToken(`현재:${evidenceRail.currentOwnerLabel}`, evidenceRail.blockedReason ? 'danger' : 'accent') : '',
+      evidenceRail ? createToken(`다음:${evidenceRail.nextHandoffLabel}`, 'neutral') : '',
       createToken(`리뷰:${getReviewStatusDisplay(latestReviewStatus)}`, getReviewTone(latestReviewStatus)),
       createToken(`완료:${missionCompletionReady ? '봉인' : '진행중'}`, missionCompletionReady ? 'success' : 'warning'),
     ],
@@ -11704,17 +11707,19 @@ function renderDeliverables(data) {
     latestArchitectureArtifact ||
     latestPlanArtifact ||
     latestArtifact;
+  const deliverablesEvidenceState = getExecutionEvidenceRail(linkedTask, data);
   const deliverablesDeck = renderDeliverablesReportDeck({
     councilSession: selectedCouncilSession,
     mission: selectedMission,
     task: linkedTask,
     currentArtifact: currentDeliverableArtifact,
+    evidenceRail: deliverablesEvidenceState,
     latestApproval,
     approvalBridge,
     latestReviewStatus,
     missionCompletionReady,
   });
-  const deliverablesEvidenceRail = renderExecutionEvidenceRail(getExecutionEvidenceRail(linkedTask, data), {
+  const deliverablesEvidenceRail = renderExecutionEvidenceRail(deliverablesEvidenceState, {
     eyebrow: '증적 인계선',
     heading: '결과 보고실도 같은 실행 증적선을 그대로 읽습니다',
     copy: 'Deliverables는 linked task의 artifact, run, readiness, review truth만 읽고 아래 섹션에서 더 깊은 보고를 이어갑니다.',
