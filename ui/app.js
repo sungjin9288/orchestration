@@ -14495,6 +14495,11 @@ function renderDecisionInbox(data) {
                       <div class="kv-item">
                         <strong>${escapeHtml(getApprovalActionLabel(selectedApproval.allowedNextAction) || selectedApproval.scope)}</strong>
                         <div class="token-row">
+                          ${createToken(
+                            `현재:${decisionDetailEvidenceState.currentOwnerLabel}`,
+                            decisionDetailEvidenceState.blockedReason ? 'danger' : 'accent',
+                          )}
+                          ${createToken(`다음:${decisionDetailEvidenceState.nextHandoffLabel}`, 'neutral')}
                           ${createToken(getApprovalStatusDisplay(selectedApproval.status), getApprovalTone(selectedApproval.status))}
                           ${createToken(`범위:${selectedApproval.scope}`, 'neutral')}
                         </div>
