@@ -12023,6 +12023,11 @@ function renderDeliverables(data) {
               <strong>결재선 현황</strong>
             </div>
             <div class="token-row">
+              ${createToken(
+                `현재:${deliverablesEvidenceState.currentOwnerLabel}`,
+                deliverablesEvidenceState.blockedReason ? 'danger' : 'accent',
+              )}
+              ${createToken(`다음:${deliverablesEvidenceState.nextHandoffLabel}`, 'neutral')}
               ${createToken(`대기:${approvalSummary.pending}`, approvalSummary.pending > 0 ? 'accent' : 'neutral')}
               ${createToken(`승인:${approvalSummary.approved}`, approvalSummary.approved > 0 ? 'success' : 'neutral')}
               ${createToken(`반려:${approvalSummary.rejected}`, approvalSummary.rejected > 0 ? 'danger' : 'neutral')}
