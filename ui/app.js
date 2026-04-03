@@ -14464,6 +14464,11 @@ function renderDecisionInbox(data) {
               <div class="detail-block detail-block-compact">
                 <p class="detail-key">결재 기본 정보</p>
                 <div class="token-row token-row-compact">
+                  ${createToken(
+                    `현재:${decisionDetailEvidenceState.currentOwnerLabel}`,
+                    decisionDetailEvidenceState.blockedReason ? 'danger' : 'accent',
+                  )}
+                  ${createToken(`다음:${decisionDetailEvidenceState.nextHandoffLabel}`, 'neutral')}
                   ${createToken(getInboxKindDisplay(selectedItem.kind), getInboxTone(selectedItem))}
                   ${createToken(getInboxStatusDisplay(selectedItem.status), selectedItem.status === 'pending' ? 'warning' : 'success')}
                   ${selectedItem.blocksTask ? createToken('태스크차단', 'danger') : ''}
