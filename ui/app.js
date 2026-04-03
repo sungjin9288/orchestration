@@ -14324,6 +14324,7 @@ function renderDecisionInbox(data) {
                   const inboxApproval = item.sourceId
                     ? data.approvals.find((approval) => approval.id === item.sourceId) || null
                     : null;
+                  const inboxEvidenceState = getExecutionEvidenceRail(inboxTask, data);
                   const inboxSnapshot = getInboxListSnapshot(item, inboxTask, inboxApproval);
 
                   return `
@@ -14344,6 +14345,11 @@ function renderDecisionInbox(data) {
                         <p class="list-copy list-copy-compact ops-list-next">${escapeHtml(inboxSnapshot.nextCopy)}</p>
                       </div>
                       <div class="token-row token-row-compact">
+                        ${createToken(
+                          `현재:${inboxEvidenceState.currentOwnerLabel}`,
+                          inboxEvidenceState.blockedReason ? 'danger' : 'accent',
+                        )}
+                        ${createToken(`다음:${inboxEvidenceState.nextHandoffLabel}`, 'neutral')}
                         ${inboxSnapshot.tokens.join('')}
                         ${createToken(formatDate(item.updatedAt || item.createdAt), 'neutral')}
                       </div>
