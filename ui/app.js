@@ -11843,6 +11843,11 @@ function renderDeliverables(data) {
           heading: '현재 보고 상태와 다음 후속만 먼저 봅니다',
           copy: '결과 보고실 오른쪽 패널은 현재 보고 묶음, 결재선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다.',
           tokens: [
+            createToken(
+              `현재:${deliverablesEvidenceState.currentOwnerLabel}`,
+              deliverablesEvidenceState.blockedReason ? 'danger' : 'accent',
+            ),
+            createToken(`다음:${deliverablesEvidenceState.nextHandoffLabel}`, 'neutral'),
             createToken(`리뷰:${getReviewStatusDisplay(latestReviewStatus)}`, getReviewTone(latestReviewStatus)),
             latestApproval
               ? createToken(`승인:${getApprovalStatusDisplay(latestApproval.status)}`, getApprovalTone(latestApproval.status))

@@ -17,11 +17,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
-const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
-const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-181');
+const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-183');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
-const styles = fs.readFileSync(stylesPath, 'utf8');
 
 function extractFunction(source, name) {
   const signature = `function ${name}(`;
@@ -90,7 +88,7 @@ function extractFunction(source, name) {
   throw new Error(`Function ${name} did not terminate cleanly`);
 }
 
-function loadDeliverablesEvidenceHelpers() {
+function loadHelpers() {
   const context = vm.createContext({
     console,
     state: {
@@ -113,6 +111,8 @@ function loadDeliverablesEvidenceHelpers() {
     'getBuilderLiveMutationSummaries',
     'getReviewStatusDisplay',
     'getApprovalStatusDisplay',
+    'getApprovalTone',
+    'getReviewTone',
     'getRunStatusDisplay',
     'getExecutionStageDisplay',
     'getGuardReasonDisplay',
@@ -120,8 +120,8 @@ function loadDeliverablesEvidenceHelpers() {
     'getEvidenceRailStatusTone',
     'getEvidenceRailHandoffDisplay',
     'createToken',
+    'renderNarrativeDeck',
     'getExecutionEvidenceRail',
-    'renderExecutionEvidenceRail',
   ];
 
   for (const name of functionNames) {
@@ -130,9 +130,14 @@ function loadDeliverablesEvidenceHelpers() {
   }
 
   return {
+    createToken: context.createToken,
+    getApprovalStatusDisplay: context.getApprovalStatusDisplay,
+    getApprovalTone: context.getApprovalTone,
     getExecutionEvidenceRail: context.getExecutionEvidenceRail,
     getGuardReasonDisplay: context.getGuardReasonDisplay,
-    renderExecutionEvidenceRail: context.renderExecutionEvidenceRail,
+    getReviewStatusDisplay: context.getReviewStatusDisplay,
+    getReviewTone: context.getReviewTone,
+    renderNarrativeDeck: context.renderNarrativeDeck,
   };
 }
 
@@ -204,9 +209,8 @@ function buildUiData(runtime, coordinator, projectId) {
       taskGuardSummaries: runtime.listTaskGuardSummaries(),
     },
     inboxItems,
-    runMap: new Map(runs.map((run) => [run.id, run])),
     runs,
-    tasks,
+    runMap: new Map(runs.map((run) => [run.id, run])),
     taskMap: new Map(tasks.map((task) => [task.id, task])),
   };
 }
@@ -217,7 +221,7 @@ async function createPlanningChain(coordinator, taskId) {
     decisionNote: '',
     missingContext: [],
     scopeStatement:
-      'Keep the Deliverables evidence rail derived from the current task, artifact, and readiness chain.',
+      'Keep the Deliverables control deck tokens aligned to the current evidence rail handoff truth.',
   };
 
   const planner = await coordinator.runPlanner({
@@ -259,119 +263,104 @@ function buildBuilderMutationBundle(runtime, taskId, preflight) {
     artifacts: [
       {
         type: 'change-summary',
-        content: '# Change Summary\n\n- deliverables rail',
+        content: '# Change Summary\n\n- scoped.txt',
       },
       {
         type: 'patch',
-        content: 'diff --git a/ui/app.js b/ui/app.js',
+        content: 'diff --git a/scoped.txt b/scoped.txt',
       },
       {
         type: 'diff',
-        content: '@@ -0,0 +1 @@\n+deliverables',
+        content: '@@ -0,0 +1 @@\n+updated',
       },
     ],
     summary: {
       approvalId: approval.id,
       approvalTargetArtifactId: preflight.artifact.id,
       approvalTargetRunId: preflight.run.id,
-      changedFiles: ['ui/app.js'],
+      changedFiles: ['scoped.txt'],
       executionMode: 'live-mutation',
       inputArtifactIds: [...inputArtifactIds, preflight.artifact.id],
       nextStage: 'reviewer',
       preflightArtifactId: preflight.artifact.id,
       preflightRunId: preflight.run.id,
-      targetPreflightArtifactId: preflight.artifact.id,
-      targetPreflightRunId: preflight.run.id,
     },
   });
 
   return {
-    approval: finalized.approval,
+    approval,
     artifacts: finalized.artifacts,
     run: finalized.run,
   };
 }
 
 async function buildReviewEvidence(runtime, taskId) {
-  runtime.openReviewGate({ taskId });
-
-  const run = runtime.startRun({
-    taskId,
-    kind: 'role',
-    role: 'reviewer',
-  });
-  const artifact = runtime.recordArtifact({
-    taskId,
-    runId: run.id,
-    type: 'review',
-    content: '# Review\n\n- pass',
-  });
-  const completedRun = runtime.completeRun({
-    runId: run.id,
-    summary: {
-      mappedReviewStatus: 'passed',
-      nextStage: 'human gate',
-      reviewArtifactId: artifact.id,
-    },
-  });
-
-  runtime.resolveReview({
-    taskId,
-    action: 'passed',
-    note: `리뷰 통과. 증적은 ${artifact.id}를 확인하세요.`,
-  });
-
-  return {
-    artifact,
-    run: completedRun,
-  };
-}
-
-function createProviderBlockedChain(runtime, taskId) {
-  const plan = createRoleArtifact(
-    runtime,
-    taskId,
-    'planner',
-    'plan',
-    '# Plan\n\n- Deliverables evidence rail',
-    {
-      nextStage: 'architect',
-    },
-  );
-  const architecture = createRoleArtifact(
-    runtime,
-    taskId,
-    'architect',
-    'architecture',
-    '# Architecture\n\n- ui/app.js',
-    {
-      inputArtifactId: plan.artifact.id,
-      inputRunId: plan.run.id,
-      nextStage: 'task-breaker',
-    },
-  );
-
   return createRoleArtifact(
     runtime,
     taskId,
-    'task-breaker',
-    'breakdown',
-    '# Breakdown\n\n- reuse the evidence rail',
+    'reviewer',
+    'review',
+    '# Review\n\n- pass',
     {
-      architectureArtifactId: architecture.artifact.id,
-      architectureRunId: architecture.run.id,
-      inputArtifactIds: [plan.artifact.id, architecture.artifact.id],
-      inputRunIds: [plan.run.id, architecture.run.id],
-      nextStage: 'builder',
+      reviewStatus: 'passed',
+      verificationArtifactIds: [],
     },
   );
 }
 
-function renderDeliverablesEvidenceRail(renderExecutionEvidenceRail, rail) {
-  return renderExecutionEvidenceRail(rail, {
-    eyebrow: '증적 인계선',
-    heading: '결과 보고실도 같은 실행 증적선을 그대로 읽습니다',
-    copy: 'Deliverables는 linked task의 artifact, run, readiness, review truth만 읽고 아래 섹션에서 더 깊은 보고를 이어갑니다.',
+function createProviderBlockedChain(runtime, taskId) {
+  const plan = createRoleArtifact(runtime, taskId, 'planner', 'plan', '# Plan', {
+    nextStage: 'architect',
+  });
+  const architecture = createRoleArtifact(runtime, taskId, 'architect', 'architecture', '# Architecture', {
+    inputArtifactId: plan.artifact.id,
+    inputRunId: plan.run.id,
+    nextStage: 'task-breaker',
+  });
+
+  return createRoleArtifact(runtime, taskId, 'task-breaker', 'breakdown', '# Breakdown', {
+    architectureArtifactId: architecture.artifact.id,
+    architectureRunId: architecture.run.id,
+    inputArtifactIds: [plan.artifact.id, architecture.artifact.id],
+    inputRunIds: [plan.run.id, architecture.run.id],
+    nextStage: 'builder',
+  });
+}
+
+function renderControlDeckTokens({
+  createToken,
+  evidenceRail,
+  getApprovalStatusDisplay,
+  getApprovalTone,
+  getReviewStatusDisplay,
+  getReviewTone,
+  latestApproval,
+  latestReviewStatus,
+  missionCompletionReady,
+  renderNarrativeDeck,
+}) {
+  return renderNarrativeDeck({
+    wide: false,
+    eyebrow: '보고 판단판',
+    heading: '현재 보고 상태와 다음 후속만 먼저 봅니다',
+    copy: '결과 보고실 오른쪽 패널은 현재 보고 묶음, 결재선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다.',
+    tokens: [
+      createToken(
+        `현재:${evidenceRail.currentOwnerLabel}`,
+        evidenceRail.blockedReason ? 'danger' : 'accent',
+      ),
+      createToken(`다음:${evidenceRail.nextHandoffLabel}`, 'neutral'),
+      createToken(`리뷰:${getReviewStatusDisplay(latestReviewStatus)}`, getReviewTone(latestReviewStatus)),
+      latestApproval
+        ? createToken(`승인:${getApprovalStatusDisplay(latestApproval.status)}`, getApprovalTone(latestApproval.status))
+        : createToken('승인:없음', 'neutral'),
+      missionCompletionReady ? createToken('완료:봉인', 'success') : '',
+    ].filter(Boolean),
+    cards: [
+      { label: '현재 판단', title: '검증용', copy: '검증용' },
+      { label: '바로 이동', title: '검증용', copy: '검증용' },
+      { label: '이유', title: '검증용', copy: '검증용' },
+    ],
   });
 }
 
@@ -383,65 +372,77 @@ const coordinator = createExecutionCoordinator({
   repoRoot,
   runtimeService: runtime,
 });
-const { getExecutionEvidenceRail, getGuardReasonDisplay, renderExecutionEvidenceRail } =
-  loadDeliverablesEvidenceHelpers();
+const {
+  createToken,
+  getApprovalStatusDisplay,
+  getApprovalTone,
+  getExecutionEvidenceRail,
+  getGuardReasonDisplay,
+  getReviewStatusDisplay,
+  getReviewTone,
+  renderNarrativeDeck,
+} = loadHelpers();
 
 assert.match(
   appJs,
-  /const deliverablesEvidenceState = getExecutionEvidenceRail\(linkedTask, data\);/,
+  /createToken\(\s*`현재:\$\{deliverablesEvidenceState\.currentOwnerLabel\}`,\s*deliverablesEvidenceState\.blockedReason \? 'danger' : 'accent',\s*\)/,
 );
-assert.match(appJs, /const deliverablesEvidenceRail = renderExecutionEvidenceRail\(deliverablesEvidenceState, \{/);
-assert.match(appJs, /\$\{deliverablesEvidenceRail\}/);
-assert.match(appJs, /<strong>상류 준비 보고<\/strong>/);
-assert.match(appJs, /<strong>후속 전달 보고<\/strong>/);
-assert.match(appJs, /<strong>리뷰 보고<\/strong>/);
-assert.match(appJs, /<strong>현재 결재 안건<\/strong>/);
-assert.match(appJs, /<strong>안건 종료 보고<\/strong>/);
-assert.match(styles, /\.evidence-rail \{/);
-assert.match(styles, /\.evidence-rail-grid \{/);
+assert.match(appJs, /createToken\(`다음:\$\{deliverablesEvidenceState\.nextHandoffLabel\}`,\s*'neutral'\)/);
+assert.match(appJs, /createToken\(`리뷰:\$\{getReviewStatusDisplay\(latestReviewStatus\)\}`,\s*getReviewTone\(latestReviewStatus\)\)/);
+assert.match(appJs, /eyebrow:\s*'보고 판단판'/);
 
 try {
   runtime.resetRuntime();
 
   const reviewedProject = runtime.createProject({
-    name: 'deliverables-evidence-rail-review-complete',
+    name: 'deliverables-control-deck-handoff-review-complete',
     projectPath: repoRoot,
   });
   const reviewedTask = runtime.createTask({
     projectId: reviewedProject.id,
-    title: 'Deliverables evidence rail review complete',
-    intent: 'Show the full Deliverables evidence continuation with review evidence.',
+    title: 'Deliverables control deck handoff review complete',
+    intent: 'Show the same current and next handoff labels in the deliverables control deck.',
   });
   const reviewedChain = await createPlanningChain(coordinator, reviewedTask.id);
 
   buildBuilderMutationBundle(runtime, reviewedTask.id, reviewedChain.preflight);
-  const reviewEvidence = await buildReviewEvidence(runtime, reviewedTask.id);
+  await buildReviewEvidence(runtime, reviewedTask.id);
 
   const reviewedData = buildUiData(runtime, coordinator, reviewedProject.id);
   const reviewedRail = getExecutionEvidenceRail(reviewedData.taskMap.get(reviewedTask.id), reviewedData);
-  const reviewedMarkup = renderDeliverablesEvidenceRail(renderExecutionEvidenceRail, reviewedRail);
+  const reviewedMarkup = renderControlDeckTokens({
+    createToken,
+    evidenceRail: reviewedRail,
+    getApprovalStatusDisplay,
+    getApprovalTone,
+    getReviewStatusDisplay,
+    getReviewTone,
+    latestApproval: null,
+    latestReviewStatus: 'passed',
+    missionCompletionReady: false,
+    renderNarrativeDeck,
+  });
 
   assert.equal(reviewedRail.currentOwnerLabel, 'Critic');
+  assert.equal(reviewedRail.nextHandoffLabel, '사람 게이트');
   assert.match(reviewedMarkup, /현재:Critic/);
-  assert.match(reviewedMarkup, new RegExp(`review ${reviewEvidence.artifact.id}`));
-  assert.doesNotMatch(reviewedMarkup, /data-action=/);
+  assert.match(reviewedMarkup, /다음:사람 게이트/);
+  assert.match(reviewedMarkup, /리뷰:통과/);
 
   runtime.resetRuntime();
 
   const blockedProjectPath = fs.mkdtempSync(
-    path.join(os.tmpdir(), 'orchestration-ui-slice-181-provider-'),
+    path.join(os.tmpdir(), 'orchestration-ui-slice-183-provider-'),
   );
   const blockedProject = runtime.createProject({
-    name: 'deliverables-evidence-rail-maker-blocked',
+    name: 'deliverables-control-deck-handoff-maker-blocked',
     projectPath: blockedProjectPath,
-    provider: {
-      mode: 'live',
-    },
+    provider: { mode: 'live' },
   });
   const blockedTask = runtime.createTask({
     projectId: blockedProject.id,
-    title: 'Deliverables evidence rail maker blocked',
-    intent: 'Keep the existing first blocked reason inside Deliverables.',
+    title: 'Deliverables control deck handoff maker blocked',
+    intent: 'Keep current and next handoff tokens grounded even when maker is blocked.',
   });
 
   createProviderBlockedChain(runtime, blockedTask.id);
@@ -450,24 +451,36 @@ try {
   const blockedRail = getExecutionEvidenceRail(blockedData.taskMap.get(blockedTask.id), blockedData);
   const blockedFirstReason =
     blockedData.derived.executionEntrySummaries[blockedTask.id].builderPreflight.reasons[0];
-  const blockedMarkup = renderDeliverablesEvidenceRail(renderExecutionEvidenceRail, blockedRail);
+  const blockedMarkup = renderControlDeckTokens({
+    createToken,
+    evidenceRail: blockedRail,
+    getApprovalStatusDisplay,
+    getApprovalTone,
+    getReviewStatusDisplay,
+    getReviewTone,
+    latestApproval: null,
+    latestReviewStatus: 'pending',
+    missionCompletionReady: false,
+    renderNarrativeDeck,
+  });
 
   assert.equal(blockedRail.currentOwnerLabel, 'Maker');
   assert.equal(blockedRail.blockedReason, getGuardReasonDisplay(blockedFirstReason));
-  assert.match(blockedMarkup, new RegExp(getGuardReasonDisplay(blockedFirstReason)));
+  assert.match(blockedMarkup, /현재:Maker/);
+  assert.match(blockedMarkup, new RegExp(`다음:${blockedRail.nextHandoffLabel}`));
 
   console.log(
     JSON.stringify(
       {
         ok: true,
-        deliverablesEvidenceContinuation: {
-          fullReviewArtifactId: reviewEvidence.artifact.id,
-          makerBlockedReason: blockedRail.blockedReason,
+        deliverablesControlDeckHandoffTokens: {
+          blockedCurrentOwner: blockedRail.currentOwnerLabel,
+          reviewedCurrentOwner: reviewedRail.currentOwnerLabel,
+          reviewedNextHandoff: reviewedRail.nextHandoffLabel,
           verifiedCases: [
-            'deliverables wiring exists before the deeper summary sections',
-            'full handoff chain shows critic review evidence',
-            'maker blocked reuses the existing first blocked reason',
-            'deliverables rail stays read-only and coexists with the summary sections',
+            'deliverables control deck shows current and next handoff tokens from the shared rail truth',
+            'review-complete path keeps critic and review status aligned',
+            'maker-blocked path keeps current owner and next handoff grounded in the existing blocked reason flow',
           ],
         },
       },
