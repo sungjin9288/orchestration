@@ -12066,6 +12066,11 @@ function renderDeliverables(data) {
               <strong>현재 결재 안건</strong>
             </div>
             <div class="token-row">
+              ${createToken(
+                `현재:${deliverablesEvidenceState.currentOwnerLabel}`,
+                deliverablesEvidenceState.blockedReason ? 'danger' : 'accent',
+              )}
+              ${createToken(`다음:${deliverablesEvidenceState.nextHandoffLabel}`, 'neutral')}
               ${
                 approvalBridge.currentApproval
                   ? createToken(
