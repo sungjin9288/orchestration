@@ -14131,6 +14131,7 @@ function renderDecisionInbox(data) {
   const inboxActionDisabled = state.loading || state.mutating;
   const selectedMission = data.missionMap.get(state.selectedMissionId) || null;
   const inboxDetailSnapshot = getInboxDetailSnapshot(selectedItem, selectedTask, selectedApproval);
+  const decisionDetailEvidenceState = getExecutionEvidenceRail(selectedTask, data);
   const pendingApprovalItems = pendingItems.filter((item) => item.kind === 'approval');
   const pendingDecisionItems = pendingItems.filter((item) => item.kind !== 'approval');
   const decisionOpsEntrySignals = getAdvancedOpsEntrySignals({
@@ -14415,7 +14416,14 @@ function renderDecisionInbox(data) {
           eyebrow: '관제실 판단 요약',
           heading: '현재 상태와 다음 처리를 먼저 보는 결재 상세',
           copy: selectedItem?.prompt || '결재를 고르면 현재 상태와 다음 처리만 먼저 판단합니다.',
-          tokens: inboxDetailSnapshot.tokens,
+          tokens: [
+            createToken(
+              `현재:${decisionDetailEvidenceState.currentOwnerLabel}`,
+              decisionDetailEvidenceState.blockedReason ? 'danger' : 'accent',
+            ),
+            createToken(`다음:${decisionDetailEvidenceState.nextHandoffLabel}`, 'neutral'),
+            ...inboxDetailSnapshot.tokens,
+          ],
           cards: [
             {
               label: '현재 상태',
