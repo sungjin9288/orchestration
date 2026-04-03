@@ -12263,7 +12263,7 @@ function renderTaskboard(data) {
   const focusedTaskLatestArtifact = focusedTaskArtifacts[0] || null;
   const focusedTaskLatestRun = focusedTask?.latestRunId ? data.runMap.get(focusedTask.latestRunId) || null : null;
   const focusedTaskPreferredInboxItem = focusedTask ? getPreferredTaskInboxItem(focusedTask.id, data) : null;
-
+  const taskboardEvidenceState = getExecutionEvidenceRail(focusedTask, data);
   const focusedTaskSnapshot = getTaskboardTaskSnapshot(focusedTask, data);
   const taskboardImmediateCard =
     pendingApprovals.length > 0
@@ -12314,6 +12314,11 @@ function renderTaskboard(data) {
     copy:
       '왼쪽은 실행 셀 목록과 빠른 추가를 맡고, 오른쪽은 선택된 셀의 상태와 다음 실행만 먼저 보여 줍니다.',
     tokens: [
+      createToken(
+        `현재:${taskboardEvidenceState.currentOwnerLabel}`,
+        taskboardEvidenceState.blockedReason ? 'danger' : 'accent',
+      ),
+      createToken(`다음:${taskboardEvidenceState.nextHandoffLabel}`, 'neutral'),
       data.activeProject
         ? createToken(`프로젝트:${data.activeProject.name}`, 'success')
         : createToken('프로젝트:선택 필요', 'warning'),
