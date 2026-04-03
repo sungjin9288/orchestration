@@ -3981,7 +3981,7 @@ function getArtifactListSnapshot(artifact, task, data) {
   };
 }
 
-function getInboxListSnapshot(item, task, approval) {
+function getInboxListSnapshot(item, task, approval, evidenceRail = null) {
   let currentCopy = `${getInboxStatusDisplay(item.status)} 상태의 결재 안건입니다.`;
   if (item.status === 'resolved') {
     currentCopy = '이미 처리돼 기록만 확인하면 되는 안건입니다.';
@@ -3998,6 +3998,23 @@ function getInboxListSnapshot(item, task, approval) {
     nextCopy = '다음: 해결 처리 검토';
   } else if (item.status === 'pending') {
     nextCopy = '다음: 결재 상세 확인';
+  }
+
+  if (evidenceRail) {
+    const currentCheckpoint =
+      evidenceRail.checkpoints?.find((checkpoint) => checkpoint.currentOwner) || null;
+
+    if (currentCheckpoint?.blockedReason) {
+      currentCopy = currentCheckpoint.blockedReason;
+    } else if (currentCheckpoint) {
+      currentCopy = [currentCheckpoint.title, currentCheckpoint.evidenceLabel, currentCheckpoint.evidenceMeta]
+        .filter(Boolean)
+        .join(' · ');
+    } else if (evidenceRail.blockedReason) {
+      currentCopy = evidenceRail.blockedReason;
+    }
+
+    nextCopy = `다음 인계: ${evidenceRail.nextHandoffLabel || '없음'}`;
   }
 
   return {
@@ -14325,7 +14342,12 @@ function renderDecisionInbox(data) {
                     ? data.approvals.find((approval) => approval.id === item.sourceId) || null
                     : null;
                   const inboxEvidenceState = getExecutionEvidenceRail(inboxTask, data);
-                  const inboxSnapshot = getInboxListSnapshot(item, inboxTask, inboxApproval);
+                  const inboxSnapshot = getInboxListSnapshot(
+                    item,
+                    inboxTask,
+                    inboxApproval,
+                    inboxEvidenceState,
+                  );
 
                   return `
                     <button class="card list-button ops-list-button ${item.id === selectedItem?.id ? 'is-selected' : ''}" type="button" data-action="select-inbox-item" data-id="${escapeHtml(item.id)}">

@@ -14,7 +14,7 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(appJs, /function getRunListSnapshot\(run, task, data\)/);
 assert.match(appJs, /function getArtifactListSnapshot\(artifact, task, data\)/);
-assert.match(appJs, /function getInboxListSnapshot\(item, task, approval\)/);
+assert.match(appJs, /function getInboxListSnapshot\(item, task, approval, evidenceRail = null\)/);
 
 assert.match(appJs, /class="card list-button ops-list-button/);
 assert.match(appJs, /class="ops-list-head"/);
