@@ -12223,6 +12223,13 @@ function renderDeliverables(data) {
             <div class="card-title-row">
               <strong>관제실 직행</strong>
             </div>
+            <div class="token-row">
+              ${createToken(
+                `현재:${deliverablesEvidenceState.currentOwnerLabel}`,
+                deliverablesEvidenceState.blockedReason ? 'danger' : 'accent',
+              )}
+              ${createToken(`다음:${deliverablesEvidenceState.nextHandoffLabel}`, 'neutral')}
+            </div>
             <p class="detail-copy">${escapeHtml(opsEntryHelperCopy)}</p>
             ${opsActionSignalRow}
             ${opsEntrySignalRow}
