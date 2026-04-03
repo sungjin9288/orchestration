@@ -11714,6 +11714,11 @@ function renderDeliverables(data) {
     latestReviewStatus,
     missionCompletionReady,
   });
+  const deliverablesEvidenceRail = renderExecutionEvidenceRail(getExecutionEvidenceRail(linkedTask, data), {
+    eyebrow: '증적 인계선',
+    heading: '결과 보고실도 같은 실행 증적선을 그대로 읽습니다',
+    copy: 'Deliverables는 linked task의 artifact, run, readiness, review truth만 읽고 아래 섹션에서 더 깊은 보고를 이어갑니다.',
+  });
   const deliverablesControl = getDeliverablesControlSnapshot(
     selectedMission,
     linkedTask,
@@ -11781,6 +11786,7 @@ function renderDeliverables(data) {
             },
           ],
         })}
+        ${deliverablesEvidenceRail}
         <div class="stack">
           <section class="relation-strip">
             <div class="card-title-row">
