@@ -12149,6 +12149,11 @@ function renderDeliverables(data) {
               <strong>안건 종료 보고</strong>
             </div>
             <div class="token-row">
+              ${createToken(
+                `현재:${deliverablesEvidenceState.currentOwnerLabel}`,
+                deliverablesEvidenceState.blockedReason ? 'danger' : 'accent',
+              )}
+              ${createToken(`다음:${deliverablesEvidenceState.nextHandoffLabel}`, 'neutral')}
               ${createToken(`미션:${getMissionStatusDisplay(selectedMission.status)}`, getMissionStatusTone(selectedMission.status))}
               ${
                 linkedTask
