@@ -17,7 +17,7 @@ const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'u
 assert.match(appJs, /const renderInboxList = \(items, options\) =>/);
 assert.match(appJs, /class="panel-header panel-header-tight"/);
 assert.match(appJs, /class="panel-copy panel-copy-tight"/);
-assert.match(appJs, /copy: '아래 deck은 현재 안건 판단만 먼저 요약하고, 실제 선택과 처리 큐는 바로 아래에서 이어갑니다\.'/);
+assert.match(appJs, /copy: '아래 deck은 현재 안건과 다음 처리만 먼저 요약하고, 실제 선택과 처리 버튼은 바로 아래에서 이어갑니다\.'/);
 assert.match(appJs, /copy: '지금 막힌 게이트만 고르고 바로 처리합니다\.'/);
 assert.match(appJs, /copy: '방금 끝난 승인과 해결만 감사 추적으로 확인합니다\.'/);
 assert.match(appJs, /scopeToken: '지금 처리'/);
