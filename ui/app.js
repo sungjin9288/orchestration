@@ -12684,6 +12684,7 @@ function renderTaskDetail(task, data) {
   const showReleaseApprovalHint =
     preselectedPendingItem?.kind === 'approval' &&
     preselectedApproval?.allowedNextAction === 'release-ready';
+  const taskDetailEvidenceState = getExecutionEvidenceRail(task, data);
   const taskSnapshot = getTaskboardTaskSnapshot(task, data);
   const pendingTaskApproval = pendingTaskApprovals[0] || null;
   const pendingTaskDecision = pendingTaskInboxItems[0] || null;
@@ -12803,6 +12804,11 @@ function renderTaskDetail(task, data) {
         heading: '현재 상태와 다음 실행을 먼저 보는 상세',
         copy: task.intent || '기록된 의도가 없으면 현재 상태와 다음 실행만 먼저 확인합니다.',
         tokens: [
+          createToken(
+            `현재:${taskDetailEvidenceState.currentOwnerLabel}`,
+            taskDetailEvidenceState.blockedReason ? 'danger' : 'accent',
+          ),
+          createToken(`다음:${taskDetailEvidenceState.nextHandoffLabel}`, 'neutral'),
           createToken(getTaskLifecycleDisplay(task.lifecycleState), 'neutral'),
           ...taskSnapshot.tokens,
           task.flags?.blocked ? createToken('차단', 'danger') : '',
