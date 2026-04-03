@@ -13697,6 +13697,7 @@ function renderArtifacts(data) {
     data,
     selectedArtifactPolicySummary,
   );
+  const artifactsDetailEvidenceState = getExecutionEvidenceRail(selectedArtifactTask, data);
   const selectedArtifactApprovals = selectedArtifactTask
     ? data.approvals.filter((approval) => approval.taskId === selectedArtifactTask.id && approval.status === 'pending')
     : [];
@@ -13893,7 +13894,14 @@ function renderArtifacts(data) {
           eyebrow: '관제실 판단 요약',
           heading: '현재 증적과 다음 확인을 먼저 보는 증적 상세',
           copy: selectedArtifactTask?.title || '증적을 고르면 현재 증적과 다음 확인만 먼저 판단합니다.',
-          tokens: artifactDetailSnapshot.tokens,
+          tokens: [
+            createToken(
+              `현재:${artifactsDetailEvidenceState.currentOwnerLabel}`,
+              artifactsDetailEvidenceState.blockedReason ? 'danger' : 'accent',
+            ),
+            createToken(`다음:${artifactsDetailEvidenceState.nextHandoffLabel}`, 'neutral'),
+            ...artifactDetailSnapshot.tokens,
+          ],
           cards: [
             {
               label: '현재 상태',
