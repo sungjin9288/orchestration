@@ -14212,6 +14212,11 @@ function renderDecisionInbox(data) {
             <p class="decision-action-copy">이 안건은 여기서 승인 또는 반려만 결정합니다.</p>
           </div>
           <div class="token-row token-row-compact">
+            ${createToken(
+              `현재:${decisionDetailEvidenceState.currentOwnerLabel}`,
+              decisionDetailEvidenceState.blockedReason ? 'danger' : 'accent',
+            )}
+            ${createToken(`다음:${decisionDetailEvidenceState.nextHandoffLabel}`, 'neutral')}
             ${createToken('승인 요청', 'accent')}
             ${selectedApproval ? createToken(getApprovalActionLabel(selectedApproval.allowedNextAction) || selectedApproval.scope, 'neutral') : ''}
           </div>
@@ -14251,6 +14256,11 @@ function renderDecisionInbox(data) {
             <p class="decision-action-copy">이 안건은 여기서 해결만 기록하고 다음 실행 판단으로 넘깁니다.</p>
           </div>
           <div class="token-row token-row-compact">
+            ${createToken(
+              `현재:${decisionDetailEvidenceState.currentOwnerLabel}`,
+              decisionDetailEvidenceState.blockedReason ? 'danger' : 'accent',
+            )}
+            ${createToken(`다음:${decisionDetailEvidenceState.nextHandoffLabel}`, 'neutral')}
             ${createToken('결정 처리', 'warning')}
           </div>
         </div>
@@ -14279,6 +14289,11 @@ function renderDecisionInbox(data) {
             <p class="decision-action-copy">이 안건은 결정함에서 상태만 확인하고 다른 surface로 이어집니다.</p>
           </div>
           <div class="token-row token-row-compact">
+            ${createToken(
+              `현재:${decisionDetailEvidenceState.currentOwnerLabel}`,
+              decisionDetailEvidenceState.blockedReason ? 'danger' : 'accent',
+            )}
+            ${createToken(`다음:${decisionDetailEvidenceState.nextHandoffLabel}`, 'neutral')}
             ${createToken('읽기 전용', 'neutral')}
           </div>
         </div>
