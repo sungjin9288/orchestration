@@ -447,11 +447,11 @@ async function main() {
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
-    assert.match(appJs, /Resume Approved Close Out/);
-    assert.match(appJs, /Open Execution To Run Close Out/);
+    assert.match(appJs, /승인된 종료 정리 이어가기/);
+    assert.match(appJs, /실행으로 이동해 종료 정리 실행/);
     assert.match(
       appJs,
-      /This CTA reuses the existing close-out route, then lands on Artifacts with the saved close-out bundle\./,
+      /현재 승인된 release 번들이 준비됐습니다\. 이 CTA는 종료 정리 경로를 따라 종료 정리 번들로 이어집니다\./,
     );
 
     const closeOutPayload = await postJson(

@@ -14,16 +14,14 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /Mission stays primary\. Advanced Ops stays secondary\./);
-assert.match(appJs, /One strip keeps council, execution, deliverables, and next step together\./);
-assert.match(appJs, /Primary actions live here\. Advanced Ops stays secondary\./);
-assert.match(appJs, /Linked task setup stays on the v1 engine\. Advanced Ops remains secondary\./);
-assert.match(appJs, /Secondary escape hatch for full Taskboard control\./);
+assert.match(appJs, /현재 안건 판단과 바로 이동을 시작합니다\./);
+assert.match(appJs, /현재 작전 판단과 다음 행동을 조정합니다\./);
+assert.match(appJs, /현재 보고 판단과 다음 행동을 확인합니다\./);
+assert.match(appJs, /프로바이더, worktree, 로그, 아티팩트, 결정함은 고급 운영 모드에 남습니다\./);
+assert.match(appJs, /고급 운영 모드에서 현재 프로젝트를 고른 뒤/);
 
 assert.doesNotMatch(appJs, /Mission stays default\. Advanced Ops stays the escape hatch\./);
-assert.doesNotMatch(appJs, /Preview density trimmed for active missions so council, execution, deliverables, and next-step signals can be scanned in one strip\./);
 assert.doesNotMatch(appJs, /Grouped primary actions live here\. Advanced Ops stays secondary\./);
-assert.doesNotMatch(appJs, /Creates one linked task and leaves execution on the v1 engine\. Advanced Ops remains the secondary escape hatch\./);
 assert.doesNotMatch(appJs, /Secondary escape hatch for full Taskboard control and provenance detail\./);
 
 const activeMission = Object.values(activeState.missions)[0];

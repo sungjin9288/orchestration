@@ -1707,6 +1707,14 @@ function normalizeProviderReasons(reasons) {
   return [...new Set((reasons || []).map((reason) => String(reason || '').trim()).filter(Boolean))];
 }
 
+function getExecutionEntryProviderReasons(summary) {
+  if (!summary || summary.allowed || !Array.isArray(summary.reasons) || summary.reasons.length === 0) {
+    return [];
+  }
+
+  return [`provider-not-ready: ${summary.reasons[0]}`];
+}
+
 function normalizeProjectProviderConfig(provider) {
   const defaults = createDefaultProjectProviderConfig();
   const source = provider && typeof provider === 'object' ? provider : {};
@@ -1733,6 +1741,75 @@ function normalizeProjectProviderConfig(provider) {
           : null,
     },
   };
+}
+
+function getProjectPathExecutionReasons(project) {
+  const projectPath = String(project?.projectPath || '').trim();
+
+  if (!projectPath) {
+    return ['project_path is required'];
+  }
+
+  if (!fs.existsSync(projectPath)) {
+    return [`project_path does not exist: ${projectPath}`];
+  }
+
+  let stats = null;
+
+  try {
+    stats = fs.statSync(projectPath);
+  } catch (error) {
+    return [`project_path is not accessible: ${projectPath}`];
+  }
+
+  if (!stats.isDirectory()) {
+    return [`project_path must point to a directory: ${projectPath}`];
+  }
+
+  return [];
+}
+
+function getExecutionEntryWorktreeReasons(task, project) {
+  const projectPath = String(project?.projectPath || '').trim();
+  const expectedWorktreeRef = String(task?.worktreeRef || '').trim();
+
+  if (!projectPath || !expectedWorktreeRef) {
+    return [];
+  }
+
+  if (!fs.existsSync(expectedWorktreeRef)) {
+    return [
+      `linked-worktree mismatch: task.worktreeRef does not exist before execution: ${expectedWorktreeRef}`,
+    ];
+  }
+
+  let resolvedProjectPath = null;
+
+  try {
+    resolvedProjectPath = fs.realpathSync(projectPath);
+  } catch (_error) {
+    return [];
+  }
+
+  let currentExecutionRoot = resolvedProjectPath;
+
+  try {
+    currentExecutionRoot = fs.realpathSync(
+      runGit(projectPath, ['rev-parse', '--show-toplevel']).trim(),
+    );
+  } catch (_error) {
+    currentExecutionRoot = resolvedProjectPath;
+  }
+
+  const resolvedWorktreeRef = fs.realpathSync(expectedWorktreeRef);
+
+  if (resolvedWorktreeRef === currentExecutionRoot) {
+    return [];
+  }
+
+  return [
+    `linked-worktree mismatch: task.worktreeRef must match current project_path before execution: expected=${resolvedWorktreeRef} actual=${currentExecutionRoot}`,
+  ];
 }
 
 function normalizeProviderAdapterReadinessSummary(summary) {
@@ -1899,6 +1976,131 @@ function createExecutionCoordinator(options = {}) {
     }
 
     return summaries;
+  }
+
+  function normalizeExecutionEntryStage(stage) {
+    if (stage === 'architect') {
+      return 'architect';
+    }
+
+    if (stage === 'task-breaker' || stage === 'taskBreaker') {
+      return 'taskBreaker';
+    }
+
+    if (stage === 'builder-preflight' || stage === 'builderPreflight') {
+      return 'builderPreflight';
+    }
+
+    return 'planner';
+  }
+
+  function toExecutionEntryRole(stage) {
+    if (stage === 'taskBreaker') {
+      return 'task-breaker';
+    }
+
+    if (stage === 'builderPreflight') {
+      return 'builder-preflight';
+    }
+
+    return stage;
+  }
+
+  function resolveExecutionEntryReadiness(input = {}) {
+    if (!input.taskId) {
+      throw new Error('taskId is required');
+    }
+
+    const stage = normalizeExecutionEntryStage(input.stage);
+    const task = runtime.getTask(input.taskId);
+    const project = runtime.getProject(task.projectId);
+    const reasons = [...getProjectPathExecutionReasons(project)];
+    let providerSummary = null;
+
+    if (reasons.length === 0) {
+      reasons.push(...getExecutionEntryWorktreeReasons(task, project));
+    }
+
+    if (reasons.length === 0) {
+      providerSummary = resolveProviderExecutionContext(project, toExecutionEntryRole(stage)).summary;
+
+      if (!providerSummary.allowed) {
+        reasons.push(...getExecutionEntryProviderReasons(providerSummary));
+      }
+    }
+
+    if (stage === 'architect') {
+      const latestPlanArtifact = findLatestTaskArtifact(runtime, task, 'plan');
+
+      if (!latestPlanArtifact) {
+        reasons.push(`Plan artifact is required before architect run for task ${task.id}`);
+      }
+    } else if (stage === 'taskBreaker' || stage === 'builderPreflight') {
+      const guardSummary = runtime.getTaskGuardSummary(task.id);
+      const stageGuard =
+        stage === 'taskBreaker' ? guardSummary.taskBreaker : guardSummary.builderPreflight;
+
+      if (stageGuard?.reasons?.length) {
+        reasons.push(...stageGuard.reasons);
+      }
+    }
+
+    return {
+      allowed: normalizeProviderReasons(reasons).length === 0,
+      projectId: project.id,
+      providerSummary,
+      reasons: normalizeProviderReasons(reasons),
+      stage,
+      taskId: task.id,
+    };
+  }
+
+  function getExecutionEntryReadiness(input = {}) {
+    return resolveExecutionEntryReadiness(input);
+  }
+
+  function listExecutionEntryReadinessSummaries(input = {}) {
+    const snapshot = runtime.getSnapshot();
+    const summaries = {};
+
+    for (const task of Object.values(snapshot.tasks)) {
+      if (input.projectId && task.projectId !== input.projectId) {
+        continue;
+      }
+
+      summaries[task.id] = {
+        architect: getExecutionEntryReadiness({
+          stage: 'architect',
+          taskId: task.id,
+        }),
+        builderPreflight: getExecutionEntryReadiness({
+          stage: 'builderPreflight',
+          taskId: task.id,
+        }),
+        planner: getExecutionEntryReadiness({
+          stage: 'planner',
+          taskId: task.id,
+        }),
+        taskBreaker: getExecutionEntryReadiness({
+          stage: 'taskBreaker',
+          taskId: task.id,
+        }),
+      };
+    }
+
+    return summaries;
+  }
+
+  function assertExecutionEntryReady(input = {}) {
+    const readiness = resolveExecutionEntryReadiness(input);
+
+    if (readiness.allowed) {
+      return readiness;
+    }
+
+    throw new Error(
+      readiness.reasons[0] || `${toExecutionEntryRole(readiness.stage)} execution is not ready`,
+    );
   }
 
   async function assertBuilderLiveMutationReady(input) {
@@ -3288,13 +3490,15 @@ function createExecutionCoordinator(options = {}) {
     }
 
     let task = runtime.getTask(input.taskId);
+    const readiness = assertExecutionEntryReady({
+      stage: 'planner',
+      taskId: task.id,
+    });
     const project = runtime.getProject(task.projectId);
-
-    if (!project.projectPath) {
-      throw new Error('project_path is required');
-    }
-
-    const providerContext = assertProviderExecutionReady(project, 'planner');
+    const providerContext =
+      readiness.providerSummary && readiness.providerSummary.allowed
+        ? resolveProviderExecutionContext(project, 'planner')
+        : assertProviderExecutionReady(project, 'planner');
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
       task = runtime.transitionTaskLifecycle({
@@ -3419,11 +3623,11 @@ function createExecutionCoordinator(options = {}) {
     }
 
     let task = runtime.getTask(input.taskId);
+    assertExecutionEntryReady({
+      stage: 'architect',
+      taskId: task.id,
+    });
     const project = runtime.getProject(task.projectId);
-
-    if (!project.projectPath) {
-      throw new Error('project_path is required');
-    }
 
     const planArtifact = findLatestTaskArtifact(runtime, task, 'plan');
 
@@ -3585,11 +3789,11 @@ function createExecutionCoordinator(options = {}) {
     });
 
     let task = runtime.getTask(input.taskId);
+    assertExecutionEntryReady({
+      stage: 'taskBreaker',
+      taskId: task.id,
+    });
     const project = runtime.getProject(task.projectId);
-
-    if (!project.projectPath) {
-      throw new Error('project_path is required');
-    }
 
     const {
       architectureArtifact,
@@ -3747,11 +3951,11 @@ function createExecutionCoordinator(options = {}) {
     }
 
     let task = runtime.getTask(input.taskId);
+    assertExecutionEntryReady({
+      stage: 'builderPreflight',
+      taskId: task.id,
+    });
     const project = runtime.getProject(task.projectId);
-
-    if (!project.projectPath) {
-      throw new Error('project_path is required');
-    }
 
     runtime.assertTaskCanRunBuilderPreflight({
       taskId: input.taskId,
@@ -5386,12 +5590,14 @@ function createExecutionCoordinator(options = {}) {
     getCloseOutReadiness,
     getCommitExecutionReadiness,
     getCommitPackageReadiness,
+    getExecutionEntryReadiness,
     getProviderExecutionReadiness,
     getReleasePackageReadiness,
     getReviewerReadiness,
     listCloseOutReadinessSummaries,
     listCommitExecutionReadinessSummaries,
     listCommitPackageReadinessSummaries,
+    listExecutionEntryReadinessSummaries,
     listProviderExecutionReadinessSummaries,
     listReleasePackageReadinessSummaries,
     listReviewerReadinessSummaries,

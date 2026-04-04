@@ -423,11 +423,11 @@ async function main() {
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
-    assert.match(appJs, /Prepare Release Package/);
-    assert.match(appJs, /Open Execution To Prepare Release Package/);
+    assert.match(appJs, /릴리스 패키지 준비/);
+    assert.match(appJs, /실행으로 이동해 릴리스 패키지 준비/);
     assert.match(
       appJs,
-      /This CTA reuses the existing release-package route, then opens the current release approval without enabling push, publish, or close-out on the primary shell\./,
+      /릴리스 패키지 경로를 따라 현재 release 승인을 엽니다\./,
     );
 
     const releasePackagePayload = await postJson(

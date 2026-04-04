@@ -14,13 +14,13 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /<span class="field-label">Title<\/span>[\s\S]*?name="missionTitle"/);
-assert.match(appJs, /<span class="field-label">Goal<\/span>[\s\S]*?name="missionGoal"/);
-assert.match(appJs, /<span class="field-label">Scope<\/span>[\s\S]*?name="missionConstraints"/);
+assert.match(appJs, /<span class="field-label">안건<\/span>[\s\S]*?name="missionTitle"/);
+assert.match(appJs, /<span class="field-label">목표<\/span>[\s\S]*?name="missionGoal"/);
+assert.match(appJs, /<span class="field-label">경계 \(선택\)<\/span>[\s\S]*?name="missionConstraints"/);
 
-assert.doesNotMatch(appJs, /<span class="field-label">Mission Title<\/span>[\s\S]*?name="missionTitle"/);
-assert.doesNotMatch(appJs, /<span class="field-label">Mission Goal<\/span>[\s\S]*?name="missionGoal"/);
-assert.doesNotMatch(appJs, /<span class="field-label">Constraints<\/span>[\s\S]*?name="missionConstraints"/);
+assert.doesNotMatch(appJs, /<span class="field-label">Title<\/span>[\s\S]*?name="missionTitle"/);
+assert.doesNotMatch(appJs, /<span class="field-label">Goal<\/span>[\s\S]*?name="missionGoal"/);
+assert.doesNotMatch(appJs, /<span class="field-label">Scope<\/span>[\s\S]*?name="missionConstraints"/);
 
 const activeMission = Object.values(activeState.missions)[0];
 const activeTask = activeState.tasks[activeMission.linkedTaskId];

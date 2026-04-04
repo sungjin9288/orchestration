@@ -14,33 +14,36 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-const detailStart = appJs.indexOf('<h2>Mission Detail</h2>');
-const detailEnd = appJs.indexOf('<strong>Advanced Ops Mode</strong>', detailStart);
+const detailStart = appJs.indexOf('<h2>안건 브리프</h2>');
+const detailEnd = appJs.indexOf('</aside>', detailStart);
 
-assert.notEqual(detailStart, -1, 'Mission Detail section should exist');
-assert.notEqual(detailEnd, -1, 'Advanced Ops Mode section should exist');
+assert.notEqual(detailStart, -1, '안건 브리프 section should exist');
+assert.notEqual(detailEnd, -1, '안건 브리프 aside should exist');
 
 const detailSource = appJs.slice(detailStart, detailEnd + 64);
 
 const titleIndex = detailSource.indexOf('<strong>${escapeHtml(selectedMission.title)}</strong>');
-const snapshotIndex = detailSource.indexOf('<strong>Mission Snapshot</strong>');
-const linkedTaskIndex = detailSource.indexOf('<strong>Linked Task</strong>');
-const missionActionsIndex = detailSource.indexOf('<strong>Mission Actions</strong>');
-const completionIndex = detailSource.indexOf('<strong>Mission Completion</strong>');
-const councilIndex = detailSource.indexOf('<strong>Council</strong>');
-const constraintsIndex = detailSource.indexOf('<strong>Constraints</strong>');
-const advancedOpsIndex = detailSource.indexOf('<strong>Advanced Ops Mode</strong>');
+const evidenceRailIndex = detailSource.indexOf('${missionEvidenceRail}');
+const snapshotIndex = detailSource.indexOf('<strong>브리프 핵심 4줄</strong>');
+const linkedTaskIndex = detailSource.indexOf('<strong>실행 셀 연결</strong>');
+const missionActionsIndex = detailSource.indexOf('<strong>브리프 액션</strong>');
+const completionIndex = detailSource.indexOf('<strong>안건 종료 보고</strong>');
+const councilIndex = detailSource.indexOf('<strong>착석 참모진</strong>');
+const constraintsIndex = detailSource.indexOf('<strong>회의 경계</strong>');
+const advancedOpsIndex = detailSource.indexOf('<strong>관제실 직행</strong>');
 
-assert.notEqual(titleIndex, -1, 'Mission title section should exist');
-assert.notEqual(snapshotIndex, -1, 'Mission Snapshot section should exist');
-assert.notEqual(linkedTaskIndex, -1, 'Linked Task section should exist');
-assert.notEqual(missionActionsIndex, -1, 'Mission Actions section should exist');
-assert.notEqual(completionIndex, -1, 'Mission Completion section should exist');
-assert.notEqual(councilIndex, -1, 'Council section should exist');
-assert.notEqual(constraintsIndex, -1, 'Constraints section should exist');
-assert.notEqual(advancedOpsIndex, -1, 'Advanced Ops Mode section should exist');
+assert.notEqual(titleIndex, -1, '안건 제목 section should exist');
+assert.notEqual(evidenceRailIndex, -1, '증적 인계선 injection should exist');
+assert.notEqual(snapshotIndex, -1, '브리프 핵심 4줄 section should exist');
+assert.notEqual(linkedTaskIndex, -1, '실행 셀 연결 section should exist');
+assert.notEqual(missionActionsIndex, -1, '브리프 액션 section should exist');
+assert.notEqual(completionIndex, -1, '안건 종료 보고 section should exist');
+assert.notEqual(councilIndex, -1, '착석 참모진 section should exist');
+assert.notEqual(constraintsIndex, -1, '회의 경계 section should exist');
+assert.notEqual(advancedOpsIndex, -1, '관제실 직행 section should exist');
 
-assert.equal(titleIndex < snapshotIndex, true);
+assert.equal(titleIndex < evidenceRailIndex, true);
+assert.equal(evidenceRailIndex < snapshotIndex, true);
 assert.equal(snapshotIndex < linkedTaskIndex, true);
 assert.equal(linkedTaskIndex < missionActionsIndex, true);
 assert.equal(missionActionsIndex < completionIndex, true);
@@ -64,6 +67,7 @@ console.log(
         activeMissionId: activeMission.id,
         activeTaskId: activeTask.id,
         titleIndex,
+        evidenceRailIndex,
         snapshotIndex,
         linkedTaskIndex,
         missionActionsIndex,

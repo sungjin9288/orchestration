@@ -219,7 +219,7 @@ async function main() {
       },
     );
 
-    assert.match(resolvedAgainError.error, /already resolved/i);
+    assert.match(resolvedAgainError.error, /이미 resolved 상태/i);
 
     console.log(
       JSON.stringify(

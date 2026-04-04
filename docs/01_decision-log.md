@@ -220,13 +220,25 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: The current `Taskboard / Logs / Artifacts / Decision Inbox` shell successfully closes inspectable local execution, review, approval, and provenance, but it does not match the intended product experience of "tell the system a goal and watch multiple AI roles coordinate toward a result." Continuing to polish the operator console as the default product would deepen that mismatch instead of fixing it.
 - Impact: This decision does not reopen or weaken the frozen v1 constraints. `local-first`, `single-user-first`, `project_path required`, `review before done`, `approval before commit`, bounded live mutation, and the current planner-through-reviewer engine remain authoritative. The existing v1 shell is retained as `advanced ops mode`, while future implementation may add visible role collaboration, council-style alignment, and more automatic progression between stages. Office-first framing, messenger-first posture, ranking, OAuth-first platform work, and multi-provider-first strategy all remain rejected.
 
+### DEC-043
+- Status: `Accepted`
+- Decision: User-facing orchestration copy defaults to Korean on the primary shell. Internal ids, runtime keys, role ids, artifact types, and route names may remain English where they are already structural source-of-truth identifiers.
+- Why: The intended product experience is Korean-first orchestration, but current repo truth still allowed English helper copy, council-generated text, and smoke expectations to drift back into the default shell. Pinning the language rule at the decision level stops repeated copy regressions.
+- Impact: `Mission / Council / Execution / Deliverables` and their visible guidance, role presentation, recommendation text, and next-step copy should be written in Korean by default. `advanced ops mode` may keep English-shaped structural ids internally, but visible copy should normalize to Korean whenever touched. This decision does not change runtime semantics, provider boundaries, role ids, or artifact taxonomy.
+
+### DEC-044
+- Status: `Accepted`
+- Decision: A display-only `HQ / crew / flow ownership` metaphor is allowed on the post-v1 primary shell when it helps the operator understand the current goal, the visible AI cast, the current stage, and the next gated handoff. This metaphor must stay an orientation layer only; it must not reopen company simulation, org management, budget/workforce semantics, or replace the underlying ops-first execution model.
+- Why: Current `main` already uses visible cast, ranked staff presentation, HQ room names, and first-viewport flow rails to make the orchestration experience legible to first-time users. Repo truth still read that direction as a blanket office-first rejection, which created contract drift even though the implemented shell kept runtime, gate, and advanced-ops semantics intact.
+- Impact: `Mission / Council / Execution / Deliverables` may use display-only room names, crew presentation, avatars, and step-ownership rails as user-facing guidance. `Taskboard / Logs / Artifacts / Decision Inbox` remains the authoritative `advanced ops mode`, and runtime ids, task/run/artifact contracts, provider scope, approval/review gates, and local-first constraints stay unchanged. Company management, team workspace semantics, budgets, office simulation, and messenger/platform expansion remain rejected.
+
 ## Rejected
 
 ### DEC-010
 - Status: `Rejected`
 - Decision: Do not make office-first or pixel-office UI the primary product surface.
 - Why: It optimizes for presentation instead of execution control.
-- Impact: Any office or radar view is, at most, a later read-only companion.
+- Impact: Company simulation, pixel-office product framing, or room metaphors that displace goal input, execution gates, or advanced-ops authority remain rejected. This does not forbid a display-only crew/HQ orientation layer that stays inside the accepted `DEC-042` plus `DEC-044` boundary.
 
 ### DEC-011
 - Status: `Rejected`

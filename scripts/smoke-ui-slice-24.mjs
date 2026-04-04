@@ -369,9 +369,9 @@ async function main() {
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
-    assert.match(appJs, /The latest passing reviewer bundle is ready\./);
-    assert.match(appJs, /Open Execution To Prepare Commit Package/);
-    assert.match(appJs, /Primary commit-package CTA lives on Execution after the latest passing reviewer bundle is available\./);
+    assert.match(appJs, /최신 리뷰어 번들이 준비됐습니다\./);
+    assert.match(appJs, /커밋 패키지 준비/);
+    assert.match(appJs, /커밋 패키지 경로를 따라 현재 commit 승인을 엽니다\./);
 
     const readinessBefore = coordinator.getCommitPackageReadiness({ taskId });
 

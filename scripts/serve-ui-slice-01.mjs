@@ -354,6 +354,7 @@ function buildDerivedSnapshotData(snapshot) {
     commitExecutionReadinessSummaries:
       executionCoordinator.listCommitExecutionReadinessSummaries(),
     commitPackageReadinessSummaries: executionCoordinator.listCommitPackageReadinessSummaries(),
+    executionEntrySummaries: executionCoordinator.listExecutionEntryReadinessSummaries(),
     providerExecutionSummaries:
       executionCoordinator.listProviderExecutionReadinessSummaries(),
     releasePackageReadinessSummaries:
@@ -667,12 +668,12 @@ const server = createServer(async (request, response) => {
       const projectPath = String(input.projectPath || '').trim();
 
       if (!name) {
-        json(response, 400, { error: 'Project name is required' });
+        json(response, 400, { error: '프로젝트 이름이 필요합니다.' });
         return;
       }
 
       if (!projectPath) {
-        json(response, 400, { error: 'project_path is required' });
+        json(response, 400, { error: 'project_path가 필요합니다.' });
         return;
       }
 
@@ -696,7 +697,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Project creation failed' });
+      json(response, statusCode, { error: error.message || '프로젝트 등록에 실패했습니다.' });
       return;
     }
   }
@@ -726,7 +727,9 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Project provider update failed' });
+      json(response, statusCode, {
+        error: error.message || '프로젝트 프로바이더 설정 갱신에 실패했습니다.',
+      });
       return;
     }
   }
@@ -744,15 +747,15 @@ const server = createServer(async (request, response) => {
       const branchName = buildLinkedWorktreeBranchName(slug);
 
       if (!activeProject || activeProject.id !== project.id) {
-        throw new Error('Linked worktree creation is only available for the active project');
+        throw new Error('연결 워크트리 생성은 현재 활성 프로젝트에서만 할 수 있습니다.');
       }
 
       if (!project.projectPath) {
-        throw new Error('project_path is required before creating a linked worktree');
+        throw new Error('연결 워크트리를 만들기 전에 project_path가 필요합니다.');
       }
 
       if (!existsSync(project.projectPath)) {
-        throw new Error(`project_path does not exist: ${project.projectPath}`);
+        throw new Error(`project_path가 존재하지 않습니다: ${project.projectPath}`);
       }
 
       const targetPath = buildLinkedWorktreePath(project.projectPath, slug);
@@ -761,13 +764,13 @@ const server = createServer(async (request, response) => {
 
       if (branchExists(project.projectPath, branchName)) {
         throw new Error(
-          `Linked worktree branch already exists: ${branchName}. Use the existing detected/switch flow instead.`,
+          `연결 워크트리 브랜치가 이미 존재합니다: ${branchName}. 기존 탐지/전환 흐름을 사용하세요.`,
         );
       }
 
       if (existsSync(targetPath)) {
         throw new Error(
-          `Linked worktree path already exists: ${targetPath}. Use the existing detected/switch flow instead.`,
+          `연결 워크트리 경로가 이미 존재합니다: ${targetPath}. 기존 탐지/전환 흐름을 사용하세요.`,
         );
       }
 
@@ -776,7 +779,7 @@ const server = createServer(async (request, response) => {
       const resolvedWorktreePath = getCanonicalProjectPath(targetPath);
 
       if (!resolvedWorktreePath) {
-        throw new Error(`Linked worktree path could not be resolved after creation: ${targetPath}`);
+        throw new Error(`생성 후 연결 워크트리 경로를 확인할 수 없습니다: ${targetPath}`);
       }
 
       const registeredProjectsByCanonicalPath = buildRegisteredProjectByCanonicalPath(
@@ -820,7 +823,7 @@ const server = createServer(async (request, response) => {
         : /not found/i.test(error.message)
           ? 404
           : 400;
-      json(response, statusCode, { error: error.message || 'Linked worktree creation failed' });
+      json(response, statusCode, { error: error.message || '연결 워크트리 생성에 실패했습니다.' });
       return;
     }
   }
@@ -846,7 +849,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Project selection failed' });
+      json(response, statusCode, { error: error.message || '프로젝트 선택에 실패했습니다.' });
       return;
     }
   }
@@ -862,7 +865,7 @@ const server = createServer(async (request, response) => {
       const constraints = String(input.constraints || '').trim();
 
       if (!activeProject) {
-        json(response, 400, { error: 'Active project is required before creating missions' });
+        json(response, 400, { error: '미션을 만들기 전에 활성 프로젝트가 필요합니다.' });
         return;
       }
 
@@ -894,7 +897,7 @@ const server = createServer(async (request, response) => {
       );
       return;
     } catch (error) {
-      json(response, 400, { error: error.message || 'Invalid mission request body' });
+      json(response, 400, { error: error.message || '잘못된 미션 요청입니다.' });
       return;
     }
   }
@@ -921,7 +924,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Mission selection failed' });
+      json(response, statusCode, { error: error.message || '미션 선택에 실패했습니다.' });
       return;
     }
   }
@@ -961,7 +964,7 @@ const server = createServer(async (request, response) => {
           : /not found/i.test(error.message)
             ? 404
             : 400;
-      json(response, statusCode, { error: error.message || 'Mission linked task creation failed' });
+      json(response, statusCode, { error: error.message || '미션 연결 태스크 생성에 실패했습니다.' });
       return;
     }
   }
@@ -996,7 +999,7 @@ const server = createServer(async (request, response) => {
           : /not found/i.test(error.message)
             ? 404
             : 400;
-      json(response, statusCode, { error: error.message || 'Council draft failed' });
+      json(response, statusCode, { error: error.message || '협의회 초안 생성에 실패했습니다.' });
       return;
     }
   }
@@ -1045,7 +1048,7 @@ const server = createServer(async (request, response) => {
       const statusCode =
         error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, {
-        error: error.message || 'Council recommendation approval failed',
+        error: error.message || '협의회 추천안 승인에 실패했습니다.',
       });
       return;
     }
@@ -1060,12 +1063,12 @@ const server = createServer(async (request, response) => {
       const intent = String(input.intent || '').trim();
 
       if (!activeProject) {
-        json(response, 400, { error: 'Active project is required before creating tasks' });
+        json(response, 400, { error: '태스크를 만들기 전에 활성 프로젝트가 필요합니다.' });
         return;
       }
 
       if (!title) {
-        json(response, 400, { error: 'Task title is required' });
+        json(response, 400, { error: '태스크 제목이 필요합니다.' });
         return;
       }
 
@@ -1088,7 +1091,7 @@ const server = createServer(async (request, response) => {
       );
       return;
     } catch (error) {
-      json(response, 400, { error: error.message || 'Invalid request body' });
+      json(response, 400, { error: error.message || '잘못된 요청입니다.' });
       return;
     }
   }
@@ -1119,7 +1122,7 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
       json(response, statusCode, {
-        error: error.message || 'Retention consumer preview failed',
+        error: error.message || '보존 정리 미리보기에 실패했습니다.',
       });
       return;
     }
@@ -1140,20 +1143,20 @@ const server = createServer(async (request, response) => {
         const detectedWorktrees = detectLinkedWorktrees(project.projectPath);
 
         if (detectedWorktrees.error || detectedWorktrees.options.length === 0) {
-          throw new Error(`No detected linked worktrees are currently available for project ${project.id}`);
+          throw new Error(`프로젝트 ${project.id}에 현재 탐지된 연결 워크트리가 없습니다.`);
         }
 
         const resolvedRequestedWorktreeRef = path.resolve(String(rawWorktreeRef).trim());
 
         if (!existsSync(resolvedRequestedWorktreeRef)) {
-          throw new Error(`worktreeRef does not exist: ${rawWorktreeRef}`);
+          throw new Error(`worktreeRef가 존재하지 않습니다: ${rawWorktreeRef}`);
         }
 
         nextWorktreeRef = realpathSync(resolvedRequestedWorktreeRef);
 
         if (!detectedWorktrees.options.some((option) => option.path === nextWorktreeRef)) {
           throw new Error(
-            `worktreeRef must match a detected linked worktree for project ${project.id}: ${nextWorktreeRef}`,
+            `worktreeRef는 프로젝트 ${project.id}에서 탐지된 연결 워크트리와 일치해야 합니다: ${nextWorktreeRef}`,
           );
         }
       }
@@ -1178,7 +1181,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Task worktree update failed' });
+      json(response, statusCode, { error: error.message || '태스크 워크트리 설정 갱신에 실패했습니다.' });
       return;
     }
   }
@@ -1213,7 +1216,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Planner run failed' });
+      json(response, statusCode, { error: error.message || '플래너 실행에 실패했습니다.' });
       return;
     }
   }
@@ -1248,7 +1251,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Architect run failed' });
+      json(response, statusCode, { error: error.message || '설계 실행에 실패했습니다.' });
       return;
     }
   }
@@ -1281,7 +1284,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
-      json(response, statusCode, { error: error.message || 'Retention consumer apply failed' });
+      json(response, statusCode, { error: error.message || '보존 정리 적용에 실패했습니다.' });
       return;
     }
   }
@@ -1316,7 +1319,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Task-breaker run failed' });
+      json(response, statusCode, { error: error.message || '태스크 분해 실행에 실패했습니다.' });
       return;
     }
   }
@@ -1353,7 +1356,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Builder preflight run failed' });
+      json(response, statusCode, { error: error.message || '빌더 사전 점검 실행에 실패했습니다.' });
       return;
     }
   }
@@ -1392,7 +1395,7 @@ const server = createServer(async (request, response) => {
       json(
         response,
         statusCode,
-        { error: error.message || 'Builder live mutation approval request failed' },
+        { error: error.message || '빌더 라이브 변경 승인 요청에 실패했습니다.' },
       );
       return;
     }
@@ -1433,7 +1436,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Builder live mutation run failed' });
+      json(response, statusCode, { error: error.message || '빌더 라이브 변경 실행에 실패했습니다.' });
       return;
     }
   }
@@ -1470,7 +1473,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
-      json(response, statusCode, { error: error.message || 'Reviewer run failed' });
+      json(response, statusCode, { error: error.message || '리뷰어 실행에 실패했습니다.' });
       return;
     }
   }
@@ -1510,7 +1513,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
-      json(response, statusCode, { error: error.message || 'Commit package run failed' });
+      json(response, statusCode, { error: error.message || '커밋 패키지 준비에 실패했습니다.' });
       return;
     }
   }
@@ -1549,7 +1552,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
-      json(response, statusCode, { error: error.message || 'Local commit run failed' });
+      json(response, statusCode, { error: error.message || '로컬 커밋 실행에 실패했습니다.' });
       return;
     }
   }
@@ -1590,7 +1593,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
-      json(response, statusCode, { error: error.message || 'Release package run failed' });
+      json(response, statusCode, { error: error.message || '릴리스 패키지 준비에 실패했습니다.' });
       return;
     }
   }
@@ -1625,7 +1628,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
-      json(response, statusCode, { error: error.message || 'Close-out run failed' });
+      json(response, statusCode, { error: error.message || '종료 정리 실행에 실패했습니다.' });
       return;
     }
   }
@@ -1641,18 +1644,18 @@ const server = createServer(async (request, response) => {
       let resolvedItem = null;
 
       if (!['approve', 'reject', 'resolve'].includes(verb)) {
-        json(response, 400, { error: 'verb must be approve, reject, or resolve' });
+        json(response, 400, { error: 'verb는 approve, reject, resolve 중 하나여야 합니다.' });
         return;
       }
 
       if (item.status !== 'pending') {
-        json(response, 409, { error: `Decision inbox item ${item.id} is already ${item.status}` });
+        json(response, 409, { error: `결정함 항목 ${item.id}은 이미 ${item.status} 상태입니다.` });
         return;
       }
 
       if (verb === 'approve') {
         if (item.kind !== 'approval') {
-          json(response, 400, { error: 'approve is only allowed for approval items' });
+          json(response, 400, { error: 'approve는 승인 항목에서만 사용할 수 있습니다.' });
           return;
         }
 
@@ -1664,7 +1667,7 @@ const server = createServer(async (request, response) => {
 
       if (verb === 'reject') {
         if (item.kind !== 'approval') {
-          json(response, 400, { error: 'reject is only allowed for approval items' });
+          json(response, 400, { error: 'reject는 승인 항목에서만 사용할 수 있습니다.' });
           return;
         }
 
@@ -1676,7 +1679,7 @@ const server = createServer(async (request, response) => {
 
       if (verb === 'resolve') {
         if (item.kind !== 'decision') {
-          json(response, 400, { error: 'resolve is only allowed for decision items' });
+          json(response, 400, { error: 'resolve는 결정 항목에서만 사용할 수 있습니다.' });
           return;
         }
 
@@ -1703,7 +1706,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
-      json(response, statusCode, { error: error.message || 'Decision inbox action failed' });
+      json(response, statusCode, { error: error.message || '결정함 처리에 실패했습니다.' });
       return;
     }
   }
@@ -1724,7 +1727,7 @@ const server = createServer(async (request, response) => {
     const payload = getRunLogsPayload(decodeURIComponent(runMatch[1]));
 
     if (!payload) {
-      json(response, 404, { error: 'Run not found' });
+      json(response, 404, { error: '실행을 찾을 수 없습니다.' });
       return;
     }
 
@@ -1738,7 +1741,7 @@ const server = createServer(async (request, response) => {
     const payload = getArtifactPayload(decodeURIComponent(artifactMatch[1]));
 
     if (!payload) {
-      json(response, 404, { error: 'Artifact not found' });
+      json(response, 404, { error: '아티팩트를 찾을 수 없습니다.' });
       return;
     }
 

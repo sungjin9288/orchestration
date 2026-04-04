@@ -86,11 +86,14 @@ async function main() {
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.equal(initialSnapshot.snapshot.activeProjectId, null);
-    assert.match(indexHtml, /AI Orchestration/);
+    assert.match(indexHtml, /AI 전략 본부/);
     assert.match(appJs, /create-project-from-mission/);
-    assert.match(appJs, /Mission Start/);
-    assert.match(appJs, /Project starts here\. Advanced Ops keeps provider, worktree, and operator detail\./);
-    assert.match(appJs, /Pick a project above, then create the first mission\./);
+    assert.match(appJs, /미션 시작/);
+    assert.match(
+      appJs,
+      /미션 진입은 항상 local-stub 기본값으로 시작합니다\. 프로바이더와 연결 워크트리 제어는 고급 운영 모드에 남습니다\./,
+    );
+    assert.match(appJs, /위에서 프로젝트를 고른 뒤 첫 미션을 만드세요\./);
 
     const projectPayload = await postJson('/api/projects', {
       name: 'orchestration',

@@ -1612,15 +1612,15 @@ function createRuntimeService(options = {}) {
     const projectPath = path.resolve(input.projectPath || '');
 
     if (!input.name) {
-      throw new Error('Project name is required');
+      throw new Error('프로젝트 이름이 필요합니다.');
     }
 
     if (!input.projectPath) {
-      throw new Error('project_path is required');
+      throw new Error('project_path가 필요합니다.');
     }
 
     if (!fs.existsSync(projectPath)) {
-      throw new Error(`project_path does not exist: ${projectPath}`);
+      throw new Error(`project_path가 존재하지 않습니다: ${projectPath}`);
     }
 
     const existingProject = Object.values(state.projects).find(
@@ -1698,11 +1698,11 @@ function createRuntimeService(options = {}) {
     const constraints = String(input.constraints || '').trim();
 
     if (!title) {
-      throw new Error('Mission title is required');
+      throw new Error('미션 제목이 필요합니다.');
     }
 
     if (!goal) {
-      throw new Error('Mission goal is required');
+      throw new Error('미션 목표가 필요합니다.');
     }
 
     const id = nextId(state, 'mission');
@@ -1730,12 +1730,12 @@ function createRuntimeService(options = {}) {
     const constraintsPresent = Boolean(String(mission.constraints || '').trim());
     const openQuestions = constraintsPresent
       ? [
-          '기록된 constraints 안에서 첫 결과물을 한 개의 bounded slice로 유지해도 되는가?',
-          'alignment 이후 advanced ops에서 어떤 evidence를 가장 먼저 확인해야 하는가?',
+          '기록된 제약 안에서 첫 결과물을 한 개의 한정된 슬라이스로 유지해도 되는가?',
+          '정렬 승인 이후 고급 운영에서 어떤 증적을 가장 먼저 확인해야 하는가?',
         ]
       : [
           '첫 실행 범위를 한 파일 또는 한 흐름으로 더 좁힐 필요가 있는가?',
-          'alignment 이후 advanced ops에서 어떤 evidence를 가장 먼저 확인해야 하는가?',
+          '정렬 승인 이후 고급 운영에서 어떤 증적을 가장 먼저 확인해야 하는가?',
         ];
 
     return {
@@ -1745,55 +1745,55 @@ function createRuntimeService(options = {}) {
       participants: [
         {
           role: 'Conductor',
-          focus: 'alignment checkpoint and bounded handoff',
+          focus: '정렬 체크포인트와 한정된 인계',
         },
         {
           role: 'Strategist',
-          focus: 'user goal, outcome framing, and scope control',
+          focus: '사용자 목표, 결과 프레이밍, 범위 제어',
         },
         {
           role: 'Architect',
-          focus: 'system boundary and semantic safety',
+          focus: '시스템 경계와 의미론 안전',
         },
         {
           role: 'Decomposer',
-          focus: 'first slice breakdown and execution handoff',
+          focus: '첫 슬라이스 분해와 실행 인계',
         },
       ],
       summary:
-        'Council은 mission을 하나의 bounded slice로 정렬하고, downstream execution은 아직 시작하지 않은 채 explicit alignment만 요구한다.',
+        '협의회는 미션을 하나의 한정된 슬라이스로 정렬하고, 하위 실행은 아직 시작하지 않은 채 명시적 정렬만 요구한다.',
       recommendation:
-        'Approve Recommendation으로 첫 bounded slice를 정렬하고, 이후 execution auto chain은 다음 slice에서 planner -> architect -> task-breaker -> builder preflight까지 연결한다.',
+        '추천안 승인으로 첫 한정된 슬라이스를 정렬하고, 이후 실행 자동 체인은 planner -> architect -> task-breaker -> builder preflight까지만 연결한다.',
       openQuestions,
       transcript: [
         {
           role: 'Strategist',
-          stance: 'goal framing',
-          content: `우선순위는 "${mission.goal}"를 가장 짧은 검증 경로로 바꾸는 것이다. 첫 결과물은 하나의 bounded slice로 제한한다.`,
+          stance: '목표 정리',
+          content: `우선순위는 "${mission.goal}"를 가장 짧은 검증 경로로 바꾸는 것이다. 첫 결과물은 하나의 한정된 슬라이스로 제한한다.`,
         },
         {
           role: 'Architect',
-          stance: 'boundary protection',
+          stance: '경계 보호',
           content: constraintsPresent
-            ? `기록된 constraints("${mission.constraints}")를 그대로 유지하고 broader semantics 변경은 피해야 한다.`
-            : '명시된 constraints가 없더라도 broader semantics 변경은 피하고 현재 project boundary 안에서만 다뤄야 한다.',
+            ? `기록된 constraints("${mission.constraints}")를 그대로 유지하고 더 넓은 의미론 변경은 피해야 한다.`
+            : '명시된 constraints가 없더라도 더 넓은 의미론 변경은 피하고 현재 프로젝트 경계 안에서만 다뤄야 한다.',
         },
         {
           role: 'Decomposer',
-          stance: 'execution cut',
+          stance: '실행 절단',
           content:
-            'linked task는 하나만 만들고, 첫 handoff는 execution provenance를 유지할 수 있는 bounded task 하나로 자른다.',
+            '연결 태스크는 하나만 만들고, 첫 인계는 execution provenance를 유지할 수 있는 한정된 태스크 하나로 자른다.',
         },
         {
           role: 'Conductor',
-          stance: 'recommendation',
-          content: `추천안은 "${mission.title}"를 single-task bounded execution으로 정렬한 뒤, user alignment를 먼저 받고 advanced ops handoff를 여는 것이다.`,
+          stance: '추천안',
+          content: `추천안은 "${mission.title}"를 단일 태스크 한정 실행으로 정렬한 뒤, 사용자 정렬 승인을 먼저 받고 고급 운영 인계를 여는 것이다.`,
         },
       ],
       selectedPlan: {
-        title: 'Single bounded slice',
+        title: '단일 한정 슬라이스',
         scope: mission.title,
-        nextStep: 'Approve Recommendation',
+        nextStep: '추천안 승인',
       },
       alignment: {
         action: null,
@@ -1828,7 +1828,7 @@ function createRuntimeService(options = {}) {
 
   function createTaskRecord(state, project, input, mission = null) {
     if (!input.title) {
-      throw new Error('Task title is required');
+      throw new Error('태스크 제목이 필요합니다.');
     }
 
     const id = nextId(state, 'task');

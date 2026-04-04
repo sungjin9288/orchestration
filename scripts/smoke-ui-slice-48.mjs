@@ -17,11 +17,11 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 const completedState = JSON.parse(fs.readFileSync(completedStatePath, 'utf8'));
 
-assert.match(appJs, /Active Missions[\s\S]*?Current bounded work stays here\./);
-assert.match(appJs, /Completed Missions[\s\S]*?Sealed rows wait here for the next cycle\./);
+assert.match(appJs, /진행 중인 미션[\s\S]*?지금 움직이는 안건만 모읍니다\./);
+assert.match(appJs, /완료된 미션[\s\S]*?봉인된 안건은 이 줄에 보관합니다\./);
 
-assert.doesNotMatch(appJs, /Still advancing or waiting for the next bounded step\./);
-assert.doesNotMatch(appJs, /Completed rows show the sealed close-out outcome and the safest next-cycle entry directly in the list\./);
+assert.doesNotMatch(appJs, /Current bounded work stays here\./);
+assert.doesNotMatch(appJs, /Sealed rows wait here for the next cycle\./);
 
 const activeMission = Object.values(activeState.missions)[0];
 const activeTask = activeState.tasks[activeMission.linkedTaskId];

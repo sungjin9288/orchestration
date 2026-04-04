@@ -178,17 +178,17 @@ async function main() {
 
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
-    assert.match(indexHtml, /Taskboard/);
-    assert.match(indexHtml, /Logs/);
-    assert.match(indexHtml, /Artifacts/);
-    assert.match(indexHtml, /Decision Inbox/);
-    assert.match(appJs, /provenance-critical/);
-    assert.match(appJs, /latest-centered browse/);
-    assert.match(appJs, /generic fallback/);
-    assert.match(appJs, /structured preview \+ raw fallback/);
-    assert.match(appJs, /raw only/);
-    assert.match(appJs, /Provenance/);
-    assert.match(appJs, /Stored Raw Content/);
+    assert.match(indexHtml, /AI 전략 본부/);
+    assert.match(indexHtml, /고급 운영 모드/);
+    assert.match(indexHtml, /작업판/);
+    assert.match(indexHtml, /결정함/);
+    assert.match(appJs, /function getArtifactCatalogEntry\(artifact, data\)/);
+    assert.match(appJs, /function renderArtifactPolicyTokens\(artifact, data\)/);
+    assert.match(appJs, /tier-c-generic-fallback/);
+    assert.match(appJs, /raw-only/);
+    assert.match(appJs, /일반 보존/);
+    assert.match(appJs, /원문만 제공/);
+    assert.match(appJs, /source of truth/);
 
     const snapshotResponse = await fetch(`${baseUrl}/api/snapshot`);
     const snapshotPayload = await snapshotResponse.json();

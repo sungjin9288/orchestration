@@ -324,17 +324,17 @@ const appJsSource = fs.readFileSync(path.join(repoRoot, 'ui', 'app.js'), 'utf8')
 
 assert.match(serveUiSource, /commitExecutionReadinessSummaries/);
 assert.match(serveUiSource, /run-local-commit/);
-assert.match(appJsSource, /Resume Approved Local Commit/);
+assert.match(appJsSource, /승인된 로컬 커밋 이어가기/);
 assert.match(appJsSource, /commitExecutionReadinessSummaries/);
 assert.match(appJsSource, /parseCommitResultArtifact/);
 assert.match(appJsSource, /renderStructuredCommitResult/);
 assert.match(appJsSource, /selectedArtifactMeta\.type === 'commit-result'/);
 assert.match(appJsSource, /data-action="run-local-commit"/);
 assert.match(appJsSource, /open-taskboard-task/);
-assert.match(appJsSource, /Open Task Detail Commit Guard/);
+assert.match(appJsSource, /태스크 상세 커밋 가드 열기/);
 assert.match(
   appJsSource,
-  /stays navigation-only for commit follow-up\. Open Task Detail to use Resume Approved Local Commit\./,
+  /탐색 전용으로 남습니다\. 승인된 로컬 커밋 이어가기는 태스크 상세에서 실행합니다\./,
 );
 assert.match(appJsSource, /currentSurface === 'taskboard'/);
 assert.match(appJsSource, /state\.surface = 'artifacts';/);

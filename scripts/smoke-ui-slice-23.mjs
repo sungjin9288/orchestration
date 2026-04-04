@@ -132,9 +132,9 @@ async function main() {
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
-    assert.match(appJs, /The latest live mutation bundle is ready for reviewer inspection from the primary orchestration path\./);
-    assert.match(appJs, /Open Execution To Run Reviewer/);
-    assert.match(appJs, /Primary reviewer CTA lives on Execution after the bounded live mutation bundle is available\./);
+    assert.match(appJs, /최신 라이브 변경 번들이 준비됐습니다\./);
+    assert.match(appJs, /리뷰어 실행/);
+    assert.match(appJs, /리뷰어 경로를 따라 아티팩트로 이어집니다\./);
 
     const taskPayload = await postJson('/api/tasks', {
       title: 'ui-slice-23 reviewer CTA smoke',

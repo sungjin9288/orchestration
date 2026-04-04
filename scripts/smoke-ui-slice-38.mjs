@@ -24,11 +24,11 @@ const task = runtimeState.tasks[mission.linkedTaskId];
 const latestApproval = runtimeState.approvals[smoke37.densityTrim.approvalId];
 
 assert.equal(smoke37.ok, true);
-assert.match(appJs, /See Council for recommendation detail and alignment\./);
-assert.match(appJs, /See Execution for current gate and blocked reason\./);
-assert.match(appJs, /See Deliverables for artifact, review, and approval detail\./);
-assert.match(appJs, /Current owner surface is/);
-assert.match(appJs, /createToken\(`surface:\$\{item\.surface\}`/);
+assert.match(appJs, /renderMissionSnapshotList\(selectedMissionActiveSnapshotItems, \{ compact: true \}\)/);
+assert.match(appJs, /brief-snapshot-list/);
+assert.match(appJs, /brief-snapshot-row/);
+assert.match(appJs, /createToken\(getSurfaceDisplayName\(item\.surface\), item\.tone \|\| 'neutral'\)/);
+assert.match(appJs, /브리프 핵심 4줄/);
 assert.equal(mission.status, 'executing');
 assert.equal(task.flags.waitingApproval, true);
 assert.equal(latestApproval.status, 'pending');

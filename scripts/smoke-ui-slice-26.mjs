@@ -379,11 +379,11 @@ async function main() {
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
-    assert.match(appJs, /Resume Approved Local Commit/);
-    assert.match(appJs, /Open Execution To Run Local Commit/);
+    assert.match(appJs, /승인된 로컬 커밋 이어가기/);
+    assert.match(appJs, /실행으로 이동해 로컬 커밋 실행/);
     assert.match(
       appJs,
-      /This CTA reuses the existing local commit route, then lands on Artifacts with the saved commit-result bundle\./,
+      /로컬 커밋 경로를 따라 커밋 결과 번들로 이어집니다\./,
     );
 
     const localCommitPayload = await postJson(

@@ -91,11 +91,11 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(indexHtml, /data-surface="deliverables"/);
-    assert.match(appJs, /Approval Bridge/);
-    assert.match(appJs, /Current Approval Target/);
-    assert.match(appJs, /Next Operator Step/);
-    assert.match(appJs, /approve .* then return to Taskboard and run Live Mutation/);
-    assert.match(appJs, /approval bridge, and next operator step/);
+    assert.match(appJs, /결재선 현황/);
+    assert.match(appJs, /현재 결재 안건/);
+    assert.match(appJs, /다음 운영 단계/);
+    assert.match(appJs, /승인은 실행 표면에서 처리하고, 산출물은 요약 전용으로 남습니다\./);
+    assert.match(appJs, /보고실은 결재선과 다음 이동을 요약하고, 깊은 점검은 관제실로 넘깁니다\./);
 
     const missionPayload = await postJson('/api/missions', {
       autoDraftCouncil: true,

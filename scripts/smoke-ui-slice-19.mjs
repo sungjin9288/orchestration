@@ -89,7 +89,7 @@ async function main() {
 
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
-    assert.match(appJs, /Create Mission/);
+    assert.match(appJs, /안건 접수 \+ 진행 안건/);
     assert.match(appJs, /autoDraftCouncil: true/);
     assert.match(appJs, /state\.surface = payload\.councilSession\?\.id \? 'council' : 'mission'/);
     assert.match(indexHtml, /data-surface="council"/);

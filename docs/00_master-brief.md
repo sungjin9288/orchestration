@@ -29,7 +29,9 @@ The frozen v1 outcome is now treated as reusable execution infrastructure, not t
 - keep the current `Taskboard / Logs / Artifacts / Decision Inbox` shell available as `advanced ops mode`
 - shift the next primary product entry toward `goal input -> visible multi-role AI alignment -> bounded execution -> delivery`
 - define that next primary experience around `Mission / Council / Execution / Deliverables`, not a more polished `Taskboard`-first operator console
-- preserve the existing rejected boundaries: no office-first shell, no messenger-first posture, no ranking layer, no OAuth-first expansion, and no multi-provider-first reframing
+- allow the same display-only lane or heartbeat language to continue into `advanced ops mode` entry and first viewport when it improves operator orientation, as long as `Taskboard / Logs / Artifacts / Decision Inbox` remain the authoritative operator control surfaces
+- preserve the existing rejected boundaries: no office-simulator/company-management shell, no messenger-first posture, no ranking layer, no OAuth-first expansion, and no multi-provider-first reframing
+- allow a display-only `crew / HQ / flow` metaphor on the primary shell when it improves orientation, as long as runtime semantics, gate ownership, and ops-first execution rules remain primary
 
 ## Primary User
 An individual operator building or maintaining software locally who needs control over execution state, review gates, and delivery evidence without adding office-style collaboration overhead.
@@ -54,7 +56,7 @@ An individual operator building or maintaining software locally who needs contro
 - approval before commit
 
 ### Out of Scope
-- office-first or avatar-first UI
+- office-simulator or avatar-only product framing
 - messenger-first workflows
 - ranking, XP, leaderboard, or gamification layers
 - generalized OAuth platform work

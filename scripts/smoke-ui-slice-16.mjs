@@ -91,9 +91,9 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="deliverables"/);
     assert.match(indexHtml, /surface-deliverables/);
-    assert.match(appJs, /Latest Artifact Package/);
-    assert.match(appJs, /Latest Review State/);
-    assert.match(appJs, /Latest Approval State/);
+    assert.match(appJs, /최신 아티팩트 미리보기/);
+    assert.match(appJs, /리뷰 상태/);
+    assert.match(appJs, /승인 상태/);
 
     const missionPayload = await postJson('/api/missions', {
       constraints: 'Keep deliverables summary read-only and preserve current downstream semantics.',

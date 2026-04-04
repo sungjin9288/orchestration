@@ -14,15 +14,15 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /Primary actions live here\. Advanced Ops stays secondary\./);
-assert.match(appJs, /Secondary escape hatch for full Taskboard control\./);
-assert.match(appJs, /Opens Taskboard with linked task \$\{linkedTask\.id\} selected\./);
+assert.match(appJs, /회의실, 작전실, 관제실 기본 동선만 엽니다\./);
+assert.match(appJs, /세부 제어와 provenance는 관제실에 남기고, 여기선 안건 동선만 엽니다\./);
+assert.match(appJs, /연결 태스크 \$\{linkedTask\.id\}를 선택한 상태로 작업판을 엽니다\./);
 
 assert.doesNotMatch(appJs, /Use Mission Actions for linked task setup and execution handoff\./);
 assert.doesNotMatch(appJs, /Use Mission Actions for the next bounded cycle once completion is sealed\./);
 assert.doesNotMatch(appJs, /Use Mission Actions to open or draft council without leaving the primary shell\./);
 assert.doesNotMatch(appJs, /Mission Actions opens Taskboard with linked task \$\{linkedTask\.id\} selected\./);
-assert.doesNotMatch(appJs, /Grouped primary actions live here\. Advanced Ops stays secondary\./);
+assert.doesNotMatch(appJs, /Primary actions live here\. Advanced Ops stays secondary\./);
 assert.doesNotMatch(appJs, /Secondary escape hatch for full Taskboard control and provenance detail\./);
 
 const activeMission = Object.values(activeState.missions)[0];

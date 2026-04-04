@@ -19,14 +19,24 @@ const baseUrl = `http://127.0.0.1:${port}`;
 
 function createFixtureProject() {
   const projectPath = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-07-'));
-  const fixturePath = path.join(projectPath, 'prompts', 'builder.md');
+  const fixtureFiles = new Map([
+    ['prompts/builder.md', '# Builder Prompt Contract\n\nUI slice 07 live-mutation fixture.\n'],
+    ['src/execution/execution-coordinator.js', "'use strict';\n\nexport const fixtureCoordinator = true;\n"],
+    [
+      'src/execution/providers/local-stub-adapter.js',
+      "'use strict';\n\nexport const fixtureLocalStubAdapter = true;\n",
+    ],
+    ['src/runtime/runtime-service.js', "'use strict';\n\nexport const fixtureRuntimeService = true;\n"],
+    ['scripts/smoke-execution-slice-05.mjs', "console.log('fixture smoke execution slice 05');\n"],
+    ['scripts/serve-ui-slice-01.mjs', "console.log('fixture serve ui slice 01');\n"],
+    ['ui/app.js', "'use strict';\n\nexport const fixtureUiApp = true;\n"],
+  ]);
 
-  fs.mkdirSync(path.dirname(fixturePath), { recursive: true });
-  fs.writeFileSync(
-    fixturePath,
-    '# Builder Prompt Contract\n\nUI slice 07 live-mutation fixture.\n',
-    'utf8',
-  );
+  for (const [relativePath, content] of fixtureFiles.entries()) {
+    const fixturePath = path.join(projectPath, relativePath);
+    fs.mkdirSync(path.dirname(fixturePath), { recursive: true });
+    fs.writeFileSync(fixturePath, content, 'utf8');
+  }
 
   return projectPath;
 }
@@ -114,8 +124,8 @@ async function main() {
     assert.equal(stylesResponse.status, 200);
     assert.match(appJs, /selectionSeeded/);
     assert.match(appJs, /state\.surface = 'logs';/);
-    assert.match(appJs, /Run Linkage/);
-    assert.match(appJs, /Provenance/);
+    assert.match(appJs, /보고 연결선/);
+    assert.match(appJs, /연결 근거/);
     assert.match(appJs, /planned patch/);
     assert.match(appJs, /observed diff/);
     assert.match(stylesCss, /\.relation-strip/);

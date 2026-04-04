@@ -79,7 +79,7 @@ async function main() {
     const noProjectPayload = await noProjectResponse.json();
 
     assert.equal(noProjectResponse.status, 400);
-    assert.match(noProjectPayload.error, /Active project is required/i);
+    assert.match(noProjectPayload.error, /태스크를 만들기 전에 활성 프로젝트가 필요합니다\./);
 
     const project = runtime.createProject({
       name: 'orchestration',
@@ -90,9 +90,9 @@ async function main() {
     const indexHtml = await indexResponse.text();
 
     assert.equal(indexResponse.status, 200);
-    assert.match(indexHtml, /AI Orchestration/);
-    assert.match(indexHtml, /Advanced Ops Mode/);
-    assert.match(indexHtml, /Taskboard/);
+    assert.match(indexHtml, /AI 전략 본부/);
+    assert.match(indexHtml, /고급 운영 모드/);
+    assert.match(indexHtml, /작업판/);
 
     const createPayload = await fetchJson(`${baseUrl}/api/tasks`, {
       method: 'POST',

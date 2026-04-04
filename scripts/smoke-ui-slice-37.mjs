@@ -25,12 +25,11 @@ const latestApproval = runtimeState.approvals[smoke36.nextActionFraming.approval
 
 assert.equal(smoke36.ok, true);
 assert.match(appJs, /function renderMissionSnapshotList/);
-assert.match(appJs, /Mission Snapshot/);
-assert.match(appJs, /Preview density trimmed for active missions/);
-assert.match(appJs, /Council Preview/);
-assert.match(appJs, /Execution Preview/);
-assert.match(appJs, /Deliverables Preview/);
-assert.match(appJs, /Current Best Next Step/);
+assert.match(appJs, /브리프 핵심 4줄/);
+assert.match(appJs, /지금 판단할 상태만 네 줄로 봅니다\./);
+assert.match(appJs, /작전실 인계 미리보기/);
+assert.match(appJs, /회의 결과물 미리보기/);
+assert.match(appJs, /다음 지시/);
 assert.equal(mission.status, 'executing');
 assert.equal(task.lifecycleState, 'In Progress');
 assert.equal(task.flags.waitingApproval, true);
