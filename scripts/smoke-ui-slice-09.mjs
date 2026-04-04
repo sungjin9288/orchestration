@@ -95,12 +95,12 @@ const appJsSource = fs.readFileSync(path.join(repoRoot, 'ui', 'app.js'), 'utf8')
 try {
   assert.match(serveUiSource, /commitPackageReadinessSummaries/);
   assert.match(serveUiSource, /run-commit-package/);
-  assert.match(appJsSource, /Prepare Commit Package/);
+  assert.match(appJsSource, /커밋 패키지 준비/);
   assert.match(appJsSource, /run-commit-package/);
   assert.match(appJsSource, /commitPackageReadinessSummaries/);
   assert.match(appJsSource, /parseCommitPackageArtifact/);
   assert.match(appJsSource, /renderCommitPackagePanel/);
-  assert.match(appJsSource, /Structured preview is best-effort/);
+  assert.match(appJsSource, /구조 요약이 없으면 원문으로 확인합니다\./);
   assert.match(appJsSource, /approval\?\.allowedNextAction === 'commit-intent'/);
   assert.match(appJsSource, /state\.surface = currentSurface;/);
   assert.match(

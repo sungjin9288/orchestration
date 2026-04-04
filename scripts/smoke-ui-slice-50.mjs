@@ -14,8 +14,9 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /Create Mission/);
-assert.match(appJs, /createToken\('council:auto-draft', 'success'\)/);
+assert.match(appJs, /안건 접수/);
+assert.match(appJs, /안건 접수 데스크/);
+assert.match(appJs, /접수 즉시 참모 회의 초안이 열리고, 승인 전까지는 작전실로 넘어가지 않습니다\./);
 assert.doesNotMatch(appJs, /Mission now drafts council immediately so the next step lands on visible role discussion without a second manual handoff\./);
 assert.doesNotMatch(appJs, /Create Mission &amp; Draft Council/);
 assert.doesNotMatch(appJs, /Council drafts right away for visible role discussion\./);

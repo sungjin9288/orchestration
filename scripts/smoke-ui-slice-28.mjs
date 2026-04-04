@@ -429,12 +429,9 @@ async function main() {
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
-    assert.match(appJs, /Approve Current Release Gate/);
-    assert.match(appJs, /Open Execution To Approve Release Gate/);
-    assert.match(
-      appJs,
-      /This reuses the existing pending release approval record\./,
-    );
+    assert.match(appJs, /릴리스 지시 승인/);
+    assert.match(appJs, /종료 정리는 릴리스 준비 상태가 잡힌 뒤 실행에서 이어집니다\./);
+    assert.match(appJs, /기존 pending release 승인 기록을 그대로 처리합니다\./);
 
     const approvePayload = await postJson(
       `/api/decision-inbox/${encodeURIComponent(releaseInboxItemId)}/actions`,

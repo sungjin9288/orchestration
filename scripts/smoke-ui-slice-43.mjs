@@ -14,26 +14,26 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-const detailStart = appJs.indexOf('<h2>Mission Detail</h2>');
-const detailEnd = appJs.indexOf('<strong>Advanced Ops Mode</strong>', detailStart);
-assert.notEqual(detailStart, -1, 'Mission Detail section should exist');
-assert.notEqual(detailEnd, -1, 'Advanced Ops Mode section should exist');
+const detailStart = appJs.indexOf('<h2>안건 브리프</h2>');
+const detailEnd = appJs.indexOf('</aside>', detailStart);
+assert.notEqual(detailStart, -1, '안건 브리프 section should exist');
+assert.notEqual(detailEnd, -1, '안건 브리프 aside should exist');
 
 const detailSource = appJs.slice(detailStart, detailEnd + 1600);
 
-const linkedTaskSection = detailSource.match(/<strong>Linked Task<\/strong>[\s\S]*?<\/section>/);
-const missionActionsSection = detailSource.match(/<strong>Mission Actions<\/strong>[\s\S]*?<\/section>/);
-const missionCompletionSection = detailSource.match(/<strong>Mission Completion<\/strong>[\s\S]*?<\/section>/);
-const councilSection = detailSource.match(/<strong>Council<\/strong>[\s\S]*?<\/section>/);
-const advancedOpsSection = detailSource.match(/<strong>Advanced Ops Mode<\/strong>[\s\S]*?<\/section>/);
+const linkedTaskSection = detailSource.match(/<strong>실행 셀 연결<\/strong>[\s\S]*?<\/section>/);
+const missionActionsSection = detailSource.match(/<strong>브리프 액션<\/strong>[\s\S]*?<\/section>/);
+const missionCompletionSection = detailSource.match(/<strong>안건 종료 보고<\/strong>[\s\S]*?<\/section>/);
+const councilSection = detailSource.match(/<strong>착석 참모진<\/strong>[\s\S]*?<\/section>/);
+const advancedOpsSection = detailSource.match(/<strong>관제실 직행<\/strong>[\s\S]*?<\/section>/);
 
-assert.ok(linkedTaskSection, 'Linked Task section should exist');
-assert.ok(missionActionsSection, 'Mission Actions section should exist');
-assert.ok(missionCompletionSection, 'Mission Completion section should exist');
-assert.ok(councilSection, 'Council section should exist');
-assert.ok(advancedOpsSection, 'Advanced Ops section should exist');
+assert.ok(linkedTaskSection, '실행 셀 연결 section should exist');
+assert.ok(missionActionsSection, '브리프 액션 section should exist');
+assert.ok(missionCompletionSection, '안건 종료 보고 section should exist');
+assert.ok(councilSection, '착석 참모진 section should exist');
+assert.ok(advancedOpsSection, '관제실 직행 section should exist');
 
-assert.match(missionActionsSection[0], /Primary actions live here\. Advanced Ops stays secondary\./);
+assert.match(missionActionsSection[0], /회의실, 작전실, 관제실 기본 동선만 엽니다\./);
 assert.match(missionActionsSection[0], /data-action="create-linked-task-for-mission"/);
 assert.match(missionActionsSection[0], /data-action="open-advanced-ops"/);
 assert.match(missionActionsSection[0], /data-action="open-execution"/);
@@ -42,7 +42,7 @@ assert.match(missionActionsSection[0], /data-action="open-council"|data-action="
 assert.doesNotMatch(linkedTaskSection[0], /data-action="create-linked-task-for-mission"/);
 assert.doesNotMatch(linkedTaskSection[0], /data-action="open-execution"/);
 assert.doesNotMatch(councilSection[0], /data-action="open-council"|data-action="draft-council-for-mission"/);
-assert.doesNotMatch(missionCompletionSection[0], /data-action="prepare-next-mission"/);
+assert.doesNotMatch(missionCompletionSection[0], /data-action="open-advanced-ops"/);
 assert.doesNotMatch(advancedOpsSection[0], /data-action="open-advanced-ops"/);
 
 const activeMission = Object.values(activeState.missions)[0];

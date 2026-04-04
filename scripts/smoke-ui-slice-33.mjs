@@ -24,11 +24,11 @@ const councilSession = runtimeState.councilSessions[mission.councilSessionId];
 
 assert.equal(smoke19.ok, true);
 assert.match(appJs, /function getMissionCouncilPreview/);
-assert.match(appJs, /Council preview:/);
-assert.match(appJs, /Recommendation Preview:/);
-assert.match(appJs, /Alignment State:/);
-assert.match(appJs, /alignment:none/);
-assert.match(appJs, /open-questions:0/);
+assert.match(appJs, /추천안 준비됨/);
+assert.match(appJs, /정렬 상태/);
+assert.match(appJs, /아직 협의회 추천안이 없습니다\./);
+assert.match(appJs, /선택된 계획 없음/);
+assert.match(appJs, /선택된 범위 없음/);
 assert.equal(mission.status, 'aligning');
 assert.equal(councilSession.status, 'pending-alignment');
 assert.equal(councilSession.alignment.status, 'pending');

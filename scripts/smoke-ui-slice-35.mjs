@@ -26,11 +26,11 @@ const latestApproval = runtimeState.approvals[smoke16.deliverables.approvalId];
 
 assert.equal(smoke16.ok, true);
 assert.match(appJs, /function getMissionDeliverablesPreview/);
-assert.match(appJs, /Deliverables preview:/);
-assert.match(appJs, /Deliverables Preview/);
-assert.match(appJs, /Latest Artifact Preview/);
-assert.match(appJs, /Review State/);
-assert.match(appJs, /Approval State/);
+assert.match(appJs, /연결된 태스크가 아직 없어서 산출물도 없습니다\./);
+assert.match(appJs, /아직 아티팩트 패키지가 없습니다; 리뷰/);
+assert.match(appJs, /승인 /);
+assert.match(appJs, /현재 결재 안건/);
+assert.match(appJs, /안건 종료 보고/);
 assert.equal(mission.status, 'executing');
 assert.equal(latestArtifact.type, 'preflight');
 assert.equal(task.review.status, 'pending');

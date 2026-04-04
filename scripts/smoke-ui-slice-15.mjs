@@ -91,7 +91,7 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(indexHtml, /surface-execution/);
-    assert.match(appJs, /Open Execution/);
+    assert.match(appJs, /작전실 열기/);
 
     const missionPayload = await postJson('/api/missions', {
       constraints: 'Keep the first execution auto chain bounded to preflight and stop at the existing gate.',

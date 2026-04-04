@@ -14,13 +14,13 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /No active missions[\s\S]*?Prepare the next mission when the next bounded cycle is ready\./);
-assert.match(appJs, /No completed missions yet[\s\S]*?Completed rows land here after close-out seals the path\./);
-assert.match(appJs, /<strong>No missions yet<\/strong>[\s\S]*?<p>Create the first mission above, then add the linked task when execution is needed\.<\/p>/);
+assert.match(appJs, /진행 중인 미션 없음[\s\S]*?위 접수 데스크에서 새 안건을 열면 바로 이 줄에 이어집니다\./);
+assert.match(appJs, /완료된 미션 없음[\s\S]*?close-out까지 끝난 안건이 생기면 이 줄에 차곡히 보관됩니다\./);
+assert.match(appJs, /<strong class="mission-empty-title">미션 없음<\/strong>[\s\S]*?<p class="mission-empty-copy">위 접수 데스크에서 첫 안건을 만들면 이곳에 바로 쌓입니다\.<\/p>/);
 
-assert.doesNotMatch(appJs, /Once the current bounded path is sealed through close-out, rows move into the completed section below\./);
-assert.doesNotMatch(appJs, /Completed missions appear here after the linked task reaches Done and the close-out bundle is saved\./);
-assert.doesNotMatch(appJs, /Start with one mission, then create a linked task when you are ready to enter advanced ops execution\./);
+assert.doesNotMatch(appJs, /No active missions[\s\S]*?Prepare the next mission when the next bounded cycle is ready\./);
+assert.doesNotMatch(appJs, /No completed missions yet[\s\S]*?Completed rows land here after close-out seals the path\./);
+assert.doesNotMatch(appJs, /Create the first mission above, then add the linked task when execution is needed\./);
 
 const activeMission = Object.values(activeState.missions)[0];
 const activeTask = activeState.tasks[activeMission.linkedTaskId];

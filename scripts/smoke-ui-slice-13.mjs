@@ -92,8 +92,8 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="mission"/);
     assert.match(indexHtml, /surface-mission/);
-    assert.match(appJs, /Create Mission/);
-    assert.match(appJs, /Open Advanced Ops Mode/);
+    assert.match(appJs, /안건 접수/);
+    assert.match(appJs, /고급 운영 모드/);
     assert.match(appJs, /create-linked-task-for-mission/);
     assert.deepEqual(initialSnapshot.snapshot.missions, {});
     assert.equal(initialSnapshot.snapshot.selectedMissionId, null);

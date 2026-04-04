@@ -2163,8 +2163,8 @@ function getTaskApprovalBridge(task, data) {
         currentApproval,
         currentGateItem,
         nextStepCopy: pendingInboxItem
-          ? `실행에서 ${pendingInboxItem.id}를 승인한 뒤, readiness가 초록으로 바뀌면 승인된 로컬 커밋 이어가기를 실행합니다.`
-          : '실행에서 현재 커밋 게이트를 승인한 뒤, readiness가 초록으로 바뀌면 승인된 로컬 커밋 이어가기를 실행합니다.',
+          ? `실행에서 ${pendingInboxItem.id}를 승인한 뒤, 준비 상태가 초록으로 바뀌면 승인된 로컬 커밋 이어가기를 실행합니다.`
+          : '실행에서 현재 커밋 게이트를 승인한 뒤, 준비 상태가 초록으로 바뀌면 승인된 로컬 커밋 이어가기를 실행합니다.',
         pendingInboxItem,
         targetArtifact,
       };
@@ -2179,7 +2179,7 @@ function getTaskApprovalBridge(task, data) {
         bridgeCopy: `${currentApproval.id}가 ${targetLabel} 기준 로컬 커밋 의도를 이미 승인했습니다.`,
         currentApproval,
         currentGateItem,
-        nextStepCopy: '현재 커밋 번들 readiness가 초록이면 실행에서 승인된 로컬 커밋 이어가기를 실행합니다.',
+        nextStepCopy: '현재 커밋 번들 준비 상태가 초록이면 실행에서 승인된 로컬 커밋 이어가기를 실행합니다.',
         pendingInboxItem,
         targetArtifact,
       };
@@ -2191,12 +2191,12 @@ function getTaskApprovalBridge(task, data) {
     ) {
       return {
         actionLabel,
-        bridgeCopy: `현재 사람 게이트는 ${currentApproval.id}이며, ${targetLabel} 기준 릴리스 readiness를 승인합니다.`,
+        bridgeCopy: `현재 사람 게이트는 ${currentApproval.id}이며, ${targetLabel} 기준 릴리스 준비 상태를 승인합니다.`,
         currentApproval,
         currentGateItem,
         nextStepCopy: pendingInboxItem
-          ? `실행에서 ${pendingInboxItem.id}를 승인한 뒤, readiness가 초록으로 바뀌면 승인된 종료 정리를 이어갑니다.`
-          : '실행에서 현재 릴리스 게이트를 승인한 뒤, readiness가 초록으로 바뀌면 승인된 종료 정리를 이어갑니다.',
+          ? `실행에서 ${pendingInboxItem.id}를 승인한 뒤, 준비 상태가 초록으로 바뀌면 승인된 종료 정리를 이어갑니다.`
+          : '실행에서 현재 릴리스 게이트를 승인한 뒤, 준비 상태가 초록으로 바뀌면 승인된 종료 정리를 이어갑니다.',
         pendingInboxItem,
         targetArtifact,
       };
@@ -2208,10 +2208,10 @@ function getTaskApprovalBridge(task, data) {
     ) {
       return {
         actionLabel,
-        bridgeCopy: `${currentApproval.id}가 ${targetLabel} 기준 릴리스 readiness를 이미 승인했습니다.`,
+        bridgeCopy: `${currentApproval.id}가 ${targetLabel} 기준 릴리스 준비 상태를 이미 승인했습니다.`,
         currentApproval,
         currentGateItem,
-        nextStepCopy: '현재 릴리스 번들 readiness가 초록이면 실행에서 승인된 종료 정리를 이어갑니다.',
+        nextStepCopy: '현재 릴리스 번들 준비 상태가 초록이면 실행에서 승인된 종료 정리를 이어갑니다.',
         pendingInboxItem,
         targetArtifact,
       };
@@ -7658,8 +7658,8 @@ function prepareNextMissionDraft(missionId) {
   state.missionDraftGoal = '';
   state.missionDraftConstraints = mission?.constraints || '';
   elements.refreshStatus.textContent = mission
-    ? `Prepared next mission draft from ${mission.id}`
-    : 'Prepared next mission draft';
+    ? `미션 ${mission.id} 기준으로 다음 안건 초안을 준비했습니다`
+    : '다음 안건 초안을 준비했습니다';
 }
 
 async function handleSurfaceChange(surface) {
@@ -8315,12 +8315,12 @@ async function runBuilderPreflight(taskId) {
   const data = getDerived();
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('builder preflight를 시작하기 전에 태스크를 먼저 선택하세요.');
+    throw new Error('사전 점검을 시작하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `태스크 ${taskId}의 builder preflight를 시작하는 중…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 사전 점검을 시작하는 중…`;
   render();
 
   try {
@@ -8338,7 +8338,7 @@ async function runBuilderPreflight(taskId) {
     await hydrateSelectedDetails();
     state.surface = 'artifacts';
     render();
-    elements.refreshStatus.textContent = `builder preflight 실행 ${payload.mutation.runId}이 완료됐습니다`;
+    elements.refreshStatus.textContent = `사전 점검 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -10703,6 +10703,7 @@ function renderCouncil(data) {
                 eyebrow: '회의 판단판',
                 heading: '회의 결론과 다음 이동만 먼저 봅니다',
                 copy: '오른쪽 패널은 긴 회의록 대신 현재 결론과 다음 표면만 먼저 보여 줍니다.',
+                entryFrame: true,
                 tokens: [
                   createToken(selectedCouncilSession.id, 'neutral'),
                   createToken(
@@ -10770,7 +10771,7 @@ function renderCouncil(data) {
                   <div class="council-approval-head">
                     <div>
                       <p class="detail-key">지금 승인</p>
-                      <p class="council-approval-copy">이 결론을 승인하면 builder preflight까지만 넘기고, 다음 게이트에서 멈춥니다.</p>
+                      <p class="council-approval-copy">이 결론을 승인하면 사전 점검까지만 넘기고, 다음 게이트에서 멈춥니다.</p>
                     </div>
                     <div class="token-row token-row-compact">
                       ${createToken('결론 승인', selectedCouncilSession.alignment?.status === 'approved' ? 'success' : 'accent')}
@@ -11072,12 +11073,12 @@ function renderExecution(data) {
       ? preferredInboxItem.prompt || preferredInboxItem.title
       : linkedTask.flags?.waitingApproval
         ? '빌더 라이브 변경 승인이 대기 중입니다.'
-        : linkedTask.flags?.waitingDecision
+      : linkedTask.flags?.waitingDecision
           ? '막고 있는 결정 항목이 대기 중입니다.'
           : executionEntryGateReason
             ? executionEntryGateReason
         : builderLiveMutationState.requestSummary.allowed
-            ? `Preflight ${builderLiveMutationState.requestSummary.currentPreflightArtifactId}가 빌더 라이브 변경 승인 준비 상태입니다.`
+            ? `사전 점검 ${builderLiveMutationState.requestSummary.currentPreflightArtifactId}가 빌더 라이브 변경 승인 준비 상태입니다.`
             : '현재 활성화된 차단 게이트는 없습니다.';
   const executionControl = getExecutionControlSnapshot(
     linkedTask,
@@ -11123,6 +11124,7 @@ function renderExecution(data) {
           eyebrow: '작전 개요판',
           heading: '작전실',
           copy: '작전실 왼쪽 패널도 현재 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다.',
+          entryFrame: true,
           tokens: [
             createToken(`안건:${selectedMission.id}`, 'neutral'),
             createToken(`실행셀:${linkedTask.id}`, 'accent'),
@@ -11180,7 +11182,7 @@ function renderExecution(data) {
             ${latestBreakdownArtifact ? createToken(`breakdown:${latestBreakdownArtifact.id}`, 'neutral') : createToken('breakdown:none', 'neutral')}
             ${latestPreflightArtifact ? createToken(`preflight:${latestPreflightArtifact.id}`, 'neutral') : createToken('preflight:none', 'neutral')}
           </div>
-          <p class="detail-copy">회의 결론 승인 자동 체인은 planner부터 builder preflight까지만 진행되고, 이후는 기존 게이트 semantics를 따릅니다.</p>
+          <p class="detail-copy">회의 결론 승인 자동 체인은 planner부터 사전 점검까지만 진행되고, 이후는 기존 게이트 규칙을 따릅니다.</p>
         </section>
       </section>
 
@@ -11196,6 +11198,7 @@ function renderExecution(data) {
           eyebrow: '작전 판단판',
           heading: '현재 작전 판단과 다음 후속만 먼저 봅니다',
           copy: '오른쪽 패널은 긴 provenance 대신 현재 게이트와 바로 할 후속만 먼저 보여 줍니다.',
+          entryFrame: true,
           tokens: [
             createToken(getTaskLifecycleDisplay(linkedTask.lifecycleState), 'neutral'),
             linkedTask.flags?.waitingApproval ? createToken('승인대기', 'accent') : '',
@@ -11313,7 +11316,7 @@ function renderExecution(data) {
                       릴리스 지시 승인
                     </button>
                   </div>
-                  <p class="form-help">기존 pending release 승인 기록을 그대로 처리합니다. 종료 정리는 release readiness가 준비된 뒤 실행에서 이어집니다.</p>
+                  <p class="form-help">기존 pending release 승인 기록을 그대로 처리합니다. 종료 정리는 릴리스 준비 상태가 잡힌 뒤 실행에서 이어집니다.</p>
                 `
                 : ''
             }
@@ -11331,7 +11334,7 @@ function renderExecution(data) {
                       작전 변경 실행
                     </button>
                   </div>
-                  <p class="form-help">현재 builder 승인은 이미 승인됐습니다. 이 CTA는 라이브 변경 route를 따라 한정된 변경 번들을 로그로 남깁니다.</p>
+                  <p class="form-help">현재 builder 승인은 이미 승인됐습니다. 이 CTA는 라이브 변경 경로를 따라 한정된 변경 번들을 로그로 남깁니다.</p>
                 `
                 : ''
             }
@@ -11349,7 +11352,7 @@ function renderExecution(data) {
                       리뷰어 실행
                     </button>
                   </div>
-                  <p class="form-help">최신 라이브 변경 번들이 준비됐습니다. 이 CTA는 reviewer route를 따라 아티팩트로 이어집니다.</p>
+                  <p class="form-help">최신 라이브 변경 번들이 준비됐습니다. 이 CTA는 리뷰어 경로를 따라 아티팩트로 이어집니다.</p>
                 `
                 : ''
             }
@@ -11367,7 +11370,7 @@ function renderExecution(data) {
                       커밋 패키지 준비
                     </button>
                   </div>
-                  <p class="form-help">최신 reviewer 번들이 준비됐습니다. 이 CTA는 commit-package route를 따라 현재 commit 승인을 엽니다.</p>
+                  <p class="form-help">최신 리뷰어 번들이 준비됐습니다. 이 CTA는 커밋 패키지 경로를 따라 현재 commit 승인을 엽니다.</p>
                 `
                 : ''
             }
@@ -11385,7 +11388,7 @@ function renderExecution(data) {
                       승인된 로컬 커밋 이어가기
                     </button>
                   </div>
-                  <p class="form-help">현재 commit 번들이 준비됐습니다. 이 CTA는 local commit route를 따라 commit-result 번들로 이어집니다.</p>
+                  <p class="form-help">현재 commit 번들이 준비됐습니다. 이 CTA는 로컬 커밋 경로를 따라 커밋 결과 번들로 이어집니다.</p>
                 `
                 : ''
             }
@@ -11403,7 +11406,7 @@ function renderExecution(data) {
                       릴리스 패키지 준비
                     </button>
                   </div>
-                  <p class="form-help">최신 local commit 번들이 준비됐습니다. 이 CTA는 release-package route를 따라 현재 release 승인을 엽니다.</p>
+                  <p class="form-help">최신 local commit 번들이 준비됐습니다. 이 CTA는 릴리스 패키지 경로를 따라 현재 release 승인을 엽니다.</p>
                 `
                 : ''
             }
@@ -11421,7 +11424,7 @@ function renderExecution(data) {
                       승인된 종료 정리 이어가기
                     </button>
                   </div>
-                  <p class="form-help">현재 승인된 release 번들이 준비됐습니다. 이 CTA는 close-out route를 따라 close-out 번들로 이어집니다.</p>
+                  <p class="form-help">현재 승인된 release 번들이 준비됐습니다. 이 CTA는 종료 정리 경로를 따라 종료 정리 번들로 이어집니다.</p>
                 `
                 : ''
             }
@@ -11472,7 +11475,7 @@ function renderExecution(data) {
                   ? '현재 preflight 아티팩트 기준으로 builder 라이브 변경 승인 게이트가 생성된 상태입니다.'
                   : escapeHtml(
                       (builderLiveMutationState.requestSummary.reasons || []).join('; ') ||
-                        '아직 preflight readiness를 확인할 수 없습니다.',
+                        '아직 사전 점검 준비 상태를 확인할 수 없습니다.',
                     )
               }
             </p>
@@ -11739,7 +11742,7 @@ function renderDeliverables(data) {
   const deliverablesEvidenceRail = renderExecutionEvidenceRail(deliverablesEvidenceState, {
     eyebrow: '증적 인계선',
     heading: '결과 보고실도 같은 실행 증적선을 그대로 읽습니다',
-    copy: 'Deliverables는 linked task의 artifact, run, readiness, review truth만 읽고 아래 섹션에서 더 깊은 보고를 이어갑니다.',
+    copy: '산출물 표면은 연결 실행 셀의 아티팩트, run, 준비 상태, 리뷰 기준 사실만 읽고 아래 섹션에서 더 깊은 보고를 이어갑니다.',
   });
   const deliverablesControl = getDeliverablesControlSnapshot(
     selectedMission,
@@ -11781,6 +11784,7 @@ function renderDeliverables(data) {
           eyebrow: '보고 개요판',
           heading: '결과 보고실',
           copy: '결과 보고실 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다.',
+          entryFrame: true,
           tokens: [
             createToken(`미션:${selectedMission.id}`, 'neutral'),
             createToken(`태스크:${linkedTask.id}`, 'accent'),
@@ -11859,6 +11863,7 @@ function renderDeliverables(data) {
           eyebrow: '보고 판단판',
           heading: '현재 보고 상태와 다음 후속만 먼저 봅니다',
           copy: '결과 보고실 오른쪽 패널은 현재 보고 묶음, 결재선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다.',
+          entryFrame: true,
           tokens: [
             createToken(
               `현재:${deliverablesEvidenceState.currentOwnerLabel}`,
@@ -11939,7 +11944,7 @@ function renderDeliverables(data) {
                       실행으로 이동해 커밋 패키지 준비
                     </button>
                   </div>
-                  <p class="form-help">커밋 패키지 준비는 최신 reviewer 번들이 준비되면 실행 표면에 열립니다.</p>
+                  <p class="form-help">커밋 패키지 준비는 최신 리뷰어 번들이 준비되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -11957,7 +11962,7 @@ function renderDeliverables(data) {
                       실행으로 이동해 커밋 게이트 승인
                     </button>
                   </div>
-                  <p class="form-help">커밋 승인은 현재 commit package가 pending 승인을 열면 실행 표면에 열립니다.</p>
+                  <p class="form-help">커밋 승인은 현재 커밋 패키지가 pending 승인을 열면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -12011,7 +12016,7 @@ function renderDeliverables(data) {
                       실행으로 이동해 릴리스 게이트 승인
                     </button>
                   </div>
-                  <p class="form-help">릴리스 승인은 현재 release package가 pending 승인을 열면 실행 표면에 열립니다.</p>
+                  <p class="form-help">릴리스 승인은 현재 릴리스 패키지가 pending 승인을 열면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -12155,7 +12160,7 @@ function renderDeliverables(data) {
                       실행으로 이동해 라이브 변경 실행
                     </button>
                   </div>
-                  <p class="form-help">라이브 변경 실행은 현재 builder 게이트가 승인되면 실행 표면에 열립니다.</p>
+                  <p class="form-help">라이브 변경 실행은 현재 빌더 게이트가 승인되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }

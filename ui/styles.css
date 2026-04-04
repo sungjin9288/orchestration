@@ -2606,6 +2606,121 @@ h3 {
   display: block;
 }
 
+.surface[data-surface="council"] .surface-panel,
+.surface[data-surface="council"] .detail-card,
+.surface[data-surface="execution"] .surface-panel,
+.surface[data-surface="execution"] .detail-card,
+.surface[data-surface="deliverables"] .surface-panel,
+.surface[data-surface="deliverables"] .detail-card {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--surface-control-border);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--surface-entry-tint) 86%, white), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 248, 239, 0.98));
+  box-shadow: 0 18px 34px color-mix(in srgb, var(--surface-entry-accent) 10%, transparent), var(--shadow);
+}
+
+.surface[data-surface="council"] .surface-panel::before,
+.surface[data-surface="council"] .detail-card::before,
+.surface[data-surface="execution"] .surface-panel::before,
+.surface[data-surface="execution"] .detail-card::before,
+.surface[data-surface="deliverables"] .surface-panel::before,
+.surface[data-surface="deliverables"] .detail-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: clamp(78px, 24%, 136px);
+  height: 3px;
+  background: linear-gradient(90deg, var(--surface-entry-accent), transparent);
+  opacity: 0.84;
+  pointer-events: none;
+}
+
+.surface[data-surface="council"] .relation-strip,
+.surface[data-surface="execution"] .relation-strip,
+.surface[data-surface="deliverables"] .relation-strip {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--surface-entry-accent) 18%, rgba(33, 57, 49, 0.1));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 243, 234, 0.92)),
+    rgba(255, 251, 243, 0.88);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--surface-entry-accent) 7%, transparent);
+}
+
+.surface[data-surface="council"] .relation-strip::before,
+.surface[data-surface="execution"] .relation-strip::before,
+.surface[data-surface="deliverables"] .relation-strip::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--surface-entry-accent) 78%, white), transparent 84%);
+  opacity: 0.8;
+}
+
+.surface[data-surface="council"] .transcript-card,
+.surface[data-surface="council"] .council-outcome-card {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--surface-entry-tint) 82%, white), transparent 48%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 244, 237, 0.94));
+}
+
+.surface[data-surface="council"] .command-deck-card,
+.surface[data-surface="execution"] .command-deck-card,
+.surface[data-surface="deliverables"] .command-deck-card {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--surface-entry-accent) 18%, rgba(33, 57, 49, 0.12));
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--surface-entry-tint) 78%, white), transparent 48%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 242, 233, 0.94));
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--surface-entry-accent) 8%, transparent);
+}
+
+.surface[data-surface="council"] .command-deck-card::before,
+.surface[data-surface="execution"] .command-deck-card::before,
+.surface[data-surface="deliverables"] .command-deck-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: clamp(56px, 34%, 92px);
+  height: 3px;
+  background: linear-gradient(90deg, var(--surface-entry-accent), transparent);
+  opacity: 0.76;
+}
+
+.surface[data-surface="taskboard"] .surface-entry-frame.surface-lead-strip,
+.surface[data-surface="logs"] .surface-entry-frame.surface-lead-strip,
+.surface[data-surface="artifacts"] .surface-entry-frame.surface-lead-strip,
+.surface[data-surface="decision-inbox"] .surface-entry-frame.surface-lead-strip {
+  border-style: dashed;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--surface-entry-tint) 80%, white), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(248, 243, 236, 0.92));
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--surface-entry-accent) 8%, transparent), var(--shadow);
+}
+
+.surface[data-surface="taskboard"] .surface-entry-frame.surface-lead-strip .viewport-handoff-card,
+.surface[data-surface="logs"] .surface-entry-frame.surface-lead-strip .viewport-handoff-card,
+.surface[data-surface="artifacts"] .surface-entry-frame.surface-lead-strip .viewport-handoff-card,
+.surface[data-surface="decision-inbox"] .surface-entry-frame.surface-lead-strip .viewport-handoff-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(248, 243, 236, 0.94)),
+    rgba(255, 251, 243, 0.92);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--surface-entry-accent) 6%, transparent);
+}
+
+.surface[data-surface="taskboard"] .surface-entry-frame.surface-lead-strip .viewport-handoff-card-emphasis,
+.surface[data-surface="logs"] .surface-entry-frame.surface-lead-strip .viewport-handoff-card-emphasis,
+.surface[data-surface="artifacts"] .surface-entry-frame.surface-lead-strip .viewport-handoff-card-emphasis,
+.surface[data-surface="decision-inbox"] .surface-entry-frame.surface-lead-strip .viewport-handoff-card-emphasis {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--surface-entry-tint) 82%, white), transparent 50%),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.94), rgba(247, 241, 233, 0.98));
+}
+
 .surface-entry-frame {
   position: relative;
   overflow: hidden;

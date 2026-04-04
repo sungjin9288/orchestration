@@ -26,11 +26,11 @@ const closeOutArtifact = runtimeState.artifacts[closeOutArtifactId];
 const closeOutRun = runtimeState.runs[closeOutRunId];
 
 assert.equal(smoke29.ok, true);
-assert.match(appJs, /Mission Completion/);
-assert.match(appJs, /Current Mission State/);
-assert.match(appJs, /Next Safe Follow-Up/);
-assert.match(appJs, /completed the bounded orchestration path and closed through close-out artifact/);
-assert.match(appJs, /bounded delivery is sealed by close-out artifact/);
+assert.match(appJs, /안건 종료 보고/);
+assert.match(appJs, /현재 미션 상태/);
+assert.match(appJs, /다음 안전한 후속 단계/);
+assert.match(appJs, /한정된 전달은 종료 정리 아티팩트/);
+assert.match(appJs, /저장된 종료 정리 번들을 최종 한정 요약으로 보고/);
 assert.equal(task.lifecycleState, 'Done');
 assert.equal(mission.linkedTaskId, taskId);
 assert.equal(mission.status, 'executing');

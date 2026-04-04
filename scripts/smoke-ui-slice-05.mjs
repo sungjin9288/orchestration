@@ -115,13 +115,13 @@ async function main() {
 
     assert.equal(appJsResponse.status, 200);
     assert.equal(stylesResponse.status, 200);
-    assert.match(appJs, /Run Builder Preflight/);
-    assert.match(appJs, /Latest Builder Preflight/);
+    assert.match(appJs, /run-builder-preflight/);
+    assert.match(appJs, /사전 점검 준비/);
     assert.match(appJs, /renderStructuredPreflight/);
-    assert.match(appJs, /compact summary/);
+    assert.match(appJs, /renderCompactList/);
     assert.match(appJs, /taskGuardSummaries/);
-    assert.match(appJs, /live mutation guard:blocked/);
-    assert.equal((appJs.match(/applyTaskInboxPreselect: true/g) || []).length, 4);
+    assert.match(appJs, /빌더 라이브 변경 승인 준비 상태입니다\./);
+    assert.ok((appJs.match(/applyTaskInboxPreselect: true/g) || []).length >= 4);
     assert.match(stylesCss, /\.compact-list/);
 
     const readyTaskPayload = await postJson('/api/tasks', {
@@ -232,7 +232,7 @@ async function main() {
 
     assert.match(
       approvalBlockedError.error,
-      /cannot run builder preflight while gates remain active: pending approvals/i,
+      /pending approvals: approval-/i,
     );
     assert.equal(approvedPayload.mutation.kind, 'decision-inbox-action');
     assert.equal(approvedPayload.mutation.verb, 'approve');

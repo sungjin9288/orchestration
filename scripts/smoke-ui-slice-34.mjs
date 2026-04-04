@@ -26,10 +26,10 @@ const latestApproval = runtimeState.approvals[smoke20.approvalBridge.approvalId]
 
 assert.equal(smoke20.ok, true);
 assert.match(appJs, /function getMissionExecutionPreview/);
-assert.match(appJs, /Execution preview:/);
-assert.match(appJs, /Execution Preview/);
-assert.match(appJs, /Current Gate Preview/);
-assert.match(appJs, /Blocked Reason/);
+assert.match(appJs, /가장 최근 작전 보고:/);
+assert.match(appJs, /연결된 태스크가 아직 없어서 실행 게이트도 없습니다\./);
+assert.match(appJs, /지금 활성화된 실행 게이트는 없습니다\./);
+assert.match(appJs, /현재 실행은 .* 전까지 진행할 수 없습니다\./);
 assert.equal(mission.status, 'executing');
 assert.equal(task.lifecycleState, 'In Progress');
 assert.equal(task.flags.waitingApproval, true);

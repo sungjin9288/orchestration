@@ -23,15 +23,15 @@ const mission = Object.values(runtimeState.missions)[0];
 const task = runtimeState.tasks[mission.linkedTaskId];
 
 assert.equal(smoke30.ok, true);
-assert.match(appJs, /Prepare Next Mission/);
-assert.match(appJs, /Open Mission To Start Next Cycle/);
+assert.match(appJs, /다음 안건 준비/);
+assert.match(appJs, /미션으로 이동해 다음 사이클 시작/);
 assert.match(
   appJs,
-  /Carries current constraints into the next mission draft without changing runtime state or starting new execution automatically\./,
+  /다음 안건 초안을 준비했습니다/,
 );
 assert.match(
   appJs,
-  /Mission holds the next-cycle entry\. Use it to prepare the next bounded mission draft without reopening execution\./,
+  /다음 사이클은 미션에서 시작합니다\. 실행을 다시 열지 않고 다음 초안을 준비합니다\./,
 );
 assert.match(appJs, /function prepareNextMissionDraft/);
 assert.match(appJs, /action === 'prepare-next-mission'/);

@@ -25,10 +25,13 @@ const latestApproval = runtimeState.approvals[smoke20.approvalBridge.approvalId]
 
 assert.equal(smoke20.ok, true);
 assert.match(appJs, /function getMissionNextActionPreview/);
-assert.match(appJs, /Current Best Next Step/);
-assert.match(appJs, /Next owner ·/);
+assert.match(appJs, /지금 가장 먼저 열어야 할 표면은 실행이며, 이유는/);
+assert.match(appJs, /다음 미션 준비/);
+assert.match(appJs, /협의회 초안 만들기/);
+assert.match(appJs, /연결 태스크 만들기/);
+assert.match(appJs, /실행 열기/);
 assert.match(appJs, /selectedMissionNextActionPreview\.surface/);
-assert.match(appJs, /Execution is the current best next step because/);
+assert.match(appJs, /지금 가장 먼저 열어야 할 표면은/);
 assert.equal(mission.status, 'executing');
 assert.equal(task.flags.waitingApproval, true);
 assert.equal(latestApproval.status, 'pending');

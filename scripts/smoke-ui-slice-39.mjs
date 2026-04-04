@@ -28,12 +28,12 @@ const closeOutArtifact = Object.values(completedState.artifacts).find(
   (artifact) => artifact.taskId === completedTask.id && artifact.type === 'close-out',
 );
 
-assert.match(appJs, /Completed · close-out artifact/);
-assert.match(appJs, /Next owner · Mission via Prepare Next Mission\./);
-assert.match(appJs, /Council ·/);
-assert.match(appJs, /Execution ·/);
-assert.match(appJs, /Deliverables ·/);
-assert.match(appJs, /Next owner ·/);
+assert.match(appJs, /종료 정리 .* · 다음 안건을 바로 준비할 수 있습니다\./);
+assert.match(appJs, /다음: 미션에서 다음 안건 준비/);
+assert.match(appJs, /label: '회의'/);
+assert.match(appJs, /label: '실행'/);
+assert.match(appJs, /label: '보고'/);
+assert.match(appJs, /다음안건:준비/);
 assert.equal(activeMission.status, 'executing');
 assert.equal(activeTask.flags.waitingApproval, true);
 assert.equal(latestActiveApproval.status, 'pending');

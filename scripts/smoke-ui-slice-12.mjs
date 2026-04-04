@@ -371,11 +371,11 @@ assert.match(appJsSource, /function getCloseOutAvailability/);
 assert.match(appJsSource, /function parseCloseOutArtifact/);
 assert.match(appJsSource, /function renderStructuredCloseOut/);
 assert.match(appJsSource, /data-action="run-close-out"/);
-assert.match(appJsSource, /Resume Approved Close Out/);
-assert.match(appJsSource, /Open Task Detail Close-Out Guard/);
+assert.match(appJsSource, /승인된 종료 정리 이어가기/);
+assert.match(appJsSource, /태스크 상세 종료 정리 가드 열기/);
 assert.match(
   appJsSource,
-  /stays navigation-only for close-out follow-up\. Open Task Detail to use Resume Approved Close Out\./,
+  /탐색 전용으로 남습니다\. 승인된 종료 정리 이어가기는 태스크 상세에서 실행합니다\./,
 );
 assert.match(appJsSource, /selectedArtifactMeta\.type === 'close-out'/);
 assert.match(appJsSource, /function resolvePostMutationSurface/);

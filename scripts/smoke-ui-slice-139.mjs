@@ -17,7 +17,7 @@ assert.match(app, /council-approval-head/);
 assert.match(app, /council-approval-copy/);
 assert.match(app, /class="form-actions council-approval-row"/);
 assert.match(app, /class="form-help council-approval-help"/);
-assert.match(app, /이 결론을 승인하면 builder preflight까지만 넘기고, 다음 게이트에서 멈춥니다\./);
+assert.match(app, /이 결론을 승인하면 사전 점검까지만 넘기고, 다음 게이트에서 멈춥니다\./);
 
 assert.match(styles, /\.council-approval-head \{[\s\S]*justify-content:\s*space-between;[\s\S]*gap:\s*12px;/);
 assert.match(styles, /\.surface\[data-surface="council"\] \.council-approval-block \{[\s\S]*border-color:\s*var\(--surface-control-border\);[\s\S]*box-shadow:\s*0 18px 34px/);

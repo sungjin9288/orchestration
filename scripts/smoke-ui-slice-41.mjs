@@ -21,29 +21,29 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 const completedState = JSON.parse(fs.readFileSync(completedStatePath, 'utf8'));
 
-const detailHeaderMatch = appJs.match(/<h2>Mission Detail<\/h2>[\s\S]*?<div class="token-row token-row-compact">([\s\S]*?)<\/div>/);
-const snapshotSectionMatch = appJs.match(/<strong>Mission Snapshot<\/strong>[\s\S]*?<\/section>/);
-const completionSectionMatch = appJs.match(/<strong>Mission Completion<\/strong>[\s\S]*?<\/section>/);
-const councilSectionMatch = appJs.match(/<strong>Council<\/strong>[\s\S]*?<\/section>/);
+const detailHeaderMatch = appJs.match(/eyebrow: '안건 판단판'[\s\S]*?tokens:\s*\[([\s\S]*?)\],\s*cards:/);
+const snapshotSectionMatch = appJs.match(/<strong>브리프 핵심 4줄<\/strong>[\s\S]*?<\/section>/);
+const completionSectionMatch = appJs.match(/<strong>안건 종료 보고<\/strong>[\s\S]*?<\/section>/);
+const councilSectionMatch = appJs.match(/<strong>착석 참모진<\/strong>[\s\S]*?<\/section>/);
 
-assert.ok(detailHeaderMatch, 'Mission detail header token row should exist');
-assert.ok(snapshotSectionMatch, 'Mission Snapshot section should exist');
-assert.ok(completionSectionMatch, 'Mission Completion section should exist');
-assert.ok(councilSectionMatch, 'Council section should exist');
+assert.ok(detailHeaderMatch, '안건 판단판 token row should exist');
+assert.ok(snapshotSectionMatch, '브리프 핵심 4줄 section should exist');
+assert.ok(completionSectionMatch, '안건 종료 보고 section should exist');
+assert.ok(councilSectionMatch, '착석 참모진 section should exist');
 
-assert.match(detailHeaderMatch[1], /linked-task:/);
-assert.doesNotMatch(detailHeaderMatch[1], /createToken\(`mission:/);
+assert.match(detailHeaderMatch[1], /연결태스크:/);
+assert.doesNotMatch(detailHeaderMatch[1], /createToken\(`미션:/);
 
-assert.match(snapshotSectionMatch[0], /createToken\([\s\S]*?`surface:/);
-assert.match(snapshotSectionMatch[0], /createToken\([\s\S]*?`action:/);
+assert.match(snapshotSectionMatch[0], /createToken\([\s\S]*?`표면:/);
+assert.match(snapshotSectionMatch[0], /createToken\([\s\S]*?`액션:/);
 assert.doesNotMatch(snapshotSectionMatch[0], /createToken\([\s\S]*?`artifact:/);
 assert.doesNotMatch(snapshotSectionMatch[0], /createToken\([\s\S]*?`review:/);
 
-assert.match(completionSectionMatch[0], /createToken\([\s\S]*?`close-out:/);
+assert.match(completionSectionMatch[0], /createToken\([\s\S]*?`종료정리:/);
 assert.doesNotMatch(completionSectionMatch[0], /createToken\([\s\S]*?`release-package:/);
 assert.doesNotMatch(completionSectionMatch[0], /createToken\([\s\S]*?`delivery:/);
 
-assert.match(councilSectionMatch[0], /createToken\([\s\S]*?`participants:/);
+assert.match(councilSectionMatch[0], /createToken\([\s\S]*?`참여자:/);
 assert.doesNotMatch(councilSectionMatch[0], /createToken\(selectedCouncilSession\.id/);
 
 const activeMission = Object.values(activeState.missions)[0];

@@ -374,12 +374,9 @@ async function main() {
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
-    assert.match(appJs, /Approve Current Commit Gate/);
-    assert.match(appJs, /Open Execution To Approve Commit Gate/);
-    assert.match(
-      appJs,
-      /This reuses the existing pending commit approval record\./,
-    );
+    assert.match(appJs, /커밋 지시 승인/);
+    assert.match(appJs, /기존 pending commit 승인 기록을 그대로 처리합니다\./);
+    assert.match(appJs, /이후 후속 단계는 계속 관제실에 남습니다\./);
 
     const approvePayload = await postJson(
       `/api/decision-inbox/${encodeURIComponent(commitInboxItemId)}/actions`,

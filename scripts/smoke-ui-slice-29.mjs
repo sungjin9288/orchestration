@@ -451,7 +451,7 @@ async function main() {
     assert.match(appJs, /실행으로 이동해 종료 정리 실행/);
     assert.match(
       appJs,
-      /현재 승인된 release 번들이 준비됐습니다\. 이 CTA는 close-out route를 따라 close-out 번들로 이어집니다\./,
+      /현재 승인된 release 번들이 준비됐습니다\. 이 CTA는 종료 정리 경로를 따라 종료 정리 번들로 이어집니다\./,
     );
 
     const closeOutPayload = await postJson(
