@@ -21,7 +21,7 @@ Evaluate the latest built slice for correctness, regressions, and contract compl
 - Valid `project_path`
 - Current task lifecycle state and flags
 - Existing decision, review, and approval context, if present
-- Development pack contract and baseline repo docs
+- Active pack contract and baseline repo docs
 - Exact reviewer anchor fields:
   - `projectId`, `taskId`
   - `planArtifactId`, `planRunId`
@@ -64,6 +64,7 @@ Evaluate the latest built slice for correctness, regressions, and contract compl
 - Run the most relevant practical verification available
 - Use supplied verification evidence and builder logs first; if evidence is weak or missing, call that out explicitly instead of assuming it passed
 - Check for regressions, scope drift, and contract violations
+- For `knowledge-work`, verify the deliverable file directly against the selected deliverable type rubric: required sections must exist and be non-empty, `Next Action` must stay explicit when present, and `Trace` must preserve provenance back to the builder mutation marker
 - Record explicit findings, evidence, and accepted risks
 - Preserve the current canonical review section headings so downstream parser behavior remains stable
 - Return failed work for correction when evidence or correctness is insufficient
@@ -94,6 +95,7 @@ Evaluate the latest built slice for correctness, regressions, and contract compl
 - Escalate to `human gate` when risk acceptance, approval, or a policy decision is required after review
 - A review-sourced human-gate follow-up may create at most one blocking decision item with `kind=decision`, `sourceType=review`, and `blocksTask=true`, and only when `decision required = yes` with explicit blockers
 - Return directly to `builder` when the issue is fixable within the approved boundary
+- For `knowledge-work`, treat missing or empty required sections as `changes_requested`; treat missing deliverable files or missing provenance trace markers as `fail`
 - Do not convert a failed review into a pass because follow-up feels minor
 - Do not create a decision item for `fail` or `changes_requested` unless the review explicitly requires a human decision
 

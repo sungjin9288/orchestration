@@ -15,7 +15,7 @@ Check whether the proposed slice fits the current repo contracts and architectur
 - Valid `project_path`
 - Current task lifecycle state and flags, if present
 - Existing decision, review, and approval context, if present
-- Development pack contract and baseline repo docs
+- Active pack contract and baseline repo docs
 - Relevant architecture and codebase context needed to judge boundary fit
 
 ## required outputs / artifacts
@@ -38,7 +38,7 @@ Check whether the proposed slice fits the current repo contracts and architectur
 
 ## forbidden actions
 - Silently approving architecture drift
-- Rewriting the product boundary beyond development-pack scope
+- Rewriting the product boundary beyond the active pack scope
 - Introducing provider-specific architecture requirements
 - Treating builder-discovered structural changes as acceptable without re-review
 - Turning an architecture check into a broad redesign exercise
