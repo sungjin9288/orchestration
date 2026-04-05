@@ -29,10 +29,10 @@ assert.match(indexHtml, /data-surface="council"/);
 assert.match(indexHtml, /data-surface="execution"/);
 assert.match(indexHtml, /data-surface="deliverables"/);
 assert.match(indexHtml, /고급 운영 모드/);
-assert.match(
-  indexHtml,
-  /안건을 올리면 착석한 AI 참모진이 회의를 열고 목표와 방향을 정합니다\./,
-);
+assert.match(indexHtml, /shell-window-bar/);
+assert.match(indexHtml, /AI 실행 관제실/);
+assert.match(indexHtml, /shell-agent-row/);
+assert.match(indexHtml, /총지휘관/);
 assert.match(decisionLog, /### DEC-043/);
 assert.match(decisionLog, /User-facing orchestration copy defaults to Korean on the primary shell\./);
 
