@@ -1,5 +1,22 @@
 const SURFACE_IDS = ['mission', 'council', 'execution', 'deliverables', 'taskboard', 'logs', 'artifacts', 'decision-inbox'];
 const TASK_LIFECYCLE_ORDER = ['Inbox', 'In Progress', 'Review', 'Done'];
+const PACK_DISPLAY_NAMES = {
+  development: 'development',
+  'knowledge-work': 'knowledge-work',
+};
+const PACK_HELP_COPY = {
+  development:
+    '코드, 설정, 테스트, 리팩터링처럼 repo mutation이 중심인 실행 팩입니다.',
+  'knowledge-work':
+    '의사결정 메모, PRD, 실행 계획, 운영 체크리스트처럼 문서·기획·판단이 중심인 실행 팩입니다.',
+};
+const KNOWLEDGE_WORK_DELIVERABLES = {
+  checklist: '체크리스트',
+  'decision-memo': '의사결정 메모',
+  'execution-plan': '실행 계획서',
+  prd: 'PRD',
+  'research-brief': '리서치 브리프',
+};
 const SURFACE_DISPLAY_NAMES = {
   artifacts: '아티팩트',
   council: '협의회',
@@ -64,6 +81,7 @@ const state = {
   linkedWorktreeDraftSlug: '',
   projectDraftName: '',
   projectDraftPath: '',
+  projectDraftPack: 'development',
   projectDraftProviderMode: 'local-stub',
   projectDraftProviderModel: '',
   projectDraftProviderApiKeyVar: '',
@@ -74,6 +92,7 @@ const state = {
   missionDraftTitle: '',
   missionDraftGoal: '',
   missionDraftConstraints: '',
+  missionDraftDeliverableType: 'decision-memo',
   taskDraftTitle: '',
   taskDraftIntent: '',
   timerId: null,
@@ -131,6 +150,14 @@ function formatDate(value) {
   }
 
   return date.toLocaleString();
+}
+
+function getPackDisplayName(pack) {
+  return PACK_DISPLAY_NAMES[pack] || pack || 'development';
+}
+
+function getKnowledgeWorkDeliverableDisplayName(type) {
+  return KNOWLEDGE_WORK_DELIVERABLES[type] || KNOWLEDGE_WORK_DELIVERABLES['decision-memo'];
 }
 
 const COUNCIL_CAST_ORDER = ['Conductor', 'Strategist', 'Architect', 'Decomposer'];
@@ -7657,6 +7684,7 @@ function prepareNextMissionDraft(missionId) {
   state.missionDraftTitle = '';
   state.missionDraftGoal = '';
   state.missionDraftConstraints = mission?.constraints || '';
+  state.missionDraftDeliverableType = mission?.deliverableType || 'decision-memo';
   elements.refreshStatus.textContent = mission
     ? `미션 ${mission.id} 기준으로 다음 안건 초안을 준비했습니다`
     : '다음 안건 초안을 준비했습니다';
@@ -7844,6 +7872,7 @@ async function handleSelection(action, id) {
 async function submitCreateProject(options = {}) {
   const name = state.projectDraftName.trim();
   const projectPath = state.projectDraftPath.trim();
+  const pack = state.projectDraftPack === 'knowledge-work' ? 'knowledge-work' : 'development';
   const provider = options.forceLocalStub
     ? buildProviderPayload('local-stub', '', '')
     : buildProviderPayload(
@@ -7868,12 +7897,14 @@ async function submitCreateProject(options = {}) {
   try {
     const payload = await postJson('/api/projects', {
       name,
+      pack,
       provider,
       projectPath,
     });
 
     state.projectDraftName = '';
     state.projectDraftPath = '';
+    state.projectDraftPack = 'development';
     state.projectDraftProviderMode = 'local-stub';
     state.projectDraftProviderModel = '';
     state.projectDraftProviderApiKeyVar = '';
@@ -7995,6 +8026,10 @@ async function submitCreateMission() {
   const title = state.missionDraftTitle.trim();
   const goal = state.missionDraftGoal.trim();
   const constraints = state.missionDraftConstraints.trim();
+  const deliverableType =
+    data.activeProject.pack === 'knowledge-work'
+      ? state.missionDraftDeliverableType || 'decision-memo'
+      : '';
 
   if (!title) {
     throw new Error('미션 제목이 필요합니다.');
@@ -8013,6 +8048,7 @@ async function submitCreateMission() {
     const payload = await postJson('/api/missions', {
       autoDraftCouncil: true,
       constraints,
+      deliverableType,
       goal,
       title,
     });
@@ -8023,6 +8059,7 @@ async function submitCreateMission() {
     state.missionDraftTitle = '';
     state.missionDraftGoal = '';
     state.missionDraftConstraints = '';
+    state.missionDraftDeliverableType = 'decision-memo';
     state.selectionSeeded = true;
     await hydrateSelectedDetails();
     state.surface = payload.councilSession?.id ? 'council' : 'mission';
@@ -9292,6 +9329,8 @@ function renderProjectBootstrapPanel(data, options = {}) {
   const linkedWorktreePanel = missionMode
     ? ''
     : renderLinkedWorktreeSwitchPanel(data, projectActionDisabled);
+  const createProjectPack =
+    state.projectDraftPack === 'knowledge-work' ? 'knowledge-work' : 'development';
   const createProjectProviderMode =
     state.projectDraftProviderMode === 'live' ? 'live' : 'local-stub';
   const activeProjectProviderConfig = getProjectProviderConfig(data.activeProject);
@@ -9326,7 +9365,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                     </div>
                     <p class="list-copy">${escapeHtml(project.projectPath)}</p>
                     <div class="token-row">
-                      ${createToken(project.pack || 'development', 'neutral')}
+                      ${createToken(getPackDisplayName(project.pack || 'development'), 'neutral')}
                       ${createToken(
                         `준비도:${getProviderReadinessDisplay(project.readiness || 'unknown')}`,
                         'neutral',
@@ -9513,6 +9552,16 @@ function renderProjectBootstrapPanel(data, options = {}) {
               ${projectActionDisabled ? 'disabled' : ''}
             >
           </label>
+          <label class="field">
+            <span class="field-label">팩</span>
+            <select
+              name="projectPack"
+              ${projectActionDisabled ? 'disabled' : ''}
+            >
+              <option value="development" ${createProjectPack === 'development' ? 'selected' : ''}>development</option>
+              <option value="knowledge-work" ${createProjectPack === 'knowledge-work' ? 'selected' : ''}>knowledge-work</option>
+            </select>
+          </label>
           ${
             !missionMode
               ? `
@@ -9563,10 +9612,10 @@ function renderProjectBootstrapPanel(data, options = {}) {
           <p class="form-help">
             ${
               missionMode
-                ? '미션 진입은 항상 local-stub 기본값으로 시작합니다. 프로바이더와 연결 워크트리 제어는 고급 운영 모드에 남습니다.'
+                ? `${PACK_HELP_COPY[createProjectPack]} 미션 진입은 항상 local-stub 기본값으로 시작합니다. 프로바이더와 연결 워크트리 제어는 고급 운영 모드에 남습니다.`
                 : createProjectProviderMode === 'live'
-                ? 'live 모드는 비밀이 아닌 opt-in metadata만 저장합니다. model과 env가 유효할 때 planner, architect, task-breaker, builder preflight, builder live mutation, reviewer가 live로 실행되고, commit-package, local commit, release-package, close-out은 계속 명시적인 local follow-up으로 남습니다.'
-                : '프로젝트를 등록하고 local-stub를 기본 실행 프로바이더로 유지한 채 해당 프로젝트를 활성 상태로 만듭니다.'
+                ? `${PACK_HELP_COPY[createProjectPack]} live 모드는 비밀이 아닌 opt-in metadata만 저장합니다. model과 env가 유효할 때 planner, architect, task-breaker, builder preflight, builder live mutation, reviewer가 live로 실행되고, commit-package, local commit, release-package, close-out은 계속 명시적인 local follow-up으로 남습니다.`
+                : `${PACK_HELP_COPY[createProjectPack]} 프로젝트를 등록하고 local-stub를 기본 실행 프로바이더로 유지한 채 해당 프로젝트를 활성 상태로 만듭니다.`
             }
           </p>
         </div>
@@ -9742,6 +9791,7 @@ function renderMission(data) {
           tone: selectedMissionNextActionPreview.tone,
         },
       ];
+  const missionUsesKnowledgeWork = data.activeProject?.pack === 'knowledge-work';
   const missionCreateDisabled = state.loading || state.mutating;
   const linkedTaskCreateDisabled =
     state.loading || state.mutating || !selectedMission || Boolean(selectedMission.linkedTaskId);
@@ -9858,6 +9908,14 @@ function renderMission(data) {
                     <strong>${escapeHtml(mission.title)}</strong>
                     <div class="token-row token-row-compact">
                       ${createToken(getMissionStatusDisplay(mission.status), getMissionStatusTone(mission.status))}
+                      ${
+                        mission.deliverableType
+                          ? createToken(
+                              `산출물:${getKnowledgeWorkDeliverableDisplayName(mission.deliverableType)}`,
+                              'neutral',
+                            )
+                          : ''
+                      }
                       ${createToken(`다음:${missionSurfaceLabel}`, nextActionPreview.tone)}
                     </div>
                   </div>
@@ -9981,11 +10039,18 @@ function renderMission(data) {
           <div class="mission-order-head">
             <div class="stack">
               <strong>안건 접수 데스크</strong>
-              <p class="detail-copy detail-copy-compact">안건을 접수하면 바로 참모 회의로 이어집니다.</p>
+              <p class="detail-copy detail-copy-compact">
+                ${
+                  missionUsesKnowledgeWork
+                    ? '안건을 접수하면 선택한 산출물 유형으로 바로 참모 회의가 이어집니다.'
+                    : '안건을 접수하면 바로 참모 회의로 이어집니다.'
+                }
+              </p>
             </div>
             <div class="token-row token-row-compact">
               ${createToken('빠른 접수', 'accent')}
               ${createToken('즉시 착석', 'success')}
+              ${missionUsesKnowledgeWork ? createToken('문서형 안건', 'neutral') : ''}
             </div>
           </div>
           <div class="mission-order-main">
@@ -10010,6 +10075,29 @@ function renderMission(data) {
             </label>
           </div>
           <div class="mission-order-foot">
+            ${
+              missionUsesKnowledgeWork
+                ? `
+                  <label class="field field-compact">
+                    <span class="field-label">산출물 유형</span>
+                    <select
+                      name="missionDeliverableType"
+                      ${missionCreateDisabled ? 'disabled' : ''}
+                    >
+                      ${Object.entries(KNOWLEDGE_WORK_DELIVERABLES)
+                        .map(
+                          ([value, label]) => `
+                            <option value="${escapeHtml(value)}" ${
+                              state.missionDraftDeliverableType === value ? 'selected' : ''
+                            }>${escapeHtml(label)}</option>
+                          `,
+                        )
+                        .join('')}
+                    </select>
+                  </label>
+                `
+                : ''
+            }
             <label class="field field-compact">
               <span class="field-label">경계 (선택)</span>
               <textarea
@@ -10021,7 +10109,13 @@ function renderMission(data) {
             </label>
             <div class="form-actions form-actions-inline form-actions-compact mission-order-actions">
               <button class="primary-button" type="submit" ${missionCreateDisabled ? 'disabled' : ''}>안건 접수</button>
-              <p class="form-help">접수 즉시 참모 회의 초안이 열리고, 승인 전까지는 작전실로 넘어가지 않습니다.</p>
+              <p class="form-help">
+                ${
+                  missionUsesKnowledgeWork
+                    ? `접수 즉시 ${getKnowledgeWorkDeliverableDisplayName(state.missionDraftDeliverableType)} 기준 참모 회의 초안이 열리고, 승인 전까지는 작전실로 넘어가지 않습니다.`
+                    : '접수 즉시 참모 회의 초안이 열리고, 승인 전까지는 작전실로 넘어가지 않습니다.'
+                }
+              </p>
             </div>
           </div>
         </form>
@@ -10047,6 +10141,12 @@ function renderMission(data) {
                     getMissionStatusDisplay(selectedMission.status),
                     getMissionStatusTone(selectedMission.status),
                   ),
+                  selectedMission.deliverableType
+                    ? createToken(
+                        `산출물:${getKnowledgeWorkDeliverableDisplayName(selectedMission.deliverableType)}`,
+                        'neutral',
+                      )
+                    : '',
                   selectedMission.linkedTaskId
                     ? createToken(`연결태스크:${selectedMission.linkedTaskId}`, 'accent')
                     : createToken('연결태스크:없음', 'warning'),
@@ -10077,10 +10177,30 @@ function renderMission(data) {
                 <section class="relation-strip relation-strip-compact">
                   <div class="card-title-row card-title-row-tight">
                     <strong>${escapeHtml(selectedMission.title)}</strong>
+                    ${
+                      selectedMission.deliverableType
+                        ? createToken(
+                            getKnowledgeWorkDeliverableDisplayName(selectedMission.deliverableType),
+                            'neutral',
+                          )
+                        : ''
+                    }
                   </div>
                   <p class="detail-copy detail-copy-compact">${escapeHtml(selectedMission.goal || '기록된 미션 목표가 없습니다.')}</p>
                 </section>
                 ${missionEvidenceRail}
+                ${
+                  selectedMission.deliverableType
+                    ? `
+                      <section class="relation-strip">
+                        <div class="card-title-row">
+                          <strong>산출물 유형</strong>
+                        </div>
+                        <p class="detail-copy">${escapeHtml(getKnowledgeWorkDeliverableDisplayName(selectedMission.deliverableType))}</p>
+                      </section>
+                    `
+                    : ''
+                }
                 ${
                   missionCompletionReady
                     ? `
@@ -10626,6 +10746,14 @@ function renderCouncil(data) {
             <strong>${escapeHtml(selectedMission.title)}</strong>
             ${createToken(getMissionStatusDisplay(selectedMission.status), getMissionStatusTone(selectedMission.status))}
             ${
+              selectedMission.deliverableType
+                ? createToken(
+                    getKnowledgeWorkDeliverableDisplayName(selectedMission.deliverableType),
+                    'neutral',
+                  )
+                : ''
+            }
+            ${
               selectedCouncilSession
                 ? createToken(
                     getCouncilStatusDisplay(selectedCouncilSession.status),
@@ -10635,6 +10763,11 @@ function renderCouncil(data) {
             }
           </div>
           <p class="detail-copy">${escapeHtml(selectedMission.goal || '기록된 미션 목표가 없습니다.')}</p>
+          ${
+            selectedMission.deliverableType
+              ? `<p class="detail-copy">선택 산출물: ${escapeHtml(getKnowledgeWorkDeliverableDisplayName(selectedMission.deliverableType))}</p>`
+              : ''
+          }
           <p class="detail-copy">${escapeHtml(selectedMission.constraints || '기록된 제약 조건이 없습니다.')}</p>
           ${
             !selectedCouncilSession
@@ -14794,6 +14927,11 @@ function handleFormInput(event) {
       state.projectDraftPath = event.target.value;
     }
 
+    if (event.target.name === 'projectPack') {
+      state.projectDraftPack =
+        event.target.value === 'knowledge-work' ? 'knowledge-work' : 'development';
+    }
+
     if (event.target.name === 'projectProviderMode') {
       state.projectDraftProviderMode = event.target.value === 'live' ? 'live' : 'local-stub';
     }
@@ -14836,6 +14974,13 @@ function handleFormInput(event) {
 
     if (event.target.name === 'missionConstraints') {
       state.missionDraftConstraints = event.target.value;
+    }
+
+    if (event.target.name === 'missionDeliverableType') {
+      state.missionDraftDeliverableType =
+        event.target.value in KNOWLEDGE_WORK_DELIVERABLES
+          ? event.target.value
+          : 'decision-memo';
     }
 
     return;
