@@ -17,14 +17,13 @@ const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'u
 assert.match(appJs, /function getInboxStatusDisplay\(status\)/);
 assert.match(appJs, /function getInboxResolutionActionDisplay\(action\)/);
 assert.match(appJs, /function renderSurfaceLeadStrip\(options = \{\}\)/);
-assert.match(appJs, /title: '관제실 로그실'/);
-assert.match(appJs, /title: '증적 보관실'/);
-assert.match(appJs, /title: '관제실 결재함'/);
+assert.match(appJs, /heading: options\.heading \|\| '심층 근거를 들여다보는 관제실'/);
+assert.match(appJs, /eyebrow: '관제실 판단 요약'/);
+assert.match(appJs, /관제실 직행/);
 assert.match(appJs, /실행 프로바이더/);
 assert.match(appJs, /프로바이더 업데이트/);
-assert.match(appJs, /로그는 여전히 고급 점검 표면입니다/);
-assert.match(appJs, /아티팩트는 의도적으로 고급 provenance 표면에 남깁니다/);
-assert.match(appJs, /결정함은 명시적인 승인과 결정 처리에 계속 열려 있지만/);
+assert.match(appJs, /보고실은 의도적으로 간결한 요약에서 멈춥니다\. 작업판, 로그, 증적 보관실, 결재함은 관제실 쪽 세부 운영 경로로 남습니다\./);
+assert.match(appJs, /세부 로그, 작업판, 증적 조작이 필요할 때 여는 별도 관제실입니다\./);
 assert.match(appJs, /선택된 run 없음/);
 assert.match(appJs, /선택된 증적 없음/);
 assert.match(appJs, /선택된 결재 없음/);
@@ -69,7 +68,7 @@ console.log(
     {
       ok: true,
       advancedOpsKoreanShell: {
-        headings: ['관제실 로그실', '증적 보관실', '관제실 결재함'],
+        headings: ['심층 근거를 들여다보는 관제실', '관제실 판단 요약', '관제실 직행'],
         providerBootstrap: '실행 프로바이더',
         executionGate: {
           missionStatus: executingMission.status,

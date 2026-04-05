@@ -56,6 +56,7 @@
 - local commit 이후에도 close-out 직전에 repo clean(unstaged/staged/untracked 모두 0)을 다시 확인해야 승인된 release bundle 이후의 drift를 막을 수 있었다.
 - commit-side helper처럼 승인 소비 단계가 있는 실행 CTA는 `Task Detail` 한 곳에만 두고, `Artifacts`와 `Decision Inbox`는 provenance/readiness + navigation-only hint로 제한하는 편이 surface authority drift를 막기 쉬웠다.
 - release-side helper도 같은 규칙을 따라야 했다. `Resume Approved Close Out` CTA는 `Task Detail` release/close-out guard에만 두고, `Artifacts`와 `Decision Inbox`는 current approved release bundle일 때만 navigation hint를 보이며 stale/blocked bundle에서는 기존 guard reason만 남기는 편이 권한 경계를 가장 안정적으로 유지했다.
+- OpenSpace integration smoke는 `repo wiring readiness`와 `host LLM auth readiness`를 분리해서 기록해야 했다. local `search_skills(..., source="local")`가 성공하고 bridge skill이 보이면 repo 쪽 배선은 정상이고, 같은 컨텍스트에서 `execute_task(...)`가 `No cookie auth credentials found` 같은 OpenRouter 401로 멈추더라도 그건 host credential exposure 문제로 분리하는 편이 원인 추적이 빨랐다.
 - second provider 평가는 구현 순서의 자동 다음 칸처럼 다루면 안 됐다. current `openai-responses` boundary로 operator problem이 이미 닫혀 있다면 provider matrix를 넓히기보다 optional real-live housekeeping과 concrete gap evidence를 먼저 모으는 편이 docs, smoke, readiness drift를 줄이기 쉬웠다.
 
 ## smoke / fixtures
@@ -118,6 +119,24 @@
 - mission list panel helper도 같은 원칙이 유지됐고, surface 상단 helper는 “여기서 무엇을 시작하고 무엇이 다른 surface에 남는지”만 짧게 말하는 편이 entry intent를 훨씬 빨리 읽게 했다.
 - mission form helper도 같은 원칙이 유지됐고, create-form 아래 설명은 downstream flow 전체를 길게 다시 말하기보다 “council이 바로 draft되고 visible discussion이 시작된다”는 한 문장만 남기는 편이 entry flow를 훨씬 빨리 읽게 했다.
 - mission form placeholder도 같은 원칙이 유지됐고, field 안의 안내 문구는 질문형 설명을 길게 쓰기보다 입력 대상만 바로 드러내는 편이 entry field scanability를 훨씬 빨리 높였다.
+
+## pack expansion
+
+- `development`와 `knowledge-work`를 같은 엔진 위에 얹을 때는 새 runtime을 만들기보다 project-level `pack` 선택과 pack-aware source-of-truth routing만 추가하는 편이 범위와 provenance를 가장 안정적으로 유지했다.
+- knowledge-work 지원은 UI보다 먼저 runtime/coordinator/local-stub output을 pack-aware로 만드는 편이 안전했다. 그래야 문서·기획 작업을 열면서도 기존 development smoke를 크게 흔들지 않는다.
+- knowledge-work가 실제로 쓸 만해지려면 pack만 나누는 것으로는 부족했고, mission 단계에서 `deliverableType`을 먼저 고르게 한 뒤 그 값이 council recommendation, preflight target file, live-mutation output path까지 이어지게 만드는 편이 가장 자연스러웠다.
+- deliverableType routing만으로는 체감이 약했고, 실제 생성 문서의 section 구조까지 type별로 다르게 보여 줘야 `PRD`, `checklist`, `decision memo`가 진짜 다른 workflow처럼 느껴졌다. 이 차이는 wording보다 generated file headings로 smoke를 고정하는 편이 훨씬 안정적이었다.
+- knowledge-work reviewer도 같은 원칙이 유지됐고, 품질 기준을 artifact commentary에만 적어 두기보다 실제 생성 파일을 다시 읽어 `required sections / explicit next action / trace marker`를 판정하는 편이 pass, `changes_requested`, `fail`의 경계를 가장 안정적으로 고정했다.
+- live provider parity도 같은 원칙이 유지됐고, knowledge-work reviewer 품질 기준은 free-form prompt 지시만으로 믿기보다 structured output 안에 `knowledgeWorkRubric`을 넣고 adapter가 verdict severity를 다시 검증하게 만드는 편이 drift를 가장 잘 막았다.
+- knowledge-work live builder는 새 문서 파일을 만드는 경우가 자연스러워서, target baseline digest를 무조건 sha256 문자열로만 강제하면 live path가 development 전제에 묶인다. missing target file은 `digest: null`로 표현하고 smoke로 고정하는 편이 pack 차이를 가장 안전하게 흡수했다.
+- live provider knowledge-work coverage도 같은 원칙이 유지됐고, PRD 한 종류만 smoke로 닫아 두면 generic rubric처럼 보여도 checklist branch가 실제로는 비어 있을 수 있다. deliverable-type별 특수 규칙이 있는 경우에는 최소한 한 종류 이상을 추가로 고정해야 일반화 착시를 막기 쉽다.
+- special-case live provider branch를 둘 이상 고정해도 기본 branch가 자동으로 검증되지는 않았고, `decision-memo`처럼 추가 boolean 없이 required section drift만 타는 generic deliverable도 별도 smoke가 필요했다. 특수 규칙과 기본 규칙이 공존하는 계약은 둘 다 직접 고정해야 일반화 착시를 막기 쉽다.
+- generic branch를 한 번 닫았더라도 deliverable별 `filePath`와 `requiredSections` 목록은 여전히 서로 달라서, planning 문서처럼 다른 section set을 갖는 타입은 별도 smoke가 있어야 drift를 바로 잡기 쉽다. 같은 규칙 계열이라도 path와 heading contract가 다르면 type별 한 번씩은 직접 고정하는 편이 안전했다.
+- knowledge-work deliverable coverage를 마감할 때도 같은 원칙이 유지됐고, 마지막 한 타입이라도 unchecked로 남겨 두면 “계약은 완성됐다”는 인상이 실제보다 과장되기 쉽다. deliverable 목록이 닫힌 순간까지 type별 smoke를 전부 채운 뒤에야 full coverage라고 부르는 편이 가장 안전했다.
+- per-type smoke를 전부 만든 뒤에도 verification entrypoint가 흩어져 있으면 운영자가 coverage를 다시 확인할 때 빠뜨리기 쉽다. deliverable matrix가 닫힌 시점에는 repo-native aggregate command를 같이 두는 편이 regression 확인과 handoff 품질을 훨씬 안정적으로 만든다.
+- provider aggregate까지 만든 뒤에도 runtime smoke가 별도 command로 남아 있으면 pack-level readiness를 한 번에 말하기 어렵다. pack boundary가 명확한 기능군은 runtime gate와 provider gate를 한 단계 더 묶은 상위 aggregate까지 있어야 verification contract가 운영 관점에서도 완결된다.
+- top-level verification status는 같은 원칙이 유지됐고, blocking synthetic gate와 informational housekeeping을 한 lane에 섞으면 unrelated failure가 readiness truth를 흐리기 쉽다. `required / informational` lane을 분리한 status entrypoint가 실제 운영 판단과 후속 triage를 가장 안정적으로 만든다.
+- fixed `var/` 경로를 재사용하는 smoke는 빠른 재실행 뒤 macOS에서 `fs.rmSync(..., { recursive: true, force: true })`만으로 `ENOTEMPTY`가 날 수 있었다. 이런 CLI smoke는 temp path를 전면 재설계하기 전이라도 `maxRetries`와 `retryDelay`를 같이 주는 편이 rerun stability를 훨씬 높였다.
 - mission form label도 같은 원칙이 유지됐고, create-form label은 `Mission Title / Mission Goal`처럼 반복 설명을 붙이기보다 `Title / Goal / Scope`처럼 field 역할만 남기는 편이 scanability를 더 빨리 높였다.
 - mission form submit-area도 같은 원칙이 유지됐고, CTA label과 helper는 `Create Mission`, `Council drafts right away...`처럼 completion point와 immediate next effect만 남기는 편이 entry action을 훨씬 빨리 읽게 했다.
 - mission form action strip도 같은 원칙이 유지됐고, submit-area는 설명 문장을 다시 두기보다 `Create Mission` 버튼과 `council:auto-draft` 같은 compact token만 남기는 편이 completion point를 훨씬 빨리 스캔하게 했다.
@@ -293,3 +312,13 @@
 - fixture generator smoke는 downstream representative gate가 의존하는 runtime snapshot을 직접 쓰기 때문에, retired copy 하나만 stale 되어도 뒤의 density/freeze smoke가 연쇄적으로 false red가 된다. 이런 경우에는 가장 앞단 generator smoke의 wording expectation부터 현재 accepted baseline과 stable source hook으로 보정하는 편이 가장 작은 blast radius로 chain 전체를 다시 관찰하기 쉽다.
 - execution/deliverables bridge처럼 한 fixture smoke가 여러 surface의 operator-facing copy를 함께 확인할 때는 오래된 영어 label 세트를 그대로 유지하지 말고, 현재 accepted source hook 중 의미가 같은 한국어 marker 몇 개로 assertion을 줄이는 편이 더 안정적이다. bridge semantics를 지키는 최소 marker만 남기면 downstream state generator 역할은 유지하면서 wording drift로 인한 false red를 줄이기 쉽다.
 - close-out fixture smoke도 bridge fixture와 같은 패턴으로, CTA label 하나와 help copy 한 줄만 현재 accepted execution surface marker에 맞추면 downstream freeze chain을 다시 살릴 수 있었다. approved release 이후 close-out semantics를 검증하는 smoke일수록 영어 action title보다 현재 route를 직접 설명하는 한국어 CTA/help marker를 잡는 편이 drift에 덜 취약하다.
+- `DEC-043` 같은 accepted language baseline과 인접 freeze smoke들이 한쪽을 가리키는데 UI 한 군데만 다른 언어로 남아 있으면, 그건 smoke stale보다 UI regression일 가능성이 더 높다. 이런 경우에는 divergent CTA를 accepted baseline으로 먼저 되돌리고, 그 주변의 오래된 English-side smoke만 같이 정리하는 편이 가장 작은 blast radius로 신뢰도를 회복하기 쉽다.
+- repo-native status entrypoint가 source-level smoke와 로컬 서버 reachability를 한 `ok`로 묶어 버리면, 실제 회귀와 단순 운영 환경 부재가 같은 빨간불로 섞인다. 스크립트가 서버까지 직접 띄우지 않는다면 frozen shell smoke는 required lane으로, live snapshot reachability는 informational lane으로 분리하는 편이 상태 해석을 훨씬 덜 헷갈리게 만든다.
+- status entrypoint가 외부 서버 lifecycle을 직접 소유하지 않는데도 fetch failure를 곧바로 `fail`로 세면, 운영 환경 부재가 다시 false red로 돌아온다. 이 경우에는 연결 거부 같은 “server not running” 상황을 informational `skipped`로 처리하고, 실제 HTTP error만 informational `fail`로 남기는 편이 status 해석과 운영 액션을 더 정확하게 분리해 준다.
+- optional browser smoke는 shell copy가 한번 localize된 뒤에도 고정 영어 CTA와 고정 포트를 같이 들고 있으면 쉽게 false red가 난다. 이런 smoke는 현재 accepted bootstrap label로 expectation을 갱신하고, `4316/4317` 같은 fixed port 대신 매 실행마다 free localhost port를 할당하는 편이 가장 작은 blast radius로 재현성과 안정성을 함께 높인다.
+- optional browser smoke가 이미 separate source/runtime smoke로 닫힌 bootstrap submit까지 다시 브라우저에서 직접 몰고 가면, UI state wiring 변경 하나만으로 downstream orchestration coverage 전체가 같이 흔들린다. 이런 경우에는 landing 자체만 브라우저에서 확인하고, first registration은 `/api/projects`로 seed한 뒤 refresh해서 task/worktree/close-out 같은 downstream value를 계속 검증하는 편이 더 안정적이다.
+- optional browser smoke에서 browser-owned value가 실제로는 `surface entry`뿐이라면, task selection·relation apply·close-out 실행 같은 mutation까지 억지로 브라우저 click으로 밀지 않는 편이 낫다. 이런 단계는 shell API와 snapshot/artifact assertion으로 닫고, 브라우저는 landing CTA와 surface handoff만 확인하는 편이 optional smoke를 green으로 유지하면서도 신호를 잃지 않는다.
+- optional browser smoke가 여러 slice로 늘어나면 required status에 그대로 섞기보다 별도 aggregate bundle을 두는 편이 낫다. 그러면 `ui_qa_status` 같은 빠른 required lane은 그대로 유지하면서도 긴 Playwright matrix는 `node scripts/smoke-qa-browser-pack.mjs` 같은 one-shot entrypoint로 재현할 수 있다.
+- 디자인 전환도 broad rewrite보다 foyer slice부터 닫는 편이 안전했다. `Mission / Council`처럼 첫인상을 만드는 viewport는 copy/gate semantics를 크게 흔들지 않고도 `ui/index.html + ui/styles.css` 중심의 palette, hierarchy, spacing, and character treatment만 바꿔 체감 인상을 크게 바꿀 수 있었고, 기존 smoke hook를 유지하면 visual direction 변경과 freeze discipline을 함께 지키기 쉬웠다.
+- 첫 foyer를 부드럽게 바꾼 뒤에도 `summary / nav / focus strip`가 그대로 control-plane card density를 유지하면 사용자는 다시 긴장된 업무판부터 읽게 된다. 이 단계는 JS copy를 더 바꾸기보다 `ui/styles.css`에서 rounded sans hierarchy, sticker-like label, lighter tile silhouette만 추가하는 편이 가장 작은 blast radius로 “간단하고 쓰고 싶은” 인상을 확장하기 쉬웠다.
+- foyer와 summary/nav를 부드럽게 만든 뒤에도 `Mission` 첫 active workspace가 예전 dense form + dense briefing card 상태로 남아 있으면 제품이 다시 두 개의 다른 톤으로 갈라져 보였다. 이런 구간은 JS copy를 더 손대기보다 `mission-order-desk`와 right-side `briefing-hero`에 shelf-like grouping, lighter field trays, rounded sans title hierarchy만 추가하는 편이 가장 작은 blast radius로 “실제로 쓰고 싶은 첫 화면” 감각을 이어 가기 쉬웠다.

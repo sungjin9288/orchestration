@@ -11,8 +11,12 @@ function renderList(items, emptyValue) {
   return items.map((item) => `- ${item}`).join('\n');
 }
 
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function getMarkdownSection(content, heading) {
-  const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedHeading = escapeRegExp(heading);
   const pattern = new RegExp(
     `^## ${escapedHeading}\\n([\\s\\S]*?)(?=^## [^\\n]+\\n|(?![\\s\\S]))`,
     'm',
@@ -59,6 +63,254 @@ function normalizeRelativePath(value) {
   return normalized;
 }
 
+function hasMarkdownHeading(content, heading) {
+  return new RegExp(`^## ${escapeRegExp(heading)}$`, 'm').test(String(content || ''));
+}
+
+function mergeReviewerVerdicts(...verdicts) {
+  const priority = {
+    pass: 0,
+    changes_requested: 1,
+    fail: 2,
+  };
+
+  return verdicts
+    .map((value) => String(value || '').trim().toLowerCase())
+    .filter((value) => Object.prototype.hasOwnProperty.call(priority, value))
+    .sort((left, right) => priority[right] - priority[left])[0] || 'pass';
+}
+
+function isKnowledgeWorkPack(request) {
+  return request?.project?.pack === 'knowledge-work';
+}
+
+function getKnowledgeWorkDeliverableSpec(request) {
+  const deliverableType = request?.task?.deliverableType || 'decision-memo';
+  const specs = {
+    checklist: {
+      filePath: 'docs/checklist.md',
+      label: '체크리스트',
+      outputLabel: 'operational checklist',
+      sections: ['Objective', 'Checklist', 'Readiness Signals', 'Risks', 'Next Action', 'Trace'],
+    },
+    'decision-memo': {
+      filePath: 'docs/decision-memo.md',
+      label: '의사결정 메모',
+      outputLabel: 'decision memo',
+      sections: ['Decision', 'Context', 'Recommendation', 'Options Considered', 'Risks and Assumptions', 'Open Questions', 'Next Action', 'Trace'],
+    },
+    'execution-plan': {
+      filePath: 'docs/execution-plan.md',
+      label: '실행 계획서',
+      outputLabel: 'execution plan',
+      sections: ['Outcome', 'Scope', 'Milestones', 'Workstreams', 'Dependencies', 'Risks', 'Next Action', 'Trace'],
+    },
+    prd: {
+      filePath: 'docs/prd.md',
+      label: 'PRD',
+      outputLabel: 'product requirements document',
+      sections: ['Problem', 'User', 'Goals', 'Non-Goals', 'Requirements', 'Acceptance Signals', 'Open Questions', 'Trace'],
+    },
+    'research-brief': {
+      filePath: 'docs/research-brief.md',
+      label: '리서치 브리프',
+      outputLabel: 'research brief',
+      sections: ['Research Question', 'Current Context', 'Findings', 'Implications', 'Unknowns', 'Next Action', 'Trace'],
+    },
+  };
+
+  return {
+    deliverableType,
+    ...(specs[deliverableType] || specs['decision-memo']),
+  };
+}
+
+function getKnowledgeWorkGoal(request) {
+  return request?.task?.intent || request?.task?.title || 'knowledge-work deliverable';
+}
+
+function renderKnowledgeWorkTemplate(request, deliverable, marker) {
+  const goal = getKnowledgeWorkGoal(request);
+  const scope = getMarkdownSection(request?.planArtifact?.content, 'Slice Goal') || goal;
+
+  if (deliverable.deliverableType === 'prd') {
+    return `# ${request.task.title}
+
+## Problem
+${goal}
+
+## User
+- Primary operator: single-user owner reviewing the next bounded move
+- Reviewer: person approving whether this PRD is actionable enough to hand off
+
+## Goals
+- Clarify the intended outcome for this slice
+- Keep the deliverable reviewable without hidden context
+- Make the next bounded action explicit
+
+## Non-Goals
+- implementation
+- release or deployment execution
+- external research beyond current project context
+
+## Requirements
+- ${scope}
+- Explicit assumptions and open questions stay visible
+- Evidence should be traceable from the current project context
+
+## Acceptance Signals
+- The operator can explain the desired outcome after reading this PRD
+- A reviewer can tell what is in scope and out of scope
+- The next bounded action is explicit
+
+## Open Questions
+- Which local document or source of truth should be treated as the final owner?
+- Is more evidence needed before implementation or approval?
+
+## Trace
+- ${marker}
+`;
+  }
+
+  if (deliverable.deliverableType === 'checklist') {
+    return `# ${request.task.title}
+
+## Objective
+${goal}
+
+## Checklist
+- [ ] Confirm the outcome and owner of this slice
+- [ ] Review the local context and current constraints
+- [ ] Draft the bounded deliverable or recommendation
+- [ ] Verify assumptions, risks, and next action are explicit
+
+## Readiness Signals
+- The checklist can be executed without hidden context
+- The next decision or handoff is explicit
+- The work remains inside the approved boundary
+
+## Risks
+- Checklist items can look complete before the underlying evidence is strong enough
+- Scope can widen if the owner or stop condition stays implicit
+
+## Next Action
+- Review the checklist with the operator and resolve any missing evidence
+
+## Trace
+- ${marker}
+`;
+  }
+
+  if (deliverable.deliverableType === 'execution-plan') {
+    return `# ${request.task.title}
+
+## Outcome
+${goal}
+
+## Scope
+- ${scope}
+- Keep the work bounded to one reviewable plan
+
+## Milestones
+- Milestone 1: align on the intended result
+- Milestone 2: prepare the bounded deliverable
+- Milestone 3: review assumptions, risks, and next action
+
+## Workstreams
+- Context framing
+- Deliverable drafting
+- Review and operator handoff
+
+## Dependencies
+- Local source-of-truth documents
+- Explicit owner for the next action
+
+## Risks
+- Hidden dependencies can make the plan look simpler than it is
+- Ambiguous ownership can block the next handoff
+
+## Next Action
+- Confirm milestone ownership and proceed with the first bounded step
+
+## Trace
+- ${marker}
+`;
+  }
+
+  if (deliverable.deliverableType === 'research-brief') {
+    return `# ${request.task.title}
+
+## Research Question
+${goal}
+
+## Current Context
+- Scope for this brief: ${scope}
+- Use only currently available local context in this slice
+
+## Findings
+- The current project context provides enough information for a bounded first brief
+- Missing evidence should remain explicit instead of guessed
+
+## Implications
+- A recommendation can be drafted, but confidence depends on the visible evidence trail
+- Downstream implementation should wait for explicit approval
+
+## Unknowns
+- Which source is the final decision authority?
+- What evidence is still missing?
+
+## Next Action
+- Validate the findings with the operator and decide whether deeper research is needed
+
+## Trace
+- ${marker}
+`;
+  }
+
+  return `# ${request.task.title}
+
+## Decision
+${goal}
+
+## Context
+- Scope for this memo: ${scope}
+- The memo should stay bounded and reviewable
+
+## Recommendation
+- Proceed with the smallest useful next move that stays inside the approved boundary
+
+## Options Considered
+- Keep the scope bounded to a single deliverable
+- Delay the move until more evidence is gathered
+
+## Risks and Assumptions
+- Assumption: the current project context is enough for a bounded first recommendation
+- Risk: hidden context can weaken the memo if not called out explicitly
+
+## Open Questions
+- What needs explicit approval before downstream execution?
+- What evidence is still missing?
+
+## Next Action
+- Review the recommendation and confirm whether to proceed or revise
+
+## Trace
+- ${marker}
+`;
+}
+
+function buildKnowledgeWorkFileContent(request, relativePath) {
+  const marker = buildMutationMarker(request, relativePath);
+  const deliverable = getKnowledgeWorkDeliverableSpec(request);
+  const extension = path.extname(relativePath).toLowerCase();
+
+  if (extension === '.md' || !extension) {
+    return renderKnowledgeWorkTemplate(request, deliverable, marker);
+  }
+
+  return `${marker}\n`;
+}
+
 function renderBase64FileUpdates(fileUpdates) {
   if (!Array.isArray(fileUpdates) || fileUpdates.length === 0) {
     return '_No file updates prepared._';
@@ -76,6 +328,124 @@ ${Buffer.from(fileUpdate.content, 'utf8').toString('base64')}
 
 function buildMutationMarker(request, relativePath) {
   return `builder-live-mutation ${request.approval?.id || 'no-approval'} ${relativePath}`;
+}
+
+function getKnowledgeWorkReviewAssessment(request) {
+  const deliverable = getKnowledgeWorkDeliverableSpec(request);
+  const relativePath = deliverable.filePath;
+  const absolutePath = request?.project?.projectPath
+    ? path.join(request.project.projectPath, relativePath)
+    : null;
+  const changedFiles = uniqueList(
+    (
+      Array.isArray(request.builderRun?.summary?.changedFiles)
+        ? request.builderRun.summary.changedFiles
+        : request?.anchor?.changedFilePaths
+    )
+      .map((value) => normalizeRelativePath(value))
+      .filter(Boolean),
+  );
+  const evidence = [
+    `deliverable file reviewed: ${relativePath}`,
+    `deliverable type reviewed: ${deliverable.deliverableType}`,
+    `required section set reviewed: ${deliverable.sections.join(', ')}`,
+  ];
+  const fatalFindings = [];
+  const revisionFindings = [];
+
+  if (!absolutePath) {
+    fatalFindings.push('Project path is missing, so the reviewer cannot inspect the deliverable file.');
+
+    return {
+      deliverable,
+      evidence,
+      fatalFindings,
+      findings: [...fatalFindings],
+      revisionFindings,
+      verdict: 'fail',
+    };
+  }
+
+  if (!fs.existsSync(absolutePath)) {
+    fatalFindings.push(`Expected ${deliverable.outputLabel} file is missing at ${relativePath}.`);
+
+    return {
+      deliverable,
+      evidence: [...evidence, 'deliverable file exists: no'],
+      fatalFindings,
+      findings: [...fatalFindings],
+      revisionFindings,
+      verdict: 'fail',
+    };
+  }
+
+  const content = fs.readFileSync(absolutePath, 'utf8');
+  const traceMarker = buildMutationMarker(request, relativePath);
+
+  evidence.push('deliverable file exists: yes');
+  evidence.push(
+    `builder bundle includes deliverable target: ${changedFiles.includes(relativePath) ? 'yes' : 'no'}`,
+  );
+
+  if (!changedFiles.includes(relativePath)) {
+    fatalFindings.push(
+      `Builder bundle changed files do not include the expected deliverable target ${relativePath}.`,
+    );
+  }
+
+  for (const section of deliverable.sections) {
+    if (!hasMarkdownHeading(content, section)) {
+      revisionFindings.push(`Missing required section: ${section}.`);
+      continue;
+    }
+
+    if (!getMarkdownSection(content, section)) {
+      revisionFindings.push(`Required section is empty: ${section}.`);
+    }
+  }
+
+  if (
+    deliverable.sections.includes('Trace') &&
+    !getMarkdownSection(content, 'Trace').includes(traceMarker)
+  ) {
+    fatalFindings.push(`Trace section must include the builder mutation marker for ${relativePath}.`);
+  }
+
+  if (
+    deliverable.sections.includes('Next Action') &&
+    hasMarkdownHeading(content, 'Next Action') &&
+    !/^- /m.test(getMarkdownSection(content, 'Next Action'))
+  ) {
+    revisionFindings.push('Next Action section must contain at least one explicit action item.');
+  }
+
+  if (
+    deliverable.deliverableType === 'checklist' &&
+    hasMarkdownHeading(content, 'Checklist') &&
+    !/^- \[[ xX]\]\s+/m.test(getMarkdownSection(content, 'Checklist'))
+  ) {
+    revisionFindings.push('Checklist section must contain at least one checklist item.');
+  }
+
+  if (
+    deliverable.deliverableType === 'prd' &&
+    hasMarkdownHeading(content, 'Acceptance Signals') &&
+    !/^- /m.test(getMarkdownSection(content, 'Acceptance Signals'))
+  ) {
+    revisionFindings.push('Acceptance Signals section must contain explicit acceptance bullets.');
+  }
+
+  const findings = [...fatalFindings, ...revisionFindings];
+
+  return {
+    deliverable,
+    evidence,
+    fatalFindings,
+    findings,
+    revisionFindings,
+    verdict:
+      fatalFindings.length > 0 ? 'fail' : revisionFindings.length > 0 ? 'changes_requested' : 'pass',
+  };
 }
 
 function buildUpdatedFileContent(request, relativePath, currentContent) {
@@ -109,6 +479,13 @@ function buildLimitedFileUpdates(request) {
     const absolutePath = path.join(request.project.projectPath, relativePath);
 
     if (!fs.existsSync(absolutePath)) {
+      if (isKnowledgeWorkPack(request)) {
+        fileUpdates.push({
+          path: relativePath,
+          content: buildKnowledgeWorkFileContent(request, relativePath),
+        });
+        break;
+      }
       continue;
     }
 
@@ -172,6 +549,54 @@ function renderPlannerOutput(request) {
   }
 
   blockers.push('initial live provider choice remains open; local stub adapter is in use');
+
+  if (isKnowledgeWorkPack(request)) {
+    const deliverable = getKnowledgeWorkDeliverableSpec(request);
+
+    return `# Plan: ${request.task.title}
+
+## Slice Goal
+${request.routingOutcome.scopeStatement}
+
+## Intended Outcome
+Turn the mission into one bounded ${deliverable.outputLabel} without widening into implementation.
+
+## Acceptance Target
+- one explicit target deliverable is selected: ${deliverable.label}
+- audience, decision owner, and success criteria are stated
+- assumptions, dependencies, and missing evidence are visible
+- the slice is reviewable before any downstream execution or implementation begins
+
+## Verification Approach
+- check that the recommendation is grounded in the stated goal and constraints
+- verify that the deliverable can be reviewed by another human without hidden context
+- confirm that open questions and missing evidence are called out explicitly
+
+## Dependencies and Blockers
+${renderList(blockers, 'none')}
+
+## Expected Artifacts
+- plan
+- output
+- review
+
+## Preferred Deliverable
+- type: ${deliverable.deliverableType}
+- label: ${deliverable.label}
+- target file: ${deliverable.filePath}
+
+## Preferred Sections
+${renderList(deliverable.sections, 'none')}
+
+## Worktree Need
+No. This slice is document, planning, or decision work unless later implementation is explicitly requested.
+
+## Non-Goals
+- code implementation
+- schema or infrastructure changes
+- commit, release, or deployment work
+`;
+  }
 
   return `# Plan: ${request.task.title}
 
@@ -281,6 +706,69 @@ function renderArchitectOutput(request) {
     'No code mutation is authorized by this architecture note.',
   ];
 
+  if (isKnowledgeWorkPack(request)) {
+    const deliverable = getKnowledgeWorkDeliverableSpec(request);
+    const affectedKnowledgeAreas = [deliverable.filePath, 'tasks/todo.md', 'tasks/lessons.md'];
+
+    return `# Architecture Note: ${request.task.title}
+
+## Boundary Fit Assessment
+${
+  normalizedResult.needsDecision
+    ? 'The current plan crosses a protected knowledge-work boundary and needs an explicit human decision.'
+    : 'The current plan fits the approved knowledge-work boundary for a bounded decision, planning, or documentation slice.'
+}
+
+## Affected Components or Contracts
+${renderList(affectedKnowledgeAreas, 'none')}
+
+## Policy Impact
+${renderList(
+  normalizedResult.needsDecision
+    ? ['This follow-up would widen beyond the approved document/decision boundary and must stop for human resolution.']
+    : [
+        'The slice stays inside the current knowledge-work pack boundary.',
+        'Grounded evidence, explicit assumptions, and reviewability remain required.',
+      ],
+  'none',
+)}
+
+## Decision-Log Impact
+${renderList(
+  normalizedResult.needsDecision
+    ? ['If approved, the follow-up may require a decision-log or operating-rule update before execution proceeds.']
+    : ['None. Existing product and pack guardrails remain unchanged.'],
+  'none',
+)}
+
+## Approved Assumptions
+${renderList(
+  [
+    `Architect input comes from planner artifact ${request.planArtifact.id}.`,
+    `The selected deliverable remains ${deliverable.label} in ${deliverable.filePath}.`,
+    'The output must remain reviewable without hidden context.',
+    'No code mutation or implementation commitment is authorized by this note alone.',
+  ],
+  'none',
+)}
+
+## Planner Input Summary
+- source artifact: ${request.planArtifact.id}
+- slice goal: ${sliceGoal || 'not stated'}
+- acceptance target: ${acceptanceTarget || 'not stated'}
+
+## No-Architecture-Change Statement
+${
+  normalizedResult.needsDecision
+    ? 'No broader workflow or product boundary change is approved by this note. Human resolution is required before downstream work.'
+    : 'No broader workflow or product boundary change is approved by this note. Downstream work must stay inside the current mission, evidence, and review boundaries.'
+}
+
+## Blocking Architecture Issues
+${renderList(normalizedResult.blockers, 'none')}
+`;
+  }
+
   return `# Architecture Note: ${request.task.title}
 
 ## Boundary Fit Assessment
@@ -372,6 +860,57 @@ function renderTaskBreakerOutput(request) {
     request.architectureArtifact?.content,
     'Approved Assumptions',
   );
+
+  if (isKnowledgeWorkPack(request)) {
+    return `# Task Breakdown: ${request.task.title}
+
+## Ordered Sub-Tasks
+- restate the decision, planning, or documentation objective in one sentence
+- collect the smallest set of evidence or source material needed for the first draft
+- draft one bounded deliverable and stop before implementation or rollout work
+
+## Checkpoints
+- checkpoint 1: confirm audience, owner, and success criteria
+- checkpoint 2: draft the bounded memo, plan, checklist, or brief
+- checkpoint 3: attach explicit open questions and review evidence
+
+## Expected Artifacts Per Checkpoint
+- checkpoint 1: breakdown
+- checkpoint 2: output, diff
+- checkpoint 3: review
+
+## Verification Checkpoints
+${renderList(
+  verificationApproach
+    ? verificationApproach
+        .split('\n')
+        .map((line) => line.replace(/^- /, '').trim())
+        .filter(Boolean)
+    : [],
+  'check that the draft is grounded, scoped, and reviewable',
+)}
+
+## Review Trigger Point
+- Trigger review after the bounded deliverable is drafted and the evidence trail is attached.
+
+## Stop-And-Escalate Conditions
+${renderList(
+  [
+    ...normalizedResult.blockers,
+    'Stop if the work turns into implementation, migration, or release execution.',
+    'Stop if the recommendation depends on evidence that is not available in the current project context.',
+  ],
+  'none',
+)}
+
+## Execution Boundary Summary
+- next stage: ${normalizedResult.nextStage}
+- planner artifact: ${request.planArtifact.id}
+- architecture artifact: ${request.architectureArtifact.id}
+- slice goal: ${sliceGoal || 'not stated'}
+- approved assumptions: ${approvedAssumptions ? 'present' : 'not stated'}
+`;
+  }
 
   return `# Task Breakdown: ${request.task.title}
 
@@ -519,6 +1058,76 @@ function renderBuilderPreflightOutput(request) {
     'Escalate to human gate if builder preflight finds a blocking risk that cannot be resolved as an implementation assumption.',
   ]);
 
+  if (isKnowledgeWorkPack(request)) {
+    const deliverable = getKnowledgeWorkDeliverableSpec(request);
+    const knowledgeTargetFiles = targetFiles.length > 0 ? targetFiles : [deliverable.filePath];
+
+    return `# Builder Preflight: ${request.task.title}
+
+## Target Files
+${renderList(knowledgeTargetFiles, deliverable.filePath)}
+
+## Intended Changes
+${renderList(
+  [
+    `Prepare one bounded ${deliverable.label} tied to the current mission.`,
+    'Keep evidence, assumptions, and open questions explicit inside the deliverable.',
+    'Avoid any code or release action unless a later human-approved task explicitly asks for it.',
+  ],
+  'none',
+)}
+
+## Risks
+${renderList(
+  normalizedResult.blockers.length > 0
+    ? normalizedResult.blockers
+    : [
+        'The draft can become too broad if audience, owner, or success criteria stay implicit.',
+        'A recommendation without explicit evidence can look finished while still being weak.',
+      ],
+  'none',
+)}
+
+## Verification Plan
+${renderList(
+  [
+    'Check that the deliverable has a clear audience, owner, and next action.',
+    'Check that assumptions and missing evidence are called out explicitly.',
+    'Check that the target files stay inside the approved knowledge-work boundary.',
+  ],
+  'none',
+)}
+
+## Review Evidence Expectations
+${renderList(
+  [
+    'The saved preflight artifact must list target files, intended changes, risks, and review expectations.',
+    'A later reviewer must be able to inspect the deliverable without hidden context.',
+    `The drafted ${deliverable.label} should contain these sections: ${deliverable.sections.join(', ')}.`,
+  ],
+  'none',
+)}
+
+## Escalation Triggers
+${renderList(
+  [
+    ...escalationTriggers,
+    'Escalate if the requested output requires new external research or implementation authority that is not available.',
+  ],
+  'none',
+)}
+
+## Input Summary
+- plan artifact: ${request.planArtifact.id}
+- architecture artifact: ${request.architectureArtifact.id}
+- breakdown artifact: ${request.breakdownArtifact.id}
+- slice goal: ${sliceGoal || 'not stated'}
+- acceptance target: ${acceptanceTarget || 'not stated'}
+- execution mode: ${request.executionMode || 'unspecified'}
+- mutation allowed: ${request.mutationAllowed === false ? 'no' : 'yes'}
+`;
+  }
+
   return `# Builder Preflight: ${request.task.title}
 
 ## Target Files
@@ -591,6 +1200,48 @@ function renderBuilderLiveMutationOutput(request) {
   const normalizedResult = buildNormalizedBuilderLiveMutationResult(request);
   const { fileUpdates, targetFiles } = buildLimitedFileUpdates(request);
 
+  if (isKnowledgeWorkPack(request)) {
+    const deliverable = getKnowledgeWorkDeliverableSpec(request);
+
+    return `# Builder Live Mutation: ${request.task.title}
+
+## Change Summary
+- preflight artifact: ${request.preflightArtifact.id}
+- approval id: ${request.approval?.id || 'missing'}
+- target file allowlist count: ${targetFiles.length}
+- prepared file updates: ${fileUpdates.length}
+- deliverable type: ${deliverable.deliverableType}
+- reviewer executed: no
+
+## Target Files
+${renderList(targetFiles, 'none')}
+
+## File Updates
+${renderBase64FileUpdates(fileUpdates)}
+
+## Risks
+${renderList(
+  normalizedResult.blockers.length > 0
+    ? normalizedResult.blockers
+    : [
+        'The written memo can imply stronger certainty than the evidence supports if assumptions are not visible.',
+        'The deliverable must stay inside the approved target-file boundary and not widen into implementation.',
+      ],
+  'none',
+)}
+
+## Verification Notes
+${renderList(
+  [
+    'Store the raw deliverable change summary plus generated patch and observed diff artifacts.',
+    'Do not run reviewer, commit, merge, or release steps from this mutation path.',
+    'Keep explicit assumptions, open questions, and next action inside the drafted deliverable.',
+  ],
+  'none',
+)}
+`;
+  }
+
   return `# Builder Live Mutation: ${request.task.title}
 
 ## Change Summary
@@ -634,28 +1285,31 @@ function getReviewerDirective(request) {
   const directiveText = [request.task?.intent, request.changeSummaryArtifact?.content]
     .filter(Boolean)
     .join('\n');
-  let verdict = 'pass';
+  let manualVerdict = 'pass';
 
   if (/review verdict:\s*fail|review fail/i.test(directiveText)) {
-    verdict = 'fail';
+    manualVerdict = 'fail';
   } else if (
     /review verdict:\s*changes_requested|review changes requested|request changes/i.test(
       directiveText,
     )
   ) {
-    verdict = 'changes_requested';
+    manualVerdict = 'changes_requested';
   }
 
+  const assessment = isKnowledgeWorkPack(request) ? getKnowledgeWorkReviewAssessment(request) : null;
+
   return {
+    assessment,
     blockingIssue: /blocking review issue/i.test(directiveText),
     decisionRequired: /review decision required/i.test(directiveText),
-    verdict,
+    verdict: mergeReviewerVerdicts(manualVerdict, assessment?.verdict),
   };
 }
 
 function buildNormalizedReviewerResult(request) {
   const directive = getReviewerDirective(request);
-  const blockers = [];
+  const blockers = directive.assessment ? [...directive.assessment.findings] : [];
   let nextStage = directive.verdict === 'pass' ? 'human gate' : 'builder';
 
   if (directive.decisionRequired) {
@@ -730,6 +1384,78 @@ function renderReviewerOutput(request) {
       : normalizedResult.nextStage === 'architect'
         ? ['Return to architect with the review artifact and builder bundle context.']
         : ['Return to builder with the review artifact and builder bundle context.'];
+
+  if (isKnowledgeWorkPack(request)) {
+    const assessment = directive.assessment || getKnowledgeWorkReviewAssessment(request);
+    const deliverable = assessment.deliverable;
+    const knowledgeFindings =
+      assessment.findings.length > 0
+        ? assessment.findings
+        : directive.verdict === 'pass'
+          ? [`The bounded ${deliverable.outputLabel} is reviewable and grounded enough for human handoff.`]
+          : directive.verdict === 'fail'
+            ? [`The ${deliverable.outputLabel} is not yet reliable enough to hand off as a decision aid.`]
+            : [`The ${deliverable.outputLabel} needs another revision before it can serve as a reliable decision or planning aid.`];
+    const knowledgeContractCompliance =
+      directive.verdict === 'pass'
+        ? [
+            'Review stayed anchored to the latest builder live mutation run bundle.',
+            'The deliverable remained inside the approved knowledge-work boundary.',
+            'Required knowledge-work rubric checks passed for section coverage, explicit next action, and provenance trace.',
+            'No commit, merge, release, or implementation action was treated as completed.',
+          ]
+        : [
+            'Review stayed anchored to the latest builder live mutation run bundle.',
+            'The deliverable remained inside the approved knowledge-work boundary.',
+            'Knowledge-work rubric findings blocked handoff until the missing structure or provenance issue is repaired.',
+            'No commit, merge, release, or implementation action was treated as completed.',
+          ];
+
+    return `# Reviewer Report: ${request.task.title}
+
+## Review Verdict
+- verdict: ${directive.verdict}
+- source builder run: ${request.builderRun.id}
+- preflight artifact: ${request.preflightArtifact.id}
+- change-summary artifact: ${request.changeSummaryArtifact.id}
+- patch artifact: ${request.patchArtifact.id}
+- diff artifact: ${request.diffArtifact.id}
+
+## Evidence Reviewed
+${renderList(evidenceReviewed, 'none')}
+
+## Findings
+${renderList(knowledgeFindings, 'none')}
+
+## Contract Compliance
+${renderList(
+  knowledgeContractCompliance,
+  'none',
+)}
+
+## Verification Evidence
+${renderList(
+  [
+    `changed files reviewed: ${changedFiles.length}`,
+    `approval linkage reviewed: ${request.approval?.id || 'missing'}`,
+    'audience, owner, assumptions, and next action were checked for explicitness',
+    `expected section set reviewed: ${deliverable.sections.join(', ')}`,
+    ...assessment.evidence,
+  ],
+  'none',
+)}
+
+## Accepted Risks
+- none
+
+## Next Action
+${renderList(nextAction, 'none')}
+
+## Follow-Up Gate
+- blocking issue: ${directive.blockingIssue ? 'yes' : 'no'}
+- decision required: ${directive.decisionRequired ? 'yes' : 'no'}
+`;
+  }
 
   return `# Reviewer Report: ${request.task.title}
 

@@ -79,6 +79,7 @@ async function main() {
 
     runtime.createProject({
       name: 'orchestration',
+      pack: 'knowledge-work',
       projectPath: repoRoot,
     });
 
@@ -91,12 +92,15 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.match(appJs, /안건 접수 \+ 진행 안건/);
     assert.match(appJs, /autoDraftCouncil: true/);
+    assert.match(appJs, /missionDeliverableType/);
+    assert.match(appJs, /의사결정 메모/);
     assert.match(appJs, /state\.surface = payload\.councilSession\?\.id \? 'council' : 'mission'/);
     assert.match(indexHtml, /data-surface="council"/);
 
     const missionPayload = await postJson('/api/missions', {
       autoDraftCouncil: true,
       constraints: 'Keep the handoff bounded and stop before execution auto chain.',
+      deliverableType: 'prd',
       goal: 'Verify mission creation can immediately produce a council session for the next visible step.',
       title: 'Mission autodraft smoke',
     });
@@ -108,9 +112,14 @@ async function main() {
     assert.ok(councilSession);
     assert.equal(missionPayload.snapshot.selectedMissionId, mission.id);
     assert.equal(missionPayload.snapshot.missions[mission.id].councilSessionId, councilSession.id);
+    assert.equal(missionPayload.snapshot.missions[mission.id].deliverableType, 'prd');
     assert.equal(missionPayload.snapshot.missions[mission.id].status, 'aligning');
     assert.equal(missionPayload.snapshot.councilSessions[councilSession.id].status, 'pending-alignment');
     assert.equal(missionPayload.snapshot.councilSessions[councilSession.id].alignment.status, 'pending');
+    assert.match(
+      missionPayload.snapshot.councilSessions[councilSession.id].recommendation,
+      /PRD/,
+    );
 
     console.log(
       JSON.stringify(
@@ -119,6 +128,7 @@ async function main() {
           runtimeRoot,
           mission: {
             id: mission.id,
+            deliverableType: missionPayload.snapshot.missions[mission.id].deliverableType,
             status: missionPayload.snapshot.missions[mission.id].status,
           },
           councilSession: {

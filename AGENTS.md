@@ -1,7 +1,7 @@
 # Orchestration 1.0 Repository Rules
 
 ## Purpose
-Build Orchestration 1.0 as a local-first, single-user-first, ops-first control plane.
+Build Orchestration 1.0 as a local-first, single-user-first, ops-first control plane for both development execution and bounded knowledge-work execution.
 
 ## Codex Operating Rules
 
@@ -32,7 +32,7 @@ Build Orchestration 1.0 as a local-first, single-user-first, ops-first control p
 ## Non-negotiable Rules
 - local-first, single-user-first, ops-first
 - source of truth for policy/contracts is repo files
-- v1 scope = development pack only
+- baseline remains development-first, but the repo now also supports an explicit `knowledge-work` pack for decision, planning, and document flows
 - do not introduce office-first UI, messenger-first, ranking, OAuth, or multi-provider-first
 - project_path is required before any execution
 - review before done
@@ -48,7 +48,7 @@ Build Orchestration 1.0 as a local-first, single-user-first, ops-first control p
 3. docs/01_decision-log.md
 4. docs/02_ia-v1.md
 5. docs/03_architecture-roadmap-v1.md
-6. packs/development/pack.md
+6. active pack document: `packs/development/pack.md` or `packs/knowledge-work/pack.md`
 7. tasks/todo.md
 8. tasks/lessons.md
 

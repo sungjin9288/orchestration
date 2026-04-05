@@ -31,7 +31,7 @@ assert.match(indexHtml, /data-surface="deliverables"/);
 assert.match(indexHtml, /고급 운영 모드/);
 assert.match(
   indexHtml,
-  /안건을 올리면 착석한 AI 참모진이 회의를 열고 목표와 방향을 정합니다\./,
+  /단일 운영자가 로컬 프로젝트를 다룰 때, 현재 프로젝트와 사람 게이트, 다음 실행 단위를 가장 먼저 읽게 만드는 warm control-plane shell입니다\./,
 );
 assert.match(decisionLog, /### DEC-043/);
 assert.match(decisionLog, /User-facing orchestration copy defaults to Korean on the primary shell\./);
