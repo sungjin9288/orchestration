@@ -13,8 +13,8 @@ const app = fs.readFileSync(appPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(app, /function renderCharterSignalStrip\(options = \{\}\)/);
-assert.match(app, /<strong>company signal<\/strong>/);
-assert.match(app, /home에서 본 회사 pulse가 여기선 현재 안건 heartbeat로 더 촘촘하게 이어집니다\./);
+assert.match(app, /<strong>회사 신호<\/strong>/);
+assert.match(app, /홈에서 본 회사 흐름이 여기선 현재 안건 흐름으로 더 촘촘하게 이어집니다\./);
 assert.match(app, /surface: 'mission'/);
 assert.match(app, /surface: 'council'/);
 assert.match(app, /surface: 'execution'/);
@@ -33,7 +33,7 @@ console.log(
     {
       ok: true,
       charterSignalStrip: {
-        heading: 'company signal',
+        heading: '회사 신호',
         lanes: ['mission', 'council', 'execution', 'deliverables', 'decision-inbox'],
       },
     },

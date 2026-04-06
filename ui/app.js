@@ -394,14 +394,14 @@ function getCompanySignalEntries(options = {}) {
       surface: 'mission',
       label: '안건',
       status: missionStatus,
-      copy: mission ? '현재 안건 판단이 회사 heartbeat의 첫 줄입니다.' : '첫 안건이 올라오면 회사 heartbeat가 여기서 시작됩니다.',
+      copy: mission ? '현재 안건 판단이 회사 흐름의 첫 줄입니다.' : '첫 안건이 올라오면 회사 흐름이 여기서 시작됩니다.',
       tone: missionTone,
     },
     {
       surface: 'council',
       label: '회의',
       status: councilStatus,
-      copy: councilSession ? '네 참모가 같은 안건 아래에서 방향을 맞춥니다.' : '참모 착석 전이라 회의 heartbeat가 아직 열리지 않았습니다.',
+      copy: councilSession ? '네 참모가 같은 안건 아래에서 방향을 맞춥니다.' : '참모 착석 전이라 회의 흐름이 아직 열리지 않았습니다.',
       tone: councilTone,
     },
     {
@@ -423,8 +423,8 @@ function getCompanySignalEntries(options = {}) {
       label: '게이트',
       status: gateStatus,
       copy: linkedTask?.flags?.waitingApproval || linkedTask?.flags?.waitingDecision
-        ? '사람 gate가 풀리면 heartbeat가 바로 다음 표면으로 이어집니다.'
-        : '열린 사람 gate가 없으면 같은 안건이 다음 줄로 자연스럽게 넘어갑니다.',
+        ? '사람 게이트가 풀리면 흐름이 바로 다음 표면으로 이어집니다.'
+        : '열린 사람 게이트가 없으면 같은 안건이 다음 줄로 자연스럽게 넘어갑니다.',
       tone: gateTone,
     },
   ];
@@ -439,13 +439,13 @@ function renderCharterSignalStrip(options = {}) {
   return `
     <section class="relation-strip charter-signal-strip">
       <div class="card-title-row card-title-row-tight">
-        <strong>company signal</strong>
+        <strong>회사 신호</strong>
         ${mission ? createToken(`안건:${mission.id}`, 'neutral') : createToken('안건:대기', 'warning')}
         ${councilSession ? createToken(`회의:${getCouncilStatusDisplay(councilSession.status)}`, getCouncilStatusTone(councilSession.status)) : createToken('회의:대기', 'warning')}
         ${linkedTask ? createToken(`실행:${linkedTask.id}`, 'accent') : createToken('실행:대기', 'warning')}
       </div>
       <p class="detail-copy detail-copy-compact charter-signal-intro">
-        home에서 본 회사 pulse가 여기선 현재 안건 heartbeat로 더 촘촘하게 이어집니다.
+        홈에서 본 회사 흐름이 여기선 현재 안건 흐름으로 더 촘촘하게 이어집니다.
       </p>
       <div class="charter-signal-grid">
         ${cards
@@ -8945,25 +8945,25 @@ function renderHomeCompanyPulseStrip(options) {
       title: selectedMission ? selectedMission.title : '안건 대기',
       copy: selectedMission
         ? `${missionStatus} 안건이 회의실과 작전실로 같은 경로를 이어 갑니다.`
-        : '첫 안건을 접수하면 회의실과 작전실 pulse가 같이 깨어납니다.',
-      foot: `Mission · ${missionStatus}`,
+        : '첫 안건을 접수하면 회의실과 작전실 흐름이 같이 깨어납니다.',
+      foot: `미션 · ${missionStatus}`,
       tone: missionTone,
     },
     {
       surface: 'council',
       kicker: '협의회',
-      role: '참모 heartbeat',
+      role: '참모 흐름',
       title: selectedCouncil?.selectedPlan?.title || '회의 대기',
       copy: selectedCouncil
         ? `${selectedCouncil.participants?.length || 0}명 참모가 ${councilAlignmentStatus} 상태로 방향을 맞춥니다.`
         : '안건을 올리면 네 참모가 바로 같은 안건 아래에 착석합니다.',
-      foot: `Council · ${councilPhase}`,
+      foot: `협의회 · ${councilPhase}`,
       tone: councilTone,
     },
     {
       surface: 'execution',
       kicker: '실행',
-      role: '작전 desk',
+      role: '작전 데스크',
       title: activeTask ? activeTask.title : '작전 대기',
       copy: !activeTask
         ? '회의 결론이 정리되면 첫 실행 셀이 회사 동선을 이어받습니다.'
@@ -8972,37 +8972,37 @@ function renderHomeCompanyPulseStrip(options) {
           : activeTask.flags?.waitingDecision
             ? '결정 처리 뒤에 현재 셀이 다시 다음 작전을 붙잡습니다.'
             : activeTask.flags?.blocked
-              ? '차단 사유가 풀려야 회사 heartbeat가 다시 앞으로 갑니다.'
+              ? '차단 사유가 풀려야 회사 흐름이 다시 앞으로 갑니다.'
               : `${executionStatus} 셀이 같은 안건의 다음 행동을 끌고 갑니다.`,
-      foot: `Execution · ${executionStatus}`,
+      foot: `실행 · ${executionStatus}`,
       tone: executionTone,
     },
     {
       surface: 'deliverables',
       kicker: '보고',
-      role: '보고 lane',
+      role: '보고 흐름',
       title: selectedArtifact ? `${getArtifactTypeDisplay(selectedArtifact.type)} 보고` : '보고 대기',
       copy: selectedArtifact
         ? `${selectedArtifact.id}가 현재 보고 묶음의 첫 기준으로 남아 있습니다.`
         : activeTask
           ? `리뷰 ${getReviewStatusDisplay(activeTask.review?.status || 'pending')}와 승인선이 현재 보고 리듬을 잡고 있습니다.`
-          : '실행 셀이 연결되면 close-out 묶음이 보고 lane으로 올라옵니다.',
-      foot: `Deliverables · ${deliverablesStatus}`,
+          : '실행 셀이 연결되면 종료 정리 묶음이 보고 흐름으로 올라옵니다.',
+      foot: `산출물 · ${deliverablesStatus}`,
       tone: deliverablesTone,
     },
     {
       surface: 'decision-inbox',
       kicker: '결재',
-      role: '사람 gate',
+      role: '사람 게이트',
       title: pendingGateCount > 0 ? `게이트 ${pendingGateCount}건` : '게이트 안정',
       copy: pendingGateCount > 0
         ? activeTask?.flags?.waitingApproval
           ? '승인선 처리 뒤에 후속 작전이 다시 열립니다.'
           : activeTask?.flags?.waitingDecision
             ? '결정 처리 뒤에 후속 작전이 다시 열립니다.'
-            : '결정함 처리 뒤에 다음 표면 handoff가 다시 이어집니다.'
+            : '결정함 처리 뒤에 다음 표면 인계선이 다시 이어집니다.'
         : '열린 사람 게이트가 없어 같은 안건이 바로 다음 단계로 이어집니다.',
-      foot: pendingGateCount > 0 ? `Decision Inbox · ${pendingGateCount}건 대기` : 'Decision Inbox · 정리됨',
+      foot: pendingGateCount > 0 ? `결정함 · ${pendingGateCount}건 대기` : '결정함 · 정리됨',
       tone: gateTone,
     },
   ];
@@ -9010,7 +9010,7 @@ function renderHomeCompanyPulseStrip(options) {
   return `
     <section class="relation-strip company-pulse-strip" data-surface="${escapeHtml(surface)}">
       <div class="card-title-row card-title-row-tight">
-        <strong>company pulse</strong>
+        <strong>회사 흐름</strong>
         ${createToken(`현재:${getSurfaceDisplayName(surface)}`, 'accent')}
         ${selectedMission ? createToken(`안건:${selectedMission.id}`, 'neutral') : createToken('안건:대기', 'warning')}
         ${
@@ -9020,7 +9020,7 @@ function renderHomeCompanyPulseStrip(options) {
         }
       </div>
       <p class="detail-copy detail-copy-compact company-pulse-intro">
-        같은 안건이 회의, 실행, 보고, 사람 게이트를 지나며 작은 회사 heartbeat처럼 이어집니다.
+        같은 안건이 회의, 실행, 보고, 사람 게이트를 지나며 작은 회사 흐름처럼 이어집니다.
       </p>
       <div class="company-pulse-grid">
         ${pulseCards
@@ -11011,9 +11011,9 @@ function renderCouncilHeartbeatStrip(mission, councilSession, linkedTask) {
       const heartbeatFoot = councilSession
         ? councilSession.alignment?.status === 'approved'
           ? linkedTask
-            ? '실행 heartbeat'
+            ? '실행 흐름'
             : '인계선 대기'
-          : '회의 heartbeat'
+          : '회의 흐름'
         : '착석 준비';
 
       return `
@@ -11034,7 +11034,7 @@ function renderCouncilHeartbeatStrip(mission, councilSession, linkedTask) {
   return `
     <section class="relation-strip council-heartbeat-strip">
       <div class="card-title-row card-title-row-tight">
-        <strong>참모 heartbeat</strong>
+        <strong>참모 흐름</strong>
         ${createToken(
           `회의:${councilSession ? getCouncilStatusDisplay(councilSession.status) : '대기'}`,
           councilSession ? getCouncilStatusTone(councilSession.status) : 'warning',
@@ -11046,7 +11046,7 @@ function renderCouncilHeartbeatStrip(mission, councilSession, linkedTask) {
         ${mission ? createToken(`안건:${mission.id}`, 'neutral') : ''}
       </div>
       <p class="detail-copy detail-copy-compact council-heartbeat-intro">
-        같은 네 참모가 안건 아래에서 계속 깨어 있고, 정렬과 인계 상태가 heartbeat로 이어집니다.
+        같은 네 참모가 안건 아래에서 계속 깨어 있고, 정렬과 인계 상태가 하나의 흐름으로 이어집니다.
       </p>
       <div class="council-heartbeat-signal-row">
         ${councilHeartbeatSignals
