@@ -2726,6 +2726,7 @@ function createRuntimeService(options = {}) {
     const now = new Date().toISOString();
     let writtenArtifactPaths = [];
     let artifactsByKey = {};
+    let successLogMessages = [];
 
     if (approval.taskId !== task.id) {
       throw new Error(`Approval ${approval.id} is not linked to task ${task.id}`);
@@ -2780,6 +2781,23 @@ function createRuntimeService(options = {}) {
           diff: artifactsByKey.diff?.id || null,
         },
       };
+      successLogMessages = [
+        `saved builder live mutation bundle ${artifactsByKey['change-summary']?.id || '(missing-change-summary)'}, ${artifactsByKey.patch?.id || '(missing-patch)'}, ${artifactsByKey.diff?.id || '(missing-diff)'}`,
+      ];
+
+      if ((input.summary?.changedFiles || []).length > 0) {
+        successLogMessages.unshift(
+          `applied limited live mutation to ${input.summary.changedFiles.join(', ')}`,
+        );
+      }
+
+      for (const message of successLogMessages) {
+        store.appendLogRecord(run.id, {
+          ts: now,
+          level: 'info',
+          message,
+        });
+      }
 
       task.updatedAt = now;
       store.saveState(state);
