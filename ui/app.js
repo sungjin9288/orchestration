@@ -3155,7 +3155,7 @@ function renderExecutionEvidenceRail(rail, options = {}) {
   const eyebrow = options.eyebrow || '증적 인계선';
   const heading = options.heading || '회의 역할과 실행 증적을 같은 선으로 묶습니다';
   const copy =
-    options.copy || '이 rail은 현재 task, run, artifact, readiness, review truth만 읽습니다.';
+    options.copy || '이 인계선은 현재 태스크, 실행 기록, 증적, 준비도, 리뷰 기준만 읽습니다.';
   const railClassName = `relation-strip evidence-rail${compact ? ' evidence-rail-compact' : ''}`;
 
   return `
