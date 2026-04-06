@@ -373,7 +373,7 @@ function renderMissionPreviewRail(renderExecutionEvidenceRail, rail) {
   return renderExecutionEvidenceRail(rail, {
     eyebrow: '역할 인계 미리보기',
     heading: '회의에서 실행으로 넘어갈 증적만 먼저 봅니다',
-    copy: 'Mission은 linked task의 artifact, run, readiness, review truth만 compact preview로 읽습니다.',
+    copy: 'Mission은 연결된 실행 셀의 아티팩트, run, 준비 상태, 리뷰 기준 사실만 작은 증적선으로 먼저 봅니다.',
     compact: true,
   });
 }

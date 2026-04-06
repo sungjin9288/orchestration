@@ -9496,7 +9496,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                   ${
                     activeProjectProviderSummary?.reasons?.length
                       ? escapeHtml(activeProjectProviderSummary.reasons[0])
-                      : '여기에는 비밀이 아닌 metadata만 저장합니다. live 모드는 model과 env가 유효할 때 planner, architect, task-breaker, builder preflight, builder live mutation, reviewer를 활성화하고, commit-package, local commit, release-package, close-out은 계속 명시적인 downstream local step으로 남깁니다.'
+                      : '여기에는 비밀이 아닌 설정 정보만 저장합니다. live 모드는 model과 env가 유효할 때 기획 셀, 설계 셀, 분해 셀, 사전 점검, 라이브 변경, 리뷰 검토를 활성화하고, 커밋 패키지, 로컬 커밋, 릴리스 패키지, 종료 정리는 계속 명시적인 로컬 후속 단계로 남깁니다.'
                   }
                 </p>
               </div>
@@ -9614,7 +9614,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
               missionMode
                 ? `${PACK_HELP_COPY[createProjectPack]} 미션 진입은 항상 local-stub 기본값으로 시작합니다. 프로바이더와 연결 워크트리 제어는 고급 운영 모드에 남습니다.`
                 : createProjectProviderMode === 'live'
-                ? `${PACK_HELP_COPY[createProjectPack]} live 모드는 비밀이 아닌 opt-in metadata만 저장합니다. model과 env가 유효할 때 planner, architect, task-breaker, builder preflight, builder live mutation, reviewer가 live로 실행되고, commit-package, local commit, release-package, close-out은 계속 명시적인 local follow-up으로 남습니다.`
+                ? `${PACK_HELP_COPY[createProjectPack]} live 모드는 비밀이 아닌 설정 정보만 저장합니다. model과 env가 유효할 때 기획 셀, 설계 셀, 분해 셀, 사전 점검, 라이브 변경, 리뷰 검토가 live로 실행되고, 커밋 패키지, 로컬 커밋, 릴리스 패키지, 종료 정리는 계속 명시적인 로컬 후속 단계로 남습니다.`
                 : `${PACK_HELP_COPY[createProjectPack]} 프로젝트를 등록하고 local-stub를 기본 실행 프로바이더로 유지한 채 해당 프로젝트를 활성 상태로 만듭니다.`
             }
           </p>
@@ -9696,7 +9696,7 @@ function renderMission(data) {
   const missionEvidenceRail = renderExecutionEvidenceRail(getExecutionEvidenceRail(linkedTask, data), {
     eyebrow: '역할 인계 미리보기',
     heading: '회의에서 실행으로 넘어갈 증적만 먼저 봅니다',
-    copy: 'Mission은 linked task의 artifact, run, readiness, review truth만 compact preview로 읽습니다.',
+    copy: 'Mission은 연결된 실행 셀의 아티팩트, run, 준비 상태, 리뷰 기준 사실만 작은 증적선으로 먼저 봅니다.',
     compact: true,
   });
   const missionNextSurface = selectedMissionNextActionPreview.surface || 'mission';
