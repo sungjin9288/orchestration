@@ -10836,7 +10836,6 @@ function renderCouncil(data) {
                 eyebrow: '회의 판단판',
                 heading: '회의 결론과 다음 이동만 먼저 봅니다',
                 copy: '오른쪽 패널은 긴 회의록 대신 현재 결론과 다음 표면만 먼저 보여 줍니다.',
-                entryFrame: true,
                 tokens: [
                   createToken(selectedCouncilSession.id, 'neutral'),
                   createToken(
