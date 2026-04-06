@@ -49,7 +49,7 @@ const SURFACE_DOCK_METADATA = {
     kicker: '작전',
   },
   logs: {
-    copy: '현재 run과 다음 확인을 빠르게 훑습니다.',
+    copy: '현재 실행 기록과 다음 확인을 빠르게 훑습니다.',
     kicker: '실행기록',
   },
   mission: {
@@ -4064,10 +4064,10 @@ function getInboxListSnapshot(item, task, approval, evidenceRail = null) {
 }
 
 function getLogsDetailSnapshot(selectedRun, selectedTask, runBundle, logs = []) {
-  const currentTitle = selectedRun ? `${getRunStatusDisplay(selectedRun.status)} run` : 'run 선택 대기';
+  const currentTitle = selectedRun ? `${getRunStatusDisplay(selectedRun.status)} 실행 기록` : '기록 선택 대기';
   const currentCopy = selectedRun
     ? `${formatDate(selectedRun.startedAt)} 기준으로 기록된 실행 보고입니다.`
-    : '왼쪽 목록에서 run을 고르면 현재 실행 상태를 먼저 판단할 수 있습니다.';
+    : '왼쪽 목록에서 실행 기록을 고르면 현재 실행 상태를 먼저 판단할 수 있습니다.';
 
   let reasonTitle = selectedTask ? selectedTask.title : '실행 셀 맥락 대기';
   let reasonCopy = selectedTask
@@ -4075,17 +4075,17 @@ function getLogsDetailSnapshot(selectedRun, selectedTask, runBundle, logs = []) 
     : '아직 연결된 실행 셀 맥락이 보이지 않습니다.';
 
   if (selectedTask?.flags?.waitingApproval) {
-    reasonCopy = '사람 승인선을 기다리는 실행 셀과 연결된 run입니다.';
+    reasonCopy = '사람 승인선을 기다리는 실행 셀과 연결된 실행 기록입니다.';
   } else if (selectedTask?.flags?.waitingDecision) {
-    reasonCopy = '결정함 처리 결과를 기다리는 실행 셀과 연결된 run입니다.';
+    reasonCopy = '결정함 처리 결과를 기다리는 실행 셀과 연결된 실행 기록입니다.';
   } else if (selectedTask?.flags?.blocked) {
-    reasonCopy = '차단 사유를 먼저 해소해야 하는 실행 셀과 연결된 run입니다.';
+    reasonCopy = '차단 사유를 먼저 해소해야 하는 실행 셀과 연결된 실행 기록입니다.';
   }
 
-  const nextTitle = selectedRun ? '연결선과 원문 확인' : 'run 먼저 고르기';
+  const nextTitle = selectedRun ? '연결선과 원문 확인' : '기록 먼저 고르기';
   const nextCopy = selectedRun
     ? `${runBundle ? '보고 연결선과 ' : ''}${logs.length > 0 ? `${logs.length}줄 실행 원문` : '원문 로그 없음'}을 아래에서 바로 확인합니다.`
-    : 'run을 고르면 기록 시각, 연결선, 원문 로그가 아래에 열립니다.';
+    : '실행 기록을 고르면 기록 시각, 연결선, 원문 로그가 아래에 열립니다.';
 
   return {
     currentTitle,
@@ -9174,8 +9174,8 @@ function renderSurfaceFocusStrip(data) {
       title: `${getExecutionRoleDisplay(selectedRun.role)} · ${selectedRun.id}`,
       copy:
         selectedRun.summary?.nextStage
-          ? `현재 run은 ${getRunStatusDisplay(selectedRun.status)}이고 다음 확인은 ${getExecutionStageDisplay(selectedRun.summary.nextStage)}입니다.`
-          : '선택된 run의 현재 상태와 다음 확인이 아래에 이어집니다.',
+          ? `현재 실행 기록은 ${getRunStatusDisplay(selectedRun.status)}이고 다음 확인은 ${getExecutionStageDisplay(selectedRun.summary.nextStage)}입니다.`
+          : '선택된 실행 기록의 현재 상태와 다음 확인이 아래에 이어집니다.',
       tokens: [
         createToken(`상태:${getRunStatusDisplay(selectedRun.status)}`, getRunTone(selectedRun.status)),
         activeTask ? createToken(`셀:${activeTask.id}`, 'neutral') : '',
@@ -9259,8 +9259,8 @@ function renderSurfaceFocusStrip(data) {
   } else if (selectedRun) {
     checkCard = {
       label: '지금 체크',
-      title: `run ${getRunStatusDisplay(selectedRun.status)}`,
-      copy: '원문 로그보다 먼저 현재 run과 다음 확인 토큰을 읽으면 판단 속도가 훨씬 빨라집니다.',
+      title: `실행 기록 ${getRunStatusDisplay(selectedRun.status)}`,
+      copy: '원문 로그보다 먼저 현재 실행 기록과 다음 확인 토큰을 읽으면 판단 속도가 훨씬 빨라집니다.',
       tokens: [createToken(`run:${selectedRun.id}`, getRunTone(selectedRun.status))],
     };
   } else if (selectedMission) {
@@ -13500,7 +13500,7 @@ function renderLogs(data) {
   const logsImmediateCard = selectedTaskApprovals.length > 0
     ? {
         title: `결재함에서 승인 ${selectedTaskApprovals.length}건 처리`,
-        copy: '현재 run보다 먼저 사람이 승인해야 할 게이트가 있어 지금은 결재함을 먼저 여는 편이 빠릅니다.',
+        copy: '현재 실행 기록보다 먼저 사람이 승인해야 할 게이트가 있어 지금은 결재함을 먼저 여는 편이 빠릅니다.',
         button: {
           action: 'open-surface',
           label: '결재함 열기',
@@ -13511,7 +13511,7 @@ function renderLogs(data) {
     : selectedTaskInboxItems.length > 0
       ? {
           title: `결재함에서 확인 ${selectedTaskInboxItems.length}건 처리`,
-          copy: '현재 run보다 먼저 사람이 정리해야 할 결정이 남아 있어 결재함으로 먼저 이동하는 편이 빠릅니다.',
+          copy: '현재 실행 기록보다 먼저 사람이 정리해야 할 결정이 남아 있어 결재함으로 먼저 이동하는 편이 빠릅니다.',
           button: {
             action: 'open-surface',
             label: '결재함 열기',
@@ -13522,7 +13522,7 @@ function renderLogs(data) {
       : selectedTask
         ? {
             title: `${selectedTask.title} 열기`,
-            copy: '현재 run이 걸린 실행 셀로 돌아가면 승인선과 다음 액션을 바로 이어서 볼 수 있습니다.',
+            copy: '현재 실행 기록이 연결된 실행 셀로 돌아가면 승인선과 다음 액션을 바로 이어서 볼 수 있습니다.',
             button: {
               action: 'open-taskboard-task',
               id: selectedTask.id,
@@ -13533,42 +13533,36 @@ function renderLogs(data) {
       : selectedRun
         ? {
             title: `${selectedRun.id} 원문 보기`,
-            copy: '지금은 오른쪽 상세에서 이 run의 상태와 원문 로그를 먼저 읽으면 됩니다.',
-            button: null,
-          }
-      : selectedRun
-        ? {
-            title: `${selectedRun.id} 원문 보기`,
-            copy: '지금은 오른쪽 상세에서 이 run의 상태와 원문 로그를 먼저 읽으면 됩니다.',
+            copy: '지금은 오른쪽 상세에서 이 실행 기록의 상태와 원문 로그를 먼저 읽으면 됩니다.',
             button: null,
           }
         : {
-            title: 'run 하나 고르기',
-            copy: '왼쪽 run 목록에서 한 건을 고르면 오른쪽 판단과 원문 로그가 바로 채워집니다.',
+            title: '실행 기록 하나 고르기',
+            copy: '왼쪽 실행 기록 목록에서 한 건을 고르면 오른쪽 판단과 원문 로그가 바로 채워집니다.',
             button: null,
           };
   const logsViewportStrip = renderViewportHandoffStrip({
     eyebrow: '로그 인계선',
-    heading: '로그실 아래는 run 목록과 현재 run으로 나눕니다',
+    heading: '로그실 아래는 실행 기록 목록과 현재 실행 기록으로 나눕니다',
     copy:
-      '왼쪽은 run 목록을 보고, 오른쪽은 선택된 run의 현재 상태와 다음 확인만 먼저 봅니다.',
+      '왼쪽은 실행 기록 목록을 보고, 오른쪽은 선택된 실행 기록의 현재 상태와 다음 확인만 먼저 봅니다.',
     tokens: [
       selectedMission ? createToken(`안건:${selectedMission.id}`, 'neutral') : '',
       selectedTask ? createToken(`실행셀:${selectedTask.id}`, 'accent') : createToken('실행셀:대기', 'warning'),
-      createToken(`바로:${selectedTask ? '영향 셀' : selectedRun ? '현재 run' : 'run 선택'}`, selectedTask ? 'accent' : 'neutral'),
+      createToken(`바로:${selectedTask ? '영향 셀' : selectedRun ? '현재 실행 기록' : '기록 선택'}`, selectedTask ? 'accent' : 'neutral'),
     ].filter(Boolean),
     cards: [
       {
         label: '왼쪽 목록',
-        title: 'run 목록 + 현재 상태',
-        copy: '왼쪽에서 run을 고르고, 상태와 다음 확인만 짧게 비교합니다.',
+        title: '실행 기록 목록 + 현재 상태',
+        copy: '왼쪽에서 실행 기록을 고르고, 상태와 다음 확인만 짧게 비교합니다.',
       },
       {
         label: '오른쪽 판단',
-        title: selectedRun ? '현재 run + 원문 확인' : '선택 run 대기',
+        title: selectedRun ? '현재 실행 기록 + 원문 확인' : '선택 기록 대기',
         copy: selectedRun
-          ? '오른쪽 상세에서 현재 run, 다음 확인, 연결선, 원문 로그를 순서대로 확인합니다.'
-          : 'run을 하나 고르면 오른쪽 판단과 원문 로그가 함께 열립니다.',
+          ? '오른쪽 상세에서 현재 실행 기록, 다음 확인, 연결선, 원문 로그를 순서대로 확인합니다.'
+          : '실행 기록을 하나 고르면 오른쪽 판단과 원문 로그가 함께 열립니다.',
       },
       {
         label: '지금 열기',
@@ -13613,15 +13607,15 @@ function renderLogs(data) {
         .join('')
     : `
       <div class="empty-state">
-        <strong>아직 run 없음</strong>
+        <strong>아직 실행 기록 없음</strong>
         <p>로그를 보기 전에 태스크 실행을 시작합니다.</p>
       </div>
     `;
 
   const logsDeck = renderOpsCenterDeck({
     entryFrame: true,
-    heading: '선택된 run만 세 칸으로 요약하는 로그실',
-    copy: '아래 deck은 현재 run과 다음 확인만 먼저 요약하고, 원문 확인은 오른쪽 상세로 넘깁니다.',
+    heading: '선택된 실행 기록만 세 칸으로 요약하는 로그실',
+    copy: '아래 deck은 현재 실행 기록과 다음 확인만 먼저 요약하고, 원문 확인은 오른쪽 상세로 넘깁니다.',
     tokens: [
       selectedMission ? createToken(`안건:${selectedMission.id}`, 'neutral') : '',
       selectedTask ? createToken(`실행셀:${selectedTask.id}`, 'accent') : createToken('실행셀:대기', 'warning'),
@@ -13630,18 +13624,18 @@ function renderLogs(data) {
     signalRow: logsOpsEntrySignalRow,
     cards: [
       {
-        label: '현재 run',
-        title: selectedRun ? selectedRun.id : 'run 선택 대기',
+        label: '현재 실행 기록',
+        title: selectedRun ? selectedRun.id : '기록 선택 대기',
         copy: selectedRun
           ? logsDetailSnapshot.currentCopy
-          : '왼쪽 목록에서 run을 고르면 현재 run 판단이 바로 채워집니다.',
+          : '왼쪽 목록에서 실행 기록을 고르면 현재 실행 기록 판단이 바로 채워집니다.',
       },
       {
         label: '다음 확인',
-        title: selectedRun ? logsDetailSnapshot.nextTitle : 'run 하나 고르기',
+        title: selectedRun ? logsDetailSnapshot.nextTitle : '실행 기록 하나 고르기',
         copy: selectedRun
           ? logsDetailSnapshot.nextCopy
-          : '왼쪽 목록에서 run을 하나 고르면 오른쪽 판단과 원문 로그가 함께 열립니다.',
+          : '왼쪽 목록에서 실행 기록을 하나 고르면 오른쪽 판단과 원문 로그가 함께 열립니다.',
       },
       {
         label: '현재 맥락',
@@ -13663,13 +13657,13 @@ function renderLogs(data) {
       </section>
       <aside class="detail-card">
         <div>
-          <p class="eyebrow">run 기록</p>
-          <h2>${escapeHtml(selectedRun?.id || '선택된 run 없음')}</h2>
+          <p class="eyebrow">실행 기록</p>
+          <h2>${escapeHtml(selectedRun?.id || '선택된 실행 기록 없음')}</h2>
         </div>
         ${renderNarrativeDeck({
           eyebrow: '관제실 판단 요약',
-          heading: '현재 run과 다음 확인을 먼저 보는 로그 상세',
-          copy: selectedTask?.title || 'run을 고르면 현재 run과 다음 확인만 먼저 판단합니다.',
+          heading: '현재 실행 기록과 다음 확인을 먼저 보는 로그 상세',
+          copy: selectedTask?.title || '실행 기록을 고르면 현재 실행 기록과 다음 확인만 먼저 판단합니다.',
           tokens: [
             createToken(
               `현재:${logsDetailEvidenceState.currentOwnerLabel}`,
@@ -13731,8 +13725,8 @@ function renderLogs(data) {
                 ${
                   runBundle
                     ? renderRelationStrip(runBundle) ||
-                      '<p class="detail-copy">이 run에 직접 연결된 아티팩트 기록이 없습니다.</p>'
-                    : '<p class="detail-copy">이 run에 직접 연결된 아티팩트 기록이 없습니다.</p>'
+                      '<p class="detail-copy">이 실행 기록에 직접 연결된 아티팩트 기록이 없습니다.</p>'
+                    : '<p class="detail-copy">이 실행 기록에 직접 연결된 아티팩트 기록이 없습니다.</p>'
                 }
               </div>
               <div class="detail-block">
@@ -13742,8 +13736,8 @@ function renderLogs(data) {
             `
             : `
               <div class="empty-state">
-                <strong>선택된 run 없음</strong>
-                <p>왼쪽 목록에서 run을 골라 출력 내용을 확인합니다.</p>
+                <strong>선택된 실행 기록 없음</strong>
+                <p>왼쪽 목록에서 실행 기록을 골라 출력 내용을 확인합니다.</p>
               </div>
             `
         }

@@ -14,11 +14,11 @@ assert.equal(fs.existsSync(executionGateStatePath), true, 'runtime-ui-slice-20 s
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'utf8'));
 
-assert.match(appJs, /copy: '아래 deck은 현재 run과 다음 확인만 먼저 요약하고, 원문 확인은 오른쪽 상세로 넘깁니다\.'/);
-assert.match(appJs, /label: '현재 run'/);
+assert.match(appJs, /copy: '아래 deck은 현재 실행 기록과 다음 확인만 먼저 요약하고, 원문 확인은 오른쪽 상세로 넘깁니다\.'/);
+assert.match(appJs, /label: '현재 실행 기록'/);
 assert.match(appJs, /label: '다음 확인'/);
-assert.match(appJs, /title: selectedRun \? selectedRun\.id : 'run 선택 대기'/);
-assert.match(appJs, /title: selectedRun \? logsDetailSnapshot\.nextTitle : 'run 하나 고르기'/);
+assert.match(appJs, /title: selectedRun \? selectedRun\.id : '기록 선택 대기'/);
+assert.match(appJs, /title: selectedRun \? logsDetailSnapshot\.nextTitle : '실행 기록 하나 고르기'/);
 assert.match(appJs, /copy: selectedRun\s*\?\s*logsDetailSnapshot\.nextCopy/);
 assert.match(appJs, /\$\{logsViewportStrip\}\s*\n\s*\$\{logsDeck\}/);
 
@@ -40,7 +40,7 @@ console.log(
       ok: true,
       logsDeckDensity: {
         stripFirst: true,
-        deckCards: ['현재 run', '다음 확인', '현재 맥락'],
+        deckCards: ['현재 실행 기록', '다음 확인', '현재 맥락'],
         missionStatus: mission.status,
         runId: latestRun.id,
         waitingApproval: task.flags.waitingApproval,
