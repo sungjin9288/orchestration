@@ -375,7 +375,7 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(appJs, /커밋 지시 승인/);
-    assert.match(appJs, /기존 pending commit 승인 기록을 그대로 처리합니다\./);
+    assert.match(appJs, /기존 대기 중인 커밋 승인 기록을 그대로 처리합니다\./);
     assert.match(appJs, /이후 후속 단계는 계속 관제실에 남습니다\./);
 
     const approvePayload = await postJson(

@@ -25,7 +25,7 @@ assert.match(
 );
 assert.match(
   app,
-  /renderPreselectedPendingItemHint\(preselectedPendingItem, preselectedApproval, \{\s*signalRow: artifactsOpsEntrySignalRow,\s*helpText:\s*'승인 액션은 아티팩트 표면에 남고 서버 스냅샷을 그대로 따릅니다\. push, publish, external release는 계속 비활성 상태입니다\.',/s,
+  /renderPreselectedPendingItemHint\(preselectedPendingItem, preselectedApproval, \{\s*signalRow: artifactsOpsEntrySignalRow,\s*helpText:\s*'승인 액션은 아티팩트 표면에 남고 서버 스냅샷을 그대로 따릅니다\. 푸시, 게시, 외부 릴리스는 계속 비활성 상태입니다\.',/s,
 );
 
 assert.match(styles, /\.breakdown-inbox-signal-row \{/);

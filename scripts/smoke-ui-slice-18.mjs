@@ -91,7 +91,7 @@ async function main() {
     assert.match(appJs, /미션 시작/);
     assert.match(
       appJs,
-      /미션 진입은 항상 local-stub 기본값으로 시작합니다\. 프로바이더와 연결 워크트리 제어는 고급 운영 모드에 남습니다\./,
+      /미션 진입은 항상 로컬 스텁\(local-stub\) 기본값으로 시작합니다\. 프로바이더와 연결 워크트리 제어는 고급 운영 모드에 남습니다\./,
     );
     assert.match(appJs, /위에서 프로젝트를 고른 뒤 첫 미션을 만드세요\./);
 

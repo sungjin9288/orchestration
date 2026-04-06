@@ -1726,7 +1726,7 @@ function getGuardReasonDisplay(reason) {
     'latest plan artifact required': '최신 계획 아티팩트가 필요합니다.',
     'latest architecture artifact required': '최신 설계 아티팩트가 필요합니다.',
     'latest breakdown artifact required': '최신 분해 아티팩트가 필요합니다.',
-    'latest preflight artifact required': '최신 preflight 아티팩트가 필요합니다.',
+    'latest preflight artifact required': '최신 프리플라이트 아티팩트가 필요합니다.',
   };
 
   if (directMap[normalizedReason]) {
@@ -1882,7 +1882,7 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
 
   if (!task.worktreeRef) {
     return {
-      copy: 'task.worktreeRef가 아직 설정되지 않았습니다.',
+      copy: '저장된 워크트리 경로가 아직 설정되지 않았습니다.',
       label: '워크트리:미설정',
       status: 'not-set',
       switchOption: null,
@@ -1892,7 +1892,7 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
 
   if (matchedOption?.isCurrentProjectPath) {
     return {
-      copy: 'task.worktreeRef가 현재 project_path와 일치합니다.',
+      copy: '저장된 워크트리 경로가 현재 프로젝트 경로와 일치합니다.',
       label: '워크트리:현재프로젝트일치',
       status: 'matches-active-project',
       switchOption: null,
@@ -1902,7 +1902,7 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
 
   if (matchedOption) {
     return {
-      copy: `task.worktreeRef는 ${formatWorktreeOptionLabel(matchedOption)}를 가리키지만 현재 project_path는 ${activeProjectLinkedWorktrees.projectPath || '미설정'}로 남아 있습니다.`,
+      copy: `저장된 워크트리 경로는 ${formatWorktreeOptionLabel(matchedOption)}를 가리키지만 현재 프로젝트 경로는 ${activeProjectLinkedWorktrees.projectPath || '미설정'}로 남아 있습니다.`,
       label: '워크트리:불일치',
       status: 'mismatch',
       switchOption: matchedOption,
@@ -1912,7 +1912,7 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
 
   if (activeProjectLinkedWorktrees.notice) {
     return {
-      copy: `현재 project_path에서는 연결 워크트리 탐지를 사용할 수 없습니다. 저장된 task.worktreeRef는 ${task.worktreeRef}입니다.`,
+      copy: `현재 프로젝트 경로에서는 연결 워크트리 탐지를 사용할 수 없습니다. 저장된 워크트리 경로는 ${task.worktreeRef}입니다.`,
       label: '워크트리:탐지불가',
       status: 'unavailable',
       switchOption: null,
@@ -1921,7 +1921,7 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
   }
 
   return {
-    copy: '저장된 task.worktreeRef가 현재 탐지된 연결 워크트리 목록 밖에 있습니다.',
+    copy: '저장된 워크트리 경로가 현재 탐지된 연결 워크트리 목록 밖에 있습니다.',
     label: '워크트리:탐지목록밖',
     status: 'outside-detected-list',
     switchOption: null,
@@ -2154,7 +2154,7 @@ function getTaskApprovalBridge(task, data) {
     ) {
       return {
         actionLabel,
-        bridgeCopy: `협의회 승인으로 이 미션은 이미 preflight까지 진행됐습니다. 현재 사람 게이트는 ${currentApproval.id}이며, ${targetLabel} 기준 라이브 변경을 승인합니다.`,
+        bridgeCopy: `협의회 승인으로 이 미션은 이미 프리플라이트까지 진행됐습니다. 현재 사람 게이트는 ${currentApproval.id}이며, ${targetLabel} 기준 라이브 변경을 승인합니다.`,
         currentApproval,
         currentGateItem,
         nextStepCopy: pendingInboxItem
@@ -2835,7 +2835,7 @@ function getExecutionEvidenceRail(task, data) {
       buildWaitingCheckpoint('Strategist', 'plan', '연결된 실행 셀이 아직 없습니다.'),
       buildWaitingCheckpoint('Architect', 'architecture', '연결된 실행 셀이 아직 없습니다.'),
       buildWaitingCheckpoint('Decomposer', 'breakdown', '연결된 실행 셀이 아직 없습니다.'),
-      buildWaitingCheckpoint('Maker', 'preflight / builder', '연결된 실행 셀이 아직 없습니다.'),
+      buildWaitingCheckpoint('Maker', '프리플라이트 / 빌더', '연결된 실행 셀이 아직 없습니다.'),
       buildWaitingCheckpoint('Critic', 'review', '연결된 실행 셀이 아직 없습니다.'),
     ];
 
@@ -2911,7 +2911,7 @@ function getExecutionEvidenceRail(task, data) {
         subtitle: 'plan',
         status: 'complete',
         artifactId: latestPlanArtifact.id,
-        evidenceLabel: `plan ${latestPlanArtifact.id}`,
+        evidenceLabel: `계획 ${latestPlanArtifact.id}`,
         evidenceMeta: latestPlan.meta,
         note: `다음 인계: ${getEvidenceRailHandoffDisplay('Architect')}`,
         nextHandoffLabel: getEvidenceRailHandoffDisplay('Architect'),
@@ -2922,7 +2922,7 @@ function getExecutionEvidenceRail(task, data) {
         title: 'Strategist',
         subtitle: 'plan',
         status: strategistReason ? 'blocked' : 'current',
-        evidenceLabel: 'plan 대기',
+        evidenceLabel: '계획 대기',
         blockedReason: strategistReason ? getGuardReasonDisplay(strategistReason) : null,
         note: `다음 인계: ${getEvidenceRailHandoffDisplay('Architect')}`,
         nextHandoffLabel: getEvidenceRailHandoffDisplay('Architect'),
@@ -2937,20 +2937,20 @@ function getExecutionEvidenceRail(task, data) {
         subtitle: 'architecture',
         status: 'complete',
         artifactId: latestArchitectureArtifact.id,
-        evidenceLabel: `architecture ${latestArchitectureArtifact.id}`,
+        evidenceLabel: `설계 ${latestArchitectureArtifact.id}`,
         evidenceMeta: latestArchitecture.meta,
         note: `다음 인계: ${getEvidenceRailHandoffDisplay('Decomposer')}`,
         nextHandoffLabel: getEvidenceRailHandoffDisplay('Decomposer'),
         nextRoleId: 'Decomposer',
       })
     : !latestPlanArtifact
-      ? buildWaitingCheckpoint('Architect', 'architecture', 'plan artifact가 아직 없습니다.')
+      ? buildWaitingCheckpoint('Architect', 'architecture', '계획 아티팩트가 아직 없습니다.')
       : buildCheckpoint({
           roleId: 'Architect',
           title: 'Architect',
           subtitle: 'architecture',
           status: architectReason ? 'blocked' : 'current',
-          evidenceLabel: 'architecture 대기',
+          evidenceLabel: '설계 대기',
           blockedReason: architectReason ? getGuardReasonDisplay(architectReason) : null,
           note: `다음 인계: ${getEvidenceRailHandoffDisplay('Decomposer')}`,
           nextHandoffLabel: getEvidenceRailHandoffDisplay('Decomposer'),
@@ -2972,7 +2972,7 @@ function getExecutionEvidenceRail(task, data) {
         nextRoleId: 'Maker',
       })
     : !latestArchitectureArtifact
-      ? buildWaitingCheckpoint('Decomposer', 'breakdown', 'architecture artifact가 아직 없습니다.')
+      ? buildWaitingCheckpoint('Decomposer', 'breakdown', '설계 아티팩트가 아직 없습니다.')
       : buildCheckpoint({
           roleId: 'Decomposer',
           title: 'Decomposer',
@@ -3021,10 +3021,10 @@ function getExecutionEvidenceRail(task, data) {
     makerCheckpoint = buildCheckpoint({
       roleId: 'Maker',
       title: 'Maker',
-      subtitle: 'preflight / builder',
+      subtitle: '프리플라이트 / 빌더',
       status: 'complete',
       artifactId: latestPreflightArtifact?.id || null,
-      evidenceLabel: latestPreflightArtifact ? `preflight ${latestPreflightArtifact.id}` : 'preflight 없음',
+      evidenceLabel: latestPreflightArtifact ? `프리플라이트 ${latestPreflightArtifact.id}` : '프리플라이트 없음',
       evidenceMeta: makerEvidenceMeta || null,
       note: `다음 인계: ${getEvidenceRailHandoffDisplay('Critic')}`,
       nextHandoffLabel: getEvidenceRailHandoffDisplay('Critic'),
@@ -3052,10 +3052,10 @@ function getExecutionEvidenceRail(task, data) {
     makerCheckpoint = buildCheckpoint({
       roleId: 'Maker',
       title: 'Maker',
-      subtitle: 'preflight / builder',
+      subtitle: '프리플라이트 / 빌더',
       status,
       artifactId: latestPreflightArtifact.id,
-      evidenceLabel: `preflight ${latestPreflightArtifact.id}`,
+      evidenceLabel: `프리플라이트 ${latestPreflightArtifact.id}`,
       evidenceMeta: makerEvidenceMeta || null,
       blockedReason: status === 'blocked' ? getGuardReasonDisplay(blockedReason) : null,
       note: `다음 인계: ${nextHandoffLabel}`,
@@ -3066,9 +3066,9 @@ function getExecutionEvidenceRail(task, data) {
     makerCheckpoint = buildCheckpoint({
       roleId: 'Maker',
       title: 'Maker',
-      subtitle: 'preflight / builder',
+      subtitle: '프리플라이트 / 빌더',
       status: blockedReason ? 'blocked' : 'current',
-      evidenceLabel: 'preflight 대기',
+      evidenceLabel: '프리플라이트 대기',
       blockedReason: blockedReason ? getGuardReasonDisplay(blockedReason) : null,
       note: `다음 인계: ${getEvidenceRailHandoffDisplay('builder-live-mutation approval')}`,
       nextHandoffLabel: getEvidenceRailHandoffDisplay('builder-live-mutation approval'),
@@ -3110,7 +3110,7 @@ function getExecutionEvidenceRail(task, data) {
           note: `다음 인계: ${getEvidenceRailHandoffDisplay('human gate')}`,
           nextHandoffLabel: getEvidenceRailHandoffDisplay('human gate'),
         })
-      : buildWaitingCheckpoint('Critic', 'review', 'builder live-mutation 증적이 아직 없습니다.');
+      : buildWaitingCheckpoint('Critic', 'review', '빌더 라이브 변경 증적이 아직 없습니다.');
 
   const checkpoints = [
     strategistCheckpoint,
@@ -5170,7 +5170,7 @@ function renderStructuredCommitPackage(parsed) {
           parsed.builderLiveMutationApprovalId
             ? `빌더 라이브 변경 승인: ${parsed.builderLiveMutationApprovalId}`
             : null,
-          parsed.preflightArtifactId ? `대상 preflight 아티팩트: ${parsed.preflightArtifactId}` : null,
+          parsed.preflightArtifactId ? `대상 프리플라이트 아티팩트: ${parsed.preflightArtifactId}` : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
@@ -5295,7 +5295,7 @@ function renderStructuredCommitResult(parsed) {
             ? `소스 빌더 승인: ${parsed.sourceBuilderApprovalId}`
             : null,
           parsed.preflightArtifactId
-            ? `대상 preflight 아티팩트: ${parsed.preflightArtifactId}`
+            ? `대상 프리플라이트 아티팩트: ${parsed.preflightArtifactId}`
             : null,
         ].filter(Boolean),
       )}
@@ -5312,31 +5312,31 @@ function renderStructuredCommitResult(parsed) {
         [
           parsed.scopeFileCount !== null ? `범위 파일 수: ${parsed.scopeFileCount}` : null,
           parsed.repoChangedFileCountBeforeCommit !== null
-            ? `커밋 전 repo 변경 파일 수: ${parsed.repoChangedFileCountBeforeCommit}`
+            ? `커밋 전 저장소 변경 파일 수: ${parsed.repoChangedFileCountBeforeCommit}`
             : null,
           parsed.dirtyFileCountBeforeCommit !== null
-            ? `커밋 전 dirty 파일 수: ${parsed.dirtyFileCountBeforeCommit}`
+            ? `커밋 전 수정 파일 수: ${parsed.dirtyFileCountBeforeCommit}`
             : null,
           parsed.stagedFileCountBeforeCommit !== null
-            ? `커밋 전 staged 파일 수: ${parsed.stagedFileCountBeforeCommit}`
+            ? `커밋 전 스테이징 파일 수: ${parsed.stagedFileCountBeforeCommit}`
             : null,
           parsed.untrackedFileCountBeforeCommit !== null
-            ? `커밋 전 untracked 파일 수: ${parsed.untrackedFileCountBeforeCommit}`
+            ? `커밋 전 미추적 파일 수: ${parsed.untrackedFileCountBeforeCommit}`
             : null,
           parsed.stagedFileCountAfterGitAdd !== null
-            ? `git add 후 staged 파일 수: ${parsed.stagedFileCountAfterGitAdd}`
+            ? `git add 후 스테이징 파일 수: ${parsed.stagedFileCountAfterGitAdd}`
             : null,
           parsed.dirtyFileCountAfterGitAdd !== null
-            ? `git add 후 dirty 파일 수: ${parsed.dirtyFileCountAfterGitAdd}`
+            ? `git add 후 수정 파일 수: ${parsed.dirtyFileCountAfterGitAdd}`
             : null,
           parsed.untrackedFileCountAfterGitAdd !== null
-            ? `git add 후 untracked 파일 수: ${parsed.untrackedFileCountAfterGitAdd}`
+            ? `git add 후 미추적 파일 수: ${parsed.untrackedFileCountAfterGitAdd}`
             : null,
           parsed.committedFilesMatchedScope !== null
             ? `커밋 파일이 범위와 일치: ${getBooleanDisplay(parsed.committedFilesMatchedScope)}`
             : null,
           parsed.repoCleanAfterCommit !== null
-            ? `커밋 후 repo clean: ${getBooleanDisplay(parsed.repoCleanAfterCommit)}`
+            ? `커밋 후 저장소 정리 상태: ${getBooleanDisplay(parsed.repoCleanAfterCommit)}`
             : null,
         ].filter(Boolean),
       )}
@@ -5451,7 +5451,7 @@ function renderStructuredReleasePackage(parsed) {
           parsed.sourceBuilderApprovalId
             ? `소스 빌더 승인: ${parsed.sourceBuilderApprovalId}`
             : null,
-          parsed.preflightArtifactId ? `대상 preflight 아티팩트: ${parsed.preflightArtifactId}` : null,
+          parsed.preflightArtifactId ? `대상 프리플라이트 아티팩트: ${parsed.preflightArtifactId}` : null,
         ].filter(Boolean),
       )}
       ${renderBreakdownList(
@@ -5553,7 +5553,7 @@ function renderStructuredCloseOut(parsed) {
         ${
           parsed.repoCleanBeforeCloseOut !== null
             ? createToken(
-                `repo정상:${getBooleanDisplay(parsed.repoCleanBeforeCloseOut)}`,
+                `저장소정상:${getBooleanDisplay(parsed.repoCleanBeforeCloseOut)}`,
                 parsed.repoCleanBeforeCloseOut ? 'success' : 'warning',
               )
             : ''
@@ -5635,7 +5635,7 @@ function renderStructuredCloseOut(parsed) {
           parsed.sourceBuilderApprovalId
             ? `소스 빌더 승인: ${parsed.sourceBuilderApprovalId}`
             : null,
-          parsed.preflightArtifactId ? `대상 preflight 아티팩트: ${parsed.preflightArtifactId}` : null,
+          parsed.preflightArtifactId ? `대상 프리플라이트 아티팩트: ${parsed.preflightArtifactId}` : null,
           parsed.planArtifactId ? `계획 아티팩트: ${parsed.planArtifactId}` : null,
           parsed.architectureArtifactId ? `설계 아티팩트: ${parsed.architectureArtifactId}` : null,
           parsed.breakdownArtifactId ? `분해 아티팩트: ${parsed.breakdownArtifactId}` : null,
@@ -5648,12 +5648,12 @@ function renderStructuredCloseOut(parsed) {
         '워크트리 검증',
         [
           parsed.repoCleanBeforeCloseOut !== null
-            ? `종료 전 repo clean: ${getBooleanDisplay(parsed.repoCleanBeforeCloseOut)}`
+            ? `종료 전 저장소 정리 상태: ${getBooleanDisplay(parsed.repoCleanBeforeCloseOut)}`
             : null,
-          parsed.dirtyFileCount !== null ? `dirty 파일 수: ${parsed.dirtyFileCount}` : null,
-          parsed.stagedFileCount !== null ? `staged 파일 수: ${parsed.stagedFileCount}` : null,
+          parsed.dirtyFileCount !== null ? `수정 파일 수: ${parsed.dirtyFileCount}` : null,
+          parsed.stagedFileCount !== null ? `스테이징 파일 수: ${parsed.stagedFileCount}` : null,
           parsed.untrackedFileCount !== null
-            ? `untracked 파일 수: ${parsed.untrackedFileCount}`
+            ? `미추적 파일 수: ${parsed.untrackedFileCount}`
             : null,
         ].filter(Boolean),
       )}
@@ -6761,16 +6761,16 @@ function renderCommitPackagePanel(task, data, options = {}) {
         : 'missing';
   const relationContext = buildCommitPackageRelationContext(task, data, summary);
   const actionHelp = summary.allowed
-    ? `최신 reviewer 번들 ${summary.sourceReviewerRunId || '기준 reviewer 결과'}를 바탕으로 commit-package 아티팩트를 만들고 commit 승인 안건을 엽니다. 외부 전달은 계속 막아 둡니다.`
+    ? `최신 리뷰어 번들 ${summary.sourceReviewerRunId || '기준 리뷰어 결과'}를 바탕으로 커밋 패키지 아티팩트를 만들고 커밋 승인 안건을 엽니다. 외부 전달은 계속 막아 둡니다.`
     : `커밋 패키지 준비는 ${
         (summary.reasons || []).map((reason) => getGuardReasonDisplay(reason)).join('; ') ||
-        '최신 reviewer 번들이 준비될 때까지'
+        '최신 리뷰어 번들이 준비될 때까지'
       } 대기합니다.`;
   const localCommitDisplayStatus =
     commitExecutionState.summary.latestApprovalDisplayStatus ||
     getCommitApprovalDisplayStatus(commitExecutionState.summary);
   const localCommitHelp = commitExecutionState.summary.allowed
-    ? `승인된 commit-package ${commitExecutionState.summary.commitPackageArtifactId || '기준 패키지'}에서 로컬 커밋을 실행하고 commit-result 아티팩트로 이어집니다. 외부 전달은 계속 비활성입니다.`
+    ? `승인된 커밋 패키지 ${commitExecutionState.summary.commitPackageArtifactId || '기준 패키지'}에서 로컬 커밋을 실행하고 커밋 결과 아티팩트로 이어집니다. 외부 전달은 계속 비활성입니다.`
     : `로컬 커밋은 ${
         (commitExecutionState.summary.reasons || [])
           .map((reason) => getGuardReasonDisplay(reason))
@@ -6857,7 +6857,7 @@ function renderCommitPackagePanel(task, data, options = {}) {
             }
           </div>
           <p class="detail-copy">
-            로컬 커밋 가능 여부는 로컬 커밋 준비도 요약을 그대로 따릅니다. UI는 loading/mutation 상태만 얹고, push, merge, release는 계속 비활성 상태로 둡니다.
+            로컬 커밋 가능 여부는 로컬 커밋 준비도 요약을 그대로 따릅니다. UI는 loading/mutation 상태만 얹고, 푸시, 병합, 릴리스는 계속 비활성 상태로 둡니다.
           </p>
           ${
             commitExecutionState.summary.reasons?.length
@@ -6952,12 +6952,12 @@ function renderCommitPackagePanel(task, data, options = {}) {
         ${createToken(`표면:${getSurfaceDisplayName(currentSurface)}`, 'neutral')}
       </div>
       <p class="detail-copy">
-        커밋패키지 준비도는 coordinator 요약을 그대로 따릅니다. 이 패널은 그 상태만 보여주고 실제 git commit, merge, release는 계속 비활성 상태로 둡니다.
+        커밋패키지 준비도는 coordinator 요약을 그대로 따릅니다. 이 패널은 그 상태만 보여주고 실제 git commit, 병합, 릴리스는 계속 비활성 상태로 둡니다.
       </p>
       ${
         summary.reasons?.length
           ? renderReasonList('커밋 패키지 가드 사유', summary.reasons)
-          : '<p class="detail-copy">최신 통과 reviewer 번들에 남은 커밋패키지 가드 사유가 없습니다.</p>'
+          : '<p class="detail-copy">최신 통과 리뷰어 번들에 남은 커밋패키지 가드 사유가 없습니다.</p>'
       }
       ${
         renderRelationStrip(relationContext) ||
@@ -7080,7 +7080,7 @@ function renderReleasePackagePanel(task, data, options = {}) {
         ${createToken(`표면:${getSurfaceDisplayName(currentSurface)}`, 'neutral')}
       </div>
       <p class="detail-copy">
-        릴리스패키지 준비도는 coordinator 요약을 그대로 따릅니다. 이 패널은 그 상태만 보여주고 push, publish, external release는 계속 비활성 상태로 둡니다.
+        릴리스패키지 준비도는 coordinator 요약을 그대로 따릅니다. 이 패널은 그 상태만 보여주고 푸시, 게시, 외부 릴리스는 계속 비활성 상태로 둡니다.
       </p>
       ${
         summary.reasons?.length
@@ -7089,7 +7089,7 @@ function renderReleasePackagePanel(task, data, options = {}) {
       }
       ${
         renderRelationStrip(relationContext) ||
-        '<p class="detail-copy">아직 릴리스패키지 provenance 연결이 없습니다.</p>'
+        '<p class="detail-copy">아직 릴리스패키지 연결 근거가 없습니다.</p>'
       }
       ${actionSurface}
     </div>
@@ -7212,8 +7212,8 @@ function renderCloseOutPanel(task, data, options = {}) {
         }
         ${
           summary.repoClean
-            ? createToken('repo:정상', 'success')
-            : createToken('repo:차단', 'warning')
+            ? createToken('저장소:정상', 'success')
+            : createToken('저장소:차단', 'warning')
         }
         ${
           summary.existingCloseOutArtifactId
@@ -7223,7 +7223,7 @@ function renderCloseOutPanel(task, data, options = {}) {
         ${createToken(`표면:${getSurfaceDisplayName(currentSurface)}`, 'neutral')}
       </div>
       <p class="detail-copy">
-        종료 정리 가능 여부는 종료 정리 준비도 요약을 그대로 따릅니다. UI는 loading/mutating 상태만 얹고, push, publish, external release는 계속 비활성 상태로 둡니다.
+        종료 정리 가능 여부는 종료 정리 준비도 요약을 그대로 따릅니다. UI는 loading/mutating 상태만 얹고, 푸시, 게시, 외부 릴리스는 계속 비활성 상태로 둡니다.
       </p>
       ${
         summary.reasons?.length
@@ -7232,7 +7232,7 @@ function renderCloseOutPanel(task, data, options = {}) {
       }
       ${
         renderRelationStrip(relationContext) ||
-        '<p class="detail-copy">아직 종료정리 provenance 연결이 없습니다.</p>'
+        '<p class="detail-copy">아직 종료정리 연결 근거가 없습니다.</p>'
       }
       ${actionSurface}
       ${navigationHint}
@@ -7252,13 +7252,13 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
     ? `${requestSummary.currentPreflightArtifactId} 기준으로 새 승인 안건을 엽니다.`
     : `승인 요청은 ${
         (requestSummary.reasons || []).map((reason) => getGuardReasonDisplay(reason)).join('; ') ||
-        '최신 preflight가 준비될 때까지'
+        '최신 프리플라이트가 준비될 때까지'
       } 대기합니다.`;
   const runHelp = guardSummary.allowed
     ? `${guardSummary.currentPreflightArtifactId} 기준 라이브 변경을 실행하고 변경요약, 패치, diff 아티팩트를 남깁니다.`
     : `라이브 변경은 ${
         (guardSummary.reasons || []).map((reason) => getGuardReasonDisplay(reason)).join('; ') ||
-        '최신 승인된 preflight 쌍이 준비될 때까지'
+        '최신 승인된 프리플라이트 쌍이 준비될 때까지'
       } 대기합니다.`;
 
   return `
@@ -7300,17 +7300,17 @@ function renderBuilderLiveMutationApprovalPanel(task, data, options = {}) {
         }
       </div>
       <p class="detail-copy">
-        제한된 빌더 라이브 변경에 대한 runtime 요약입니다. 실행은 최신 preflight 대상 파일에만 한정되고, 커밋 경로를 자동 시작하지 않은 채 리뷰어에게 넘깁니다.
+        제한된 빌더 라이브 변경에 대한 런타임 요약입니다. 실행은 최신 프리플라이트 대상 파일에만 한정되고, 커밋 경로를 자동 시작하지 않은 채 리뷰어에게 넘깁니다.
       </p>
       ${
         guardSummary.reasons?.length
           ? renderReasonList('라이브 변경 가드 사유', guardSummary.reasons)
-          : '<p class="detail-copy">최신 preflight 대상에 남은 라이브 변경 가드 사유가 없습니다.</p>'
+          : '<p class="detail-copy">최신 프리플라이트 대상에 남은 라이브 변경 가드 사유가 없습니다.</p>'
       }
       ${
         requestSummary.reasons?.length
           ? renderReasonList('승인 요청 비활성 사유', requestSummary.reasons)
-          : '<p class="detail-copy">최신 preflight 대상 기준으로 승인 요청이 가능합니다.</p>'
+          : '<p class="detail-copy">최신 프리플라이트 대상 기준으로 승인 요청이 가능합니다.</p>'
       }
       ${
         options.includeRequestAction === false
@@ -8255,12 +8255,12 @@ async function runPlanner(taskId) {
   const data = getDerived();
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('planner 실행을 시작하기 전에 태스크를 먼저 선택하세요.');
+    throw new Error('플래너 실행을 시작하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `태스크 ${taskId}의 planner 실행을 시작하는 중…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 플래너 실행을 시작하는 중…`;
   render();
 
   try {
@@ -8275,7 +8275,7 @@ async function runPlanner(taskId) {
     });
     await hydrateSelectedDetails();
     render();
-    elements.refreshStatus.textContent = `planner 실행 ${payload.mutation.runId}이 완료됐습니다`;
+    elements.refreshStatus.textContent = `플래너 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -8287,12 +8287,12 @@ async function runArchitect(taskId) {
   const currentSurface = state.surface;
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('architect 실행을 시작하기 전에 태스크를 먼저 선택하세요.');
+    throw new Error('설계 실행을 시작하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `태스크 ${taskId}의 architect 실행을 시작하는 중…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 설계 실행을 시작하는 중…`;
   render();
 
   try {
@@ -8308,7 +8308,7 @@ async function runArchitect(taskId) {
     await hydrateSelectedDetails();
     state.surface = resolvePostMutationSurface(currentSurface, payload, 'artifacts');
     render();
-    elements.refreshStatus.textContent = `architect 실행 ${payload.mutation.runId}이 완료됐습니다`;
+    elements.refreshStatus.textContent = `설계 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -8320,12 +8320,12 @@ async function runTaskBreaker(taskId) {
   const currentSurface = state.surface;
 
   if (!taskId || !data.taskMap.has(taskId)) {
-    throw new Error('task-breaker 실행을 시작하기 전에 태스크를 먼저 선택하세요.');
+    throw new Error('태스크 분해 실행을 시작하기 전에 태스크를 먼저 선택하세요.');
   }
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `태스크 ${taskId}의 task-breaker 실행을 시작하는 중…`;
+  elements.refreshStatus.textContent = `태스크 ${taskId}의 태스크 분해 실행을 시작하는 중…`;
   render();
 
   try {
@@ -8341,7 +8341,7 @@ async function runTaskBreaker(taskId) {
     await hydrateSelectedDetails();
     state.surface = resolvePostMutationSurface(currentSurface, payload, 'artifacts');
     render();
-    elements.refreshStatus.textContent = `task-breaker 실행 ${payload.mutation.runId}이 완료됐습니다`;
+    elements.refreshStatus.textContent = `태스크 분해 실행 ${payload.mutation.runId}이 완료됐습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -8651,7 +8651,7 @@ async function updateTaskWorktreeRef(taskId, worktreeRef) {
   state.error = null;
   state.mutating = true;
   elements.refreshStatus.textContent = isClearing
-    ? `태스크 ${taskId}의 task.worktreeRef를 비우는 중…`
+    ? `태스크 ${taskId}의 저장된 워크트리 경로를 비우는 중…`
     : `태스크 ${taskId}에 연결 워크트리를 적용하는 중…`;
   render();
 
@@ -8668,8 +8668,8 @@ async function updateTaskWorktreeRef(taskId, worktreeRef) {
     await hydrateSelectedDetails();
     render();
     elements.refreshStatus.textContent = isClearing
-      ? `태스크 ${taskId}의 task.worktreeRef를 비웠습니다`
-      : `태스크 ${taskId}의 task.worktreeRef를 업데이트했습니다`;
+      ? `태스크 ${taskId}의 저장된 워크트리 경로를 비웠습니다`
+      : `태스크 ${taskId}의 저장된 워크트리 경로를 업데이트했습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -8797,7 +8797,7 @@ function renderSummary(data) {
   const pendingGateCopy = pendingGates > 0 ? '사람 검토가 필요한 게이트' : '열린 검토 게이트 없음';
 
   elements.activeProjectName.textContent = activeProject?.name || '선택된 프로젝트 없음';
-  elements.activeProjectPath.textContent = activeProject?.projectPath || '실행 전 project_path가 필요합니다';
+  elements.activeProjectPath.textContent = activeProject?.projectPath || '실행 전 프로젝트 경로(project_path)가 필요합니다';
   elements.runtimeRoot.textContent = state.payload?.runtimeRoot || '사용 불가';
   elements.runtimeStatusCopy.textContent = runtimeStatusCopy;
   elements.activeRunCount.textContent = String(activeRuns);
@@ -9223,7 +9223,7 @@ function renderSurfaceFocusStrip(data) {
   if (state.error) {
     checkCard = {
       label: '지금 체크',
-      title: 'runtime 연결 끊김',
+      title: '런타임 연결 끊김',
       copy: state.error.message || '런타임 상태 요약 연결부터 복구해야 아래 화면이 다시 열립니다.',
       tokens: [createToken('상태요약:오류', 'danger')],
     };
@@ -9430,7 +9430,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
               <div class="panel-header">
                 <div>
                   <h4>실행 프로바이더</h4>
-                  <p class="panel-copy">프로젝트 단위 opt-in만 허용합니다. 기본값은 local-stub를 유지하고, live 모드는 절대 조용히 다른 모드로 바뀌지 않습니다.</p>
+                  <p class="panel-copy">프로젝트 단위 명시 선택만 허용합니다. 기본값은 로컬 스텁(local-stub)을 유지하고, 라이브 모드는 절대 조용히 다른 모드로 바뀌지 않습니다.</p>
                 </div>
                 <div class="token-row">
                   ${createToken(`프로바이더:${activeProjectProviderConfig.adapter}`, activeProjectProviderConfig.mode === 'live' ? 'accent' : 'neutral')}
@@ -9470,7 +9470,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                           type="text"
                           name="editProjectProviderModel"
                           value="${escapeHtml(state.projectProviderDraftModel)}"
-                          placeholder="operator-chosen-model"
+                          placeholder="운영자 선택 모델"
                           ${projectActionDisabled ? 'disabled' : ''}
                         >
                       </label>
@@ -9496,7 +9496,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                   ${
                     activeProjectProviderSummary?.reasons?.length
                       ? escapeHtml(activeProjectProviderSummary.reasons[0])
-                      : '여기에는 비밀이 아닌 설정 정보만 저장합니다. live 모드는 model과 env가 유효할 때 기획 셀, 설계 셀, 분해 셀, 사전 점검, 라이브 변경, 리뷰 검토를 활성화하고, 커밋 패키지, 로컬 커밋, 릴리스 패키지, 종료 정리는 계속 명시적인 로컬 후속 단계로 남깁니다.'
+                      : '여기에는 비밀이 아닌 설정 정보만 저장합니다. 라이브 모드는 모델과 환경변수가 유효할 때 기획 셀, 설계 셀, 분해 셀, 사전 점검, 라이브 변경, 리뷰 검토를 활성화하고, 커밋 패키지, 로컬 커밋, 릴리스 패키지, 종료 정리는 계속 명시적인 로컬 후속 단계로 남깁니다.'
                   }
                 </p>
               </div>
@@ -9587,7 +9587,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                     type="text"
                     name="projectProviderModel"
                     value="${escapeHtml(state.projectDraftProviderModel)}"
-                    placeholder="operator-chosen-model"
+                    placeholder="운영자 선택 모델"
                     ${projectActionDisabled ? 'disabled' : ''}
                   >
                 </label>
@@ -9612,10 +9612,10 @@ function renderProjectBootstrapPanel(data, options = {}) {
           <p class="form-help">
             ${
               missionMode
-                ? `${PACK_HELP_COPY[createProjectPack]} 미션 진입은 항상 local-stub 기본값으로 시작합니다. 프로바이더와 연결 워크트리 제어는 고급 운영 모드에 남습니다.`
+                ? `${PACK_HELP_COPY[createProjectPack]} 미션 진입은 항상 로컬 스텁(local-stub) 기본값으로 시작합니다. 프로바이더와 연결 워크트리 제어는 고급 운영 모드에 남습니다.`
                 : createProjectProviderMode === 'live'
-                ? `${PACK_HELP_COPY[createProjectPack]} live 모드는 비밀이 아닌 설정 정보만 저장합니다. model과 env가 유효할 때 기획 셀, 설계 셀, 분해 셀, 사전 점검, 라이브 변경, 리뷰 검토가 live로 실행되고, 커밋 패키지, 로컬 커밋, 릴리스 패키지, 종료 정리는 계속 명시적인 로컬 후속 단계로 남습니다.`
-                : `${PACK_HELP_COPY[createProjectPack]} 프로젝트를 등록하고 local-stub를 기본 실행 프로바이더로 유지한 채 해당 프로젝트를 활성 상태로 만듭니다.`
+                ? `${PACK_HELP_COPY[createProjectPack]} 라이브 모드는 비밀이 아닌 설정 정보만 저장합니다. 모델과 환경변수가 유효할 때 기획 셀, 설계 셀, 분해 셀, 사전 점검, 라이브 변경, 리뷰 검토가 라이브 모드로 실행되고, 커밋 패키지, 로컬 커밋, 릴리스 패키지, 종료 정리는 계속 명시적인 로컬 후속 단계로 남습니다.`
+                : `${PACK_HELP_COPY[createProjectPack]} 프로젝트를 등록하고 로컬 스텁(local-stub)을 기본 실행 프로바이더로 유지한 채 해당 프로젝트를 활성 상태로 만듭니다.`
             }
           </p>
         </div>
@@ -9993,7 +9993,7 @@ function renderMission(data) {
           ${renderMissionRows(
             completedMissionEntries,
             '완료된 미션 없음',
-            'close-out까지 끝난 안건이 생기면 이 줄에 차곡히 보관됩니다.',
+            '종료 정리까지 끝난 안건이 생기면 이 줄에 차곡히 보관됩니다.',
             'mission-empty-state-complete-row',
           )}
         </div>
@@ -10466,7 +10466,7 @@ function renderMission(data) {
                     <strong>현재 안건 상태</strong>: ${
                       missionCompletionReady
                         ? escapeHtml(
-                            `태스크 ${linkedTask.id}는 완료입니다. close-out 결과는 소스 릴리스 번들 ${missionCompletionReleasePackageId || '알 수 없음'}에 연결돼 있습니다.`,
+                            `태스크 ${linkedTask.id}는 완료입니다. 종료 정리 결과는 소스 릴리스 번들 ${missionCompletionReleasePackageId || '알 수 없음'}에 연결돼 있습니다.`,
                           )
                         : linkedTask
                           ? escapeHtml(
@@ -10478,7 +10478,7 @@ function renderMission(data) {
                   <p class="detail-copy">
                     <strong>다음 안전한 지시</strong>: ${
                       missionCompletionReady
-                        ? '저장된 종료 정리 번들을 확인한 뒤 새 미션을 시작하거나 이 미션을 다시 다듬습니다. push, publish, 외부 릴리스는 범위 밖입니다.'
+                        ? '저장된 종료 정리 번들을 확인한 뒤 새 미션을 시작하거나 이 미션을 다시 다듬습니다. 푸시, 게시, 외부 릴리스는 범위 밖입니다.'
                         : '협의회나 실행에서 현재 경로를 계속 전진합니다. 종료 정리 번들이 저장돼야 완료가 닫힙니다.'
                     }
                   </p>
@@ -11313,7 +11313,7 @@ function renderExecution(data) {
             ${latestBreakdownArtifact ? createToken(`breakdown:${latestBreakdownArtifact.id}`, 'neutral') : createToken('breakdown:none', 'neutral')}
             ${latestPreflightArtifact ? createToken(`preflight:${latestPreflightArtifact.id}`, 'neutral') : createToken('preflight:none', 'neutral')}
           </div>
-          <p class="detail-copy">회의 결론 승인 자동 체인은 planner부터 사전 점검까지만 진행되고, 이후는 기존 게이트 규칙을 따릅니다.</p>
+          <p class="detail-copy">회의 결론 승인 자동 체인은 플래너부터 사전 점검까지만 진행되고, 이후는 기존 게이트 규칙을 따릅니다.</p>
         </section>
       </section>
 
@@ -11427,7 +11427,7 @@ function renderExecution(data) {
                       커밋 지시 승인
                     </button>
                   </div>
-                  <p class="form-help">기존 pending commit 승인 기록을 그대로 처리합니다. 이후 후속 단계는 계속 관제실에 남습니다.</p>
+                  <p class="form-help">기존 대기 중인 커밋 승인 기록을 그대로 처리합니다. 이후 후속 단계는 계속 관제실에 남습니다.</p>
                 `
                 : ''
             }
@@ -11446,7 +11446,7 @@ function renderExecution(data) {
                       릴리스 지시 승인
                     </button>
                   </div>
-                  <p class="form-help">기존 pending release 승인 기록을 그대로 처리합니다. 종료 정리는 릴리스 준비 상태가 잡힌 뒤 실행에서 이어집니다.</p>
+                  <p class="form-help">기존 대기 중인 릴리스 승인 기록을 그대로 처리합니다. 종료 정리는 릴리스 준비 상태가 잡힌 뒤 실행에서 이어집니다.</p>
                 `
                 : ''
             }
@@ -11500,7 +11500,7 @@ function renderExecution(data) {
                       커밋 패키지 준비
                     </button>
                   </div>
-                  <p class="form-help">최신 리뷰어 번들이 준비됐습니다. 이 CTA는 커밋 패키지 경로를 따라 현재 commit 승인을 엽니다.</p>
+                  <p class="form-help">최신 리뷰어 번들이 준비됐습니다. 이 CTA는 커밋 패키지 경로를 따라 현재 커밋 승인을 엽니다.</p>
                 `
                 : ''
             }
@@ -11518,7 +11518,7 @@ function renderExecution(data) {
                       승인된 로컬 커밋 이어가기
                     </button>
                   </div>
-                  <p class="form-help">현재 commit 번들이 준비됐습니다. 이 CTA는 로컬 커밋 경로를 따라 커밋 결과 번들로 이어집니다.</p>
+                  <p class="form-help">현재 커밋 번들이 준비됐습니다. 이 CTA는 로컬 커밋 경로를 따라 커밋 결과 번들로 이어집니다.</p>
                 `
                 : ''
             }
@@ -11536,7 +11536,7 @@ function renderExecution(data) {
                       릴리스 패키지 준비
                     </button>
                   </div>
-                  <p class="form-help">최신 local commit 번들이 준비됐습니다. 이 CTA는 릴리스 패키지 경로를 따라 현재 release 승인을 엽니다.</p>
+                  <p class="form-help">최신 로컬 커밋 번들이 준비됐습니다. 이 CTA는 릴리스 패키지 경로를 따라 현재 릴리스 승인을 엽니다.</p>
                 `
                 : ''
             }
@@ -11554,7 +11554,7 @@ function renderExecution(data) {
                       승인된 종료 정리 이어가기
                     </button>
                   </div>
-                  <p class="form-help">현재 승인된 release 번들이 준비됐습니다. 이 CTA는 종료 정리 경로를 따라 종료 정리 번들로 이어집니다.</p>
+                  <p class="form-help">현재 승인된 릴리스 번들이 준비됐습니다. 이 CTA는 종료 정리 경로를 따라 종료 정리 번들로 이어집니다.</p>
                 `
                 : ''
             }
@@ -11602,7 +11602,7 @@ function renderExecution(data) {
             <p class="detail-copy">
               ${
                 builderLiveMutationState.requestSummary.allowed
-                  ? '현재 preflight 아티팩트 기준으로 빌더 라이브 변경 승인 게이트가 생성된 상태입니다.'
+                  ? '현재 프리플라이트 아티팩트 기준으로 빌더 라이브 변경 승인 게이트가 생성된 상태입니다.'
                   : escapeHtml(
                       (builderLiveMutationState.requestSummary.reasons || []).join('; ') ||
                         '아직 사전 점검 준비 상태를 확인할 수 없습니다.',
@@ -12126,7 +12126,7 @@ function renderDeliverables(data) {
                       실행으로 이동해 릴리스 패키지 준비
                     </button>
                   </div>
-                  <p class="form-help">릴리스 패키지 준비는 최신 local commit 번들이 준비되면 실행 표면에 열립니다.</p>
+                  <p class="form-help">릴리스 패키지 준비는 최신 로컬 커밋 번들이 준비되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -12162,7 +12162,7 @@ function renderDeliverables(data) {
                       실행으로 이동해 종료 정리 실행
                     </button>
                   </div>
-                  <p class="form-help">종료 정리는 현재 승인된 release 번들이 준비되면 실행 표면에 열립니다.</p>
+                  <p class="form-help">종료 정리는 현재 승인된 릴리스 번들이 준비되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -12940,7 +12940,7 @@ function renderTaskDetail(task, data) {
     detailNextCopy = '설계 이후 첫 실행 단위로 태스크를 자릅니다.';
   } else if (!latestPreflightArtifact) {
     detailNextTitle = '사전 점검 준비';
-    detailNextCopy = '실행 전 preflight를 먼저 남겨 다음 승인선을 엽니다.';
+    detailNextCopy = '실행 전 프리플라이트를 먼저 남겨 다음 승인선을 엽니다.';
   }
 
   return `
@@ -13000,8 +13000,8 @@ function renderTaskDetail(task, data) {
               currentWorktreeOption
                 ? escapeHtml(formatWorktreeOptionLabel(currentWorktreeOption))
                 : task.worktreeRef
-                  ? '저장된 task.worktreeRef가 현재 탐지된 연결 워크트리 목록 밖에 있습니다.'
-                  : 'task.worktreeRef가 아직 설정되지 않았습니다.'
+                  ? '저장된 워크트리 경로가 현재 탐지된 연결 워크트리 목록 밖에 있습니다.'
+                  : '저장된 워크트리 경로가 아직 설정되지 않았습니다.'
             }</p>
           </div>
         </div>
@@ -13074,8 +13074,8 @@ function renderTaskDetail(task, data) {
           worktreeDetectionNotice
             ? `<p class="detail-copy">${escapeHtml(worktreeDetectionNotice)}</p>`
             : detectedWorktreeOptions.length > 0
-              ? '<p class="form-help">task.worktreeRef만 저장합니다. release-package와 close-out은 여전히 현재 project_path와 같은 연결 워크트리 루트로 풀려야 합니다.</p>'
-              : '<p class="detail-copy">현재 project_path에서 탐지된 연결 워크트리가 없습니다.</p>'
+              ? '<p class="form-help">저장된 워크트리 경로만 바꿉니다. 릴리스 패키지와 종료 정리는 여전히 현재 프로젝트 경로와 같은 연결 워크트리 루트로 풀려야 합니다.</p>'
+              : '<p class="detail-copy">현재 프로젝트 경로에서 탐지된 연결 워크트리가 없습니다.</p>'
         }
       </div>
 
@@ -13151,7 +13151,7 @@ function renderTaskDetail(task, data) {
             data-id="${escapeHtml(task.id)}"
             ${builderPreflightDisabled ? 'disabled' : ''}
           >
-            빌더 preflight 실행
+            빌더 프리플라이트 실행
           </button>
           <p class="form-help">
             ${
@@ -13177,8 +13177,8 @@ function renderTaskDetail(task, data) {
           <p class="form-help">
             ${
               builderPreflightDisabled
-                ? `빌더 preflight는 ${escapeHtml(builderPreflightBlockedReason)} 전까지 비활성입니다.`
-                : `빌더 preflight는 ${escapeHtml(builderPreflightState.latestPlanArtifact?.id || '최신 계획 아티팩트')}, ${escapeHtml(builderPreflightState.latestArchitectureArtifact?.id || '최신 설계 아티팩트')}, ${escapeHtml(builderPreflightState.latestBreakdownArtifact?.id || '최신 분해 아티팩트')}를 읽고 쓰기 없는 preflight 아티팩트를 남긴 뒤 리뷰어를 명시적 후속 단계로 남깁니다.`
+                ? `빌더 프리플라이트는 ${escapeHtml(builderPreflightBlockedReason)} 전까지 비활성입니다.`
+                : `빌더 프리플라이트는 ${escapeHtml(builderPreflightState.latestPlanArtifact?.id || '최신 계획 아티팩트')}, ${escapeHtml(builderPreflightState.latestArchitectureArtifact?.id || '최신 설계 아티팩트')}, ${escapeHtml(builderPreflightState.latestBreakdownArtifact?.id || '최신 분해 아티팩트')}를 읽고 쓰기 없는 프리플라이트 아티팩트를 남긴 뒤 리뷰어를 명시적 후속 단계로 남깁니다.`
             }
           </p>
         </div>
@@ -13218,7 +13218,7 @@ function renderTaskDetail(task, data) {
       </div>
 
       <div class="detail-block">
-        <p class="detail-key">최신 빌더 preflight</p>
+        <p class="detail-key">최신 빌더 프리플라이트</p>
         ${
           latestPreflightArtifact && parsedPreflight
             ? `
@@ -13244,7 +13244,7 @@ function renderTaskDetail(task, data) {
                 ${renderBuilderLiveMutationApprovalPanel(task, data)}
               `
             : `
-                <p class="detail-copy">아직 빌더 preflight 아티팩트가 없습니다. 계획, 설계, 분해 아티팩트가 준비된 뒤 빌더 preflight를 실행합니다.</p>
+                <p class="detail-copy">아직 빌더 프리플라이트 아티팩트가 없습니다. 계획, 설계, 분해 아티팩트가 준비된 뒤 빌더 프리플라이트를 실행합니다.</p>
                 ${renderBuilderLiveMutationApprovalPanel(task, data)}
               `
         }
@@ -13307,7 +13307,7 @@ function renderTaskDetail(task, data) {
         ${
           reviewerState.reasons.length > 0
             ? renderReasonList('리뷰어 비활성 사유', reviewerState.reasons)
-            : '<p class="detail-copy">리뷰어는 새 코드 변경 없이 최신 builder 라이브 변경 번들을 점검할 수 있습니다.</p>'
+            : '<p class="detail-copy">리뷰어는 새 코드 변경 없이 최신 빌더 라이브 변경 번들을 점검할 수 있습니다.</p>'
         }
         <div class="form-actions form-actions-inline">
             <button
@@ -13323,7 +13323,7 @@ function renderTaskDetail(task, data) {
             ${
               reviewerState.disabled
                 ? `리뷰어 실행은 ${escapeHtml(reviewerState.reasons.join('; '))} 전까지 비활성 상태입니다.`
-                : `리뷰어 실행은 builder run ${escapeHtml(reviewerState.summary.sourceBuilderRunId)}을 읽고 commit이나 release 없이 최종 review 아티팩트를 기록합니다.`
+                : `리뷰어 실행은 빌더 실행 기록 ${escapeHtml(reviewerState.summary.sourceBuilderRunId)}을 읽고 커밋이나 릴리스 없이 최종 리뷰 아티팩트를 기록합니다.`
             }
           </p>
         </div>
@@ -13368,7 +13368,7 @@ function renderTaskDetail(task, data) {
           showReleaseApprovalHint
             ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
                 helpText:
-                  '승인 액션은 현재 표면에 남고 서버 스냅샷을 그대로 따릅니다. push, publish, external release는 계속 비활성 상태입니다.',
+                  '승인 액션은 현재 표면에 남고 서버 스냅샷을 그대로 따릅니다. 푸시, 게시, 외부 릴리스는 계속 비활성 상태입니다.',
               })
             : ''
         }
@@ -13943,7 +13943,7 @@ function renderArtifacts(data) {
     : `
       <div class="empty-state">
         <strong>아직 아티팩트 없음</strong>
-        <p>아티팩트는 runtime 실행이나 리뷰 증거가 기록된 뒤 나타납니다.</p>
+        <p>아티팩트는 런타임 실행이나 리뷰 증거가 기록된 뒤 나타납니다.</p>
       </div>
     `;
   const artifactsViewportStrip = renderViewportHandoffStrip({
@@ -14234,7 +14234,7 @@ function renderArtifacts(data) {
                     ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
                         signalRow: artifactsOpsEntrySignalRow,
                         helpText:
-                          '승인 액션은 아티팩트 표면에 남고 서버 스냅샷을 그대로 따릅니다. push, publish, external release는 계속 비활성 상태입니다.',
+                          '승인 액션은 아티팩트 표면에 남고 서버 스냅샷을 그대로 따릅니다. 푸시, 게시, 외부 릴리스는 계속 비활성 상태입니다.',
                       })
                     : ''
                 }
@@ -14748,7 +14748,7 @@ function renderError(error) {
   for (const surface of Object.values(elements.surfaces)) {
     surface.innerHTML = `
       <div class="empty-state">
-        <strong>runtime 사용 불가</strong>
+        <strong>런타임 사용 불가</strong>
         <p>${message}</p>
       </div>
     `;
