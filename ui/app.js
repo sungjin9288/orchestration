@@ -9430,7 +9430,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
               <div class="panel-header">
                 <div>
                   <h4>실행 프로바이더</h4>
-                  <p class="panel-copy">프로젝트 단위 opt-in만 허용합니다. 기본값은 local-stub를 유지하고, live 모드는 절대 조용히 fallback하지 않습니다.</p>
+                  <p class="panel-copy">프로젝트 단위 opt-in만 허용합니다. 기본값은 local-stub를 유지하고, live 모드는 절대 조용히 다른 모드로 바뀌지 않습니다.</p>
                 </div>
                 <div class="token-row">
                   ${createToken(`프로바이더:${activeProjectProviderConfig.adapter}`, activeProjectProviderConfig.mode === 'live' ? 'accent' : 'neutral')}
