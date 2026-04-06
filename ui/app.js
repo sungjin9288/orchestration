@@ -1716,8 +1716,8 @@ function getGuardReasonDisplay(reason) {
   const directMap = {
     'select a task': '태스크를 먼저 선택하세요.',
     'wait for the current action to finish': '현재 작업이 끝날 때까지 기다리세요.',
-    'runtime guard unavailable': 'runtime 가드 요약을 아직 확인할 수 없습니다.',
-    'runtime request summary unavailable': 'runtime 요청 요약을 아직 확인할 수 없습니다.',
+    'runtime guard unavailable': '런타임 가드 요약을 아직 확인할 수 없습니다.',
+    'runtime request summary unavailable': '런타임 요청 요약을 아직 확인할 수 없습니다.',
     'reviewer readiness unavailable': '리뷰어 준비도를 아직 확인할 수 없습니다.',
     'commit-package readiness unavailable': '커밋패키지 준비도를 아직 확인할 수 없습니다.',
     'commit execution readiness unavailable': '로컬 커밋 준비도를 아직 확인할 수 없습니다.',
