@@ -1996,7 +1996,7 @@ function renderLinkedWorktreeSwitchPanel(data, projectActionDisabled) {
       <div class="panel-header panel-header-compact">
         <div>
           <h4>탐지된 연결 워크트리</h4>
-          <p class="panel-copy">현재 활성 project 기준으로 탐지된 연결 루트만 보여줍니다. 메인 워크트리는 여기서 제외합니다.</p>
+          <p class="panel-copy">현재 활성 프로젝트 기준으로 탐지된 연결 루트만 보여줍니다. 메인 워크트리는 여기서 제외합니다.</p>
         </div>
       </div>
       <div class="linked-worktree-list">
