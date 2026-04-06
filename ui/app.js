@@ -1996,7 +1996,7 @@ function renderLinkedWorktreeSwitchPanel(data, projectActionDisabled) {
       <div class="panel-header panel-header-compact">
         <div>
           <h4>탐지된 연결 워크트리</h4>
-          <p class="panel-copy">현재 활성 project 기준으로 탐지된 연결 루트만 보여줍니다. main worktree는 여기서 제외합니다.</p>
+          <p class="panel-copy">현재 활성 project 기준으로 탐지된 연결 루트만 보여줍니다. 메인 워크트리는 여기서 제외합니다.</p>
         </div>
       </div>
       <div class="linked-worktree-list">
@@ -9524,7 +9524,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                 <button class="secondary-button" type="submit" ${linkedWorktreeActionDisabled ? 'disabled' : ''}>
                   연결 워크트리 만들기
                 </button>
-                <p class="form-help">형제 경로 <code>${escapeHtml(`${activeProjectBaseName}--<slug>`)}</code>에 <code>worktree/&lt;slug&gt;</code> 브랜치를 만들고, 기존 프로젝트 등록/선택 흐름을 재사용해 새 linked root를 활성 상태로 전환합니다. 기존 브랜치나 경로 충돌이 있으면 실패하므로 그 경우에는 탐지된 전환 목록을 사용합니다.</p>
+                <p class="form-help">형제 경로 <code>${escapeHtml(`${activeProjectBaseName}--<slug>`)}</code>에 <code>worktree/&lt;slug&gt;</code> 브랜치를 만들고, 기존 프로젝트 등록/선택 흐름을 재사용해 새 연결 루트를 활성 상태로 전환합니다. 기존 브랜치나 경로 충돌이 있으면 실패하므로 그 경우에는 탐지된 전환 목록을 사용합니다.</p>
               </div>
             </form>
           `
