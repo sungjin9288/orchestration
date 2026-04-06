@@ -14436,7 +14436,7 @@ function renderDecisionInbox(data) {
         <div class="decision-action-head">
           <div>
             <p class="detail-key">지금 처리</p>
-            <p class="decision-action-copy">이 안건은 결정함에서 상태만 확인하고 다른 surface로 이어집니다.</p>
+            <p class="decision-action-copy">이 안건은 결정함에서 상태만 확인하고 다른 화면으로 이어집니다.</p>
           </div>
           <div class="token-row token-row-compact">
             ${createToken(
@@ -14448,7 +14448,7 @@ function renderDecisionInbox(data) {
           </div>
         </div>
         ${decisionActionSignalRow}
-        <p class="detail-copy">이 결정함 항목에는 ui-slice-03에서 허용된 쓰기 액션이 없습니다.</p>
+        <p class="detail-copy">이 결정함 항목에는 현재 결정함 경로에서 허용된 쓰기 액션이 없습니다.</p>
       </div>
     `;
   }

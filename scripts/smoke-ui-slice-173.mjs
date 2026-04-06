@@ -29,7 +29,7 @@ assert.match(
 );
 assert.match(
   app,
-  /else if \(selectedItem\?\.status === 'pending'\) \{\s*actionSurface = `[\s\S]*?\$\{decisionActionSignalRow\}[\s\S]*?이 결정함 항목에는 ui-slice-03에서 허용된 쓰기 액션이 없습니다\./s,
+  /else if \(selectedItem\?\.status === 'pending'\) \{\s*actionSurface = `[\s\S]*?이 안건은 결정함에서 상태만 확인하고 다른 화면으로 이어집니다\.[\s\S]*?\$\{decisionActionSignalRow\}[\s\S]*?이 결정함 항목에는 현재 결정함 경로에서 허용된 쓰기 액션이 없습니다\./s,
 );
 
 assert.match(styles, /\.decision-action-signal-row \{/);
