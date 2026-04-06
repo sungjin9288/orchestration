@@ -9644,7 +9644,7 @@ function renderMission(data) {
           <div class="panel-header">
             <div>
               <h2>미션 진입</h2>
-              <p class="panel-copy">프로젝트 선택은 여기서 시작하고, 프로바이더와 worktree 같은 세부 제어는 고급 운영 모드에 남깁니다.</p>
+              <p class="panel-copy">프로젝트 선택은 여기서 시작하고, 프로바이더와 워크트리 같은 세부 제어는 고급 운영 모드에 남깁니다.</p>
             </div>
           </div>
           <div class="stack">
@@ -9658,9 +9658,9 @@ function renderMission(data) {
             <section class="relation-strip">
               <div class="card-title-row">
                 <strong>고급 운영에 남는 것</strong>
-                ${createToken('프로바이더/worktree/세부 제어', 'warning')}
+                ${createToken('프로바이더/워크트리/세부 제어', 'warning')}
               </div>
-              <p class="detail-copy">프로바이더, worktree, 로그, 아티팩트, 결정함은 고급 운영 모드에 남습니다.</p>
+              <p class="detail-copy">프로바이더, 워크트리, 로그, 아티팩트, 결정함은 고급 운영 모드에 남습니다.</p>
             </section>
           </div>
         </aside>
