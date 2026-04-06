@@ -286,9 +286,24 @@ function createBuilderPreflightStructuredText({ anchor, artifact = {}, normalize
   });
 }
 
-function createResponse(status, payload) {
+function createHeaders(headerMap = {}) {
+  const normalizedEntries = Object.entries(headerMap).map(([key, value]) => [
+    String(key).toLowerCase(),
+    String(value),
+  ]);
+  const headers = new Map(normalizedEntries);
+
+  return {
+    get(name) {
+      return headers.get(String(name || '').toLowerCase()) || null;
+    },
+  };
+}
+
+function createResponse(status, payload, headers = {}) {
   return {
     ok: status >= 200 && status < 300,
+    headers: createHeaders(headers),
     status,
     async text() {
       return JSON.stringify(payload);
@@ -318,7 +333,7 @@ function createQueuedFetch(initialResponses = []) {
       throw next.throwError;
     }
 
-    return createResponse(next.status ?? 200, next.payload ?? {});
+    return createResponse(next.status ?? 200, next.payload ?? {}, next.headers ?? {});
   }
 
   return {
@@ -440,10 +455,11 @@ function createAbortError() {
   return error;
 }
 
-function createLiveCoordinator(runtime, fetchImpl) {
+function createLiveCoordinator(runtime, fetchImpl, adapterOptions = { maxRetryAttempts: 0 }) {
   return createExecutionCoordinator({
     liveProviderAdapter: createOpenAIResponsesProviderAdapter({
       fetchImpl,
+      ...adapterOptions,
     }),
     providerAdapter: createLocalStubProviderAdapter(),
     repoRoot,
@@ -825,6 +841,59 @@ assert.match(happyPreflightArtifact.content, /^## Intended Changes$/m);
 assert.match(happyPreflightArtifact.content, /^## Review Evidence Expectations$/m);
 assert.match(happyPreflightArtifact.content, /^## Escalation Triggers$/m);
 assert.match(happyPreflightArtifact.content, /^## Input Summary$/m);
+
+const retryFetch = createQueuedFetch([
+  createPlannerApiPayload('builder-preflight-retry-after-429'),
+]);
+const retryCoordinator = createLiveCoordinator(runtime, retryFetch.fetchImpl, {
+  maxRetryAttempts: 1,
+  retryDelayMs: 0,
+});
+const retryContext = await runPlannerArchitectTaskBreakerForTask({
+  coordinator: retryCoordinator,
+  projectId: liveProject.id,
+  queuedFetch: retryFetch,
+  runtime,
+  label: 'builder-preflight retry after 429',
+  intent: 'Retry builder-preflight once after a transient provider 429 without widening live semantics.',
+  scopeStatement: 'Verify bounded retry closes a transient builder-preflight 429.',
+});
+const retryBuilderPreflightAnchor = createBuilderPreflightAnchor(
+  liveProject.id,
+  retryContext.task.id,
+  retryContext.planArtifact.id,
+  retryContext.plannerResult.run.id,
+  retryContext.architectureArtifact.id,
+  retryContext.architectResult.run.id,
+  retryContext.breakdownArtifact.id,
+  retryContext.taskBreakerResult.run.id,
+);
+
+retryFetch.push({
+  status: 429,
+  headers: {
+    'x-ratelimit-reset-requests': '0ms',
+  },
+  payload: {
+    error: {
+      message: 'Rate limited',
+    },
+  },
+});
+retryFetch.push(
+  createBuilderPreflightApiPayload(retryBuilderPreflightAnchor, {
+    providerRunId: 'resp-builder-preflight-retry-success',
+  }),
+);
+
+const retryBuilderPreflightResult = await retryCoordinator.runBuilderPreflight({
+  taskId: retryContext.task.id,
+});
+
+assert.equal(retryBuilderPreflightResult.run.summary.adapter, 'openai-responses');
+assert.equal(retryBuilderPreflightResult.run.summary.providerRunId, 'resp-builder-preflight-retry-success');
+assert.equal(retryBuilderPreflightResult.run.summary.nextStage, 'request-builder-live-mutation-approval');
+assert.equal(retryFetch.calls.length, 5);
 
 const happyApproval = runtime.requestBuilderLiveMutationApproval({
   taskId: happyContext.task.id,
