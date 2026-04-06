@@ -314,3 +314,4 @@
 - Decision Inbox처럼 gate action 설명문이 짧은 surface에서는 `guard` 같은 단일 영어만 남아 있어도 눈에 띈다. 이 경우에는 `현재 guard`를 `현재 게이트`처럼 이미 다른 surface에서 쓰는 용어로 맞추고, 기존 source smoke에 그 한 줄만 추가로 고정하는 편이 가장 작은 blast radius로 operator tone을 유지하기 쉽다.
 - `run`처럼 실제 시스템 object name을 화면에서 계속 쓰더라도, block heading처럼 순수 operator-facing label 자리에 그대로 노출하면 내부 모델 이름처럼 느껴지기 쉽다. 이런 경우에는 `run 기본 정보`를 `실행 기본 정보`처럼 label만 바꾸고, `run id`나 상태 token은 그대로 둔 채 관련 source smoke들만 현재 기준선으로 갱신하는 편이 가장 작은 blast radius였다.
 - artifact preview처럼 helper 문장이 같은 진술을 여러 자리에서 반복할 때는 `source of truth` 같은 영어 한 조각을 한 줄씩 따로 바꾸지 말고, lead copy와 raw-detail support copy를 한 번에 `최종 기준`으로 맞추는 편이 안정적이었다. 이 경우 preview mode나 원문 저장 semantics는 그대로 두고 wording marker를 읽는 smoke만 함께 갱신하면 blast radius를 작게 유지할 수 있다.
+- artifacts처럼 helper 문장에 `best-effort`가 lead copy, breakdown parsing, preflight summary에 반복되면 한 군데만 바꾸면 다시 톤이 갈라진다. 이런 경우에는 세 문장을 한 번에 `가능한 범위` 기준으로 맞추고, 새 source smoke 하나로 긍정/부정 marker를 같이 고정하는 편이 가장 작은 blast radius였다.
