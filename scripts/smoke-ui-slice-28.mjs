@@ -20,6 +20,9 @@ const repoRoot = path.resolve(__dirname, '..');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-28');
 const port = 4338;
 const baseUrl = `http://127.0.0.1:${port}`;
+const appJs = fs.readFileSync(path.join(repoRoot, 'ui', 'app.js'), 'utf8');
+
+assert.match(appJs, /기존 대기 중인 릴리스 승인 기록을 그대로 처리합니다\./);
 
 function runGit(projectPath, args) {
   return execFileSync('git', args, {
@@ -431,7 +434,7 @@ async function main() {
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(appJs, /릴리스 지시 승인/);
     assert.match(appJs, /종료 정리는 릴리스 준비 상태가 잡힌 뒤 실행에서 이어집니다\./);
-    assert.match(appJs, /기존 pending release 승인 기록을 그대로 처리합니다\./);
+    assert.match(appJs, /기존 대기 중인 릴리스 승인 기록을 그대로 처리합니다\./);
 
     const approvePayload = await postJson(
       `/api/decision-inbox/${encodeURIComponent(releaseInboxItemId)}/actions`,

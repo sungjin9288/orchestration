@@ -15,7 +15,7 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
 assert.match(appJs, /회의실, 작전실, 관제실 기본 동선만 엽니다\./);
-assert.match(appJs, /세부 제어와 provenance는 관제실에 남기고, 여기선 안건 동선만 엽니다\./);
+assert.match(appJs, /세부 제어와 근거는 관제실에 남기고, 여기선 안건 동선만 엽니다\./);
 assert.match(appJs, /연결 태스크 \$\{linkedTask\.id\}를 선택한 상태로 작업판을 엽니다\./);
 
 assert.doesNotMatch(appJs, /Use Mission Actions for linked task setup and execution handoff\./);

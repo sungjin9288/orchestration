@@ -16,7 +16,7 @@ assert.match(app, /empty-state empty-state-inline mission-empty-state mission-em
 assert.match(app, /'mission-empty-state-active-row'/);
 assert.match(app, /'mission-empty-state-complete-row'/);
 assert.match(app, /위 접수 데스크에서 새 안건을 열면 바로 이 줄에 이어집니다\./);
-assert.match(app, /close-out까지 끝난 안건이 생기면 이 줄에 차곡히 보관됩니다\./);
+assert.match(app, /종료 정리까지 끝난 안건이 생기면 이 줄에 차곡히 보관됩니다\./);
 
 assert.match(styles, /\.mission-empty-state-row \{[\s\S]*padding:\s*15px 16px 14px;[\s\S]*border-radius:\s*18px;/);
 assert.match(styles, /\.mission-empty-state-active-row \{[\s\S]*rgba\(255, 253, 248, 0\.92\)/);

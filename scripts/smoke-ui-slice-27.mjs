@@ -427,7 +427,7 @@ async function main() {
     assert.match(appJs, /실행으로 이동해 릴리스 패키지 준비/);
     assert.match(
       appJs,
-      /릴리스 패키지 경로를 따라 현재 release 승인을 엽니다\./,
+      /릴리스 패키지 경로를 따라 현재 릴리스 승인을 엽니다\./,
     );
 
     const releasePackagePayload = await postJson(

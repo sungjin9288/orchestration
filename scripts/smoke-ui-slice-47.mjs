@@ -15,7 +15,7 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
 assert.match(appJs, /진행 중인 미션 없음[\s\S]*?위 접수 데스크에서 새 안건을 열면 바로 이 줄에 이어집니다\./);
-assert.match(appJs, /완료된 미션 없음[\s\S]*?close-out까지 끝난 안건이 생기면 이 줄에 차곡히 보관됩니다\./);
+assert.match(appJs, /완료된 미션 없음[\s\S]*?종료 정리까지 끝난 안건이 생기면 이 줄에 차곡히 보관됩니다\./);
 assert.match(appJs, /<strong class="mission-empty-title">미션 없음<\/strong>[\s\S]*?<p class="mission-empty-copy">위 접수 데스크에서 첫 안건을 만들면 이곳에 바로 쌓입니다\.<\/p>/);
 
 assert.doesNotMatch(appJs, /No active missions[\s\S]*?Prepare the next mission when the next bounded cycle is ready\./);

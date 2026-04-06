@@ -17,15 +17,12 @@ const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'u
 assert.match(appJs, /function getInboxStatusDisplay\(status\)/);
 assert.match(appJs, /function getInboxResolutionActionDisplay\(action\)/);
 assert.match(appJs, /function renderSurfaceLeadStrip\(options = \{\}\)/);
-assert.match(appJs, /title: '관제실 로그실'/);
-assert.match(appJs, /title: '증적 보관실'/);
-assert.match(appJs, /title: '관제실 결재함'/);
+assert.match(appJs, /copy: '현재 실행 기록과 다음 확인을 빠르게 훑습니다\.'/);
+assert.match(appJs, /copy: '현재 증적과 연결 근거를 확인합니다\.'/);
+assert.match(appJs, /copy: '현재 안건과 다음 처리를 판단합니다\.'/);
 assert.match(appJs, /실행 프로바이더/);
 assert.match(appJs, /프로바이더 업데이트/);
-assert.match(appJs, /로그는 여전히 고급 점검 표면입니다/);
-assert.match(appJs, /아티팩트는 의도적으로 고급 provenance 표면에 남깁니다/);
-assert.match(appJs, /결정함은 명시적인 승인과 결정 처리에 계속 열려 있지만/);
-assert.match(appJs, /선택된 run 없음/);
+assert.match(appJs, /선택된 실행 기록 없음/);
 assert.match(appJs, /선택된 증적 없음/);
 assert.match(appJs, /선택된 결재 없음/);
 assert.match(appJs, /리뷰어 실행/);
@@ -47,6 +44,7 @@ assert.doesNotMatch(appJs, /No run selected/);
 assert.doesNotMatch(appJs, /No artifact selected/);
 assert.doesNotMatch(appJs, /No inbox item selected/);
 assert.doesNotMatch(appJs, /Execution Provider/);
+assert.doesNotMatch(appJs, /고급 provenance/);
 
 const executingMission = Object.values(executionGateState.missions)[0];
 const executingTask = executionGateState.tasks[executingMission.linkedTaskId];
@@ -69,7 +67,7 @@ console.log(
     {
       ok: true,
       advancedOpsKoreanShell: {
-        headings: ['관제실 로그실', '증적 보관실', '관제실 결재함'],
+        headings: ['로그', '아티팩트', '결정함'],
         providerBootstrap: '실행 프로바이더',
         executionGate: {
           missionStatus: executingMission.status,

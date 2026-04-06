@@ -10,7 +10,7 @@ const appPath = path.join(repoRoot, 'ui', 'app.js');
 
 const app = fs.readFileSync(appPath, 'utf8');
 
-assert.match(app, /close-out 결과는 소스 릴리스 번들/);
+assert.match(app, /종료 정리 결과는 소스 릴리스 번들/);
 assert.match(app, /에 연결돼 있습니다\./);
 
 console.log(
@@ -18,7 +18,7 @@ console.log(
     {
       ok: true,
       missionCompletionReadyStatusCopyTightening: {
-        markers: ['close-out 결과는 소스 릴리스 번들', '에 연결돼 있습니다.'],
+        markers: ['종료 정리 결과는 소스 릴리스 번들', '에 연결돼 있습니다.'],
       },
     },
     null,

@@ -371,7 +371,7 @@ async function main() {
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(appJs, /최신 리뷰어 번들이 준비됐습니다\./);
     assert.match(appJs, /커밋 패키지 준비/);
-    assert.match(appJs, /커밋 패키지 경로를 따라 현재 commit 승인을 엽니다\./);
+    assert.match(appJs, /커밋 패키지 경로를 따라 현재 커밋 승인을 엽니다\./);
 
     const readinessBefore = coordinator.getCommitPackageReadiness({ taskId });
 
