@@ -91,7 +91,7 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(appJs, /현재 지시 승인/);
-    assert.match(appJs, /기존 pending builder 승인 기록을 그대로 재사용하며, 세부 태스크\/로그\/아티팩트\/결정함 제어는 관제실에 남깁니다\./);
+    assert.match(appJs, /기존 대기 중인 빌더 승인 기록을 그대로 재사용하며, 세부 태스크\/로그\/아티팩트\/결정함 제어는 관제실에 남깁니다\./);
     assert.match(appJs, /지휘 승인선/);
 
     const missionPayload = await postJson('/api/missions', {

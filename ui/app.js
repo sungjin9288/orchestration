@@ -6705,7 +6705,7 @@ function renderPreselectedPendingItemHint(item, approval, options = {}) {
               <p class="form-help">${escapeHtml(helpText)}</p>
             </div>
           `
-          : '<p class="form-help">이 slice에서는 결정 처리를 결정함 표면에 남깁니다.</p>'
+          : '<p class="form-help">이 슬라이스에서는 결정 처리를 결정함 표면에 남깁니다.</p>'
       }
     </div>
   `;
@@ -9457,8 +9457,8 @@ function renderProjectBootstrapPanel(data, options = {}) {
                     name="editProjectProviderMode"
                     ${projectActionDisabled ? 'disabled' : ''}
                   >
-                    <option value="local-stub" ${state.projectProviderDraftMode === 'local-stub' ? 'selected' : ''}>local-stub</option>
-                    <option value="live" ${state.projectProviderDraftMode === 'live' ? 'selected' : ''}>openai-responses</option>
+                    <option value="local-stub" ${state.projectProviderDraftMode === 'local-stub' ? 'selected' : ''}>로컬 스텁 (local-stub)</option>
+                    <option value="live" ${state.projectProviderDraftMode === 'live' ? 'selected' : ''}>OpenAI Responses (openai-responses)</option>
                   </select>
                 </label>
                 ${
@@ -9475,7 +9475,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                         >
                       </label>
                       <label class="field">
-                        <span class="field-label">API Key 환경변수</span>
+                        <span class="field-label">API 키 환경변수</span>
                         <input
                           type="text"
                           name="editProjectProviderApiKeyVar"
@@ -9510,7 +9510,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
             <form class="task-create-form project-create-form" data-form="create-linked-worktree">
               <div class="field-grid">
                 <label class="field">
-                  <span class="field-label">워크트리 slug</span>
+                  <span class="field-label">워크트리 슬러그</span>
                   <input
                     type="text"
                     name="linkedWorktreeSlug"
@@ -9558,8 +9558,8 @@ function renderProjectBootstrapPanel(data, options = {}) {
               name="projectPack"
               ${projectActionDisabled ? 'disabled' : ''}
             >
-              <option value="development" ${createProjectPack === 'development' ? 'selected' : ''}>development</option>
-              <option value="knowledge-work" ${createProjectPack === 'knowledge-work' ? 'selected' : ''}>knowledge-work</option>
+              <option value="development" ${createProjectPack === 'development' ? 'selected' : ''}>개발 (development)</option>
+              <option value="knowledge-work" ${createProjectPack === 'knowledge-work' ? 'selected' : ''}>지식 작업 (knowledge-work)</option>
             </select>
           </label>
           ${
@@ -9571,8 +9571,8 @@ function renderProjectBootstrapPanel(data, options = {}) {
                     name="projectProviderMode"
                     ${projectActionDisabled ? 'disabled' : ''}
                   >
-                    <option value="local-stub" ${createProjectProviderMode === 'local-stub' ? 'selected' : ''}>local-stub</option>
-                    <option value="live" ${createProjectProviderMode === 'live' ? 'selected' : ''}>openai-responses</option>
+                    <option value="local-stub" ${createProjectProviderMode === 'local-stub' ? 'selected' : ''}>로컬 스텁 (local-stub)</option>
+                    <option value="live" ${createProjectProviderMode === 'live' ? 'selected' : ''}>OpenAI Responses (openai-responses)</option>
                   </select>
                 </label>
               `
@@ -9592,7 +9592,7 @@ function renderProjectBootstrapPanel(data, options = {}) {
                   >
                 </label>
                 <label class="field">
-                  <span class="field-label">API Key 환경변수</span>
+                  <span class="field-label">API 키 환경변수</span>
                   <input
                     type="text"
                     name="projectProviderApiKeyVar"
@@ -11408,7 +11408,7 @@ function renderExecution(data) {
                       현재 지시 승인
                     </button>
                   </div>
-                  <p class="form-help">기존 pending builder 승인 기록을 그대로 재사용하며, 세부 태스크/로그/아티팩트/결정함 제어는 관제실에 남깁니다.</p>
+                  <p class="form-help">기존 대기 중인 빌더 승인 기록을 그대로 재사용하며, 세부 태스크/로그/아티팩트/결정함 제어는 관제실에 남깁니다.</p>
                 `
                 : ''
             }
@@ -11464,7 +11464,7 @@ function renderExecution(data) {
                       작전 변경 실행
                     </button>
                   </div>
-                  <p class="form-help">현재 builder 승인은 이미 승인됐습니다. 이 CTA는 라이브 변경 경로를 따라 한정된 변경 번들을 로그로 남깁니다.</p>
+                  <p class="form-help">현재 빌더 승인은 이미 승인됐습니다. 이 CTA는 라이브 변경 경로를 따라 한정된 변경 번들을 로그로 남깁니다.</p>
                 `
                 : ''
             }
@@ -11643,7 +11643,7 @@ function renderExecution(data) {
               관제실 열기
             </button>
           </div>
-          <p class="form-help">현재 지시가 아직 pending이면 관제실에서 결정함을 처리한 뒤, 다음 한정된 작전 액션으로 돌아옵니다.</p>
+          <p class="form-help">현재 지시가 아직 대기 상태이면 관제실에서 결정함을 처리한 뒤, 다음 한정된 작전 액션으로 돌아옵니다.</p>
           </section>
         </div>
       </aside>
@@ -12090,7 +12090,7 @@ function renderDeliverables(data) {
                       실행으로 이동해 커밋 게이트 승인
                     </button>
                   </div>
-                  <p class="form-help">커밋 승인은 현재 커밋 패키지가 pending 승인을 열면 실행 표면에 열립니다.</p>
+                  <p class="form-help">커밋 승인은 현재 커밋 패키지가 대기 승인을 열면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -12108,7 +12108,7 @@ function renderDeliverables(data) {
                       실행으로 이동해 로컬 커밋 실행
                     </button>
                   </div>
-                  <p class="form-help">로컬 커밋은 현재 승인된 commit 번들이 준비되면 실행 표면에 열립니다.</p>
+                  <p class="form-help">로컬 커밋은 현재 승인된 커밋 번들이 준비되면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
@@ -12144,7 +12144,7 @@ function renderDeliverables(data) {
                       실행으로 이동해 릴리스 게이트 승인
                     </button>
                   </div>
-                  <p class="form-help">릴리스 승인은 현재 릴리스 패키지가 pending 승인을 열면 실행 표면에 열립니다.</p>
+                  <p class="form-help">릴리스 승인은 현재 릴리스 패키지가 대기 승인을 열면 실행 표면에 열립니다.</p>
                 `
                 : ''
             }
