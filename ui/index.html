@@ -11,9 +11,24 @@
     <div class="app-shell">
       <header class="shell-header">
         <div class="shell-intro">
-          <p class="eyebrow">오케스트레이션 1.0 본부</p>
-          <h1>AI 전략 본부</h1>
-          <p class="shell-lead">안건을 올리면 착석한 AI 참모진이 회의를 열고 목표와 방향을 정합니다. 미션, 협의회, 실행, 산출물이 그 회의의 결과를 실제 경로로 밀어붙입니다. 첫 화면은 지금 연결된 프로젝트, 열린 런타임, 사람 게이트를 한 줄 관제처럼 먼저 읽게 정리합니다.</p>
+          <div class="shell-window-bar" aria-hidden="true">
+            <div class="shell-window-dots">
+              <span class="shell-window-dot shell-window-dot-close"></span>
+              <span class="shell-window-dot shell-window-dot-min"></span>
+              <span class="shell-window-dot shell-window-dot-max"></span>
+            </div>
+            <span class="shell-window-label">mission control</span>
+          </div>
+          <p class="eyebrow">오케스트레이션 1.0 관제 셸</p>
+          <h1>AI 실행 관제실</h1>
+          <p class="shell-lead shell-lead-primary">단일 운영자가 로컬 프로젝트를 다룰 때, 현재 프로젝트와 사람 게이트, 다음 실행 단위를 가장 먼저 읽게 만드는 warm control-plane shell입니다.</p>
+          <p class="shell-lead shell-lead-secondary">미션, 협의회, 실행, 산출물은 목표 정렬에서 결과 인계까지의 흐름을 보여 주고, 작업판, 로그, 아티팩트, 결정함은 실제 제어 권한과 증적을 붙잡는 운영 표면으로 남습니다.</p>
+          <div class="shell-agent-row" aria-label="현재 참모 라인업">
+            <span class="shell-agent-chip shell-agent-chip-lead">총지휘관</span>
+            <span class="shell-agent-chip shell-agent-chip-strategist">전략가</span>
+            <span class="shell-agent-chip shell-agent-chip-architect">설계자</span>
+            <span class="shell-agent-chip shell-agent-chip-decomposer">분해자</span>
+          </div>
           <div class="shell-command-strip" aria-label="운영 기준">
             <span class="shell-command-pill">project_path 먼저</span>
             <span class="shell-command-pill">리뷰 후 완료</span>
@@ -23,8 +38,8 @@
         </div>
         <aside class="header-actions">
           <div class="shell-status-card">
-            <p class="shell-status-label">관제 연결</p>
-            <h2 class="shell-status-title">runtime snapshot</h2>
+            <p class="shell-status-label">관제 상태</p>
+            <h2 class="shell-status-title">runtime status</h2>
             <p id="refresh-status" class="refresh-status">연결 중…</p>
             <button id="refresh-button" class="refresh-button" type="button">새로고침</button>
           </div>

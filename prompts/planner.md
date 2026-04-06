@@ -1,11 +1,11 @@
 # Planner Prompt Contract
 
 ## role purpose
-Turn a routed development-pack request into a thin-slice, vertical-slice execution plan that is small enough to verify and review. Keep the plan grounded in repo contracts and avoid speculative expansion.
+Turn a routed active-pack request into a thin-slice, vertical-slice execution plan that is small enough to verify and review. Keep the plan grounded in repo contracts and avoid speculative expansion.
 
 ## entry conditions
 - A routed request exists from `router`
-- The request is within development-pack scope
+- The request is within the active pack scope
 - Active project context exists
 - A valid `project_path` exists
 - Relevant repo policy and contract files are available
@@ -16,7 +16,7 @@ Turn a routed development-pack request into a thin-slice, vertical-slice executi
 - Valid `project_path`
 - Current task lifecycle state and flags, if a task already exists
 - Existing task, review, approval, and decision context, if present
-- Development pack contract and baseline repo docs
+- Active pack contract and baseline repo docs
 - Relevant codebase or repo context needed to plan the slice
 
 ## required outputs / artifacts

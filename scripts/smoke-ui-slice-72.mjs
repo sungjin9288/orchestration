@@ -19,8 +19,10 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 const councilDraftState = JSON.parse(fs.readFileSync(councilDraftStatePath, 'utf8'));
 const councilSession = Object.values(councilDraftState.councilSessions)[0];
 
-assert.match(indexHtml, /AI 전략 본부/);
-assert.match(indexHtml, /안건을 올리면 착석한 AI 참모진이 회의를 열고 목표와 방향을 정합니다\./);
+assert.match(indexHtml, /오케스트레이션 1\.0 관제 셸/);
+assert.match(indexHtml, /AI 실행 관제실/);
+assert.match(indexHtml, /shell-window-bar/);
+assert.match(indexHtml, /shell-agent-row/);
 assert.match(indexHtml, /본부 운영 표면/);
 
 assert.match(appJs, /본부 브리핑실/);
@@ -61,7 +63,7 @@ console.log(
     {
       ok: true,
       hqMeetingShell: {
-        headline: 'AI 전략 본부',
+        headline: 'AI 실행 관제실',
         flow: ['안건 접수', '참모진 착석', '회의', '방향 선택'],
         stageClasses: [
           'briefing-hero',

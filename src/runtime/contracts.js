@@ -2,6 +2,7 @@
 
 const PACKS = {
   DEVELOPMENT: 'development',
+  KNOWLEDGE_WORK: 'knowledge-work',
 };
 
 const PROVIDER_MODE = {

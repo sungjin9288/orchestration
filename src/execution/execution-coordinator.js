@@ -16,6 +16,7 @@ const {
   COMMIT_ACTION,
   RELEASE_ACTION,
   DECISION_INBOX_SOURCE_TYPE,
+  PACKS,
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,
   PROVIDER_READINESS,
@@ -31,6 +32,17 @@ const DEFAULT_SOURCE_OF_TRUTH_PATHS = [
   'docs/03_architecture-roadmap-v1.md',
   'packs/development/pack.md',
 ];
+const DEFAULT_SOURCE_OF_TRUTH_PATHS_BY_PACK = {
+  [PACKS.DEVELOPMENT]: DEFAULT_SOURCE_OF_TRUTH_PATHS,
+  [PACKS.KNOWLEDGE_WORK]: [
+    'AGENTS.md',
+    'docs/06_ai-orchestration-pivot.md',
+    'docs/07_mission-council-slice-m6-02.md',
+    'packs/knowledge-work/pack.md',
+    'tasks/todo.md',
+    'tasks/lessons.md',
+  ],
+};
 const DEFAULT_ARCHITECT_CODE_CONTEXT_PATHS = [
   'src/runtime/contracts.js',
   'src/runtime/file-store.js',
@@ -49,6 +61,7 @@ const DEFAULT_BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS = [
 
 function toExecutionTask(task) {
   return {
+    deliverableType: task.deliverableType || null,
     id: task.id,
     title: task.title,
     intent: task.intent,
@@ -1852,11 +1865,21 @@ function createExecutionCoordinator(options = {}) {
   const taskBreakerPromptPath = options.taskBreakerPromptPath || 'prompts/task-breaker.md';
   const builderPromptPath = options.builderPromptPath || 'prompts/builder.md';
   const reviewerPromptPath = options.reviewerPromptPath || 'prompts/reviewer.md';
-  const sourceOfTruthPaths = options.sourceOfTruthPaths || DEFAULT_SOURCE_OF_TRUTH_PATHS;
+  const sourceOfTruthPathOverride = options.sourceOfTruthPaths || null;
+  const sourceOfTruthPathsByPack =
+    options.sourceOfTruthPathsByPack || DEFAULT_SOURCE_OF_TRUTH_PATHS_BY_PACK;
   const architectCodeContextPaths =
     options.architectCodeContextPaths || DEFAULT_ARCHITECT_CODE_CONTEXT_PATHS;
   const builderPreflightCodeContextPaths =
     options.builderPreflightCodeContextPaths || DEFAULT_BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS;
+
+  function resolveSourceOfTruthPaths(project) {
+    if (sourceOfTruthPathOverride) {
+      return sourceOfTruthPathOverride;
+    }
+
+    return sourceOfTruthPathsByPack[project?.pack] || DEFAULT_SOURCE_OF_TRUTH_PATHS;
+  }
 
   function resolveProviderExecutionContext(project, role) {
     const providerConfig = normalizeProjectProviderConfig(project?.provider);
@@ -3499,6 +3522,7 @@ function createExecutionCoordinator(options = {}) {
       readiness.providerSummary && readiness.providerSummary.allowed
         ? resolveProviderExecutionContext(project, 'planner')
         : assertProviderExecutionReady(project, 'planner');
+    const sourceOfTruthPaths = resolveSourceOfTruthPaths(project);
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
       task = runtime.transitionTaskLifecycle({
@@ -3641,6 +3665,7 @@ function createExecutionCoordinator(options = {}) {
 
     const plannerRun = runtime.getRun(planArtifact.runId);
     const providerContext = assertProviderExecutionReady(project, 'architect');
+    const sourceOfTruthPaths = resolveSourceOfTruthPaths(project);
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
       task = runtime.transitionTaskLifecycle({
@@ -3802,6 +3827,7 @@ function createExecutionCoordinator(options = {}) {
       plannerRun,
     } = resolveLatestTaskBreakerProvenance(runtime, task);
     const providerContext = assertProviderExecutionReady(project, 'task-breaker');
+    const sourceOfTruthPaths = resolveSourceOfTruthPaths(project);
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
       task = runtime.transitionTaskLifecycle({
@@ -3969,6 +3995,7 @@ function createExecutionCoordinator(options = {}) {
       taskBreakerRun,
     } = resolveLatestBuilderPreflightProvenance(runtime, task);
     const providerContext = assertProviderExecutionReady(project, 'builder-preflight');
+    const sourceOfTruthPaths = resolveSourceOfTruthPaths(project);
 
     if (task.lifecycleState !== TASK_LIFECYCLE.IN_PROGRESS) {
       task = runtime.transitionTaskLifecycle({
@@ -3992,19 +4019,31 @@ function createExecutionCoordinator(options = {}) {
       );
     }
 
-    const codeContextPaths = builderPreflightCodeContextPaths.filter((relativePath) =>
-      architectureAllowlistPaths.includes(relativePath),
-    );
+    const knowledgeWorkPack = project.pack === PACKS.KNOWLEDGE_WORK;
+    const codeContextPaths = knowledgeWorkPack
+      ? architectureAllowlistPaths
+      : builderPreflightCodeContextPaths.filter((relativePath) =>
+          architectureAllowlistPaths.includes(relativePath),
+        );
 
-    if (codeContextPaths.length === 0) {
+    if (!knowledgeWorkPack && codeContextPaths.length === 0) {
       throw new Error(
         `Builder preflight code context allowlist resolved to zero files inside the approved architecture boundary for task ${task.id}`,
       );
     }
 
-    const codeContext = codeContextPaths.map((relativePath) =>
-      readContextFile(repoRoot, relativePath),
-    );
+    const codeContext = codeContextPaths.map((relativePath) => {
+      if (!knowledgeWorkPack) {
+        return readContextFile(repoRoot, relativePath);
+      }
+
+      const filePath = resolveProjectFilePath(project.projectPath, relativePath);
+
+      return {
+        path: relativePath,
+        content: fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '',
+      };
+    });
     const request = buildBuilderPreflightExecutionRequest({
       architectureArtifact,
       architectureAllowlistPaths,
@@ -4232,13 +4271,15 @@ function createExecutionCoordinator(options = {}) {
     ];
 
     const providerContext = assertProviderExecutionReady(project, 'builder-live-mutation');
+    const sourceOfTruthPaths = resolveSourceOfTruthPaths(project);
     const promptContract = readContextFile(repoRoot, builderPromptPath);
     const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
       readContextFile(repoRoot, relativePath),
     );
     const baselineTargetContents = captureFileContents(project.projectPath, targetFiles);
+    const knowledgeWorkPack = project.pack === PACKS.KNOWLEDGE_WORK;
 
-    if ([...baselineTargetContents.values()].some((content) => content === null)) {
+    if (!knowledgeWorkPack && [...baselineTargetContents.values()].some((content) => content === null)) {
       const missingFiles = [...baselineTargetContents.entries()]
         .filter(([, content]) => content === null)
         .map(([relativePath]) => relativePath);
@@ -4251,12 +4292,12 @@ function createExecutionCoordinator(options = {}) {
     const baselineTargetDigests = [...baselineTargetContents.entries()].map(
       ([relativePath, content]) => ({
         path: relativePath,
-        digest: computeContentDigest(content),
+        digest: content === null ? null : computeContentDigest(content),
       }),
     );
     const codeContext = [...baselineTargetContents.entries()].map(([relativePath, content]) => ({
       path: relativePath,
-      content,
+      content: content === null ? '' : content,
     }));
     const request = buildBuilderLiveMutationExecutionRequest({
       anchor: {
@@ -4577,6 +4618,7 @@ function createExecutionCoordinator(options = {}) {
     const builderRun = readyContext.builderRun;
     const approval = readyContext.approval;
     const providerContext = assertProviderExecutionReady(project, 'reviewer');
+    const sourceOfTruthPaths = resolveSourceOfTruthPaths(project);
     const promptContract = readContextFile(repoRoot, reviewerPromptPath);
     const sourceOfTruth = sourceOfTruthPaths.map((relativePath) =>
       readContextFile(repoRoot, relativePath),

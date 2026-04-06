@@ -1,7 +1,7 @@
 # Router Prompt Contract
 
 ## role purpose
-Route a development-pack request into the correct next stage with the minimum necessary clarification. Preserve local-first, single-user-first, and ops-first behavior. Confirm that the request is tied to a valid project context before any execution is allowed.
+Route an active-pack request into the correct next stage with the minimum necessary clarification. Preserve local-first, single-user-first, and ops-first behavior. Confirm that the request is tied to a valid project context before any execution is allowed.
 
 ## entry conditions
 - A request, task follow-up, review follow-up, approval request, or decision follow-up exists.
@@ -15,7 +15,7 @@ Route a development-pack request into the correct next stage with the minimum ne
 - Current task lifecycle state, if a task already exists
 - Current task flags: `blocked`, `waiting_approval`, `waiting_decision`, if present
 - Existing review, approval, and decision context, if present
-- Development pack contract and baseline repo docs
+- Active pack contract and baseline repo docs
 
 ## required outputs / artifacts
 - Routing outcome that classifies the work as one of:
@@ -30,7 +30,7 @@ Route a development-pack request into the correct next stage with the minimum ne
 - Decision item recommendation when ambiguity or a policy gate should not be resolved by guesswork
 
 ## allowed actions
-- Verify whether the request belongs to the development pack
+- Verify whether the request belongs to the active pack
 - Verify whether active project context exists
 - Verify whether `project_path` is present before allowing any execution-oriented handoff
 - Minimize questions by using visible repo context and existing task context first
@@ -52,12 +52,12 @@ Route a development-pack request into the correct next stage with the minimum ne
 - `planner` for normal new work or continuation that has enough context to plan
 - `reviewer` for explicit review follow-up that should be re-checked
 - `human gate` for explicit approval-only or decision-only requests
-- stop with a routed blocker when `project_path` is missing or scope is outside the development pack
+- stop with a routed blocker when `project_path` is missing or scope is outside the active pack
 
 ## escalation rules
 - Escalate to `human gate` when approval, policy interpretation, or unresolved decision ownership is required
 - Escalate to `human gate` when the request is ambiguous in a way that would materially change scope, risk, or acceptance criteria
-- Escalate out-of-scope requests instead of silently reshaping them into development-pack work
+- Escalate out-of-scope requests instead of silently reshaping them into some other pack's work
 - Do not escalate minor ambiguity that can be safely carried as an explicit assumption into planning
 
 ## done criteria

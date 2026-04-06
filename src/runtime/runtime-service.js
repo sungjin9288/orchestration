@@ -55,6 +55,45 @@ function createRuntimeService(options = {}) {
     };
   }
 
+  function normalizeProjectPack(value) {
+    if (value === PACKS.KNOWLEDGE_WORK) {
+      return PACKS.KNOWLEDGE_WORK;
+    }
+
+    if (value === null || value === undefined || value === '') {
+      return PACKS.DEVELOPMENT;
+    }
+
+    if (value !== PACKS.DEVELOPMENT) {
+      throw new Error(`pack must be ${PACKS.DEVELOPMENT} or ${PACKS.KNOWLEDGE_WORK}`);
+    }
+
+    return PACKS.DEVELOPMENT;
+  }
+
+  function normalizeMissionDeliverableType(value, projectPack) {
+    if (projectPack !== PACKS.KNOWLEDGE_WORK) {
+      return null;
+    }
+
+    const normalized = normalizeOptionalString(value) || 'decision-memo';
+    const allowedTypes = new Set([
+      'checklist',
+      'decision-memo',
+      'execution-plan',
+      'prd',
+      'research-brief',
+    ]);
+
+    if (!allowedTypes.has(normalized)) {
+      throw new Error(
+        'deliverableType must be decision-memo, prd, execution-plan, checklist, or research-brief',
+      );
+    }
+
+    return normalized;
+  }
+
   function normalizeProjectProviderConfig(input) {
     const defaultConfig = createDefaultProjectProviderConfig();
     const source = input && typeof input === 'object' ? input : {};
@@ -97,13 +136,37 @@ function createRuntimeService(options = {}) {
       return project;
     }
 
+    project.pack = normalizeProjectPack(project.pack);
     project.provider = normalizeProjectProviderConfig(project.provider);
     return project;
+  }
+
+  function normalizeMissionRecord(mission, projectPack = null) {
+    if (!mission || typeof mission !== 'object') {
+      return mission;
+    }
+
+    const effectivePack = projectPack || null;
+    mission.deliverableType = normalizeMissionDeliverableType(
+      mission.deliverableType,
+      effectivePack,
+    );
+
+    return mission;
   }
 
   function normalizeProjectsInState(state) {
     for (const project of Object.values(state.projects || {})) {
       normalizeProjectRecord(project);
+    }
+
+    return state;
+  }
+
+  function normalizeMissionsInState(state) {
+    for (const mission of Object.values(state.missions || {})) {
+      const projectPack = state.projects?.[mission.projectId]?.pack || null;
+      normalizeMissionRecord(mission, projectPack);
     }
 
     return state;
@@ -126,7 +189,7 @@ function createRuntimeService(options = {}) {
       throw new Error(`Mission not found: ${missionId}`);
     }
 
-    return mission;
+    return normalizeMissionRecord(mission, state.projects?.[mission.projectId]?.pack || null);
   }
 
   function assertCouncilSession(councilSessionId, state) {
@@ -1610,6 +1673,7 @@ function createRuntimeService(options = {}) {
   function createProject(input) {
     const state = store.loadState();
     const projectPath = path.resolve(input.projectPath || '');
+    const pack = normalizeProjectPack(input.pack);
 
     if (!input.name) {
       throw new Error('프로젝트 이름이 필요합니다.');
@@ -1629,6 +1693,8 @@ function createRuntimeService(options = {}) {
 
     if (existingProject) {
       normalizeProjectRecord(existingProject);
+      existingProject.pack = pack;
+      existingProject.updatedAt = new Date().toISOString();
       state.activeProjectId = existingProject.id;
       state.selectedMissionId =
         Object.values(state.missions)
@@ -1645,7 +1711,7 @@ function createRuntimeService(options = {}) {
       id,
       name: input.name,
       projectPath,
-      pack: PACKS.DEVELOPMENT,
+      pack,
       provider: normalizeProjectProviderConfig(input.provider),
       readiness: 'ready',
       createdAt: now,
@@ -1696,6 +1762,7 @@ function createRuntimeService(options = {}) {
     const title = String(input.title || '').trim();
     const goal = String(input.goal || '').trim();
     const constraints = String(input.constraints || '').trim();
+    const deliverableType = normalizeMissionDeliverableType(input.deliverableType, project.pack);
 
     if (!title) {
       throw new Error('미션 제목이 필요합니다.');
@@ -1714,6 +1781,7 @@ function createRuntimeService(options = {}) {
       title,
       goal,
       constraints,
+      deliverableType,
       status: 'draft',
       linkedTaskId: null,
       councilSessionId: null,
@@ -1723,20 +1791,40 @@ function createRuntimeService(options = {}) {
     state.selectedMissionId = id;
     store.saveState(state);
 
-    return state.missions[id];
+    return normalizeMissionRecord(state.missions[id], project.pack);
   }
 
-  function buildCouncilSessionRecord(state, mission, now) {
+  function buildCouncilSessionRecord(state, mission, project, now) {
+    const knowledgeWorkPack = project.pack === PACKS.KNOWLEDGE_WORK;
+    const deliverableType = normalizeMissionDeliverableType(mission.deliverableType, project.pack);
+    const deliverableLabelByType = {
+      checklist: '체크리스트',
+      'decision-memo': '의사결정 메모',
+      'execution-plan': '실행 계획서',
+      prd: 'PRD',
+      'research-brief': '리서치 브리프',
+    };
+    const deliverableLabel = deliverableLabelByType[deliverableType] || '의사결정 메모';
     const constraintsPresent = Boolean(String(mission.constraints || '').trim());
     const openQuestions = constraintsPresent
-      ? [
-          '기록된 제약 안에서 첫 결과물을 한 개의 한정된 슬라이스로 유지해도 되는가?',
-          '정렬 승인 이후 고급 운영에서 어떤 증적을 가장 먼저 확인해야 하는가?',
-        ]
-      : [
-          '첫 실행 범위를 한 파일 또는 한 흐름으로 더 좁힐 필요가 있는가?',
-          '정렬 승인 이후 고급 운영에서 어떤 증적을 가장 먼저 확인해야 하는가?',
-        ];
+      ? knowledgeWorkPack
+        ? [
+            `기록된 제약 안에서 첫 결과물을 한 개의 ${deliverableLabel}로 유지해도 되는가?`,
+            '정렬 승인 이후 어떤 참고 자료와 근거를 먼저 모아야 하는가?',
+          ]
+        : [
+            '기록된 제약 안에서 첫 결과물을 한 개의 한정된 슬라이스로 유지해도 되는가?',
+            '정렬 승인 이후 고급 운영에서 어떤 증적을 가장 먼저 확인해야 하는가?',
+          ]
+      : knowledgeWorkPack
+        ? [
+            `첫 결과물을 ${deliverableLabel}로 고정해도 되는가?`,
+            '정렬 승인 이후 어떤 근거를 먼저 모아야 추천안의 신뢰도가 올라가는가?',
+          ]
+        : [
+            '첫 실행 범위를 한 파일 또는 한 흐름으로 더 좁힐 필요가 있는가?',
+            '정렬 승인 이후 고급 운영에서 어떤 증적을 가장 먼저 확인해야 하는가?',
+          ];
 
     return {
       id: nextId(state, 'councilSession'),
@@ -1761,37 +1849,50 @@ function createRuntimeService(options = {}) {
         },
       ],
       summary:
-        '협의회는 미션을 하나의 한정된 슬라이스로 정렬하고, 하위 실행은 아직 시작하지 않은 채 명시적 정렬만 요구한다.',
+        knowledgeWorkPack
+          ? `협의회는 미션을 하나의 ${deliverableLabel} 슬라이스로 정렬하고, 하위 실행은 아직 시작하지 않은 채 명시적 정렬만 요구한다.`
+          : '협의회는 미션을 하나의 한정된 슬라이스로 정렬하고, 하위 실행은 아직 시작하지 않은 채 명시적 정렬만 요구한다.',
       recommendation:
-        '추천안 승인으로 첫 한정된 슬라이스를 정렬하고, 이후 실행 자동 체인은 planner -> architect -> task-breaker -> builder preflight까지만 연결한다.',
+        knowledgeWorkPack
+          ? `추천안 승인으로 첫 ${deliverableLabel} 슬라이스를 정렬하고, 이후 실행 자동 체인은 planner -> architect -> task-breaker -> builder preflight까지만 연결한다.`
+          : '추천안 승인으로 첫 한정된 슬라이스를 정렬하고, 이후 실행 자동 체인은 planner -> architect -> task-breaker -> builder preflight까지만 연결한다.',
       openQuestions,
       transcript: [
         {
           role: 'Strategist',
           stance: '목표 정리',
-          content: `우선순위는 "${mission.goal}"를 가장 짧은 검증 경로로 바꾸는 것이다. 첫 결과물은 하나의 한정된 슬라이스로 제한한다.`,
+          content: knowledgeWorkPack
+            ? `우선순위는 "${mission.goal}"를 가장 짧은 판단 경로로 바꾸는 것이다. 첫 결과물은 하나의 ${deliverableLabel}로 제한한다.`
+            : `우선순위는 "${mission.goal}"를 가장 짧은 검증 경로로 바꾸는 것이다. 첫 결과물은 하나의 한정된 슬라이스로 제한한다.`,
         },
         {
           role: 'Architect',
           stance: '경계 보호',
           content: constraintsPresent
-            ? `기록된 constraints("${mission.constraints}")를 그대로 유지하고 더 넓은 의미론 변경은 피해야 한다.`
-            : '명시된 constraints가 없더라도 더 넓은 의미론 변경은 피하고 현재 프로젝트 경계 안에서만 다뤄야 한다.',
+            ? knowledgeWorkPack
+              ? `기록된 constraints("${mission.constraints}")를 유지하고, 근거 없는 범위 확장이나 미확인 가정을 문서에 섞지 않아야 한다.`
+              : `기록된 constraints("${mission.constraints}")를 그대로 유지하고 더 넓은 의미론 변경은 피해야 한다.`
+            : knowledgeWorkPack
+              ? '명시된 constraints가 없더라도 현재 프로젝트 경계와 확인 가능한 근거 안에서만 판단과 문서를 만들어야 한다.'
+              : '명시된 constraints가 없더라도 더 넓은 의미론 변경은 피하고 현재 프로젝트 경계 안에서만 다뤄야 한다.',
         },
         {
           role: 'Decomposer',
           stance: '실행 절단',
-          content:
-            '연결 태스크는 하나만 만들고, 첫 인계는 execution provenance를 유지할 수 있는 한정된 태스크 하나로 자른다.',
+          content: knowledgeWorkPack
+            ? `연결 태스크는 하나만 만들고, 첫 인계는 하나의 ${deliverableLabel} 산출물로 닫을 수 있는 태스크 하나로 자른다.`
+            : '연결 태스크는 하나만 만들고, 첫 인계는 execution provenance를 유지할 수 있는 한정된 태스크 하나로 자른다.',
         },
         {
           role: 'Conductor',
           stance: '추천안',
-          content: `추천안은 "${mission.title}"를 단일 태스크 한정 실행으로 정렬한 뒤, 사용자 정렬 승인을 먼저 받고 고급 운영 인계를 여는 것이다.`,
+          content: knowledgeWorkPack
+            ? `추천안은 "${mission.title}"를 단일 ${deliverableLabel} 태스크로 정렬한 뒤, 사용자 정렬 승인을 먼저 받고 필요한 경우에만 후속 실행 인계를 여는 것이다.`
+            : `추천안은 "${mission.title}"를 단일 태스크 한정 실행으로 정렬한 뒤, 사용자 정렬 승인을 먼저 받고 고급 운영 인계를 여는 것이다.`,
         },
       ],
       selectedPlan: {
-        title: '단일 한정 슬라이스',
+        title: knowledgeWorkPack ? `단일 ${deliverableLabel} 슬라이스` : '단일 한정 슬라이스',
         scope: mission.title,
         nextStep: '추천안 승인',
       },
@@ -1838,6 +1939,10 @@ function createRuntimeService(options = {}) {
       id,
       projectId: project.id,
       missionId: mission?.id || null,
+      deliverableType: normalizeMissionDeliverableType(
+        input.deliverableType ?? mission?.deliverableType,
+        project.pack,
+      ),
       title: input.title,
       intent: input.intent || '',
       lifecycleState: TASK_LIFECYCLE.INBOX,
@@ -1892,6 +1997,7 @@ function createRuntimeService(options = {}) {
       state,
       project,
       {
+        deliverableType: mission.deliverableType,
         title: String(input.title || mission.title || '').trim(),
         intent: String(input.intent || mission.goal || '').trim(),
       },
@@ -1915,6 +2021,7 @@ function createRuntimeService(options = {}) {
   function createCouncilSessionForMission(input) {
     const state = store.loadState();
     const mission = assertMission(input.missionId, state);
+    const project = assertProject(mission.projectId, state);
     const now = new Date().toISOString();
 
     if (mission.councilSessionId && state.councilSessions[mission.councilSessionId]) {
@@ -1923,7 +2030,7 @@ function createRuntimeService(options = {}) {
       );
     }
 
-    const councilSession = buildCouncilSessionRecord(state, mission, now);
+    const councilSession = buildCouncilSessionRecord(state, mission, project, now);
 
     state.councilSessions[councilSession.id] = councilSession;
     mission.councilSessionId = councilSession.id;
@@ -2732,7 +2839,8 @@ function createRuntimeService(options = {}) {
 
   function getSnapshot() {
     const state = store.loadState();
-    return normalizeProjectsInState(state);
+    normalizeProjectsInState(state);
+    return normalizeMissionsInState(state);
   }
 
   function resetRuntime() {

@@ -25,7 +25,7 @@ Do not run reviewer live, commit, merge, release, or advance task lifecycle from
 - Valid `project_path`
 - Current task lifecycle state and flags
 - Existing review, approval, and decision context, if present
-- Development pack contract and baseline repo docs
+- Active pack contract and baseline repo docs
 - `live-mutation` mode only:
   - latest builder preflight artifact
   - latest approved builder live mutation approval

@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('fs');
 const path = require('path');
 
 const { PROVIDER_READINESS } = require('../../runtime/contracts');
@@ -8,6 +9,52 @@ const DEFAULT_OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const DEFAULT_TIMEOUT_MS = 120000;
 const LIVE_ROLE_LIMIT_REASON =
   'openai-responses live execution is limited to planner, architect, task-breaker, builder-preflight, builder-live-mutation, and reviewer in provider-slice-07';
+
+const KNOWLEDGE_WORK_DELIVERABLE_SPECS = {
+  checklist: {
+    filePath: 'docs/checklist.md',
+    outputLabel: 'operational checklist',
+    sections: ['Objective', 'Checklist', 'Readiness Signals', 'Risks', 'Next Action', 'Trace'],
+  },
+  'decision-memo': {
+    filePath: 'docs/decision-memo.md',
+    outputLabel: 'decision memo',
+    sections: ['Decision', 'Context', 'Recommendation', 'Options Considered', 'Risks and Assumptions', 'Open Questions', 'Next Action', 'Trace'],
+  },
+  'execution-plan': {
+    filePath: 'docs/execution-plan.md',
+    outputLabel: 'execution plan',
+    sections: ['Outcome', 'Scope', 'Milestones', 'Workstreams', 'Dependencies', 'Risks', 'Next Action', 'Trace'],
+  },
+  prd: {
+    filePath: 'docs/prd.md',
+    outputLabel: 'product requirements document',
+    sections: ['Problem', 'User', 'Goals', 'Non-Goals', 'Requirements', 'Acceptance Signals', 'Open Questions', 'Trace'],
+  },
+  'research-brief': {
+    filePath: 'docs/research-brief.md',
+    outputLabel: 'research brief',
+    sections: ['Research Question', 'Current Context', 'Findings', 'Implications', 'Unknowns', 'Next Action', 'Trace'],
+  },
+};
+
+function isKnowledgeWorkPack(request) {
+  return request?.project?.pack === 'knowledge-work';
+}
+
+function getKnowledgeWorkDeliverableSpec(request) {
+  const deliverableType = sanitizeText(request?.task?.deliverableType) || 'decision-memo';
+
+  return {
+    deliverableType,
+    ...(KNOWLEDGE_WORK_DELIVERABLE_SPECS[deliverableType] ||
+      KNOWLEDGE_WORK_DELIVERABLE_SPECS['decision-memo']),
+  };
+}
+
+function uniqueStringArray(values) {
+  return [...new Set(sanitizeStringArray(values))];
+}
 
 function createStructuredResultSchema(allowedNextStages) {
   return {
@@ -520,7 +567,7 @@ function createBuilderLiveMutationStructuredOutputSchema() {
                   type: 'string',
                 },
                 digest: {
-                  type: 'string',
+                  type: ['string', 'null'],
                 },
               },
             },
@@ -745,6 +792,64 @@ function createReviewerStructuredOutputSchema() {
               },
             },
           },
+          knowledgeWorkRubric: {
+            type: 'object',
+            additionalProperties: false,
+            required: [
+              'deliverableType',
+              'deliverablePath',
+              'requiredSections',
+              'deliverablePresent',
+              'missingRequiredSections',
+              'emptyRequiredSections',
+              'explicitNextAction',
+              'traceMarkerVerified',
+              'checklistItemsPresent',
+              'acceptanceSignalsExplicit',
+            ],
+            properties: {
+              deliverableType: {
+                type: 'string',
+              },
+              deliverablePath: {
+                type: 'string',
+              },
+              requiredSections: {
+                type: 'array',
+                minItems: 1,
+                items: {
+                  type: 'string',
+                },
+              },
+              deliverablePresent: {
+                type: 'boolean',
+              },
+              missingRequiredSections: {
+                type: 'array',
+                items: {
+                  type: 'string',
+                },
+              },
+              emptyRequiredSections: {
+                type: 'array',
+                items: {
+                  type: 'string',
+                },
+              },
+              explicitNextAction: {
+                type: 'boolean',
+              },
+              traceMarkerVerified: {
+                type: 'boolean',
+              },
+              checklistItemsPresent: {
+                type: 'boolean',
+              },
+              acceptanceSignalsExplicit: {
+                type: 'boolean',
+              },
+            },
+          },
         },
       },
       normalizedResult: createStructuredResultSchema(['builder', 'architect', 'human gate']),
@@ -758,6 +863,139 @@ function sanitizeText(value) {
 
 function sanitizeStringArray(values) {
   return Array.isArray(values) ? values.map((value) => sanitizeText(value)).filter(Boolean) : [];
+}
+
+function getReviewerVerdictSeverity(verdict) {
+  const normalizedVerdict = sanitizeText(verdict);
+  const severityByVerdict = {
+    pass: 0,
+    changes_requested: 1,
+    fail: 2,
+  };
+
+  return Object.prototype.hasOwnProperty.call(severityByVerdict, normalizedVerdict)
+    ? severityByVerdict[normalizedVerdict]
+    : -1;
+}
+
+function buildKnowledgeWorkReviewFindings(rubric) {
+  if (!rubric) {
+    return [];
+  }
+
+  const findings = [];
+
+  if (!rubric.deliverablePresent) {
+    findings.push(`Expected deliverable file is missing at ${rubric.deliverablePath}.`);
+  }
+
+  findings.push(
+    ...rubric.missingRequiredSections.map((section) => `Missing required section: ${section}.`),
+  );
+  findings.push(
+    ...rubric.emptyRequiredSections.map((section) => `Required section is empty: ${section}.`),
+  );
+
+  if (!rubric.explicitNextAction) {
+    findings.push('Next Action section must contain at least one explicit action item.');
+  }
+
+  if (!rubric.traceMarkerVerified) {
+    findings.push(`Trace section must preserve the builder provenance marker for ${rubric.deliverablePath}.`);
+  }
+
+  if (rubric.deliverableType === 'checklist' && !rubric.checklistItemsPresent) {
+    findings.push('Checklist section must contain at least one checklist item.');
+  }
+
+  if (rubric.deliverableType === 'prd' && !rubric.acceptanceSignalsExplicit) {
+    findings.push('Acceptance Signals section must contain explicit acceptance bullets.');
+  }
+
+  return uniqueStringArray(findings);
+}
+
+function buildKnowledgeWorkVerificationEvidence(rubric) {
+  if (!rubric) {
+    return [];
+  }
+
+  return uniqueStringArray([
+    `deliverable file reviewed: ${rubric.deliverablePath}`,
+    `deliverable type reviewed: ${rubric.deliverableType}`,
+    `expected section set reviewed: ${rubric.requiredSections.join(', ')}`,
+    `deliverable file exists: ${rubric.deliverablePresent ? 'yes' : 'no'}`,
+    `explicit next action verified: ${rubric.explicitNextAction ? 'yes' : 'no'}`,
+    `trace marker verified: ${rubric.traceMarkerVerified ? 'yes' : 'no'}`,
+    rubric.deliverableType === 'checklist'
+      ? `checklist items present: ${rubric.checklistItemsPresent ? 'yes' : 'no'}`
+      : '',
+    rubric.deliverableType === 'prd'
+      ? `acceptance signals explicit: ${rubric.acceptanceSignalsExplicit ? 'yes' : 'no'}`
+      : '',
+  ]);
+}
+
+function buildKnowledgeWorkContractComplianceLine(rubric) {
+  if (!rubric) {
+    return null;
+  }
+
+  return rubric.requiredVerdictSeverity === 0
+    ? 'Required knowledge-work rubric checks passed for section coverage, explicit next action, and provenance trace.'
+    : 'Knowledge-work rubric findings blocked handoff until missing structure or provenance issues are repaired.';
+}
+
+function renderKnowledgeWorkReviewerInputSection(request) {
+  if (!isKnowledgeWorkPack(request)) {
+    return '';
+  }
+
+  const deliverable = getKnowledgeWorkDeliverableSpec(request);
+  const deliverablePath = request.project?.projectPath
+    ? path.join(request.project.projectPath, deliverable.filePath)
+    : null;
+  const extraChecks = [
+    'Missing deliverable files or missing Trace provenance markers are fatal reviewer failures.',
+    'Missing or empty required sections must not pass review.',
+  ];
+  let deliverableSnapshot = '_deliverable file missing_';
+
+  if (deliverablePath && fs.existsSync(deliverablePath)) {
+    const content = fs.readFileSync(deliverablePath, 'utf8');
+    deliverableSnapshot =
+      content.length > 20000
+        ? `${content.slice(0, 20000)}\n\n... [truncated after 20000 chars]`
+        : content;
+  }
+
+  if (deliverable.deliverableType === 'checklist') {
+    extraChecks.push('Checklist must contain at least one checkbox item.');
+  }
+
+  if (deliverable.deliverableType === 'prd') {
+    extraChecks.push('Acceptance Signals must contain explicit acceptance bullets.');
+  }
+
+  if (deliverable.sections.includes('Next Action')) {
+    extraChecks.push('Next Action must contain at least one explicit action item.');
+  }
+
+  return `
+## Knowledge-Work Deliverable Contract
+- deliverable type: ${deliverable.deliverableType}
+- expected deliverable path: ${deliverable.filePath}
+- expected deliverable label: ${deliverable.outputLabel}
+- expected sections: ${deliverable.sections.join(', ')}
+
+## Knowledge-Work Deliverable Snapshot
+\`\`\`md
+${deliverableSnapshot}
+\`\`\`
+
+## Knowledge-Work Reviewer Rubric
+${renderList(extraChecks, 'none')}
+`;
 }
 
 function renderFileSection(files, language = '') {
@@ -1143,6 +1381,7 @@ ${renderSourceOfTruthSection(request.sourceOfTruth)}
 
 ## Builder Logs
 ${renderBuilderLogsSection(request.builderLogs)}
+${renderKnowledgeWorkReviewerInputSection(request)}
 `;
 }
 
@@ -1207,6 +1446,7 @@ Return JSON only.
 - all anchor path arrays must contain repo-relative paths only and must keep the exact request ordering.
 - codeContextPaths must exactly match targetFileAllowlistPaths for this slice.
 - targetFileBaselineDigests must keep the exact request ordering and digest values.
+- targetFileBaselineDigests[].digest may be null only when the target file does not exist yet and the slice is creating a bounded knowledge-work deliverable.
 - artifact must include changeSummary, targetFiles, fileUpdates, risks, and verificationNotes.
 - artifact.changeSummary, artifact.risks, and artifact.verificationNotes must be arrays of strings.
 - artifact.targetFiles must exactly match anchor.targetFileAllowlistPaths in the same order.
@@ -1222,6 +1462,10 @@ Return JSON only.
 }
 
 function buildReviewerInstructions(request) {
+  const knowledgeWorkDeliverable = isKnowledgeWorkPack(request)
+    ? getKnowledgeWorkDeliverableSpec(request)
+    : null;
+
   return `${request.promptContract?.content || ''}
 
 Return JSON only.
@@ -1238,6 +1482,36 @@ Return JSON only.
 - architect is valid only when artifact.verdict is fail or changes_requested, needsDecision=false, and blockers is non-empty.
 - human gate is valid only for pass-side follow-up or explicit policy/risk follow-up, and it must not auto-start commit-package.
 - a blocking review-sourced decision item may be created only when needsDecision=true and blockers is non-empty.
+- ${
+    knowledgeWorkDeliverable
+      ? `Because project.pack is knowledge-work, artifact.knowledgeWorkRubric is required and must describe the actual deliverable review result for ${knowledgeWorkDeliverable.deliverableType} at ${knowledgeWorkDeliverable.filePath}.`
+      : 'artifact.knowledgeWorkRubric is optional and should be omitted unless project.pack is knowledge-work.'
+  }
+- ${
+    knowledgeWorkDeliverable
+      ? `artifact.knowledgeWorkRubric.requiredSections must exactly match ${knowledgeWorkDeliverable.sections.join(', ')} in the same order.`
+      : 'When omitted, artifact.knowledgeWorkRubric must not appear in the response.'
+  }
+- ${
+    knowledgeWorkDeliverable
+      ? 'artifact.knowledgeWorkRubric must include deliverablePresent, missingRequiredSections, emptyRequiredSections, explicitNextAction, traceMarkerVerified, checklistItemsPresent, and acceptanceSignalsExplicit booleans.'
+      : 'Do not invent knowledge-work rubric fields for non-knowledge-work tasks.'
+  }
+- ${
+    knowledgeWorkDeliverable
+      ? 'If deliverablePresent is false or traceMarkerVerified is false, artifact.verdict must not be softer than fail.'
+      : 'Keep reviewer verdict grounded in the supplied builder bundle evidence.'
+  }
+- ${
+    knowledgeWorkDeliverable
+      ? 'If any required section is missing or empty, if explicitNextAction is false, if checklistItemsPresent is false for checklist, or if acceptanceSignalsExplicit is false for prd, artifact.verdict must not be pass.'
+      : 'Do not soften review findings into pass when correction is still required.'
+  }
+- ${
+    knowledgeWorkDeliverable
+      ? 'Do not use a pass-side human gate when knowledge-work rubric issues remain without an explicit decision requirement.'
+      : 'Human gate remains for explicit decision or pass-side follow-up only.'
+  }
 - Do not include commit-package, local commit, release-package, close-out, or approval execution.
 - Do not include secrets, raw environment variable values, auth material, or provider-internal debugging output.`;
 }
@@ -1619,7 +1893,7 @@ function normalizeBuilderLiveMutationDigestRecords(values, label) {
     }
 
     const relativePath = normalizeRelativePath(value.path);
-    const digest = sanitizeText(value.digest).toLowerCase();
+    const rawDigest = value.digest === null ? null : sanitizeText(value.digest).toLowerCase();
 
     if (!relativePath) {
       throw new Error(
@@ -1627,15 +1901,15 @@ function normalizeBuilderLiveMutationDigestRecords(values, label) {
       );
     }
 
-    if (!/^[a-f0-9]{64}$/.test(digest)) {
+    if (rawDigest !== null && !/^[a-f0-9]{64}$/.test(rawDigest)) {
       throw new Error(
-        `OpenAI Responses structured output ${label} digest values must be lowercase sha256 hex strings`,
+        `OpenAI Responses structured output ${label} digest values must be lowercase sha256 hex strings or null for missing files`,
       );
     }
 
     return {
       path: relativePath,
-      digest,
+      digest: rawDigest,
     };
   });
 
@@ -2249,7 +2523,99 @@ function normalizeBuilderLiveMutationArtifact(artifact) {
   };
 }
 
-function normalizeReviewerArtifact(artifact) {
+function normalizeKnowledgeWorkReviewerRubric(rubric, request) {
+  if (!rubric || typeof rubric !== 'object' || Array.isArray(rubric)) {
+    throw new Error(
+      'OpenAI Responses structured output artifact.knowledgeWorkRubric is required for knowledge-work reviewer output',
+    );
+  }
+
+  const deliverable = getKnowledgeWorkDeliverableSpec(request);
+  const deliverablePath = normalizeRelativePath(rubric.deliverablePath);
+  const requiredSections = sanitizeStringArray(rubric.requiredSections);
+  const missingRequiredSections = uniqueStringArray(rubric.missingRequiredSections);
+  const emptyRequiredSections = uniqueStringArray(rubric.emptyRequiredSections);
+  const subsetValues = [...missingRequiredSections, ...emptyRequiredSections];
+
+  if (sanitizeText(rubric.deliverableType) !== deliverable.deliverableType) {
+    throw new Error(
+      'OpenAI Responses structured output artifact.knowledgeWorkRubric.deliverableType must match the task deliverableType',
+    );
+  }
+
+  if (deliverablePath !== deliverable.filePath) {
+    throw new Error(
+      'OpenAI Responses structured output artifact.knowledgeWorkRubric.deliverablePath must match the expected deliverable path',
+    );
+  }
+
+  if (!sameExactStringArrays(requiredSections, deliverable.sections)) {
+    throw new Error(
+      'OpenAI Responses structured output artifact.knowledgeWorkRubric.requiredSections must exactly match the expected deliverable sections',
+    );
+  }
+
+  if (
+    subsetValues.some((value) => !deliverable.sections.includes(value)) ||
+    new Set(subsetValues).size !== subsetValues.length
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output artifact.knowledgeWorkRubric missing/empty sections must be unique members of requiredSections',
+    );
+  }
+
+  const normalizedRubric = {
+    deliverableType: deliverable.deliverableType,
+    deliverablePath,
+    requiredSections,
+    deliverablePresent: rubric.deliverablePresent === true,
+    missingRequiredSections,
+    emptyRequiredSections,
+    explicitNextAction: rubric.explicitNextAction === true,
+    traceMarkerVerified: rubric.traceMarkerVerified === true,
+    checklistItemsPresent: rubric.checklistItemsPresent === true,
+    acceptanceSignalsExplicit: rubric.acceptanceSignalsExplicit === true,
+  };
+  const requiredVerdictSeverity =
+    !normalizedRubric.deliverablePresent || !normalizedRubric.traceMarkerVerified
+      ? 2
+      : normalizedRubric.missingRequiredSections.length > 0 ||
+          normalizedRubric.emptyRequiredSections.length > 0 ||
+          !normalizedRubric.explicitNextAction ||
+          (deliverable.deliverableType === 'checklist' && !normalizedRubric.checklistItemsPresent) ||
+          (deliverable.deliverableType === 'prd' && !normalizedRubric.acceptanceSignalsExplicit)
+        ? 1
+        : 0;
+
+  return {
+    ...normalizedRubric,
+    requiredVerdictSeverity,
+  };
+}
+
+function assertKnowledgeWorkReviewerRubricOutcome(rubric, normalizedResult, verdict) {
+  if (!rubric) {
+    return;
+  }
+
+  if (getReviewerVerdictSeverity(verdict) < rubric.requiredVerdictSeverity) {
+    throw new Error(
+      'OpenAI Responses structured output reviewer artifact.verdict must not understate knowledge-work rubric issues',
+    );
+  }
+
+  if (
+    rubric.requiredVerdictSeverity > 0 &&
+    normalizedResult.nextStage === 'human gate' &&
+    normalizedResult.needsDecision !== true
+  ) {
+    throw new Error(
+      'OpenAI Responses structured output knowledge-work reviewer follow-up must not use a pass-side human gate while rubric issues remain',
+    );
+  }
+}
+
+function normalizeReviewerArtifact(artifact, request) {
   if (!artifact || typeof artifact !== 'object' || Array.isArray(artifact)) {
     throw new Error('OpenAI Responses structured output artifact is required');
   }
@@ -2278,6 +2644,12 @@ function normalizeReviewerArtifact(artifact) {
     throw new Error('OpenAI Responses structured output artifact.verdict is invalid for reviewer output');
   }
 
+  if (!isKnowledgeWorkPack(request) && artifact.knowledgeWorkRubric !== undefined) {
+    throw new Error(
+      'OpenAI Responses structured output artifact.knowledgeWorkRubric is only allowed for knowledge-work reviewer output',
+    );
+  }
+
   const normalizedArtifact = {
     verdict,
     evidenceReviewed: sanitizeStringArray(artifact.evidenceReviewed),
@@ -2289,6 +2661,9 @@ function normalizeReviewerArtifact(artifact) {
       blockingIssue: artifact.followUpGate.blockingIssue === true,
       decisionRequired: artifact.followUpGate.decisionRequired === true,
     },
+    knowledgeWorkRubric: isKnowledgeWorkPack(request)
+      ? normalizeKnowledgeWorkReviewerRubric(artifact.knowledgeWorkRubric, request)
+      : null,
   };
 
   if (
@@ -2429,12 +2804,28 @@ ${renderList(artifact.verificationNotes, 'none')}
 }
 
 function renderReviewerArtifactMarkdown(request, anchor, artifact, normalizedResult) {
+  const knowledgeWorkFindings = buildKnowledgeWorkReviewFindings(artifact.knowledgeWorkRubric);
+  const knowledgeWorkVerificationEvidence = buildKnowledgeWorkVerificationEvidence(
+    artifact.knowledgeWorkRubric,
+  );
+  const knowledgeWorkContractCompliance = buildKnowledgeWorkContractComplianceLine(
+    artifact.knowledgeWorkRubric,
+  );
   const nextAction =
     normalizedResult.nextStage === 'architect'
       ? ['Return to architect with the review artifact and builder bundle context.']
       : normalizedResult.nextStage === 'human gate'
         ? ['Route to human gate after review.']
         : ['Return to builder with the review artifact and builder bundle context.'];
+  const findings = uniqueStringArray([...artifact.findings, ...knowledgeWorkFindings]);
+  const contractCompliance = uniqueStringArray([
+    ...artifact.contractCompliance,
+    knowledgeWorkContractCompliance || '',
+  ]);
+  const verificationEvidence = uniqueStringArray([
+    ...artifact.verificationEvidence,
+    ...knowledgeWorkVerificationEvidence,
+  ]);
 
   return `# Reviewer Report: ${request.task.title}
 
@@ -2450,13 +2841,13 @@ function renderReviewerArtifactMarkdown(request, anchor, artifact, normalizedRes
 ${renderList(artifact.evidenceReviewed, 'none')}
 
 ## Findings
-${renderList(artifact.findings, 'none')}
+${renderList(findings, 'none')}
 
 ## Contract Compliance
-${renderList(artifact.contractCompliance, 'none')}
+${renderList(contractCompliance, 'none')}
 
 ## Verification Evidence
-${renderList(artifact.verificationEvidence, 'none')}
+${renderList(verificationEvidence, 'none')}
 
 ## Accepted Risks
 ${renderList(artifact.acceptedRisks, 'none')}
@@ -2749,7 +3140,7 @@ function normalizeStructuredReviewerPayload(outputText, request) {
     throw new Error('OpenAI Responses structured output normalizedResult is required');
   }
 
-  const artifact = normalizeReviewerArtifact(parsedPayload.artifact);
+  const artifact = normalizeReviewerArtifact(parsedPayload.artifact, request);
   const normalizedResult = normalizeStructuredResult(
     parsedPayload.normalizedResult,
     ['builder', 'architect', 'human gate'],
@@ -2771,6 +3162,12 @@ function normalizeStructuredReviewerPayload(outputText, request) {
       'OpenAI Responses structured output reviewer followUpGate.blockingIssue must match the validated human-gate decision condition',
     );
   }
+
+  assertKnowledgeWorkReviewerRubricOutcome(
+    artifact.knowledgeWorkRubric,
+    normalizedResult,
+    artifact.verdict,
+  );
 
   if (
     normalizedResult.nextStage === 'builder' &&

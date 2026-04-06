@@ -16,7 +16,7 @@ Convert an approved plan and architecture boundary into an ordered set of execut
 - Valid `project_path`
 - Current task lifecycle state and flags, if present
 - Existing review, approval, and decision context, if present
-- Development pack contract and baseline repo docs
+- Active pack contract and baseline repo docs
 
 ## required outputs / artifacts
 - Task breakdown with:

@@ -431,6 +431,10 @@ function parseProviderConfigInput(input) {
   };
 }
 
+function parseProjectPackInput(input) {
+  return typeof input?.pack === 'string' ? input.pack : undefined;
+}
+
 async function serveStaticAsset(response, assetPath) {
   const filePath = path.join(uiRoot, assetPath);
 
@@ -679,6 +683,7 @@ const server = createServer(async (request, response) => {
 
       const project = runtime.createProject({
         name,
+        pack: parseProjectPackInput(input),
         projectPath,
         provider: parseProviderConfigInput(input),
       });
@@ -691,7 +696,10 @@ const server = createServer(async (request, response) => {
             kind: 'create-project',
             projectId: project.id,
           },
-          project,
+          project: {
+            ...project,
+            pack: project.pack,
+          },
         }),
       );
       return;
@@ -863,6 +871,8 @@ const server = createServer(async (request, response) => {
       const title = String(input.title || '').trim();
       const goal = String(input.goal || '').trim();
       const constraints = String(input.constraints || '').trim();
+      const deliverableType =
+        typeof input.deliverableType === 'string' ? input.deliverableType.trim() : '';
 
       if (!activeProject) {
         json(response, 400, { error: '미션을 만들기 전에 활성 프로젝트가 필요합니다.' });
@@ -871,6 +881,7 @@ const server = createServer(async (request, response) => {
 
       const mission = runtime.createMission({
         constraints,
+        deliverableType,
         goal,
         projectId: activeProject.id,
         title,
