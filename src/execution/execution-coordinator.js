@@ -4567,15 +4567,6 @@ function createExecutionCoordinator(options = {}) {
         },
       });
 
-      runtime.appendLog({
-        runId: run.id,
-        message: `applied limited live mutation to ${actualChangedFiles.join(', ')}`,
-      });
-      runtime.appendLog({
-        runId: run.id,
-        message: `saved builder live mutation bundle ${finalized.artifacts.changeSummary.id}, ${finalized.artifacts.patch.id}, ${finalized.artifacts.diff.id}`,
-      });
-
       return {
         artifacts: finalized.artifacts,
         changedFiles: actualChangedFiles,

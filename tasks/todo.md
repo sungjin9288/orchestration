@@ -415,6 +415,9 @@
 - [x] task-breaker optional real-live coverage stays on the existing `node scripts/smoke-qa-live-slice-04.mjs` path and does not require a standalone provider live entrypoint
 - [x] `DEC-030` is resolved by keeping future delete/archive/GC work behind an explicit operator-invoked retention consumer over the normalized Tier A/B/C rules
 
+### optional real-live housekeeping [accepted]
+- [x] `provider-live-builder-log-order-fix-m5-24` fixes the fresh optional real-live `builder-live-mutation` success-path regression reproduced on `2026-04-06` as `Run not found: run-0005` after stage completion, by moving success-log persistence into `finalizeBuilderLiveMutationSuccess()` and removing coordinator post-finalize append calls, so `node scripts/smoke-provider-live-slice-06.mjs` again closes green without changing provider routing, mutation-bundle semantics, or approval consumption; verified by `node --check src/runtime/runtime-service.js`, `node --check src/execution/execution-coordinator.js`, `node scripts/smoke-execution-slice-05.mjs`, `node scripts/smoke-provider-live-slice-06.mjs`, and `git diff --check`
+
 ### remaining [OPEN]
 - [x] the funded configured env plus inline `launchctl` injection now reruns all six target optional real-live entrypoints green on current `main`; future reruns from this shell still need inline env injection or app relaunch because bare `node` here does not inherit the login-session values automatically
 - [x] `ai-orchestration-pivot-v2` is now implemented on current `main`: the default post-v1 product path is now `Mission / Council / Execution / Deliverables`, the existing v1 shell remains `advanced ops mode`, and future follow-up returns to explicit housekeeping or later `vNext` backlog items instead of reopening the pivot itself as the next unresolved default-surface rewrite
