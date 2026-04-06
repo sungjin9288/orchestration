@@ -14427,7 +14427,7 @@ function renderDecisionInbox(data) {
             해결
           </button>
         </div>
-        <p class="form-help decision-action-help">해결 뒤 흐름은 영향 셀과 현재 guard를 따라 이어집니다.</p>
+        <p class="form-help decision-action-help">해결 뒤 흐름은 영향 셀과 현재 게이트를 따라 이어집니다.</p>
       </div>
     `;
   } else if (selectedItem?.status === 'pending') {

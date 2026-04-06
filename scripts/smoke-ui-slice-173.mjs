@@ -29,6 +29,11 @@ assert.match(
 );
 assert.match(
   app,
+  /해결 뒤 흐름은 영향 셀과 현재 게이트를 따라 이어집니다\./,
+);
+assert.doesNotMatch(app, /해결 뒤 흐름은 영향 셀과 현재 guard를 따라 이어집니다\./);
+assert.match(
+  app,
   /else if \(selectedItem\?\.status === 'pending'\) \{\s*actionSurface = `[\s\S]*?이 안건은 결정함에서 상태만 확인하고 다른 화면으로 이어집니다\.[\s\S]*?\$\{decisionActionSignalRow\}[\s\S]*?이 결정함 항목에는 현재 결정함 경로에서 허용된 쓰기 액션이 없습니다\./s,
 );
 
