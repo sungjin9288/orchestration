@@ -20,7 +20,7 @@ assert.match(appJs, /실행과 증적 연결만 짧게 봅니다\./);
 assert.match(appJs, /연결 요약만 먼저 봅니다\./);
 assert.match(appJs, /구조 요약이 없으면 원문으로 확인합니다\./);
 assert.match(appJs, /이 증적은 원문만 확인합니다\./);
-assert.match(appJs, /저장 원문이 최종 source of truth입니다\./);
+assert.match(appJs, /저장 원문이 최종 기준입니다\./);
 assert.match(appJs, /기록된 처리 메모가 없습니다\./);
 assert.match(appJs, /log-viewer log-viewer-compact/);
 assert.match(appJs, /artifact-preview artifact-preview-compact/);
@@ -50,7 +50,7 @@ console.log(
           '연결 요약만 먼저 봅니다.',
           '구조 요약이 없으면 원문으로 확인합니다.',
           '이 증적은 원문만 확인합니다.',
-          '저장 원문이 최종 source of truth입니다.',
+          '저장 원문이 최종 기준입니다.',
           '기록된 처리 메모가 없습니다.',
         ],
         compactViewers: ['log-viewer-compact', 'artifact-preview-compact'],

@@ -5782,11 +5782,11 @@ function getArtifactPolicySummary(artifact, data) {
 }
 
 function getStructuredPreviewLeadCopy() {
-  return '구조화 미리보기는 best-effort입니다. 아래 저장된 원문이 source of truth로 남습니다.';
+  return '구조화 미리보기는 best-effort입니다. 아래 저장된 원문이 최종 기준으로 남습니다.';
 }
 
 function getPreviewRedactionCopy() {
-  return '미리보기는 File Updates 안의 저장된 repo 내용을 가립니다. 아래 저장된 원문이 source of truth로 남습니다.';
+  return '미리보기는 File Updates 안의 저장된 repo 내용을 가립니다. 아래 저장된 원문이 최종 기준으로 남습니다.';
 }
 
 function getStructuredPreviewFallbackCopy() {
@@ -14245,7 +14245,7 @@ function renderArtifacts(data) {
                     : ''
                 }
                 <p class="detail-key">보관 원문</p>
-                <p class="detail-copy detail-copy-compact">저장 원문이 최종 source of truth입니다.</p>
+                <p class="detail-copy detail-copy-compact">저장 원문이 최종 기준입니다.</p>
                 <pre class="artifact-preview artifact-preview-compact">${escapeHtml(state.selectedArtifact?.content || '미리보기 가능한 내용이 없습니다.')}</pre>
               </div>
             `
