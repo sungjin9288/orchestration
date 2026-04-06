@@ -116,7 +116,7 @@ async function main() {
     assert.match(appJs, /라이브 변경 승인 요청/);
     assert.match(appJs, /request-builder-live-mutation-approval/);
     assert.match(appJs, /builderLiveMutationApprovalRequest/);
-    assert.match(appJs, /현재 preflight 아티팩트 기준으로 builder 라이브 변경 승인 게이트가 생성된 상태입니다\./);
+    assert.match(appJs, /현재 preflight 아티팩트 기준으로 빌더 라이브 변경 승인 게이트가 생성된 상태입니다\./);
     assert.match(appJs, /preferredInboxItemId: payload\.mutation\.inboxItemId \|\| null/);
     assert.match(stylesCss, /\.guard-summary/);
 
