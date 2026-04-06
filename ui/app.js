@@ -563,7 +563,7 @@ function renderOrchestrationCharter(options = {}) {
           ${ORCHESTRATION_RULES.map((rule) => createToken(rule, 'neutral')).join('')}
         </div>
         <p class="charter-copy">
-          귀여운 HQ 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다.
+          귀여운 본부 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다.
         </p>
       </article>
     </section>
