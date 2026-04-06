@@ -21,7 +21,7 @@ assert.match(appJs, /label: '현재 도크'/);
 assert.match(appJs, /label: '현재 포커스'/);
 assert.match(appJs, /label: '지금 체크'/);
 assert.match(appJs, /결정함 먼저 열기/);
-assert.match(appJs, /도크:.*Surface|도크:\$\{metadata\.kicker/);
+assert.match(appJs, /도크:.*표면|도크:\$\{metadata\.kicker/);
 
 assert.match(styles, /\.surface-focus-strip \{/);
 assert.match(styles, /\.surface-focus-grid \{/);

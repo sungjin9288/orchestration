@@ -30,35 +30,35 @@ const SURFACE_DISPLAY_NAMES = {
 const SURFACE_DOCK_METADATA = {
   artifacts: {
     copy: '현재 증적과 연결 근거를 확인합니다.',
-    kicker: 'Evidence',
+    kicker: '증적',
   },
   council: {
     copy: '참모진이 추천안과 방향을 정렬합니다.',
-    kicker: 'Council',
+    kicker: '협의',
   },
   'decision-inbox': {
     copy: '현재 안건과 다음 처리를 판단합니다.',
-    kicker: 'Gate',
+    kicker: '결재',
   },
   deliverables: {
     copy: '현재 보고 판단과 다음 행동을 확인합니다.',
-    kicker: 'Report',
+    kicker: '보고',
   },
   execution: {
     copy: '현재 작전 판단과 다음 행동을 조정합니다.',
-    kicker: 'Execute',
+    kicker: '작전',
   },
   logs: {
     copy: '현재 run과 다음 확인을 빠르게 훑습니다.',
-    kicker: 'Runs',
+    kicker: '실행기록',
   },
   mission: {
     copy: '현재 안건 판단과 바로 이동을 시작합니다.',
-    kicker: 'Intake',
+    kicker: '접수',
   },
   taskboard: {
     copy: '현재 실행 셀과 다음 실행을 조정합니다.',
-    kicker: 'Cells',
+    kicker: '실행셀',
   },
 };
 
@@ -8940,7 +8940,7 @@ function renderHomeCompanyPulseStrip(options) {
   const pulseCards = [
     {
       surface: 'mission',
-      kicker: 'Mission',
+      kicker: '미션',
       role: '안건 라인',
       title: selectedMission ? selectedMission.title : '안건 대기',
       copy: selectedMission
@@ -8951,7 +8951,7 @@ function renderHomeCompanyPulseStrip(options) {
     },
     {
       surface: 'council',
-      kicker: 'Council',
+      kicker: '협의회',
       role: '참모 heartbeat',
       title: selectedCouncil?.selectedPlan?.title || '회의 대기',
       copy: selectedCouncil
@@ -8962,7 +8962,7 @@ function renderHomeCompanyPulseStrip(options) {
     },
     {
       surface: 'execution',
-      kicker: 'Execution',
+      kicker: '실행',
       role: '작전 desk',
       title: activeTask ? activeTask.title : '작전 대기',
       copy: !activeTask
@@ -8979,7 +8979,7 @@ function renderHomeCompanyPulseStrip(options) {
     },
     {
       surface: 'deliverables',
-      kicker: 'Report',
+      kicker: '보고',
       role: '보고 lane',
       title: selectedArtifact ? `${getArtifactTypeDisplay(selectedArtifact.type)} 보고` : '보고 대기',
       copy: selectedArtifact
@@ -8992,7 +8992,7 @@ function renderHomeCompanyPulseStrip(options) {
     },
     {
       surface: 'decision-inbox',
-      kicker: 'Gate',
+      kicker: '결재',
       role: '사람 gate',
       title: pendingGateCount > 0 ? `게이트 ${pendingGateCount}건` : '게이트 안정',
       copy: pendingGateCount > 0
@@ -9088,7 +9088,7 @@ function renderSurfaceFocusStrip(data) {
     copy: metadata.copy || '현재 도크에서 같은 읽기 규칙으로 아래 표면을 이어서 봅니다.',
     emphasis: true,
     tokens: [
-      createToken(`도크:${metadata.kicker || 'Surface'}`, 'accent'),
+      createToken(`도크:${metadata.kicker || '표면'}`, 'accent'),
       createToken(`항목:${dockCount}`, 'neutral'),
       data.activeProject ? createToken(`프로젝트:${data.activeProject.name}`, 'success') : createToken('프로젝트:없음', 'warning'),
     ],
@@ -9300,7 +9300,7 @@ function renderNav(data) {
     const metadata = SURFACE_DOCK_METADATA[surface] || {};
     button.innerHTML = `
       <span class="nav-button-topline">
-        <span class="nav-button-kicker">${escapeHtml(metadata.kicker || 'Surface')}</span>
+        <span class="nav-button-kicker">${escapeHtml(metadata.kicker || '표면')}</span>
         <span class="nav-button-count">${escapeHtml(String(count))}</span>
       </span>
       <span class="nav-button-title">${escapeHtml(label)}</span>
