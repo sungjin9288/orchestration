@@ -13701,7 +13701,7 @@ function renderLogs(data) {
           selectedRun
             ? `
               <div class="detail-block detail-block-compact">
-                <p class="detail-key">run 기본 정보</p>
+                <p class="detail-key">실행 기본 정보</p>
                 <div class="token-row token-row-compact">
                   ${createToken(getRunStatusDisplay(selectedRun.status), getRunTone(selectedRun.status))}
                   ${selectedTask ? createToken(getTaskLifecycleDisplay(selectedTask.lifecycleState), 'neutral') : ''}

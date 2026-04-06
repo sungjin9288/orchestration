@@ -16,7 +16,7 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'utf8'));
 
-assert.match(appJs, /run 기본 정보/);
+assert.match(appJs, /실행 기본 정보/);
 assert.match(appJs, /증적 기본 정보/);
 assert.match(appJs, /결재 기본 정보/);
 assert.match(appJs, /detail-block detail-block-compact/);
@@ -48,7 +48,7 @@ console.log(
     {
       ok: true,
       hqOpsMetaDensity: {
-        sections: ['run 기본 정보', '증적 기본 정보', '결재 기본 정보'],
+        sections: ['실행 기본 정보', '증적 기본 정보', '결재 기본 정보'],
         compactClasses: ['detail-block-compact', 'kv-grid-compact', 'kv-item-compact'],
         executionGate: {
           missionStatus: executingMission.status,

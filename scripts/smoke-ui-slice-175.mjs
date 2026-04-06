@@ -19,7 +19,7 @@ assert.match(
 );
 assert.match(
   app,
-  /<div class="detail-block detail-block-compact">\s*<p class="detail-key">run 기본 정보<\/p>[\s\S]*?\$\{logsDetailSignalRow\}[\s\S]*?<div class="kv-grid kv-grid-compact">/s,
+  /<div class="detail-block detail-block-compact">\s*<p class="detail-key">실행 기본 정보<\/p>[\s\S]*?\$\{logsDetailSignalRow\}[\s\S]*?<div class="kv-grid kv-grid-compact">/s,
 );
 
 assert.match(styles, /\.logs-detail-signal-row \{/);

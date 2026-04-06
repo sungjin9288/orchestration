@@ -35,7 +35,7 @@ assert.match(
 );
 assert.match(
   app,
-  /<div class="detail-block detail-block-compact">\s*<p class="detail-key">run 기본 정보<\/p>[\s\S]*?\$\{logsDetailSignalRow\}/s,
+  /<div class="detail-block detail-block-compact">\s*<p class="detail-key">실행 기본 정보<\/p>[\s\S]*?\$\{logsDetailSignalRow\}/s,
 );
 assert.match(app, /signalRow: artifactsOpsEntrySignalRow,/);
 assert.match(app, /\$\{decisionActionSignalRow\}/);
