@@ -16,7 +16,11 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(indexHtml, /shell-command-strip/);
 assert.match(indexHtml, /project_path 먼저/);
-assert.match(indexHtml, /runtime snapshot/);
+assert.match(indexHtml, /런타임 상태/);
+assert.match(indexHtml, /프로젝트 도크/);
+assert.match(indexHtml, /런타임 연결/);
+assert.match(indexHtml, /흐름 현황/);
+assert.match(indexHtml, /사람 게이트/);
 assert.match(indexHtml, /id="summary-card-runtime"/);
 assert.match(indexHtml, /id="pending-gate-copy"/);
 assert.match(indexHtml, /안건 접수부터 결과 보고까지 한 줄 흐름으로 넘깁니다\./);
@@ -28,7 +32,14 @@ assert.match(appJs, /runtime bridge 연결 유지/);
 assert.match(appJs, /사람 검토가 필요한 게이트/);
 assert.match(appJs, /nav-button-topline/);
 assert.match(appJs, /최근 갱신/);
-assert.match(appJs, /runtime snapshot 연결 실패/);
+assert.match(appJs, /런타임 상태 요약 연결 실패/);
+assert.doesNotMatch(indexHtml, /mission control/);
+assert.doesNotMatch(indexHtml, /runtime status/);
+assert.doesNotMatch(indexHtml, /project dock/);
+assert.doesNotMatch(indexHtml, /runtime link/);
+assert.doesNotMatch(indexHtml, /flow traffic/);
+assert.doesNotMatch(indexHtml, /human gate/);
+assert.doesNotMatch(appJs, /runtime snapshot 연결 실패/);
 
 assert.match(styles, /\.shell-command-strip \{/);
 assert.match(styles, /\.shell-status-card \{/);
