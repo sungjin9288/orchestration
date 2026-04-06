@@ -627,7 +627,135 @@ function createBuilderLiveMutationStructuredOutputSchema() {
   };
 }
 
-function createReviewerStructuredOutputSchema() {
+function createKnowledgeWorkReviewerRubricSchema() {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: [
+      'deliverableType',
+      'deliverablePath',
+      'requiredSections',
+      'deliverablePresent',
+      'missingRequiredSections',
+      'emptyRequiredSections',
+      'explicitNextAction',
+      'traceMarkerVerified',
+      'checklistItemsPresent',
+      'acceptanceSignalsExplicit',
+    ],
+    properties: {
+      deliverableType: {
+        type: 'string',
+      },
+      deliverablePath: {
+        type: 'string',
+      },
+      requiredSections: {
+        type: 'array',
+        minItems: 1,
+        items: {
+          type: 'string',
+        },
+      },
+      deliverablePresent: {
+        type: 'boolean',
+      },
+      missingRequiredSections: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+      },
+      emptyRequiredSections: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+      },
+      explicitNextAction: {
+        type: 'boolean',
+      },
+      traceMarkerVerified: {
+        type: 'boolean',
+      },
+      checklistItemsPresent: {
+        type: 'boolean',
+      },
+      acceptanceSignalsExplicit: {
+        type: 'boolean',
+      },
+    },
+  };
+}
+
+function createReviewerStructuredOutputSchema(request) {
+  const artifactRequired = [
+    'verdict',
+    'evidenceReviewed',
+    'findings',
+    'contractCompliance',
+    'verificationEvidence',
+    'acceptedRisks',
+    'followUpGate',
+  ];
+  const artifactProperties = {
+    verdict: {
+      type: 'string',
+      enum: ['pass', 'fail', 'changes_requested'],
+    },
+    evidenceReviewed: {
+      type: 'array',
+      minItems: 1,
+      items: {
+        type: 'string',
+      },
+    },
+    findings: {
+      type: 'array',
+      items: {
+        type: 'string',
+      },
+    },
+    contractCompliance: {
+      type: 'array',
+      minItems: 1,
+      items: {
+        type: 'string',
+      },
+    },
+    verificationEvidence: {
+      type: 'array',
+      minItems: 1,
+      items: {
+        type: 'string',
+      },
+    },
+    acceptedRisks: {
+      type: 'array',
+      items: {
+        type: 'string',
+      },
+    },
+    followUpGate: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['blockingIssue', 'decisionRequired'],
+      properties: {
+        blockingIssue: {
+          type: 'boolean',
+        },
+        decisionRequired: {
+          type: 'boolean',
+        },
+      },
+    },
+  };
+
+  if (isKnowledgeWorkPack(request)) {
+    artifactRequired.push('knowledgeWorkRubric');
+    artifactProperties.knowledgeWorkRubric = createKnowledgeWorkReviewerRubricSchema();
+  }
+
   return {
     type: 'object',
     additionalProperties: false,
@@ -732,125 +860,8 @@ function createReviewerStructuredOutputSchema() {
       artifact: {
         type: 'object',
         additionalProperties: false,
-        required: [
-          'verdict',
-          'evidenceReviewed',
-          'findings',
-          'contractCompliance',
-          'verificationEvidence',
-          'acceptedRisks',
-          'followUpGate',
-        ],
-        properties: {
-          verdict: {
-            type: 'string',
-            enum: ['pass', 'fail', 'changes_requested'],
-          },
-          evidenceReviewed: {
-            type: 'array',
-            minItems: 1,
-            items: {
-              type: 'string',
-            },
-          },
-          findings: {
-            type: 'array',
-            items: {
-              type: 'string',
-            },
-          },
-          contractCompliance: {
-            type: 'array',
-            minItems: 1,
-            items: {
-              type: 'string',
-            },
-          },
-          verificationEvidence: {
-            type: 'array',
-            minItems: 1,
-            items: {
-              type: 'string',
-            },
-          },
-          acceptedRisks: {
-            type: 'array',
-            items: {
-              type: 'string',
-            },
-          },
-          followUpGate: {
-            type: 'object',
-            additionalProperties: false,
-            required: ['blockingIssue', 'decisionRequired'],
-            properties: {
-              blockingIssue: {
-                type: 'boolean',
-              },
-              decisionRequired: {
-                type: 'boolean',
-              },
-            },
-          },
-          knowledgeWorkRubric: {
-            type: 'object',
-            additionalProperties: false,
-            required: [
-              'deliverableType',
-              'deliverablePath',
-              'requiredSections',
-              'deliverablePresent',
-              'missingRequiredSections',
-              'emptyRequiredSections',
-              'explicitNextAction',
-              'traceMarkerVerified',
-              'checklistItemsPresent',
-              'acceptanceSignalsExplicit',
-            ],
-            properties: {
-              deliverableType: {
-                type: 'string',
-              },
-              deliverablePath: {
-                type: 'string',
-              },
-              requiredSections: {
-                type: 'array',
-                minItems: 1,
-                items: {
-                  type: 'string',
-                },
-              },
-              deliverablePresent: {
-                type: 'boolean',
-              },
-              missingRequiredSections: {
-                type: 'array',
-                items: {
-                  type: 'string',
-                },
-              },
-              emptyRequiredSections: {
-                type: 'array',
-                items: {
-                  type: 'string',
-                },
-              },
-              explicitNextAction: {
-                type: 'boolean',
-              },
-              traceMarkerVerified: {
-                type: 'boolean',
-              },
-              checklistItemsPresent: {
-                type: 'boolean',
-              },
-              acceptanceSignalsExplicit: {
-                type: 'boolean',
-              },
-            },
-          },
-        },
+        required: artifactRequired,
+        properties: artifactProperties,
       },
       normalizedResult: createStructuredResultSchema(['builder', 'architect', 'human gate']),
     },
@@ -1481,6 +1492,12 @@ Return JSON only.
 - builder is valid only when artifact.verdict is fail or changes_requested, needsDecision=false, and blockers=[].
 - architect is valid only when artifact.verdict is fail or changes_requested, needsDecision=false, and blockers is non-empty.
 - human gate is valid only for pass-side follow-up or explicit policy/risk follow-up, and it must not auto-start commit-package.
+- routing matrix must be followed exactly:
+  - verdict=pass => normalizedResult.nextStage must be human gate.
+  - verdict=fail or changes_requested with blockers=[] => normalizedResult.nextStage must be builder.
+  - verdict=fail or changes_requested with blockers non-empty => normalizedResult.nextStage must be architect.
+- never emit verdict=pass with normalizedResult.nextStage=builder or architect.
+- never emit normalizedResult.nextStage=builder with blockers non-empty.
 - a blocking review-sourced decision item may be created only when needsDecision=true and blockers is non-empty.
 - ${
     knowledgeWorkDeliverable
@@ -1599,6 +1616,7 @@ function buildBuilderLiveMutationRequestBody(request, model) {
 function buildReviewerRequestBody(request, model) {
   return {
     model,
+    temperature: 0,
     instructions: buildReviewerInstructions(request),
     input: renderReviewerInput(request),
     text: {
@@ -1606,7 +1624,7 @@ function buildReviewerRequestBody(request, model) {
         type: 'json_schema',
         name: 'reviewer_artifact_response',
         strict: true,
-        schema: createReviewerStructuredOutputSchema(),
+        schema: createReviewerStructuredOutputSchema(request),
       },
     },
   };
