@@ -353,6 +353,43 @@
 - [x] `qa-diagnostics-regression-m5-18` reran `node scripts/smoke-qa-slice-06.mjs` and `node scripts/smoke-qa-slice-07.mjs` green after the diagnostics-only failure-context patch, confirming the added timeout context did not change QA synthetic execution semantics
 - [x] the optional real-live verification gap is closed on current `main`; future live reruns from this Codex execution context still need inline `launchctl` env injection or an app relaunch because the bare `node` subprocess here does not inherit the login-session env automatically
 - [x] `ops-verification-m5-22` reran representative optional real-live entrypoints on `2026-03-29` from clean `main@3a788f5`; `launchctl getenv OPENAI_API_KEY` and `launchctl getenv OPENAI_RESPONSES_MODEL` were both empty in this execution context, so `node scripts/smoke-provider-live-slice-06.mjs` and `node scripts/smoke-qa-live-slice-06.mjs` both recorded fresh `skipped_missing_env` evidence instead of reopening runtime, provider, or UI scope
+- [x] `ops-verification-m5-23` reran the six target optional real-live entrypoints on `2026-04-06` from clean `main@7010513` after the Codex app was relaunched with visible configured env; current app session now sees `OPENAI_API_KEY=true` and `OPENAI_RESPONSES_MODEL=gpt-5.4` without inline injection, but the previous six-green result no longer reproduces, so the fresh current-main evidence is now `slice-03=pass`, `slice-05=timeout_or_429`, `slice-06=semantic_fail`, `slice-07=semantic_fail`, `qa-live-slice-06=timeout_or_429`, and `qa-live-slice-07=timeout_or_429`
+- script: `node scripts/smoke-provider-live-slice-03.mjs`
+  status: `pass`
+  model: `gpt-5.4`
+  failureClass: `timeout_or_429`
+  reason: `The current configured-env rerun completed planner and architect successfully, so the earlier provider-limit behavior did not reproduce on current main.`
+  evidence: `observedAt=2026-04-06; branch=main; commit=7010513; configuredEnvSource=app-relaunch; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-provider-live-slice-03; plannerRunId=run-0001; planArtifactId=artifact-0002; architectRunId=run-0003; architectureArtifactId=artifact-0004; architectNextStage=task-breaker; stageTimings=[{"durationMs":25429,"stage":"planner","status":"ok"},{"durationMs":18337,"stage":"architect","status":"ok"}]`
+- script: `node scripts/smoke-provider-live-slice-05.mjs`
+  status: `fail`
+  model: `gpt-5.4`
+  failureClass: `timeout_or_429`
+  reason: `The current configured-env rerun reached the architect live request, but OpenAI Responses returned HTTP 429 before builder-preflight completed.`
+  evidence: `observedAt=2026-04-06; branch=main; commit=7010513; configuredEnvSource=app-relaunch; httpStatus=429; callSite=runArchitect`
+- script: `node scripts/smoke-provider-live-slice-06.mjs`
+  status: `fail`
+  model: `gpt-5.4`
+  failureClass: `semantic_fail`
+  reason: `The current configured-env rerun cleared planner through builder-preflight, but builder-live-mutation failed with a runtime contract error when the coordinator tried to append logs to missing run \`run-0005\`.`
+  evidence: `observedAt=2026-04-06; branch=main; commit=7010513; configuredEnvSource=app-relaunch; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-provider-live-slice-06; stage=builder-live-mutation; durationMs=97959; approvalId=approval-0001; preflightArtifactId=artifact-0004; taskId=task-0001; error=Run not found: run-0005; stageTimings=[{"durationMs":27580,"stage":"planner","status":"ok"},{"durationMs":18775,"stage":"architect","status":"ok"},{"durationMs":27344,"stage":"task-breaker","status":"ok"},{"durationMs":14669,"stage":"builder-preflight","status":"ok"},{"durationMs":97959,"stage":"builder-live-mutation","status":"error"}]`
+- script: `node scripts/smoke-provider-live-slice-07.mjs`
+  status: `fail`
+  model: `gpt-5.4`
+  failureClass: `semantic_fail`
+  reason: `The current configured-env rerun completed builder live-mutation, but the downstream reviewer live request failed immediately with OpenAI Responses HTTP 400.`
+  evidence: `observedAt=2026-04-06; branch=main; commit=7010513; configuredEnvSource=app-relaunch; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-provider-live-slice-07; stage=reviewer; durationMs=289; approvalId=approval-0001; preflightArtifactId=artifact-0004; taskId=task-0001; httpStatus=400; stageTimings=[{"durationMs":26047,"stage":"planner","status":"ok"},{"durationMs":12838,"stage":"architect","status":"ok"},{"durationMs":21857,"stage":"task-breaker","status":"ok"},{"durationMs":17580,"stage":"builder-preflight","status":"ok"},{"durationMs":99696,"stage":"builder-live-mutation","status":"ok"},{"durationMs":289,"stage":"reviewer","status":"error"}]`
+- script: `node scripts/smoke-qa-live-slice-06.mjs`
+  status: `fail`
+  model: `gpt-5.4`
+  failureClass: `timeout_or_429`
+  reason: `The unrestricted browser rerun did not reach the prior approved-builder checkpoint; it timed out waiting for project bootstrap landing before project registration completed.`
+  evidence: `observedAt=2026-04-06; branch=main; commit=7010513; configuredEnvSource=app-relaunch; outputRoot=/Users/sungjin/dev/personal/orchestration/output/playwright/qa-slice-06-live; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-qa-live-slice-06; stage=browser-bootstrap-landing; durationMs=43539; stageTimings=[{"durationMs":1908,"stage":"prepare-browser-harness","status":"ok"},{"durationMs":43539,"stage":"browser-bootstrap-landing","status":"error"}]`
+- script: `node scripts/smoke-qa-live-slice-07.mjs`
+  status: `fail`
+  model: `gpt-5.4`
+  failureClass: `timeout_or_429`
+  reason: `The unrestricted browser rerun also timed out at the project bootstrap landing stage before the live reviewer flow could even start.`
+  evidence: `observedAt=2026-04-06; branch=main; commit=7010513; configuredEnvSource=app-relaunch; outputRoot=/Users/sungjin/dev/personal/orchestration/output/playwright/qa-slice-07-live; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-qa-live-slice-07; stage=browser-bootstrap-landing; durationMs=43359; stageTimings=[{"durationMs":2027,"stage":"prepare-browser-harness","status":"ok"},{"durationMs":43359,"stage":"browser-bootstrap-landing","status":"error"}]`
 
 ### v1 usable completion [accepted]
 - [x] current `main` now satisfies the operator-usable `development` pack v1 baseline defined by `docs/00_master-brief.md`, `docs/02_ia-v1.md`, `docs/03_architecture-roadmap-v1.md`, and `packs/development/pack.md`
@@ -419,7 +456,7 @@
 - [x] `provider-live-builder-log-order-fix-m5-24` fixes the fresh optional real-live `builder-live-mutation` success-path regression reproduced on `2026-04-06` as `Run not found: run-0005` after stage completion, by moving success-log persistence into `finalizeBuilderLiveMutationSuccess()` and removing coordinator post-finalize append calls, so `node scripts/smoke-provider-live-slice-06.mjs` again closes green without changing provider routing, mutation-bundle semantics, or approval consumption; verified by `node --check src/runtime/runtime-service.js`, `node --check src/execution/execution-coordinator.js`, `node scripts/smoke-execution-slice-05.mjs`, `node scripts/smoke-provider-live-slice-06.mjs`, and `git diff --check`
 
 ### remaining [OPEN]
-- [x] the funded configured env plus inline `launchctl` injection now reruns all six target optional real-live entrypoints green on current `main`; future reruns from this shell still need inline env injection or app relaunch because bare `node` here does not inherit the login-session values automatically
+- [x] fresh configured-env reruns on `main@7010513` now supersede the older six-green note: current Codex app relaunch makes env visible to bare `node`, but the six-target optional real-live set is no longer all green and must be treated as current non-blocking operational evidence instead of historical pass carryover
 - [x] `ai-orchestration-pivot-v2` is now implemented on current `main`: the default post-v1 product path is now `Mission / Council / Execution / Deliverables`, the existing v1 shell remains `advanced ops mode`, and future follow-up returns to explicit housekeeping or later `vNext` backlog items instead of reopening the pivot itself as the next unresolved default-surface rewrite
 - [x] `pivot-docs-m6-01` aligns the current source-of-truth docs to that direction on `2026-03-26`: `docs/00_master-brief.md`, `docs/01_decision-log.md`, `docs/02_ia-v1.md`, and `docs/03_architecture-roadmap-v1.md` now all record that v1 remains the reusable execution substrate and future default product framing should move to `Mission / Council / Execution / Deliverables`, while the existing shell stays as `advanced ops mode`
 - [x] `mission-council-slice-m6-02` is now defined in `docs/07_mission-council-slice-m6-02.md`: the first top-layer slice keeps the current engine intact, introduces `Mission` and `Council Session` as thin overlay objects, fixes the first alignment checkpoint, and limits automatic downstream progression to `planner -> architect -> task-breaker -> builder preflight`
