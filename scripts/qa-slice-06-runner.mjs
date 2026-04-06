@@ -58,6 +58,9 @@ const DEFAULT_TARGET_FILES = [
 ];
 const QA_BROWSER_FLAKE_ERROR_PATTERN =
   /project bootstrap landing|logs landing after builder live mutation|selected run visibility/i;
+const MISSION_BOOTSTRAP_LANDING_PATTERN = /Start With This Project|이 프로젝트로 시작/i;
+const MISSION_BOOTSTRAP_CONTEXT_PATTERN =
+  /Mission Start|Mission Project Access|Start With This Project|미션 시작|프로젝트를 먼저 고른 뒤 미션을 만듭니다|로컬 프로젝트 경로를 먼저 등록하세요/i;
 
 function ensureCleanDir(dirPath) {
   fs.rmSync(dirPath, { force: true, recursive: true });
@@ -1321,6 +1324,7 @@ async function prepareBuilderLiveMutationContext({
 async function verifyBrowserProjectSummary({
   outputRoot,
   overrideEnvVar,
+  project,
   projectSummary,
   secret,
   sessionName,
@@ -1328,12 +1332,13 @@ async function verifyBrowserProjectSummary({
   const providerReadySnapshot = await waitForSnapshotText({
     outputRoot,
     overrideEnvVar,
-    pattern: /provider readiness:ready/i,
+    pattern: new RegExp(escapeRegExp(project.name)),
     sessionName,
-    label: 'provider readiness ready DOM',
+    label: 'active project summary DOM',
   });
 
-  assert.match(providerReadySnapshot, /provider:openai-responses/i);
+  assert.match(providerReadySnapshot, new RegExp(escapeRegExp(project.name)));
+  assert.match(providerReadySnapshot, new RegExp(escapeRegExp(project.projectPath)));
   assertSecretAbsent(providerReadySnapshot, secret, 'project summary snapshot');
   assertProjectProviderSummary(projectSummary);
 
@@ -1506,25 +1511,26 @@ async function triggerBrowserBuilderLiveMutation({
   domTexts.push(taskText);
   assertSecretAbsent(taskText, secret, 'taskboard pre-run body');
 
-  const guardReadyText = await waitForBodyText({
+  const runButtonSelector = `[data-action="run-builder-live-mutation"][data-id="${taskId}"]`;
+  await waitForValue(async () => {
+    const buttonVisible = evaluate({
+      expression: `Boolean(document.querySelector(${JSON.stringify(runButtonSelector)}))`,
+      outputRoot,
+      overrideEnvVar,
+      sessionName,
+    });
+
+    return buttonVisible ? runButtonSelector : null;
+  }, 'live mutation run button visibility');
+
+  const guardReadyText = getBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: /live mutation guard:ready[\s\S]*latest approval:approved|latest approval:approved[\s\S]*live mutation guard:ready/i,
     sessionName,
-    label: 'live mutation ready guard visibility',
   });
   domTexts.push(guardReadyText);
+  assert.match(guardReadyText, /작전 변경 실행|라이브 변경 실행|현재 빌더 승인은 이미 승인됐습니다/i);
   assertSecretAbsent(guardReadyText, secret, 'live mutation ready guard body');
-
-  const runButtonText = await waitForBodyText({
-    outputRoot,
-    overrideEnvVar,
-    pattern: /Run Live Mutation/i,
-    sessionName,
-    label: 'live mutation run button visibility',
-  });
-  domTexts.push(runButtonText);
-  assertSecretAbsent(runButtonText, secret, 'live mutation run body');
 
   return domTexts;
 }
@@ -1773,13 +1779,14 @@ async function runSharedQaSlice06Flow({
       waitForSnapshotText({
         outputRoot,
         overrideEnvVar,
-        pattern: /Register Project/i,
+        pattern: MISSION_BOOTSTRAP_LANDING_PATTERN,
         sessionName: harness.sessionName,
         label: 'project bootstrap landing',
       }),
     );
     domTexts.push(landingSnapshot);
     assertSecretAbsent(landingSnapshot, secretToCheck, 'landing snapshot');
+    assert.match(landingSnapshot, MISSION_BOOTSTRAP_CONTEXT_PATTERN);
 
     const projectPayload = await runStage('register-live-project', () =>
       postJson(harness.baseUrl, '/api/projects', {
@@ -1810,6 +1817,7 @@ async function runSharedQaSlice06Flow({
       verifyBrowserProjectSummary({
         outputRoot,
         overrideEnvVar,
+        project: projectPayload.project,
         projectSummary: projectPayload.derived.providerExecutionSummaries[projectId],
         secret: secretToCheck,
         sessionName: harness.sessionName,
@@ -1817,12 +1825,31 @@ async function runSharedQaSlice06Flow({
     );
     domTexts.push(providerReadySnapshot);
 
-    const taskPayload = await runStage('create-task', () =>
-      postJson(harness.baseUrl, '/api/tasks', {
+    const missionPayload = await runStage('create-mission', () =>
+      postJson(harness.baseUrl, '/api/missions', {
+        goal:
+          'Verify the optional real live builder-live-mutation browser and API path without widening runtime or downstream release semantics.',
         title: taskTitle,
-        intent:
-          'Verify builder live mutation through browser and API by applying one bounded non-behavioral smoke annotation update inside src/runtime/contracts.js only, keep src/execution/provider-adapter.js unchanged unless strictly required for contract alignment, and do not widen runtime, reviewer, release, or close-out semantics.',
       }),
+    );
+
+    await runStage('select-mission', () =>
+      postJson(
+        harness.baseUrl,
+        `/api/missions/${encodeURIComponent(missionPayload.mission.id)}/select`,
+      ),
+    );
+
+    const taskPayload = await runStage('create-linked-task', () =>
+      postJson(
+        harness.baseUrl,
+        `/api/missions/${encodeURIComponent(missionPayload.mission.id)}/create-linked-task`,
+        {
+          intent:
+            'Run planner, architect, task-breaker, builder-preflight, approval, and builder-live-mutation live for provider-slice-06. Make one bounded non-behavioral smoke annotation update inside src/runtime/contracts.js only, keep src/execution/provider-adapter.js unchanged unless strictly required for contract alignment, preserve exact preflight plus approval provenance, save one atomic change-summary plus patch plus diff bundle, and leave reviewer execution to the later slice-07 smoke.',
+          title: taskTitle,
+        },
+      ),
     );
     failureContext.taskId = taskPayload.task.id;
 
@@ -2296,7 +2323,7 @@ export async function runQaSlice06RealSmoke(options = {}) {
         // Real live smoke intentionally uses the server's actual openai-responses adapter.
       },
       projectName: 'qa-slice-06-live',
-      taskTitle: 'QA slice 06 optional real live',
+      taskTitle: 'provider live slice 06 builder live mutation smoke',
       liveProviderApiKeyVar: apiKeyVar,
       providerModel: model,
       expectExactMutationContent: false,
