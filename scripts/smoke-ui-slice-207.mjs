@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..');
+const appPath = path.join(repoRoot, 'ui', 'app.js');
+
+const appJs = fs.readFileSync(appPath, 'utf8');
+
+assert.match(appJs, /구조화 미리보기는 가능한 범위에서 제공합니다\. 아래 저장된 원문이 최종 기준으로 남습니다\./);
+assert.match(appJs, /최신 breakdown 아티팩트를 가능한 범위에서 파싱했습니다\. 원문 markdown은 아티팩트 표면에 그대로 남습니다\./);
+assert.match(appJs, /가능한 범위의 간결 요약만 제공합니다\. 전체 구조화 미리보기와 원문 markdown은 아티팩트 표면에서 확인합니다\./);
+
+assert.doesNotMatch(appJs, /구조화 미리보기는 best-effort입니다\. 아래 저장된 원문이 최종 기준으로 남습니다\./);
+assert.doesNotMatch(appJs, /최신 breakdown 아티팩트를 best-effort로 파싱했습니다\. 원문 markdown은 아티팩트 표면에 그대로 남습니다\./);
+assert.doesNotMatch(appJs, /best-effort 간결 요약만 제공합니다\. 전체 구조화 미리보기와 원문 markdown은 아티팩트 표면에서 확인합니다\./);
+
+console.log(
+  JSON.stringify(
+    {
+      ok: true,
+      artifactBestEffortHelperCopy: {
+        markers: ['가능한 범위에서 제공합니다', '가능한 범위에서 파싱했습니다', '가능한 범위의 간결 요약'],
+      },
+    },
+    null,
+    2,
+  ),
+);
