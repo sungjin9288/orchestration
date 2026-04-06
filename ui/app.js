@@ -11256,7 +11256,6 @@ function renderExecution(data) {
           eyebrow: '작전 개요판',
           heading: '작전실',
           copy: '작전실 왼쪽 패널도 현재 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다.',
-          entryFrame: true,
           tokens: [
             createToken(`안건:${selectedMission.id}`, 'neutral'),
             createToken(`실행셀:${linkedTask.id}`, 'accent'),
@@ -11330,7 +11329,6 @@ function renderExecution(data) {
           eyebrow: '작전 판단판',
           heading: '현재 작전 판단과 다음 후속만 먼저 봅니다',
           copy: '오른쪽 패널은 긴 provenance 대신 현재 게이트와 바로 할 후속만 먼저 보여 줍니다.',
-          entryFrame: true,
           tokens: [
             createToken(getTaskLifecycleDisplay(linkedTask.lifecycleState), 'neutral'),
             linkedTask.flags?.waitingApproval ? createToken('승인대기', 'accent') : '',
@@ -11916,7 +11914,6 @@ function renderDeliverables(data) {
           eyebrow: '보고 개요판',
           heading: '결과 보고실',
           copy: '결과 보고실 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다.',
-          entryFrame: true,
           tokens: [
             createToken(`미션:${selectedMission.id}`, 'neutral'),
             createToken(`태스크:${linkedTask.id}`, 'accent'),
@@ -11995,7 +11992,6 @@ function renderDeliverables(data) {
           eyebrow: '보고 판단판',
           heading: '현재 보고 상태와 다음 후속만 먼저 봅니다',
           copy: '결과 보고실 오른쪽 패널은 현재 보고 묶음, 결재선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다.',
-          entryFrame: true,
           tokens: [
             createToken(
               `현재:${deliverablesEvidenceState.currentOwnerLabel}`,
