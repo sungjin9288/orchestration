@@ -13,8 +13,8 @@ const app = fs.readFileSync(appPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(app, /function renderHomeCompanyPulseStrip\(options\)/);
-assert.match(app, /<strong>company pulse<\/strong>/);
-assert.match(app, /같은 안건이 회의, 실행, 보고, 사람 게이트를 지나며 작은 회사 heartbeat처럼 이어집니다\./);
+assert.match(app, /<strong>회사 흐름<\/strong>/);
+assert.match(app, /같은 안건이 회의, 실행, 보고, 사람 게이트를 지나며 작은 회사 흐름처럼 이어집니다\./);
 assert.match(app, /surface: 'mission'/);
 assert.match(app, /surface: 'council'/);
 assert.match(app, /surface: 'execution'/);
@@ -34,7 +34,7 @@ console.log(
     {
       ok: true,
       homeCompanyPulse: {
-        heading: 'company pulse',
+        heading: '회사 흐름',
         lanes: ['mission', 'council', 'execution', 'deliverables', 'decision-inbox'],
       },
     },
