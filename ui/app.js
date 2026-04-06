@@ -563,7 +563,7 @@ function renderOrchestrationCharter(options = {}) {
           ${ORCHESTRATION_RULES.map((rule) => createToken(rule, 'neutral')).join('')}
         </div>
         <p class="charter-copy">
-          귀여운 HQ 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다.
+          귀여운 본부 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다.
         </p>
       </article>
     </section>
@@ -7586,7 +7586,7 @@ async function refreshData() {
 
   state.loading = true;
   state.error = null;
-  elements.refreshStatus.textContent = 'runtime snapshot 다시 읽는 중…';
+  elements.refreshStatus.textContent = '런타임 상태 요약 다시 읽는 중…';
 
   try {
     applySnapshotPayload(await fetchJson('/api/snapshot'));
@@ -7598,7 +7598,7 @@ async function refreshData() {
   } catch (error) {
     state.error = error;
     render();
-    elements.refreshStatus.textContent = 'runtime snapshot 연결 실패';
+    elements.refreshStatus.textContent = '런타임 상태 요약 연결 실패';
   } finally {
     state.loading = false;
     render();
@@ -9224,8 +9224,8 @@ function renderSurfaceFocusStrip(data) {
     checkCard = {
       label: '지금 체크',
       title: 'runtime 연결 끊김',
-      copy: state.error.message || 'runtime snapshot 연결부터 복구해야 아래 화면이 다시 열립니다.',
-      tokens: [createToken('snapshot:오류', 'danger')],
+      copy: state.error.message || '런타임 상태 요약 연결부터 복구해야 아래 화면이 다시 열립니다.',
+      tokens: [createToken('상태요약:오류', 'danger')],
     };
   } else if (pendingGateCount > 0) {
     checkCard = {
@@ -13252,7 +13252,7 @@ function renderTaskDetail(task, data) {
           showBuilderApprovalHint
             ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
                 helpText:
-                  '승인 동작은 현재 화면에서 처리하고, 서버 snapshot 상태를 그대로 따릅니다.',
+                  '승인 동작은 현재 화면에서 처리하고, 서버 상태 요약을 그대로 따릅니다.',
               })
             : ''
         }
