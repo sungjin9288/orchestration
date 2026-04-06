@@ -1697,13 +1697,13 @@ function getProviderReadinessDisplay(status) {
 }
 
 function getRunRelationLabelDisplay(label) {
-  if (label === 'commit-executor run') return '커밋실행 run';
-  if (label === 'commit-packager run') return '커밋패키저 run';
-  if (label === 'reviewer run') return '리뷰어 run';
-  if (label === 'release-packager run') return '릴리스패키저 run';
-  if (label === 'close-out run') return '종료정리 run';
-  if (label === 'run') return 'run';
-  return label || 'run';
+  if (label === 'commit-executor run') return '커밋실행 기록';
+  if (label === 'commit-packager run') return '커밋패키저 실행 기록';
+  if (label === 'reviewer run') return '리뷰어 실행 기록';
+  if (label === 'release-packager run') return '릴리스패키저 실행 기록';
+  if (label === 'close-out run') return '종료정리 실행 기록';
+  if (label === 'run') return '실행 기록';
+  return label || '실행 기록';
 }
 
 function getGuardReasonDisplay(reason) {
