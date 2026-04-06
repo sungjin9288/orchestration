@@ -32,7 +32,7 @@ assert.match(appJs, /현재 결재 안건/);
 assert.match(appJs, /관제실 직행/);
 assert.match(appJs, /선택된 run만 세 칸으로 요약하는 로그실/);
 assert.match(appJs, /현재 run과 다음 확인을 먼저 보는 로그 상세/);
-assert.match(appJs, /run 기본 정보/);
+assert.match(appJs, /실행 기본 정보/);
 assert.match(appJs, /보고 연결선/);
 assert.match(appJs, /실행 원문 로그/);
 assert.match(appJs, /보관실 아래는 증적 목록과 현재 증적으로 나눕니다/);
@@ -68,7 +68,7 @@ console.log(
       hqReportAndOpsCenterShell: {
         deliverables: ['결과 보고실', '보고 개요판', '결재선 현황', '안건 종료 보고'],
         opsCenter: ['로그실', '보관실', '결재함'],
-        detailFlow: ['run 기본 정보', '보고 연결선', '보관 원문', '처리 메모'],
+        detailFlow: ['실행 기본 정보', '보고 연결선', '보관 원문', '처리 메모'],
         executionGate: {
           missionStatus: executingMission.status,
           waitingApproval: executingTask.flags.waitingApproval,
