@@ -8783,12 +8783,12 @@ function renderSummary(data) {
   const pendingGates = data.inboxItems.filter((item) => item.status === 'pending').length;
   const runtimeAvailable = Boolean(state.payload?.runtimeRoot);
   const runtimeStatusCopy = state.error
-    ? 'snapshot 복구 필요'
+    ? '상태 요약 복구 필요'
     : state.loading
-      ? 'snapshot 다시 읽는 중'
+      ? '상태 요약 다시 읽는 중'
       : runtimeAvailable
-        ? 'runtime bridge 연결 유지'
-        : 'runtime root 대기 중';
+        ? '런타임 연결 유지'
+        : '런타임 루트 대기 중';
   const activeRunCopy = activeRuns > 0
     ? '지금 흐르고 있는 실행'
     : data.runs.length > 0
