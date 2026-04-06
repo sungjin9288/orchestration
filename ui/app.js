@@ -9216,7 +9216,7 @@ function renderSurfaceFocusStrip(data) {
     kind: 'check',
     label: '지금 체크',
     title: '읽는 기준 고정',
-    copy: '도크에서 항목을 고르고, 아래 surface에서 판단과 provenance를 이어서 읽습니다.',
+    copy: '도크에서 항목을 고르고, 아래 화면에서 판단과 근거를 이어서 읽습니다.',
     tokens: [createToken('규칙:도크 -> 본문', 'neutral')],
   };
 
@@ -9224,7 +9224,7 @@ function renderSurfaceFocusStrip(data) {
     checkCard = {
       label: '지금 체크',
       title: 'runtime 연결 끊김',
-      copy: state.error.message || 'runtime snapshot 연결부터 복구해야 아래 surface가 다시 열립니다.',
+      copy: state.error.message || 'runtime snapshot 연결부터 복구해야 아래 화면이 다시 열립니다.',
       tokens: [createToken('snapshot:오류', 'danger')],
     };
   } else if (pendingGateCount > 0) {
@@ -9267,7 +9267,7 @@ function renderSurfaceFocusStrip(data) {
     checkCard = {
       label: '지금 체크',
       title: `미션 ${getMissionStatusDisplay(selectedMission.status)}`,
-      copy: '현재 미션 상태를 먼저 잡아 두면 아래 handoff deck과 상세 패널이 더 자연스럽게 이어집니다.',
+      copy: '현재 미션 상태를 먼저 잡아 두면 아래 인계선 요약과 상세 패널이 더 자연스럽게 이어집니다.',
       tokens: [createToken(`상태:${getMissionStatusDisplay(selectedMission.status)}`, getMissionStatusTone(selectedMission.status))],
     };
   }
@@ -10426,7 +10426,7 @@ function renderMission(data) {
                     >
                       관제실 열기
                     </button>
-                    <p class="form-help">세부 제어와 provenance는 관제실에 남기고, 여기선 안건 동선만 엽니다.</p>
+                    <p class="form-help">세부 제어와 근거는 관제실에 남기고, 여기선 안건 동선만 엽니다.</p>
                   </div>
                 </section>
                 <section class="relation-strip">
@@ -11234,7 +11234,7 @@ function renderExecution(data) {
     {
       eyebrow: '실행 증적선',
       heading: '회의 인계와 현재 실행 증적을 같은 선으로 읽습니다',
-      copy: '현재 owner, role별 evidence, 보류 사유, 다음 handoff만 요약합니다.',
+      copy: '현재 담당, 역할별 증적, 보류 사유, 다음 인계만 요약합니다.',
     },
   );
 
@@ -11328,7 +11328,7 @@ function renderExecution(data) {
           wide: false,
           eyebrow: '작전 판단판',
           heading: '현재 작전 판단과 다음 후속만 먼저 봅니다',
-          copy: '오른쪽 패널은 긴 provenance 대신 현재 게이트와 바로 할 후속만 먼저 보여 줍니다.',
+          copy: '오른쪽 패널은 긴 근거 대신 현재 게이트와 바로 할 후속만 먼저 보여 줍니다.',
           tokens: [
             createToken(getTaskLifecycleDisplay(linkedTask.lifecycleState), 'neutral'),
             linkedTask.flags?.waitingApproval ? createToken('승인대기', 'accent') : '',
@@ -12344,7 +12344,7 @@ function renderDeliverables(data) {
             <p class="detail-copy">
               <strong>다음 안전한 후속 단계</strong>: ${
                 missionCompletionReady
-                  ? '저장된 종료 정리 번들을 최종 한정 요약으로 보고, 다음 미션을 시작하거나 더 깊은 provenance 확인이 필요하면 고급 운영 모드를 엽니다. 외부 전달은 여전히 비활성입니다.'
+                  ? '저장된 종료 정리 번들을 최종 한정 요약으로 보고, 다음 미션을 시작하거나 더 깊은 근거 확인이 필요하면 고급 운영 모드를 엽니다. 외부 전달은 여전히 비활성입니다.'
                   : '실행에서 현재 한정된 경로를 계속 전진합니다. 종료 정리 번들이 저장되기 전까지 이 표면은 요약 전용으로 남습니다.'
               }
             </p>
@@ -12488,7 +12488,7 @@ function renderTaskboard(data) {
         label: '오른쪽 상세',
         title: focusedTask ? '현재 상태 + 다음 실행' : '선택 셀 대기',
         copy: focusedTask
-          ? '선택된 셀의 보류 이유, 다음 실행, provenance는 오른쪽 상세에서 이어 봅니다.'
+          ? '선택된 셀의 보류 이유, 다음 실행, 근거는 오른쪽 상세에서 이어 봅니다.'
           : '실행 셀을 하나 고르면 오른쪽 판단판이 바로 열립니다.',
       },
       {
@@ -12906,7 +12906,7 @@ function renderTaskDetail(task, data) {
           ].find(Boolean) || '현재 차단 사유를 아래 상세에서 확인합니다.'
         : '현재 보류 사유는 없습니다.';
   let detailNextTitle = '세부 실행 확인';
-  let detailNextCopy = '아래 상세 블록에서 현재 단계 제어와 provenance를 이어서 확인합니다.';
+  let detailNextCopy = '아래 상세 블록에서 현재 단계 제어와 근거를 이어서 확인합니다.';
 
   if (task.flags?.waitingApproval) {
     detailNextTitle = '승인 처리';
@@ -13252,7 +13252,7 @@ function renderTaskDetail(task, data) {
           showBuilderApprovalHint
             ? renderPreselectedPendingItemHint(preselectedPendingItem, preselectedApproval, {
                 helpText:
-                  'Approval actions stay on the current surface and mirror the server snapshot as-is.',
+                  '승인 동작은 현재 화면에서 처리하고, 서버 snapshot 상태를 그대로 따릅니다.',
               })
             : ''
         }
