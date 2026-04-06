@@ -188,7 +188,7 @@ async function main() {
     assert.match(appJs, /raw-only/);
     assert.match(appJs, /일반 보존/);
     assert.match(appJs, /원문만 제공/);
-    assert.match(appJs, /source of truth/);
+    assert.match(appJs, /최종 기준/);
 
     const snapshotResponse = await fetch(`${baseUrl}/api/snapshot`);
     const snapshotPayload = await snapshotResponse.json();
