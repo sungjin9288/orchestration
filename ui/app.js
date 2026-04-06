@@ -5786,7 +5786,7 @@ function getStructuredPreviewLeadCopy() {
 }
 
 function getPreviewRedactionCopy() {
-  return '미리보기는 File Updates 안의 저장된 repo 내용을 가립니다. 아래 저장된 원문이 최종 기준으로 남습니다.';
+  return '미리보기는 파일 업데이트 항목 안의 저장된 저장소 내용을 가립니다. 아래 저장된 원문이 최종 기준으로 남습니다.';
 }
 
 function getStructuredPreviewFallbackCopy() {
