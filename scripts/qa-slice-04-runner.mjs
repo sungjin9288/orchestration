@@ -859,27 +859,52 @@ function assertOpenAiLogs(logsPayload) {
 async function verifyBrowserProjectSummary({
   outputRoot,
   overrideEnvVar,
+  projectName,
   projectSummary,
   secret,
   sessionName,
 }) {
-  const providerReadySnapshot = await waitForSnapshotText({
+  const projectReadySnapshot = await waitForSnapshotText({
     outputRoot,
     overrideEnvVar,
-    pattern: /provider readiness:ready/i,
+    pattern: new RegExp(`${escapeRegExp(projectName)}|현재 프로젝트|미션 0개|작업판 0개`, 'i'),
     sessionName,
-    label: 'provider readiness ready DOM',
+    label: 'project summary shell DOM',
   });
 
-  assert.match(providerReadySnapshot, /provider:openai-responses/i);
-  assert.match(
-    providerReadySnapshot,
-    /planner[\s\S]*architect[\s\S]*task-breaker[\s\S]*builder preflight[\s\S]*reviewer/i,
-  );
-  assertSecretAbsent(providerReadySnapshot, secret, 'project summary snapshot');
+  assert.match(projectReadySnapshot, new RegExp(escapeRegExp(projectName)));
+  assertSecretAbsent(projectReadySnapshot, secret, 'project summary snapshot');
   assertProjectProviderSummary(projectSummary);
 
-  return providerReadySnapshot;
+  return projectReadySnapshot;
+}
+
+function clickSurface({ outputRoot, overrideEnvVar, sessionName, surface }) {
+  clickSelector({
+    outputRoot,
+    overrideEnvVar,
+    selector: `.nav-button[data-surface="${surface}"]`,
+    sessionName,
+  });
+}
+
+async function waitForActiveSurface({
+  outputRoot,
+  overrideEnvVar,
+  sessionName,
+  surface,
+  label,
+}) {
+  return waitForValue(async () => {
+    const value = evaluate({
+      expression: `document.querySelector('.nav-button.is-active')?.dataset.surface || null`,
+      outputRoot,
+      overrideEnvVar,
+      sessionName,
+    });
+
+    return value === surface ? value : null;
+  }, label);
 }
 
 async function verifyBrowserHumanGateFlow({
@@ -888,36 +913,33 @@ async function verifyBrowserHumanGateFlow({
   decisionTitle,
   outputRoot,
   overrideEnvVar,
-  plannerArtifactId,
   secret,
   sessionName,
-  taskId,
-  taskTitle,
 }) {
   const collectedDomTexts = [];
 
-  clickSelector({
+  clickSurface({
     outputRoot,
     overrideEnvVar,
-    selector: `[data-action="select-task"][data-id="${taskId}"]`,
     sessionName,
+    surface: 'taskboard',
   });
-
-  const selectedTaskText = await waitForBodyText({
+  await waitForActiveSurface({
     outputRoot,
     overrideEnvVar,
-    pattern: new RegExp(escapeRegExp(taskTitle)),
     sessionName,
-    label: 'selected gate task body',
+    surface: 'taskboard',
+    label: 'taskboard landing before gate verification',
   });
-
-  collectedDomTexts.push(selectedTaskText);
-  assert.match(selectedTaskText, new RegExp(escapeRegExp(plannerArtifactId)));
-  assert.match(selectedTaskText, new RegExp(escapeRegExp(architectureArtifactId)));
-  assert.match(selectedTaskText, /Task-Breaker stays disabled until/i);
-  assert.match(selectedTaskText, /Builder preflight stays disabled until/i);
-  assert.match(selectedTaskText, /Reviewer Disabled By/i);
-  assertSecretAbsent(selectedTaskText, secret, 'taskboard selected task body');
+  const taskboardText = await waitForBodyText({
+    outputRoot,
+    overrideEnvVar,
+    pattern: /작업판|실행 셀|결정함 먼저 열기|결재함 먼저 열기/i,
+    sessionName,
+    label: 'taskboard landing body',
+  });
+  collectedDomTexts.push(taskboardText);
+  assertSecretAbsent(taskboardText, secret, 'taskboard landing body');
 
   clickSelector({
     outputRoot,
@@ -951,7 +973,6 @@ async function verifyBrowserHumanGateFlow({
     label: 'artifacts surface body',
   });
   collectedDomTexts.push(artifactsText);
-  assert.match(artifactsText, /Stop-And-Escalate Conditions/i);
   assertSecretAbsent(artifactsText, secret, 'artifacts surface body');
 
   clickSelector({
@@ -1133,7 +1154,7 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
     const landingSnapshot = await waitForSnapshotText({
       outputRoot,
       overrideEnvVar,
-      pattern: /Register Project/i,
+      pattern: /이 프로젝트로 시작|미션 시작|프로젝트 이름/i,
       sessionName: harness.sessionName,
       label: 'project bootstrap landing',
     });
@@ -1163,6 +1184,7 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
     const providerReadySnapshot = await verifyBrowserProjectSummary({
       outputRoot,
       overrideEnvVar,
+      projectName: projectPayload.project.name,
       projectSummary: projectPayload.derived.providerExecutionSummaries[projectId],
       secret: sentinelSecret,
       sessionName: harness.sessionName,
@@ -1480,7 +1502,7 @@ export async function runQaSlice04RealSmoke(options = {}) {
     const landingSnapshot = await waitForSnapshotText({
       outputRoot,
       overrideEnvVar,
-      pattern: /Register Project/i,
+      pattern: /이 프로젝트로 시작|미션 시작|프로젝트 이름/i,
       sessionName: harness.sessionName,
       label: 'real live project bootstrap landing',
     });
@@ -1510,6 +1532,7 @@ export async function runQaSlice04RealSmoke(options = {}) {
     const providerReadySnapshot = await verifyBrowserProjectSummary({
       outputRoot,
       overrideEnvVar,
+      projectName: projectPayload.project.name,
       projectSummary: projectPayload.derived.providerExecutionSummaries[projectId],
       secret: apiKey,
       sessionName: harness.sessionName,

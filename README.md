@@ -37,8 +37,15 @@ Knowledge-work pack smoke bundle:
 
 Top-level verification status:
 - `node scripts/verification_status.mjs`
+- `node scripts/verification_status.mjs --include-on-demand`
+- deterministic status smoke: `node scripts/smoke-verification-status-slice-01.mjs`
+- aggregate status-entrypoint smoke: `node scripts/smoke-status-entrypoints.mjs`
+- aggregate status-entrypoint smoke with on-demand lane: `node scripts/smoke-status-entrypoints.mjs --include-on-demand`
 - current required lane: `scripts/smoke-knowledge-work-pack.mjs`
-- current informational lane: `scripts/smoke-openspace-slice-01.mjs`
+- current informational lanes: `scripts/ui_qa_status.mjs`, `scripts/smoke-openspace-slice-01.mjs`
+- current on-demand bundle surfaced from the same report: `scripts/smoke-qa-browser-pack.mjs`
+- `--include-on-demand` executes that browser bundle from the same top-level report; without the flag it remains discoverable but not executed
+- if localhost browser harness binding is blocked by the current sandbox, the on-demand lane reports `skipped` instead of a false red
 
 UI QA status:
 - `node scripts/ui_qa_status.mjs`
@@ -49,7 +56,7 @@ UI QA status:
 Optional browser QA bundle:
 - `node scripts/smoke-qa-browser-pack.mjs`
 - includes `scripts/smoke-qa-slice-01.mjs`, `scripts/smoke-qa-slice-02.mjs`, `scripts/smoke-qa-slice-04.mjs`, `scripts/smoke-qa-slice-05.mjs`, `scripts/smoke-qa-slice-06.mjs`, and `scripts/smoke-qa-slice-07.mjs`
-- remains separate from `node scripts/ui_qa_status.mjs` so the required shell status stays fast and stable while longer Playwright coverage is still reproducible on demand
+- remains separate from the blocking verification lane so the required shell and pack status stay fast and stable while longer Playwright coverage is still reproducible on demand
 
 ## Core Objects
 - `Project`: registered local path plus selected pack

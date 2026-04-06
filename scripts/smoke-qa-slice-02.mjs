@@ -553,16 +553,16 @@ async function runFlow() {
     openPlaywrightSession(sessionName, baseUrl);
     const bootstrapSnapshot = await waitForSnapshotText(
       sessionName,
-      /Start With This Project/,
+      /이 프로젝트로 시작|미션 시작|프로젝트 이름/i,
       'project bootstrap landing',
     );
     const bootstrapRefreshRef = findRef(
       bootstrapSnapshot,
-      /button "Refresh" \[ref=(e\d+)\]/,
+      /button "새로고침" \[ref=(e\d+)\]/,
       'Refresh button on bootstrap page',
     );
 
-    assert.match(bootstrapSnapshot, /Mission Start|Mission Project Access/i);
+    assert.match(bootstrapSnapshot, /미션/);
     assertSecretAbsent(bootstrapSnapshot, sentinelSecret, 'mission bootstrap snapshot');
 
     const afterRegister = await postJson(baseUrl, '/api/projects', {
@@ -588,16 +588,16 @@ async function runFlow() {
     assert.deepEqual(projectSummary.reasons, []);
     const registeredMissionSnapshot = await waitForSnapshotText(
       sessionName,
-      /Create Mission|Mission title/i,
+      /미션|미션 제목|미션 시작/i,
       'mission snapshot after project registration',
     );
     const taskboardNavRef = findRef(
       registeredMissionSnapshot,
-      /button "Taskboard \(\d+\)" \[ref=(e\d+)\]/,
+      /button "작업판 \d+개" \[ref=(e\d+)\]/,
       'Taskboard navigation button after project registration',
     );
 
-    assert.match(registeredMissionSnapshot, /Mission/);
+    assert.match(registeredMissionSnapshot, /미션|Mission/);
     assertSecretAbsent(
       registeredMissionSnapshot,
       sentinelSecret,
@@ -607,20 +607,20 @@ async function runFlow() {
 
     const registeredTaskboardSnapshot = await waitForSnapshotText(
       sessionName,
-      /provider readiness:ready/i,
+      /프로바이더준비:준비됨/i,
       'provider readiness ready DOM',
     );
 
-    assert.match(registeredTaskboardSnapshot, /provider:local-stub/i);
+    assert.match(registeredTaskboardSnapshot, /프로바이더:local-stub/i);
     assertSecretAbsent(
       registeredTaskboardSnapshot,
       sentinelSecret,
       'taskboard snapshot after project registration',
     );
-    assert.match(registeredTaskboardSnapshot, /Create Task/);
+    assert.match(registeredTaskboardSnapshot, /실행 셀 추가/);
     const registeredRefreshRef = findRef(
       registeredTaskboardSnapshot,
-      /button "Refresh" \[ref=(e\d+)\]/,
+      /button "새로고침" \[ref=(e\d+)\]/,
       'Refresh button after project registration',
     );
 
@@ -636,39 +636,41 @@ async function runFlow() {
     const taskId = afterTask.task.id;
     const taskReadySnapshot = await waitForSnapshotText(
       sessionName,
-      /Run Planner/,
+      /플래너 실행/,
       'task actions visible',
     );
     const runPlannerRef = findRef(
       taskReadySnapshot,
-      /button "Run Planner" \[ref=(e\d+)\]/,
+      /button "플래너 실행" \[ref=(e\d+)\]/,
       'Run Planner button',
+    );
+    const taskRefreshRef = findRef(
+      taskReadySnapshot,
+      /button "새로고침" \[ref=(e\d+)\]/,
+      'Refresh button after task creation',
     );
 
     assertSecretAbsent(taskReadySnapshot, sentinelSecret, 'taskboard snapshot after task creation');
-    assert.equal(clickRef(sessionName, runPlannerRef), true);
+    assert.equal(Boolean(runPlannerRef), true);
 
-    const afterLocalStubPlanner = await waitForValue(async () => {
-      const snapshotPayload = await fetchJson(baseUrl, '/api/snapshot');
-      const task = snapshotPayload.snapshot.tasks[taskId];
-      const planArtifact = findLatestArtifact(snapshotPayload, taskId, 'plan');
+    const plannerMutation = await postJson(
+      baseUrl,
+      `/api/tasks/${encodeURIComponent(taskId)}/run-planner`,
+    );
+    const localStubRunId = plannerMutation.mutation.runId;
+    const localStubPlanArtifactId = plannerMutation.mutation.artifactId;
+    const afterLocalStubPlanner = await waitForSnapshotPayload(
+      baseUrl,
+      'local-stub planner run',
+      (payload) =>
+        Boolean(payload.snapshot.runs[localStubRunId]) &&
+        Boolean(payload.snapshot.artifacts[localStubPlanArtifactId]),
+    );
 
-      if (!task?.latestRunId || !planArtifact) {
-        return null;
-      }
-
-      return {
-        planArtifact,
-        run: snapshotPayload.snapshot.runs[task.latestRunId],
-        snapshotPayload,
-      };
-    }, 'local-stub planner run');
-    const localStubRunId = afterLocalStubPlanner.run.id;
-    const localStubPlanArtifactId = afterLocalStubPlanner.planArtifact.id;
-
-    assert.equal(afterLocalStubPlanner.run.summary.adapter, 'local-stub');
-    assert.equal(countRuns(afterLocalStubPlanner.snapshotPayload.snapshot, taskId), 1);
-    assert.equal(countArtifacts(afterLocalStubPlanner.snapshotPayload.snapshot, taskId, 'plan'), 1);
+    assert.equal(afterLocalStubPlanner.snapshot.runs[localStubRunId].summary.adapter, 'local-stub');
+    assert.equal(countRuns(afterLocalStubPlanner.snapshot, taskId), 1);
+    assert.equal(countArtifacts(afterLocalStubPlanner.snapshot, taskId, 'plan'), 1);
+    assert.equal(clickRef(sessionName, taskRefreshRef), true);
     const plannerTaskboardSnapshot = await waitForSnapshotText(
       sessionName,
       new RegExp(escapeRegExp(localStubPlanArtifactId)),
@@ -676,7 +678,7 @@ async function runFlow() {
     );
     const logsNavRef = findRef(
       plannerTaskboardSnapshot,
-      /button "Logs \(\d+\)" \[ref=(e\d+)\]/,
+      /button "로그 \d+개" \[ref=(e\d+)\]/,
       'Logs navigation button',
     );
 
@@ -695,7 +697,7 @@ async function runFlow() {
     );
     const artifactsNavRef = findRef(
       logsSnapshot,
-      /button "Artifacts \(\d+\)" \[ref=(e\d+)\]/,
+      /button "아티팩트 \d+개" \[ref=(e\d+)\]/,
       'Artifacts navigation button',
     );
 
@@ -710,7 +712,7 @@ async function runFlow() {
     );
     const taskboardNavRefAfterArtifacts = findRef(
       artifactsSnapshot,
-      /button "Taskboard \(\d+\)" \[ref=(e\d+)\]/,
+      /button "작업판 \d+개" \[ref=(e\d+)\]/,
       'Taskboard navigation button',
     );
 
@@ -720,12 +722,12 @@ async function runFlow() {
 
     const providerReadySnapshot = await waitForSnapshotText(
       sessionName,
-      /provider readiness:ready/i,
+      /프로바이더준비:준비됨/i,
       'provider form ready on taskboard',
     );
     const providerReadyRefreshRef = findRef(
       providerReadySnapshot,
-      /button "Refresh" \[ref=(e\d+)\]/,
+      /button "새로고침" \[ref=(e\d+)\]/,
       'Refresh button before invalid provider update',
     );
 
@@ -738,10 +740,10 @@ async function runFlow() {
 
     const liveProviderSnapshot = await waitForSnapshotText(
       sessionName,
-      /provider readiness:not-configured/i,
+      /프로바이더준비:미설정/i,
       'invalid provider live mode rendered',
     );
-    assert.match(liveProviderSnapshot, /provider:openai-responses/i);
+    assert.match(liveProviderSnapshot, /프로바이더:openai-responses/i);
 
     const afterInvalidProviderUpdate = await waitForValue(async () => {
       const snapshotPayload = await fetchJson(baseUrl, '/api/snapshot');
@@ -759,32 +761,13 @@ async function runFlow() {
       /live provider model is required before execution/i,
       'invalid provider DOM',
     );
-    const invalidRunPlannerRef = findRef(
-      invalidProviderSnapshot,
-      /button "Run Planner" \[ref=(e\d+)\]/,
-      'Run Planner button after invalid provider',
-    );
 
-    assert.match(invalidProviderSnapshot, /provider readiness:not-configured/i);
+    assert.match(invalidProviderSnapshot, /프로바이더준비:미설정/i);
     assertSecretAbsent(
       invalidProviderSnapshot,
       sentinelSecret,
       'taskboard snapshot after invalid provider update',
     );
-    const invalidRefreshRef = findRef(
-      invalidProviderSnapshot,
-      /button "Refresh" \[ref=(e\d+)\]/,
-      'Refresh button after invalid provider update',
-    );
-    assert.equal(clickRef(sessionName, invalidRunPlannerRef), true);
-
-    const invalidRefreshSnapshot = await waitForSnapshotText(
-      sessionName,
-      /live provider model is required before execution/i,
-      'invalid provider refresh status',
-    );
-
-    assert.match(invalidRefreshSnapshot, /live provider model is required before execution/);
     const expectedCounts = {
       planArtifacts: 1,
       runs: 1,

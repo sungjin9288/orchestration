@@ -137,11 +137,24 @@ function createFileStore(options = {}) {
     fs.mkdirSync(deletedArtifactsDir, { recursive: true });
   }
 
+  function writeFileAtomic(targetPath, content) {
+    const targetDir = path.dirname(targetPath);
+    const tempPath = path.join(
+      targetDir,
+      `.${path.basename(targetPath)}.${process.pid}.${Date.now()}.tmp`,
+    );
+
+    fs.mkdirSync(targetDir, { recursive: true });
+    fs.writeFileSync(tempPath, content);
+    fs.renameSync(tempPath, targetPath);
+    return targetPath;
+  }
+
   function ensureStateFile() {
     ensureDirs();
 
     if (!fs.existsSync(statePath)) {
-      fs.writeFileSync(statePath, `${JSON.stringify(createEmptyState(), null, 2)}\n`);
+      writeFileAtomic(statePath, `${JSON.stringify(createEmptyState(), null, 2)}\n`);
     }
   }
 
@@ -152,7 +165,7 @@ function createFileStore(options = {}) {
 
   function saveState(state) {
     ensureDirs();
-    fs.writeFileSync(statePath, `${JSON.stringify(normalizeState(state), null, 2)}\n`);
+    writeFileAtomic(statePath, `${JSON.stringify(normalizeState(state), null, 2)}\n`);
   }
 
   function appendLogRecord(runId, record) {
@@ -179,7 +192,7 @@ function createFileStore(options = {}) {
   function writeArtifact(filename, content) {
     ensureDirs();
     const artifactPath = path.join(artifactsDir, filename);
-    fs.writeFileSync(artifactPath, content);
+    writeFileAtomic(artifactPath, content);
     return artifactPath;
   }
 
@@ -198,8 +211,7 @@ function createFileStore(options = {}) {
 
   function writeArtifactAtPath(artifactPath, content) {
     ensureDirs();
-    fs.mkdirSync(path.dirname(artifactPath), { recursive: true });
-    fs.writeFileSync(artifactPath, content);
+    writeFileAtomic(artifactPath, content);
     return artifactPath;
   }
 

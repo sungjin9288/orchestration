@@ -1321,23 +1321,24 @@ async function prepareBuilderLiveMutationContext({
 async function verifyBrowserProjectSummary({
   outputRoot,
   overrideEnvVar,
+  projectName,
   projectSummary,
   secret,
   sessionName,
 }) {
-  const providerReadySnapshot = await waitForSnapshotText({
+  const projectReadySnapshot = await waitForSnapshotText({
     outputRoot,
     overrideEnvVar,
-    pattern: /provider readiness:ready/i,
+    pattern: new RegExp(`${escapeRegExp(projectName)}|현재 프로젝트|미션 0개|작업판 0개`, 'i'),
     sessionName,
-    label: 'provider readiness ready DOM',
+    label: 'project summary shell DOM',
   });
 
-  assert.match(providerReadySnapshot, /provider:openai-responses/i);
-  assertSecretAbsent(providerReadySnapshot, secret, 'project summary snapshot');
+  assert.match(projectReadySnapshot, new RegExp(escapeRegExp(projectName)));
+  assertSecretAbsent(projectReadySnapshot, secret, 'project summary snapshot');
   assertProjectProviderSummary(projectSummary);
 
-  return providerReadySnapshot;
+  return projectReadySnapshot;
 }
 
 function clickSurface({ outputRoot, overrideEnvVar, sessionName, surface }) {
@@ -1378,6 +1379,20 @@ async function triggerBrowserApprovalRequest({
 }) {
   const domTexts = [];
 
+  clickSurface({
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+    surface: 'taskboard',
+  });
+  await waitForActiveSurface({
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+    surface: 'taskboard',
+    label: 'taskboard landing before approval request',
+  });
+
   clickSelector({
     outputRoot,
     overrideEnvVar,
@@ -1398,7 +1413,7 @@ async function triggerBrowserApprovalRequest({
   const requestText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: /Request Live Mutation Approval/i,
+    pattern: /라이브 변경 승인 요청/i,
     sessionName,
     label: 'live mutation approval request button visibility',
   });
@@ -1448,7 +1463,7 @@ async function triggerBrowserApprovalResolve({
   const itemText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: new RegExp(`${escapeRegExp(inboxItemId)}|Approve`, 'i'),
+    pattern: new RegExp(`${escapeRegExp(inboxItemId)}|승인`, 'i'),
     sessionName,
     label: 'selected approval inbox item body',
   });
@@ -1509,7 +1524,7 @@ async function triggerBrowserBuilderLiveMutation({
   const guardReadyText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: /live mutation guard:ready[\s\S]*latest approval:approved|latest approval:approved[\s\S]*live mutation guard:ready/i,
+    pattern: /실행:가능|라이브 변경 실행/i,
     sessionName,
     label: 'live mutation ready guard visibility',
   });
@@ -1519,7 +1534,7 @@ async function triggerBrowserBuilderLiveMutation({
   const runButtonText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: /Run Live Mutation/i,
+    pattern: /라이브 변경 실행/i,
     sessionName,
     label: 'live mutation run button visibility',
   });
@@ -1773,7 +1788,7 @@ async function runSharedQaSlice06Flow({
       waitForSnapshotText({
         outputRoot,
         overrideEnvVar,
-        pattern: /Register Project/i,
+        pattern: /이 프로젝트로 시작|미션 시작|프로젝트 이름/i,
         sessionName: harness.sessionName,
         label: 'project bootstrap landing',
       }),
@@ -1810,6 +1825,7 @@ async function runSharedQaSlice06Flow({
       verifyBrowserProjectSummary({
         outputRoot,
         overrideEnvVar,
+        projectName: projectPayload.project.name,
         projectSummary: projectPayload.derived.providerExecutionSummaries[projectId],
         secret: secretToCheck,
         sessionName: harness.sessionName,

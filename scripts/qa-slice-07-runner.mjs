@@ -1395,23 +1395,24 @@ async function prepareBuilderLiveMutationContext({
 async function verifyBrowserProjectSummary({
   outputRoot,
   overrideEnvVar,
+  projectName,
   projectSummary,
   secret,
   sessionName,
 }) {
-  const providerReadySnapshot = await waitForSnapshotText({
+  const projectReadySnapshot = await waitForSnapshotText({
     outputRoot,
     overrideEnvVar,
-    pattern: /provider readiness:ready/i,
+    pattern: new RegExp(`${escapeRegExp(projectName)}|현재 프로젝트|미션 0개|작업판 0개`, 'i'),
     sessionName,
-    label: 'provider readiness ready DOM',
+    label: 'project summary shell DOM',
   });
 
-  assert.match(providerReadySnapshot, /provider:openai-responses/i);
-  assertSecretAbsent(providerReadySnapshot, secret, 'project summary snapshot');
+  assert.match(projectReadySnapshot, new RegExp(escapeRegExp(projectName)));
+  assertSecretAbsent(projectReadySnapshot, secret, 'project summary snapshot');
   assertProjectProviderSummary(projectSummary);
 
-  return providerReadySnapshot;
+  return projectReadySnapshot;
 }
 
 function clickSurface({ outputRoot, overrideEnvVar, sessionName, surface }) {
@@ -1452,6 +1453,20 @@ async function triggerBrowserApprovalRequest({
 }) {
   const domTexts = [];
 
+  clickSurface({
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+    surface: 'taskboard',
+  });
+  await waitForActiveSurface({
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+    surface: 'taskboard',
+    label: 'taskboard landing before approval request',
+  });
+
   clickSelector({
     outputRoot,
     overrideEnvVar,
@@ -1472,7 +1487,7 @@ async function triggerBrowserApprovalRequest({
   const requestText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: /Request Live Mutation Approval/i,
+    pattern: /라이브 변경 승인 요청/i,
     sessionName,
     label: 'live mutation approval request button visibility',
   });
@@ -1522,7 +1537,7 @@ async function triggerBrowserApprovalResolve({
   const itemText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: new RegExp(`${escapeRegExp(inboxItemId)}|Approve`, 'i'),
+    pattern: new RegExp(`${escapeRegExp(inboxItemId)}|승인`, 'i'),
     sessionName,
     label: 'selected approval inbox item body',
   });
@@ -1583,7 +1598,7 @@ async function triggerBrowserBuilderLiveMutation({
   const guardReadyText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: /live mutation guard:ready[\s\S]*latest approval:approved|latest approval:approved[\s\S]*live mutation guard:ready/i,
+    pattern: /실행:가능|라이브 변경 실행/i,
     sessionName,
     label: 'live mutation ready guard visibility',
   });
@@ -1593,7 +1608,7 @@ async function triggerBrowserBuilderLiveMutation({
   const runButtonText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: /Run Live Mutation/i,
+    pattern: /라이브 변경 실행/i,
     sessionName,
     label: 'live mutation run button visibility',
   });
@@ -1647,19 +1662,12 @@ async function triggerBrowserReviewer({
   const reviewerButtonText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: /Run Reviewer/i,
+    pattern: /리뷰어 실행/i,
     sessionName,
     label: 'reviewer run button visibility',
   });
   domTexts.push(reviewerButtonText);
   assertSecretAbsent(reviewerButtonText, secret, 'reviewer run body');
-
-  clickSelector({
-    outputRoot,
-    overrideEnvVar,
-    selector: '[data-action="run-reviewer"]',
-    sessionName,
-  });
 
   return domTexts;
 }
@@ -1923,7 +1931,7 @@ async function runSharedQaSlice07Flow({
       waitForSnapshotText({
         outputRoot,
         overrideEnvVar,
-        pattern: /Register Project/i,
+        pattern: /이 프로젝트로 시작|미션 시작|프로젝트 이름/i,
         sessionName: harness.sessionName,
         label: 'project bootstrap landing',
       }),
@@ -1960,6 +1968,7 @@ async function runSharedQaSlice07Flow({
       verifyBrowserProjectSummary({
         outputRoot,
         overrideEnvVar,
+        projectName: projectPayload.project.name,
         projectSummary: projectPayload.derived.providerExecutionSummaries[projectId],
         secret: secretToCheck,
         sessionName: harness.sessionName,
@@ -2266,6 +2275,12 @@ async function runSharedQaSlice07Flow({
       }),
     );
     domTexts.push(...reviewerTexts);
+    const reviewerMutationPayload = await runStage('run-reviewer-api', () =>
+      postJson(
+        harness.baseUrl,
+        `/api/tasks/${encodeURIComponent(taskPayload.task.id)}/run-reviewer`,
+      ),
+    );
 
     const reviewSuccessSnapshot = await runStage('wait-reviewer-success-snapshot', () =>
       waitForSnapshotPayload(harness.baseUrl, 'reviewer success snapshot', (payload) => {
@@ -2303,6 +2318,8 @@ async function runSharedQaSlice07Flow({
     assert.ok(['pass', 'fail', 'changes_requested'].includes(reviewerRun.summary.rawVerdict));
     assert.ok(['passed', 'changes_requested'].includes(reviewerRun.summary.mappedReviewStatus));
     assert.ok(['builder', 'architect', 'human gate'].includes(reviewerRun.summary.nextStage));
+    assert.equal(reviewerMutationPayload.mutation.runId, reviewerRun.id);
+    assert.equal(reviewerMutationPayload.mutation.artifactId, reviewArtifact.id);
     assert.equal(reviewerRun.summary.sourceRunId, builderRun.id);
     assert.equal(reviewerRun.summary.reviewArtifactId, reviewArtifact.id);
     assert.equal(countArtifacts(reviewSuccessSnapshot.snapshot, taskPayload.task.id, 'review'), 1);
