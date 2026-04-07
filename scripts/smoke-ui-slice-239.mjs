@@ -1,0 +1,59 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..');
+const indexPath = path.join(repoRoot, 'ui', 'index.html');
+const appPath = path.join(repoRoot, 'ui', 'app.js');
+
+const indexHtml = fs.readFileSync(indexPath, 'utf8');
+const appJs = fs.readFileSync(appPath, 'utf8');
+
+assert.match(indexHtml, /회의 리드/);
+assert.match(indexHtml, /전략 역할/);
+assert.match(indexHtml, /설계 역할/);
+assert.match(indexHtml, /실행 역할/);
+
+assert.match(appJs, /avatarLabel: '리드 아바타'/);
+assert.match(appJs, /displayName: '리드'/);
+assert.match(appJs, /displayName: '전략'/);
+assert.match(appJs, /displayName: '설계'/);
+assert.match(appJs, /displayName: '실행'/);
+assert.match(appJs, /rank: '회의 리드'/);
+assert.match(appJs, /rank: '전략 역할'/);
+assert.match(appJs, /rank: '설계 역할'/);
+assert.match(appJs, /rank: '실행 역할'/);
+assert.match(appJs, /orderLabel: '역할 순서 1'/);
+assert.match(appJs, /orderLabel: '역할 순서 2'/);
+assert.match(appJs, /orderLabel: '역할 순서 3'/);
+assert.match(appJs, /orderLabel: '역할 순서 4'/);
+assert.match(appJs, /deskLabel: '전략 판단 데스크'/);
+assert.match(appJs, /deskProp: '최종 판단판 · 승인 묶음'/);
+assert.match(appJs, /deskProp: '우선순위 표 · 전략 메모'/);
+assert.match(appJs, /deskProp: '경계 도면 · 구조 메모'/);
+assert.match(appJs, /deskProp: '체크포인트 표 · 실행 큐'/);
+
+console.log(
+  JSON.stringify(
+    {
+      ok: true,
+      councilRankStationReadability: {
+        markers: [
+          '회의 리드',
+          '전략 역할',
+          '설계 역할',
+          '실행 역할',
+          '역할 순서 1',
+          '전략 판단 데스크',
+          '최종 판단판 · 승인 묶음',
+          '우선순위 표 · 전략 메모',
+        ],
+      },
+    },
+    null,
+    2,
+  ),
+);

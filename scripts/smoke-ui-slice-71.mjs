@@ -17,14 +17,14 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 const councilDraftState = JSON.parse(fs.readFileSync(councilDraftStatePath, 'utf8'));
 const councilSession = Object.values(councilDraftState.councilSessions)[0];
 
-assert.match(appJs, /rank: '총지휘관'/);
-assert.match(appJs, /rank: '수석 전략관'/);
-assert.match(appJs, /rank: '수석 설계관'/);
-assert.match(appJs, /rank: '선임 실행관'/);
-assert.match(appJs, /orderLabel: '지휘 서열 1'/);
-assert.match(appJs, /orderLabel: '지휘 서열 2'/);
-assert.match(appJs, /orderLabel: '지휘 서열 3'/);
-assert.match(appJs, /orderLabel: '지휘 서열 4'/);
+assert.match(appJs, /rank: '회의 리드'/);
+assert.match(appJs, /rank: '전략 역할'/);
+assert.match(appJs, /rank: '설계 역할'/);
+assert.match(appJs, /rank: '실행 역할'/);
+assert.match(appJs, /orderLabel: '역할 순서 1'/);
+assert.match(appJs, /orderLabel: '역할 순서 2'/);
+assert.match(appJs, /orderLabel: '역할 순서 3'/);
+assert.match(appJs, /orderLabel: '역할 순서 4'/);
 assert.match(appJs, /최종 추천안과 인계 승인 흐름을 한 지점에서 총괄합니다\./);
 assert.match(appJs, /목표 해석과 범위 제한을 맡는 핵심 전략 역할입니다\./);
 assert.match(appJs, /설계 파급을 막고 시스템 경계를 봉인하는 역할입니다\./);
@@ -59,8 +59,8 @@ console.log(
     {
       ok: true,
       councilCastRankDesign: {
-        ranks: ['총지휘관', '수석 전략관', '수석 설계관', '선임 실행관'],
-        order: ['지휘 서열 1', '지휘 서열 2', '지휘 서열 3', '지휘 서열 4'],
+        ranks: ['회의 리드', '전략 역할', '설계 역할', '실행 역할'],
+        order: ['역할 순서 1', '역할 순서 2', '역할 순서 3', '역할 순서 4'],
         classes: ['cast-card-lead', 'cast-mark-stack', 'cast-order', 'cast-rank', 'cast-command'],
       },
     },

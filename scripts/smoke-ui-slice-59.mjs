@@ -32,7 +32,7 @@ assert.match(indexHtml, /고급 운영 모드/);
 assert.match(indexHtml, /shell-window-bar/);
 assert.match(indexHtml, /AI 실행 관제실/);
 assert.match(indexHtml, /shell-agent-row/);
-assert.match(indexHtml, /총지휘관/);
+assert.match(indexHtml, /회의 리드/);
 assert.match(decisionLog, /### DEC-043/);
 assert.match(decisionLog, /User-facing orchestration copy defaults to Korean on the primary shell\./);
 
