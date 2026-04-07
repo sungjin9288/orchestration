@@ -127,9 +127,9 @@ const project = runtime.createProject({
 });
 const task = runtime.createTask({
   projectId: project.id,
-  title: 'provider live slice 05 builder preflight smoke',
+  title: 'pre-real-test live provider rehearsal through builder preflight',
   intent:
-    'Run planner, architect, task-breaker, and builder-preflight live for provider-slice-05 while leaving builder-live-mutation and reviewer execution to later smokes. Stay inside these repo-relative files only: src/runtime/contracts.js, src/runtime/runtime-service.js, src/execution/provider-adapter.js, src/execution/execution-coordinator.js, src/execution/providers/openai-responses-adapter.js, ui/app.js.',
+    'Rehearse the current implemented openai-responses live path through planner, architect, task-breaker, and builder-preflight on current main. This is a readiness rehearsal over already-accepted contracts, not a new feature slice, rollback, or repo-wide live-boundary change. Stop after builder-preflight, record the current approval handoff, and do not reinterpret downstream builder-live-mutation or reviewer execution as disabled globally.',
 });
 const coordinator = createExecutionCoordinator({
   repoRoot,
@@ -180,7 +180,7 @@ assert.equal(reviewerReadiness.allowed, true);
 const plannerResult = await coordinator.runPlanner({
   taskId: task.id,
   routingOutcome: createRoutingOutcome(
-    'Validate the optional real planner, architect, task-breaker, and builder-preflight live path for provider-slice-05 while stopping this smoke before downstream live execution.',
+    'Rehearse the representative live provider path through builder-preflight on current main while stopping before downstream execution only for this smoke run.',
   ),
 });
 const architectResult = await coordinator.runArchitect({

@@ -500,6 +500,19 @@
   failureClass: `representative_live_browser_rehearsal_refresh`
   reason: `The current-main rerun after the first-use copy batch still closes project bootstrap, mission create/select, linked task execution, builder live mutation, reviewer, and logs/review-artifact landing on the live path.`
   evidence: `observedAt=2026-04-07; branch=main; commit=d60bc69; configuredEnvSource=app-session; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-qa-live-slice-07; outputRoot=/Users/sungjin/dev/personal/orchestration/output/playwright/qa-slice-07-live; builderRunId=run-0005; reviewerRunId=run-0006; changeSummaryArtifactId=artifact-0005; patchArtifactId=artifact-0006; diffArtifactId=artifact-0007; reviewArtifactId=artifact-0008; selectedSurface=artifacts`
+- [x] `ops-rehearsal-provider-scope-realignment-m6-55` realigns `scripts/smoke-provider-live-slice-05.mjs` to current pre-real-test readiness truth on `2026-04-07` after solo dogfooding moved to `main@089ac88`: the exact provider smoke had turned false-red because its historical `provider-slice-05` feature wording and hard-coded file-boundary prose made the live architect stage route to a blocking human gate even though the current mission-first live browser path still passed, so the smoke now frames itself as a current-main representative rehearsal over already-implemented live contracts and reruns green without changing runtime, provider, approval, review, or UI semantics
+- script: `node scripts/smoke-provider-live-slice-05.mjs`
+  status: `pass`
+  model: `gpt-5.4`
+  failureClass: `representative_live_provider_rehearsal_realigned`
+  reason: `After removing stale implementation-slice wording from the smoke task intent, the current-main representative live provider path again closes planner-through-builder-preflight with the expected approval handoff instead of creating a false blocking architect decision.`
+  evidence: `observedAt=2026-04-07; branch=codex/pre-real-test-solo-dogfooding-batch-20260407-main; commit=089ac88; configuredEnvSource=app-session; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-provider-live-slice-05; plannerRunId=run-0001; architectRunId=run-0002; taskBreakerRunId=run-0003; builderPreflightRunId=run-0004; preflightArtifactId=artifact-0004; builderPreflightNextStage=request-builder-live-mutation-approval; approvalId=approval-0001`
+- script: `node scripts/smoke-qa-live-slice-07.mjs`
+  status: `pass`
+  model: `gpt-5.4`
+  failureClass: `representative_live_browser_rehearsal`
+  reason: `The same current-main live browser path stayed green while the provider smoke was being realigned, so the observed red was isolated to smoke framing drift rather than a mission-first runtime regression.`
+  evidence: `observedAt=2026-04-07; branch=codex/pre-real-test-solo-dogfooding-batch-20260407-main; commit=089ac88; configuredEnvSource=app-session; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-qa-live-slice-07; outputRoot=/Users/sungjin/dev/personal/orchestration/output/playwright/qa-slice-07-live; builderRunId=run-0005; reviewerRunId=run-0006; reviewArtifactId=artifact-0008; selectedSurface=artifacts`
 
 ### remaining [OPEN]
 - [x] fresh configured-env reruns on `main@7010513` now supersede the older six-green note: current Codex app relaunch makes env visible to bare `node`, but the six-target optional real-live set is no longer all green and must be treated as current non-blocking operational evidence instead of historical pass carryover
