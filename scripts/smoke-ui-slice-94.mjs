@@ -20,7 +20,7 @@ assert.match(appJs, /function getDeliverablesLeftSnapshot\(mission, task, curren
 assert.match(appJs, /eyebrow: '실행 개요판'/);
 assert.match(appJs, /copy: '왼쪽 패널은 현재 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다\.'/);
 assert.match(appJs, /eyebrow: '보고 개요판'/);
-assert.match(appJs, /copy: '결과 보고실 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다\.'/);
+assert.match(appJs, /copy: '결과 보고 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다\.'/);
 
 assert.match(appJs, /label: '현재 판단'/);
 assert.match(appJs, /label: '다음 행동'/);

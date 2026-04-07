@@ -23,7 +23,7 @@ assert.match(appJs, /<span class="field-label">경계 \(선택\)<\/span>/);
 assert.match(appJs, /placeholder="무엇을 논의할지 한 줄로 적으세요"/);
 assert.match(appJs, /placeholder="이번 회의가 끝날 때 무엇이 정리돼 있어야 하는지 적으세요"/);
 assert.match(appJs, /placeholder="이번 안건에서 넘지 않을 범위나 꼭 지킬 제약을 적으세요"/);
-assert.match(appJs, /접수 즉시 참모 회의 초안이 열리고, 승인 전까지는 작전실로 넘어가지 않습니다\./);
+assert.match(appJs, /접수 즉시 참모 회의 초안이 열리고, 승인 전까지는 실행으로 넘어가지 않습니다\./);
 
 assert.match(styles, /\.mission-order-desk \{/);
 assert.match(styles, /\.mission-order-head \{/);

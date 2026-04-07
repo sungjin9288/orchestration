@@ -186,7 +186,7 @@ const ORCHESTRATION_FLOW_STEPS = [
   {
     id: 'deliverables',
     label: '결과 보고',
-    owner: '결과 보고실 · 관제실',
+    owner: '결과 보고 · 관제실',
     surface: 'deliverables',
     summary: '현재 보고 판단과 다음 행동을 확인합니다.',
   },
@@ -912,21 +912,21 @@ function renderDeliverablesReportDeck(options = {}) {
     : '보고 대기';
   const reportCopy = currentArtifact
     ? `${currentArtifact.id} 번들이 ${formatDate(currentArtifact.createdAt)} 기준 현재 보고 묶음의 맨 위에 있습니다.`
-    : '회의와 작전실에서 올라온 결과 묶음이 아직 없습니다.';
+    : '회의와 실행에서 올라온 결과 묶음이 아직 없습니다.';
   const approvalTitle = latestApproval
     ? `${getApprovalStatusDisplay(latestApproval.status)} 결재`
     : '열린 결재 없음';
   const approvalCopy = latestApproval
     ? `${getApprovalActionLabel(latestApproval.allowedNextAction) || latestApproval.scope} 안건이 ${latestApproval.targetArtifactId || '현재 보고 묶음'} 기준으로 ${getApprovalStatusDisplay(latestApproval.status)} 상태입니다.`
-    : '현재 보고실에는 사람이 처리할 결재 안건이 없습니다.';
-  const nextTitle = missionCompletionReady ? '다음 안건 준비' : approvalBridge?.actionLabel || '작전실 후속';
+    : '현재 보고에는 사람이 처리할 결재 안건이 없습니다.';
+  const nextTitle = missionCompletionReady ? '다음 안건 준비' : approvalBridge?.actionLabel || '실행 후속';
   const nextCopy = missionCompletionReady
     ? '종료 보고가 봉인됐습니다. 미션으로 돌아가 다음 안건을 올릴 수 있습니다.'
-    : approvalBridge?.nextStepCopy || '작전실에서 현재 지시를 계속 전진합니다.';
+    : approvalBridge?.nextStepCopy || '실행에서 현재 지시를 계속 전진합니다.';
 
   return renderNarrativeDeck({
-    eyebrow: '결과 보고실',
-    heading: '회의와 작전실에서 올라온 묶음을 운영 보고용으로 정리합니다',
+    eyebrow: '결과 보고',
+    heading: '회의와 실행에서 올라온 묶음을 운영 보고용으로 정리합니다',
     copy: '협의회와 실행 셀에서 올라온 결과가 어떤 보고 묶음과 결재선으로 이어졌는지 이 방에서 빠르게 읽습니다.',
     entryFrame: true,
     tokens: [
@@ -1136,7 +1136,7 @@ function renderOpsCenterDeck(options = {}) {
     heading: options.heading || '심층 근거를 들여다보는 관제실',
     copy:
       options.copy ||
-      '회의실과 작전실 아래에 남는 원문 기록, 증적, 결재선은 관제실에서 확인합니다.',
+      '회의와 실행 아래에 남는 원문 기록, 증적, 결재선은 관제실에서 확인합니다.',
     entryFrame: options.entryFrame === true,
     tokens: options.tokens || [],
     cards: options.cards || [],
@@ -8944,8 +8944,8 @@ function renderHomeCompanyPulseStrip(options) {
       role: '안건 라인',
       title: selectedMission ? selectedMission.title : '안건 대기',
       copy: selectedMission
-        ? `${missionStatus} 안건이 회의실과 작전실로 같은 경로를 이어 갑니다.`
-        : '첫 안건을 접수하면 회의실과 작전실 흐름이 같이 깨어납니다.',
+        ? `${missionStatus} 안건이 회의와 실행으로 같은 경로를 이어 갑니다.`
+        : '첫 안건을 접수하면 회의와 실행 흐름이 같이 깨어납니다.',
       foot: `미션 · ${missionStatus}`,
       tone: missionTone,
     },
@@ -8964,13 +8964,13 @@ function renderHomeCompanyPulseStrip(options) {
       surface: 'execution',
       kicker: '실행',
       role: '실행 흐름',
-      title: activeTask ? activeTask.title : '작전 대기',
+      title: activeTask ? activeTask.title : '실행 대기',
       copy: !activeTask
         ? '회의 결론이 정리되면 첫 실행 셀이 이 흐름을 이어받습니다.'
         : activeTask.flags?.waitingApproval
-          ? '승인선이 풀리면 현재 경로가 바로 다음 작전으로 이어집니다.'
+          ? '승인선이 풀리면 현재 경로가 바로 다음 실행으로 이어집니다.'
           : activeTask.flags?.waitingDecision
-            ? '결정 처리 뒤에 현재 셀이 다시 다음 작전을 붙잡습니다.'
+            ? '결정 처리 뒤에 현재 셀이 다시 다음 실행을 붙잡습니다.'
             : activeTask.flags?.blocked
               ? '차단 사유가 풀려야 운영 흐름이 다시 앞으로 갑니다.'
               : `${executionStatus} 셀이 같은 안건의 다음 행동을 끌고 갑니다.`,
@@ -9709,8 +9709,8 @@ function renderMission(data) {
     }).map((entry) => [entry.surface, entry]),
   );
   const missionViewportStrip = renderViewportHandoffStrip({
-    eyebrow: '브리핑 인계선',
-    heading: '브리핑실 아래는 입력선과 판단선으로 나눕니다',
+    eyebrow: '표면 인계선',
+    heading: '이 아래는 입력선과 판단선으로 나눕니다',
     copy:
       '왼쪽은 안건을 접수하고 고르며, 오른쪽은 현재 판단과 다음 표면만 먼저 보여 줍니다.',
     tokens: [
@@ -9741,7 +9741,7 @@ function renderMission(data) {
           : '먼저 안건 접수',
         copy: selectedMission
           ? selectedMissionNextActionPreview.summary
-          : '왼쪽 데스크에서 첫 안건을 올리면 회의실과 판단판이 함께 열립니다.',
+          : '왼쪽 데스크에서 첫 안건을 올리면 회의와 판단판이 함께 열립니다.',
         emphasis: true,
         signal: missionSignalBySurface[missionNextSurface] || missionSignalBySurface.mission,
         button:
@@ -10112,8 +10112,8 @@ function renderMission(data) {
               <p class="form-help">
                 ${
                   missionUsesKnowledgeWork
-                    ? `접수 즉시 ${getKnowledgeWorkDeliverableDisplayName(state.missionDraftDeliverableType)} 기준 참모 회의 초안이 열리고, 승인 전까지는 작전실로 넘어가지 않습니다.`
-                    : '접수 즉시 참모 회의 초안이 열리고, 승인 전까지는 작전실로 넘어가지 않습니다.'
+                    ? `접수 즉시 ${getKnowledgeWorkDeliverableDisplayName(state.missionDraftDeliverableType)} 기준 참모 회의 초안이 열리고, 승인 전까지는 실행으로 넘어가지 않습니다.`
+                    : '접수 즉시 참모 회의 초안이 열리고, 승인 전까지는 실행으로 넘어가지 않습니다.'
                 }
               </p>
             </div>
@@ -10347,7 +10347,7 @@ function renderMission(data) {
                   <div class="card-title-row">
                     <strong>브리프 액션</strong>
                   </div>
-                  <p class="detail-copy">회의실, 작전실, 관제실 기본 동선만 엽니다.</p>
+                  <p class="detail-copy">회의, 실행, 관제실 기본 동선만 엽니다.</p>
                   <div class="form-actions form-actions-inline">
                     ${
                       selectedCouncilSession
@@ -11871,7 +11871,7 @@ function renderDeliverables(data) {
   });
   const deliverablesEvidenceRail = renderExecutionEvidenceRail(deliverablesEvidenceState, {
     eyebrow: '증적 인계선',
-    heading: '결과 보고실도 같은 실행 증적선을 그대로 읽습니다',
+    heading: '결과 보고도 같은 실행 증적선을 그대로 읽습니다',
     copy: '산출물 표면은 연결 실행 셀의 아티팩트, run, 준비 상태, 리뷰 기준 사실만 읽고 아래 섹션에서 더 깊은 보고를 이어갑니다.',
   });
   const deliverablesControl = getDeliverablesControlSnapshot(
@@ -11912,8 +11912,8 @@ function renderDeliverables(data) {
         ${renderNarrativeDeck({
           wide: false,
           eyebrow: '보고 개요판',
-          heading: '결과 보고실',
-          copy: '결과 보고실 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다.',
+          heading: '결과 보고',
+          copy: '결과 보고 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다.',
           tokens: [
             createToken(`미션:${selectedMission.id}`, 'neutral'),
             createToken(`태스크:${linkedTask.id}`, 'accent'),
@@ -11984,14 +11984,14 @@ function renderDeliverables(data) {
         <div class="panel-header">
           <div>
             <h2>최신 보고 현황</h2>
-            <p class="panel-copy">보고실은 결재선과 다음 이동을 요약하고, 깊은 점검은 관제실로 넘깁니다.</p>
+            <p class="panel-copy">보고는 결재선과 다음 이동을 요약하고, 깊은 점검은 관제실로 넘깁니다.</p>
           </div>
         </div>
         ${renderNarrativeDeck({
           wide: false,
           eyebrow: '보고 판단판',
           heading: '현재 보고 상태와 다음 후속만 먼저 봅니다',
-          copy: '결과 보고실 오른쪽 패널은 현재 보고 묶음, 결재선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다.',
+          copy: '결과 보고 오른쪽 패널은 현재 보고 묶음, 결재선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다.',
           tokens: [
             createToken(
               `현재:${deliverablesEvidenceState.currentOwnerLabel}`,

@@ -370,7 +370,7 @@ function createProviderBlockedChain(runtime, taskId) {
 function renderDeliverablesEvidenceRail(renderExecutionEvidenceRail, rail) {
   return renderExecutionEvidenceRail(rail, {
     eyebrow: '증적 인계선',
-    heading: '결과 보고실도 같은 실행 증적선을 그대로 읽습니다',
+    heading: '결과 보고도 같은 실행 증적선을 그대로 읽습니다',
     copy: '산출물 표면은 연결 실행 셀의 아티팩트, run, 준비 상태, 리뷰 기준 사실만 읽고 아래 섹션에서 더 깊은 보고를 이어갑니다.',
   });
 }
