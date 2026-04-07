@@ -38,7 +38,7 @@ const SURFACE_DOCK_METADATA = {
   },
   'decision-inbox': {
     copy: '현재 안건과 다음 처리를 판단합니다.',
-    kicker: '결재',
+    kicker: '승인',
   },
   deliverables: {
     copy: '현재 보고 판단과 다음 행동을 확인합니다.',
@@ -46,11 +46,11 @@ const SURFACE_DOCK_METADATA = {
   },
   execution: {
     copy: '현재 실행 판단과 다음 행동을 정리합니다.',
-    kicker: '작전',
+    kicker: '실행',
   },
   logs: {
     copy: '현재 실행 기록과 다음 확인을 빠르게 훑습니다.',
-    kicker: '실행기록',
+    kicker: '실행 기록',
   },
   mission: {
     copy: '현재 안건 판단과 바로 이동을 시작합니다.',
@@ -58,7 +58,7 @@ const SURFACE_DOCK_METADATA = {
   },
   taskboard: {
     copy: '현재 실행 셀과 다음 실행을 조정합니다.',
-    kicker: '실행셀',
+    kicker: '실행 셀',
   },
 };
 
@@ -1089,7 +1089,7 @@ function getAdvancedOpsEntrySignals(options = {}) {
     },
     {
       surface: 'decision-inbox',
-      label: '결재',
+      label: '승인',
       status: currentInboxItem
         ? `${getInboxKindDisplay(currentInboxItem.kind)} ${getInboxStatusDisplay(currentInboxItem.status)}`
         : pendingApprovalCount > 0
@@ -8992,7 +8992,7 @@ function renderHomeCompanyPulseStrip(options) {
     },
     {
       surface: 'decision-inbox',
-      kicker: '결재',
+      kicker: '승인',
       role: '사람 게이트',
       title: pendingGateCount > 0 ? `게이트 ${pendingGateCount}건` : '게이트 안정',
       copy: pendingGateCount > 0
@@ -11826,7 +11826,7 @@ function renderDeliverables(data) {
     },
     {
       surface: 'decision-inbox',
-      label: '결재',
+      label: '승인',
       status: preferredInboxItem
         ? `${getInboxKindDisplay(preferredInboxItem.kind)} ${getInboxStatusDisplay(preferredInboxItem.status)}`
         : approvalSummary.pending > 0
@@ -12526,7 +12526,7 @@ function renderTaskboard(data) {
     },
     {
       surface: 'decision-inbox',
-      label: '결재',
+      label: '승인',
       status: focusedTaskPreferredInboxItem
         ? `${getInboxKindDisplay(focusedTaskPreferredInboxItem.kind)} ${getInboxStatusDisplay(focusedTaskPreferredInboxItem.status)}`
         : pendingApprovals.length > 0
@@ -12865,7 +12865,7 @@ function renderTaskDetail(task, data) {
     },
     {
       surface: 'decision-inbox',
-      label: '결재',
+      label: '승인',
       status: preferredTaskInboxItem
         ? `${getInboxKindDisplay(preferredTaskInboxItem.kind)} ${getInboxStatusDisplay(preferredTaskInboxItem.status)}`
         : pendingTaskApprovals.length > 0
