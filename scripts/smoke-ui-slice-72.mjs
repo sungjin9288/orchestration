@@ -25,7 +25,7 @@ assert.match(indexHtml, /shell-window-bar/);
 assert.match(indexHtml, /shell-agent-row/);
 assert.match(indexHtml, /본부 운영 표면/);
 
-assert.match(appJs, /본부 브리핑실/);
+assert.match(appJs, /회의 브리핑실/);
 assert.match(appJs, /오늘의 안건/);
 assert.match(appJs, /안건 접수 데스크/);
 assert.match(appJs, /안건 접수/);
@@ -38,7 +38,7 @@ assert.match(appJs, /boardroom-seat-lead/);
 assert.match(appJs, /boardroom-seat-left/);
 assert.match(appJs, /boardroom-seat-right/);
 assert.match(appJs, /boardroom-seat-bottom/);
-assert.match(appJs, /참모진 착석/);
+assert.match(appJs, /회의 준비/);
 
 assert.match(styles, /\.briefing-hero \{/);
 assert.match(styles, /\.boardroom-stage \{/);
@@ -64,7 +64,7 @@ console.log(
       ok: true,
       hqMeetingShell: {
         headline: 'AI 실행 관제실',
-        flow: ['안건 접수', '참모진 착석', '회의', '방향 선택'],
+        flow: ['안건 접수', '회의 준비', '회의', '방향 선택'],
         stageClasses: [
           'briefing-hero',
           'boardroom-stage',

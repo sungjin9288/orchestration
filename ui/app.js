@@ -439,7 +439,7 @@ function renderCharterSignalStrip(options = {}) {
   return `
     <section class="relation-strip charter-signal-strip">
       <div class="card-title-row card-title-row-tight">
-        <strong>회사 신호</strong>
+        <strong>운영 신호</strong>
         ${mission ? createToken(`안건:${mission.id}`, 'neutral') : createToken('안건:대기', 'warning')}
         ${councilSession ? createToken(`회의:${getCouncilStatusDisplay(councilSession.status)}`, getCouncilStatusTone(councilSession.status)) : createToken('회의:대기', 'warning')}
         ${linkedTask ? createToken(`실행:${linkedTask.id}`, 'accent') : createToken('실행:대기', 'warning')}
@@ -750,7 +750,7 @@ function renderCouncilBoardroomStage(options = {}) {
   return `
     <section class="${heroClassName}">
       <div class="briefing-copy">
-        <p class="eyebrow">본부 브리핑실</p>
+        <p class="eyebrow">회의 브리핑실</p>
         <h2>${escapeHtml(options.heading || '안건을 올리면 네 역할이 바로 회의를 시작합니다')}</h2>
         <p class="panel-copy">
           ${escapeHtml(
@@ -759,7 +759,7 @@ function renderCouncilBoardroomStage(options = {}) {
           )}
         </p>
         <div class="token-row">
-          ${createToken('참모진 착석', 'accent')}
+          ${createToken('회의 준비', 'accent')}
           ${createToken(`회의:${meetingPhase}`, 'neutral')}
           ${createToken(`방향:${meetingStatus}`, councilSession ? getAlignmentTone(councilSession.alignment?.status || 'pending') : 'warning')}
         </div>
@@ -8952,21 +8952,21 @@ function renderHomeCompanyPulseStrip(options) {
     {
       surface: 'council',
       kicker: '협의회',
-      role: '참모 흐름',
+      role: '협의 흐름',
       title: selectedCouncil?.selectedPlan?.title || '회의 대기',
       copy: selectedCouncil
-        ? `${selectedCouncil.participants?.length || 0}명 참모가 ${councilAlignmentStatus} 상태로 방향을 맞춥니다.`
-        : '안건을 올리면 네 참모가 바로 같은 안건 아래에 착석합니다.',
+        ? `${selectedCouncil.participants?.length || 0}개 역할이 ${councilAlignmentStatus} 상태로 방향을 맞춥니다.`
+        : '안건을 올리면 네 역할이 바로 같은 안건을 함께 읽기 시작합니다.',
       foot: `협의회 · ${councilPhase}`,
       tone: councilTone,
     },
     {
       surface: 'execution',
       kicker: '실행',
-      role: '작전 데스크',
+      role: '실행 흐름',
       title: activeTask ? activeTask.title : '작전 대기',
       copy: !activeTask
-        ? '회의 결론이 정리되면 첫 실행 셀이 회사 동선을 이어받습니다.'
+        ? '회의 결론이 정리되면 첫 실행 셀이 이 흐름을 이어받습니다.'
         : activeTask.flags?.waitingApproval
           ? '승인선이 풀리면 현재 경로가 바로 다음 작전으로 이어집니다.'
           : activeTask.flags?.waitingDecision
@@ -9010,7 +9010,7 @@ function renderHomeCompanyPulseStrip(options) {
   return `
     <section class="relation-strip company-pulse-strip" data-surface="${escapeHtml(surface)}">
       <div class="card-title-row card-title-row-tight">
-        <strong>회사 흐름</strong>
+        <strong>운영 흐름</strong>
         ${createToken(`현재:${getSurfaceDisplayName(surface)}`, 'accent')}
         ${selectedMission ? createToken(`안건:${selectedMission.id}`, 'neutral') : createToken('안건:대기', 'warning')}
         ${
@@ -11034,7 +11034,7 @@ function renderCouncilHeartbeatStrip(mission, councilSession, linkedTask) {
   return `
     <section class="relation-strip council-heartbeat-strip">
       <div class="card-title-row card-title-row-tight">
-        <strong>참모 흐름</strong>
+        <strong>협의 흐름</strong>
         ${createToken(
           `회의:${councilSession ? getCouncilStatusDisplay(councilSession.status) : '대기'}`,
           councilSession ? getCouncilStatusTone(councilSession.status) : 'warning',
@@ -11046,7 +11046,7 @@ function renderCouncilHeartbeatStrip(mission, councilSession, linkedTask) {
         ${mission ? createToken(`안건:${mission.id}`, 'neutral') : ''}
       </div>
       <p class="detail-copy detail-copy-compact council-heartbeat-intro">
-        같은 네 참모가 안건 아래에서 계속 깨어 있고, 정렬과 인계 상태가 하나의 흐름으로 이어집니다.
+        같은 네 역할이 안건 아래에서 계속 읽고, 정렬과 인계 상태가 하나의 흐름으로 이어집니다.
       </p>
       <div class="council-heartbeat-signal-row">
         ${councilHeartbeatSignals
