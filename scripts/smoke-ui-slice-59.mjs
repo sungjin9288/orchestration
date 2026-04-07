@@ -37,7 +37,7 @@ assert.match(decisionLog, /### DEC-043/);
 assert.match(decisionLog, /User-facing orchestration copy defaults to Korean on the primary shell\./);
 
 assert.match(appJs, /renderCouncilBoardroomStage\(/);
-assert.match(appJs, /안건 접수 데스크/);
+assert.match(appJs, /안건 접수 흐름/);
 assert.match(appJs, /안건 접수/);
 assert.match(appJs, /빠른 접수/);
 assert.match(appJs, /즉시 착석/);

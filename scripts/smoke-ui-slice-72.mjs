@@ -28,7 +28,7 @@ assert.match(indexHtml, /현재 역할 라인업/);
 
 assert.match(appJs, /회의 브리핑실/);
 assert.match(appJs, /오늘의 안건/);
-assert.match(appJs, /안건 접수 데스크/);
+assert.match(appJs, /안건 접수 흐름/);
 assert.match(appJs, /안건 접수/);
 assert.match(appJs, /빠른 접수/);
 assert.match(appJs, /즉시 착석/);

@@ -14,7 +14,7 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(appJs, /compact:\s*true,/);
 assert.match(appJs, /<h2>안건 접수<\/h2>/);
-assert.match(appJs, /안건 접수 데스크/);
+assert.match(appJs, /안건 접수 흐름/);
 assert.match(appJs, /빠른 접수/);
 assert.match(appJs, /즉시 착석/);
 assert.match(appJs, /<span class="field-label">안건<\/span>/);
@@ -39,7 +39,7 @@ console.log(
     {
       ok: true,
       hqOrderDeskDensity: {
-        labels: ['안건 접수', '안건 접수 데스크', '안건', '목표', '경계 (선택)'],
+        labels: ['안건 접수', '안건 접수 흐름', '안건', '목표', '경계 (선택)'],
         tokens: ['빠른 접수', '즉시 착석'],
         classes: [
           'mission-order-desk',
