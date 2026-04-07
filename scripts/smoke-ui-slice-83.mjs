@@ -12,14 +12,14 @@ const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(appJs, /avatarLabel: '지휘 아바타'/);
+assert.match(appJs, /avatarLabel: '리드 아바타'/);
 assert.match(appJs, /avatarLabel: '전략 아바타'/);
 assert.match(appJs, /avatarLabel: '설계 아바타'/);
 assert.match(appJs, /avatarLabel: '실행 아바타'/);
-assert.match(appJs, /deskProp: '상황판 · 최종 승인 봉투'/);
-assert.match(appJs, /deskProp: '우선순위 보드 · 전략 차트'/);
-assert.match(appJs, /deskProp: '경계 도면 · 구조 메모판'/);
-assert.match(appJs, /deskProp: '체크포인트 보드 · 실행 큐'/);
+assert.match(appJs, /deskProp: '최종 판단판 · 승인 묶음'/);
+assert.match(appJs, /deskProp: '우선순위 표 · 전략 메모'/);
+assert.match(appJs, /deskProp: '경계 도면 · 구조 메모'/);
+assert.match(appJs, /deskProp: '체크포인트 표 · 실행 큐'/);
 assert.match(appJs, /boardroom-seat-portrait/);
 assert.match(appJs, /boardroom-seat-avatar-shell/);
 assert.match(appJs, /boardroom-seat-avatar-head/);
@@ -56,12 +56,12 @@ console.log(
     {
       ok: true,
       hqOfficeAvatars: {
-        avatars: ['지휘 아바타', '전략 아바타', '설계 아바타', '실행 아바타'],
+        avatars: ['리드 아바타', '전략 아바타', '설계 아바타', '실행 아바타'],
         props: [
-          '상황판 · 최종 승인 봉투',
-          '우선순위 보드 · 전략 차트',
-          '경계 도면 · 구조 메모판',
-          '체크포인트 보드 · 실행 큐',
+          '최종 판단판 · 승인 묶음',
+          '우선순위 표 · 전략 메모',
+          '경계 도면 · 구조 메모',
+          '체크포인트 표 · 실행 큐',
         ],
         stageClasses: [
           'boardroom-seat-portrait',

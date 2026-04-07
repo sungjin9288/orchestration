@@ -18,16 +18,16 @@ const councilDraftState = JSON.parse(fs.readFileSync(councilDraftStatePath, 'utf
 const councilSession = Object.values(councilDraftState.councilSessions)[0];
 
 assert.match(appJs, /const COUNCIL_CAST_ORDER = \['Conductor', 'Strategist', 'Architect', 'Decomposer'\];/);
-assert.match(appJs, /착석 참모진/);
-assert.match(appJs, /참모진/);
+assert.match(appJs, /참여 역할/);
+assert.match(appJs, /참여 역할', 'accent'/);
 assert.match(appJs, /정렬 책임/);
 assert.match(appJs, /목표 정리/);
 assert.match(appJs, /경계 보호/);
 assert.match(appJs, /첫 실행 단위/);
-assert.match(appJs, /지휘자/);
-assert.match(appJs, /전략가/);
-assert.match(appJs, /설계자/);
-assert.match(appJs, /분해자/);
+assert.match(appJs, /displayName: '리드'/);
+assert.match(appJs, /displayName: '전략'/);
+assert.match(appJs, /displayName: '설계'/);
+assert.match(appJs, /displayName: '실행'/);
 assert.match(appJs, /renderCouncilCastCards\(selectedCouncilSession, \{ compact: true \}\)/);
 assert.match(appJs, /renderCouncilCastCards\(null\)/);
 assert.match(appJs, /function getMissionStatusDisplay\(status\)/);
