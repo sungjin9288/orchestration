@@ -26,10 +26,10 @@ assert.match(appJs, /<h2>참모 회의<\/h2>/);
 assert.match(appJs, /회의 발언 기록/);
 assert.match(appJs, /<h2>회의 결론<\/h2>/);
 assert.match(appJs, /결론 승인/);
-assert.match(appJs, /작전 지휘실/);
-assert.match(appJs, /회의에서 정한 방향을 실행 셀에 내리는 작전실/);
+assert.match(appJs, /실행 브리핑/);
+assert.match(appJs, /회의 결론이 실행 셀로 이어지는 흐름/);
 assert.match(appJs, /<h2>작전실<\/h2>/);
-assert.match(appJs, /작전 개요/);
+assert.match(appJs, /실행 개요/);
 assert.match(appJs, /지휘 승인선/);
 assert.match(appJs, /작전 보류 사유/);
 assert.match(appJs, /사전 점검 준비/);
@@ -60,7 +60,7 @@ console.log(
       hqMeetingFlowthrough: {
         missionDetail: ['안건 브리프', '브리프 핵심 4줄', '브리프 액션'],
         council: ['참모 회의', '회의 발언 기록', '회의 결론', '결론 승인'],
-        execution: ['작전 지휘실', '작전실', '지휘 승인선', '작전 보류 사유', '사전 점검 준비'],
+        execution: ['실행 브리핑', '작전실', '지휘 승인선', '작전 보류 사유', '사전 점검 준비'],
         executionGate: {
           missionStatus: executingMission.status,
           waitingApproval: executingTask.flags.waitingApproval,

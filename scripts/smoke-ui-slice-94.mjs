@@ -17,8 +17,8 @@ const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'u
 assert.match(appJs, /function getExecutionLeftSnapshot\(task, latestRun, executionControl, artifacts = \{\}\)/);
 assert.match(appJs, /function getDeliverablesLeftSnapshot\(mission, task, currentArtifact, deliverablesControl, artifacts = \{\}\)/);
 
-assert.match(appJs, /eyebrow: '작전 개요판'/);
-assert.match(appJs, /copy: '작전실 왼쪽 패널도 현재 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다\.'/);
+assert.match(appJs, /eyebrow: '실행 개요판'/);
+assert.match(appJs, /copy: '왼쪽 패널은 현재 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다\.'/);
 assert.match(appJs, /eyebrow: '보고 개요판'/);
 assert.match(appJs, /copy: '결과 보고실 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다\.'/);
 
@@ -47,7 +47,7 @@ console.log(
     {
       ok: true,
       repoExecutionDeliverablesLeftDensity: {
-        executionLeft: ['작전 개요판', '현재 판단', '다음 행동', '연결 근거'],
+        executionLeft: ['실행 개요판', '현재 판단', '다음 행동', '연결 근거'],
         deliverablesLeft: ['보고 개요판', '현재 판단', '다음 행동', '연결 근거'],
         preservedDetail: ['상류 준비 보고', '후속 전달 보고'],
         executionGate: {
