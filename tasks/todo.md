@@ -467,6 +467,26 @@
   failureClass: `external_quota_recovered`
   reason: `The previously red planner-through-builder-preflight live path now completes cleanly after external billing/quota recovery, so no repo-side follow-up remains for the former slice-05 red item.`
   evidence: `observedAt=2026-04-07; branch=main; commit=1fa0abe; configuredEnvSource=app-session; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-provider-live-slice-05; plannerRunId=run-0001; planArtifactId=artifact-0001; architectRunId=run-0002; architectureArtifactId=artifact-0002; taskBreakerRunId=run-0003; breakdownArtifactId=artifact-0003; builderPreflightRunId=run-0004; preflightArtifactId=artifact-0004; builderPreflightNextStage=request-builder-live-mutation-approval; approvalId=approval-0001`
+- [x] `pre-real-test-readiness-contract-m6-51` now fixes `docs/09_pre-real-test-readiness.md` as the current solo dogfooding contract on top of the frozen post-v1 baseline: the repo now records that `Mission -> Council -> Execution -> Deliverables` must close naturally on both `local-stub` and `openai-responses live`, keeps that equality scoped to pre-real-test readiness instead of the required freeze gate, and pins one operator runbook with exact hygiene, synthetic, live, triage, evidence-template, and stop-criteria commands without changing runtime objects, routes, approval/review semantics, or artifact taxonomy
+- [x] `ops-rehearsal-m6-52` records same-day representative pre-real-test evidence on `2026-04-07` from current `main@fcdee3a`: `node scripts/smoke-qa-slice-07.mjs` passed as the local-stub canonical mission-first browser path, `node scripts/smoke-provider-live-slice-05.mjs` passed as the live provider representative planner-through-builder-preflight path, and `node scripts/smoke-qa-live-slice-07.mjs` passed as the live browser representative mission-to-reviewer path, so pre-real-test readiness now has current `local-stub` plus `live` evidence without widening the frozen required regression gate
+- script: `node scripts/smoke-qa-slice-07.mjs`
+  status: `pass`
+  model: `qa-slice-07-operator-model`
+  failureClass: `representative_local_stub_rehearsal`
+  reason: `The mission-first browser rehearsal closed Mission bootstrap, linked task creation, builder approval consumption, builder live mutation, reviewer execution, and logs/artifact landing on the shipped local-stub path.`
+  evidence: `observedAt=2026-04-07; branch=codex/pre-real-test-readiness-batch-20260407-main; commit=fcdee3a; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-qa-slice-07; outputRoot=/Users/sungjin/dev/personal/orchestration/output/playwright/qa-slice-07; builderRunId=run-0005; reviewerRunId=run-0006; changeSummaryArtifactId=artifact-0005; patchArtifactId=artifact-0006; diffArtifactId=artifact-0007; reviewArtifactId=artifact-0008; selectedSurface=artifacts`
+- script: `node scripts/smoke-provider-live-slice-05.mjs`
+  status: `pass`
+  model: `gpt-5.4`
+  failureClass: `representative_live_provider_rehearsal`
+  reason: `The configured-env live provider representative path completed planner-through-builder-preflight with current ready summaries and the expected next approval gate.`
+  evidence: `observedAt=2026-04-07; branch=codex/pre-real-test-readiness-batch-20260407-main; commit=fcdee3a; configuredEnvSource=app-session; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-provider-live-slice-05; plannerRunId=run-0001; architectRunId=run-0002; taskBreakerRunId=run-0003; builderPreflightRunId=run-0004; preflightArtifactId=artifact-0004; builderPreflightNextStage=request-builder-live-mutation-approval; approvalId=approval-0001`
+- script: `node scripts/smoke-qa-live-slice-07.mjs`
+  status: `pass`
+  model: `gpt-5.4`
+  failureClass: `representative_live_browser_rehearsal`
+  reason: `The configured-env mission-first browser rehearsal completed project bootstrap, mission create/select, linked task execution, builder live mutation, reviewer, and logs/review-artifact landing on the live path.`
+  evidence: `observedAt=2026-04-07; branch=codex/pre-real-test-readiness-batch-20260407-main; commit=fcdee3a; configuredEnvSource=app-session; runtimeRoot=/Users/sungjin/dev/personal/orchestration/var/runtime-qa-live-slice-07; outputRoot=/Users/sungjin/dev/personal/orchestration/output/playwright/qa-slice-07-live; builderRunId=run-0005; reviewerRunId=run-0006; changeSummaryArtifactId=artifact-0005; patchArtifactId=artifact-0006; diffArtifactId=artifact-0007; reviewArtifactId=artifact-0008; selectedSurface=artifacts`
 
 ### remaining [OPEN]
 - [x] fresh configured-env reruns on `main@7010513` now supersede the older six-green note: current Codex app relaunch makes env visible to bare `node`, but the six-target optional real-live set is no longer all green and must be treated as current non-blocking operational evidence instead of historical pass carryover
