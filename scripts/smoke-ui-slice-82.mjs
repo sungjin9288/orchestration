@@ -12,7 +12,7 @@ const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(appJs, /deskLabel: '본부 중앙 데스크'/);
+assert.match(appJs, /deskLabel: '중앙 판단 데스크'/);
 assert.match(appJs, /deskLabel: '전략실 창가 데스크'/);
 assert.match(appJs, /deskLabel: '설계 검토 데스크'/);
 assert.match(appJs, /deskLabel: '실행 편성 데스크'/);
@@ -47,7 +47,7 @@ console.log(
     {
       ok: true,
       hqOfficeStations: {
-        desks: ['본부 중앙 데스크', '전략실 창가 데스크', '설계 검토 데스크', '실행 편성 데스크'],
+        desks: ['중앙 판단 데스크', '전략실 창가 데스크', '설계 검토 데스크', '실행 편성 데스크'],
         stageClasses: [
           'boardroom-seat-presence',
           'boardroom-avatar',

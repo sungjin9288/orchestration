@@ -28,7 +28,7 @@ assert.match(audit, /generic workflow builder/);
 
 assert.match(appJs, /function renderOrchestrationCharter/);
 assert.match(appJs, /목표 헌장/);
-assert.match(appJs, /참모 구성/);
+assert.match(appJs, /역할 구성/);
 assert.match(appJs, /진행 흐름/);
 assert.match(appJs, /운영 기준/);
 assert.match(appJs, /프로젝트 지정 후 실행/);
@@ -56,7 +56,7 @@ console.log(
     {
       ok: true,
       repoPatternCharterShell: {
-        sections: ['목표 헌장', '참모 구성', '진행 흐름', '운영 기준'],
+        sections: ['목표 헌장', '역할 구성', '진행 흐름', '운영 기준'],
         adoptedPatterns: ['목표 가시성', '역할 가시성', '흐름 가시화', '운영 기준 가시성'],
         rejectedPatterns: ['회사 시뮬레이터', 'generic workflow builder'],
       },

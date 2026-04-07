@@ -201,10 +201,10 @@ const COUNCIL_CAST_METADATA = {
   Conductor: {
     archetype: '정렬 책임',
     avatarLabel: '지휘 아바타',
-    avatarMood: '본부 상황판을 보며 최종 방향을 고정합니다.',
+    avatarMood: '중앙 판단판을 보며 최종 방향을 고정합니다.',
     avatarStyle: 'lead',
     commandLine: '최종 추천안과 인계 승인 흐름을 한 지점에서 총괄합니다.',
-    deskLabel: '본부 중앙 데스크',
+    deskLabel: '중앙 판단 데스크',
     deskProp: '상황판 · 최종 승인 봉투',
     displayName: '지휘자',
     mark: 'CN',
@@ -219,7 +219,7 @@ const COUNCIL_CAST_METADATA = {
     avatarLabel: '전략 아바타',
     avatarMood: '우선순위 표와 목표 문장을 동시에 정리합니다.',
     avatarStyle: 'strategist',
-    commandLine: '목표 해석과 범위 제한을 맡는 수석 참모입니다.',
+    commandLine: '목표 해석과 범위 제한을 맡는 핵심 전략 역할입니다.',
     deskLabel: '전략실 창가 데스크',
     deskProp: '우선순위 보드 · 전략 차트',
     displayName: '전략가',
@@ -235,7 +235,7 @@ const COUNCIL_CAST_METADATA = {
     avatarLabel: '설계 아바타',
     avatarMood: '경계 도면을 펼친 채 파급 범위를 봉인합니다.',
     avatarStyle: 'architect',
-    commandLine: '설계 파급을 막고 시스템 경계를 봉인하는 참모입니다.',
+    commandLine: '설계 파급을 막고 시스템 경계를 봉인하는 역할입니다.',
     deskLabel: '설계 검토 데스크',
     deskProp: '경계 도면 · 구조 메모판',
     displayName: '설계자',
@@ -401,7 +401,7 @@ function getCompanySignalEntries(options = {}) {
       surface: 'council',
       label: '회의',
       status: councilStatus,
-      copy: councilSession ? '네 참모가 같은 안건 아래에서 방향을 맞춥니다.' : '참모 착석 전이라 회의 흐름이 아직 열리지 않았습니다.',
+      copy: councilSession ? '네 역할이 같은 안건 아래에서 방향을 맞춥니다.' : '회의 준비 전이라 회의 흐름이 아직 열리지 않았습니다.',
       tone: councilTone,
     },
     {
@@ -513,7 +513,7 @@ function renderOrchestrationCharter(options = {}) {
         <p class="charter-copy">${escapeHtml(agendaGoal)}</p>
       </article>
       <article class="charter-card">
-        <p class="charter-label">참모 구성</p>
+        <p class="charter-label">역할 구성</p>
         <div class="charter-crew-list">
           ${castEntries
             .map(
@@ -602,7 +602,7 @@ function renderCouncilCastCards(councilSession, options = {}) {
                 </div>
                 <div class="card-title-row ${compact ? 'card-title-row-tight' : ''}">
                   <strong>${escapeHtml(castEntry.displayName)}</strong>
-                  ${isLead ? createToken('최종 권고', 'accent') : createToken('참모진', 'neutral')}
+                  ${isLead ? createToken('최종 권고', 'accent') : createToken('참여 역할', 'neutral')}
                 </div>
                 <div class="cast-station-row">
                   <strong class="cast-station">${escapeHtml(castEntry.deskLabel)}</strong>
@@ -774,7 +774,7 @@ function renderCouncilBoardroomStage(options = {}) {
           <strong class="boardroom-table-title">${escapeHtml(agendaTitle)}</strong>
           <p class="boardroom-table-copy">${escapeHtml(agendaGoal)}</p>
           <div class="token-row token-row-compact">
-            ${createToken(`참모:${castEntries.length}석`, 'neutral')}
+            ${createToken(`역할:${castEntries.length}석`, 'neutral')}
             ${createToken(`회의:${meetingPhase}`, 'accent')}
             ${createToken(`방향:${meetingStatus}`, councilSession ? getAlignmentTone(councilSession.alignment?.status || 'pending') : 'warning')}
           </div>
@@ -10485,8 +10485,8 @@ function renderMission(data) {
                 </section>
                 <section class="relation-strip">
                   <div class="card-title-row">
-                    <strong>착석 참모진</strong>
-                    ${createToken('착석 참모진', 'accent')}
+                    <strong>참여 역할</strong>
+                    ${createToken('참여 역할', 'accent')}
                   </div>
                   ${
                     selectedCouncilSession
@@ -10794,8 +10794,8 @@ function renderCouncil(data) {
               <div class="stack">
                 <section class="relation-strip">
                   <div class="card-title-row card-title-row-tight">
-                    <strong>착석 참모진</strong>
-                    ${createToken('참모진', 'accent')}
+                    <strong>참여 역할</strong>
+                    ${createToken('참여 역할', 'accent')}
                   </div>
                   <p class="detail-copy detail-copy-compact">
                     같은 네 역할이 계속 참여해, 결론이 숨은 메타데이터가 아니라 실제 협의 흐름처럼 읽힙니다.
@@ -10814,8 +10814,8 @@ function renderCouncil(data) {
             `
             : `
               <div class="empty-state council-empty-state council-empty-state-main">
-                <strong class="council-empty-title">참모 회의 세션 없음</strong>
-                <p class="council-empty-copy">참모 회의를 열면 역할군, 결론, 승인 지점이 이곳에 뜹니다.</p>
+                <strong class="council-empty-title">회의 세션 없음</strong>
+                <p class="council-empty-copy">회의를 열면 참여 역할, 결론, 승인 지점이 이곳에 뜹니다.</p>
                 ${renderCouncilCastCards(null)}
               </div>
             `
