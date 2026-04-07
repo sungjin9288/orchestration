@@ -415,7 +415,7 @@ function getCompanySignalEntries(options = {}) {
       surface: 'deliverables',
       label: '보고',
       status: deliverablesStatus,
-      copy: completionReady ? '종료 정리와 보고 묶음이 이미 같은 경로를 닫았습니다.' : '리뷰와 보고 묶음이 다음 회사를 위한 근거를 남깁니다.',
+      copy: completionReady ? '종료 정리와 보고 묶음이 이미 같은 경로를 닫았습니다.' : '리뷰와 보고 묶음이 다음 운영 판단을 위한 근거를 남깁니다.',
       tone: deliverablesTone,
     },
     {
@@ -926,8 +926,8 @@ function renderDeliverablesReportDeck(options = {}) {
 
   return renderNarrativeDeck({
     eyebrow: '결과 보고실',
-    heading: '회의와 작전실에서 올라온 묶음을 본부 보고용으로 정리합니다',
-    copy: '착석한 참모진이 정한 방향이 실제로 어떤 보고 묶음과 결재선으로 쌓였는지 이 방에서 빠르게 읽습니다.',
+    heading: '회의와 작전실에서 올라온 묶음을 운영 보고용으로 정리합니다',
+    copy: '협의회와 실행 셀에서 올라온 결과가 어떤 보고 묶음과 결재선으로 이어졌는지 이 방에서 빠르게 읽습니다.',
     entryFrame: true,
     tokens: [
       mission ? createToken(`안건:${mission.id}`, 'neutral') : '',
