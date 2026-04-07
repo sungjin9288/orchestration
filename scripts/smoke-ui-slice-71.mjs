@@ -36,8 +36,8 @@ assert.match(appJs, /cast-rank-row/);
 assert.match(appJs, /cast-rank/);
 assert.match(appJs, /cast-command/);
 assert.match(appJs, /직급 체계/);
-assert.match(appJs, /직급이 보이는 네 참모진/);
-assert.match(appJs, /직급과 담당 임무를 가진 참모진/);
+assert.match(appJs, /네 역할이 현재 정렬을/);
+assert.match(appJs, /같은 네 역할이 계속 참여해, 결론이 숨은 메타데이터가 아니라 실제 협의 흐름처럼 읽힙니다\./);
 assert.match(appJs, /createToken\('최종 권고', 'accent'\)/);
 assert.match(appJs, /createToken\('참모진', 'neutral'\)/);
 

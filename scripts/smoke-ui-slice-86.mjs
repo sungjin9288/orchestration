@@ -19,7 +19,7 @@ assert.match(audit, /dify/);
 assert.match(audit, /crewAI/);
 
 assert.match(appJs, /owner: '운영자 · 안건 데스크'/);
-assert.match(appJs, /owner: '총지휘관 \+ 참모진'/);
+assert.match(appJs, /owner: '회의 리드 \+ 참여 역할'/);
 assert.match(appJs, /owner: '선임 실행관 · 작전 지휘실'/);
 assert.match(appJs, /owner: '결과 보고실 · 관제실'/);
 assert.match(appJs, /statusLabel: isActive \? '현재 단계' : isComplete \? '완료됨' : '다음 단계'/);
@@ -43,7 +43,7 @@ console.log(
       repoFlowOwnershipShell: {
         owners: [
           '운영자 · 안건 데스크',
-          '총지휘관 + 참모진',
+          '회의 리드 + 참여 역할',
           '선임 실행관 · 작전 지휘실',
           '결과 보고실 · 관제실',
         ],
