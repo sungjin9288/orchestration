@@ -38,7 +38,7 @@ assert.match(appJs, /한정된 실행 유지/);
 assert.match(appJs, /label: '안건 접수'/);
 assert.match(appJs, /summary: '현재 안건 판단과 바로 이동을 시작합니다\.'/);
 assert.match(appJs, /label: '참모 회의'/);
-assert.match(appJs, /summary: '직급별 AI가 같은 안건을 함께 읽고 정렬합니다\.'/);
+assert.match(appJs, /summary: '각 역할이 같은 안건을 함께 읽고 방향을 정리합니다\.'/);
 assert.match(appJs, /label: '실행 방향'/);
 assert.match(appJs, /summary: '현재 작전 판단과 다음 행동을 조정합니다\.'/);
 assert.match(appJs, /label: '결과 보고'/);

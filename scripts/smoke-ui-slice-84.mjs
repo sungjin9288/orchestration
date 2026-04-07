@@ -16,7 +16,7 @@ assert.match(appJs, /avatarStyle: 'lead'/);
 assert.match(appJs, /avatarStyle: 'strategist'/);
 assert.match(appJs, /avatarStyle: 'architect'/);
 assert.match(appJs, /avatarStyle: 'decomposer'/);
-assert.match(appJs, /안건을 올리면 귀여운 참모진이 각자 자리에서 바로 읽고/);
+assert.match(appJs, /안건을 올리면 네 역할이 각자 자리에서 읽고/);
 assert.match(appJs, /label: '안건 접수'/);
 assert.match(appJs, /label: '참모 회의'/);
 assert.match(appJs, /label: '실행 방향'/);
@@ -57,7 +57,7 @@ console.log(
       ok: true,
       hqCuteAvatarShell: {
         steps: ['안건 접수', '참모 회의', '실행 방향', '결과 보고'],
-        mood: '귀여운 참모진이 각자 자리에서 바로 읽고 회의로 목표와 방향을 정리합니다.',
+        mood: '네 역할이 각자 자리에서 읽고 회의로 목표와 방향을 정리합니다.',
         avatarClasses: [
           'boardroom-seat-avatar-eye',
           'boardroom-seat-avatar-smile',

@@ -33,7 +33,7 @@ const SURFACE_DOCK_METADATA = {
     kicker: '증적',
   },
   council: {
-    copy: '참모진이 추천안과 방향을 정렬합니다.',
+    copy: '추천안과 방향을 함께 정리합니다.',
     kicker: '협의',
   },
   'decision-inbox': {
@@ -172,9 +172,9 @@ const ORCHESTRATION_FLOW_STEPS = [
   {
     id: 'council',
     label: '참모 회의',
-    owner: '총지휘관 + 참모진',
+    owner: '회의 리드 + 참여 역할',
     surface: 'council',
-    summary: '직급별 AI가 같은 안건을 함께 읽고 정렬합니다.',
+    summary: '각 역할이 같은 안건을 함께 읽고 방향을 정리합니다.',
   },
   {
     id: 'execution',
@@ -667,7 +667,7 @@ function renderCouncilBoardroomStage(options = {}) {
     options.agendaGoal ||
       councilSession?.summary ||
       state.missionDraftGoal ||
-      '안건이 올라오면 착석한 참모진이 회의를 열고 목표와 방향을 함께 정합니다.',
+      '안건이 올라오면 네 역할이 회의를 열고 목표와 방향을 함께 정합니다.',
   ).trim();
   const meetingStatus = councilSession
     ? getAlignmentStatusDisplay(councilSession.alignment?.status || 'pending')
@@ -751,11 +751,11 @@ function renderCouncilBoardroomStage(options = {}) {
     <section class="${heroClassName}">
       <div class="briefing-copy">
         <p class="eyebrow">본부 브리핑실</p>
-        <h2>${escapeHtml(options.heading || '안건을 올리면 참모진이 바로 회의를 시작합니다')}</h2>
+        <h2>${escapeHtml(options.heading || '안건을 올리면 네 역할이 바로 회의를 시작합니다')}</h2>
         <p class="panel-copy">
           ${escapeHtml(
             options.copy ||
-              '안건을 올리면 귀여운 참모진이 각자 자리에서 바로 읽고, 회의로 목표와 방향을 정리합니다.',
+              '안건을 올리면 네 역할이 각자 자리에서 읽고, 회의로 목표와 방향을 정리합니다.',
           )}
         </p>
         <div class="token-row">
@@ -779,7 +779,7 @@ function renderCouncilBoardroomStage(options = {}) {
             ${createToken(`방향:${meetingStatus}`, councilSession ? getAlignmentTone(councilSession.alignment?.status || 'pending') : 'warning')}
           </div>
           <p class="boardroom-table-foot">
-            각 직급 AI가 자기 자리에서 같은 안건을 읽고, 회의 결론을 하나의 실행 방향으로 모읍니다.
+            네 역할이 같은 안건을 읽고, 회의 결론을 하나의 실행 방향으로 모읍니다.
           </p>
         </section>
         ${renderSeat(rightEntry, 'boardroom-seat-right')}
@@ -10011,13 +10011,13 @@ function renderMission(data) {
         agendaGoal:
           state.missionDraftGoal ||
           selectedMission?.goal ||
-          '안건을 올리면 참모진이 회의를 열고 목표, 범위, 방향을 먼저 정리합니다.',
+          '안건을 올리면 네 역할이 회의를 열고 목표, 범위, 방향을 먼저 정리합니다.',
         agendaTitle: state.missionDraftTitle || selectedMission?.title || '오늘 논의할 안건을 올리세요',
         completionReady: missionCompletionReady,
         compact: true,
         copy:
-          '안건만 접수하면 네 참모가 바로 회의를 열고 목표와 방향을 먼저 정합니다.',
-        heading: '오늘의 안건을 접수하면 참모진이 바로 회의를 엽니다',
+          '안건만 접수하면 네 역할이 바로 회의를 열고 목표와 방향을 먼저 정합니다.',
+        heading: '오늘의 안건을 접수하면 네 역할이 바로 회의를 엽니다',
         councilSession: selectedCouncilSession,
         linkedTask,
         mission: selectedMission,
@@ -10518,9 +10518,9 @@ function renderMission(data) {
                     ${
                       selectedCouncilSession
                         ? escapeHtml(
-                            `${selectedCouncilSession.id}는 ${getCouncilStatusDisplay(selectedCouncilSession.status)} 상태이고, 직급이 보이는 네 참모진이 현재 정렬을 ${getAlignmentStatusDisplay(selectedCouncilSession.alignment?.status || 'pending')}으로 묶고 있습니다.`,
+                            `${selectedCouncilSession.id}는 ${getCouncilStatusDisplay(selectedCouncilSession.status)} 상태이고, 네 역할이 현재 정렬을 ${getAlignmentStatusDisplay(selectedCouncilSession.alignment?.status || 'pending')}으로 묶고 있습니다.`,
                           )
-                        : '참모 회의를 열면 직급을 가진 네 참모가 바로 같은 안건을 두고 앉습니다.'
+                        : '참모 회의를 열면 네 역할이 같은 안건을 두고 정렬을 시작합니다.'
                     }
                   </p>
                   <p class="detail-copy">
@@ -10667,7 +10667,7 @@ function renderCouncil(data) {
       {
         label: '왼쪽 회의록',
         title: '안건 맥락 + 착석 참모',
-        copy: '안건 맥락, 직급이 보이는 참모진, 회의 발언만 왼쪽에 남깁니다.',
+        copy: '안건 맥락, 참여 역할, 회의 발언만 왼쪽에 남깁니다.',
         signal: councilSignalBySurface.council,
       },
       {
@@ -10716,12 +10716,12 @@ function renderCouncil(data) {
       ${renderCouncilBoardroomStage({
         agendaGoal:
           selectedMission.goal ||
-          '안건이 올라오면 착석한 참모진이 회의를 열고 목표와 방향을 먼저 정리합니다.',
+          '안건이 올라오면 네 역할이 회의를 열고 목표와 방향을 먼저 정리합니다.',
         agendaTitle: selectedMission.title || '오늘 논의할 안건',
         completionReady: selectedMissionCompletion.completionReady,
         copy:
-          '여기는 참모진이 실제로 앉아 회의하는 방처럼 보여야 합니다. 각 캐릭터는 서열과 담당 임무를 가진 채 같은 안건을 보고 방향을 고릅니다.',
-        heading: '착석한 AI 참모진이 안건을 두고 목표와 방향을 정하는 회의실',
+          '여기는 네 역할이 같은 안건을 읽고, 회의에서 목표와 방향을 정리하는 표면입니다.',
+        heading: '네 역할이 안건을 두고 목표와 방향을 정하는 회의실',
         councilSession: selectedCouncilSession,
         linkedTask,
         mission: selectedMission,
@@ -10798,7 +10798,7 @@ function renderCouncil(data) {
                     ${createToken('참모진', 'accent')}
                   </div>
                   <p class="detail-copy detail-copy-compact">
-                    같은 네 AI가 직급과 담당 임무를 가진 참모진으로 계속 남아 있어서, 결론이 숨은 메타데이터가 아니라 실제 회의 참가자처럼 읽힙니다.
+                    같은 네 역할이 계속 참여해, 결론이 숨은 메타데이터가 아니라 실제 협의 흐름처럼 읽힙니다.
                   </p>
                   ${renderCouncilCastCards(selectedCouncilSession)}
                 </section>
