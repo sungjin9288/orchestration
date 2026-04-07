@@ -3423,7 +3423,7 @@ function getMissionBriefControlSnapshot(mission, previews) {
   if (previews.execution.linkedTask.flags?.blocked) {
     return {
       currentCopy: '현재 실행 셀이 blocked 상태라서 차단 근거를 먼저 확인해야 합니다.',
-      currentTitle: '작전 차단 상태',
+      currentTitle: '실행 차단 상태',
       nextCopy: `${nextSurfaceLabel}에서 ${previews.nextActionPreview.actionLabel}를 다시 확인합니다.`,
       nextTitle: `${nextSurfaceLabel} 바로 열기`,
       reasonCopy: previews.execution.blockedReason || previews.execution.gatePreview,
@@ -3432,8 +3432,8 @@ function getMissionBriefControlSnapshot(mission, previews) {
   }
 
   return {
-    currentCopy: '현재 안건은 실행 경로 안에서 계속 전진할 수 있는 상태입니다.',
-    currentTitle: '작전 진행 중',
+    currentCopy: '현재 안건은 실행 경로 안에서 계속 이어갈 수 있는 상태입니다.',
+    currentTitle: '실행 진행 중',
     nextCopy: `${nextSurfaceLabel}에서 ${previews.nextActionPreview.actionLabel}를 이어갑니다.`,
     nextTitle: `${nextSurfaceLabel} 바로 열기`,
     reasonCopy: previews.execution.stagePreview || previews.execution.gatePreview,
@@ -3504,13 +3504,13 @@ function getExecutionControlSnapshot(task, latestRun, approvalBridge, gateCopy, 
       nextCopy: '안건이나 회의에서 먼저 실행 셀을 연결합니다.',
       nextTitle: '안건으로 돌아가기',
       reasonCopy: '현재는 선택된 실행 셀이 없어 승인선과 최신 보고를 판단할 근거가 없습니다.',
-      reasonTitle: '작전 근거 없음',
+      reasonTitle: '실행 근거 없음',
     };
   }
 
   if (task.flags?.waitingApproval) {
     return {
-      currentCopy: '사람 승인이 남아 있어 현재 작전은 승인선 처리 전까지 멈춰 있습니다.',
+      currentCopy: '사람 승인이 남아 있어 현재 실행은 승인선 처리 전까지 멈춰 있습니다.',
       currentTitle: '승인선 대기',
       nextCopy: '아래 지휘 승인선에서 현재 지시 승인을 먼저 처리합니다.',
       nextTitle: '현재 지시 승인',
@@ -3521,7 +3521,7 @@ function getExecutionControlSnapshot(task, latestRun, approvalBridge, gateCopy, 
 
   if (task.flags?.waitingDecision) {
     return {
-      currentCopy: '결정 항목이 남아 있어 현재 작전은 그 판단이 끝나기 전까지 전진하지 않습니다.',
+      currentCopy: '결정 항목이 남아 있어 현재 실행은 그 판단이 끝나기 전까지 이어지지 않습니다.',
       currentTitle: '결정 처리 필요',
       nextCopy: '관제실 결재함이나 아래 보류 사유에서 현재 결정을 먼저 해소합니다.',
       nextTitle: '결정 처리',
@@ -3533,7 +3533,7 @@ function getExecutionControlSnapshot(task, latestRun, approvalBridge, gateCopy, 
   if (task.flags?.blocked) {
     return {
       currentCopy: '현재 실행 셀이 blocked 상태라서 차단 근거부터 다시 봐야 합니다.',
-      currentTitle: '작전 차단 상태',
+      currentTitle: '실행 차단 상태',
       nextCopy: '아래 보류 사유와 사전 점검 준비를 다시 확인합니다.',
       nextTitle: '차단 원인 확인',
       reasonCopy: gateCopy || '현재 차단 사유가 기록돼 있습니다.',
@@ -3543,7 +3543,7 @@ function getExecutionControlSnapshot(task, latestRun, approvalBridge, gateCopy, 
 
   if (summaries.closeOutAllowed) {
     return {
-      currentCopy: '현재 작전 경로는 종료 정리까지 바로 이어갈 수 있는 상태입니다.',
+      currentCopy: '현재 실행 경로는 종료 정리까지 바로 이어갈 수 있는 상태입니다.',
       currentTitle: '종료 정리 가능',
       nextCopy: '아래 지휘 승인선과 종료 후속 흐름을 확인한 뒤 종료 정리를 이어갑니다.',
       nextTitle: '종료 정리 이어가기',
@@ -3554,7 +3554,7 @@ function getExecutionControlSnapshot(task, latestRun, approvalBridge, gateCopy, 
 
   if (summaries.releaseAllowed) {
     return {
-      currentCopy: '현재 작전 경로는 릴리스 패키지 준비까지 전진할 수 있는 상태입니다.',
+      currentCopy: '현재 실행 경로는 릴리스 패키지 준비까지 이어갈 수 있는 상태입니다.',
       currentTitle: '릴리스 준비 가능',
       nextCopy: '아래 지휘 승인선에서 릴리스 후속을 이어갑니다.',
       nextTitle: '릴리스 패키지 준비',
@@ -3565,7 +3565,7 @@ function getExecutionControlSnapshot(task, latestRun, approvalBridge, gateCopy, 
 
   if (summaries.commitAllowed) {
     return {
-      currentCopy: '현재 작전 경로는 커밋 패키지 또는 로컬 커밋 단계까지 이어질 수 있습니다.',
+      currentCopy: '현재 실행 경로는 커밋 패키지 또는 로컬 커밋 단계까지 이어질 수 있습니다.',
       currentTitle: '커밋 경로 열림',
       nextCopy: '아래 지휘 승인선에서 커밋 후속을 이어갑니다.',
       nextTitle: '커밋 경로 확인',
@@ -3575,16 +3575,16 @@ function getExecutionControlSnapshot(task, latestRun, approvalBridge, gateCopy, 
   }
 
   return {
-    currentCopy: '현재 실행 셀은 작전 경로 안에서 계속 전진할 수 있는 상태입니다.',
+    currentCopy: '현재 실행 셀은 실행 경로 안에서 계속 이어갈 수 있는 상태입니다.',
     currentTitle: latestRun ? `${getRunStatusDisplay(latestRun.status)} 보고` : '작전 진행 중',
     nextCopy: '아래 지휘 승인선과 사전 점검 준비를 따라 다음 실행을 이어갑니다.',
-    nextTitle: '현재 작전 계속',
+    nextTitle: '현재 실행 이어가기',
     reasonCopy:
       approvalBridge.nextStepCopy ||
       gateCopy ||
       (latestRun
         ? `${getExecutionRoleDisplay(latestRun.role || latestRun.kind || 'none')} 기준 최신 보고가 있습니다.`
-        : '아직 최신 보고가 없어 기본 작전 경로를 따릅니다.'),
+        : '아직 최신 보고가 없어 기본 실행 경로를 따릅니다.'),
     reasonTitle: '현재 게이트',
   };
 }
@@ -3626,7 +3626,7 @@ function getExecutionLeftSnapshot(task, latestRun, executionControl, artifacts =
       currentTitle: executionControl.currentTitle,
       nextCopy: executionControl.nextCopy,
       nextTitle: executionControl.nextTitle,
-      reasonCopy: `${prepLabels.join(' · ')} 준비 체인이 연결돼 있어 현재 작전이 어느 단계까지 준비됐는지 바로 확인할 수 있습니다.`,
+      reasonCopy: `${prepLabels.join(' · ')} 준비 체인이 연결돼 있어 현재 실행 준비가 어느 단계까지 왔는지 바로 확인할 수 있습니다.`,
       reasonTitle: `준비 체인 ${prepLabels.length}단계`,
     };
   }
@@ -3647,8 +3647,8 @@ function getExecutionLeftSnapshot(task, latestRun, executionControl, artifacts =
     currentTitle: executionControl.currentTitle,
     nextCopy: executionControl.nextCopy,
     nextTitle: executionControl.nextTitle,
-    reasonCopy: '아직 최신 보고가 없어 기본 작전 경로와 현재 승인 게이트를 기준으로만 판단합니다.',
-    reasonTitle: '기본 작전 경로',
+    reasonCopy: '아직 최신 보고가 없어 기본 실행 경로와 현재 승인 게이트를 기준으로만 판단합니다.',
+    reasonTitle: '기본 실행 경로',
   };
 }
 
