@@ -27,9 +27,9 @@ assert.match(appJs, /label: '다음 행동'/);
 assert.match(appJs, /label: '연결 근거'/);
 
 assert.match(appJs, /준비 체인 \+ 최신 보고/);
-assert.match(appJs, /상류 \+ 후속 보고 연결/);
-assert.match(appJs, /상류 준비 보고/);
-assert.match(appJs, /후속 전달 보고/);
+assert.match(appJs, /상류 \+ 후속 묶음 연결/);
+assert.match(appJs, /상류 준비 묶음/);
+assert.match(appJs, /후속 전달 묶음/);
 
 const executingMission = Object.values(executionGateState.missions)[0];
 const executingTask = executionGateState.tasks[executingMission.linkedTaskId];
@@ -49,7 +49,7 @@ console.log(
       repoExecutionDeliverablesLeftDensity: {
         executionLeft: ['실행 개요판', '현재 판단', '다음 행동', '연결 근거'],
         deliverablesLeft: ['보고 개요판', '현재 판단', '다음 행동', '연결 근거'],
-        preservedDetail: ['상류 준비 보고', '후속 전달 보고'],
+        preservedDetail: ['상류 준비 묶음', '후속 전달 묶음'],
         executionGate: {
           missionStatus: executingMission.status,
           waitingApproval: executingTask.flags.waitingApproval,

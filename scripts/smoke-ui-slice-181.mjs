@@ -392,10 +392,10 @@ assert.match(
 );
 assert.match(appJs, /const deliverablesEvidenceRail = renderExecutionEvidenceRail\(deliverablesEvidenceState, \{/);
 assert.match(appJs, /\$\{deliverablesEvidenceRail\}/);
-assert.match(appJs, /<strong>상류 준비 보고<\/strong>/);
-assert.match(appJs, /<strong>후속 전달 보고<\/strong>/);
+assert.match(appJs, /<strong>상류 준비 묶음<\/strong>/);
+assert.match(appJs, /<strong>후속 전달 묶음<\/strong>/);
 assert.match(appJs, /<strong>리뷰 보고<\/strong>/);
-assert.match(appJs, /<strong>현재 결재 안건<\/strong>/);
+assert.match(appJs, /<strong>현재 승인 안건<\/strong>/);
 assert.match(appJs, /<strong>안건 종료 보고<\/strong>/);
 assert.match(styles, /\.evidence-rail \{/);
 assert.match(styles, /\.evidence-rail-grid \{/);

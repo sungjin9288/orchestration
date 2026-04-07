@@ -23,12 +23,12 @@ assert.match(appJs, /function renderOpsCenterDeck\(options = \{\}\)/);
 assert.match(appJs, /heading: '결과 보고'/);
 assert.match(appJs, /eyebrow: '보고 개요판'/);
 assert.match(appJs, /결과 보고 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다\./);
-assert.match(appJs, /상류 준비 보고/);
-assert.match(appJs, /후속 전달 보고/);
+assert.match(appJs, /상류 준비 묶음/);
+assert.match(appJs, /후속 전달 묶음/);
 assert.match(appJs, /최신 보고 현황/);
 assert.match(appJs, /리뷰 보고/);
-assert.match(appJs, /결재선 현황/);
-assert.match(appJs, /현재 결재 안건/);
+assert.match(appJs, /승인선 현황/);
+assert.match(appJs, /현재 승인 안건/);
 assert.match(appJs, /관제실 직행/);
 assert.match(appJs, /선택된 실행 기록만 세 칸으로 요약하는 로그실/);
 assert.match(appJs, /현재 실행 기록과 다음 확인을 먼저 보는 로그 상세/);
@@ -66,7 +66,7 @@ console.log(
     {
       ok: true,
       hqReportAndOpsCenterShell: {
-        deliverables: ['결과 보고', '보고 개요판', '결재선 현황', '안건 종료 보고'],
+        deliverables: ['결과 보고', '보고 개요판', '승인선 현황', '안건 종료 보고'],
         opsCenter: ['로그실', '보관실', '결재함'],
         detailFlow: ['실행 기본 정보', '보고 연결선', '보관 원문', '처리 메모'],
         executionGate: {
