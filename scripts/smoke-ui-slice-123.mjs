@@ -11,7 +11,7 @@ const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 
 assert.match(appJs, /options\.agendaGoal \|\| '안건이 올라오면 목표와 범위를 먼저 고정합니다\.'/);
-assert.match(appJs, /귀여운 본부 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다\./);
+assert.match(appJs, /상단 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다\./);
 assert.match(appJs, /<p class="charter-label">목표 헌장<\/p>/);
 assert.match(appJs, /<p class="charter-label">운영 기준<\/p>/);
 
@@ -22,7 +22,7 @@ console.log(
       charterSupportCopyTightening: {
         markers: [
           '안건이 올라오면 목표와 범위를 먼저 고정합니다.',
-          '귀여운 본부 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다.',
+          '상단 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다.',
         ],
       },
     },

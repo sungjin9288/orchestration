@@ -394,7 +394,7 @@ function getCompanySignalEntries(options = {}) {
       surface: 'mission',
       label: '안건',
       status: missionStatus,
-      copy: mission ? '현재 안건 판단이 회사 흐름의 첫 줄입니다.' : '첫 안건이 올라오면 회사 흐름이 여기서 시작됩니다.',
+      copy: mission ? '현재 안건 판단이 운영 흐름의 첫 줄입니다.' : '첫 안건이 올라오면 운영 흐름이 여기서 시작됩니다.',
       tone: missionTone,
     },
     {
@@ -445,7 +445,7 @@ function renderCharterSignalStrip(options = {}) {
         ${linkedTask ? createToken(`실행:${linkedTask.id}`, 'accent') : createToken('실행:대기', 'warning')}
       </div>
       <p class="detail-copy detail-copy-compact charter-signal-intro">
-        홈에서 본 회사 흐름이 여기선 현재 안건 흐름으로 더 촘촘하게 이어집니다.
+        홈에서 본 전체 흐름이 여기선 현재 안건 흐름으로 더 촘촘하게 이어집니다.
       </p>
       <div class="charter-signal-grid">
         ${cards
@@ -563,7 +563,7 @@ function renderOrchestrationCharter(options = {}) {
           ${ORCHESTRATION_RULES.map((rule) => createToken(rule, 'neutral')).join('')}
         </div>
         <p class="charter-copy">
-          귀여운 본부 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다.
+          상단 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다.
         </p>
       </article>
     </section>
@@ -8972,7 +8972,7 @@ function renderHomeCompanyPulseStrip(options) {
           : activeTask.flags?.waitingDecision
             ? '결정 처리 뒤에 현재 셀이 다시 다음 작전을 붙잡습니다.'
             : activeTask.flags?.blocked
-              ? '차단 사유가 풀려야 회사 흐름이 다시 앞으로 갑니다.'
+              ? '차단 사유가 풀려야 운영 흐름이 다시 앞으로 갑니다.'
               : `${executionStatus} 셀이 같은 안건의 다음 행동을 끌고 갑니다.`,
       foot: `실행 · ${executionStatus}`,
       tone: executionTone,
@@ -9020,7 +9020,7 @@ function renderHomeCompanyPulseStrip(options) {
         }
       </div>
       <p class="detail-copy detail-copy-compact company-pulse-intro">
-        같은 안건이 회의, 실행, 보고, 사람 게이트를 지나며 작은 회사 흐름처럼 이어집니다.
+        같은 안건이 회의, 실행, 보고, 사람 게이트를 지나며 하나의 운영 흐름으로 이어집니다.
       </p>
       <div class="company-pulse-grid">
         ${pulseCards
