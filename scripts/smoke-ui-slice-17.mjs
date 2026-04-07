@@ -63,8 +63,9 @@ async function main() {
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /<title>오케스트레이션 1\.0 AI 전략 본부<\/title>/);
-    assert.match(indexHtml, /<h1>AI 전략 본부<\/h1>/);
-    assert.match(indexHtml, /본부 운영 표면/);
+    assert.match(indexHtml, /<h1>AI 실행 관제실<\/h1>/);
+    assert.match(indexHtml, /기본 운영 표면/);
+    assert.match(indexHtml, /현재 역할 라인업/);
     assert.match(indexHtml, /고급 운영 모드/);
     assert.match(indexHtml, /data-nav-group="primary-orchestration"/);
     assert.match(indexHtml, /data-nav-group="advanced-ops"/);
@@ -79,8 +80,8 @@ async function main() {
           ok: true,
           runtimeRoot,
           shell: {
-            title: 'AI 전략 본부',
-            primaryGroup: '본부 운영 표면',
+            title: 'AI 실행 관제실',
+            primaryGroup: '기본 운영 표면',
             advancedOpsGroup: '고급 운영 모드',
           },
         },

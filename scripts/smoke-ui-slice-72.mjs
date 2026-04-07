@@ -23,7 +23,8 @@ assert.match(indexHtml, /오케스트레이션 1\.0 관제 셸/);
 assert.match(indexHtml, /AI 실행 관제실/);
 assert.match(indexHtml, /shell-window-bar/);
 assert.match(indexHtml, /shell-agent-row/);
-assert.match(indexHtml, /본부 운영 표면/);
+assert.match(indexHtml, /기본 운영 표면/);
+assert.match(indexHtml, /현재 역할 라인업/);
 
 assert.match(appJs, /회의 브리핑실/);
 assert.match(appJs, /오늘의 안건/);
