@@ -914,11 +914,11 @@ function renderDeliverablesReportDeck(options = {}) {
     ? `${currentArtifact.id} 번들이 ${formatDate(currentArtifact.createdAt)} 기준 현재 보고 묶음의 맨 위에 있습니다.`
     : '회의와 실행에서 올라온 결과 묶음이 아직 없습니다.';
   const approvalTitle = latestApproval
-    ? `${getApprovalStatusDisplay(latestApproval.status)} 결재`
-    : '열린 결재 없음';
+    ? `${getApprovalStatusDisplay(latestApproval.status)} 승인`
+    : '열린 승인 없음';
   const approvalCopy = latestApproval
     ? `${getApprovalActionLabel(latestApproval.allowedNextAction) || latestApproval.scope} 안건이 ${latestApproval.targetArtifactId || '현재 보고 묶음'} 기준으로 ${getApprovalStatusDisplay(latestApproval.status)} 상태입니다.`
-    : '현재 보고에는 사람이 처리할 결재 안건이 없습니다.';
+    : '현재 보고에는 사람이 처리할 승인 안건이 없습니다.';
   const nextTitle = missionCompletionReady ? '다음 안건 준비' : approvalBridge?.actionLabel || '실행 후속';
   const nextCopy = missionCompletionReady
     ? '종료 보고가 봉인됐습니다. 미션으로 돌아가 다음 안건을 올릴 수 있습니다.'
@@ -927,7 +927,7 @@ function renderDeliverablesReportDeck(options = {}) {
   return renderNarrativeDeck({
     eyebrow: '결과 보고',
     heading: '회의와 실행에서 올라온 묶음을 운영 보고용으로 정리합니다',
-    copy: '협의회와 실행 셀에서 올라온 결과가 어떤 보고 묶음과 결재선으로 이어졌는지 이 방에서 빠르게 읽습니다.',
+    copy: '협의회와 실행 셀에서 올라온 결과가 어떤 보고 묶음과 승인선으로 이어졌는지 이 방에서 빠르게 읽습니다.',
     entryFrame: true,
     tokens: [
       mission ? createToken(`안건:${mission.id}`, 'neutral') : '',
@@ -959,7 +959,7 @@ function renderDeliverablesReportDeck(options = {}) {
         copy: reportCopy,
       },
       {
-        label: '결재선',
+        label: '승인선',
         title: approvalTitle,
         copy: approvalCopy,
       },
@@ -1136,7 +1136,7 @@ function renderOpsCenterDeck(options = {}) {
     heading: options.heading || '심층 근거를 들여다보는 관제실',
     copy:
       options.copy ||
-      '회의와 실행 아래에 남는 원문 기록, 증적, 결재선은 관제실에서 확인합니다.',
+      '회의와 실행 아래에 남는 원문 기록, 증적, 승인선은 관제실에서 확인합니다.',
     entryFrame: options.entryFrame === true,
     tokens: options.tokens || [],
     cards: options.cards || [],
@@ -3663,11 +3663,11 @@ function getDeliverablesControlSnapshot(
 ) {
   if (!mission || !task) {
     return {
-      currentCopy: '연결 태스크가 생기면 결과 보고실 판단판이 이곳에 나타납니다.',
+      currentCopy: '연결 태스크가 생기면 결과 보고 판단판이 이곳에 나타납니다.',
       currentTitle: '보고 묶음 없음',
       nextCopy: '먼저 안건과 실행 셀을 연결한 뒤 보고 묶음을 만듭니다.',
       nextTitle: '안건으로 돌아가기',
-      reasonCopy: '현재는 연결 태스크가 없어 보고, 리뷰, 결재선을 판단할 근거가 없습니다.',
+      reasonCopy: '현재는 연결 태스크가 없어 보고, 리뷰, 승인선을 판단할 근거가 없습니다.',
       reasonTitle: '보고 근거 없음',
     };
   }
@@ -3688,12 +3688,12 @@ function getDeliverablesControlSnapshot(
 
   if (latestApproval?.status === 'pending') {
     return {
-      currentCopy: '사람 결재가 남아 있어 현재 보고 묶음은 결재선 판단이 먼저입니다.',
-      currentTitle: '결재선 대기',
-      nextCopy: '실행이나 관제실에서 현재 결재 안건을 먼저 처리합니다.',
-      nextTitle: '결재 안건 확인',
-      reasonCopy: approvalBridge.bridgeCopy || '현재 보고 묶음에 대한 결재가 대기 중입니다.',
-      reasonTitle: '현재 결재',
+      currentCopy: '사람 승인이 남아 있어 현재 보고 묶음은 승인선 판단이 먼저입니다.',
+      currentTitle: '승인선 대기',
+      nextCopy: '실행이나 관제실에서 현재 승인 안건을 먼저 처리합니다.',
+      nextTitle: '승인 안건 확인',
+      reasonCopy: approvalBridge.bridgeCopy || '현재 보고 묶음에 대한 승인이 대기 중입니다.',
+      reasonTitle: '현재 승인',
     };
   }
 
@@ -3712,14 +3712,14 @@ function getDeliverablesControlSnapshot(
   }
 
   return {
-    currentCopy: '현재 보고 묶음은 최신 결과를 보여 주며 다음 결재나 종료 보고를 기다리는 상태입니다.',
+    currentCopy: '현재 보고 묶음은 최신 결과를 보여 주며 다음 승인이나 종료 보고를 기다리는 상태입니다.',
     currentTitle: currentArtifact ? `${getArtifactTypeDisplay(currentArtifact.type)} 보고` : '보고 대기',
-    nextCopy: '결재선과 현재 결재 안건을 확인한 뒤 필요하면 실행이나 관제실로 이동합니다.',
-    nextTitle: '결재선 확인',
+    nextCopy: '승인선과 현재 승인 안건을 확인한 뒤 필요하면 실행이나 관제실로 이동합니다.',
+    nextTitle: '승인선 확인',
     reasonCopy:
       approvalBridge.nextStepCopy ||
       (currentArtifact
-        ? `${currentArtifact.type} ${currentArtifact.id}가 현재 보고실의 맨 위에 있습니다.`
+        ? `${currentArtifact.type} ${currentArtifact.id}가 현재 보고의 맨 위에 있습니다.`
         : '현재 보고 묶음이 아직 비어 있습니다.'),
     reasonTitle: '현재 보고 기준',
   };
@@ -3732,7 +3732,7 @@ function getDeliverablesLeftSnapshot(mission, task, currentArtifact, deliverable
       currentTitle: deliverablesControl.currentTitle,
       nextCopy: deliverablesControl.nextCopy,
       nextTitle: deliverablesControl.nextTitle,
-      reasonCopy: '연결 태스크와 보고 묶음이 아직 없어 상류 보고나 후속 전달선을 근거로 묶을 수 없습니다.',
+      reasonCopy: '연결 태스크와 보고 묶음이 아직 없어 상류 준비 묶음이나 후속 전달 묶음을 근거로 묶을 수 없습니다.',
       reasonTitle: '연결 근거 없음',
     };
   }
@@ -3760,8 +3760,8 @@ function getDeliverablesLeftSnapshot(mission, task, currentArtifact, deliverable
       currentTitle: deliverablesControl.currentTitle,
       nextCopy: deliverablesControl.nextCopy,
       nextTitle: deliverablesControl.nextTitle,
-      reasonCopy: `${upstreamLabels.join(' · ')} 상류 준비 보고와 ${downstreamLabels.join(' · ')} 후속 전달 보고가 같은 안건 묶음으로 연결돼 있습니다.`,
-      reasonTitle: '상류 + 후속 보고 연결',
+      reasonCopy: `${upstreamLabels.join(' · ')} 상류 준비 묶음과 ${downstreamLabels.join(' · ')} 후속 전달 묶음이 같은 안건 묶음으로 연결돼 있습니다.`,
+      reasonTitle: '상류 + 후속 묶음 연결',
     };
   }
 
@@ -3771,8 +3771,8 @@ function getDeliverablesLeftSnapshot(mission, task, currentArtifact, deliverable
       currentTitle: deliverablesControl.currentTitle,
       nextCopy: deliverablesControl.nextCopy,
       nextTitle: deliverablesControl.nextTitle,
-      reasonCopy: `${downstreamLabels.join(' · ')} 후속 전달 보고가 현재 보고실 판단의 직접 근거입니다.`,
-      reasonTitle: `후속 전달 ${downstreamLabels.length}건`,
+      reasonCopy: `${downstreamLabels.join(' · ')} 후속 전달 묶음이 현재 보고 판단의 직접 근거입니다.`,
+      reasonTitle: `후속 전달 묶음 ${downstreamLabels.length}건`,
     };
   }
 
@@ -3782,8 +3782,8 @@ function getDeliverablesLeftSnapshot(mission, task, currentArtifact, deliverable
       currentTitle: deliverablesControl.currentTitle,
       nextCopy: deliverablesControl.nextCopy,
       nextTitle: deliverablesControl.nextTitle,
-      reasonCopy: `${upstreamLabels.join(' · ')} 상류 준비 보고가 현재 결과 보고실 판단의 기본 근거로 남아 있습니다.`,
-      reasonTitle: `상류 준비 ${upstreamLabels.length}건`,
+      reasonCopy: `${upstreamLabels.join(' · ')} 상류 준비 묶음이 현재 결과 보고 판단의 기본 근거로 남아 있습니다.`,
+      reasonTitle: `상류 준비 묶음 ${upstreamLabels.length}건`,
     };
   }
 
@@ -3803,7 +3803,7 @@ function getDeliverablesLeftSnapshot(mission, task, currentArtifact, deliverable
     currentTitle: deliverablesControl.currentTitle,
     nextCopy: deliverablesControl.nextCopy,
     nextTitle: deliverablesControl.nextTitle,
-    reasonCopy: '아직 보고 묶음이 없어 리뷰와 결재선보다 앞단의 생성 흐름을 먼저 만들어야 합니다.',
+    reasonCopy: '아직 보고 묶음이 없어 리뷰와 승인선보다 앞단의 생성 흐름을 먼저 만들어야 합니다.',
     reasonTitle: '보고 묶음 대기',
   };
 }
@@ -3987,7 +3987,7 @@ function getArtifactListSnapshot(artifact, task, data) {
   } else if (artifact.type === 'review') {
     currentCopy = '리뷰 판단과 후속 실행을 묶는 핵심 증적입니다.';
   } else if (artifact.type === 'commit-package' || artifact.type === 'release-package') {
-    currentCopy = '결재선과 다음 후속을 묶는 보고 증적입니다.';
+    currentCopy = '승인선과 다음 후속을 묶는 보고 증적입니다.';
   } else if (task) {
     currentCopy = `${getTaskLifecycleDisplay(task.lifecycleState)} 상태 실행 셀에 연결된 ${typeDisplay}입니다.`;
   }
@@ -11945,7 +11945,7 @@ function renderDeliverables(data) {
         <div class="stack">
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>상류 준비 보고</strong>
+              <strong>상류 준비 묶음</strong>
             </div>
             <div class="token-row">
               ${latestPlanArtifact ? createToken(`plan:${latestPlanArtifact.id}`, 'success') : createToken('plan:none', 'warning')}
@@ -11953,11 +11953,11 @@ function renderDeliverables(data) {
               ${latestBreakdownArtifact ? createToken(`breakdown:${latestBreakdownArtifact.id}`, 'neutral') : createToken('breakdown:none', 'neutral')}
               ${latestPreflightArtifact ? createToken(`preflight:${latestPreflightArtifact.id}`, 'neutral') : createToken('preflight:none', 'neutral')}
             </div>
-            <p class="detail-copy">기획부터 사전 점검까지의 묶음이 이후 라이브 변경이나 리뷰 보고가 올라오기 전까지 현재 상류 보고선으로 남습니다.</p>
+            <p class="detail-copy">기획부터 사전 점검까지의 묶음이 이후 라이브 변경이나 리뷰 보고가 올라오기 전까지 현재 상류 근거선으로 남습니다.</p>
           </section>
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>후속 전달 보고</strong>
+              <strong>후속 전달 묶음</strong>
             </div>
             <div class="token-row">
               ${latestChangeSummaryArtifact ? createToken(`change-summary:${latestChangeSummaryArtifact.id}`, 'neutral') : createToken('change-summary:none', 'neutral')}
@@ -11984,14 +11984,14 @@ function renderDeliverables(data) {
         <div class="panel-header">
           <div>
             <h2>최신 보고 현황</h2>
-            <p class="panel-copy">보고는 결재선과 다음 이동을 요약하고, 깊은 점검은 관제실로 넘깁니다.</p>
+            <p class="panel-copy">보고는 승인선과 다음 이동을 요약하고, 깊은 점검은 관제실로 넘깁니다.</p>
           </div>
         </div>
         ${renderNarrativeDeck({
           wide: false,
           eyebrow: '보고 판단판',
           heading: '현재 보고 상태와 다음 후속만 먼저 봅니다',
-          copy: '결과 보고 오른쪽 패널은 현재 보고 묶음, 결재선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다.',
+          copy: '결과 보고 오른쪽 패널은 현재 보고 묶음, 승인선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다.',
           tokens: [
             createToken(
               `현재:${deliverablesEvidenceState.currentOwnerLabel}`,
@@ -12170,7 +12170,7 @@ function renderDeliverables(data) {
 
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>결재선 현황</strong>
+              <strong>승인선 현황</strong>
             </div>
             <div class="token-row">
               ${createToken(
@@ -12218,7 +12218,7 @@ function renderDeliverables(data) {
 
           <section class="relation-strip">
             <div class="card-title-row">
-              <strong>현재 결재 안건</strong>
+              <strong>현재 승인 안건</strong>
             </div>
             <div class="token-row">
               ${createToken(
