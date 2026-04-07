@@ -24,16 +24,16 @@ const detailSource = appJs.slice(detailStart, detailEnd + 1600);
 const linkedTaskSection = detailSource.match(/<strong>실행 셀 연결<\/strong>[\s\S]*?<\/section>/);
 const missionActionsSection = detailSource.match(/<strong>브리프 액션<\/strong>[\s\S]*?<\/section>/);
 const missionCompletionSection = detailSource.match(/<strong>안건 종료 보고<\/strong>[\s\S]*?<\/section>/);
-const councilSection = detailSource.match(/<strong>착석 참모진<\/strong>[\s\S]*?<\/section>/);
+const councilSection = detailSource.match(/<strong>참여 역할<\/strong>[\s\S]*?<\/section>/);
 const advancedOpsSection = detailSource.match(/<strong>관제실 직행<\/strong>[\s\S]*?<\/section>/);
 
 assert.ok(linkedTaskSection, '실행 셀 연결 section should exist');
 assert.ok(missionActionsSection, '브리프 액션 section should exist');
 assert.ok(missionCompletionSection, '안건 종료 보고 section should exist');
-assert.ok(councilSection, '착석 참모진 section should exist');
+assert.ok(councilSection, '참여 역할 section should exist');
 assert.ok(advancedOpsSection, '관제실 직행 section should exist');
 
-assert.match(missionActionsSection[0], /회의실, 작전실, 관제실 기본 동선만 엽니다\./);
+assert.match(missionActionsSection[0], /회의, 실행, 관제실 기본 동선만 엽니다\./);
 assert.match(missionActionsSection[0], /data-action="create-linked-task-for-mission"/);
 assert.match(missionActionsSection[0], /data-action="open-advanced-ops"/);
 assert.match(missionActionsSection[0], /data-action="open-execution"/);

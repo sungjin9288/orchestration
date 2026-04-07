@@ -21,7 +21,7 @@ assert.match(audit, /crewAI/);
 assert.match(appJs, /owner: '운영자 · 안건 데스크'/);
 assert.match(appJs, /owner: '회의 리드 \+ 참여 역할'/);
 assert.match(appJs, /owner: '선임 실행관 · 실행 흐름'/);
-assert.match(appJs, /owner: '결과 보고실 · 관제실'/);
+assert.match(appJs, /owner: '결과 보고 · 관제실'/);
 assert.match(appJs, /statusLabel: isActive \? '현재 단계' : isComplete \? '완료됨' : '다음 단계'/);
 assert.match(appJs, /charter-flow-step-active/);
 assert.match(appJs, /charter-flow-step-complete/);
@@ -45,7 +45,7 @@ console.log(
           '운영자 · 안건 데스크',
           '회의 리드 + 참여 역할',
           '선임 실행관 · 실행 흐름',
-          '결과 보고실 · 관제실',
+          '결과 보고 · 관제실',
         ],
         statuses: ['현재 단계', '완료됨', '다음 단계'],
         classes: [

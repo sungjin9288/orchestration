@@ -14,7 +14,7 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /회의실, 작전실, 관제실 기본 동선만 엽니다\./);
+assert.match(appJs, /회의, 실행, 관제실 기본 동선만 엽니다\./);
 assert.match(appJs, /세부 제어와 근거는 관제실에 남기고, 여기선 안건 동선만 엽니다\./);
 assert.match(appJs, /연결 태스크 \$\{linkedTask\.id\}를 선택한 상태로 작업판을 엽니다\./);
 

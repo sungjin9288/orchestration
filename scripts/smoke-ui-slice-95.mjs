@@ -18,7 +18,8 @@ const missionDraftState = JSON.parse(fs.readFileSync(missionDraftStatePath, 'utf
 const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'utf8'));
 
 assert.match(appJs, /function renderViewportHandoffStrip\(options = \{\}\)/);
-assert.match(appJs, /heading: '브리핑실 아래는 입력선과 판단선으로 나눕니다'/);
+assert.match(appJs, /eyebrow: '표면 인계선'/);
+assert.match(appJs, /heading: '이 아래는 입력선과 판단선으로 나눕니다'/);
 assert.match(appJs, /heading: '회의실 아래는 기록선과 결론선으로 나눕니다'/);
 assert.match(appJs, /label: '왼쪽 데스크'/);
 assert.match(appJs, /label: '오른쪽 판단판'/);

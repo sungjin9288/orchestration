@@ -10,14 +10,14 @@ const appPath = path.join(repoRoot, 'ui', 'app.js');
 
 const app = fs.readFileSync(appPath, 'utf8');
 
-assert.match(app, /회의실, 작전실, 관제실 기본 동선만 엽니다\./);
+assert.match(app, /회의, 실행, 관제실 기본 동선만 엽니다\./);
 
 console.log(
   JSON.stringify(
     {
       ok: true,
       missionBriefActionsCopyTightening: {
-        markers: ['회의실, 작전실, 관제실 기본 동선만 엽니다.'],
+        markers: ['회의, 실행, 관제실 기본 동선만 엽니다.'],
       },
     },
     null,
