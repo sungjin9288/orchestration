@@ -35,6 +35,11 @@ assert.match(appJs, /deskProp: '최종 판단판 · 승인 묶음'/);
 assert.match(appJs, /deskProp: '우선순위 표 · 전략 메모'/);
 assert.match(appJs, /deskProp: '경계 도면 · 구조 메모'/);
 assert.match(appJs, /deskProp: '체크포인트 표 · 실행 큐'/);
+assert.match(appJs, /현재 결론과 다음 인계 판단을 한 지점에서 정리합니다\./);
+assert.match(appJs, /정렬 상태와 다음 인계 판단을 한 지점에서 확인합니다\./);
+assert.match(appJs, /목표 해석과 범위 조정을 맡는 전략 역할입니다\./);
+assert.match(appJs, /설계 파급을 줄이고 시스템 경계를 지키는 역할입니다\./);
+assert.match(appJs, /첫 실행 단위를 정리하고 바로 인계 가능한 수준으로 나눕니다\./);
 
 console.log(
   JSON.stringify(
