@@ -10,7 +10,7 @@ const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 
-assert.match(appJs, /owner: '선임 실행관 · 실행 흐름'/);
+assert.match(appJs, /owner: '실행 역할 · 실행 흐름'/);
 assert.match(appJs, /summary: '현재 실행 판단과 다음 행동을 정리합니다\.'/);
 assert.match(appJs, /copy: '현재 실행 판단과 다음 행동을 정리합니다\.',\s*kicker: '작전'/);
 assert.match(appJs, /const gateCopy = String\(options\.gateCopy \|\| '아직 확정된 실행 지시가 없습니다\.'\)\.trim\(\);/);
@@ -34,7 +34,7 @@ console.log(
       ok: true,
       executionHandoffReadability: {
         markers: [
-          '선임 실행관 · 실행 흐름',
+          '실행 역할 · 실행 흐름',
           '현재 실행 판단과 다음 행동을 정리합니다.',
           '실행 브리핑',
           '회의 결론이 실행 셀로 이어지는 흐름',

@@ -16,7 +16,7 @@ const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
 assert.match(appJs, />안건 접수</);
 assert.match(appJs, /form-actions form-actions-inline/);
-assert.match(appJs, /안건 접수 데스크/);
+assert.match(appJs, /안건 접수 흐름/);
 assert.match(appJs, /참모 회의 초안 만들기/);
 assert.doesNotMatch(appJs, /Create Mission &amp; Draft Council/);
 assert.doesNotMatch(appJs, /Council drafts right away for visible role discussion\./);

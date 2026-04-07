@@ -165,7 +165,7 @@ const ORCHESTRATION_FLOW_STEPS = [
   {
     id: 'intake',
     label: '안건 접수',
-    owner: '운영자 · 안건 데스크',
+    owner: '운영자 · 안건 흐름',
     surface: 'mission',
     summary: '현재 안건 판단과 바로 이동을 시작합니다.',
   },
@@ -179,14 +179,14 @@ const ORCHESTRATION_FLOW_STEPS = [
   {
     id: 'execution',
     label: '실행 방향',
-    owner: '선임 실행관 · 실행 흐름',
+    owner: '실행 역할 · 실행 흐름',
     surface: 'execution',
     summary: '현재 실행 판단과 다음 행동을 정리합니다.',
   },
   {
     id: 'deliverables',
     label: '결과 보고',
-    owner: '결과 보고 · 관제실',
+    owner: '결과 보고 · 보고 흐름',
     surface: 'deliverables',
     summary: '현재 보고 판단과 다음 행동을 확인합니다.',
   },
@@ -9978,7 +9978,7 @@ function renderMission(data) {
           ${renderMissionRows(
             activeMissionEntries,
             '진행 중인 미션 없음',
-            '위 접수 데스크에서 새 안건을 열면 바로 이 줄에 이어집니다.',
+            '위 접수 흐름에서 새 안건을 열면 바로 이 줄에 이어집니다.',
             'mission-empty-state-active-row',
           )}
           <section class="relation-strip">
@@ -10001,7 +10001,7 @@ function renderMission(data) {
     : `
         <div class="empty-state mission-empty-state mission-empty-state-list">
           <strong class="mission-empty-title">미션 없음</strong>
-          <p class="mission-empty-copy">위 접수 데스크에서 첫 안건을 만들면 이곳에 바로 쌓입니다.</p>
+          <p class="mission-empty-copy">위 접수 흐름에서 첫 안건을 만들면 이곳에 바로 쌓입니다.</p>
         </div>
       `;
 
@@ -10038,7 +10038,7 @@ function renderMission(data) {
         <form class="task-create-form task-create-form-compact mission-order-desk" data-form="create-mission">
           <div class="mission-order-head">
             <div class="stack">
-              <strong>안건 접수 데스크</strong>
+              <strong>안건 접수 흐름</strong>
               <p class="detail-copy detail-copy-compact">
                 ${
                   missionUsesKnowledgeWork

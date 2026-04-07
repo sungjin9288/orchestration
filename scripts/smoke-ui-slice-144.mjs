@@ -10,7 +10,7 @@ const appPath = path.join(repoRoot, 'ui', 'app.js');
 
 const app = fs.readFileSync(appPath, 'utf8');
 
-assert.match(app, /<strong>안건 접수 데스크<\/strong>[\s\S]*안건을 접수하면 바로 참모 회의로 이어집니다\./);
+assert.match(app, /<strong>안건 접수 흐름<\/strong>[\s\S]*안건을 접수하면 바로 참모 회의로 이어집니다\./);
 
 console.log(
   JSON.stringify(

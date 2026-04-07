@@ -15,7 +15,7 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
 assert.match(appJs, /안건 접수/);
-assert.match(appJs, /안건 접수 데스크/);
+assert.match(appJs, /안건 접수 흐름/);
 assert.match(appJs, /접수 즉시 참모 회의 초안이 열리고, 승인 전까지는 실행으로 넘어가지 않습니다\./);
 assert.doesNotMatch(appJs, /Mission now drafts council immediately so the next step lands on visible role discussion without a second manual handoff\./);
 assert.doesNotMatch(appJs, /Create Mission &amp; Draft Council/);
