@@ -9723,13 +9723,13 @@ function renderMission(data) {
     ],
     cards: [
       {
-        label: '왼쪽 데스크',
+        label: '왼쪽 입력선',
         title: '안건 접수 + 진행 안건',
         copy: '제목과 목표를 올리고, 바로 아래에서 지금 움직이는 안건만 짧게 고릅니다.',
         signal: missionSignalBySurface.mission,
       },
       {
-        label: '오른쪽 판단판',
+        label: '오른쪽 판단선',
         title: '현재 판단 + 다음 이동',
         copy: '선택된 안건의 상태와 가장 먼저 열어야 할 표면만 먼저 정리합니다.',
         signal: missionSignalBySurface['decision-inbox'],
@@ -9741,7 +9741,7 @@ function renderMission(data) {
           : '먼저 안건 접수',
         copy: selectedMission
           ? selectedMissionNextActionPreview.summary
-          : '왼쪽 데스크에서 첫 안건을 올리면 회의와 판단판이 함께 열립니다.',
+          : '왼쪽 입력선에서 첫 안건을 올리면 회의와 판단선이 함께 열립니다.',
         emphasis: true,
         signal: missionSignalBySurface[missionNextSurface] || missionSignalBySurface.mission,
         button:
@@ -10566,7 +10566,7 @@ function renderMission(data) {
             : `
               <div class="empty-state mission-empty-state mission-empty-state-detail">
                 <strong class="mission-empty-title">선택된 안건 없음</strong>
-                <p class="mission-empty-copy">왼쪽 목록에서 안건을 고르거나 위 데스크에서 새 안건을 접수합니다.</p>
+                <p class="mission-empty-copy">왼쪽 목록에서 안건을 고르거나 위 입력선에서 새 안건을 접수합니다.</p>
               </div>
             `
         }
@@ -12489,7 +12489,7 @@ function renderTaskboard(data) {
         title: focusedTask ? '현재 상태 + 다음 실행' : '선택 셀 대기',
         copy: focusedTask
           ? '선택된 셀의 보류 이유, 다음 실행, 근거는 오른쪽 상세에서 이어 봅니다.'
-          : '실행 셀을 하나 고르면 오른쪽 판단판이 바로 열립니다.',
+          : '실행 셀을 하나 고르면 오른쪽 판단선이 바로 열립니다.',
       },
       {
         label: '지금 열기',
