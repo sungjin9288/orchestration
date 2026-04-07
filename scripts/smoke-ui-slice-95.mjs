@@ -21,8 +21,8 @@ assert.match(appJs, /function renderViewportHandoffStrip\(options = \{\}\)/);
 assert.match(appJs, /eyebrow: '표면 인계선'/);
 assert.match(appJs, /heading: '이 아래는 입력선과 판단선으로 나눕니다'/);
 assert.match(appJs, /heading: '회의실 아래는 기록선과 결론선으로 나눕니다'/);
-assert.match(appJs, /label: '왼쪽 데스크'/);
-assert.match(appJs, /label: '오른쪽 판단판'/);
+assert.match(appJs, /label: '왼쪽 입력선'/);
+assert.match(appJs, /label: '오른쪽 판단선'/);
 assert.match(appJs, /label: '왼쪽 회의록'/);
 assert.match(appJs, /label: '오른쪽 결론판'/);
 assert.match(appJs, /label: '지금 열기'/);
@@ -48,7 +48,7 @@ console.log(
     {
       ok: true,
       missionCouncilViewportHandoff: {
-        missionStrip: ['왼쪽 데스크', '오른쪽 판단판', '지금 열기'],
+        missionStrip: ['왼쪽 입력선', '오른쪽 판단선', '지금 열기'],
         councilStrip: ['왼쪽 회의록', '오른쪽 결론판', '지금 열기'],
         draftMissionStatus: draftMission.status,
         approvedCouncilAlignment: approvedCouncil.alignment.status,
