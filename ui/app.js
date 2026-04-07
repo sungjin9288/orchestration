@@ -45,7 +45,7 @@ const SURFACE_DOCK_METADATA = {
     kicker: '보고',
   },
   execution: {
-    copy: '현재 작전 판단과 다음 행동을 조정합니다.',
+    copy: '현재 실행 판단과 다음 행동을 정리합니다.',
     kicker: '작전',
   },
   logs: {
@@ -179,9 +179,9 @@ const ORCHESTRATION_FLOW_STEPS = [
   {
     id: 'execution',
     label: '실행 방향',
-    owner: '선임 실행관 · 작전 지휘실',
+    owner: '선임 실행관 · 실행 흐름',
     surface: 'execution',
-    summary: '현재 작전 판단과 다음 행동을 조정합니다.',
+    summary: '현재 실행 판단과 다음 행동을 정리합니다.',
   },
   {
     id: 'deliverables',
@@ -796,7 +796,7 @@ function renderExecutionCommandDeck(options = {}) {
   const latestRun = options.latestRun || null;
   const approvalBridge = options.approvalBridge || null;
   const completionReady = Boolean(options.completionReady);
-  const gateCopy = String(options.gateCopy || '아직 확정된 작전 지시가 없습니다.').trim();
+  const gateCopy = String(options.gateCopy || '아직 확정된 실행 지시가 없습니다.').trim();
   const gateLabel = approvalBridge?.actionLabel || '지시 정리 중';
   const latestRunNextStage = latestRun?.summary?.nextStage || null;
   const executionCommandSignals = getCompanySignalEntries({
@@ -807,15 +807,15 @@ function renderExecutionCommandDeck(options = {}) {
   }).filter((entry) => ['council', 'execution', 'deliverables', 'decision-inbox'].includes(entry.surface));
   const latestRunSummary = latestRun
     ? `${formatDate(latestRun.startedAt)} 기준 ${getExecutionRoleDisplay(latestRun.role || latestRun.kind || 'none')}이 ${getRunStatusDisplay(latestRun.status)} 상태입니다.${latestRunNextStage ? ` 다음 단계는 ${getExecutionStageDisplay(latestRunNextStage)}입니다.` : ''}`
-    : '회의 결론이 실행 셀로 내려오면 첫 작전 보고가 이곳에 나타납니다.';
+    : '회의 결론이 실행 셀로 내려오면 첫 실행 보고가 이곳에 나타납니다.';
 
   return `
     <section class="briefing-hero briefing-hero-compact surface-entry-frame">
       <div class="briefing-copy">
-        <p class="eyebrow">작전 지휘실</p>
-        <h2>회의에서 정한 방향을 실행 셀에 내리는 작전실</h2>
+        <p class="eyebrow">실행 브리핑</p>
+        <h2>회의 결론이 실행 셀로 이어지는 흐름</h2>
         <p class="panel-copy">
-          참모 회의에서 고른 결론이 여기서 현재 지시, 승인선, 실행 보고로 압축됩니다.
+          회의에서 정한 방향이 여기서 현재 지시, 승인선, 최신 실행 보고로 이어집니다.
         </p>
         <div class="token-row">
           ${mission ? createToken(`안건:${mission.id}`, 'neutral') : ''}
@@ -3499,7 +3499,7 @@ function getCouncilControlSnapshot(mission, councilSession, linkedTask) {
 function getExecutionControlSnapshot(task, latestRun, approvalBridge, gateCopy, summaries = {}) {
   if (!task) {
     return {
-      currentCopy: '연결 실행 셀이 생기면 현재 작전 판단판이 이곳에 나타납니다.',
+      currentCopy: '연결 실행 셀이 생기면 현재 실행 판단판이 이곳에 나타납니다.',
       currentTitle: '실행 셀 없음',
       nextCopy: '안건이나 회의에서 먼저 실행 셀을 연결합니다.',
       nextTitle: '안건으로 돌아가기',
@@ -3615,7 +3615,7 @@ function getExecutionLeftSnapshot(task, latestRun, executionControl, artifacts =
       currentTitle: executionControl.currentTitle,
       nextCopy: executionControl.nextCopy,
       nextTitle: executionControl.nextTitle,
-      reasonCopy: `${prepLabels.join(' · ')} 준비 체인과 ${getExecutionRoleDisplay(latestRunRole)} 최신 보고가 함께 연결돼 있어 현재 작전 판단을 뒷받침합니다.`,
+      reasonCopy: `${prepLabels.join(' · ')} 준비 체인과 ${getExecutionRoleDisplay(latestRunRole)} 최신 보고가 함께 연결돼 있어 현재 실행 판단을 뒷받침합니다.`,
       reasonTitle: '준비 체인 + 최신 보고',
     };
   }
@@ -3637,7 +3637,7 @@ function getExecutionLeftSnapshot(task, latestRun, executionControl, artifacts =
       currentTitle: executionControl.currentTitle,
       nextCopy: executionControl.nextCopy,
       nextTitle: executionControl.nextTitle,
-      reasonCopy: `${getExecutionRoleDisplay(latestRunRole)}의 최신 실행 보고가 ${getRunStatusDisplay(latestRun.status)} 상태로 남아 있어 현재 작전 판단의 직접 근거가 됩니다.`,
+      reasonCopy: `${getExecutionRoleDisplay(latestRunRole)}의 최신 실행 보고가 ${getRunStatusDisplay(latestRun.status)} 상태로 남아 있어 현재 실행 판단의 직접 근거가 됩니다.`,
       reasonTitle: '최신 실행 보고 기준',
     };
   }
@@ -11253,9 +11253,9 @@ function renderExecution(data) {
       <section class="surface-panel">
         ${renderNarrativeDeck({
           wide: false,
-          eyebrow: '작전 개요판',
+          eyebrow: '실행 개요판',
           heading: '작전실',
-          copy: '작전실 왼쪽 패널도 현재 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다.',
+          copy: '왼쪽 패널은 현재 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다.',
           tokens: [
             createToken(`안건:${selectedMission.id}`, 'neutral'),
             createToken(`실행셀:${linkedTask.id}`, 'accent'),
@@ -11320,14 +11320,14 @@ function renderExecution(data) {
       <aside class="detail-card">
         <div class="panel-header">
           <div>
-            <h2>작전 지휘 메모</h2>
+            <h2>실행 메모</h2>
             <p class="panel-copy">여기서는 승인선, 보류 사유, 사전 점검만 먼저 봅니다.</p>
           </div>
         </div>
         ${renderNarrativeDeck({
           wide: false,
-          eyebrow: '작전 판단판',
-          heading: '현재 작전 판단과 다음 후속만 먼저 봅니다',
+          eyebrow: '실행 판단판',
+          heading: '현재 실행 판단과 다음 후속만 먼저 봅니다',
           copy: '오른쪽 패널은 긴 근거 대신 현재 게이트와 바로 할 후속만 먼저 보여 줍니다.',
           tokens: [
             createToken(getTaskLifecycleDisplay(linkedTask.lifecycleState), 'neutral'),

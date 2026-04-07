@@ -13,7 +13,7 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 assert.match(appJs, /label: '안건 접수'/);
 assert.match(appJs, /summary: '현재 안건 판단과 바로 이동을 시작합니다\.'/);
 assert.match(appJs, /label: '실행 방향'/);
-assert.match(appJs, /summary: '현재 작전 판단과 다음 행동을 조정합니다\.'/);
+assert.match(appJs, /summary: '현재 실행 판단과 다음 행동을 정리합니다\.'/);
 assert.match(appJs, /label: '결과 보고'/);
 assert.match(appJs, /summary: '현재 보고 판단과 다음 행동을 확인합니다\.'/);
 assert.match(appJs, /<p class="charter-label">진행 흐름<\/p>/);
@@ -25,7 +25,7 @@ console.log(
       charterFlowCopySync: {
         markers: [
           '현재 안건 판단과 바로 이동을 시작합니다.',
-          '현재 작전 판단과 다음 행동을 조정합니다.',
+          '현재 실행 판단과 다음 행동을 정리합니다.',
           '현재 보고 판단과 다음 행동을 확인합니다.',
         ],
       },
