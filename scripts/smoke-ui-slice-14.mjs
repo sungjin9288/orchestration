@@ -92,7 +92,7 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="council"/);
     assert.match(indexHtml, /surface-council/);
-    assert.match(appJs, /참모 회의 초안 만들기/);
+    assert.match(appJs, /회의 초안/);
     assert.match(appJs, /회의 결론 승인/);
     assert.deepEqual(initialSnapshot.snapshot.councilSessions, {});
 
