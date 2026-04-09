@@ -36,11 +36,11 @@ assert.match(appJs, /리뷰 후 완료/);
 assert.match(appJs, /승인 후 커밋/);
 assert.match(appJs, /한정된 실행 유지/);
 assert.match(appJs, /label: '안건 접수'/);
-assert.match(appJs, /summary: '현재 안건 판단과 바로 이동을 시작합니다\.'/);
+assert.match(appJs, /summary: '현재 안건 판단과 다음 이동을 시작합니다\.'/);
 assert.match(appJs, /label: '참모 회의'/);
 assert.match(appJs, /summary: '각 역할이 같은 안건을 함께 읽고 방향을 정리합니다\.'/);
-assert.match(appJs, /label: '실행 방향'/);
-assert.match(appJs, /summary: '현재 실행 판단과 다음 행동을 정리합니다\.'/);
+assert.match(appJs, /label: '작업 지시'/);
+assert.match(appJs, /summary: '현재 작업 지시와 다음 실행을 정리합니다\.'/);
 assert.match(appJs, /label: '결과 보고'/);
 assert.match(appJs, /summary: '현재 보고 판단과 다음 행동을 확인합니다\.'/);
 

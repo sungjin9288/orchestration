@@ -91,11 +91,11 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(indexHtml, /data-surface="deliverables"/);
-    assert.match(appJs, /승인선 현황/);
+    assert.match(appJs, /승인 라인 현황/);
     assert.match(appJs, /현재 승인 안건/);
     assert.match(appJs, /다음 운영 단계/);
-    assert.match(appJs, /승인은 실행 표면에서 처리하고, 산출물은 요약 전용으로 남습니다\./);
-    assert.match(appJs, /보고는 승인선과 다음 이동을 요약하고, 깊은 점검은 관제실로 넘깁니다\./);
+    assert.match(appJs, /승인은 실행에서 처리합니다\. 산출물은 요약만 남깁니다\./);
+    assert.match(appJs, /여기서는 리뷰 라인, 승인선, 종료 보고 경로를 먼저 봅니다\./);
 
     const missionPayload = await postJson('/api/missions', {
       autoDraftCouncil: true,

@@ -14,9 +14,9 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(app, /empty-state council-empty-state council-empty-state-main/);
 assert.match(app, /empty-state council-empty-state council-empty-state-detail/);
-assert.match(app, /class="council-empty-title">참모 회의 세션 없음<\/strong>/);
-assert.match(app, /class="council-empty-title">참모 회의 결론 없음<\/strong>/);
-assert.match(app, /class="council-empty-copy">참모 회의를 열면 역할군, 결론, 승인 지점이 이곳에 뜹니다\.<\/p>/);
+assert.match(app, /class="council-empty-title">회의 세션 없음<\/strong>/);
+assert.match(app, /class="council-empty-title">권고안 선반 비어 있음<\/strong>/);
+assert.match(app, /class="council-empty-copy">회의를 열면 참석 역할, 권고안, 승인 선반이 이곳에 뜹니다\.<\/p>/);
 
 assert.match(styles, /\.council-empty-state \{[\s\S]*position:\s*relative;[\s\S]*padding:\s*18px 18px 17px;/);
 assert.match(styles, /\.council-empty-state::before \{[\s\S]*height:\s*2px;[\s\S]*opacity:\s*0\.82;/);

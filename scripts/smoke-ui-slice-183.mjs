@@ -341,7 +341,7 @@ function renderControlDeckTokens({
 }) {
   return renderNarrativeDeck({
     wide: false,
-    eyebrow: '보고 판단판',
+    eyebrow: '인계 판단판',
     heading: '현재 보고 상태와 다음 후속만 먼저 봅니다',
     copy: '결과 보고 오른쪽 패널은 현재 보고 묶음, 결재선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다.',
     tokens: [
@@ -358,7 +358,7 @@ function renderControlDeckTokens({
     ].filter(Boolean),
     cards: [
       { label: '현재 판단', title: '검증용', copy: '검증용' },
-      { label: '바로 이동', title: '검증용', copy: '검증용' },
+      { label: '다음', title: '검증용', copy: '검증용' },
       { label: '이유', title: '검증용', copy: '검증용' },
     ],
   });
@@ -389,7 +389,7 @@ assert.match(
 );
 assert.match(appJs, /createToken\(`다음:\$\{deliverablesEvidenceState\.nextHandoffLabel\}`,\s*'neutral'\)/);
 assert.match(appJs, /createToken\(`리뷰:\$\{getReviewStatusDisplay\(latestReviewStatus\)\}`,\s*getReviewTone\(latestReviewStatus\)\)/);
-assert.match(appJs, /eyebrow:\s*'보고 판단판'/);
+assert.match(appJs, /eyebrow:\s*'인계 판단판'/);
 
 try {
   runtime.resetRuntime();

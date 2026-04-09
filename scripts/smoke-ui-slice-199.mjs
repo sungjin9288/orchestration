@@ -9,7 +9,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 
 const app = fs.readFileSync(appPath, 'utf8');
-const councilEyebrowIndex = app.indexOf("eyebrow: '회의 판단판'");
+const councilEyebrowIndex = app.indexOf("eyebrow: '회의 권고 선반'");
 
 assert.notEqual(councilEyebrowIndex, -1, 'expected council narrative deck eyebrow');
 
@@ -21,10 +21,10 @@ assert.notEqual(cardsIndex, -1, 'expected council narrative deck cards');
 
 const narrativeDeckBlock = app.slice(narrativeDeckStart, cardsIndex);
 
-assert.match(narrativeDeckBlock, /heading:\s*'회의 결론과 다음 이동만 먼저 봅니다'/);
+assert.match(narrativeDeckBlock, /heading:\s*'권고안, 이견, 승인 선반을 먼저 봅니다'/);
 assert.match(
   narrativeDeckBlock,
-  /copy:\s*'오른쪽 패널은 긴 회의록 대신 현재 결론과 다음 표면만 먼저 보여 줍니다\.'/,
+  /copy:\s*'오른쪽 패널은 회의록 전체보다 현재 권고안, 열린 이견, 승인 상태를 먼저 보여 줍니다\.'/,
 );
 assert.doesNotMatch(narrativeDeckBlock, /entryFrame:\s*true/);
 
@@ -33,8 +33,8 @@ console.log(
     {
       ok: true,
       councilNarrativeDeckDensity: {
-        eyebrow: '회의 판단판',
-        heading: '회의 결론과 다음 이동만 먼저 봅니다',
+        eyebrow: '회의 권고 선반',
+        heading: '권고안, 이견, 승인 선반을 먼저 봅니다',
         markers: ['renderNarrativeDeck', 'wide: false', 'entryFrame removed'],
       },
     },

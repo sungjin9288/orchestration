@@ -13,8 +13,8 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(appJs, /function renderCouncilHeartbeatStrip\(mission, councilSession, linkedTask\)/);
-assert.match(appJs, /협의 흐름/);
-assert.match(appJs, /같은 네 역할이 안건 아래에서 계속 읽고, 정렬과 인계 상태가 하나의 흐름으로 이어집니다\./);
+assert.match(appJs, /회의 흐름/);
+assert.match(appJs, /참석 역할, 정렬 상태, 인계 상태를 같은 회의 흐름에서 이어서 확인합니다\./);
 assert.match(appJs, /council-heartbeat-card/);
 assert.match(appJs, /council-heartbeat-pulse/);
 
@@ -29,7 +29,7 @@ console.log(
     {
       ok: true,
       councilHeartbeatStrip: {
-        heading: '협의 흐름',
+        heading: '회의 흐름',
         preservedSignals: ['org-chart', 'governance', 'handoff'],
       },
     },

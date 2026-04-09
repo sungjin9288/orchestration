@@ -10,8 +10,8 @@ const appPath = path.join(repoRoot, 'ui', 'app.js');
 
 const app = fs.readFileSync(appPath, 'utf8');
 
-assert.match(app, /heading: '현재 실행 판단과 다음 후속만 먼저 봅니다'/);
-assert.match(app, /오른쪽 패널은 긴 근거 대신 현재 게이트와 바로 할 후속만 먼저 보여 줍니다\./);
+assert.match(app, /heading: '현재 게이트와 바로 처리할 후속을 먼저 봅니다'/);
+assert.match(app, /오른쪽 패널은 작업 지시보다 승인선, 차단 근거, 다음 처리 경로를 우선 보여 줍니다\./);
 assert.doesNotMatch(app, /작전실 오른쪽 패널은 긴 provenance보다 현재 게이트와 바로 해야 할 후속을 먼저 보여 줍니다\./);
 
 console.log(

@@ -50,6 +50,7 @@ const BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS = [
   'src/execution/provider-adapter.js',
   'src/execution/execution-coordinator.js',
   'src/execution/providers/openai-responses-adapter.js',
+  'src/execution/providers/openai-responses-retry-policy.js',
   'ui/app.js',
 ];
 const DEFAULT_TARGET_FILES = [
@@ -574,6 +575,19 @@ function evaluate({ expression, outputRoot, overrideEnvVar, sessionName }) {
       timeoutMs: 60_000,
     }),
   );
+}
+
+async function waitForSurfaceNavReady({ outputRoot, overrideEnvVar, sessionName, surface }) {
+  return waitForValue(async () => {
+    const navReady = evaluate({
+      expression: `Boolean(document.querySelector(${JSON.stringify(`#surface-${surface}`)}) && document.querySelector('[data-nav-group-tab]')) ? 'ready' : null`,
+      outputRoot,
+      overrideEnvVar,
+      sessionName,
+    });
+
+    return navReady === 'ready' ? navReady : null;
+  }, `${surface} navigation ready`);
 }
 
 function readLatestAccessibilitySnapshot(outputRoot) {
@@ -1338,20 +1352,99 @@ async function verifyBrowserProjectSummary({
   });
 
   assert.match(providerReadySnapshot, new RegExp(escapeRegExp(project.name)));
-  assert.match(providerReadySnapshot, new RegExp(escapeRegExp(project.projectPath)));
+  assert.match(providerReadySnapshot, /현재 프로젝트/);
   assertSecretAbsent(providerReadySnapshot, secret, 'project summary snapshot');
   assertProjectProviderSummary(projectSummary);
 
   return providerReadySnapshot;
 }
 
-function clickSurface({ outputRoot, overrideEnvVar, sessionName, surface }) {
+async function clickSurface({
+  outputRoot,
+  overrideEnvVar,
+  qaOptions = null,
+  sessionName,
+  surface,
+}) {
+  await waitForSurfaceNavReady({
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+    surface,
+  });
+
+  const navGroup =
+    {
+      artifacts: 'review',
+      council: 'workflows',
+      'decision-inbox': 'review',
+      deliverables: 'workflows',
+      execution: 'workflows',
+      logs: 'review',
+      mission: 'workflows',
+      taskboard: 'ops',
+    }[surface] || 'workflows';
+
+  const navGroupSelector = `.nav-group-tab[data-nav-group-tab="${navGroup}"]`;
+  const navGroupPanelSelector = `.nav-group[data-nav-group="${navGroup}"]`;
+  const surfaceSelector = `${navGroupPanelSelector}:not([hidden]) .nav-button[data-surface="${surface}"]`;
+  const hookResult = evaluate({
+    expression: `(() => {
+      const qa = window.__orchestrationQa;
+      if (typeof qa?.openSurface !== 'function') {
+        return null;
+      }
+
+      return {
+        opened: qa.openSurface(${JSON.stringify(surface)}, ${JSON.stringify(qaOptions)}),
+        state: typeof qa.getState === 'function' ? qa.getState() : null,
+      };
+    })()`,
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+  });
+
+  if (hookResult?.opened) {
+    return;
+  }
+
   clickSelector({
     outputRoot,
     overrideEnvVar,
-    selector: `.nav-button[data-surface="${surface}"]`,
+    selector: navGroupSelector,
     sessionName,
   });
+  await waitForValue(async () => {
+    const groupVisible = evaluate({
+      expression: `document.querySelector(${JSON.stringify(navGroupPanelSelector)}) && !document.querySelector(${JSON.stringify(navGroupPanelSelector)})?.hasAttribute('hidden') ? 'ready' : null`,
+      outputRoot,
+      overrideEnvVar,
+      sessionName,
+    });
+
+    return groupVisible === 'ready' ? groupVisible : null;
+  }, `${navGroup} nav group visibility`);
+
+  clickSelector({
+    outputRoot,
+    overrideEnvVar,
+    selector: surfaceSelector,
+    sessionName,
+  });
+
+  if (surface === 'taskboard' && qaOptions?.taskId) {
+    await waitForValue(async () => {
+      const taskRowVisible = evaluate({
+        expression: `Boolean(document.querySelector(${JSON.stringify(`#surface-taskboard [data-action="select-task"][data-id="${qaOptions.taskId}"]`)}))`,
+        outputRoot,
+        overrideEnvVar,
+        sessionName,
+      });
+
+      return taskRowVisible ? 'ready' : null;
+    }, 'taskboard row availability after nav click');
+  }
 }
 
 async function waitForActiveSurface({
@@ -1363,7 +1456,7 @@ async function waitForActiveSurface({
 }) {
   return waitForValue(async () => {
     const value = evaluate({
-      expression: `document.querySelector('.nav-button.is-active')?.dataset.surface || null`,
+      expression: `document.querySelector('.nav-group:not([hidden]) .nav-button.is-active')?.dataset.surface === ${JSON.stringify(surface)} && document.querySelector(${JSON.stringify(`#surface-${surface}`)})?.classList.contains('is-active') ? ${JSON.stringify(surface)} : null`,
       outputRoot,
       overrideEnvVar,
       sessionName,
@@ -1429,7 +1522,7 @@ async function triggerBrowserApprovalResolve({
 }) {
   const domTexts = [];
 
-  clickSurface({
+  await clickSurface({
     outputRoot,
     overrideEnvVar,
     sessionName,
@@ -1480,9 +1573,10 @@ async function triggerBrowserBuilderLiveMutation({
 }) {
   const domTexts = [];
 
-  clickSurface({
+  await clickSurface({
     outputRoot,
     overrideEnvVar,
+    qaOptions: { taskId },
     sessionName,
     surface: 'taskboard',
   });
@@ -1493,6 +1587,16 @@ async function triggerBrowserBuilderLiveMutation({
     surface: 'taskboard',
     label: 'taskboard landing before live mutation',
   });
+  await waitForValue(async () => {
+    const taskRowVisible = evaluate({
+      expression: `Boolean(document.querySelector(${JSON.stringify(`#surface-taskboard.is-active [data-action="select-task"][data-id="${taskId}"]`)}))`,
+      outputRoot,
+      overrideEnvVar,
+      sessionName,
+    });
+
+    return taskRowVisible ? 'ready' : null;
+  }, 'taskboard task row visibility before live mutation');
 
   clickSelector({
     outputRoot,
@@ -1542,7 +1646,7 @@ async function verifyBrowserLogsLanding({
   secret,
   sessionName,
 }) {
-  clickSurface({
+  await clickSurface({
     outputRoot,
     overrideEnvVar,
     sessionName,
@@ -1594,7 +1698,7 @@ async function verifyBrowserArtifactSelection({
   secret,
   sessionName,
 }) {
-  clickSurface({
+  await clickSurface({
     outputRoot,
     overrideEnvVar,
     sessionName,

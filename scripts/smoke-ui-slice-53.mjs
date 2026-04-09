@@ -14,10 +14,12 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, />안건 접수</);
+assert.match(appJs, /신규 등록 \+ 현재 안건/);
 assert.match(appJs, /form-actions form-actions-inline/);
-assert.match(appJs, /안건 접수 흐름/);
-assert.match(appJs, /참모 회의 초안 만들기/);
+assert.match(appJs, /등록 후속/);
+assert.match(appJs, /회의 초안/);
+assert.match(appJs, /실행 셀/);
+assert.match(appJs, /관제실/);
 assert.doesNotMatch(appJs, /Create Mission &amp; Draft Council/);
 assert.doesNotMatch(appJs, /Council drafts right away for visible role discussion\./);
 

@@ -23,20 +23,20 @@ function getNarrativeDeckBlock(eyebrow) {
   return app.slice(deckStart, cardsIndex);
 }
 
-const executionLeftDeck = getNarrativeDeckBlock('실행 개요판');
-const executionRightDeck = getNarrativeDeckBlock('실행 판단판');
+const executionLeftDeck = getNarrativeDeckBlock('작업 지시 개요');
+const executionRightDeck = getNarrativeDeckBlock('게이트 판단판');
 
-assert.match(executionLeftDeck, /heading:\s*'작전실'/);
+assert.match(executionLeftDeck, /heading:\s*'실행 지시 데스크'/);
 assert.match(
   executionLeftDeck,
-  /copy:\s*'왼쪽 패널은 현재 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다\.'/,
+  /copy:\s*'왼쪽 패널은 현재 작업 지시, 다음 처리, 연결 근거를 먼저 보여 줍니다\.'/,
 );
 assert.doesNotMatch(executionLeftDeck, /entryFrame:\s*true/);
 
-assert.match(executionRightDeck, /heading:\s*'현재 실행 판단과 다음 후속만 먼저 봅니다'/);
+assert.match(executionRightDeck, /heading:\s*'현재 게이트와 바로 처리할 후속을 먼저 봅니다'/);
 assert.match(
   executionRightDeck,
-  /copy:\s*'오른쪽 패널은 긴 근거 대신 현재 게이트와 바로 할 후속만 먼저 보여 줍니다\.'/,
+  /copy:\s*'오른쪽 패널은 작업 지시보다 승인선, 차단 근거, 다음 처리 경로를 우선 보여 줍니다\.'/,
 );
 assert.doesNotMatch(executionRightDeck, /entryFrame:\s*true/);
 
@@ -45,7 +45,7 @@ console.log(
     {
       ok: true,
       executionNarrativeDeckDensity: {
-        decks: ['실행 개요판', '실행 판단판'],
+        decks: ['작업 지시 개요', '게이트 판단판'],
         markers: ['renderNarrativeDeck', 'entryFrame removed'],
       },
     },
