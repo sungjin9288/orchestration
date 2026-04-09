@@ -37,6 +37,7 @@ const BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS = [
   'src/execution/provider-adapter.js',
   'src/execution/execution-coordinator.js',
   'src/execution/providers/openai-responses-adapter.js',
+  'src/execution/providers/openai-responses-retry-policy.js',
   'ui/app.js',
 ];
 const TARGET_FILE = 'docs/prd.md';

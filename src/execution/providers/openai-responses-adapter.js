@@ -4,12 +4,17 @@ const fs = require('fs');
 const path = require('path');
 
 const { PROVIDER_READINESS } = require('../../runtime/contracts');
+const {
+  DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS,
+  resolveOpenAIResponsesMaxRetryAttempts,
+  resolveOpenAIResponsesRetryDelayFromHeaders,
+  resolveOpenAIResponsesRetryDelayMs,
+  resolveOpenAIResponsesTimeoutMs,
+  shouldRetryOpenAIResponsesStatus,
+  waitForOpenAIResponsesRetryDelay,
+} = require('./openai-responses-retry-policy');
 
 const DEFAULT_OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
-const DEFAULT_TIMEOUT_MS = 120000;
-const DEFAULT_MAX_RETRY_ATTEMPTS = 3;
-const DEFAULT_RETRY_DELAY_MS = 1500;
-const MAX_RETRY_DELAY_MS = 60000;
 const LIVE_ROLE_LIMIT_REASON =
   'openai-responses live execution is limited to planner, architect, task-breaker, builder-preflight, builder-live-mutation, and reviewer in provider-slice-07';
 
@@ -3347,137 +3352,6 @@ function buildRequestBody(request, model) {
   throw new Error(`${LIVE_ROLE_LIMIT_REASON}; ${request.role} remains blocked`);
 }
 
-function resolveTimeoutMs(options = {}) {
-  if (Number.isInteger(options.timeoutMs) && options.timeoutMs > 0) {
-    return options.timeoutMs;
-  }
-
-  const envTimeoutMs = Number.parseInt(process.env.OPENAI_RESPONSES_TIMEOUT_MS || '', 10);
-
-  if (Number.isInteger(envTimeoutMs) && envTimeoutMs > 0) {
-    return envTimeoutMs;
-  }
-
-  return DEFAULT_TIMEOUT_MS;
-}
-
-function resolveMaxRetryAttempts(options = {}) {
-  if (Number.isInteger(options.maxRetryAttempts) && options.maxRetryAttempts >= 0) {
-    return options.maxRetryAttempts;
-  }
-
-  const envValue = Number.parseInt(process.env.OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS || '', 10);
-
-  if (Number.isInteger(envValue) && envValue >= 0) {
-    return envValue;
-  }
-
-  return DEFAULT_MAX_RETRY_ATTEMPTS;
-}
-
-function resolveRetryDelayMs(options = {}) {
-  if (Number.isInteger(options.retryDelayMs) && options.retryDelayMs >= 0) {
-    return options.retryDelayMs;
-  }
-
-  const envValue = Number.parseInt(process.env.OPENAI_RESPONSES_RETRY_DELAY_MS || '', 10);
-
-  if (Number.isInteger(envValue) && envValue >= 0) {
-    return envValue;
-  }
-
-  return DEFAULT_RETRY_DELAY_MS;
-}
-
-function shouldRetryStatus(status) {
-  return status === 429 || status >= 500;
-}
-
-function parseDurationHeaderMs(value) {
-  const sanitized = sanitizeText(value);
-
-  if (!sanitized) {
-    return null;
-  }
-
-  const durationMatches = [...sanitized.matchAll(/(\d+(?:\.\d+)?)(ms|s|m|h)/g)];
-
-  if (durationMatches.length > 0) {
-    const matchedLength = durationMatches.reduce((total, match) => total + match[0].length, 0);
-
-    if (matchedLength === sanitized.length) {
-      let totalMs = 0;
-
-      for (const [, amountText, unit] of durationMatches) {
-        const amount = Number.parseFloat(amountText);
-
-        if (!Number.isFinite(amount) || amount < 0) {
-          return null;
-        }
-
-        if (unit === 'ms') {
-          totalMs += amount;
-        } else if (unit === 's') {
-          totalMs += amount * 1000;
-        } else if (unit === 'm') {
-          totalMs += amount * 60 * 1000;
-        } else if (unit === 'h') {
-          totalMs += amount * 60 * 60 * 1000;
-        }
-      }
-
-      return Math.min(Math.ceil(totalMs), MAX_RETRY_DELAY_MS);
-    }
-  }
-
-  const numericSeconds = Number.parseFloat(sanitized);
-
-  if (Number.isFinite(numericSeconds) && numericSeconds >= 0) {
-    return Math.min(Math.ceil(numericSeconds * 1000), MAX_RETRY_DELAY_MS);
-  }
-
-  return null;
-}
-
-function resolveRetryDelayFromHeaders(headers, fallbackDelayMs, attemptIndex) {
-  const retryAfter = sanitizeText(headers?.get?.('retry-after'));
-
-  if (retryAfter) {
-    const retryAfterSeconds = Number.parseFloat(retryAfter);
-
-    if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds >= 0) {
-      return Math.min(Math.ceil(retryAfterSeconds * 1000), MAX_RETRY_DELAY_MS);
-    }
-
-    const retryAfterDate = Date.parse(retryAfter);
-
-    if (Number.isFinite(retryAfterDate)) {
-      return Math.min(Math.max(0, retryAfterDate - Date.now()), MAX_RETRY_DELAY_MS);
-    }
-  }
-
-  const requestResetDelayMs = parseDurationHeaderMs(headers?.get?.('x-ratelimit-reset-requests'));
-  const tokenResetDelayMs = parseDurationHeaderMs(headers?.get?.('x-ratelimit-reset-tokens'));
-  const headerResetDelayMs = Math.max(requestResetDelayMs || 0, tokenResetDelayMs || 0);
-
-  if (headerResetDelayMs > 0) {
-    return headerResetDelayMs;
-  }
-
-  const scaledFallbackDelayMs = fallbackDelayMs * (attemptIndex + 1);
-  return Math.min(scaledFallbackDelayMs, MAX_RETRY_DELAY_MS);
-}
-
-function waitForDelay(ms) {
-  if (!Number.isFinite(ms) || ms <= 0) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
 function normalizeStructuredPayload(outputText, request) {
   if (request.role === 'planner') {
     return normalizeStructuredPlannerPayload(outputText);
@@ -3509,9 +3383,9 @@ function normalizeStructuredPayload(outputText, request) {
 function createOpenAIResponsesProviderAdapter(options = {}) {
   const fetchImpl = options.fetchImpl || globalThis.fetch;
   const apiUrl = options.apiUrl || DEFAULT_OPENAI_RESPONSES_URL;
-  const timeoutMs = resolveTimeoutMs(options);
-  const maxRetryAttempts = resolveMaxRetryAttempts(options);
-  const retryDelayMs = resolveRetryDelayMs(options);
+  const timeoutMs = resolveOpenAIResponsesTimeoutMs(options);
+  const maxRetryAttempts = resolveOpenAIResponsesMaxRetryAttempts(options);
+  const retryDelayMs = resolveOpenAIResponsesRetryDelayMs(options);
 
   return {
     name: 'openai-responses',
@@ -3588,11 +3462,17 @@ function createOpenAIResponsesProviderAdapter(options = {}) {
           clearTimeout(timeoutId);
         }
 
-        if (response.ok || !shouldRetryStatus(response.status) || attempt === maxRetryAttempts) {
+        if (
+          response.ok ||
+          !shouldRetryOpenAIResponsesStatus(response.status) ||
+          attempt === maxRetryAttempts
+        ) {
           break;
         }
 
-        await waitForDelay(resolveRetryDelayFromHeaders(response.headers, retryDelayMs, attempt));
+        await waitForOpenAIResponsesRetryDelay(
+          resolveOpenAIResponsesRetryDelayFromHeaders(response.headers, retryDelayMs, attempt),
+        );
       }
 
       const rawResponseText = await response.text();
@@ -3628,6 +3508,6 @@ function createOpenAIResponsesProviderAdapter(options = {}) {
 }
 
 module.exports = {
-  DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS: DEFAULT_TIMEOUT_MS,
+  DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS,
   createOpenAIResponsesProviderAdapter,
 };

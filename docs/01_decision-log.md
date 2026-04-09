@@ -47,9 +47,9 @@ This file records product and architecture decisions that shape v1. Add a new en
 
 ### DEC-007
 - Status: `Accepted`
-- Decision: `claw-empire` is a reference for runtime/control-plane patterns only.
-- Why: The repo offers useful patterns, but its product framing does not match this project.
-- Impact: Borrow `project/task/worktree/log/report/api/AGENTS/bootstrap` ideas selectively and rewrite contracts for Orchestration 1.0.
+- Decision: `claw-empire` is a reference for runtime/control-plane patterns and selective product-shell cues, but not a wholesale product baseline.
+- Why: The repo offers useful patterns around execution state, command-center density, visible role cast, and meeting posture, but Orchestration still needs its own local-first contracts and narrower scope.
+- Impact: Borrow `project/task/worktree/log/report/api/AGENTS/bootstrap` ideas selectively, and also borrow visible-cast / command-center cues when they help the post-v1 shell. Runtime, policy, and scope contracts must still be rewritten from first principles for Orchestration 1.0.
 
 ### DEC-008
 - Status: `Accepted`
@@ -228,17 +228,29 @@ This file records product and architecture decisions that shape v1. Add a new en
 
 ### DEC-044
 - Status: `Accepted`
-- Decision: A display-only `HQ / crew / flow ownership` metaphor is allowed on the post-v1 primary shell when it helps the operator understand the current goal, the visible AI cast, the current stage, and the next gated handoff. This metaphor must stay an orientation layer only; it must not reopen company simulation, org management, budget/workforce semantics, or replace the underlying ops-first execution model.
+- Decision: A display-oriented `HQ / crew / flow ownership` metaphor is allowed on the post-v1 primary shell as the minimum safe baseline. When the repo explicitly opts into a stronger company-shell redesign, that wider allowance is governed by `DEC-045`.
 - Why: Current `main` already uses visible cast, ranked staff presentation, HQ room names, and first-viewport flow rails to make the orchestration experience legible to first-time users. Repo truth still read that direction as a blanket office-first rejection, which created contract drift even though the implemented shell kept runtime, gate, and advanced-ops semantics intact.
-- Impact: `Mission / Council / Execution / Deliverables` may use display-only room names, crew presentation, avatars, and step-ownership rails as user-facing guidance. `Taskboard / Logs / Artifacts / Decision Inbox` remains the authoritative `advanced ops mode`, and runtime ids, task/run/artifact contracts, provider scope, approval/review gates, and local-first constraints stay unchanged. Company management, team workspace semantics, budgets, office simulation, and messenger/platform expansion remain rejected.
+- Impact: `Mission / Council / Execution / Deliverables` may use room names, crew presentation, avatars, and step-ownership rails as user-facing guidance. `Taskboard / Logs / Artifacts / Decision Inbox` remains the authoritative `advanced ops mode`, and runtime ids, task/run/artifact contracts, provider scope, approval/review gates, and local-first constraints stay unchanged. Budgets, org-management, and messenger/platform expansion remain rejected. `DEC-045` may widen the shell from orientation-only to a fuller ERP/company command-center posture.
+
+### DEC-045
+- Status: `Accepted`
+- Decision: The post-v1 primary shell may adopt a company/ERP-style command-center frame with visible AI role assignment, meeting, attendance, desk, and workday cues as first-class product language. This is no longer limited to a display-only orientation layer.
+- Why: The current softened HQ metaphor still reads too much like a themed website and not enough like a distributable orchestration product. The intended product is a company-like operating system where AI roles visibly convene, align, execute, and report on local repo work.
+- Impact: `Mission / Council / Execution / Deliverables` may use company/ERP/meeting framing, role roster, attendance cues, meeting agendas, work-order posture, and approval-line language as the default shell. `Taskboard / Logs / Artifacts / Decision Inbox` remains the authoritative `advanced ops mode`, and runtime ids, artifact taxonomy, approval/review gates, provider boundary, and local-first execution rules stay unchanged. Budget/HR/org-management simulation, payroll/workforce mechanics, multiplayer workspace semantics, ranking, messenger-first posture, and generic platform expansion remain rejected.
+
+### DEC-046
+- Status: `Accepted`
+- Decision: `OpenHarness` is an internal-structure reference for harness robustness only.
+- Why: The company-shell redesign needs stronger internal harness discipline as well as a stronger outer shell. `OpenHarness` offers useful public patterns around explicit tool loops, retry/backoff, skill/plugin loading, memory/session handling, permission rules, approval dialogs, and delegation lifecycle without forcing a product-shell copy.
+- Impact: Future internal structure work may selectively borrow harness patterns such as path-level permission rules, hook points, memory/session resume discipline, plugin or skill boundaries, and delegated-task lifecycle management. This does not widen the product into a generic agent platform, IM-channel surface, or provider-breadth strategy.
 
 ## Rejected
 
 ### DEC-010
 - Status: `Rejected`
-- Decision: Do not make office-first or pixel-office UI the primary product surface.
-- Why: It optimizes for presentation instead of execution control.
-- Impact: Company simulation, pixel-office product framing, or room metaphors that displace goal input, execution gates, or advanced-ops authority remain rejected. This does not forbid a display-only crew/HQ orientation layer that stays inside the accepted `DEC-042` plus `DEC-044` boundary.
+- Decision: Do not make pixel-office gameplay or company-management simulation the primary product surface.
+- Why: The product should feel like a company operating system, not a management game or decorative office toy.
+- Impact: Budgets, payroll, workforce simulation, org-chart management, or room metaphors that displace goal input, execution gates, or advanced-ops authority remain rejected. Company/ERP shell framing is allowed when it stays inside the accepted `DEC-042`, `DEC-044`, and `DEC-045` boundary.
 
 ### DEC-011
 - Status: `Rejected`

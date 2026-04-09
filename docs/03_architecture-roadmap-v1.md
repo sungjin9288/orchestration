@@ -8,7 +8,7 @@ This document defines the current implemented baseline, architecture boundary, a
 - the accepted post-v1 AI orchestration pivot described in `docs/06_ai-orchestration-pivot.md` is now implemented on current `main`; it is no longer a pending next product step
 - future work should reuse the current runtime, coordinator, artifact, approval, and review engine rather than replacing it
 - the existing shell remains available as `advanced ops mode`; it is not the intended default first-time product experience anymore
-- the current display-only lane or heartbeat language may continue from the default shell into `advanced ops mode` entry and first viewport, but `Taskboard / Logs / Artifacts / Decision Inbox` still remain the authoritative operator control surfaces and do not gain new runtime semantics from that orientation layer
+- the default shell may now evolve into a denser company/ERP command center with visible role attendance, meeting, and workday framing, but `Taskboard / Logs / Artifacts / Decision Inbox` still remain the authoritative operator control surfaces and do not gain new hidden runtime semantics from that product shell
 
 ## Architecture Guardrails
 - keep the product `local-first / single-user-first / ops-first`
@@ -21,7 +21,7 @@ This document defines the current implemented baseline, architecture boundary, a
 - keep `v1 scope = development pack only`
 
 ## Reference Position
-`claw-empire` is a reference for runtime and control-plane patterns only. Reuse the useful ideas around `project`, `task`, `worktree`, `logs`, `reports`, `APIs`, `AGENTS`, and bootstrap. Do not fork its product framing, company simulator semantics, messenger posture, or platform assumptions. A display-only `crew / HQ / flow ownership` layer is acceptable only when it remains an orientation layer over the same ops-first engine contracts.
+`claw-empire` is a reference for runtime/control-plane patterns and selective product-shell cues. Reuse the useful ideas around `project`, `task`, `worktree`, `logs`, `reports`, `APIs`, `AGENTS`, bootstrap, command-center density, visible AI cast, and meeting-oriented flow. `OpenHarness` is a reference for harness robustness: explicit tool loops, retry/backoff, skill/plugin boundaries, memory/session handling, permission rules, approval dialogs, and delegation lifecycle. Do not fork pixel-office gameplay, budget/HR/company-management simulation, generic agent-platform breadth, messenger posture, or platform assumptions.
 
 ## System Boundary
 
@@ -38,7 +38,7 @@ This document defines the current implemented baseline, architecture boundary, a
 
 ### Outside v1
 - general team workspace model
-- office-simulator or messenger-first surfaces
+- budget/HR/org-management simulator or messenger-first surfaces
 - ranking and gamification systems
 - generic OAuth platform layer
 - multi-provider-first orchestration
@@ -199,9 +199,9 @@ The following changes require an explicit decision log update before implementat
 - expanding beyond `development pack only`
 - weakening `project_path`, review, or approval gates
 - changing provider strategy
-- adding office-simulator, messenger-first, or multi-provider-first features
+- adding budget/HR/org-management simulation, messenger-first, or multi-provider-first features
 
-`DEC-042` now records the accepted post-v1 pivot direction, and `DEC-044` narrows the allowed display-layer metaphor. Any implementation that changes the default user-facing product entry toward `Mission / Council / Execution / Deliverables` must still preserve the frozen v1 engine contracts unless a later explicit decision changes them.
+`DEC-042` records the accepted post-v1 pivot direction, `DEC-044` records the earlier safe display-layer baseline, and `DEC-045` widens the shell into a fuller company/ERP command-center posture. Any implementation that changes the default user-facing product entry toward `Mission / Council / Execution / Deliverables` must still preserve the frozen v1 engine contracts unless a later explicit decision changes them.
 
 ## Codex Handoff Package
 - `docs/04_codex-handoff-master-brief.md` is a repo-aligned briefing document for Codex executors. It summarizes current `main` truth, frozen boundaries, and implementation guardrails without replacing the core source-of-truth docs.
