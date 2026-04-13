@@ -63,6 +63,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-11.mjs',
     purpose: 'Harness doctor readyHarnessIds stays aligned with ready state classification.',
   },
+  {
+    id: 'harness-doctor-install-required-list',
+    script: 'scripts/smoke-harness-slice-12.mjs',
+    purpose: 'Harness doctor installRequiredHarnessIds stays aligned with install-required state classification.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

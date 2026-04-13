@@ -84,11 +84,12 @@ Repo-native execution gate for approved harnesses:
 - `node scripts/harness-run.mjs list` reports the currently executable harness ids
 - `node scripts/harness-run.mjs info <harness-id>` reports posture, runner, local availability, executable status, and install-review guidance for one harness
 - `node scripts/harness-run.mjs doctor` reports a host-level summary of `ready / install-required / deferred / policy-blocked`
-  plus an ordered `actionQueue`, top-level `nextAction`, and `readyHarnessIds` so the operator can see both the first required decision and the currently runnable approved harness ids without scanning the full list
+  plus an ordered `actionQueue`, top-level `nextAction`, `readyHarnessIds`, and `installRequiredHarnessIds`
+  so the operator can see both the first required decision, the currently runnable approved harness ids, and the local setup blockers without scanning the full list
 
 ### `scripts/harness_verification_status.mjs`
 Repo-native harness verification bundle:
-- runs harness inventory status plus smoke slices `01` through `04`, `06`, `07`, `08`, `09`, `10`, and `11`
+- runs harness inventory status plus smoke slices `01` through `04`, `06`, `07`, `08`, `09`, `10`, `11`, and `12`
 - reports one synthetic harness status payload for the current repo posture
 - keeps harness verification separate from broader runtime or UI verification bundles
 
@@ -112,3 +113,4 @@ Use:
 - `node scripts/smoke-harness-slice-09.mjs`
 - `node scripts/smoke-harness-slice-10.mjs`
 - `node scripts/smoke-harness-slice-11.mjs`
+- `node scripts/smoke-harness-slice-12.mjs`
