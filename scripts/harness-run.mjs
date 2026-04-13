@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getHarness, harnesses } from './harness-registry.mjs';
-import { isExecutableHarness, probeHarness } from './harness-probe.mjs';
+import { getHarnessState, isExecutableHarness } from './harness-probe.mjs';
 
 const args = process.argv.slice(2);
 const harnessId = args[0];
@@ -58,17 +58,37 @@ if (harnessId === 'info' || harnessId === '--info') {
       {
         ok: true,
         mode: 'harness-run-info',
-        harness: {
-          id: harness.id,
-          posture: harness.posture,
-          kind: harness.kind,
-          command: harness.command,
-          runner: harness.runner ?? null,
-          available: probeHarness(harness).available,
-          executable: isExecutableHarness(harness),
-          note: harness.note,
-          installReview: harness.installReview,
-        },
+        harness: getHarnessState(harness),
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(0);
+}
+
+if (harnessId === 'doctor' || harnessId === '--doctor') {
+  const harnessStates = harnesses.map((harness) => getHarnessState(harness));
+  const counts = harnessStates.reduce(
+    (accumulator, harness) => {
+      accumulator.total += 1;
+      accumulator.byState[harness.state] = (accumulator.byState[harness.state] || 0) + 1;
+      return accumulator;
+    },
+    {
+      total: 0,
+      byState: {},
+    },
+  );
+
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        mode: 'harness-run-doctor',
+        guidance: 'Use ready for immediate repo-native execution, install-required for approved harness setup, deferred for future-post-v1, and policy-blocked for signal-only references.',
+        counts,
+        harnesses: harnessStates,
       },
       null,
       2,

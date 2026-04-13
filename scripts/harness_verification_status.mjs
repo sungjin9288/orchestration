@@ -43,6 +43,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-07.mjs',
     purpose: 'Harness status and info outputs stay aligned on availability and executable truth.',
   },
+  {
+    id: 'harness-doctor-summary',
+    script: 'scripts/smoke-harness-slice-08.mjs',
+    purpose: 'Harness doctor summary stays aligned with posture and host availability truth.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

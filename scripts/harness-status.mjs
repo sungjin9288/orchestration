@@ -1,25 +1,14 @@
 #!/usr/bin/env node
 import { harnesses } from './harness-registry.mjs';
-import { isExecutableHarness, probeHarness } from './harness-probe.mjs';
+import { getHarnessState } from './harness-probe.mjs';
 
-const checks = harnesses.map((harness) => {
-  const probe = probeHarness(harness);
-  return {
-    id: harness.id,
-    posture: harness.posture,
-    kind: harness.kind,
-    command: harness.command,
-    available: probe.available,
-    executable: isExecutableHarness(harness),
-    note: harness.note,
-    installReview: harness.installReview,
-  };
-});
+const checks = harnesses.map((harness) => getHarnessState(harness));
 
 const counts = checks.reduce(
   (accumulator, harness) => {
     accumulator.total += 1;
     accumulator.byPosture[harness.posture] = (accumulator.byPosture[harness.posture] || 0) + 1;
+    accumulator.byState[harness.state] = (accumulator.byState[harness.state] || 0) + 1;
     if (harness.available) {
       accumulator.available += 1;
     } else {
@@ -32,6 +21,7 @@ const counts = checks.reduce(
     available: 0,
     missing: 0,
     byPosture: {},
+    byState: {},
   },
 );
 
