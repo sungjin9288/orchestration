@@ -86,7 +86,7 @@ Repo-native execution gate for approved harnesses:
 
 ### `scripts/harness_verification_status.mjs`
 Repo-native harness verification bundle:
-- runs harness inventory status plus smoke slices `01` through `04`
+- runs harness inventory status plus smoke slices `01` through `04`, `06`, and `07`
 - reports one synthetic harness status payload for the current repo posture
 - keeps harness verification separate from broader runtime or UI verification bundles
 

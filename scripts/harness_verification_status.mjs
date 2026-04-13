@@ -33,6 +33,16 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-04.mjs',
     purpose: 'Approved harness dispatch remains self-describing and routes into wrapper usage.',
   },
+  {
+    id: 'harness-info-entrypoint',
+    script: 'scripts/smoke-harness-slice-06.mjs',
+    purpose: 'Per-harness info lookup stays available for approved and future harnesses.',
+  },
+  {
+    id: 'harness-info-status-sync',
+    script: 'scripts/smoke-harness-slice-07.mjs',
+    purpose: 'Harness status and info outputs stay aligned on availability and executable truth.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

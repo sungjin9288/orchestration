@@ -17,7 +17,7 @@ assert.equal(result.status, 0, `harness_verification_status failed: ${result.std
 const payload = JSON.parse(result.stdout);
 assert.equal(payload.mode, 'synthetic-harness-verification');
 assert.equal(payload.ok, true);
-assert.equal(payload.counts.totalChecks, 5);
+assert.equal(payload.counts.totalChecks, 7);
 assert.equal(payload.counts.failedChecks, 0);
 
 const checkIds = payload.checks.map((check) => check.id);
@@ -27,6 +27,8 @@ assert.deepEqual(checkIds, [
   'harness-inventory-contract',
   'harness-policy-gate',
   'harness-approved-dispatch',
+  'harness-info-entrypoint',
+  'harness-info-status-sync',
 ]);
 
 console.log(
