@@ -10,11 +10,11 @@ const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(styles, /\.viewport-handoff-card \{[\s\S]*position:\s*relative;[\s\S]*overflow:\s*hidden;[\s\S]*box-shadow:\s*0 12px 24px rgba\(64, 51, 38, 0\.05\);/);
+assert.match(styles, /\.viewport-handoff-card \{[\s\S]*position:\s*relative;[\s\S]*overflow:\s*hidden;[\s\S]*border-radius:\s*8px;[\s\S]*background:\s*rgba\(255, 255, 255, 0\.99\);[\s\S]*box-shadow:\s*0 1px 2px rgba\(12, 22, 30, 0\.04\);/);
 assert.match(styles, /\.viewport-handoff-card::before \{/);
-assert.match(styles, /\.viewport-handoff-card-emphasis \{[\s\S]*0 16px 28px rgba\(122, 88, 60, 0\.08\);/);
+assert.match(styles, /\.viewport-handoff-card-emphasis \{[\s\S]*background:\s*rgba\(249, 245, 239, 0\.99\);[\s\S]*box-shadow:\s*0 1px 2px rgba\(122, 88, 60, 0\.05\);/);
 assert.match(styles, /\.viewport-handoff-card-emphasis::before \{/);
-assert.match(styles, /\.viewport-handoff-card:hover,\s*\.viewport-handoff-card:focus-within \{[\s\S]*transform:\s*translateY\(-2px\);/);
+assert.match(styles, /\.viewport-handoff-card:hover,\s*\.viewport-handoff-card:focus-within \{[\s\S]*box-shadow:\s*0 1px 2px rgba\(12, 22, 30, 0\.04\);/);
 assert.match(styles, /\.surface-entry-frame \.viewport-handoff-card,\s*\.surface-entry-frame \.charter-card,/);
 assert.match(styles, /\.surface-entry-frame \.viewport-handoff-grid > \.viewport-handoff-card:nth-of-type\(1\) \{[\s\S]*animation-delay:\s*220ms;/);
 assert.match(styles, /\.surface-entry-frame \.viewport-handoff-grid > \.viewport-handoff-card:nth-of-type\(3\) \{[\s\S]*animation-delay:\s*260ms;/);
@@ -26,7 +26,8 @@ console.log(
       handoffRhythmSync: {
         markers: [
           'viewport-handoff-card::before',
-          'translateY(-2px)',
+          'border-radius: 8px',
+          '0 1px 2px rgba(12, 22, 30, 0.04)',
           'animation-delay: 220ms',
           'animation-delay: 260ms',
         ],

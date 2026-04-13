@@ -20,14 +20,14 @@ assert.match(appJs, /function renderNarrativeDeck\(options = \{\}\)/);
 assert.match(appJs, /function renderDeliverablesReportDeck\(options = \{\}\)/);
 assert.match(appJs, /function renderOpsCenterDeck\(options = \{\}\)/);
 
-assert.match(appJs, /heading: '결과 보고'/);
-assert.match(appJs, /eyebrow: '보고 개요판'/);
-assert.match(appJs, /결과 보고 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다\./);
-assert.match(appJs, /상류 준비 묶음/);
-assert.match(appJs, /후속 전달 묶음/);
-assert.match(appJs, /최신 보고 현황/);
-assert.match(appJs, /리뷰 보고/);
-assert.match(appJs, /승인선 현황/);
+assert.match(appJs, /전달 데스크/);
+assert.match(appJs, /전달 패킷 개요/);
+assert.match(appJs, /왼쪽 패널은 현재 결과 패킷, 다음 인계, 연결 근거부터 먼저 보여 줍니다\./);
+assert.match(appJs, /상류 준비 패킷/);
+assert.match(appJs, /전달 패킷 선반/);
+assert.match(appJs, /승인 및 종료 데스크/);
+assert.match(appJs, /리뷰 라인/);
+assert.match(appJs, /승인 라인 현황/);
 assert.match(appJs, /현재 승인 안건/);
 assert.match(appJs, /관제실 직행/);
 assert.match(appJs, /선택된 실행 기록만 세 칸으로 요약하는 로그실/);
@@ -66,7 +66,7 @@ console.log(
     {
       ok: true,
       hqReportAndOpsCenterShell: {
-        deliverables: ['결과 보고', '보고 개요판', '승인선 현황', '안건 종료 보고'],
+        deliverables: ['전달 데스크', '전달 패킷 개요', '승인 라인 현황', '종료 보고 데스크'],
         opsCenter: ['로그실', '보관실', '결재함'],
         detailFlow: ['실행 기본 정보', '보고 연결선', '보관 원문', '처리 메모'],
         executionGate: {

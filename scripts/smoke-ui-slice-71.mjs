@@ -37,7 +37,7 @@ assert.match(appJs, /cast-rank/);
 assert.match(appJs, /cast-command/);
 assert.match(appJs, /직급 체계/);
 assert.match(appJs, /네 역할이 현재 정렬을/);
-assert.match(appJs, /같은 네 역할이 계속 참여해, 결론이 숨은 메타데이터가 아니라 실제 협의 흐름처럼 읽힙니다\./);
+assert.match(appJs, /참석 역할이 끝까지 기록되어 권고와 승인선의 근거를 같은 회의 흐름에서 확인할 수 있습니다\./);
 assert.match(appJs, /createToken\('최종 권고', 'accent'\)/);
 assert.match(appJs, /createToken\('참여 역할', 'neutral'\)/);
 

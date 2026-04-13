@@ -14,10 +14,10 @@ const dockMetadataSection = appJs.match(/const SURFACE_DOCK_METADATA = \{[\s\S]*
 assert.ok(dockMetadataSection, 'SURFACE_DOCK_METADATA section should exist');
 const dockMetadata = dockMetadataSection[0];
 
-assert.match(dockMetadata, /'decision-inbox':\s*\{\s*copy: '현재 안건과 다음 처리를 판단합니다\.',\s*kicker: '승인'/);
-assert.match(dockMetadata, /execution:\s*\{\s*copy: '현재 실행 판단과 다음 행동을 정리합니다\.',\s*kicker: '실행'/);
-assert.match(dockMetadata, /logs:\s*\{\s*copy: '현재 실행 기록과 다음 확인을 빠르게 훑습니다\.',\s*kicker: '실행 기록'/);
-assert.match(dockMetadata, /taskboard:\s*\{\s*copy: '현재 실행 셀과 다음 실행을 조정합니다\.',\s*kicker: '실행 셀'/);
+assert.match(dockMetadata, /'decision-inbox':\s*\{\s*copy: '현재 승인 안건과 다음 처리를 판단합니다\.',\s*kicker: '승인선'/);
+assert.match(dockMetadata, /execution:\s*\{\s*copy: '현재 작업 지시와 다음 실행을 정리합니다\.',\s*kicker: '실행'/);
+assert.match(dockMetadata, /logs:\s*\{\s*copy: '현재 실행 로그와 다음 확인 대상을 빠르게 훑습니다\.',\s*kicker: '실행 로그'/);
+assert.match(dockMetadata, /taskboard:\s*\{\s*copy: '현재 작업 셀과 다음 배정을 조정합니다\.',\s*kicker: '실행 셀'/);
 
 assert.doesNotMatch(dockMetadata, /kicker: '결재'/);
 assert.doesNotMatch(dockMetadata, /kicker: '작전'/);
@@ -33,7 +33,7 @@ console.log(
     {
       ok: true,
       preRealTestOpsDockNouns: {
-        dockMetadata: ['승인', '실행', '실행 기록', '실행 셀'],
+        dockMetadata: ['승인선', '실행', '실행 로그', '실행 셀'],
       },
     },
     null,

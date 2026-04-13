@@ -22,9 +22,9 @@ const activeTask = activeState.tasks[activeMission.linkedTaskId];
 const completedMission = Object.values(completedState.missions)[0];
 const completedTask = completedState.tasks[completedMission.linkedTaskId];
 
-assert.match(appJs, /안건 판단판/);
-assert.match(appJs, /프로바이더, worktree, 로그, 아티팩트, 결정함은 고급 운영 모드에 남습니다\./);
-assert.match(appJs, /참모 회의 세션 없음/);
+assert.match(appJs, /안건 배정 판단판/);
+assert.match(appJs, /세부 제어와 근거는 관제실에 남기고, 여기선 안건 동선만 엽니다\./);
+assert.match(appJs, /회의 세션 없음/);
 assert.match(appJs, /정렬 상태: 협의회 세션이 생기기 전까지는 비어 있습니다\./);
 assert.match(appJs, /관제실 직행/);
 assert.match(appJs, /선택된 안건 없음/);

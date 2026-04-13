@@ -14,47 +14,62 @@ const indexHtml = fs.readFileSync(indexPath, 'utf8');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(indexHtml, /shell-command-strip/);
-assert.match(indexHtml, /project_path 먼저/);
-assert.match(indexHtml, /임무 관제실/);
-assert.match(indexHtml, /런타임 상태/);
-assert.match(indexHtml, /프로젝트 도크/);
-assert.match(indexHtml, /런타임 연결/);
-assert.match(indexHtml, /흐름 현황/);
-assert.match(indexHtml, /사람 게이트/);
-assert.match(indexHtml, /id="summary-card-runtime"/);
-assert.match(indexHtml, /id="pending-gate-copy"/);
-assert.match(indexHtml, /안건 접수부터 결과 보고까지 한 줄 흐름으로 넘깁니다\./);
-assert.match(indexHtml, /작업 셀, 런 로그, 증적, 사람 승인을 깊게 훑는 관제 도크입니다\./);
+assert.match(indexHtml, /<title>Orchestration 1\.0 Workflow Control<\/title>/);
+assert.match(indexHtml, /Workflow Control/);
+assert.match(indexHtml, /WORK/);
+assert.match(indexHtml, /Workflow desk/);
+assert.match(indexHtml, /업무/);
+assert.match(indexHtml, /id="refresh-status"/);
+assert.match(indexHtml, /id="control-overview"/);
+assert.match(indexHtml, /aria-label="현재 운영 개요"/);
+assert.match(indexHtml, /id="shell-header-project"/);
+assert.match(indexHtml, /id="shell-header-surface"/);
+assert.match(indexHtml, /id="shell-header-gates"/);
 
-assert.match(appJs, /const SURFACE_DOCK_METADATA = \{/);
-assert.match(appJs, /현재 안건과 다음 처리를 판단합니다\./);
-assert.match(appJs, /상태 요약 복구 필요/);
-assert.match(appJs, /상태 요약 다시 읽는 중/);
-assert.match(appJs, /런타임 연결 유지/);
-assert.match(appJs, /런타임 루트 대기 중/);
-assert.match(appJs, /사람 검토가 필요한 게이트/);
-assert.match(appJs, /nav-button-topline/);
-assert.match(appJs, /최근 갱신/);
-assert.match(appJs, /런타임 상태 요약 다시 읽는 중…/);
-assert.match(appJs, /런타임 상태 요약 연결 실패/);
+assert.match(appJs, /controlOverview: document\.querySelector\('#control-overview'\)/);
+assert.match(appJs, /function getCurrentOverviewContext\(data\)/);
+assert.match(appJs, /function renderControlOverview\(data\)/);
+assert.match(appJs, /function renderControlOverviewSignalStrip\(items\)/);
+assert.match(appJs, /function renderWorkflowsOverview\(data, context, activeGroupId\)/);
+assert.match(appJs, /function renderReviewOverview\(data, context, activeGroupId\)/);
+assert.match(appJs, /function renderOpsOverview\(data, context, activeGroupId\)/);
+assert.match(appJs, /Workflow map/);
+assert.match(appJs, /Review queue/);
+assert.match(appJs, /Company org/);
+assert.match(appJs, /Selected work order/);
+assert.match(appJs, /Execution handoff/);
+assert.match(appJs, /현재 프로젝트/);
+assert.match(appJs, /현재 데스크/);
+assert.match(appJs, /담당/);
+assert.match(appJs, /다음/);
+assert.match(appJs, /현재 패킷/);
+assert.match(appJs, /전체 인력/);
+assert.match(appJs, /안건/);
+assert.match(appJs, /실행/);
+assert.match(appJs, /근거/);
+assert.match(appJs, /실행 라인업/);
+assert.match(appJs, /검토 라인업/);
+assert.match(appJs, /팀별 배정/);
 
-assert.match(styles, /\.shell-command-strip \{/);
-assert.match(styles, /\.shell-status-card \{/);
-assert.match(styles, /\.summary-card\.is-alert \{/);
-assert.match(styles, /\.nav-group-copy \{/);
-assert.match(styles, /\.nav-button-topline \{/);
-assert.match(styles, /\.nav-button-count \{/);
+assert.match(styles, /\.control-overview \{/);
+assert.match(styles, /\.control-overview-stack \{/);
+assert.match(styles, /\.control-overview-signal-strip \{/);
+assert.match(styles, /\.control-overview-grid \{/);
+assert.match(styles, /\.control-overview-panel \{/);
+assert.match(styles, /\.control-overview-register \{/);
+assert.match(styles, /\.workflow-overview-shell,\s*\.review-overview-shell,\s*\.ops-overview-shell \{/s);
+assert.match(styles, /\.company-roster-list,\s*\.ops-roster-matrix \{/s);
+assert.match(styles, /\.control-overview-action \{/);
 
 console.log(
   JSON.stringify(
     {
       ok: true,
       homeControlPlane: {
-        directives: ['project_path 먼저', '리뷰 후 완료', '승인 후 커밋'],
-        summaryPods: ['현재 프로젝트', '런타임', '실행 수', '대기 게이트'],
-        shellLabels: ['임무 관제실', '런타임 상태', '프로젝트 도크', '런타임 연결', '흐름 현황', '사람 게이트'],
-        runtimeSummaryState: ['상태 요약 복구 필요', '상태 요약 다시 읽는 중', '런타임 연결 유지', '런타임 루트 대기 중'],
+        overviewRegisters: ['현재 데스크', '담당', '다음', '현재 패킷', '전체 인력'],
+        shellLabels: ['Workflow Control', 'WORK', 'Workflow desk', '업무', 'refresh-status'],
+        workspaceContracts: ['Workflow map', 'Selected work order', 'Execution handoff', 'Review queue', 'Company org'],
+        focusRegisters: ['안건', '실행', '근거', '실행 라인업', '검토 라인업', '팀별 배정'],
         modeDock: ['미션', '협의회', '실행', '산출물', '작업판', '로그', '아티팩트', '결정함'],
       },
     },

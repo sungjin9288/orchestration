@@ -14,29 +14,38 @@ const indexHtml = fs.readFileSync(indexPath, 'utf8');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(indexHtml, /id="surface-focus-strip"/);
+assert.match(indexHtml, /id="control-overview"/);
 
-assert.match(appJs, /function renderSurfaceFocusStrip\(data\)/);
-assert.match(appJs, /label: '현재 도크'/);
-assert.match(appJs, /label: '현재 포커스'/);
-assert.match(appJs, /label: '지금 체크'/);
-assert.match(appJs, /결정함 먼저 열기/);
-assert.match(appJs, /도크:.*표면|도크:\$\{metadata\.kicker/);
+assert.match(appJs, /function renderControlOverview\(data\)/);
+assert.match(appJs, /function getControlOverviewFocus\(context\)/);
+assert.match(appJs, /function getControlOverviewCheck\(surface, context, data\)/);
+assert.match(appJs, /function renderWorkflowQueueLane\(entry\)/);
+assert.match(appJs, /function renderReviewLaneCard\(entry\)/);
+assert.match(appJs, /function renderOpsRosterMatrix\(members\)/);
+assert.match(appJs, /Workflow map/);
+assert.match(appJs, /Selected work order/);
+assert.match(appJs, /Execution handoff/);
+assert.match(appJs, /Review queue/);
+assert.match(appJs, /Selected packet/);
+assert.match(appJs, /Company org/);
+assert.match(appJs, /AI staffing desk/);
 
-assert.match(styles, /\.surface-focus-strip \{/);
-assert.match(styles, /\.surface-focus-grid \{/);
-assert.match(styles, /\.surface-focus-card \{/);
-assert.match(styles, /\.surface-focus-card-emphasis \{/);
-assert.match(styles, /\.surface-focus-button \{/);
+assert.match(styles, /\.control-overview-panel-head \{/);
+assert.match(styles, /\.control-overview-label \{/);
+assert.match(styles, /\.control-overview-title \{/);
+assert.match(styles, /\.control-overview-copy,\s*\.control-overview-queue-note \{/s);
+assert.match(styles, /\.control-overview-action \{/);
+assert.match(styles, /\.nav-button-main \{/);
 
 console.log(
   JSON.stringify(
     {
       ok: true,
-      homeSurfaceFocus: {
-        strip: 'surface-focus-strip',
-        cards: ['현재 도크', '현재 포커스', '지금 체크'],
-        gateAction: '결정함 먼저 열기',
+      homeControlOverview: {
+        section: 'control-overview',
+        panes: ['Workflow map', 'Selected work order', 'Execution handoff', 'Review queue', 'AI staffing desk'],
+        laneContracts: ['workflow-stage-card', 'review-lane-card', 'ops-roster-matrix'],
+        focusContracts: ['Selected work order', 'Selected packet', 'Company org'],
       },
     },
     null,

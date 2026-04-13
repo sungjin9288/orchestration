@@ -62,13 +62,18 @@ async function main() {
 
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
-    assert.match(indexHtml, /<title>오케스트레이션 1\.0 AI 전략 본부<\/title>/);
-    assert.match(indexHtml, /<h1>AI 실행 관제실<\/h1>/);
-    assert.match(indexHtml, /기본 운영 표면/);
-    assert.match(indexHtml, /현재 역할 라인업/);
-    assert.match(indexHtml, /고급 운영 모드/);
-    assert.match(indexHtml, /data-nav-group="primary-orchestration"/);
-    assert.match(indexHtml, /data-nav-group="advanced-ops"/);
+    assert.match(indexHtml, /<title>Orchestration 1\.0 Workflow Control<\/title>/);
+    assert.match(indexHtml, /<h1>Orchestration<\/h1>/);
+    assert.match(indexHtml, /Workflow Control/);
+    assert.match(indexHtml, /업무/);
+    assert.match(indexHtml, /검토/);
+    assert.match(indexHtml, /운영/);
+    assert.match(indexHtml, /data-nav-group-tab="workflows"/);
+    assert.match(indexHtml, /data-nav-group-tab="review"/);
+    assert.match(indexHtml, /data-nav-group-tab="ops"/);
+    assert.match(indexHtml, /data-nav-group="workflows"/);
+    assert.match(indexHtml, /data-nav-group="review"/);
+    assert.match(indexHtml, /data-nav-group="ops"/);
     assert.match(appJs, /const SURFACE_DISPLAY_NAMES = \{/);
     assert.match(appJs, /mission: '미션'/);
     assert.match(appJs, /taskboard: '작업판'/);
@@ -80,9 +85,9 @@ async function main() {
           ok: true,
           runtimeRoot,
           shell: {
-            title: 'AI 실행 관제실',
-            primaryGroup: '기본 운영 표면',
-            advancedOpsGroup: '고급 운영 모드',
+            title: 'Orchestration',
+            menuGroups: ['업무', '검토', '운영'],
+            navTabs: ['workflows', 'review', 'ops'],
           },
         },
         null,

@@ -11,8 +11,8 @@ const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 
 assert.match(appJs, /리뷰와 보고 묶음이 다음 운영 판단을 위한 근거를 남깁니다\./);
-assert.match(appJs, /heading: '회의와 실행에서 올라온 묶음을 운영 보고용으로 정리합니다'/);
-assert.match(appJs, /copy: '협의회와 실행 셀에서 올라온 결과가 어떤 보고 묶음과 승인선으로 이어졌는지 이 방에서 빠르게 읽습니다\.'/);
+assert.match(appJs, /결과 패킷, 리뷰 라인, 승인 라인을 같은 인계선에서 다룹니다/);
+assert.match(appJs, /Deliverables는 실행에서 올라온 결과 패킷을 리뷰 라인, 승인 라인, 종료 보고 데스크까지 같은 delivery board에서 이어 읽습니다\./);
 
 console.log(
   JSON.stringify(
@@ -21,8 +21,8 @@ console.log(
       deliverablesDogfoodingCopyRealignment: {
         markers: [
           '리뷰와 보고 묶음이 다음 운영 판단을 위한 근거를 남깁니다.',
-          '회의와 실행에서 올라온 묶음을 운영 보고용으로 정리합니다',
-          '협의회와 실행 셀에서 올라온 결과가 어떤 보고 묶음과 승인선으로 이어졌는지 이 방에서 빠르게 읽습니다.',
+          '결과 패킷, 리뷰 라인, 승인 라인을 같은 인계선에서 다룹니다',
+          'Deliverables는 실행에서 올라온 결과 패킷을 리뷰 라인, 승인 라인, 종료 보고 데스크까지 같은 delivery board에서 이어 읽습니다.',
         ],
       },
     },

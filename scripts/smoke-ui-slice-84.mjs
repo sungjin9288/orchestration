@@ -16,10 +16,10 @@ assert.match(appJs, /avatarStyle: 'lead'/);
 assert.match(appJs, /avatarStyle: 'strategist'/);
 assert.match(appJs, /avatarStyle: 'architect'/);
 assert.match(appJs, /avatarStyle: 'decomposer'/);
-assert.match(appJs, /안건을 올리면 네 역할이 각자 자리에서 읽고/);
+assert.match(appJs, /참석 역할이 안건을 검토하고, 이견과 권고를 회의 결론으로 정리합니다\./);
 assert.match(appJs, /label: '안건 접수'/);
 assert.match(appJs, /label: '참모 회의'/);
-assert.match(appJs, /label: '실행 방향'/);
+assert.match(appJs, /label: '작업 지시'/);
 assert.match(appJs, /label: '결과 보고'/);
 assert.match(appJs, /최종 판단판 · 승인 묶음/);
 assert.match(appJs, /우선순위 표 · 전략 메모/);
@@ -35,13 +35,10 @@ assert.match(appJs, /cast-avatar-mood/);
 
 assert.match(styles, /\.briefing-steps \{/);
 assert.match(styles, /\.briefing-step \{/);
-assert.match(styles, /\.boardroom-seat-avatar-eye \{/);
-assert.match(styles, /\.boardroom-seat-avatar-smile \{/);
-assert.match(styles, /\.boardroom-seat-avatar-accessory \{/);
-assert.match(styles, /\.boardroom-seat-avatar-accessory-lead \{/);
-assert.match(styles, /\.boardroom-seat-avatar-accessory-strategist \{/);
-assert.match(styles, /\.boardroom-seat-avatar-accessory-architect \{/);
-assert.match(styles, /\.boardroom-seat-avatar-accessory-decomposer \{/);
+assert.match(
+  styles,
+  /\.boardroom-seat-avatar-head,\s*\.boardroom-seat-avatar-body,\s*\.boardroom-seat-avatar-eye,\s*\.boardroom-seat-avatar-smile,\s*\.boardroom-seat-avatar-accessory \{\s*display: none;/s,
+);
 assert.match(styles, /\.cast-avatar-eye \{/);
 assert.match(styles, /\.cast-avatar-smile \{/);
 assert.match(styles, /\.cast-avatar-accessory \{/);
@@ -55,13 +52,13 @@ console.log(
   JSON.stringify(
     {
       ok: true,
-      hqCuteAvatarShell: {
-        steps: ['안건 접수', '참모 회의', '실행 방향', '결과 보고'],
-        mood: '네 역할이 각자 자리에서 읽고 회의로 목표와 방향을 정리합니다.',
+      hqAvatarDataPreserved: {
+        steps: ['안건 접수', '참모 회의', '작업 지시', '결과 보고'],
+        mood: '참석 역할이 안건을 검토하고, 이견과 권고를 회의 결론으로 정리합니다.',
         avatarClasses: [
-          'boardroom-seat-avatar-eye',
-          'boardroom-seat-avatar-smile',
-          'boardroom-seat-avatar-accessory',
+          'boardroom-seat-avatar-eye (hidden)',
+          'boardroom-seat-avatar-smile (hidden)',
+          'boardroom-seat-avatar-accessory (hidden)',
           'cast-avatar-eye',
           'cast-avatar-smile',
           'cast-avatar-accessory',

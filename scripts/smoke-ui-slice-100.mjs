@@ -25,11 +25,11 @@ const artifactsSection = appJs.slice(renderArtifactsStart);
 
 assert.match(
   logsSection,
-  /const logsImmediateCard = selectedTaskApprovals\.length > 0[\s\S]*label: '결재함 열기'[\s\S]*targetSurface: 'decision-inbox'/,
+  /const logsImmediateCard = selectedTaskApprovals\.length > 0[\s\S]*label: '결재함'[\s\S]*targetSurface: 'decision-inbox'/,
 );
 assert.match(
   artifactsSection,
-  /const artifactsImmediateCard = selectedArtifactApprovals\.length > 0[\s\S]*label: '결재함 열기'[\s\S]*targetSurface: 'decision-inbox'/,
+  /const artifactsImmediateCard = selectedArtifactApprovals\.length > 0[\s\S]*label: '결재함'[\s\S]*targetSurface: 'decision-inbox'/,
 );
 assert.match(logsSection, /title: `결재함에서 승인 \$\{selectedTaskApprovals\.length\}건 처리`/);
 assert.match(
@@ -68,8 +68,8 @@ console.log(
       ok: true,
       repoOpsImmediateDecisionHandoff: {
         surfaces: {
-          logs: '승인 대기면 결재함 먼저 열기',
-          artifacts: '승인 대기면 결재함 먼저 열기',
+          logs: '승인 대기면 결재함 먼저 이동',
+          artifacts: '승인 대기면 결재함 먼저 이동',
         },
         executionGate: {
           missionStatus: mission.status,

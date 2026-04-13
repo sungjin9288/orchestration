@@ -14,8 +14,8 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /<h2>안건 접수<\/h2>[\s\S]*?왼쪽은 입력과 안건 선택만 남깁니다\./);
-assert.match(appJs, /안건 접수 데스크[\s\S]*?안건을 접수하면 바로 참모 회의로 이어집니다\./);
+assert.match(appJs, /<h2>안건 등록대장<\/h2>[\s\S]*?왼쪽은 신규 안건 등록과 현재 안건 배정만 둡니다\./);
+assert.match(appJs, /신규 안건 등록[\s\S]*?다음 처리 트리거가 같이 준비됩니다\./);
 assert.doesNotMatch(appJs, /Intent starts here\. Task-level execution stays in Advanced Ops\./);
 
 const activeMission = Object.values(activeState.missions)[0];
@@ -30,10 +30,10 @@ console.log(
   JSON.stringify(
     {
       ok: true,
-      missionListPanelCopyTighten: {
+      missionRegisterPanelReadability: {
         activeMissionId: activeMission.id,
         activeTaskId: activeTask.id,
-        tightenedPanelHelpers: 1,
+        tightenedMissionHelpers: 2,
       },
     },
     null,

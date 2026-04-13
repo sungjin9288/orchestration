@@ -19,21 +19,21 @@ const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'u
 assert.match(appJs, /function getExecutionRoleDisplay\(role\)/);
 assert.match(appJs, /function getExecutionStageDisplay\(stage\)/);
 assert.match(appJs, /function renderExecutionCommandDeck\(options = \{\}\)/);
-assert.match(appJs, /<h2>안건 브리프<\/h2>/);
-assert.match(appJs, /브리프 핵심 4줄/);
-assert.match(appJs, /브리프 액션/);
-assert.match(appJs, /<h2>참모 회의<\/h2>/);
+assert.match(appJs, /<h2>안건 등록대장<\/h2>/);
+assert.match(appJs, /신규 안건 등록/);
+assert.match(appJs, /등록 후속/);
+assert.match(appJs, /<h2>회의 참석 등록부<\/h2>/);
 assert.match(appJs, /회의 발언 기록/);
-assert.match(appJs, /<h2>회의 결론<\/h2>/);
-assert.match(appJs, /결론 승인/);
-assert.match(appJs, /실행 브리핑/);
-assert.match(appJs, /회의 결론이 실행 셀로 이어지는 흐름/);
-assert.match(appJs, /<h2>작전실<\/h2>/);
-assert.match(appJs, /실행 개요/);
-assert.match(appJs, /지휘 승인선/);
-assert.match(appJs, /작전 보류 사유/);
-assert.match(appJs, /사전 점검 준비/);
-assert.match(appJs, /즉시 이동/);
+assert.match(appJs, /<h2>권고와 승인 선반<\/h2>/);
+assert.match(appJs, /승인 선반/);
+assert.match(appJs, /작업 지시 보드/);
+assert.match(appJs, /현재 작업 지시와 승인 게이트를 같은 제어선에서 다룹니다/);
+assert.match(appJs, /<h2>실행 지시 데스크<\/h2>/);
+assert.match(appJs, /작업 지시 개요/);
+assert.match(appJs, /승인선/);
+assert.match(appJs, /차단 사유/);
+assert.match(appJs, /실행 준비 패킷/);
+assert.match(appJs, /빠른 이동/);
 assert.doesNotMatch(appJs, /회의 브리프 한눈에/);
 
 assert.match(styles, /\.command-deck \{/);
@@ -58,9 +58,9 @@ console.log(
     {
       ok: true,
       hqMeetingFlowthrough: {
-        missionDetail: ['안건 브리프', '브리프 핵심 4줄', '브리프 액션'],
-        council: ['참모 회의', '회의 발언 기록', '회의 결론', '결론 승인'],
-        execution: ['실행 브리핑', '작전실', '지휘 승인선', '작전 보류 사유', '사전 점검 준비'],
+        missionDetail: ['안건 등록대장', '신규 안건 등록', '등록 후속'],
+        council: ['회의 참석 등록부', '회의 발언 기록', '권고와 승인 선반', '승인 선반'],
+        execution: ['작업 지시 보드', '실행 지시 데스크', '승인선', '차단 사유', '실행 준비 패킷'],
         executionGate: {
           missionStatus: executingMission.status,
           waitingApproval: executingTask.flags.waitingApproval,

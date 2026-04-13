@@ -13,7 +13,7 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 assert.match(appJs, /선택한 결재만 여기서 처리하고, 실행 흐름은 아래 연결 맥락을 따릅니다\./);
 assert.match(appJs, /해결 뒤 흐름은 영향 셀과 현재 게이트를 따라 이어집니다\./);
 assert.match(appJs, /리뷰어 실행은 한정된 라이브 변경 번들이 준비되면 실행 표면에 열립니다\./);
-assert.match(appJs, /승인은 실행 표면에서 처리하고, 산출물은 요약 전용으로 남습니다\./);
+assert.match(appJs, /승인은 실행에서 처리합니다\. 산출물은 요약만 남깁니다\./);
 assert.match(appJs, /다음 사이클은 미션에서 시작합니다\. 실행을 다시 열지 않고 다음 초안을 준비합니다\./);
 assert.match(appJs, /커밋 패키지 아티팩트를 만들고 커밋 승인 안건을 엽니다\. 외부 전달은 계속 막아 둡니다\./);
 assert.match(appJs, /로컬 커밋을 실행하고 커밋 결과 아티팩트로 이어집니다\. 외부 전달은 계속 비활성입니다\./);

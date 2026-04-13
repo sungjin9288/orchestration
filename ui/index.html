@@ -3,119 +3,163 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>오케스트레이션 1.0 AI 전략 본부</title>
+    <title>Orchestration 1.0 Workflow Control</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
     <div class="app-shell">
-      <header class="shell-header">
-        <div class="shell-intro">
-          <div class="shell-window-bar" aria-hidden="true">
-            <div class="shell-window-dots">
-              <span class="shell-window-dot shell-window-dot-close"></span>
-              <span class="shell-window-dot shell-window-dot-min"></span>
-              <span class="shell-window-dot shell-window-dot-max"></span>
+      <aside class="office-sidebar" aria-label="워크플로우 사이드바">
+        <section class="office-brand-card">
+          <p class="office-brand-kicker">Orchestration 1.0</p>
+          <h1>Orchestration</h1>
+          <p class="office-brand-subcopy">Workflow Control</p>
+          <div class="office-brand-register" aria-label="회사 등록 정보">
+            <div class="office-register-cell">
+              <span class="office-register-label">Mode</span>
+              <strong class="office-register-value">single operator</strong>
             </div>
-            <span class="shell-window-label">임무 관제실</span>
+            <div class="office-register-cell">
+              <span class="office-register-label">Pack</span>
+              <strong class="office-register-value">development</strong>
+            </div>
+            <div class="office-register-cell">
+              <span class="office-register-label">Ops</span>
+              <strong class="office-register-value">advanced</strong>
+            </div>
           </div>
-          <p class="eyebrow">오케스트레이션 1.0 관제 셸</p>
-          <h1>AI 실행 관제실</h1>
-          <p class="shell-lead shell-lead-primary">단일 운영자가 로컬 프로젝트를 다룰 때, 현재 프로젝트와 사람 게이트, 다음 실행 단위를 가장 먼저 읽게 만드는 warm control-plane shell입니다.</p>
-          <p class="shell-lead shell-lead-secondary">미션, 협의회, 실행, 산출물은 목표 정렬에서 결과 인계까지의 흐름을 보여 주고, 작업판, 로그, 아티팩트, 결정함은 실제 제어 권한과 증적을 붙잡는 운영 표면으로 남습니다.</p>
-          <div class="shell-agent-row" aria-label="현재 역할 라인업">
-            <span class="shell-agent-chip shell-agent-chip-lead">회의 리드</span>
-            <span class="shell-agent-chip shell-agent-chip-strategist">전략 역할</span>
-            <span class="shell-agent-chip shell-agent-chip-architect">설계 역할</span>
-            <span class="shell-agent-chip shell-agent-chip-decomposer">실행 역할</span>
-          </div>
-          <div class="shell-command-strip" aria-label="운영 기준">
-            <span class="shell-command-pill">project_path 먼저</span>
-            <span class="shell-command-pill">리뷰 후 완료</span>
-            <span class="shell-command-pill">승인 후 커밋</span>
-            <span class="shell-command-pill">thin slice 유지</span>
-          </div>
-        </div>
-        <aside class="header-actions">
-          <div class="shell-status-card">
-            <p class="shell-status-label">관제 상태</p>
-            <h2 class="shell-status-title">런타임 상태</h2>
-            <p id="refresh-status" class="refresh-status">연결 중…</p>
-            <button id="refresh-button" class="refresh-button" type="button">새로고침</button>
-          </div>
-        </aside>
-      </header>
+        </section>
 
-      <section class="shell-summary" id="shell-summary">
-        <article class="summary-card summary-card-primary" id="summary-card-project">
-          <div class="summary-card-head">
-            <p class="summary-label">현재 프로젝트</p>
-            <span class="summary-chip">프로젝트 도크</span>
+        <section class="office-sidebar-section office-sidebar-section-status">
+          <div class="office-sidebar-head">
+            <p class="office-sidebar-label">회사 디렉터리</p>
+            <span class="office-sidebar-chip office-sidebar-chip-live">live</span>
           </div>
-          <strong id="active-project-name">선택된 프로젝트 없음</strong>
-          <p id="active-project-path" class="summary-value"></p>
-        </article>
-        <article class="summary-card" id="summary-card-runtime">
-          <div class="summary-card-head">
-            <p class="summary-label">런타임</p>
-            <span class="summary-chip">런타임 연결</span>
+          <div class="office-sidebar-status-register" aria-label="회사 디렉터리 상태">
+            <div class="office-sidebar-status-cell">
+              <span class="office-register-label">현재 프로젝트</span>
+              <strong id="office-sidebar-project" class="office-sidebar-status-value">미지정</strong>
+            </div>
+            <div class="office-sidebar-status-cell">
+              <span class="office-register-label">현재 데스크</span>
+              <strong id="office-sidebar-surface" class="office-sidebar-status-value">미션</strong>
+            </div>
+            <div class="office-sidebar-status-cell">
+              <span class="office-register-label">열린 실행</span>
+              <strong id="office-sidebar-runs" class="office-sidebar-status-value">0건</strong>
+            </div>
+            <div class="office-sidebar-status-cell">
+              <span class="office-register-label">열린 승인선</span>
+              <strong id="office-sidebar-gates" class="office-sidebar-status-value">0건</strong>
+            </div>
           </div>
-          <strong id="runtime-root">사용 불가</strong>
-          <p id="runtime-status-copy" class="summary-value">프로바이더 상태: 보류</p>
-        </article>
-        <article class="summary-card" id="summary-card-runs">
-          <div class="summary-card-head">
-            <p class="summary-label">실행 수</p>
-            <span class="summary-chip">흐름 현황</span>
-          </div>
-          <strong id="active-run-count">0</strong>
-          <p id="active-run-copy" class="summary-value">진행 중</p>
-        </article>
-        <article class="summary-card" id="summary-card-gates">
-          <div class="summary-card-head">
-            <p class="summary-label">대기 게이트</p>
-            <span class="summary-chip">사람 게이트</span>
-          </div>
-          <strong id="pending-gate-count">0</strong>
-          <p id="pending-gate-copy" class="summary-value">리뷰, 승인, 결정</p>
-        </article>
-      </section>
+          <div id="company-directory-summary" class="company-directory-summary" aria-label="회사 인력 요약"></div>
+          <div id="company-directory-shell" class="company-directory-shell" aria-label="회사 인력 명부"></div>
+        </section>
 
-      <nav class="primary-nav" aria-label="주요 표면">
-        <div class="nav-group" data-nav-group="primary-orchestration">
-          <p class="nav-group-label">기본 운영 표면</p>
-          <p class="nav-group-copy">안건 접수부터 결과 보고까지 한 줄 흐름으로 넘깁니다.</p>
-          <div class="nav-button-row">
-            <button class="nav-button is-active" data-surface="mission" type="button">미션</button>
-            <button class="nav-button" data-surface="council" type="button">협의회</button>
-            <button class="nav-button" data-surface="execution" type="button">실행</button>
-            <button class="nav-button" data-surface="deliverables" type="button">산출물</button>
+        <nav class="primary-nav office-sidebar-nav" aria-label="주요 표면">
+          <div class="nav-group-tabs" role="tablist" aria-label="주요 메뉴 그룹">
+            <button
+              class="nav-group-tab is-active"
+              data-nav-group-tab="workflows"
+              type="button"
+              role="tab"
+              aria-selected="true"
+            >
+              업무
+            </button>
+            <button
+              class="nav-group-tab"
+              data-nav-group-tab="review"
+              type="button"
+              role="tab"
+              aria-selected="false"
+            >
+              검토
+            </button>
+            <button
+              class="nav-group-tab"
+              data-nav-group-tab="ops"
+              type="button"
+              role="tab"
+              aria-selected="false"
+            >
+              운영
+            </button>
           </div>
-        </div>
-        <div class="nav-group" data-nav-group="advanced-ops">
-          <p class="nav-group-label">고급 운영 모드</p>
-          <p class="nav-group-copy">작업 셀, 런 로그, 증적, 사람 승인을 깊게 훑는 관제 도크입니다.</p>
-          <div class="nav-button-row">
-            <button class="nav-button" data-surface="taskboard" type="button">작업판</button>
-            <button class="nav-button" data-surface="logs" type="button">로그</button>
-            <button class="nav-button" data-surface="artifacts" type="button">아티팩트</button>
-            <button class="nav-button" data-surface="decision-inbox" type="button">결정함</button>
+          <div class="nav-group" data-nav-group="workflows">
+            <div class="nav-button-row">
+              <button class="nav-button is-active" data-surface="mission" type="button">미션</button>
+              <button class="nav-button" data-surface="council" type="button">협의회</button>
+              <button class="nav-button" data-surface="execution" type="button">실행</button>
+              <button class="nav-button" data-surface="deliverables" type="button">산출물</button>
+            </div>
           </div>
-        </div>
-      </nav>
+          <div class="nav-group" data-nav-group="review" hidden>
+            <div class="nav-button-row">
+              <button class="nav-button" data-surface="decision-inbox" type="button">결정함</button>
+              <button class="nav-button" data-surface="artifacts" type="button">아티팩트</button>
+              <button class="nav-button" data-surface="logs" type="button">로그</button>
+            </div>
+          </div>
+          <div class="nav-group" data-nav-group="ops" hidden>
+            <div class="nav-button-row">
+              <button class="nav-button" data-surface="taskboard" type="button">작업판</button>
+            </div>
+          </div>
+        </nav>
 
-      <section id="surface-focus-strip" class="surface-focus-strip" aria-label="현재 도크 포커스"></section>
+      </aside>
 
-      <main class="surface-stack">
-        <section id="surface-mission" class="surface is-active" data-surface="mission" aria-label="미션"></section>
-        <section id="surface-council" class="surface" data-surface="council" aria-label="협의회"></section>
-        <section id="surface-execution" class="surface" data-surface="execution" aria-label="실행"></section>
-        <section id="surface-deliverables" class="surface" data-surface="deliverables" aria-label="산출물"></section>
-        <section id="surface-taskboard" class="surface" data-surface="taskboard" aria-label="작업판"></section>
-        <section id="surface-logs" class="surface" data-surface="logs" aria-label="로그"></section>
-        <section id="surface-artifacts" class="surface" data-surface="artifacts" aria-label="아티팩트"></section>
-        <section id="surface-decision-inbox" class="surface" data-surface="decision-inbox" aria-label="결정함"></section>
-      </main>
+      <div class="workspace-shell">
+        <header class="shell-header">
+          <div class="shell-window-bar">
+            <div class="shell-window-meta shell-window-meta-left">
+              <span id="shell-window-label" class="shell-window-label">WORK</span>
+            </div>
+            <div class="shell-window-runtime">
+              <span id="refresh-status" class="refresh-status">연결 중…</span>
+              <button id="refresh-button" class="refresh-button" type="button">새로고침</button>
+            </div>
+          </div>
+
+          <div class="shell-header-main">
+            <div class="shell-intro">
+              <div class="shell-headline-stack">
+                <p id="shell-header-eyebrow" class="eyebrow">Workflow desk</p>
+                <h2 id="shell-dashboard-title" class="shell-dashboard-title">업무</h2>
+              </div>
+              <div class="shell-header-register" aria-label="현재 workspace 요약">
+                <div class="shell-header-register-cell">
+                  <span class="shell-header-register-label">현재 프로젝트</span>
+                  <strong id="shell-header-project" class="shell-header-register-value">미지정</strong>
+                </div>
+                <div class="shell-header-register-cell">
+                  <span class="shell-header-register-label">현재 workspace</span>
+                  <strong id="shell-header-surface" class="shell-header-register-value">업무</strong>
+                </div>
+                <div class="shell-header-register-cell">
+                  <span class="shell-header-register-label">열린 승인선</span>
+                  <strong id="shell-header-gates" class="shell-header-register-value">0건</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section id="control-overview" class="control-overview" aria-label="현재 운영 개요"></section>
+
+        <main class="surface-stack">
+          <section id="surface-mission" class="surface is-active" data-surface="mission" aria-label="미션"></section>
+          <section id="surface-council" class="surface" data-surface="council" aria-label="협의회"></section>
+          <section id="surface-execution" class="surface" data-surface="execution" aria-label="실행"></section>
+          <section id="surface-deliverables" class="surface" data-surface="deliverables" aria-label="산출물"></section>
+          <section id="surface-taskboard" class="surface" data-surface="taskboard" aria-label="작업판"></section>
+          <section id="surface-logs" class="surface" data-surface="logs" aria-label="로그"></section>
+          <section id="surface-artifacts" class="surface" data-surface="artifacts" aria-label="아티팩트"></section>
+          <section id="surface-decision-inbox" class="surface" data-surface="decision-inbox" aria-label="결정함"></section>
+        </main>
+      </div>
     </div>
 
     <script type="module" src="/app.js"></script>

@@ -10,11 +10,11 @@ const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 
-assert.match(appJs, /mission:\s*\{\s*copy: '현재 안건 판단과 바로 이동을 시작합니다\.'/);
-assert.match(appJs, /execution:\s*\{\s*copy: '현재 실행 판단과 다음 행동을 정리합니다\.'/);
-assert.match(appJs, /deliverables:\s*\{\s*copy: '현재 보고 판단과 다음 행동을 확인합니다\.'/);
+assert.match(appJs, /mission:\s*\{\s*copy: '현재 안건과 다음 등록 동선을 정리합니다\.'/);
+assert.match(appJs, /execution:\s*\{\s*copy: '현재 작업 지시와 다음 실행을 정리합니다\.'/);
+assert.match(appJs, /deliverables:\s*\{\s*copy: '현재 보고 상태와 다음 인계선을 확인합니다\.'/);
 assert.match(appJs, /선택된 안건의 현재 판단과 바로 이동이 아래에 이어집니다\./);
-assert.match(appJs, /선택된 실행 셀의 현재 판단과 다음 행동이 아래에 이어집니다\./);
+assert.match(appJs, /선택된 실행 셀의 현재 작업 지시와 다음 실행이 아래에 이어집니다\./);
 assert.match(appJs, /선택된 보고 흐름의 현재 판단과 다음 행동, 연결 근거가 아래에 이어집니다\./);
 
 console.log(
@@ -23,9 +23,9 @@ console.log(
       ok: true,
       homeSurfaceCopySync: {
         markers: [
-          '현재 안건 판단과 바로 이동을 시작합니다.',
-          '현재 실행 판단과 다음 행동을 정리합니다.',
-          '현재 보고 판단과 다음 행동을 확인합니다.',
+          '현재 안건과 다음 등록 동선을 정리합니다.',
+          '현재 작업 지시와 다음 실행을 정리합니다.',
+          '현재 보고 상태와 다음 인계선을 확인합니다.',
         ],
       },
     },

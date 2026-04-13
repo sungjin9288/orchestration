@@ -21,7 +21,7 @@ assert.match(appJs, /title: '실행 셀 목록 \+ 빠른 추가'/);
 assert.match(appJs, /title: focusedTask \? '현재 상태 \+ 다음 실행' : '선택 셀 대기'/);
 assert.match(appJs, /action: 'open-surface'/);
 assert.match(appJs, /targetSurface: 'decision-inbox'/);
-assert.match(appJs, /label: '결재함 열기'/);
+assert.match(appJs, /label: '결재함'/);
 assert.match(appJs, /heading: '선택된 실행 셀만 세 칸으로 요약하는 작업판'/);
 
 const mission = Object.values(executionGateState.missions)[0];
@@ -44,7 +44,7 @@ console.log(
     {
       ok: true,
       taskboardViewportHandoff: {
-        strip: ['왼쪽 레인', '오른쪽 상세', '지금 열기'],
+        strip: ['왼쪽 레인', '오른쪽 상세', '바로'],
         immediateSurface: 'decision-inbox',
         waitingApproval: task.flags.waitingApproval,
         allowedNextAction: pendingApproval.allowedNextAction,

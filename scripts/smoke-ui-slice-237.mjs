@@ -12,44 +12,36 @@ const appPath = path.join(repoRoot, 'ui', 'app.js');
 const indexHtml = fs.readFileSync(indexPath, 'utf8');
 const appJs = fs.readFileSync(appPath, 'utf8');
 
-assert.match(indexHtml, /현재 역할 라인업/);
-assert.match(indexHtml, /기본 운영 표면/);
-assert.match(indexHtml, /회의 리드/);
-assert.match(indexHtml, /전략 역할/);
-assert.match(indexHtml, /설계 역할/);
-assert.match(indexHtml, /실행 역할/);
-assert.match(appJs, /중앙 판단판을 보며 최종 방향을 고정합니다\./);
-assert.match(appJs, /중앙 판단 데스크/);
-assert.match(appJs, /목표 해석과 범위 조정을 맡는 전략 역할입니다\./);
-assert.match(appJs, /설계 파급을 줄이고 시스템 경계를 지키는 역할입니다\./);
-assert.match(appJs, /회의 준비 전이라 회의 흐름이 아직 열리지 않았습니다\./);
-assert.match(appJs, /역할 구성/);
-assert.match(appJs, /createToken\('참여 역할', 'neutral'\)/);
-assert.match(appJs, /<strong>참여 역할<\/strong>/);
-assert.match(appJs, /역할:\$\{castEntries.length\}석/);
-assert.match(appJs, /회의 세션 없음/);
-assert.doesNotMatch(indexHtml, /현재 참모 라인업/);
-assert.doesNotMatch(indexHtml, /본부 운영 표면/);
-assert.doesNotMatch(indexHtml, /총지휘관/);
-assert.doesNotMatch(indexHtml, /전략가/);
-assert.doesNotMatch(indexHtml, /설계자/);
-assert.doesNotMatch(indexHtml, /분해자/);
-assert.doesNotMatch(appJs, /본부 중앙 데스크/);
-assert.doesNotMatch(appJs, /수석 참모입니다\./);
-assert.doesNotMatch(appJs, /착석 참모진/);
+assert.match(indexHtml, /회사 디렉터리/);
+assert.match(indexHtml, /id="company-directory-summary"/);
+assert.match(indexHtml, /id="company-directory-shell"/);
+assert.match(appJs, /const COMPANY_ROLE_OPTIONS = \[/);
+assert.match(appJs, /const COMPANY_DESK_OPTIONS = \[/);
+assert.match(appJs, /function renderCompanyDirectory\(data\)/);
+assert.match(appJs, /function addCompanyMember\(\)/);
+assert.match(appJs, /function updateCompanyMember\(memberId, values\)/);
+assert.match(appJs, /function removeCompanyMember\(memberId\)/);
+assert.match(appJs, /data-form="create-company-member"/);
+assert.match(appJs, /data-form="update-company-member"/);
+assert.match(appJs, /AI 에이전트 추가/);
+assert.match(appJs, /배정 저장/);
+assert.match(appJs, /Chief of Staff/);
+assert.match(appJs, /Ops Manager/);
+assert.doesNotMatch(indexHtml, /오늘 근무 라인업/);
+assert.doesNotMatch(indexHtml, /운영 규정/);
+assert.doesNotMatch(indexHtml, /오늘 처리 동선/);
 
 console.log(
   JSON.stringify(
     {
       ok: true,
-      councilCastReadability: {
+      companyDirectoryManagement: {
         markers: [
-          '현재 역할 라인업',
-          '기본 운영 표면',
-          '중앙 판단 데스크',
-          '핵심 전략 역할',
-          '역할 구성',
-          '참여 역할',
+          '회사 디렉터리',
+          'company-directory-summary',
+          'company-directory-shell',
+          'AI 에이전트 추가',
+          '배정 저장',
         ],
       },
     },
