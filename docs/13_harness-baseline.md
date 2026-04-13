@@ -58,6 +58,11 @@ Harnesses must:
 - Can we invoke it explicitly and capture evidence without widening runtime scope?
 - Does installation avoid "curl | bash" by default, or at least document review-first flow?
 
+## Inventory Posture
+- `approved-now`: safe to use as an explicit local helper in the current repo
+- `future-post-v1`: acceptable direction, but not part of the current shipped path
+- `signal-only`: useful reference signal only; do not normalize into repo defaults
+
 ## Concrete Local Tooling (Now)
 ### `scripts/markitdown-convert.mjs`
 Wrapper for optional local `markitdown` CLI usage:
@@ -65,7 +70,15 @@ Wrapper for optional local `markitdown` CLI usage:
 - refuses to run if `markitdown` is not installed
 - does not change runtime behavior or UI
 
+### `scripts/harness-status.mjs`
+Local harness inventory and posture report:
+- reports approved/future/signal-only posture for current external harness references
+- checks whether the related local command is available in `PATH`
+- makes it explicit that command availability does not imply repo adoption
+
 ## Verification
 Use:
+- `node scripts/harness-status.mjs`
 - `node --check scripts/markitdown-convert.mjs`
 - `node scripts/smoke-harness-slice-01.mjs`
+- `node scripts/smoke-harness-slice-02.mjs`
