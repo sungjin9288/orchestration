@@ -58,6 +58,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-10.mjs',
     purpose: 'Harness doctor nextAction stays aligned with the first actionable operator decision.',
   },
+  {
+    id: 'harness-doctor-ready-list',
+    script: 'scripts/smoke-harness-slice-11.mjs',
+    purpose: 'Harness doctor readyHarnessIds stays aligned with ready state classification.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

@@ -37,6 +37,10 @@ function buildDoctorNextAction(actionQueue) {
   return actionQueue[0] ?? null;
 }
 
+function buildDoctorReadyHarnessIds(harnessStates) {
+  return harnessStates.filter((harness) => harness.state === 'ready').map((harness) => harness.id);
+}
+
 if (!harnessId) {
   console.error('Usage: harness-run.mjs <harness-id> [args...]');
   console.error('Hint: harness-run.mjs list | harness-run.mjs info <harness-id>');
@@ -95,6 +99,7 @@ if (harnessId === 'doctor' || harnessId === '--doctor') {
   const harnessStates = harnesses.map((harness) => getHarnessState(harness));
   const actionQueue = buildDoctorActionQueue(harnessStates);
   const nextAction = buildDoctorNextAction(actionQueue);
+  const readyHarnessIds = buildDoctorReadyHarnessIds(harnessStates);
   const counts = harnessStates.reduce(
     (accumulator, harness) => {
       accumulator.total += 1;
@@ -114,6 +119,7 @@ if (harnessId === 'doctor' || harnessId === '--doctor') {
         mode: 'harness-run-doctor',
         guidance: 'Use ready for immediate repo-native execution, install-required for approved harness setup, deferred for future-post-v1, and policy-blocked for signal-only references.',
         nextAction,
+        readyHarnessIds,
         actionQueue,
         counts,
         harnesses: harnessStates,
