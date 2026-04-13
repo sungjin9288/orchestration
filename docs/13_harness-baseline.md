@@ -81,12 +81,15 @@ Repo-native execution gate for approved harnesses:
 - only allows `approved-now` harness ids to execute
 - rejects `future-post-v1` and `signal-only` harnesses even if they are installed locally
 - currently dispatches only to the `markitdown` wrapper
+- `node scripts/harness-run.mjs list` reports the currently executable harness ids
 
 ## Verification
 Use:
 - `node scripts/harness-status.mjs`
 - `node scripts/harness-run.mjs <harness-id> ...`
+- `node scripts/harness-run.mjs list`
 - `node --check scripts/markitdown-convert.mjs`
 - `node scripts/smoke-harness-slice-01.mjs`
 - `node scripts/smoke-harness-slice-02.mjs`
 - `node scripts/smoke-harness-slice-03.mjs`
+- `node scripts/smoke-harness-slice-04.mjs`

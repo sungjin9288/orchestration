@@ -2,15 +2,41 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getHarness } from './harness-registry.mjs';
+import { getHarness, harnesses } from './harness-registry.mjs';
 
 const args = process.argv.slice(2);
 const harnessId = args[0];
 const harnessArgs = args.slice(1);
 
+function getExecutableHarnesses() {
+  return harnesses.filter((harness) => harness.posture === 'approved-now' && harness.runner);
+}
+
 if (!harnessId) {
   console.error('Usage: harness-run.mjs <harness-id> [args...]');
+  console.error('Hint: harness-run.mjs list');
   process.exit(2);
+}
+
+if (harnessId === 'list' || harnessId === '--list') {
+  const executableHarnesses = getExecutableHarnesses().map((harness) => ({
+    id: harness.id,
+    posture: harness.posture,
+    runner: harness.runner,
+    note: harness.note,
+  }));
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        mode: 'harness-run-list',
+        executableHarnesses,
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(0);
 }
 
 const harness = getHarness(harnessId);
