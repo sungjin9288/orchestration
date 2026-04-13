@@ -13,7 +13,7 @@ Build Orchestration 1.0 as a local-first, single-user-first, ops-first control p
 - Do not use `$release-evidence` by default; add it only when the task explicitly refreshes an existing QA, smoke, or handoff artifact flow.
 
 ### Source Of Truth
-- Keep repo docs and task files as source of truth.
+- Keep repo docs, `DESIGN.md` when present, and task files as source of truth.
 - Preserve the frozen baseline unless the task explicitly widens scope.
 - If a new discovery conflicts with the current docs, report the conflict and update docs only when the task scope supports it.
 
@@ -33,7 +33,8 @@ Build Orchestration 1.0 as a local-first, single-user-first, ops-first control p
 - local-first, single-user-first, ops-first
 - source of truth for policy/contracts is repo files
 - v1 scope = development pack only
-- do not introduce office-first UI, messenger-first, ranking, OAuth, or multi-provider-first
+- company/ERP-style shell, visible AI roles, meeting flow, and workday framing are allowed when they preserve execution gates, advanced-ops authority, and local-first operation
+- do not introduce messenger-first, ranking, OAuth, multi-provider-first, budget/HR/org-management, or multiplayer workspace semantics
 - project_path is required before any execution
 - review before done
 - approval before commit
@@ -51,6 +52,8 @@ Build Orchestration 1.0 as a local-first, single-user-first, ops-first control p
 6. packs/development/pack.md
 7. tasks/todo.md
 8. tasks/lessons.md
+
+When UI shell/design work is in scope, also read `DESIGN.md` after the required docs.
 
 ## Required Output Format
 - changed files

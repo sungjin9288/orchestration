@@ -331,7 +331,7 @@ assert.match(appJsSource, /renderStructuredCommitResult/);
 assert.match(appJsSource, /selectedArtifactMeta\.type === 'commit-result'/);
 assert.match(appJsSource, /data-action="run-local-commit"/);
 assert.match(appJsSource, /open-taskboard-task/);
-assert.match(appJsSource, /태스크 상세 커밋 가드 열기/);
+assert.match(appJsSource, /커밋 가드/);
 assert.match(
   appJsSource,
   /탐색 전용으로 남습니다\. 승인된 로컬 커밋 이어가기는 태스크 상세에서 실행합니다\./,

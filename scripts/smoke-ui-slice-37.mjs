@@ -27,7 +27,7 @@ assert.equal(smoke36.ok, true);
 assert.match(appJs, /function renderMissionSnapshotList/);
 assert.match(appJs, /브리프 핵심 4줄/);
 assert.match(appJs, /지금 판단할 상태만 네 줄로 봅니다\./);
-assert.match(appJs, /작전실 인계 미리보기/);
+assert.match(appJs, /실행 지시 데스크 인계 미리보기/);
 assert.match(appJs, /회의 결과물 미리보기/);
 assert.match(appJs, /다음 지시/);
 assert.equal(mission.status, 'executing');
