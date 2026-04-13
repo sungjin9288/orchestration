@@ -16,14 +16,16 @@ skills, MCP servers, and local adapters) instead of widening the core runtime su
 
 ## External Reference Signals (2026-04)
 These projects are signals, not direct dependencies:
-- `markitdown` (Microsoft): MCP + CLI-style document-to-Markdown extraction. Useful as a harness
-  for artifact preprocessing, not as a runtime dependency.
-- `hermes-agent` (NousResearch): skills + memory + MCP gateway posture. Useful for thinking about
-  skill registry + memory separation, not for multi-platform bots.
-- `mempalace` (MemPalace): local-first memory store with MCP server posture. Useful as a
-  local-only memory harness for future post-v1 work.
-- `free-code` fork (Claude Code): CLI harness posture and loose prompt guardrails as a signal.
-  Not a v1 dependency.
+- `markitdown` (Microsoft): document-to-Markdown CLI with an MCP server option and a wide
+  file-type conversion surface. Useful as a local harness for artifact preprocessing and
+  documentation ingestion, not as a runtime dependency.
+- `hermes-agent` (NousResearch): self-improving agent with skills, memory, MCP integration,
+  and multi-provider + multi-platform gateway posture. Useful for thinking about skill registry
+  and memory separation, not for multi-platform bots or provider breadth in v1.
+- `mempalace` (MemPalace): local-first memory store that keeps raw verbatim conversations and
+  exposes an MCP tools posture. Useful as a local-only memory harness signal for future post-v1 work.
+- `free-code` fork (Claude Code): CLI harness posture with multi-provider switching and looser
+  guardrails as a signal. Not a v1 dependency; do not adopt its multi-provider-first posture.
 
 ## Approved Harness Applications (Now)
 1. **Document-to-Markdown preprocessing** via `markitdown` CLI
@@ -41,6 +43,7 @@ These projects are signals, not direct dependencies:
 - Messenger-first bot surfaces or multi-platform chat gateways.
 - Budget/HR/org-management simulators.
 - Multiplayer workspace or team-first runtime semantics.
+- "curl | bash" auto-installers or guardrail removal as default guidance.
 
 ## Minimal Integration Contract
 Harnesses must:
@@ -48,6 +51,12 @@ Harnesses must:
 - be invoked explicitly, not automatically
 - leave evidence in logs or artifacts when used
 - be documented in repo source-of-truth files (this doc + decision log)
+
+## Harness Intake Checklist (Before Adoption)
+- Is it local-first and optional, with no hidden background execution?
+- Does it avoid multi-provider-first, messenger-first, or team-first semantics?
+- Can we invoke it explicitly and capture evidence without widening runtime scope?
+- Does installation avoid "curl | bash" by default, or at least document review-first flow?
 
 ## Concrete Local Tooling (Now)
 ### `scripts/markitdown-convert.mjs`
