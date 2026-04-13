@@ -76,9 +76,17 @@ Local harness inventory and posture report:
 - checks whether the related local command is available in `PATH`
 - makes it explicit that command availability does not imply repo adoption
 
+### `scripts/harness-run.mjs`
+Repo-native execution gate for approved harnesses:
+- only allows `approved-now` harness ids to execute
+- rejects `future-post-v1` and `signal-only` harnesses even if they are installed locally
+- currently dispatches only to the `markitdown` wrapper
+
 ## Verification
 Use:
 - `node scripts/harness-status.mjs`
+- `node scripts/harness-run.mjs <harness-id> ...`
 - `node --check scripts/markitdown-convert.mjs`
 - `node scripts/smoke-harness-slice-01.mjs`
 - `node scripts/smoke-harness-slice-02.mjs`
+- `node scripts/smoke-harness-slice-03.mjs`
