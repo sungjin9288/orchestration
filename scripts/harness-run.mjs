@@ -13,6 +13,26 @@ function getExecutableHarnesses() {
   return harnesses.filter((harness) => isExecutableHarness(harness));
 }
 
+function buildDoctorActionQueue(harnessStates) {
+  const statePriority = {
+    'install-required': 0,
+    deferred: 1,
+    'policy-blocked': 2,
+    ready: 3,
+  };
+
+  return harnessStates
+    .filter((harness) => harness.state !== 'ready')
+    .sort((left, right) => statePriority[left.state] - statePriority[right.state])
+    .map((harness) => ({
+      harnessId: harness.id,
+      state: harness.state,
+      recommendedAction: harness.recommendedAction,
+      installReview: harness.installReview,
+      note: harness.note,
+    }));
+}
+
 if (!harnessId) {
   console.error('Usage: harness-run.mjs <harness-id> [args...]');
   console.error('Hint: harness-run.mjs list | harness-run.mjs info <harness-id>');
@@ -69,6 +89,7 @@ if (harnessId === 'info' || harnessId === '--info') {
 
 if (harnessId === 'doctor' || harnessId === '--doctor') {
   const harnessStates = harnesses.map((harness) => getHarnessState(harness));
+  const actionQueue = buildDoctorActionQueue(harnessStates);
   const counts = harnessStates.reduce(
     (accumulator, harness) => {
       accumulator.total += 1;
@@ -87,6 +108,7 @@ if (harnessId === 'doctor' || harnessId === '--doctor') {
         ok: true,
         mode: 'harness-run-doctor',
         guidance: 'Use ready for immediate repo-native execution, install-required for approved harness setup, deferred for future-post-v1, and policy-blocked for signal-only references.',
+        actionQueue,
         counts,
         harnesses: harnessStates,
       },

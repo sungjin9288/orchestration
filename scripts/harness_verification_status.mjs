@@ -48,6 +48,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-08.mjs',
     purpose: 'Harness doctor summary stays aligned with posture and host availability truth.',
   },
+  {
+    id: 'harness-doctor-action-queue',
+    script: 'scripts/smoke-harness-slice-09.mjs',
+    purpose: 'Harness doctor action queue stays ordered and actionable for the current host posture.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
