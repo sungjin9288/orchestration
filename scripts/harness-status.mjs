@@ -1,27 +1,16 @@
 #!/usr/bin/env node
-import { spawnSync } from 'node:child_process';
 import { harnesses } from './harness-registry.mjs';
-
-function probeCommand(command, checkArgs) {
-  const result = spawnSync(command, checkArgs, {
-    stdio: 'ignore',
-  });
-
-  return {
-    available: result.status === 0,
-    status: result.status,
-    signal: result.signal,
-  };
-}
+import { isExecutableHarness, probeHarness } from './harness-probe.mjs';
 
 const checks = harnesses.map((harness) => {
-  const probe = probeCommand(harness.command, harness.checkArgs);
+  const probe = probeHarness(harness);
   return {
     id: harness.id,
     posture: harness.posture,
     kind: harness.kind,
     command: harness.command,
     available: probe.available,
+    executable: isExecutableHarness(harness),
     note: harness.note,
     installReview: harness.installReview,
   };
