@@ -14,7 +14,7 @@ function getExecutableHarnesses() {
 
 if (!harnessId) {
   console.error('Usage: harness-run.mjs <harness-id> [args...]');
-  console.error('Hint: harness-run.mjs list');
+  console.error('Hint: harness-run.mjs list | harness-run.mjs info <harness-id>');
   process.exit(2);
 }
 
@@ -31,6 +31,41 @@ if (harnessId === 'list' || harnessId === '--list') {
         ok: true,
         mode: 'harness-run-list',
         executableHarnesses,
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(0);
+}
+
+if (harnessId === 'info' || harnessId === '--info') {
+  const infoHarnessId = harnessArgs[0];
+  if (!infoHarnessId) {
+    console.error('Usage: harness-run.mjs info <harness-id>');
+    process.exit(2);
+  }
+
+  const harness = getHarness(infoHarnessId);
+  if (!harness) {
+    console.error(`Unknown harness: ${infoHarnessId}`);
+    process.exit(2);
+  }
+
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        mode: 'harness-run-info',
+        harness: {
+          id: harness.id,
+          posture: harness.posture,
+          kind: harness.kind,
+          command: harness.command,
+          runner: harness.runner ?? null,
+          note: harness.note,
+          installReview: harness.installReview,
+        },
       },
       null,
       2,
