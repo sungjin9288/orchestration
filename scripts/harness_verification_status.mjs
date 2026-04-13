@@ -53,6 +53,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-09.mjs',
     purpose: 'Harness doctor action queue stays ordered and actionable for the current host posture.',
   },
+  {
+    id: 'harness-doctor-next-action',
+    script: 'scripts/smoke-harness-slice-10.mjs',
+    purpose: 'Harness doctor nextAction stays aligned with the first actionable operator decision.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
