@@ -232,6 +232,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: Current `main` already uses visible cast, ranked staff presentation, HQ room names, and first-viewport flow rails to make the orchestration experience legible to first-time users. Repo truth still read that direction as a blanket office-first rejection, which created contract drift even though the implemented shell kept runtime, gate, and advanced-ops semantics intact.
 - Impact: `Mission / Council / Execution / Deliverables` may use display-only room names, crew presentation, avatars, and step-ownership rails as user-facing guidance. `Taskboard / Logs / Artifacts / Decision Inbox` remains the authoritative `advanced ops mode`, and runtime ids, task/run/artifact contracts, provider scope, approval/review gates, and local-first constraints stay unchanged. Company management, team workspace semantics, budgets, office simulation, and messenger/platform expansion remain rejected.
 
+### DEC-045
+- Status: `Accepted`
+- Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
+- Why: The repo already treats policy and execution boundaries as inspectable files. Harnesses let us add capability without widening v1 scope, changing provider strategy, or diluting approval/review gates.
+- Impact: `src/execution/*` stays minimal; harnesses are documented in repo files, invoked explicitly, and remain `local-stub`-compatible. Multi-provider-first, messenger-first, or team-first harness posture remains out of scope.
+
 ## Rejected
 
 ### DEC-010
