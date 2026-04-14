@@ -90,6 +90,15 @@ function buildDoctorSummary({
       deferredHarnessIds[0] ??
       policyBlockedHarnessIds[0] ??
       null,
+    primaryHarnessState:
+      nextAction?.state ??
+      (readyHarnessIds.length > 0
+        ? 'ready'
+        : deferredHarnessIds.length > 0
+          ? 'deferred'
+          : policyBlockedHarnessIds.length > 0
+            ? 'policy-blocked'
+            : 'none'),
   };
 }
 
