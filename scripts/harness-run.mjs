@@ -122,6 +122,7 @@ function buildDoctorSummary({
     primaryCommand: primaryHarness?.command ?? null,
     primaryRunner: primaryHarness?.runner ?? null,
     primaryExecutable: primaryHarness?.executable ?? null,
+    primaryAvailable: primaryHarness?.available ?? null,
   };
 }
 
