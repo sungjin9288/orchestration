@@ -117,6 +117,7 @@ function buildDoctorSummary({
     primaryHarnessState,
     primaryRecommendedAction,
     primaryInstallReview: primaryHarness?.installReview ?? null,
+    primaryNote: primaryHarness?.note ?? null,
   };
 }
 
