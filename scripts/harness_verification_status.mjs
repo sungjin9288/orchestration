@@ -118,6 +118,16 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-22.mjs',
     purpose: 'Harness doctor summary.primaryPosture stays aligned with the representative harness posture bucket.',
   },
+  {
+    id: 'harness-doctor-primary-command',
+    script: 'scripts/smoke-harness-slice-23.mjs',
+    purpose: 'Harness doctor summary.primaryCommand stays aligned with the representative harness command name.',
+  },
+  {
+    id: 'harness-doctor-primary-runner',
+    script: 'scripts/smoke-harness-slice-24.mjs',
+    purpose: 'Harness doctor summary.primaryRunner stays aligned with the representative harness runner path.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
