@@ -99,6 +99,15 @@ function buildDoctorSummary({
           : policyBlockedHarnessIds.length > 0
             ? 'policy-blocked'
             : 'none'),
+    primaryRecommendedAction:
+      nextAction?.recommendedAction ??
+      (readyHarnessIds.length > 0
+        ? 'run-approved-harness'
+        : deferredHarnessIds.length > 0
+          ? 'keep-outside-current-v1-path'
+          : policyBlockedHarnessIds.length > 0
+            ? 'do-not-run'
+            : 'none'),
   };
 }
 
