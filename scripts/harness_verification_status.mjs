@@ -143,6 +143,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-27.mjs',
     purpose: 'Harness doctor summary.primaryKind stays aligned with the representative harness kind classification.',
   },
+  {
+    id: 'harness-doctor-primary-install-review-required',
+    script: 'scripts/smoke-harness-slice-28.mjs',
+    purpose: 'Harness doctor summary.primaryInstallReviewRequired stays aligned with the representative harness install-review presence.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
