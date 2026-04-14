@@ -125,6 +125,7 @@ function buildDoctorSummary({
     primaryExecutable: primaryHarness?.executable ?? null,
     primaryAvailable: primaryHarness?.available ?? null,
     primaryInstallReviewRequired: primaryHarness?.installReview != null,
+    primaryReady: primaryHarness?.state === 'ready',
   };
 }
 
