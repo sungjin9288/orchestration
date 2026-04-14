@@ -138,6 +138,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-26.mjs',
     purpose: 'Harness doctor summary.primaryAvailable stays aligned with the representative harness PATH availability truth.',
   },
+  {
+    id: 'harness-doctor-primary-kind',
+    script: 'scripts/smoke-harness-slice-27.mjs',
+    purpose: 'Harness doctor summary.primaryKind stays aligned with the representative harness kind classification.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
