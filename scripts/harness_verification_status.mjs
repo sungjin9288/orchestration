@@ -83,6 +83,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-15.mjs',
     purpose: 'Harness doctor summary object stays aligned with top-level arrays, nextAction, and counts.',
   },
+  {
+    id: 'harness-doctor-current-host-state',
+    script: 'scripts/smoke-harness-slice-16.mjs',
+    purpose: 'Harness doctor summary.currentHostState stays aligned with the current top-level posture priority.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

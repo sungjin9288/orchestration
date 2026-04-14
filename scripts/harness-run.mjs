@@ -74,6 +74,16 @@ function buildDoctorSummary({
     runnableNow: readyHarnessIds.length > 0,
     setupRequiredNow: installRequiredHarnessIds.length > 0,
     nextActionState: nextAction?.state ?? 'none',
+    currentHostState:
+      installRequiredHarnessIds.length > 0
+        ? 'setup-required'
+        : readyHarnessIds.length > 0
+          ? 'runnable'
+          : deferredHarnessIds.length > 0
+            ? 'deferred-only'
+            : policyBlockedHarnessIds.length > 0
+              ? 'blocked-only'
+              : 'no-harnesses',
   };
 }
 
