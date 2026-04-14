@@ -57,6 +57,26 @@ function buildDoctorPolicyBlockedHarnessIds(harnessStates) {
     .map((harness) => harness.id);
 }
 
+function buildDoctorSummary({
+  harnessStates,
+  nextAction,
+  readyHarnessIds,
+  installRequiredHarnessIds,
+  deferredHarnessIds,
+  policyBlockedHarnessIds,
+}) {
+  return {
+    totalHarnesses: harnessStates.length,
+    readyHarnessCount: readyHarnessIds.length,
+    installRequiredHarnessCount: installRequiredHarnessIds.length,
+    deferredHarnessCount: deferredHarnessIds.length,
+    policyBlockedHarnessCount: policyBlockedHarnessIds.length,
+    runnableNow: readyHarnessIds.length > 0,
+    setupRequiredNow: installRequiredHarnessIds.length > 0,
+    nextActionState: nextAction?.state ?? 'none',
+  };
+}
+
 if (!harnessId) {
   console.error('Usage: harness-run.mjs <harness-id> [args...]');
   console.error('Hint: harness-run.mjs list | harness-run.mjs info <harness-id>');
@@ -119,6 +139,14 @@ if (harnessId === 'doctor' || harnessId === '--doctor') {
   const installRequiredHarnessIds = buildDoctorInstallRequiredHarnessIds(harnessStates);
   const deferredHarnessIds = buildDoctorDeferredHarnessIds(harnessStates);
   const policyBlockedHarnessIds = buildDoctorPolicyBlockedHarnessIds(harnessStates);
+  const summary = buildDoctorSummary({
+    harnessStates,
+    nextAction,
+    readyHarnessIds,
+    installRequiredHarnessIds,
+    deferredHarnessIds,
+    policyBlockedHarnessIds,
+  });
   const counts = harnessStates.reduce(
     (accumulator, harness) => {
       accumulator.total += 1;
@@ -142,6 +170,7 @@ if (harnessId === 'doctor' || harnessId === '--doctor') {
         installRequiredHarnessIds,
         deferredHarnessIds,
         policyBlockedHarnessIds,
+        summary,
         actionQueue,
         counts,
         harnesses: harnessStates,
