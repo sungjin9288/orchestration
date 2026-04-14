@@ -103,6 +103,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-19.mjs',
     purpose: 'Harness doctor summary.primaryRecommendedAction stays aligned with the representative harness action priority.',
   },
+  {
+    id: 'harness-doctor-primary-install-review',
+    script: 'scripts/smoke-harness-slice-20.mjs',
+    purpose: 'Harness doctor summary.primaryInstallReview stays aligned with the representative harness guidance.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

@@ -65,6 +65,35 @@ function buildDoctorSummary({
   deferredHarnessIds,
   policyBlockedHarnessIds,
 }) {
+  const primaryHarnessId =
+    nextAction?.harnessId ??
+    readyHarnessIds[0] ??
+    deferredHarnessIds[0] ??
+    policyBlockedHarnessIds[0] ??
+    null;
+  const primaryHarness =
+    primaryHarnessId === null
+      ? null
+      : harnessStates.find((harness) => harness.id === primaryHarnessId) ?? null;
+  const primaryHarnessState =
+    nextAction?.state ??
+    (readyHarnessIds.length > 0
+      ? 'ready'
+      : deferredHarnessIds.length > 0
+        ? 'deferred'
+        : policyBlockedHarnessIds.length > 0
+          ? 'policy-blocked'
+          : 'none');
+  const primaryRecommendedAction =
+    nextAction?.recommendedAction ??
+    (readyHarnessIds.length > 0
+      ? 'run-approved-harness'
+      : deferredHarnessIds.length > 0
+        ? 'keep-outside-current-v1-path'
+        : policyBlockedHarnessIds.length > 0
+          ? 'do-not-run'
+          : 'none');
+
   return {
     totalHarnesses: harnessStates.length,
     readyHarnessCount: readyHarnessIds.length,
@@ -84,30 +113,10 @@ function buildDoctorSummary({
             : policyBlockedHarnessIds.length > 0
               ? 'blocked-only'
               : 'no-harnesses',
-    primaryHarnessId:
-      nextAction?.harnessId ??
-      readyHarnessIds[0] ??
-      deferredHarnessIds[0] ??
-      policyBlockedHarnessIds[0] ??
-      null,
-    primaryHarnessState:
-      nextAction?.state ??
-      (readyHarnessIds.length > 0
-        ? 'ready'
-        : deferredHarnessIds.length > 0
-          ? 'deferred'
-          : policyBlockedHarnessIds.length > 0
-            ? 'policy-blocked'
-            : 'none'),
-    primaryRecommendedAction:
-      nextAction?.recommendedAction ??
-      (readyHarnessIds.length > 0
-        ? 'run-approved-harness'
-        : deferredHarnessIds.length > 0
-          ? 'keep-outside-current-v1-path'
-          : policyBlockedHarnessIds.length > 0
-            ? 'do-not-run'
-            : 'none'),
+    primaryHarnessId,
+    primaryHarnessState,
+    primaryRecommendedAction,
+    primaryInstallReview: primaryHarness?.installReview ?? null,
   };
 }
 
