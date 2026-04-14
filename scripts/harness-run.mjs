@@ -84,6 +84,12 @@ function buildDoctorSummary({
             : policyBlockedHarnessIds.length > 0
               ? 'blocked-only'
               : 'no-harnesses',
+    primaryHarnessId:
+      nextAction?.harnessId ??
+      readyHarnessIds[0] ??
+      deferredHarnessIds[0] ??
+      policyBlockedHarnessIds[0] ??
+      null,
   };
 }
 
