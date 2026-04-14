@@ -73,6 +73,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-13.mjs',
     purpose: 'Harness doctor deferredHarnessIds stays aligned with deferred state classification.',
   },
+  {
+    id: 'harness-doctor-policy-blocked-list',
+    script: 'scripts/smoke-harness-slice-14.mjs',
+    purpose: 'Harness doctor policyBlockedHarnessIds stays aligned with signal-only blocked state classification.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
