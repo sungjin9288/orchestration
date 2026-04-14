@@ -121,6 +121,7 @@ function buildDoctorSummary({
     primaryPosture: primaryHarness?.posture ?? null,
     primaryCommand: primaryHarness?.command ?? null,
     primaryRunner: primaryHarness?.runner ?? null,
+    primaryExecutable: primaryHarness?.executable ?? null,
   };
 }
 

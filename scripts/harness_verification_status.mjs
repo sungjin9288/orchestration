@@ -128,6 +128,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-24.mjs',
     purpose: 'Harness doctor summary.primaryRunner stays aligned with the representative harness runner path.',
   },
+  {
+    id: 'harness-doctor-primary-executable',
+    script: 'scripts/smoke-harness-slice-25.mjs',
+    purpose: 'Harness doctor summary.primaryExecutable stays aligned with the representative harness executable truth.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
