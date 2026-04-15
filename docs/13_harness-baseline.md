@@ -144,8 +144,8 @@ Post-freeze UI follow-up surface:
 
 ### Shared shell action affordance
 Post-freeze local-only shell action follow-up:
-- `ui/app.js` shared `renderHarnessBriefRegister()` now exposes a `명령 복사` button when `brief.actionCommand` is present
-- the button stays local-only and consumer-only: it copies the already frozen brief command via browser clipboard when available and otherwise falls back to a refresh-status instruction line
+- `ui/app.js` shared `renderHarnessBriefRegister()` now exposes a `명령 복사` button when `brief.actionCommand` is present and an `실행 데스크 열기` button whenever the operator is not already on `Execution`
+- both affordances stay local-only and consumer-only: `명령 복사` uses browser clipboard when available and otherwise falls back to a refresh-status instruction line, while `실행 데스크 열기` reuses the existing `open-surface` navigation path instead of introducing a shell-launch route
 - no new runtime route, no snapshot schema change, and no producer-contract widening are introduced
 
 ### Current host-ready proof
@@ -219,3 +219,4 @@ Use:
 - `node scripts/smoke-ui-slice-301.mjs`
 - `node scripts/smoke-ui-slice-302.mjs`
 - `node scripts/smoke-ui-slice-303.mjs`
+- `node scripts/smoke-ui-slice-304.mjs`

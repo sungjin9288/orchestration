@@ -1759,6 +1759,9 @@ function renderHarnessBriefRegister(brief) {
     return '';
   }
 
+  const showOpenExecution = state.surface !== 'execution';
+  const showCommandActions = Boolean(brief.actionCommand) || showOpenExecution;
+
   return `
     <section class="ops-editor-scope" data-panel-state="readonly" data-harness-register="true">
       <div class="ops-section-head">
@@ -1784,20 +1787,41 @@ function renderHarnessBriefRegister(brief) {
         </div>
       </div>
       <p class="control-overview-copy">${escapeHtml(brief.actionMessage || '대표 하네스 지시가 아직 준비되지 않았습니다.')}</p>
+      ${brief.actionCommand ? `<p class="control-overview-copy">명령: <code>${escapeHtml(brief.actionCommand)}</code></p>` : ''}
       ${
-        brief.actionCommand
+        showCommandActions
           ? `
-            <p class="control-overview-copy">명령: <code>${escapeHtml(brief.actionCommand)}</code></p>
             <div class="form-actions form-actions-inline">
-              <button
-                class="secondary-button"
-                type="button"
-                data-action="copy-harness-command"
-                data-command="${escapeHtml(brief.actionCommand)}"
-                data-harness-copy-command="true"
-              >
-                명령 복사
-              </button>
+              ${
+                brief.actionCommand
+                  ? `
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="copy-harness-command"
+                      data-command="${escapeHtml(brief.actionCommand)}"
+                      data-harness-copy-command="true"
+                    >
+                      명령 복사
+                    </button>
+                  `
+                  : ''
+              }
+              ${
+                showOpenExecution
+                  ? `
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="open-surface"
+                      data-target-surface="execution"
+                      data-harness-open-execution="true"
+                    >
+                      실행 데스크 열기
+                    </button>
+                  `
+                  : ''
+              }
             </div>
           `
           : ''
