@@ -158,6 +158,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-30.mjs',
     purpose: 'Harness doctor summary.primaryActionShort stays aligned with the representative harness action shorthand.',
   },
+  {
+    id: 'harness-doctor-primary-action-message',
+    script: 'scripts/smoke-harness-slice-31.mjs',
+    purpose: 'Harness doctor summary.primaryActionMessage stays aligned with the representative harness operator guidance.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

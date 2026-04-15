@@ -93,6 +93,20 @@ function buildDoctorSummary({
         : policyBlockedHarnessIds.length > 0
           ? 'do-not-run'
           : 'none');
+  const primaryActionMessage =
+    primaryHarnessId === null
+      ? 'No representative harness action is required for the current host.'
+      : primaryHarnessState === 'ready'
+        ? `Run ${primaryHarnessId} now through node scripts/harness-run.mjs ${primaryHarnessId}.`
+        : primaryHarnessState === 'install-required'
+          ? primaryHarness?.installReview
+            ? `Review ${primaryHarness.installReview} and install ${primaryHarnessId} locally before running it through the repo-native gate.`
+            : `Install ${primaryHarnessId} locally before running it through the repo-native gate.`
+          : primaryHarnessState === 'deferred'
+            ? `Keep ${primaryHarnessId} outside the current v1 path and treat it as future-post-v1 only.`
+            : primaryHarnessState === 'policy-blocked'
+              ? `Do not run ${primaryHarnessId} in the current repo posture; keep it as signal-only.`
+              : 'No representative harness action is required for the current host.';
 
   return {
     totalHarnesses: harnessStates.length,
@@ -133,9 +147,10 @@ function buildDoctorSummary({
           ? 'install'
           : primaryHarnessState === 'deferred'
             ? 'defer'
-            : primaryHarnessState === 'policy-blocked'
-              ? 'blocked'
-              : 'none',
+        : primaryHarnessState === 'policy-blocked'
+          ? 'blocked'
+          : 'none',
+    primaryActionMessage,
   };
 }
 
