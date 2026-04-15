@@ -13709,10 +13709,12 @@ function renderDeliverables(data) {
       latestReviewArtifact,
     },
   );
+  const harnessBrief = getHarnessConsumerBrief(data);
 
   elements.surfaces.deliverables.innerHTML = `
     <div class="stack">
       ${deliverablesDeck}
+      ${renderHarnessBriefRegister(harnessBrief)}
       <div class="surface-grid">
       <section class="surface-panel">
         ${renderNarrativeDeck({
