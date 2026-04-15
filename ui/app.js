@@ -1997,18 +1997,39 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         : ''
                     }
                     ${
-                      harnessExecutionResult.resolvedOutputPath
+                      harnessExecutionResult.resolvedInputPath || harnessExecutionResult.resolvedOutputPath
                         ? `
                           <div class="form-actions form-actions-inline">
-                            <button
-                              class="secondary-button"
-                              type="button"
-                              data-action="copy-harness-output-path"
-                              data-output-path="${escapeHtml(harnessExecutionResult.resolvedOutputPath)}"
-                              data-harness-output-copy="true"
-                            >
-                              출력 경로 복사
-                            </button>
+                            ${
+                              harnessExecutionResult.resolvedInputPath
+                                ? `
+                                  <button
+                                    class="secondary-button"
+                                    type="button"
+                                    data-action="copy-harness-input-path"
+                                    data-input-path="${escapeHtml(harnessExecutionResult.resolvedInputPath)}"
+                                    data-harness-input-copy="true"
+                                  >
+                                    입력 경로 복사
+                                  </button>
+                                `
+                                : ''
+                            }
+                            ${
+                              harnessExecutionResult.resolvedOutputPath
+                                ? `
+                                  <button
+                                    class="secondary-button"
+                                    type="button"
+                                    data-action="copy-harness-output-path"
+                                    data-output-path="${escapeHtml(harnessExecutionResult.resolvedOutputPath)}"
+                                    data-harness-output-copy="true"
+                                  >
+                                    출력 경로 복사
+                                  </button>
+                                `
+                                : ''
+                            }
                           </div>
                         `
                         : ''
@@ -2050,6 +2071,21 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || 'stdout only')}</strong>
                               </div>
                               <div class="form-actions form-actions-inline">
+                                ${
+                                  execution.inputPath || execution.resolvedInputPath
+                                    ? `
+                                      <button
+                                        class="secondary-button"
+                                        type="button"
+                                        data-action="copy-harness-input-path"
+                                        data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
+                                        data-harness-input-copy="true"
+                                      >
+                                        입력 경로 복사
+                                      </button>
+                                    `
+                                    : ''
+                                }
                                 <button
                                   class="secondary-button"
                                   type="button"
@@ -17005,6 +17041,16 @@ async function copyHarnessExecutionOutputPath(outputPath) {
   });
 }
 
+async function copyHarnessExecutionInputPath(inputPath) {
+  await copyTextValue({
+    value: inputPath,
+    emptyErrorMessage: '복사할 하네스 입력 경로가 없습니다.',
+    copiedMessage: (value) => `하네스 입력 경로를 복사했습니다: ${value}`,
+    unsupportedMessage: (value) =>
+      `클립보드 미지원 환경입니다. 입력 경로를 직접 확인하세요: ${value}`,
+  });
+}
+
 function restoreHarnessExecutionPreview(actionButton, statusPayload) {
   const historyIndex = Number.parseInt(actionButton?.dataset.historyIndex || '', 10);
   const recentHarnessExecutions = getRecentHarnessExecutions(getDerived(), statusPayload);
@@ -17327,6 +17373,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'copy-harness-output-path') {
         await copyHarnessExecutionOutputPath(actionButton.dataset.outputPath);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'copy-harness-input-path') {
+        await copyHarnessExecutionInputPath(actionButton.dataset.inputPath);
         return;
       }
 
