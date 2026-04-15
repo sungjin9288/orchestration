@@ -238,6 +238,7 @@
 - 홈만 맞추고 `Mission` hero 안의 flow rail을 예전 문구로 남겨 두면 바로 다음 viewport에서 다시 말투가 끊겼다. `dock -> focus strip -> charter flow`처럼 연달아 붙는 요약 레이어는 같은 grammar family를 써야, 첫 화면 전체가 하나의 control-plane 문장처럼 읽혔다.
 - `Mission` hero 안에서도 support copy가 길어지면 다시 설명 패널처럼 느껴졌다. `목표 헌장`은 목표를 먼저 고정한다고만 말하고, `운영 기준`은 display-only HQ 연출과 실제 gate semantics의 경계만 짧게 못 박는 편이 first viewport를 훨씬 덜 무겁게 만들었다.
 - `Mission` hero는 copy만 줄인다고 충분히 poster처럼 보이지 않았다. `charter-card`에 얇은 상단 accent line, 조금 더 큰 목표 hierarchy, 더 타이트한 flow row spacing을 주자, 새 카드나 새 의미를 만들지 않고도 첫 viewport가 훨씬 덜 평평하고 더 의도된 화면처럼 읽혔다.
+- explicit harness execution 다음 단계에서 결과를 더 오래 보이게 해야 한다면 frozen `doctor.summary`나 consumer payload를 다시 넓히기보다 UI server local memory와 snapshot-derived helper 한 겹으로 닫는 편이 안전했다. 이번처럼 `derived.latestHarnessExecution`만 추가하고 `Execution`이 active project와 representative harness를 다시 대조하게 두면 refresh 복구는 얻고, producer contract drift는 막을 수 있다.
 - `Council` boardroom hero도 같은 원리가 있었다. 테이블과 좌석이 전부 비슷한 무게로 깔리면 회의실이 단순 grid처럼 보였고, 중심 테이블 그림자와 좌석 상단 accent rail, compact seat spacing을 조금만 정리해도 훨씬 더 staged scene처럼 읽혔다. 중요한 건 새 장식이 아니라 중심축과 위계였다.
 - `Mission / Council` hero처럼 이미 위계가 잡힌 first viewport는 새 블록을 더 쌓기보다 entrance motion을 아주 얇게 넣는 편이 효과적이었다. staggered rise와 작은 hover lift 정도만 줘도 정적인 polished panel에서 staged control scene 쪽으로 인상이 넘어가지만, `prefers-reduced-motion`를 같이 닫아 두지 않으면 쉽게 과해질 수 있었다.
 - hero 아래 progress rail도 정적 안내 칩으로 두면 다시 장식처럼 보였다. `Mission / Council`처럼 이미 같은 flow state를 다른 곳에서 계산하고 있다면, 그 rail도 `완료 / 현재 / 다음` 위계를 바로 읽게 맞춰 주는 편이 훨씬 덜 딱딱하고 더 live control surface처럼 느껴졌다.

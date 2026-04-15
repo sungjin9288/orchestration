@@ -1664,6 +1664,7 @@ function createEmptyDerivedState() {
     executionEntrySummaries: {},
     harnessConsumerStatus: null,
     harnessConsumerBrief: null,
+    latestHarnessExecution: null,
     providerExecutionSummaries: {},
     releasePackageReadinessSummaries: {},
     reviewerReadinessSummaries: {},
@@ -1714,6 +1715,31 @@ function getHarnessConsumerStatus(data) {
     payload.operatorAction
   ) {
     return payload;
+  }
+
+  return null;
+}
+
+function getLatestHarnessExecution(data, statusPayload) {
+  const snapshot = data?.snapshot || {};
+  const activeProjectId = snapshot.activeProjectId || null;
+  const representativeHarnessId = statusPayload?.statusCard?.primaryHarnessId || null;
+  const derivedLatestHarnessExecution = data?.derived?.latestHarnessExecution || null;
+
+  for (const candidate of [state.lastHarnessExecutionResult, derivedLatestHarnessExecution]) {
+    if (!candidate?.harnessId || !representativeHarnessId) {
+      continue;
+    }
+
+    if (candidate.harnessId !== representativeHarnessId) {
+      continue;
+    }
+
+    if ((candidate.projectId || null) !== activeProjectId) {
+      continue;
+    }
+
+    return candidate;
   }
 
   return null;
@@ -1818,7 +1844,8 @@ function getHarnessOperatorActionTone(operatorAction) {
 function renderHarnessExecutionActionShelf(statusPayload) {
   const statusCard = statusPayload?.statusCard || null;
   const operatorAction = statusPayload?.operatorAction || null;
-  const harnessExecutionResult = state.lastHarnessExecutionResult || null;
+  const data = getDerived();
+  const harnessExecutionResult = getLatestHarnessExecution(data, statusPayload);
 
   if (!statusCard?.primaryHarnessId || !operatorAction?.kind || operatorAction.kind === 'none') {
     return '';

@@ -24,6 +24,7 @@ const tempRoot = path.resolve(tmpdir());
 const harnessRunScript = path.join(repoRoot, 'scripts', 'harness-run.mjs');
 const harnessConsumerStatusScript = path.join(repoRoot, 'scripts', 'harness-consumer-status.mjs');
 const harnessConsumerBriefScript = path.join(repoRoot, 'scripts', 'harness-consumer-brief.mjs');
+let latestHarnessExecution = null;
 
 function parseArgs(argv) {
   const options = {
@@ -370,6 +371,7 @@ function buildDerivedSnapshotData(snapshot) {
     taskGuardSummaries: runtime.listTaskGuardSummaries(),
     harnessConsumerStatus,
     harnessConsumerBrief,
+    latestHarnessExecution,
   };
 }
 
@@ -531,6 +533,7 @@ function runHarnessOperatorAction(input = {}) {
     currentHostState: statusCard.currentHostState,
     inputPath,
     outputPath: outputPath || null,
+    projectId: activeProject?.id || null,
     repoNativeCommand: operatorAction.repoNativeCommand,
     resolvedInputPath,
     resolvedOutputPath,
@@ -1905,6 +1908,7 @@ const server = createServer(async (request, response) => {
     try {
       const input = await readJsonBody(request);
       const harnessExecution = runHarnessOperatorAction(input);
+      latestHarnessExecution = harnessExecution;
 
       json(
         response,
