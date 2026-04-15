@@ -178,6 +178,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-34.mjs',
     purpose: 'Approved markitdown harness stays runnable through the repo-native gate on the current host.',
   },
+  {
+    id: 'harness-consumer-operator-action',
+    script: 'scripts/smoke-harness-slice-35.mjs',
+    purpose: 'Harness consumer surface exposes a repo-native operatorAction derived only from the frozen doctor summary.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

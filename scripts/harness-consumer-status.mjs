@@ -23,6 +23,59 @@ if (payload.ok !== true || payload.mode !== 'harness-run-doctor' || !payload.sum
 }
 
 const { summary } = payload;
+const operatorAction = (() => {
+  if (!summary.primaryHarnessId) {
+    return {
+      kind: 'none',
+      harnessId: null,
+      repoNativeCommand: null,
+      message: 'No representative harness is available in the frozen doctor summary.',
+    };
+  }
+
+  if (summary.primaryReady) {
+    return {
+      kind: 'repo-native-run',
+      harnessId: summary.primaryHarnessId,
+      repoNativeCommand: `node scripts/harness-run.mjs ${summary.primaryHarnessId}`,
+      message: summary.primaryActionMessage,
+    };
+  }
+
+  if (summary.primaryInstallReviewRequired) {
+    return {
+      kind: 'install-review',
+      harnessId: summary.primaryHarnessId,
+      repoNativeCommand: null,
+      message: summary.primaryActionMessage,
+    };
+  }
+
+  if (summary.primaryHarnessState === 'deferred') {
+    return {
+      kind: 'deferred',
+      harnessId: summary.primaryHarnessId,
+      repoNativeCommand: null,
+      message: summary.primaryActionMessage,
+    };
+  }
+
+  if (summary.primaryHarnessState === 'policy-blocked') {
+    return {
+      kind: 'blocked',
+      harnessId: summary.primaryHarnessId,
+      repoNativeCommand: null,
+      message: summary.primaryActionMessage,
+    };
+  }
+
+  return {
+    kind: 'none',
+    harnessId: summary.primaryHarnessId,
+    repoNativeCommand: null,
+    message: summary.primaryActionMessage,
+  };
+})();
 
 console.log(
   JSON.stringify(
@@ -32,6 +85,7 @@ console.log(
       sourceMode: payload.mode,
       guidance:
         'Consume the frozen harness doctor.summary contract here; do not recompute host posture from raw harness arrays in downstream operator surfaces.',
+      operatorAction,
       statusCard: {
         currentHostState: summary.currentHostState,
         primaryHarnessId: summary.primaryHarnessId,

@@ -126,6 +126,7 @@ The compact summary is frozen for the current harness-baseline milestone with th
 First post-freeze repo-native consumer surface for the frozen doctor summary:
 - consumes `node scripts/harness-run.mjs doctor` and reads only the frozen `summary` contract
 - emits a compact `statusCard` payload for downstream operator or automation surfaces
+- emits an `operatorAction` payload derived only from the frozen summary, including a repo-native run command when the representative approved harness is ready
 - keeps consumer integration outside the doctor producer boundary so the frozen summary stays source-of-truth
 
 ### Current host-ready proof
@@ -136,7 +137,7 @@ First post-freeze repo-native consumer surface for the frozen doctor summary:
 
 ### `scripts/harness_verification_status.mjs`
 Repo-native harness verification bundle:
-- runs harness inventory status plus smoke slices `01` through `04`, `06`, `07`, `08`, `09`, `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`, `18`, `19`, `20`, `21`, `22`, `23`, `24`, `25`, `26`, `27`, `28`, `29`, `30`, `31`, `32`, `33`, and `34`
+- runs harness inventory status plus smoke slices `01` through `04`, `06`, `07`, `08`, `09`, `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`, `18`, `19`, `20`, `21`, `22`, `23`, `24`, `25`, `26`, `27`, `28`, `29`, `30`, `31`, `32`, `33`, `34`, and `35`
 - reports one synthetic harness status payload for the current repo posture
 - keeps harness verification separate from broader runtime or UI verification bundles
 
@@ -185,3 +186,4 @@ Use:
 - `node scripts/smoke-harness-slice-32.mjs`
 - `node scripts/smoke-harness-slice-33.mjs`
 - `node scripts/smoke-harness-slice-34.mjs`
+- `node scripts/smoke-harness-slice-35.mjs`
