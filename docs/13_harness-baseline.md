@@ -178,6 +178,13 @@ Post-freeze execution evidence restore follow-up:
 - this remains outside the frozen harness producer and consumer contracts: no new `doctor.summary` field, no `harness-consumer-status` change, and no artifact persistence
 - this keeps the layering explicit: `explicit local-only mutation route -> snapshot-derived latestHarnessExecution -> execution result register restore`
 
+### Local-only recent execution history
+Post-freeze execution history follow-up:
+- `scripts/serve-ui-slice-01.mjs` now keeps a short server-process local array of recent explicit harness executions and exposes it only as `derived.recentHarnessExecutions`
+- `ui/app.js` `Execution` renders a compact `최근 실행 기록` register under the current detailed execution result so the operator can compare the newest local runs after refresh
+- the history stays local-only, newest-first, and bounded; it is not written into frozen harness producers, consumer payloads, runtime artifacts, or persistent runtime state
+- this keeps the layering explicit: `explicit local-only mutation route -> snapshot-derived recentHarnessExecutions -> execution history register`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -256,3 +263,4 @@ Use:
 - `node scripts/smoke-ui-slice-306.mjs`
 - `node scripts/smoke-ui-slice-307.mjs`
 - `node scripts/smoke-ui-slice-308.mjs`
+- `node scripts/smoke-ui-slice-309.mjs`

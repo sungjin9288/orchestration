@@ -25,6 +25,7 @@ const harnessRunScript = path.join(repoRoot, 'scripts', 'harness-run.mjs');
 const harnessConsumerStatusScript = path.join(repoRoot, 'scripts', 'harness-consumer-status.mjs');
 const harnessConsumerBriefScript = path.join(repoRoot, 'scripts', 'harness-consumer-brief.mjs');
 let latestHarnessExecution = null;
+let recentHarnessExecutions = [];
 
 function parseArgs(argv) {
   const options = {
@@ -372,7 +373,15 @@ function buildDerivedSnapshotData(snapshot) {
     harnessConsumerStatus,
     harnessConsumerBrief,
     latestHarnessExecution,
+    recentHarnessExecutions,
   };
+}
+
+function rememberHarnessExecution(harnessExecution) {
+  latestHarnessExecution = harnessExecution;
+  recentHarnessExecutions = [harnessExecution, ...recentHarnessExecutions]
+    .filter(Boolean)
+    .slice(0, 5);
 }
 
 function readHarnessConsumerStatusPayload() {
@@ -1908,7 +1917,7 @@ const server = createServer(async (request, response) => {
     try {
       const input = await readJsonBody(request);
       const harnessExecution = runHarnessOperatorAction(input);
-      latestHarnessExecution = harnessExecution;
+      rememberHarnessExecution(harnessExecution);
 
       json(
         response,

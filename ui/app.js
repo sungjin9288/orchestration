@@ -1665,6 +1665,7 @@ function createEmptyDerivedState() {
     harnessConsumerStatus: null,
     harnessConsumerBrief: null,
     latestHarnessExecution: null,
+    recentHarnessExecutions: [],
     providerExecutionSummaries: {},
     releasePackageReadinessSummaries: {},
     reviewerReadinessSummaries: {},
@@ -1743,6 +1744,31 @@ function getLatestHarnessExecution(data, statusPayload) {
   }
 
   return null;
+}
+
+function getRecentHarnessExecutions(data, statusPayload) {
+  const snapshot = data?.snapshot || {};
+  const activeProjectId = snapshot.activeProjectId || null;
+  const representativeHarnessId = statusPayload?.statusCard?.primaryHarnessId || null;
+  const recentHarnessExecutions = Array.isArray(data?.derived?.recentHarnessExecutions)
+    ? data.derived.recentHarnessExecutions
+    : [];
+
+  if (!representativeHarnessId) {
+    return [];
+  }
+
+  return recentHarnessExecutions.filter((candidate) => {
+    if (!candidate?.harnessId) {
+      return false;
+    }
+
+    if (candidate.harnessId !== representativeHarnessId) {
+      return false;
+    }
+
+    return (candidate.projectId || null) === activeProjectId;
+  });
 }
 
 function getHarnessBriefSignalValue(brief) {
@@ -1846,6 +1872,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const operatorAction = statusPayload?.operatorAction || null;
   const data = getDerived();
   const harnessExecutionResult = getLatestHarnessExecution(data, statusPayload);
+  const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
 
   if (!statusCard?.primaryHarnessId || !operatorAction?.kind || operatorAction.kind === 'none') {
     return '';
@@ -1954,6 +1981,40 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           ? `<pre class="task-evidence-log" data-harness-execution-preview="true">${escapeHtml(harnessExecutionResult.stdoutPreview)}</pre>`
                           : '<p class="detail-copy">미리보기 가능한 출력이 없습니다.</p>'
                     }
+                  </section>
+                `
+                : ''
+            }
+            ${
+              recentHarnessExecutions.length
+                ? `
+                  <section class="relation-strip" data-harness-execution-history="true">
+                    <div class="card-title-row">
+                      <strong>최근 실행 기록</strong>
+                      ${createToken(`${recentHarnessExecutions.length}건`, 'neutral')}
+                    </div>
+                    <div class="stack" data-harness-execution-history-list="true">
+                      ${recentHarnessExecutions
+                        .map(
+                          (execution) => `
+                            <div class="control-overview-register" data-harness-execution-history-item="true">
+                              <div class="control-overview-register-row">
+                                <span class="control-overview-register-label">실행</span>
+                                <strong class="control-overview-register-value">${escapeHtml(formatDate(execution.executedAt))}</strong>
+                              </div>
+                              <div class="control-overview-register-row">
+                                <span class="control-overview-register-label">입력</span>
+                                <strong class="control-overview-register-value">${escapeHtml(execution.inputPath || execution.resolvedInputPath || '경로 없음')}</strong>
+                              </div>
+                              <div class="control-overview-register-row">
+                                <span class="control-overview-register-label">출력</span>
+                                <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || 'stdout only')}</strong>
+                              </div>
+                            </div>
+                          `,
+                        )
+                        .join('')}
+                    </div>
                   </section>
                 `
                 : ''
