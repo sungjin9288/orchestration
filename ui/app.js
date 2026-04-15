@@ -2142,6 +2142,21 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         숨긴 결과 다시 보기
                       </button>
                       ${
+                        hiddenHarnessExecutionResult.resolvedOutputPath
+                          ? `
+                            <button
+                              class="secondary-button"
+                              type="button"
+                              data-action="copy-harness-output-path"
+                              data-output-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}"
+                              data-harness-result-hidden-output-copy="true"
+                            >
+                              출력 경로 복사
+                            </button>
+                          `
+                          : ''
+                      }
+                      ${
                         hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview
                           ? `
                             <button
