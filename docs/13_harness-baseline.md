@@ -193,6 +193,13 @@ Post-freeze execution history clear follow-up:
 - this still does not widen `doctor.summary`, `harness-consumer-status`, `harness-consumer-brief`, snapshot-derived frozen contracts, or runtime artifact persistence
 - this keeps the layering explicit: `execution operator-action shelf -> clear execution history action -> local-only route -> empty latest/recent derived state`
 
+### Local-only execution history reuse
+Post-freeze execution history reuse follow-up:
+- `ui/app.js` `Execution` now keeps `inputPath` and `outputPath` as local form draft state instead of losing them on rerender
+- the compact `최근 실행 기록` register exposes a `경로 다시 채우기` action that reuses a past run's input and output paths back into the current execution form
+- no new route or snapshot key is introduced; the feature consumes the existing local-only `derived.recentHarnessExecutions` payload only
+- this keeps the layering explicit: `snapshot-derived recentHarnessExecutions -> execution history register -> reuse execution paths action -> execution form draft`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -273,3 +280,4 @@ Use:
 - `node scripts/smoke-ui-slice-308.mjs`
 - `node scripts/smoke-ui-slice-309.mjs`
 - `node scripts/smoke-ui-slice-310.mjs`
+- `node scripts/smoke-ui-slice-311.mjs`

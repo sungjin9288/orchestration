@@ -258,6 +258,8 @@ const state = {
   selectedInboxItemId: null,
   selectedRunLogs: null,
   lastHarnessExecutionResult: null,
+  harnessExecutionDraftInputPath: '',
+  harnessExecutionDraftOutputPath: '',
   selectedArtifact: null,
   selectedTaskBreakdownArtifact: null,
   selectedTaskPreflightArtifact: null,
@@ -1917,6 +1919,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                   type="text"
                   placeholder="docs/example.md"
                   required
+                  value="${escapeHtml(state.harnessExecutionDraftInputPath)}"
                   data-harness-input-path="true"
                 />
               </label>
@@ -1926,6 +1929,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                   name="outputPath"
                   type="text"
                   placeholder="tmp/markitdown-output.md"
+                  value="${escapeHtml(state.harnessExecutionDraftOutputPath)}"
                   data-harness-output-path="true"
                 />
               </label>
@@ -2027,6 +2031,18 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               <div class="control-overview-register-row">
                                 <span class="control-overview-register-label">출력</span>
                                 <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || 'stdout only')}</strong>
+                              </div>
+                              <div class="form-actions form-actions-inline">
+                                <button
+                                  class="secondary-button"
+                                  type="button"
+                                  data-action="reuse-harness-execution-paths"
+                                  data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
+                                  data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
+                                  data-harness-history-reuse="true"
+                                >
+                                  경로 다시 채우기
+                                </button>
                               </div>
                             </div>
                           `,
@@ -16931,6 +16947,8 @@ async function runHarnessOperatorAction(form) {
 
   state.error = null;
   state.lastHarnessExecutionResult = null;
+  state.harnessExecutionDraftInputPath = inputPath;
+  state.harnessExecutionDraftOutputPath = outputPath;
   state.mutating = true;
   elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId} 실행을 시작하는 중…`;
   render();
@@ -16987,6 +17005,20 @@ async function clearHarnessExecutionHistory(statusPayload) {
     state.mutating = false;
     render();
   }
+}
+
+function reuseHarnessExecutionPaths(actionButton) {
+  const inputPath = String(actionButton?.dataset.inputPath || '').trim();
+  const outputPath = String(actionButton?.dataset.outputPath || '').trim();
+
+  if (!inputPath) {
+    throw new Error('재사용할 입력 경로가 없습니다.');
+  }
+
+  state.harnessExecutionDraftInputPath = inputPath;
+  state.harnessExecutionDraftOutputPath = outputPath;
+  elements.refreshStatus.textContent = `최근 실행 경로를 폼에 다시 채웠습니다: ${inputPath}`;
+  render();
 }
 
 function renderError(error) {
@@ -17171,6 +17203,11 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'reuse-harness-execution-paths') {
+        reuseHarnessExecutionPaths(actionButton);
+        return;
+      }
+
       if (actionButton.dataset.action === 'remove-company-member') {
         removeCompanyMember(actionButton.dataset.id);
         return;
@@ -17185,6 +17222,9 @@ document.addEventListener('click', async (event) => {
 });
 
 function handleFormInput(event) {
+  const runHarnessOperatorActionForm = event.target.closest(
+    '[data-form="run-harness-operator-action"]',
+  );
   const createLinkedWorktreeForm = event.target.closest('[data-form="create-linked-worktree"]');
   const createMissionForm = event.target.closest('[data-form="create-mission"]');
   const createProjectForm = event.target.closest('[data-form="create-project"]');
@@ -17192,6 +17232,18 @@ function handleFormInput(event) {
   const updateProjectProviderForm = event.target.closest('[data-form="update-project-provider"]');
   const createTaskForm = event.target.closest('[data-form="create-task"]');
   const createCompanyMemberForm = event.target.closest('[data-form="create-company-member"]');
+
+  if (runHarnessOperatorActionForm) {
+    if (event.target.name === 'inputPath') {
+      state.harnessExecutionDraftInputPath = event.target.value;
+    }
+
+    if (event.target.name === 'outputPath') {
+      state.harnessExecutionDraftOutputPath = event.target.value;
+    }
+
+    return;
+  }
 
   if (createLinkedWorktreeForm) {
     if (event.target.name === 'linkedWorktreeSlug') {
