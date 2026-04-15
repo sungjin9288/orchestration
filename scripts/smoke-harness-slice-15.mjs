@@ -27,7 +27,7 @@ assert.equal(payload.summary.policyBlockedHarnessCount, payload.policyBlockedHar
 assert.equal(payload.summary.runnableNow, payload.readyHarnessIds.length > 0);
 assert.equal(payload.summary.setupRequiredNow, payload.installRequiredHarnessIds.length > 0);
 assert.equal(payload.summary.nextActionState, payload.nextAction?.state ?? 'none');
-assert.equal(payload.summary.nextActionState, 'install-required');
+assert.equal(payload.summary.nextActionState, 'ready');
 
 console.log(
   JSON.stringify(

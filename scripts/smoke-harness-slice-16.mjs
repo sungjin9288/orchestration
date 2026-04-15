@@ -31,7 +31,7 @@ const expectedCurrentHostState =
           : 'no-harnesses';
 
 assert.equal(payload.summary.currentHostState, expectedCurrentHostState);
-assert.equal(payload.summary.currentHostState, 'setup-required');
+assert.equal(payload.summary.currentHostState, 'runnable');
 
 console.log(
   JSON.stringify(

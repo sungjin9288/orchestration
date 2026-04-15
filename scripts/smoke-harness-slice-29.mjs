@@ -25,7 +25,7 @@ const primaryHarness =
     : payload.harnesses.find((harness) => harness.id === payload.summary.primaryHarnessId) ?? null;
 
 assert.equal(payload.summary.primaryReady, primaryHarness?.state === 'ready');
-assert.equal(payload.summary.primaryReady, false);
+assert.equal(payload.summary.primaryReady, true);
 
 console.log(
   JSON.stringify(

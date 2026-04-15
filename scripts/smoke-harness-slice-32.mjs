@@ -48,15 +48,15 @@ const expectedSummaryKeys = [
 
 assert.deepEqual(Object.keys(payload.summary), expectedSummaryKeys);
 assert.equal(payload.summary.totalHarnesses, 4);
-assert.equal(payload.summary.currentHostState, 'setup-required');
+assert.equal(payload.summary.currentHostState, 'runnable');
 assert.equal(payload.summary.primaryHarnessId, 'markitdown');
-assert.equal(payload.summary.primaryHarnessState, 'install-required');
-assert.equal(payload.summary.primaryAvailable, false);
-assert.equal(payload.summary.primaryReady, false);
-assert.equal(payload.summary.primaryActionShort, 'install');
+assert.equal(payload.summary.primaryHarnessState, 'ready');
+assert.equal(payload.summary.primaryAvailable, true);
+assert.equal(payload.summary.primaryReady, true);
+assert.equal(payload.summary.primaryActionShort, 'run-now');
 assert.equal(
   payload.summary.primaryActionMessage,
-  'Review pipx install markitdown and install markitdown locally before running it through the repo-native gate.',
+  'Run markitdown now through node scripts/harness-run.mjs markitdown.',
 );
 
 console.log(

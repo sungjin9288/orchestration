@@ -36,20 +36,20 @@ const expectedStatusCardKeys = [
 ];
 
 assert.deepEqual(Object.keys(payload.statusCard), expectedStatusCardKeys);
-assert.equal(payload.statusCard.currentHostState, 'setup-required');
+assert.equal(payload.statusCard.currentHostState, 'runnable');
 assert.equal(payload.statusCard.primaryHarnessId, 'markitdown');
 assert.equal(payload.statusCard.primaryPosture, 'approved-now');
 assert.equal(payload.statusCard.primaryKind, 'local-cli-wrapper');
-assert.equal(payload.statusCard.primaryHarnessState, 'install-required');
+assert.equal(payload.statusCard.primaryHarnessState, 'ready');
 assert.equal(payload.statusCard.primaryCommand, 'markitdown');
 assert.equal(payload.statusCard.primaryRunner, 'scripts/markitdown-convert.mjs');
 assert.equal(payload.statusCard.primaryExecutable, true);
-assert.equal(payload.statusCard.primaryAvailable, false);
-assert.equal(payload.statusCard.primaryReady, false);
-assert.equal(payload.statusCard.primaryActionShort, 'install');
+assert.equal(payload.statusCard.primaryAvailable, true);
+assert.equal(payload.statusCard.primaryReady, true);
+assert.equal(payload.statusCard.primaryActionShort, 'run-now');
 assert.equal(
   payload.statusCard.primaryActionMessage,
-  'Review pipx install markitdown and install markitdown locally before running it through the repo-native gate.',
+  'Run markitdown now through node scripts/harness-run.mjs markitdown.',
 );
 
 console.log(

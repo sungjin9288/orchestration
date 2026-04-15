@@ -30,7 +30,7 @@ const expectedPrimaryHarnessState =
         : 'none');
 
 assert.equal(payload.summary.primaryHarnessState, expectedPrimaryHarnessState);
-assert.equal(payload.summary.primaryHarnessState, 'install-required');
+assert.equal(payload.summary.primaryHarnessState, 'ready');
 
 console.log(
   JSON.stringify(

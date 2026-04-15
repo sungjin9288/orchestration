@@ -173,6 +173,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-33.mjs',
     purpose: 'Harness consumer surface stays pinned to the frozen doctor summary contract without widening the producer.',
   },
+  {
+    id: 'harness-markitdown-host-ready-run',
+    script: 'scripts/smoke-harness-slice-34.mjs',
+    purpose: 'Approved markitdown harness stays runnable through the repo-native gate on the current host.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

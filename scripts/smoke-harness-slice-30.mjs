@@ -32,7 +32,7 @@ const expected =
           : 'none';
 
 assert.equal(payload.summary.primaryActionShort, expected);
-assert.equal(payload.summary.primaryActionShort, 'install');
+assert.equal(payload.summary.primaryActionShort, 'run-now');
 
 console.log(
   JSON.stringify(

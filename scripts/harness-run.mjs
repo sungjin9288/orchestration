@@ -16,13 +16,12 @@ function getExecutableHarnesses() {
 function buildDoctorActionQueue(harnessStates) {
   const statePriority = {
     'install-required': 0,
-    deferred: 1,
-    'policy-blocked': 2,
-    ready: 3,
+    ready: 1,
+    deferred: 2,
+    'policy-blocked': 3,
   };
 
   return harnessStates
-    .filter((harness) => harness.state !== 'ready')
     .sort((left, right) => statePriority[left.state] - statePriority[right.state])
     .map((harness) => ({
       harnessId: harness.id,

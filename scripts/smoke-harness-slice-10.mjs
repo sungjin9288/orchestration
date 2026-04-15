@@ -23,8 +23,8 @@ assert.ok(payload.actionQueue.length > 0, 'doctor actionQueue should not be empt
 
 assert.deepEqual(payload.nextAction, payload.actionQueue[0]);
 assert.equal(payload.nextAction.harnessId, 'markitdown');
-assert.equal(payload.nextAction.state, 'install-required');
-assert.equal(payload.nextAction.recommendedAction, 'review-install-and-install-locally');
+assert.equal(payload.nextAction.state, 'ready');
+assert.equal(payload.nextAction.recommendedAction, 'run-approved-harness');
 
 console.log(
   JSON.stringify(

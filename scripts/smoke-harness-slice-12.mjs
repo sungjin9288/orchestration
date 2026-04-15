@@ -24,7 +24,7 @@ const installRequiredHarnessesFromState = payload.harnesses
   .map((harness) => harness.id);
 
 assert.deepEqual(payload.installRequiredHarnessIds, installRequiredHarnessesFromState);
-assert.deepEqual(payload.installRequiredHarnessIds, ['markitdown']);
+assert.deepEqual(payload.installRequiredHarnessIds, []);
 
 console.log(
   JSON.stringify(

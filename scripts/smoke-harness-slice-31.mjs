@@ -41,7 +41,7 @@ const expectedMessage =
 assert.equal(payload.summary.primaryActionMessage, expectedMessage);
 assert.equal(
   payload.summary.primaryActionMessage,
-  'Review pipx install markitdown and install markitdown locally before running it through the repo-native gate.',
+  'Run markitdown now through node scripts/harness-run.mjs markitdown.',
 );
 
 console.log(

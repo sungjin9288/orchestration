@@ -25,7 +25,7 @@ const primaryHarness =
     : payload.harnesses.find((harness) => harness.id === payload.summary.primaryHarnessId) ?? null;
 
 assert.equal(payload.summary.primaryAvailable, primaryHarness?.available ?? null);
-assert.equal(payload.summary.primaryAvailable, false);
+assert.equal(payload.summary.primaryAvailable, true);
 
 console.log(
   JSON.stringify(

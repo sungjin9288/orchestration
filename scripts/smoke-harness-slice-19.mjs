@@ -30,7 +30,7 @@ const expectedPrimaryRecommendedAction =
         : 'none');
 
 assert.equal(payload.summary.primaryRecommendedAction, expectedPrimaryRecommendedAction);
-assert.equal(payload.summary.primaryRecommendedAction, 'review-install-and-install-locally');
+assert.equal(payload.summary.primaryRecommendedAction, 'run-approved-harness');
 
 console.log(
   JSON.stringify(

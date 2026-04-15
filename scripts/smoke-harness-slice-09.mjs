@@ -18,14 +18,14 @@ const payload = JSON.parse(result.stdout);
 assert.equal(payload.mode, 'harness-run-doctor');
 assert.equal(payload.ok, true);
 assert.ok(Array.isArray(payload.actionQueue), 'doctor actionQueue missing');
-assert.equal(payload.actionQueue.length, 4 - (payload.counts.byState.ready || 0));
+assert.equal(payload.actionQueue.length, payload.harnesses.length);
 
 const [firstAction, secondAction, thirdAction] = payload.actionQueue;
 
 assert.ok(firstAction, 'expected first doctor action');
 assert.equal(firstAction.harnessId, 'markitdown');
-assert.equal(firstAction.state, 'install-required');
-assert.equal(firstAction.recommendedAction, 'review-install-and-install-locally');
+assert.equal(firstAction.state, 'ready');
+assert.equal(firstAction.recommendedAction, 'run-approved-harness');
 
 assert.ok(secondAction, 'expected second doctor action');
 assert.equal(secondAction.harnessId, 'mempalace');

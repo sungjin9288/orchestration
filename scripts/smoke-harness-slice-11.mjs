@@ -24,7 +24,7 @@ const readyHarnessesFromState = payload.harnesses
   .map((harness) => harness.id);
 
 assert.deepEqual(payload.readyHarnessIds, readyHarnessesFromState);
-assert.equal(payload.readyHarnessIds.includes('markitdown'), false);
+assert.equal(payload.readyHarnessIds.includes('markitdown'), true);
 
 console.log(
   JSON.stringify(
