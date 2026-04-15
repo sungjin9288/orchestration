@@ -15576,6 +15576,7 @@ function renderArtifacts(data) {
   }
 
   const selectedArtifactMeta = data.artifactMap.get(state.selectedArtifactId) || null;
+  const harnessBrief = getHarnessConsumerBrief(data);
   const selectedArtifactTask = selectedArtifactMeta
     ? data.taskMap.get(selectedArtifactMeta.taskId)
     : null;
@@ -15844,6 +15845,7 @@ function renderArtifacts(data) {
     <div class="stack">
       ${artifactsViewportStrip}
       ${artifactsDeck}
+      ${renderHarnessBriefRegister(harnessBrief)}
       <div class="surface-grid surface-grid-wide">
       <section class="surface-panel">
         <div class="list-column">${artifactList}</div>

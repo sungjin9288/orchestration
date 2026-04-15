@@ -138,8 +138,8 @@ Shell-friendly post-freeze brief surface:
 ### UI snapshot bridge for harness consumers
 Post-freeze UI follow-up surface:
 - `scripts/serve-ui-slice-01.mjs` reads `node scripts/harness-consumer-brief.mjs` and exposes the result as `derived.harnessConsumerBrief`
-- `ui/app.js` consumes only that snapshot-derived brief in the `Ops overview` signal strip plus read-only `하네스 실행 안내` registers inside the `Ops overview` org panel, `Taskboard`, and `Logs`, and does not reopen `doctor` or recompute host posture from raw harness arrays
-- keeps the layering explicit: `doctor.summary -> consumer status -> consumer brief -> snapshot derived -> ops overview signal + register -> taskboard register -> logs register`
+- `ui/app.js` consumes only that snapshot-derived brief in the `Ops overview` signal strip plus read-only `하네스 실행 안내` registers inside the `Ops overview` org panel, `Taskboard`, `Logs`, and `Artifacts`, and does not reopen `doctor` or recompute host posture from raw harness arrays
+- keeps the layering explicit: `doctor.summary -> consumer status -> consumer brief -> snapshot derived -> ops overview signal + register -> taskboard register -> logs register -> artifacts register`
 - this is a UI consumer integration track, not a producer-contract change
 
 ### Current host-ready proof
@@ -208,3 +208,4 @@ Use:
 - `node scripts/smoke-ui-slice-296.mjs`
 - `node scripts/smoke-ui-slice-297.mjs`
 - `node scripts/smoke-ui-slice-298.mjs`
+- `node scripts/smoke-ui-slice-299.mjs`
