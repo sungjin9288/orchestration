@@ -228,6 +228,13 @@ Post-freeze execution input copy follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only execution result/history payloads
 - this keeps the layering explicit: `execution result/history register -> copy execution input path action -> local-only clipboard or status affordance`
 
+### Local-only execution preview copy
+Post-freeze execution preview copy follow-up:
+- `ui/app.js` `Execution` now exposes `미리보기 복사` on the latest-result register when an execution preview body exists
+- the action does not introduce a new route or snapshot key; it reuses the existing browser clipboard-or-status fallback pattern and copies the already available `outputPreview` or `stdoutPreview`
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only latest execution payload
+- this keeps the layering explicit: `latest execution result register -> copy execution preview action -> local-only clipboard or status affordance`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -313,3 +320,4 @@ Use:
 - `node scripts/smoke-ui-slice-312.mjs`
 - `node scripts/smoke-ui-slice-314.mjs`
 - `node scripts/smoke-ui-slice-315.mjs`
+- `node scripts/smoke-ui-slice-316.mjs`

@@ -2030,6 +2030,21 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 `
                                 : ''
                             }
+                            ${
+                              harnessExecutionResult.outputPreview || harnessExecutionResult.stdoutPreview
+                                ? `
+                                  <button
+                                    class="secondary-button"
+                                    type="button"
+                                    data-action="copy-harness-execution-preview"
+                                    data-preview-text="${escapeHtml(harnessExecutionResult.outputPreview || harnessExecutionResult.stdoutPreview || '')}"
+                                    data-harness-preview-copy="true"
+                                  >
+                                    미리보기 복사
+                                  </button>
+                                `
+                                : ''
+                            }
                           </div>
                         `
                         : ''
@@ -17051,6 +17066,16 @@ async function copyHarnessExecutionInputPath(inputPath) {
   });
 }
 
+async function copyHarnessExecutionPreview(previewText) {
+  await copyTextValue({
+    value: previewText,
+    emptyErrorMessage: '복사할 하네스 실행 미리보기가 없습니다.',
+    copiedMessage: () => '하네스 실행 미리보기를 복사했습니다.',
+    unsupportedMessage: () =>
+      '클립보드 미지원 환경입니다. 하네스 실행 미리보기를 직접 확인하세요.',
+  });
+}
+
 function restoreHarnessExecutionPreview(actionButton, statusPayload) {
   const historyIndex = Number.parseInt(actionButton?.dataset.historyIndex || '', 10);
   const recentHarnessExecutions = getRecentHarnessExecutions(getDerived(), statusPayload);
@@ -17378,6 +17403,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'copy-harness-input-path') {
         await copyHarnessExecutionInputPath(actionButton.dataset.inputPath);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'copy-harness-execution-preview') {
+        await copyHarnessExecutionPreview(actionButton.dataset.previewText);
         return;
       }
 
