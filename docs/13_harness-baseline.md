@@ -242,6 +242,13 @@ Post-freeze execution latest-result reuse follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only latest execution payload
 - this keeps the layering explicit: `latest execution result register -> reuse execution paths action -> execution form draft`
 
+### Local-only latest-result rerun
+Post-freeze execution latest-result rerun follow-up:
+- `ui/app.js` `Execution` now exposes `같은 경로로 재실행` on the latest-result register when a resolved input path exists
+- the action does not introduce a new route or snapshot key; it reuses the existing `rerunHarnessExecutionPaths(...)` helper and sends the already available latest execution input/output paths back through the existing explicit run route
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only latest execution payload and current explicit run route
+- this keeps the layering explicit: `latest execution result register -> rerun execution paths action -> existing run-harness route`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -329,3 +336,4 @@ Use:
 - `node scripts/smoke-ui-slice-315.mjs`
 - `node scripts/smoke-ui-slice-316.mjs`
 - `node scripts/smoke-ui-slice-317.mjs`
+- `node scripts/smoke-ui-slice-318.mjs`

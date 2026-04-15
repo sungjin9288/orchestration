@@ -2022,6 +2022,17 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   >
                                     경로 다시 채우기
                                   </button>
+                                  <button
+                                    class="secondary-button"
+                                    type="button"
+                                    data-action="rerun-harness-execution-paths"
+                                    data-input-path="${escapeHtml(harnessExecutionResult.resolvedInputPath)}"
+                                    data-output-path="${escapeHtml(harnessExecutionResult.resolvedOutputPath || harnessExecutionResult.outputPath || '')}"
+                                    data-harness-result-rerun="true"
+                                    ${state.loading || state.mutating ? 'disabled' : ''}
+                                  >
+                                    같은 경로로 재실행
+                                  </button>
                                 `
                                 : ''
                             }
