@@ -185,6 +185,14 @@ Post-freeze execution history follow-up:
 - the history stays local-only, newest-first, and bounded; it is not written into frozen harness producers, consumer payloads, runtime artifacts, or persistent runtime state
 - this keeps the layering explicit: `explicit local-only mutation route -> snapshot-derived recentHarnessExecutions -> execution history register`
 
+### Local-only execution history clear
+Post-freeze execution history clear follow-up:
+- `scripts/serve-ui-slice-01.mjs` now exposes one narrow local-only route at `POST /api/harness/operator-action/clear-history`
+- the route clears only the server-process local evidence store that backs `derived.latestHarnessExecution` and `derived.recentHarnessExecutions`
+- `ui/app.js` `Execution` shows an `실행 기록 비우기` button only when local execution evidence exists and resets the current detailed result plus recent history in one action
+- this still does not widen `doctor.summary`, `harness-consumer-status`, `harness-consumer-brief`, snapshot-derived frozen contracts, or runtime artifact persistence
+- this keeps the layering explicit: `execution operator-action shelf -> clear execution history action -> local-only route -> empty latest/recent derived state`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -264,3 +272,4 @@ Use:
 - `node scripts/smoke-ui-slice-307.mjs`
 - `node scripts/smoke-ui-slice-308.mjs`
 - `node scripts/smoke-ui-slice-309.mjs`
+- `node scripts/smoke-ui-slice-310.mjs`

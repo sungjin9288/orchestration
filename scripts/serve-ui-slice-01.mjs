@@ -384,6 +384,11 @@ function rememberHarnessExecution(harnessExecution) {
     .slice(0, 5);
 }
 
+function clearHarnessExecutionMemory() {
+  latestHarnessExecution = null;
+  recentHarnessExecutions = [];
+}
+
 function readHarnessConsumerStatusPayload() {
   try {
     const output = execFileSync(process.execPath, [harnessConsumerStatusScript], {
@@ -1936,6 +1941,31 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       json(response, 400, {
         error: error.message || '하네스 operator action 실행에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  if (method === 'POST' && url.pathname === '/api/harness/operator-action/clear-history') {
+    try {
+      const harnessConsumerStatus = readHarnessConsumerStatusPayload();
+      const harnessId = harnessConsumerStatus?.statusCard?.primaryHarnessId || null;
+
+      clearHarnessExecutionMemory();
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          mutation: {
+            kind: 'clear-harness-operator-action-history',
+            harnessId,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      json(response, 400, {
+        error: error.message || '하네스 실행 기록 비우기에 실패했습니다.',
       });
       return;
     }

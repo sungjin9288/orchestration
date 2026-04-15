@@ -1873,6 +1873,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const data = getDerived();
   const harnessExecutionResult = getLatestHarnessExecution(data, statusPayload);
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
+  const hasExecutionHistory =
+    (harnessExecutionResult?.harnessId === statusCard?.primaryHarnessId) ||
+    recentHarnessExecutions.length > 0;
 
   if (!statusCard?.primaryHarnessId || !operatorAction?.kind || operatorAction.kind === 'none') {
     return '';
@@ -1936,6 +1939,21 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                 >
                   명령 복사
                 </button>
+                ${
+                  hasExecutionHistory
+                    ? `
+                      <button
+                        class="secondary-button"
+                        type="button"
+                        data-action="clear-harness-execution-history"
+                        data-harness-clear-history="true"
+                        ${state.loading || state.mutating ? 'disabled' : ''}
+                      >
+                        실행 기록 비우기
+                      </button>
+                    `
+                    : ''
+                }
                 <button
                   class="primary-button"
                   type="submit"
@@ -16943,6 +16961,34 @@ async function runHarnessOperatorAction(form) {
   }
 }
 
+async function clearHarnessExecutionHistory(statusPayload) {
+  const statusCard = statusPayload?.statusCard || null;
+
+  if (!statusCard?.primaryHarnessId) {
+    throw new Error('비울 수 있는 대표 하네스 실행 기록이 없습니다.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId} 실행 기록을 비우는 중…`;
+  render();
+
+  try {
+    const payload = await postJson('/api/harness/operator-action/clear-history', {
+      harnessId: statusCard.primaryHarnessId,
+    });
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    state.lastHarnessExecutionResult = null;
+    render();
+    elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId} 실행 기록을 비웠습니다.`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 function renderError(error) {
   const message = escapeHtml(error?.message || '알 수 없는 오류');
 
@@ -17117,6 +17163,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'copy-harness-command') {
         await copyHarnessCommand(actionButton.dataset.command);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'clear-harness-execution-history') {
+        await clearHarnessExecutionHistory(getHarnessConsumerStatus(getDerived()));
         return;
       }
 
