@@ -257,6 +257,7 @@ const state = {
   selectedArtifactId: null,
   selectedInboxItemId: null,
   selectedRunLogs: null,
+  lastHarnessExecutionResult: null,
   selectedArtifact: null,
   selectedTaskBreakdownArtifact: null,
   selectedTaskPreflightArtifact: null,
@@ -1817,6 +1818,7 @@ function getHarnessOperatorActionTone(operatorAction) {
 function renderHarnessExecutionActionShelf(statusPayload) {
   const statusCard = statusPayload?.statusCard || null;
   const operatorAction = statusPayload?.operatorAction || null;
+  const harnessExecutionResult = state.lastHarnessExecutionResult || null;
 
   if (!statusCard?.primaryHarnessId || !operatorAction?.kind || operatorAction.kind === 'none') {
     return '';
@@ -1891,6 +1893,44 @@ function renderHarnessExecutionActionShelf(statusPayload) {
               </div>
               <p class="form-help">상대 경로는 현재 project_path 기준으로 풀고, 절대 경로는 현재 project_path, repo root, 또는 <code>/tmp</code> 하위만 허용합니다.</p>
             </form>
+            ${
+              harnessExecutionResult?.harnessId === statusCard.primaryHarnessId
+                ? `
+                  <section class="relation-strip" data-harness-execution-result="true">
+                    <div class="card-title-row">
+                      <strong>최근 하네스 실행 결과</strong>
+                      ${createToken('success', 'success')}
+                    </div>
+                    <div class="token-row">
+                      ${createToken(`대표:${harnessExecutionResult.harnessId}`, 'neutral')}
+                      ${
+                        harnessExecutionResult.outputPath
+                          ? createToken('출력파일', 'accent')
+                          : createToken('stdout', 'neutral')
+                      }
+                      ${
+                        harnessExecutionResult.executedAt
+                          ? createToken(`실행:${formatDate(harnessExecutionResult.executedAt)}`, 'neutral')
+                          : ''
+                      }
+                    </div>
+                    <p class="detail-copy">입력: <code>${escapeHtml(harnessExecutionResult.resolvedInputPath || harnessExecutionResult.inputPath || '')}</code></p>
+                    ${
+                      harnessExecutionResult.resolvedOutputPath
+                        ? `<p class="detail-copy">출력: <code>${escapeHtml(harnessExecutionResult.resolvedOutputPath)}</code></p>`
+                        : ''
+                    }
+                    ${
+                      harnessExecutionResult.outputPreview
+                        ? `<pre class="task-evidence-log" data-harness-execution-preview="true">${escapeHtml(harnessExecutionResult.outputPreview)}</pre>`
+                        : harnessExecutionResult.stdoutPreview
+                          ? `<pre class="task-evidence-log" data-harness-execution-preview="true">${escapeHtml(harnessExecutionResult.stdoutPreview)}</pre>`
+                          : '<p class="detail-copy">미리보기 가능한 출력이 없습니다.</p>'
+                    }
+                  </section>
+                `
+                : ''
+            }
           `
           : ''
       }
@@ -16784,6 +16824,7 @@ async function runHarnessOperatorAction(form) {
   }
 
   state.error = null;
+  state.lastHarnessExecutionResult = null;
   state.mutating = true;
   elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId} 실행을 시작하는 중…`;
   render();
@@ -16796,6 +16837,7 @@ async function runHarnessOperatorAction(form) {
 
     applySnapshotPayload(payload);
     state.error = null;
+    state.lastHarnessExecutionResult = payload.harnessExecution || null;
     render();
 
     const execution = payload.harnessExecution || {};

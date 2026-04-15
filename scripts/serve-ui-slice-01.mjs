@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, realpathSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -526,6 +526,7 @@ function runHarnessOperatorAction(input = {}) {
   }
 
   return {
+    executedAt: new Date().toISOString(),
     harnessId: operatorAction.harnessId,
     currentHostState: statusCard.currentHostState,
     inputPath,
@@ -534,6 +535,10 @@ function runHarnessOperatorAction(input = {}) {
     resolvedInputPath,
     resolvedOutputPath,
     outputExists: resolvedOutputPath ? existsSync(resolvedOutputPath) : false,
+    outputPreview:
+      resolvedOutputPath && existsSync(resolvedOutputPath)
+        ? readFileSync(resolvedOutputPath, 'utf8').slice(0, 800)
+        : null,
     stdoutPreview: stdout ? stdout.slice(0, 400) : null,
   };
 }

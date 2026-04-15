@@ -164,6 +164,13 @@ Post-freeze execution mutation follow-up:
 - this keeps the layering explicit: `doctor.summary -> consumer status -> snapshot derived -> execution operator-action shelf -> explicit local-only mutation route`
 - this is still not a general shell launch API or provider mutation path
 
+### Explicit execution evidence surface
+Post-freeze execution evidence follow-up:
+- the same explicit execution route now returns a small evidence payload: `executedAt`, resolved input/output paths, `outputPreview`, and `stdoutPreview`
+- `ui/app.js` `Execution` action shelf renders a local-only `최근 하네스 실행 결과` register immediately under the explicit run form when a route call succeeds
+- the evidence register stays transient and local-only; it is not written into `doctor.summary`, consumer payloads, or snapshot-derived frozen contracts
+- this keeps the layering explicit: `explicit local-only mutation route -> transient execution result register`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -240,3 +247,4 @@ Use:
 - `node scripts/smoke-ui-slice-304.mjs`
 - `node scripts/smoke-ui-slice-305.mjs`
 - `node scripts/smoke-ui-slice-306.mjs`
+- `node scripts/smoke-ui-slice-307.mjs`
