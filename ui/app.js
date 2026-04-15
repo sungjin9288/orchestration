@@ -1786,7 +1786,20 @@ function renderHarnessBriefRegister(brief) {
       <p class="control-overview-copy">${escapeHtml(brief.actionMessage || '대표 하네스 지시가 아직 준비되지 않았습니다.')}</p>
       ${
         brief.actionCommand
-          ? `<p class="control-overview-copy">명령: <code>${escapeHtml(brief.actionCommand)}</code></p>`
+          ? `
+            <p class="control-overview-copy">명령: <code>${escapeHtml(brief.actionCommand)}</code></p>
+            <div class="form-actions form-actions-inline">
+              <button
+                class="secondary-button"
+                type="button"
+                data-action="copy-harness-command"
+                data-command="${escapeHtml(brief.actionCommand)}"
+                data-harness-copy-command="true"
+              >
+                명령 복사
+              </button>
+            </div>
+          `
           : ''
       }
     </section>
@@ -16569,6 +16582,20 @@ function renderDecisionInbox(data) {
   `;
 }
 
+async function copyHarnessCommand(command) {
+  if (!command) {
+    throw new Error('복사할 하네스 명령이 없습니다.');
+  }
+
+  if (globalThis.navigator?.clipboard?.writeText) {
+    await globalThis.navigator.clipboard.writeText(command);
+    elements.refreshStatus.textContent = `하네스 명령을 복사했습니다: ${command}`;
+    return;
+  }
+
+  elements.refreshStatus.textContent = `클립보드 미지원 환경입니다. 명령을 직접 실행하세요: ${command}`;
+}
+
 function renderError(error) {
   const message = escapeHtml(error?.message || '알 수 없는 오류');
 
@@ -16738,6 +16765,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'run-inbox-action') {
         await runInboxAction(actionButton.dataset.id, actionButton.dataset.verb);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'copy-harness-command') {
+        await copyHarnessCommand(actionButton.dataset.command);
         return;
       }
 

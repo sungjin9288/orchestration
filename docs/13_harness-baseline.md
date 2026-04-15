@@ -142,6 +142,12 @@ Post-freeze UI follow-up surface:
 - keeps the layering explicit: `doctor.summary -> consumer status -> consumer brief -> snapshot derived -> ops overview signal + register -> execution register -> taskboard register -> logs register -> artifacts register -> deliverables register -> decision-inbox register`
 - this is a UI consumer integration track, not a producer-contract change
 
+### Shared shell action affordance
+Post-freeze local-only shell action follow-up:
+- `ui/app.js` shared `renderHarnessBriefRegister()` now exposes a `명령 복사` button when `brief.actionCommand` is present
+- the button stays local-only and consumer-only: it copies the already frozen brief command via browser clipboard when available and otherwise falls back to a refresh-status instruction line
+- no new runtime route, no snapshot schema change, and no producer-contract widening are introduced
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -212,3 +218,4 @@ Use:
 - `node scripts/smoke-ui-slice-300.mjs`
 - `node scripts/smoke-ui-slice-301.mjs`
 - `node scripts/smoke-ui-slice-302.mjs`
+- `node scripts/smoke-ui-slice-303.mjs`
