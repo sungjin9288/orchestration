@@ -14209,6 +14209,7 @@ function renderDeliverables(data) {
 function renderTaskboard(data) {
   const selectedTask = data.taskMap.get(state.selectedTaskId) || null;
   const focusedTask = selectedTask || data.tasks[0] || null;
+  const harnessBrief = getHarnessConsumerBrief(data);
   const createDisabled = !data.activeProject || state.loading || state.mutating;
   const bootstrapPanel = renderProjectBootstrapPanel(data);
   const pendingApprovals = data.approvals.filter((approval) => approval.status === 'pending');
@@ -14471,6 +14472,7 @@ function renderTaskboard(data) {
       <section class="surface-panel">
         ${taskboardViewportStrip}
         ${taskboardDeck}
+        ${renderHarnessBriefRegister(harnessBrief)}
         ${bootstrapPanel}
         ${
           data.activeProject
