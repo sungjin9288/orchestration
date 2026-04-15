@@ -15283,6 +15283,7 @@ function renderLogs(data) {
   const selectedTask = selectedRun
     ? data.taskMap.get(selectedRun.taskId)
     : data.taskMap.get(state.selectedTaskId) || null;
+  const harnessBrief = getHarnessConsumerBrief(data);
   const selectedMission = data.missionMap.get(state.selectedMissionId) || null;
   const runBundle = selectedRun ? getRunArtifactBundle(selectedRun, data) : null;
   const logs = state.selectedRunLogs?.logs || [];
@@ -15468,6 +15469,7 @@ function renderLogs(data) {
     <div class="stack">
       ${logsViewportStrip}
       ${logsDeck}
+      ${renderHarnessBriefRegister(harnessBrief)}
       <div class="surface-grid surface-grid-wide">
       <section class="surface-panel">
         <div class="list-column">${runList}</div>
