@@ -2035,7 +2035,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     <div class="stack" data-harness-execution-history-list="true">
                       ${recentHarnessExecutions
                         .map(
-                          (execution) => `
+                          (execution, index) => `
                             <div class="control-overview-register" data-harness-execution-history-item="true">
                               <div class="control-overview-register-row">
                                 <span class="control-overview-register-label">실행</span>
@@ -2050,6 +2050,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || 'stdout only')}</strong>
                               </div>
                               <div class="form-actions form-actions-inline">
+                                <button
+                                  class="secondary-button"
+                                  type="button"
+                                  data-action="restore-harness-execution-preview"
+                                  data-history-index="${String(index)}"
+                                  data-harness-history-preview="true"
+                                >
+                                  결과 다시 보기
+                                </button>
                                 ${
                                   execution.outputPath || execution.resolvedOutputPath
                                     ? `
@@ -16996,6 +17005,28 @@ async function copyHarnessExecutionOutputPath(outputPath) {
   });
 }
 
+function restoreHarnessExecutionPreview(actionButton, statusPayload) {
+  const historyIndex = Number.parseInt(actionButton?.dataset.historyIndex || '', 10);
+  const recentHarnessExecutions = getRecentHarnessExecutions(getDerived(), statusPayload);
+  const targetExecution =
+    Number.isInteger(historyIndex) && historyIndex >= 0
+      ? recentHarnessExecutions[historyIndex] || null
+      : null;
+
+  if (!targetExecution?.harnessId) {
+    throw new Error('다시 볼 하네스 실행 결과를 찾지 못했습니다.');
+  }
+
+  state.error = null;
+  state.lastHarnessExecutionResult = targetExecution;
+  render();
+
+  const executedAtLabel = targetExecution.executedAt
+    ? formatDate(targetExecution.executedAt)
+    : '최근 실행';
+  elements.refreshStatus.textContent = `실행 결과를 다시 표시했습니다: ${targetExecution.harnessId} · ${executedAtLabel}`;
+}
+
 async function executeHarnessOperatorAction({ inputPath, outputPath, statusPayload, pendingMessage }) {
   const operatorAction = statusPayload?.operatorAction || null;
   const statusCard = statusPayload?.statusCard || null;
@@ -17296,6 +17327,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'copy-harness-output-path') {
         await copyHarnessExecutionOutputPath(actionButton.dataset.outputPath);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'restore-harness-execution-preview') {
+        restoreHarnessExecutionPreview(actionButton, getHarnessConsumerStatus(getDerived()));
         return;
       }
 

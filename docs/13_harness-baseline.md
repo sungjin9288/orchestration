@@ -214,6 +214,13 @@ Post-freeze execution output copy follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only execution result/history payloads
 - this keeps the layering explicit: `execution result/history register -> copy execution output path action -> local-only clipboard or status affordance`
 
+### Local-only execution history preview restore
+Post-freeze execution history preview follow-up:
+- `ui/app.js` `Execution` now exposes `결과 다시 보기` on each recent-history row so an operator can lift one past entry back into the detailed `최근 하네스 실행 결과` register
+- the action does not introduce a new route or snapshot key; it reuses the existing local-only `derived.recentHarnessExecutions` payload and updates only `state.lastHarnessExecutionResult`
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only execution result/history payloads and preserves the current explicit run/clear routes
+- this keeps the layering explicit: `snapshot-derived recentHarnessExecutions -> restore execution preview action -> latest execution result register`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -297,3 +304,4 @@ Use:
 - `node scripts/smoke-ui-slice-310.mjs`
 - `node scripts/smoke-ui-slice-311.mjs`
 - `node scripts/smoke-ui-slice-312.mjs`
+- `node scripts/smoke-ui-slice-314.mjs`
