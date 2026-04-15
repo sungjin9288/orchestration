@@ -2142,6 +2142,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         숨긴 결과 다시 보기
                       </button>
                     </div>
+                    ${
+                      hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview
+                        ? `<pre class="task-evidence-log" data-harness-result-hidden-preview="true">${escapeHtml(hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview)}</pre>`
+                        : ''
+                    }
                   </section>
                 `
                 : ''
