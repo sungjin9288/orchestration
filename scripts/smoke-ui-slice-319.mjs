@@ -14,18 +14,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-317');
-const port = 4618;
+const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-319');
+const port = 4620;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 
-assert.match(appJs, /data-action="reuse-harness-execution-paths"/);
-assert.match(appJs, /data-harness-result-reuse="true"/);
-assert.match(appJs, /function reuseHarnessExecutionPaths\(actionButton\)/);
-assert.match(appJs, /state\.harnessExecutionDraftInputPath = inputPath;/);
-assert.match(appJs, /state\.harnessExecutionDraftOutputPath = outputPath;/);
-assert.match(appJs, /data-input-path="\$\{escapeHtml\(visibleHarnessExecutionResult\.resolvedInputPath\)\}"/);
+assert.match(appJs, /hiddenHarnessExecutionResultKey: null,/);
+assert.match(appJs, /function getHarnessExecutionResultKey\(execution\)/);
+assert.match(appJs, /function isHarnessExecutionResultHidden\(execution\)/);
+assert.match(appJs, /data-action="hide-harness-execution-result"/);
+assert.match(appJs, /data-harness-result-hide="true"/);
+assert.match(appJs, /function hideHarnessExecutionResult\(actionButton\)/);
+assert.match(appJs, /state\.hiddenHarnessExecutionResultKey = executionKey;/);
+assert.match(appJs, /state\.hiddenHarnessExecutionResultKey = null;/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -64,7 +66,7 @@ async function waitForServer() {
     await delay(200);
   }
 
-  throw new Error('Timed out waiting for ui-slice-317 server');
+  throw new Error('Timed out waiting for ui-slice-319 server');
 }
 
 async function main() {
@@ -81,11 +83,11 @@ async function main() {
   );
 
   let stderr = '';
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-317-'));
-  const inputPath = path.join(tempDir, 'result-reuse.txt');
-  const outputPath = path.join(tempDir, 'result-reuse.md');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-319-'));
+  const inputPath = path.join(tempDir, 'result-hide.txt');
+  const outputPath = path.join(tempDir, 'result-hide.md');
 
-  fs.writeFileSync(inputPath, 'Execution result reuse smoke\n', 'utf8');
+  fs.writeFileSync(inputPath, 'Execution result hide smoke\n', 'utf8');
 
   server.stderr.on('data', (chunk) => {
     stderr += chunk.toString();
@@ -98,23 +100,26 @@ async function main() {
       inputPath,
       outputPath,
     });
-    const latestHarnessExecution = runPayload.derived?.latestHarnessExecution || null;
     const refreshedSnapshot = await fetchJson(`${baseUrl}/api/snapshot`);
+    const latestHarnessExecution = refreshedSnapshot.derived?.latestHarnessExecution || null;
+    const recentHarnessExecutions = refreshedSnapshot.derived?.recentHarnessExecutions || [];
 
+    assert.ok(runPayload.harnessExecution);
     assert.ok(latestHarnessExecution);
     assert.equal(latestHarnessExecution.resolvedInputPath, inputPath);
     assert.equal(latestHarnessExecution.resolvedOutputPath, outputPath);
-    assert.equal(refreshedSnapshot.derived?.latestHarnessExecution?.resolvedInputPath, inputPath);
-    assert.equal(refreshedSnapshot.derived?.latestHarnessExecution?.resolvedOutputPath, outputPath);
+    assert.ok(Array.isArray(recentHarnessExecutions));
+    assert.ok(recentHarnessExecutions.length >= 1);
 
     console.log(
       JSON.stringify(
         {
           ok: true,
-          harnessExecutionResultReuse: {
-            insertionPoint: 'executionResultRegister->reuseExecutionPathsAction->executionFormDraft',
-            sourceMarker: 'data-harness-result-reuse',
-            route: '/api/harness/operator-action/run',
+          harnessExecutionResultHide: {
+            insertionPoint: 'executionResultRegister->hideExecutionResultAction->localVisibilityState',
+            derivedKey: 'latestHarnessExecution',
+            sourceMarker: 'data-harness-result-hide',
+            latestHarnessId: latestHarnessExecution.harnessId,
             resolvedInputPath: inputPath,
             resolvedOutputPath: outputPath,
           },
