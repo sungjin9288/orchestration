@@ -155,6 +155,15 @@ Post-freeze execution follow-up surface:
 - the shelf shows the representative harness, current operator-action kind, host posture, and repo-native command in the same execution viewport without reopening `doctor` or recomputing action priority from raw harness arrays
 - the shelf stays consumer-only and local-only: it reuses the existing `copy-harness-command` browser affordance and introduces no shell-launch API, no mutation route, and no producer-contract change
 
+### Explicit execution mutation path
+Post-freeze execution mutation follow-up:
+- `scripts/serve-ui-slice-01.mjs` now exposes one narrow local-only mutation route at `POST /api/harness/operator-action/run`
+- the route reads the already frozen `harness-consumer-status` payload, requires `operatorAction.kind === repo-native-run`, and currently supports only the representative `markitdown` wrapper path
+- `ui/app.js` `Execution` action shelf now renders a small input/output path form sourced from the existing command template and posts to that route instead of introducing a generic shell-exec surface
+- relative paths are resolved against the current `project_path`; absolute paths remain limited to the current `project_path`, repo root, or `/tmp`
+- this keeps the layering explicit: `doctor.summary -> consumer status -> snapshot derived -> execution operator-action shelf -> explicit local-only mutation route`
+- this is still not a general shell launch API or provider mutation path
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -230,3 +239,4 @@ Use:
 - `node scripts/smoke-ui-slice-303.mjs`
 - `node scripts/smoke-ui-slice-304.mjs`
 - `node scripts/smoke-ui-slice-305.mjs`
+- `node scripts/smoke-ui-slice-306.mjs`

@@ -1,7 +1,8 @@
 import { createServer } from 'node:http';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, realpathSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,6 +20,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const uiRoot = path.join(repoRoot, 'ui');
+const tempRoot = path.resolve(tmpdir());
+const harnessRunScript = path.join(repoRoot, 'scripts', 'harness-run.mjs');
 const harnessConsumerStatusScript = path.join(repoRoot, 'scripts', 'harness-consumer-status.mjs');
 const harnessConsumerBriefScript = path.join(repoRoot, 'scripts', 'harness-consumer-brief.mjs');
 
@@ -342,68 +345,8 @@ function buildDerivedSnapshotData(snapshot) {
       suggestedProjectName: buildSuggestedLinkedWorktreeProjectName(activeProject, option),
     };
   });
-  const harnessConsumerStatus = (() => {
-    try {
-      const output = execFileSync(process.execPath, [harnessConsumerStatusScript], {
-        cwd: repoRoot,
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-      const payload = JSON.parse(output);
-
-      if (payload?.ok === true && payload.mode === 'harness-consumer-status' && payload.statusCard && payload.operatorAction) {
-        return payload;
-      }
-    } catch (error) {
-      const detail = String(error.stderr || error.stdout || error.message || '').trim();
-
-      return {
-        ok: false,
-        mode: 'harness-consumer-status',
-        error: detail || 'harness consumer status unavailable',
-        operatorAction: null,
-        statusCard: null,
-      };
-    }
-
-    return {
-      ok: false,
-      mode: 'harness-consumer-status',
-      error: 'harness consumer status returned an unexpected payload',
-      operatorAction: null,
-      statusCard: null,
-    };
-  })();
-  const harnessConsumerBrief = (() => {
-    try {
-      const output = execFileSync(process.execPath, [harnessConsumerBriefScript], {
-        cwd: repoRoot,
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-      const payload = JSON.parse(output);
-
-      if (payload?.ok === true && payload.mode === 'harness-consumer-brief' && payload.brief) {
-        return payload;
-      }
-    } catch (error) {
-      const detail = String(error.stderr || error.stdout || error.message || '').trim();
-
-      return {
-        ok: false,
-        mode: 'harness-consumer-brief',
-        error: detail || 'harness consumer brief unavailable',
-        brief: null,
-      };
-    }
-
-    return {
-      ok: false,
-      mode: 'harness-consumer-brief',
-      error: 'harness consumer brief returned an unexpected payload',
-      brief: null,
-    };
-  })();
+  const harnessConsumerStatus = readHarnessConsumerStatusPayload();
+  const harnessConsumerBrief = readHarnessConsumerBriefPayload();
 
   return {
     activeProjectLinkedWorktrees: {
@@ -427,6 +370,171 @@ function buildDerivedSnapshotData(snapshot) {
     taskGuardSummaries: runtime.listTaskGuardSummaries(),
     harnessConsumerStatus,
     harnessConsumerBrief,
+  };
+}
+
+function readHarnessConsumerStatusPayload() {
+  try {
+    const output = execFileSync(process.execPath, [harnessConsumerStatusScript], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const payload = JSON.parse(output);
+
+    if (
+      payload?.ok === true &&
+      payload.mode === 'harness-consumer-status' &&
+      payload.statusCard &&
+      payload.operatorAction
+    ) {
+      return payload;
+    }
+  } catch (error) {
+    const detail = String(error.stderr || error.stdout || error.message || '').trim();
+
+    return {
+      ok: false,
+      mode: 'harness-consumer-status',
+      error: detail || 'harness consumer status unavailable',
+      operatorAction: null,
+      statusCard: null,
+    };
+  }
+
+  return {
+    ok: false,
+    mode: 'harness-consumer-status',
+    error: 'harness consumer status returned an unexpected payload',
+    operatorAction: null,
+    statusCard: null,
+  };
+}
+
+function readHarnessConsumerBriefPayload() {
+  try {
+    const output = execFileSync(process.execPath, [harnessConsumerBriefScript], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const payload = JSON.parse(output);
+
+    if (payload?.ok === true && payload.mode === 'harness-consumer-brief' && payload.brief) {
+      return payload;
+    }
+  } catch (error) {
+    const detail = String(error.stderr || error.stdout || error.message || '').trim();
+
+    return {
+      ok: false,
+      mode: 'harness-consumer-brief',
+      error: detail || 'harness consumer brief unavailable',
+      brief: null,
+    };
+  }
+
+  return {
+    ok: false,
+    mode: 'harness-consumer-brief',
+    error: 'harness consumer brief returned an unexpected payload',
+    brief: null,
+  };
+}
+
+function isPathInside(rootPath, candidatePath) {
+  const relativePath = path.relative(rootPath, candidatePath);
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+}
+
+function isAllowedHarnessExecutionPath(candidatePath, activeProjectPath) {
+  const allowedRoots = [repoRoot, tempRoot];
+
+  if (activeProjectPath) {
+    allowedRoots.push(activeProjectPath);
+  }
+
+  return allowedRoots.some((rootPath) => isPathInside(rootPath, candidatePath));
+}
+
+function runHarnessOperatorAction(input = {}) {
+  const harnessStatus = readHarnessConsumerStatusPayload();
+
+  if (harnessStatus.ok !== true || !harnessStatus.operatorAction || !harnessStatus.statusCard) {
+    throw new Error(
+      harnessStatus.error || '현재 하네스 operator action payload를 읽을 수 없습니다.',
+    );
+  }
+
+  const { operatorAction, statusCard } = harnessStatus;
+
+  if (operatorAction.kind !== 'repo-native-run' || !operatorAction.harnessId) {
+    throw new Error('현재 호스트는 즉시 실행 가능한 대표 하네스 action을 제공하지 않습니다.');
+  }
+
+  if (operatorAction.harnessId !== 'markitdown') {
+    throw new Error(
+      `현재 interactive execution route는 ${operatorAction.harnessId}를 지원하지 않습니다.`,
+    );
+  }
+
+  const activeProject = getActiveProject();
+  const resolutionBase = path.resolve(activeProject?.projectPath || repoRoot);
+  const inputPath = String(input.inputPath || '').trim();
+  const outputPath = String(input.outputPath || '').trim();
+
+  if (!inputPath) {
+    throw new Error('입력 파일 경로가 필요합니다.');
+  }
+
+  const resolvedInputPath = path.resolve(resolutionBase, inputPath);
+  const resolvedOutputPath = outputPath ? path.resolve(resolutionBase, outputPath) : null;
+
+  if (!existsSync(resolvedInputPath)) {
+    throw new Error(`입력 파일을 찾을 수 없습니다: ${resolvedInputPath}`);
+  }
+
+  if (!isAllowedHarnessExecutionPath(resolvedInputPath, activeProject?.projectPath || null)) {
+    throw new Error('입력 파일은 현재 project_path, repo root, 또는 /tmp 하위여야 합니다.');
+  }
+
+  if (
+    resolvedOutputPath &&
+    !isAllowedHarnessExecutionPath(resolvedOutputPath, activeProject?.projectPath || null)
+  ) {
+    throw new Error('출력 파일은 현재 project_path, repo root, 또는 /tmp 하위여야 합니다.');
+  }
+
+  const runArgs = [
+    harnessRunScript,
+    operatorAction.harnessId,
+    resolvedInputPath,
+    ...(resolvedOutputPath ? [resolvedOutputPath] : []),
+  ];
+  const result = spawnSync(process.execPath, runArgs, {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const stdout = String(result.stdout || '').trim();
+  const stderr = String(result.stderr || '').trim();
+
+  if (result.status !== 0) {
+    throw new Error(
+      stderr || stdout || `하네스 ${operatorAction.harnessId} 실행이 status ${result.status}로 실패했습니다.`,
+    );
+  }
+
+  return {
+    harnessId: operatorAction.harnessId,
+    currentHostState: statusCard.currentHostState,
+    inputPath,
+    outputPath: outputPath || null,
+    repoNativeCommand: operatorAction.repoNativeCommand,
+    resolvedInputPath,
+    resolvedOutputPath,
+    outputExists: resolvedOutputPath ? existsSync(resolvedOutputPath) : false,
+    stdoutPreview: stdout ? stdout.slice(0, 400) : null,
   };
 }
 
@@ -1784,6 +1892,33 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       const statusCode = /not found/i.test(error.message) ? 404 : 400;
       json(response, statusCode, { error: error.message || '결정함 처리에 실패했습니다.' });
+      return;
+    }
+  }
+
+  if (method === 'POST' && url.pathname === '/api/harness/operator-action/run') {
+    try {
+      const input = await readJsonBody(request);
+      const harnessExecution = runHarnessOperatorAction(input);
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          harnessExecution,
+          mutation: {
+            kind: 'run-harness-operator-action',
+            harnessId: harnessExecution.harnessId,
+            inputPath: harnessExecution.inputPath,
+            outputPath: harnessExecution.outputPath,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      json(response, 400, {
+        error: error.message || '하네스 operator action 실행에 실패했습니다.',
+      });
       return;
     }
   }

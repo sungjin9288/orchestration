@@ -1850,17 +1850,47 @@ function renderHarnessExecutionActionShelf(statusPayload) {
         operatorAction.repoNativeCommand
           ? `
             <p class="control-overview-copy">실행 템플릿: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
-            <div class="form-actions form-actions-inline">
-              <button
-                class="secondary-button"
-                type="button"
-                data-action="copy-harness-command"
-                data-command="${escapeHtml(operatorAction.repoNativeCommand)}"
-                data-harness-operator-command="true"
-              >
-                명령 복사
-              </button>
-            </div>
+            <form class="stack" data-form="run-harness-operator-action" data-harness-execution-form="true">
+              <label class="field">
+                <span class="field-label">입력 파일 경로</span>
+                <input
+                  name="inputPath"
+                  type="text"
+                  placeholder="docs/example.md"
+                  required
+                  data-harness-input-path="true"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">출력 파일 경로</span>
+                <input
+                  name="outputPath"
+                  type="text"
+                  placeholder="tmp/markitdown-output.md"
+                  data-harness-output-path="true"
+                />
+              </label>
+              <div class="form-actions form-actions-inline">
+                <button
+                  class="secondary-button"
+                  type="button"
+                  data-action="copy-harness-command"
+                  data-command="${escapeHtml(operatorAction.repoNativeCommand)}"
+                  data-harness-operator-command="true"
+                >
+                  명령 복사
+                </button>
+                <button
+                  class="primary-button"
+                  type="submit"
+                  data-harness-run-submit="true"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                >
+                  하네스 실행
+                </button>
+              </div>
+              <p class="form-help">상대 경로는 현재 project_path 기준으로 풀고, 절대 경로는 현재 project_path, repo root, 또는 <code>/tmp</code> 하위만 허용합니다.</p>
+            </form>
           `
           : ''
       }
@@ -16736,6 +16766,53 @@ async function copyHarnessCommand(command) {
   elements.refreshStatus.textContent = `클립보드 미지원 환경입니다. 명령 템플릿을 직접 채워 실행하세요: ${command}`;
 }
 
+async function runHarnessOperatorAction(form) {
+  const data = getDerived();
+  const harnessConsumerStatus = getHarnessConsumerStatus(data);
+  const operatorAction = harnessConsumerStatus?.operatorAction || null;
+  const statusCard = harnessConsumerStatus?.statusCard || null;
+  const formData = new FormData(form);
+  const inputPath = String(formData.get('inputPath') || '').trim();
+  const outputPath = String(formData.get('outputPath') || '').trim();
+
+  if (!statusCard?.primaryHarnessId || !operatorAction?.kind || operatorAction.kind !== 'repo-native-run') {
+    throw new Error('현재 실행 가능한 대표 하네스 operator action이 없습니다.');
+  }
+
+  if (!inputPath) {
+    throw new Error('입력 파일 경로가 필요합니다.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId} 실행을 시작하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson('/api/harness/operator-action/run', {
+      inputPath,
+      outputPath,
+    });
+
+    applySnapshotPayload(payload);
+    state.error = null;
+    render();
+
+    const execution = payload.harnessExecution || {};
+    const outputCopy =
+      execution.resolvedOutputPath
+        ? `출력: ${execution.resolvedOutputPath}`
+        : execution.stdoutPreview
+          ? '표준 출력 미리보기를 반환했습니다.'
+          : '출력 파일 없이 완료됐습니다.';
+
+    elements.refreshStatus.textContent = `하네스 ${execution.harnessId || statusCard.primaryHarnessId} 실행 완료. ${outputCopy}`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 function renderError(error) {
   const message = escapeHtml(error?.message || '알 수 없는 오류');
 
@@ -17048,6 +17125,9 @@ document.addEventListener('input', handleFormInput);
 document.addEventListener('change', handleFormInput);
 
 document.addEventListener('submit', async (event) => {
+  const runHarnessOperatorActionForm = event.target.closest(
+    '[data-form="run-harness-operator-action"]',
+  );
   const createLinkedWorktreeForm = event.target.closest('[data-form="create-linked-worktree"]');
   const createMissionForm = event.target.closest('[data-form="create-mission"]');
   const createProjectForm = event.target.closest('[data-form="create-project"]');
@@ -17056,6 +17136,18 @@ document.addEventListener('submit', async (event) => {
   const createTaskForm = event.target.closest('[data-form="create-task"]');
   const createCompanyMemberForm = event.target.closest('[data-form="create-company-member"]');
   const updateCompanyMemberForm = event.target.closest('[data-form="update-company-member"]');
+
+  if (runHarnessOperatorActionForm) {
+    event.preventDefault();
+
+    try {
+      await runHarnessOperatorAction(runHarnessOperatorActionForm);
+    } catch (error) {
+      elements.refreshStatus.textContent = error.message || '하네스 실행에 실패했습니다.';
+      render();
+    }
+    return;
+  }
 
   if (createLinkedWorktreeForm) {
     event.preventDefault();
