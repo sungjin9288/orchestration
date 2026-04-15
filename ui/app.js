@@ -1661,6 +1661,7 @@ function createEmptyDerivedState() {
     commitExecutionReadinessSummaries: {},
     commitPackageReadinessSummaries: {},
     executionEntrySummaries: {},
+    harnessConsumerBrief: null,
     providerExecutionSummaries: {},
     releasePackageReadinessSummaries: {},
     reviewerReadinessSummaries: {},
@@ -1689,6 +1690,24 @@ function getProviderExecutionSummary(project, data) {
   }
 
   return data.derived.providerExecutionSummaries?.[project.id] || null;
+}
+
+function getHarnessConsumerBrief(data) {
+  const payload = data?.derived?.harnessConsumerBrief;
+
+  if (payload?.ok === true && payload.mode === 'harness-consumer-brief' && payload.brief) {
+    return payload.brief;
+  }
+
+  return null;
+}
+
+function getHarnessBriefSignalValue(brief) {
+  if (!brief?.primaryHarnessId) {
+    return '대표 하네스 없음';
+  }
+
+  return `${brief.primaryHarnessId} · ${brief.actionLabel || 'No action'}`;
 }
 
 function syncProjectProviderDraft(project) {
@@ -10389,6 +10408,7 @@ function renderOpsCreatePreview() {
 function renderOpsOverview(data, context, activeGroupId) {
   const counts = getCompanyDirectorySummary();
   const activeProject = data.activeProject;
+  const harnessBrief = getHarnessConsumerBrief(data);
   const editorGroupId = state.opsEditorGroup || 'all';
   const editorGroupLabel = getOpsEditorGroupLabel(editorGroupId);
   const editorMembers = getOpsEditorMembers(editorGroupId);
@@ -10406,6 +10426,7 @@ function renderOpsOverview(data, context, activeGroupId) {
         { label: '현재 프로젝트', value: activeProject?.name || '선택 없음' },
         { label: '편집 범위', value: editorGroupLabel },
         { label: '다음', value: 'agent 배정' },
+        { label: '하네스', value: getHarnessBriefSignalValue(harnessBrief) },
       ])}
       ${renderWorkspacePlaybook(activeGroupId)}
       <div class="control-overview-grid control-overview-grid-ops ops-overview-shell" data-surface="${escapeHtml(state.surface)}" data-nav-group="${escapeHtml(activeGroupId)}">

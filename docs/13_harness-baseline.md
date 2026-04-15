@@ -135,6 +135,13 @@ Shell-friendly post-freeze brief surface:
 - emits a `brief` payload with one headline, one action label, one repo-native command, and one action message
 - keeps the layering explicit: `doctor.summary -> consumer status -> consumer brief`
 
+### UI snapshot bridge for harness consumers
+Post-freeze UI follow-up surface:
+- `scripts/serve-ui-slice-01.mjs` reads `node scripts/harness-consumer-brief.mjs` and exposes the result as `derived.harnessConsumerBrief`
+- `ui/app.js` consumes only that snapshot-derived brief in the `Ops overview` signal strip and does not reopen `doctor` or recompute host posture from raw harness arrays
+- keeps the layering explicit: `doctor.summary -> consumer status -> consumer brief -> snapshot derived -> ops overview signal`
+- this is a UI consumer integration track, not a producer-contract change
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -158,6 +165,8 @@ Use:
 - `node scripts/harness-consumer-status.mjs`
 - `node scripts/harness-consumer-brief.mjs`
 - `node scripts/harness_verification_status.mjs`
+- `node --check ui/app.js`
+- `node --check scripts/serve-ui-slice-01.mjs`
 - `node --check scripts/markitdown-convert.mjs`
 - `node scripts/smoke-harness-slice-01.mjs`
 - `node scripts/smoke-harness-slice-02.mjs`
@@ -195,3 +204,4 @@ Use:
 - `node scripts/smoke-harness-slice-34.mjs`
 - `node scripts/smoke-harness-slice-35.mjs`
 - `node scripts/smoke-harness-slice-36.mjs`
+- `node scripts/smoke-ui-slice-295.mjs`

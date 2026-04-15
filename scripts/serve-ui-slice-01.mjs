@@ -19,6 +19,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const uiRoot = path.join(repoRoot, 'ui');
+const harnessConsumerBriefScript = path.join(repoRoot, 'scripts', 'harness-consumer-brief.mjs');
 
 function parseArgs(argv) {
   const options = {
@@ -340,6 +341,36 @@ function buildDerivedSnapshotData(snapshot) {
       suggestedProjectName: buildSuggestedLinkedWorktreeProjectName(activeProject, option),
     };
   });
+  const harnessConsumerBrief = (() => {
+    try {
+      const output = execFileSync(process.execPath, [harnessConsumerBriefScript], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      const payload = JSON.parse(output);
+
+      if (payload?.ok === true && payload.mode === 'harness-consumer-brief' && payload.brief) {
+        return payload;
+      }
+    } catch (error) {
+      const detail = String(error.stderr || error.stdout || error.message || '').trim();
+
+      return {
+        ok: false,
+        mode: 'harness-consumer-brief',
+        error: detail || 'harness consumer brief unavailable',
+        brief: null,
+      };
+    }
+
+    return {
+      ok: false,
+      mode: 'harness-consumer-brief',
+      error: 'harness consumer brief returned an unexpected payload',
+      brief: null,
+    };
+  })();
 
   return {
     activeProjectLinkedWorktrees: {
@@ -361,6 +392,7 @@ function buildDerivedSnapshotData(snapshot) {
       executionCoordinator.listReleasePackageReadinessSummaries(),
     reviewerReadinessSummaries: executionCoordinator.listReviewerReadinessSummaries(),
     taskGuardSummaries: runtime.listTaskGuardSummaries(),
+    harnessConsumerBrief,
   };
 }
 
