@@ -126,6 +126,16 @@ function buildDoctorSummary({
     primaryAvailable: primaryHarness?.available ?? null,
     primaryInstallReviewRequired: primaryHarness?.installReview != null,
     primaryReady: primaryHarness?.state === 'ready',
+    primaryActionShort:
+      primaryHarnessState === 'ready'
+        ? 'run-now'
+        : primaryHarnessState === 'install-required'
+          ? 'install'
+          : primaryHarnessState === 'deferred'
+            ? 'defer'
+            : primaryHarnessState === 'policy-blocked'
+              ? 'blocked'
+              : 'none',
   };
 }
 
