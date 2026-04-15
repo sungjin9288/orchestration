@@ -168,6 +168,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-32.mjs',
     purpose: 'Harness doctor summary frozen key set and current host baseline stay pinned for milestone completion.',
   },
+  {
+    id: 'harness-consumer-status',
+    script: 'scripts/smoke-harness-slice-33.mjs',
+    purpose: 'Harness consumer surface stays pinned to the frozen doctor summary contract without widening the producer.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
