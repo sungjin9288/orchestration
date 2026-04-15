@@ -200,6 +200,13 @@ Post-freeze execution history reuse follow-up:
 - no new route or snapshot key is introduced; the feature consumes the existing local-only `derived.recentHarnessExecutions` payload only
 - this keeps the layering explicit: `snapshot-derived recentHarnessExecutions -> execution history register -> reuse execution paths action -> execution form draft`
 
+### Local-only execution history rerun
+Post-freeze execution history rerun follow-up:
+- `ui/app.js` `Execution` now exposes a `같은 경로로 재실행` action on each recent-history row
+- the action does not introduce a new route; it reuses the existing local-only `POST /api/harness/operator-action/run` path with the selected recent-history input and output paths
+- this remains outside frozen producer and snapshot contracts: it consumes the existing `derived.recentHarnessExecutions` payload and existing explicit execution route only
+- this keeps the layering explicit: `snapshot-derived recentHarnessExecutions -> rerun execution paths action -> existing run-harness route`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
@@ -281,3 +288,4 @@ Use:
 - `node scripts/smoke-ui-slice-309.mjs`
 - `node scripts/smoke-ui-slice-310.mjs`
 - `node scripts/smoke-ui-slice-311.mjs`
+- `node scripts/smoke-ui-slice-312.mjs`

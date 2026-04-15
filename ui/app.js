@@ -2043,6 +2043,17 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 >
                                   경로 다시 채우기
                                 </button>
+                                <button
+                                  class="secondary-button"
+                                  type="button"
+                                  data-action="rerun-harness-execution-paths"
+                                  data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
+                                  data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
+                                  data-harness-history-rerun="true"
+                                  ${state.loading || state.mutating ? 'disabled' : ''}
+                                >
+                                  같은 경로로 재실행
+                                </button>
                               </div>
                             </div>
                           `,
@@ -16928,14 +16939,9 @@ async function copyHarnessCommand(command) {
   elements.refreshStatus.textContent = `클립보드 미지원 환경입니다. 명령 템플릿을 직접 채워 실행하세요: ${command}`;
 }
 
-async function runHarnessOperatorAction(form) {
-  const data = getDerived();
-  const harnessConsumerStatus = getHarnessConsumerStatus(data);
-  const operatorAction = harnessConsumerStatus?.operatorAction || null;
-  const statusCard = harnessConsumerStatus?.statusCard || null;
-  const formData = new FormData(form);
-  const inputPath = String(formData.get('inputPath') || '').trim();
-  const outputPath = String(formData.get('outputPath') || '').trim();
+async function executeHarnessOperatorAction({ inputPath, outputPath, statusPayload, pendingMessage }) {
+  const operatorAction = statusPayload?.operatorAction || null;
+  const statusCard = statusPayload?.statusCard || null;
 
   if (!statusCard?.primaryHarnessId || !operatorAction?.kind || operatorAction.kind !== 'repo-native-run') {
     throw new Error('현재 실행 가능한 대표 하네스 operator action이 없습니다.');
@@ -16950,7 +16956,8 @@ async function runHarnessOperatorAction(form) {
   state.harnessExecutionDraftInputPath = inputPath;
   state.harnessExecutionDraftOutputPath = outputPath;
   state.mutating = true;
-  elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId} 실행을 시작하는 중…`;
+  elements.refreshStatus.textContent =
+    pendingMessage || `하네스 ${statusCard.primaryHarnessId} 실행을 시작하는 중…`;
   render();
 
   try {
@@ -16977,6 +16984,20 @@ async function runHarnessOperatorAction(form) {
     state.mutating = false;
     render();
   }
+}
+
+async function runHarnessOperatorAction(form) {
+  const data = getDerived();
+  const harnessConsumerStatus = getHarnessConsumerStatus(data);
+  const formData = new FormData(form);
+  const inputPath = String(formData.get('inputPath') || '').trim();
+  const outputPath = String(formData.get('outputPath') || '').trim();
+
+  await executeHarnessOperatorAction({
+    inputPath,
+    outputPath,
+    statusPayload: harnessConsumerStatus,
+  });
 }
 
 async function clearHarnessExecutionHistory(statusPayload) {
@@ -17019,6 +17040,24 @@ function reuseHarnessExecutionPaths(actionButton) {
   state.harnessExecutionDraftOutputPath = outputPath;
   elements.refreshStatus.textContent = `최근 실행 경로를 폼에 다시 채웠습니다: ${inputPath}`;
   render();
+}
+
+async function rerunHarnessExecutionPaths(actionButton) {
+  const inputPath = String(actionButton?.dataset.inputPath || '').trim();
+  const outputPath = String(actionButton?.dataset.outputPath || '').trim();
+  const statusPayload = getHarnessConsumerStatus(getDerived());
+  const statusCard = statusPayload?.statusCard || null;
+
+  if (!inputPath) {
+    throw new Error('재실행할 입력 경로가 없습니다.');
+  }
+
+  await executeHarnessOperatorAction({
+    inputPath,
+    outputPath,
+    statusPayload,
+    pendingMessage: `하네스 ${statusCard?.primaryHarnessId || 'unknown'}를 최근 실행 경로로 다시 실행하는 중…`,
+  });
 }
 
 function renderError(error) {
@@ -17205,6 +17244,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'reuse-harness-execution-paths') {
         reuseHarnessExecutionPaths(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'rerun-harness-execution-paths') {
+        await rerunHarnessExecutionPaths(actionButton);
         return;
       }
 
