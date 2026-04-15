@@ -1902,6 +1902,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessExecutionResult = isHarnessExecutionResultHidden(harnessExecutionResult)
     ? null
     : harnessExecutionResult;
+  const hiddenHarnessExecutionResult =
+    harnessExecutionResult?.harnessId === statusCard?.primaryHarnessId && !visibleHarnessExecutionResult
+      ? harnessExecutionResult
+      : null;
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
   const hasExecutionHistory =
     (harnessExecutionResult?.harnessId === statusCard?.primaryHarnessId) ||
@@ -2114,6 +2118,30 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           ? `<pre class="task-evidence-log" data-harness-execution-preview="true">${escapeHtml(visibleHarnessExecutionResult.stdoutPreview)}</pre>`
                           : '<p class="detail-copy">미리보기 가능한 출력이 없습니다.</p>'
                     }
+                  </section>
+                `
+                : ''
+            }
+            ${
+              hiddenHarnessExecutionResult?.harnessId === statusCard.primaryHarnessId
+                ? `
+                  <section class="relation-strip" data-harness-execution-result-hidden="true">
+                    <div class="card-title-row">
+                      <strong>최근 하네스 실행 결과가 숨겨져 있습니다</strong>
+                      ${createToken('hidden', 'neutral')}
+                    </div>
+                    <p class="detail-copy">필요하면 방금 숨긴 latest result register를 다시 표시할 수 있습니다.</p>
+                    <div class="form-actions form-actions-inline">
+                      <button
+                        class="secondary-button"
+                        type="button"
+                        data-action="show-harness-execution-result"
+                        data-execution-key="${escapeHtml(getHarnessExecutionResultKey(hiddenHarnessExecutionResult) || '')}"
+                        data-harness-result-show="true"
+                      >
+                        숨긴 결과 다시 보기
+                      </button>
+                    </div>
                   </section>
                 `
                 : ''
@@ -17148,6 +17176,26 @@ function hideHarnessExecutionResult(actionButton) {
     '최근 하네스 실행 결과를 숨겼습니다. 필요하면 실행 기록에서 다시 볼 수 있습니다.';
 }
 
+function showHarnessExecutionResult(actionButton, statusPayload) {
+  const executionKey = String(actionButton?.dataset.executionKey || '').trim();
+  const currentExecution = getLatestHarnessExecution(getDerived(), statusPayload);
+  const currentExecutionKey = getHarnessExecutionResultKey(currentExecution);
+
+  if (!executionKey || !currentExecution?.harnessId || currentExecutionKey !== executionKey) {
+    throw new Error('다시 표시할 하네스 실행 결과를 찾지 못했습니다.');
+  }
+
+  state.error = null;
+  state.hiddenHarnessExecutionResultKey = null;
+  state.lastHarnessExecutionResult = currentExecution;
+  render();
+
+  const executedAtLabel = currentExecution.executedAt
+    ? formatDate(currentExecution.executedAt)
+    : '최근 실행';
+  elements.refreshStatus.textContent = `숨긴 실행 결과를 다시 표시했습니다: ${currentExecution.harnessId} · ${executedAtLabel}`;
+}
+
 function restoreHarnessExecutionPreview(actionButton, statusPayload) {
   const historyIndex = Number.parseInt(actionButton?.dataset.historyIndex || '', 10);
   const recentHarnessExecutions = getRecentHarnessExecutions(getDerived(), statusPayload);
@@ -17489,6 +17537,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'hide-harness-execution-result') {
         hideHarnessExecutionResult(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'show-harness-execution-result') {
+        showHarnessExecutionResult(actionButton, getHarnessConsumerStatus(getDerived()));
         return;
       }
 
