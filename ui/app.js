@@ -1710,6 +1710,89 @@ function getHarnessBriefSignalValue(brief) {
   return `${brief.primaryHarnessId} · ${brief.actionLabel || 'No action'}`;
 }
 
+function getHarnessBriefActionTone(brief) {
+  if (!brief?.primaryHarnessId) {
+    return 'neutral';
+  }
+
+  if (brief.currentHostState === 'runnable') {
+    return 'success';
+  }
+
+  if (brief.currentHostState === 'setup-required') {
+    return 'warning';
+  }
+
+  if (brief.actionLabel === 'Keep blocked') {
+    return 'danger';
+  }
+
+  return 'neutral';
+}
+
+function getHarnessBriefHostStateLabel(brief) {
+  if (!brief?.currentHostState) {
+    return '상태 없음';
+  }
+
+  if (brief.currentHostState === 'runnable') {
+    return '즉시 실행 가능';
+  }
+
+  if (brief.currentHostState === 'setup-required') {
+    return '설치 검토 필요';
+  }
+
+  if (brief.currentHostState === 'deferred') {
+    return '후속 검토';
+  }
+
+  if (brief.currentHostState === 'blocked') {
+    return '정책 차단';
+  }
+
+  return brief.currentHostState;
+}
+
+function renderHarnessBriefRegister(brief) {
+  if (!brief?.primaryHarnessId) {
+    return '';
+  }
+
+  return `
+    <section class="ops-editor-scope" data-panel-state="readonly" data-harness-register="true">
+      <div class="ops-section-head">
+        <div>
+          <p class="control-overview-label">Harness brief</p>
+          <h4 class="ops-section-title">하네스 실행 안내</h4>
+        </div>
+        ${brief.actionLabel ? createToken(brief.actionLabel, getHarnessBriefActionTone(brief)) : ''}
+      </div>
+      <p class="control-overview-copy">${escapeHtml(brief.headline || '대표 하네스 안내가 아직 준비되지 않았습니다.')}</p>
+      <div class="control-overview-register">
+        <div class="control-overview-register-row">
+          <span class="control-overview-register-label">대표</span>
+          <strong class="control-overview-register-value">${escapeHtml(brief.primaryHarnessId)}</strong>
+        </div>
+        <div class="control-overview-register-row">
+          <span class="control-overview-register-label">상태</span>
+          <strong class="control-overview-register-value">${escapeHtml(getHarnessBriefHostStateLabel(brief))}</strong>
+        </div>
+        <div class="control-overview-register-row">
+          <span class="control-overview-register-label">다음</span>
+          <strong class="control-overview-register-value">${escapeHtml(brief.actionLabel || 'No action')}</strong>
+        </div>
+      </div>
+      <p class="control-overview-copy">${escapeHtml(brief.actionMessage || '대표 하네스 지시가 아직 준비되지 않았습니다.')}</p>
+      ${
+        brief.actionCommand
+          ? `<p class="control-overview-copy">명령: <code>${escapeHtml(brief.actionCommand)}</code></p>`
+          : ''
+      }
+    </section>
+  `;
+}
+
 function syncProjectProviderDraft(project) {
   const config = getProjectProviderConfig(project);
 
@@ -10467,6 +10550,7 @@ function renderOpsOverview(data, context, activeGroupId) {
             <strong class="control-overview-register-value">${escapeHtml(`${context.pendingGateCount}건`)}</strong>
           </div>
         </div>
+        ${renderHarnessBriefRegister(harnessBrief)}
         <div class="ops-roster-sheet">
           <p class="control-overview-label">팀별 배정</p>
           <div class="ops-team-section-list ops-team-board">
