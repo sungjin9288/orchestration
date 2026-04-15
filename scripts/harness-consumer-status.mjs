@@ -23,6 +23,19 @@ if (payload.ok !== true || payload.mode !== 'harness-run-doctor' || !payload.sum
 }
 
 const { summary } = payload;
+
+function buildRepoNativeCommandTemplate() {
+  if (!summary.primaryHarnessId) {
+    return null;
+  }
+
+  if (summary.primaryRunner === 'scripts/markitdown-convert.mjs') {
+    return `node scripts/harness-run.mjs ${summary.primaryHarnessId} <input-file> [output-file]`;
+  }
+
+  return `node scripts/harness-run.mjs ${summary.primaryHarnessId}`;
+}
+
 const operatorAction = (() => {
   if (!summary.primaryHarnessId) {
     return {
@@ -37,7 +50,7 @@ const operatorAction = (() => {
     return {
       kind: 'repo-native-run',
       harnessId: summary.primaryHarnessId,
-      repoNativeCommand: `node scripts/harness-run.mjs ${summary.primaryHarnessId}`,
+      repoNativeCommand: buildRepoNativeCommandTemplate(),
       message: summary.primaryActionMessage,
     };
   }

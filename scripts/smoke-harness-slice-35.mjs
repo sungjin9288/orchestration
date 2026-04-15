@@ -23,10 +23,13 @@ const expectedOperatorActionKeys = ['kind', 'harnessId', 'repoNativeCommand', 'm
 assert.deepEqual(Object.keys(payload.operatorAction), expectedOperatorActionKeys);
 assert.equal(payload.operatorAction.kind, 'repo-native-run');
 assert.equal(payload.operatorAction.harnessId, 'markitdown');
-assert.equal(payload.operatorAction.repoNativeCommand, 'node scripts/harness-run.mjs markitdown');
+assert.equal(
+  payload.operatorAction.repoNativeCommand,
+  'node scripts/harness-run.mjs markitdown <input-file> [output-file]',
+);
 assert.equal(
   payload.operatorAction.message,
-  'Run markitdown now through node scripts/harness-run.mjs markitdown.',
+  'Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file].',
 );
 
 console.log(

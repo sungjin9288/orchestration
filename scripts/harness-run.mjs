@@ -56,6 +56,18 @@ function buildDoctorPolicyBlockedHarnessIds(harnessStates) {
     .map((harness) => harness.id);
 }
 
+function buildPrimaryRepoNativeCommandTemplate(primaryHarnessId, primaryHarness) {
+  if (!primaryHarnessId) {
+    return null;
+  }
+
+  if (primaryHarness?.runner === 'scripts/markitdown-convert.mjs') {
+    return `node scripts/harness-run.mjs ${primaryHarnessId} <input-file> [output-file]`;
+  }
+
+  return `node scripts/harness-run.mjs ${primaryHarnessId}`;
+}
+
 function buildDoctorSummary({
   harnessStates,
   nextAction,
@@ -96,7 +108,7 @@ function buildDoctorSummary({
     primaryHarnessId === null
       ? 'No representative harness action is required for the current host.'
       : primaryHarnessState === 'ready'
-        ? `Run ${primaryHarnessId} now through node scripts/harness-run.mjs ${primaryHarnessId}.`
+        ? `Run ${primaryHarnessId} now through ${buildPrimaryRepoNativeCommandTemplate(primaryHarnessId, primaryHarness)}.`
         : primaryHarnessState === 'install-required'
           ? primaryHarness?.installReview
             ? `Review ${primaryHarness.installReview} and install ${primaryHarnessId} locally before running it through the repo-native gate.`

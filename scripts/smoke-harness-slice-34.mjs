@@ -8,9 +8,23 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const runScript = path.join(repoRoot, 'scripts', 'harness-run.mjs');
-const inputPath = path.join(repoRoot, 'docs', '13_harness-baseline.md');
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'harness-markitdown-ready-'));
+const inputPath = path.join(tempDir, 'harness-baseline-input.txt');
 const outputPath = path.join(tempDir, 'harness-baseline.md');
+
+fs.writeFileSync(
+  inputPath,
+  [
+    'Harness Baseline',
+    '',
+    'This host-ready smoke uses an ASCII-only fixture so the repo-native markitdown gate',
+    'stays stable even when repository docs or localized content change.',
+    '',
+    '- command template proof',
+    '- host-ready execution proof',
+  ].join('\n'),
+  'utf8',
+);
 
 const result = spawnSync(process.execPath, [runScript, 'markitdown', inputPath, outputPath], {
   cwd: repoRoot,

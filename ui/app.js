@@ -1849,7 +1849,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       ${
         operatorAction.repoNativeCommand
           ? `
-            <p class="control-overview-copy">실행 명령: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
+            <p class="control-overview-copy">실행 템플릿: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
             <div class="form-actions form-actions-inline">
               <button
                 class="secondary-button"
@@ -1901,7 +1901,7 @@ function renderHarnessBriefRegister(brief) {
         </div>
       </div>
       <p class="control-overview-copy">${escapeHtml(brief.actionMessage || '대표 하네스 지시가 아직 준비되지 않았습니다.')}</p>
-      ${brief.actionCommand ? `<p class="control-overview-copy">명령: <code>${escapeHtml(brief.actionCommand)}</code></p>` : ''}
+      ${brief.actionCommand ? `<p class="control-overview-copy">명령 템플릿: <code>${escapeHtml(brief.actionCommand)}</code></p>` : ''}
       ${
         showCommandActions
           ? `
@@ -16729,11 +16729,11 @@ async function copyHarnessCommand(command) {
 
   if (globalThis.navigator?.clipboard?.writeText) {
     await globalThis.navigator.clipboard.writeText(command);
-    elements.refreshStatus.textContent = `하네스 명령을 복사했습니다: ${command}`;
+    elements.refreshStatus.textContent = `하네스 명령 템플릿을 복사했습니다: ${command}`;
     return;
   }
 
-  elements.refreshStatus.textContent = `클립보드 미지원 환경입니다. 명령을 직접 실행하세요: ${command}`;
+  elements.refreshStatus.textContent = `클립보드 미지원 환경입니다. 명령 템플릿을 직접 채워 실행하세요: ${command}`;
 }
 
 function renderError(error) {

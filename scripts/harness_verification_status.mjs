@@ -188,6 +188,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-36.mjs',
     purpose: 'Harness consumer brief stays pinned as a shell-friendly operator summary derived only from the frozen consumer payload.',
   },
+  {
+    id: 'harness-command-template-alignment',
+    script: 'scripts/smoke-harness-slice-37.mjs',
+    purpose: 'Harness consumer command templates stay aligned with wrappers that require runtime arguments and do not over-claim zero-arg launchability.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

@@ -98,7 +98,7 @@ async function main() {
     assert.equal(harnessStatus?.operatorAction?.kind, 'repo-native-run');
     assert.equal(
       harnessStatus?.operatorAction?.repoNativeCommand,
-      'node scripts/harness-run.mjs markitdown',
+      'node scripts/harness-run.mjs markitdown <input-file> [output-file]',
     );
 
     console.log(

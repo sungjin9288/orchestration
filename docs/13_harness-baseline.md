@@ -145,6 +145,7 @@ Post-freeze UI follow-up surface:
 ### Shared shell action affordance
 Post-freeze local-only shell action follow-up:
 - `ui/app.js` shared `renderHarnessBriefRegister()` now exposes a `명령 복사` button when `brief.actionCommand` is present and an `실행 데스크 열기` button whenever the operator is not already on `Execution`
+- the copied string is a repo-native command template, not an unconditional zero-arg launch command; wrappers that require runtime input keep placeholders such as `<input-file> [output-file]` in the consumer payload
 - both affordances stay local-only and consumer-only: `명령 복사` uses browser clipboard when available and otherwise falls back to a refresh-status instruction line, while `실행 데스크 열기` reuses the existing `open-surface` navigation path instead of introducing a shell-launch route
 - no new runtime route, no snapshot schema change, and no producer-contract widening are introduced
 
@@ -158,11 +159,12 @@ Post-freeze execution follow-up surface:
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
 - the representative harness is `markitdown` with `primaryHarnessState: ready`
-- repo-native execution proof runs through `scripts/smoke-harness-slice-34.mjs`
+- the current repo-native command template is `node scripts/harness-run.mjs markitdown <input-file> [output-file]`; bare zero-arg dispatch remains intentionally self-describing and surfaces wrapper usage
+- repo-native execution proof runs through `scripts/smoke-harness-slice-34.mjs`, which now generates its own ASCII-only temp fixture so host-ready verification does not drift with localized repo docs
 
 ### `scripts/harness_verification_status.mjs`
 Repo-native harness verification bundle:
-- runs harness inventory status plus smoke slices `01` through `04`, `06`, `07`, `08`, `09`, `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`, `18`, `19`, `20`, `21`, `22`, `23`, `24`, `25`, `26`, `27`, `28`, `29`, `30`, `31`, `32`, `33`, `34`, `35`, and `36`
+- runs harness inventory status plus smoke slices `01` through `04`, `06`, `07`, `08`, `09`, `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`, `18`, `19`, `20`, `21`, `22`, `23`, `24`, `25`, `26`, `27`, `28`, `29`, `30`, `31`, `32`, `33`, `34`, `35`, `36`, and `37`
 - reports one synthetic harness status payload for the current repo posture
 - keeps harness verification separate from broader runtime or UI verification bundles
 
@@ -216,6 +218,7 @@ Use:
 - `node scripts/smoke-harness-slice-34.mjs`
 - `node scripts/smoke-harness-slice-35.mjs`
 - `node scripts/smoke-harness-slice-36.mjs`
+- `node scripts/smoke-harness-slice-37.mjs`
 - `node scripts/smoke-ui-slice-295.mjs`
 - `node scripts/smoke-ui-slice-296.mjs`
 - `node scripts/smoke-ui-slice-297.mjs`

@@ -86,10 +86,13 @@ async function main() {
     assert.equal(harnessBrief?.currentHostState, 'runnable');
     assert.equal(harnessBrief?.primaryHarnessId, 'markitdown');
     assert.equal(harnessBrief?.actionLabel, 'Run approved harness');
-    assert.equal(harnessBrief?.actionCommand, 'node scripts/harness-run.mjs markitdown');
+    assert.equal(
+      harnessBrief?.actionCommand,
+      'node scripts/harness-run.mjs markitdown <input-file> [output-file]',
+    );
     assert.match(
       String(harnessBrief?.actionMessage || ''),
-      /run markitdown now|node scripts\/harness-run\.mjs markitdown/i,
+      /run markitdown now|node scripts\/harness-run\.mjs markitdown <input-file> \[output-file\]/i,
     );
 
     console.log(

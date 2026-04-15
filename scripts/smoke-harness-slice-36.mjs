@@ -34,10 +34,13 @@ assert.equal(payload.brief.currentHostState, 'runnable');
 assert.equal(payload.brief.primaryHarnessId, 'markitdown');
 assert.equal(payload.brief.headline, 'markitdown is ready on this host.');
 assert.equal(payload.brief.actionLabel, 'Run approved harness');
-assert.equal(payload.brief.actionCommand, 'node scripts/harness-run.mjs markitdown');
+assert.equal(
+  payload.brief.actionCommand,
+  'node scripts/harness-run.mjs markitdown <input-file> [output-file]',
+);
 assert.equal(
   payload.brief.actionMessage,
-  'Run markitdown now through node scripts/harness-run.mjs markitdown.',
+  'Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file].',
 );
 
 console.log(

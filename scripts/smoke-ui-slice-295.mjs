@@ -91,7 +91,7 @@ async function main() {
     assert.equal(harnessBrief?.brief?.actionLabel, 'Run approved harness');
     assert.equal(
       harnessBrief?.brief?.actionCommand,
-      'node scripts/harness-run.mjs markitdown',
+      'node scripts/harness-run.mjs markitdown <input-file> [output-file]',
     );
 
     console.log(

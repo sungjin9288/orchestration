@@ -27,7 +27,7 @@ const expectedMessage =
   primaryHarnessId === null
     ? 'No representative harness action is required for the current host.'
     : primaryHarnessState === 'ready'
-      ? `Run ${primaryHarnessId} now through node scripts/harness-run.mjs ${primaryHarnessId}.`
+      ? `Run ${primaryHarnessId} now through node scripts/harness-run.mjs ${primaryHarnessId} <input-file> [output-file].`
       : primaryHarnessState === 'install-required'
         ? primaryInstallReview
           ? `Review ${primaryInstallReview} and install ${primaryHarnessId} locally before running it through the repo-native gate.`
@@ -41,7 +41,7 @@ const expectedMessage =
 assert.equal(payload.summary.primaryActionMessage, expectedMessage);
 assert.equal(
   payload.summary.primaryActionMessage,
-  'Run markitdown now through node scripts/harness-run.mjs markitdown.',
+  'Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file].',
 );
 
 console.log(

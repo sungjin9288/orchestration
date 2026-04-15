@@ -56,7 +56,7 @@ assert.equal(payload.summary.primaryReady, true);
 assert.equal(payload.summary.primaryActionShort, 'run-now');
 assert.equal(
   payload.summary.primaryActionMessage,
-  'Run markitdown now through node scripts/harness-run.mjs markitdown.',
+  'Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file].',
 );
 
 console.log(
