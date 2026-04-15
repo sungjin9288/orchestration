@@ -2141,6 +2141,21 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       >
                         숨긴 결과 다시 보기
                       </button>
+                      ${
+                        hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview
+                          ? `
+                            <button
+                              class="secondary-button"
+                              type="button"
+                              data-action="copy-harness-execution-preview"
+                              data-preview-text="${escapeHtml(hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview || '')}"
+                              data-harness-result-hidden-preview-copy="true"
+                            >
+                              미리보기 복사
+                            </button>
+                          `
+                          : ''
+                      }
                     </div>
                     ${
                       hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview
