@@ -13041,6 +13041,7 @@ function renderExecution(data) {
       copy: '현재 담당, 역할별 증적, 차단 사유, 다음 인계만 요약합니다.',
     },
   );
+  const harnessBrief = getHarnessConsumerBrief(data);
 
   elements.surfaces.execution.innerHTML = `
     <div class="stack">
@@ -13053,6 +13054,7 @@ function renderExecution(data) {
         mission: selectedMission,
         task: linkedTask,
       })}
+      ${renderHarnessBriefRegister(harnessBrief)}
     <div class="surface-grid">
       <section class="surface-panel">
         ${renderNarrativeDeck({
