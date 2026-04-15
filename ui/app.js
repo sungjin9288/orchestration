@@ -2012,6 +2012,16 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   >
                                     입력 경로 복사
                                   </button>
+                                  <button
+                                    class="secondary-button"
+                                    type="button"
+                                    data-action="reuse-harness-execution-paths"
+                                    data-input-path="${escapeHtml(harnessExecutionResult.resolvedInputPath)}"
+                                    data-output-path="${escapeHtml(harnessExecutionResult.resolvedOutputPath || harnessExecutionResult.outputPath || '')}"
+                                    data-harness-result-reuse="true"
+                                  >
+                                    경로 다시 채우기
+                                  </button>
                                 `
                                 : ''
                             }
