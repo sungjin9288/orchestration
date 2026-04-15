@@ -183,6 +183,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-35.mjs',
     purpose: 'Harness consumer surface exposes a repo-native operatorAction derived only from the frozen doctor summary.',
   },
+  {
+    id: 'harness-consumer-brief',
+    script: 'scripts/smoke-harness-slice-36.mjs',
+    purpose: 'Harness consumer brief stays pinned as a shell-friendly operator summary derived only from the frozen consumer payload.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
