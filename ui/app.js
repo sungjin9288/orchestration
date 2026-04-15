@@ -1661,6 +1661,7 @@ function createEmptyDerivedState() {
     commitExecutionReadinessSummaries: {},
     commitPackageReadinessSummaries: {},
     executionEntrySummaries: {},
+    harnessConsumerStatus: null,
     harnessConsumerBrief: null,
     providerExecutionSummaries: {},
     releasePackageReadinessSummaries: {},
@@ -1697,6 +1698,21 @@ function getHarnessConsumerBrief(data) {
 
   if (payload?.ok === true && payload.mode === 'harness-consumer-brief' && payload.brief) {
     return payload.brief;
+  }
+
+  return null;
+}
+
+function getHarnessConsumerStatus(data) {
+  const payload = data?.derived?.harnessConsumerStatus;
+
+  if (
+    payload?.ok === true &&
+    payload.mode === 'harness-consumer-status' &&
+    payload.statusCard &&
+    payload.operatorAction
+  ) {
+    return payload;
   }
 
   return null;
@@ -1752,6 +1768,104 @@ function getHarnessBriefHostStateLabel(brief) {
   }
 
   return brief.currentHostState;
+}
+
+function getHarnessOperatorActionLabel(operatorAction) {
+  if (!operatorAction?.kind) {
+    return '액션 없음';
+  }
+
+  if (operatorAction.kind === 'repo-native-run') {
+    return 'Repo-native run';
+  }
+
+  if (operatorAction.kind === 'install-review') {
+    return 'Install review';
+  }
+
+  if (operatorAction.kind === 'deferred') {
+    return 'Deferred';
+  }
+
+  if (operatorAction.kind === 'blocked') {
+    return 'Policy blocked';
+  }
+
+  return operatorAction.kind;
+}
+
+function getHarnessOperatorActionTone(operatorAction) {
+  if (!operatorAction?.kind || operatorAction.kind === 'none') {
+    return 'neutral';
+  }
+
+  if (operatorAction.kind === 'repo-native-run') {
+    return 'success';
+  }
+
+  if (operatorAction.kind === 'install-review' || operatorAction.kind === 'deferred') {
+    return 'warning';
+  }
+
+  if (operatorAction.kind === 'blocked') {
+    return 'danger';
+  }
+
+  return 'neutral';
+}
+
+function renderHarnessExecutionActionShelf(statusPayload) {
+  const statusCard = statusPayload?.statusCard || null;
+  const operatorAction = statusPayload?.operatorAction || null;
+
+  if (!statusCard?.primaryHarnessId || !operatorAction?.kind || operatorAction.kind === 'none') {
+    return '';
+  }
+
+  return `
+    <section class="ops-editor-scope" data-panel-state="readonly" data-harness-execution-action="true">
+      <div class="ops-section-head">
+        <div>
+          <p class="control-overview-label">Harness operator action</p>
+          <h4 class="ops-section-title">하네스 실행 액션</h4>
+        </div>
+        ${createToken(getHarnessOperatorActionLabel(operatorAction), getHarnessOperatorActionTone(operatorAction))}
+      </div>
+      <p class="control-overview-copy">${escapeHtml(operatorAction.message || '대표 하네스 액션이 아직 준비되지 않았습니다.')}</p>
+      <div class="control-overview-register">
+        <div class="control-overview-register-row">
+          <span class="control-overview-register-label">대표</span>
+          <strong class="control-overview-register-value">${escapeHtml(statusCard.primaryHarnessId)}</strong>
+        </div>
+        <div class="control-overview-register-row">
+          <span class="control-overview-register-label">액션</span>
+          <strong class="control-overview-register-value">${escapeHtml(getHarnessOperatorActionLabel(operatorAction))}</strong>
+        </div>
+        <div class="control-overview-register-row">
+          <span class="control-overview-register-label">호스트</span>
+          <strong class="control-overview-register-value">${escapeHtml(getHarnessBriefHostStateLabel({ currentHostState: statusCard.currentHostState }))}</strong>
+        </div>
+      </div>
+      ${
+        operatorAction.repoNativeCommand
+          ? `
+            <p class="control-overview-copy">실행 명령: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
+            <div class="form-actions form-actions-inline">
+              <button
+                class="secondary-button"
+                type="button"
+                data-action="copy-harness-command"
+                data-command="${escapeHtml(operatorAction.repoNativeCommand)}"
+                data-harness-operator-command="true"
+              >
+                명령 복사
+              </button>
+            </div>
+          `
+          : ''
+      }
+    </section>
+  `;
 }
 
 function renderHarnessBriefRegister(brief) {
@@ -13079,6 +13193,7 @@ function renderExecution(data) {
     },
   );
   const harnessBrief = getHarnessConsumerBrief(data);
+  const harnessConsumerStatus = getHarnessConsumerStatus(data);
 
   elements.surfaces.execution.innerHTML = `
     <div class="stack">
@@ -13126,6 +13241,7 @@ function renderExecution(data) {
             },
           ],
         })}
+        ${renderHarnessExecutionActionShelf(harnessConsumerStatus)}
         ${executionEvidenceRail}
 
         <section class="relation-strip">

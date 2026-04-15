@@ -137,9 +137,9 @@ Shell-friendly post-freeze brief surface:
 
 ### UI snapshot bridge for harness consumers
 Post-freeze UI follow-up surface:
-- `scripts/serve-ui-slice-01.mjs` reads `node scripts/harness-consumer-brief.mjs` and exposes the result as `derived.harnessConsumerBrief`
-- `ui/app.js` consumes only that snapshot-derived brief in the `Ops overview` signal strip plus read-only `하네스 실행 안내` registers inside the `Ops overview` org panel, `Execution`, `Taskboard`, `Logs`, `Artifacts`, `Deliverables`, and `Decision Inbox`, and does not reopen `doctor` or recompute host posture from raw harness arrays
-- keeps the layering explicit: `doctor.summary -> consumer status -> consumer brief -> snapshot derived -> ops overview signal + register -> execution register -> taskboard register -> logs register -> artifacts register -> deliverables register -> decision-inbox register`
+- `scripts/serve-ui-slice-01.mjs` reads `node scripts/harness-consumer-status.mjs` and `node scripts/harness-consumer-brief.mjs` and exposes the results as `derived.harnessConsumerStatus` plus `derived.harnessConsumerBrief`
+- `ui/app.js` consumes only those snapshot-derived payloads: the frozen brief drives the `Ops overview` signal strip plus read-only `하네스 실행 안내` registers inside the `Ops overview` org panel, `Execution`, `Taskboard`, `Logs`, `Artifacts`, `Deliverables`, and `Decision Inbox`, while the frozen consumer status drives one dedicated `하네스 실행 액션` shelf inside `Execution`
+- keeps the layering explicit: `doctor.summary -> consumer status -> consumer brief -> snapshot derived -> ops overview signal + brief registers -> execution operator-action shelf`
 - this is a UI consumer integration track, not a producer-contract change
 
 ### Shared shell action affordance
@@ -147,6 +147,12 @@ Post-freeze local-only shell action follow-up:
 - `ui/app.js` shared `renderHarnessBriefRegister()` now exposes a `명령 복사` button when `brief.actionCommand` is present and an `실행 데스크 열기` button whenever the operator is not already on `Execution`
 - both affordances stay local-only and consumer-only: `명령 복사` uses browser clipboard when available and otherwise falls back to a refresh-status instruction line, while `실행 데스크 열기` reuses the existing `open-surface` navigation path instead of introducing a shell-launch route
 - no new runtime route, no snapshot schema change, and no producer-contract widening are introduced
+
+### Execution operator-action shelf
+Post-freeze execution follow-up surface:
+- `ui/app.js` `Execution` now reads `derived.harnessConsumerStatus.operatorAction` through a dedicated `renderHarnessExecutionActionShelf()` helper
+- the shelf shows the representative harness, current operator-action kind, host posture, and repo-native command in the same execution viewport without reopening `doctor` or recomputing action priority from raw harness arrays
+- the shelf stays consumer-only and local-only: it reuses the existing `copy-harness-command` browser affordance and introduces no shell-launch API, no mutation route, and no producer-contract change
 
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
@@ -220,3 +226,4 @@ Use:
 - `node scripts/smoke-ui-slice-302.mjs`
 - `node scripts/smoke-ui-slice-303.mjs`
 - `node scripts/smoke-ui-slice-304.mjs`
+- `node scripts/smoke-ui-slice-305.mjs`

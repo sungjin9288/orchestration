@@ -19,6 +19,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const uiRoot = path.join(repoRoot, 'ui');
+const harnessConsumerStatusScript = path.join(repoRoot, 'scripts', 'harness-consumer-status.mjs');
 const harnessConsumerBriefScript = path.join(repoRoot, 'scripts', 'harness-consumer-brief.mjs');
 
 function parseArgs(argv) {
@@ -341,6 +342,38 @@ function buildDerivedSnapshotData(snapshot) {
       suggestedProjectName: buildSuggestedLinkedWorktreeProjectName(activeProject, option),
     };
   });
+  const harnessConsumerStatus = (() => {
+    try {
+      const output = execFileSync(process.execPath, [harnessConsumerStatusScript], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      const payload = JSON.parse(output);
+
+      if (payload?.ok === true && payload.mode === 'harness-consumer-status' && payload.statusCard && payload.operatorAction) {
+        return payload;
+      }
+    } catch (error) {
+      const detail = String(error.stderr || error.stdout || error.message || '').trim();
+
+      return {
+        ok: false,
+        mode: 'harness-consumer-status',
+        error: detail || 'harness consumer status unavailable',
+        operatorAction: null,
+        statusCard: null,
+      };
+    }
+
+    return {
+      ok: false,
+      mode: 'harness-consumer-status',
+      error: 'harness consumer status returned an unexpected payload',
+      operatorAction: null,
+      statusCard: null,
+    };
+  })();
   const harnessConsumerBrief = (() => {
     try {
       const output = execFileSync(process.execPath, [harnessConsumerBriefScript], {
@@ -392,6 +425,7 @@ function buildDerivedSnapshotData(snapshot) {
       executionCoordinator.listReleasePackageReadinessSummaries(),
     reviewerReadinessSummaries: executionCoordinator.listReviewerReadinessSummaries(),
     taskGuardSummaries: runtime.listTaskGuardSummaries(),
+    harnessConsumerStatus,
     harnessConsumerBrief,
   };
 }
