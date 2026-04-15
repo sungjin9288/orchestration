@@ -16086,6 +16086,7 @@ function renderDecisionInbox(data) {
     return;
   }
 
+  const harnessBrief = getHarnessConsumerBrief(data);
   const pendingItems = data.inboxItems.filter((item) => item.status === 'pending');
   const resolvedItems = data.inboxItems.filter((item) => item.status === 'resolved');
   const selectedItem = data.inboxItemMap.get(state.selectedInboxItemId) || null;
@@ -16379,6 +16380,7 @@ function renderDecisionInbox(data) {
     <div class="stack">
       ${decisionViewportStrip}
       ${decisionDeck}
+      ${renderHarnessBriefRegister(harnessBrief)}
       <div class="surface-grid surface-grid-inbox">
       <section class="surface-panel">
         ${renderInboxList(pendingItems, {
