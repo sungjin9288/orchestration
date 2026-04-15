@@ -88,9 +88,33 @@ Repo-native execution gate for approved harnesses:
   plus a compact `summary` object, including `currentHostState`, `primaryHarnessId`, `primaryHarnessState`, `primaryRecommendedAction`, `primaryInstallReview`, `primaryInstallReviewRequired`, `primaryNote`, `primaryPosture`, `primaryKind`, `primaryCommand`, `primaryRunner`, `primaryExecutable`, `primaryAvailable`, `primaryReady`, `primaryActionShort`, and `primaryActionMessage`,
   so the operator or consumer can read the current host posture and its representative harness without recomputing counts, booleans, or priority from the full payload
 
+#### Frozen `doctor.summary` contract for this milestone
+The compact summary is frozen for the current harness-baseline milestone with these keys:
+- `currentHostState`
+- `primaryHarnessId`
+- `primaryHarnessState`
+- `primaryRecommendedAction`
+- `primaryInstallReview`
+- `primaryInstallReviewRequired`
+- `primaryNote`
+- `primaryPosture`
+- `primaryKind`
+- `primaryCommand`
+- `primaryRunner`
+- `primaryExecutable`
+- `primaryAvailable`
+- `primaryReady`
+- `primaryActionShort`
+- `primaryActionMessage`
+
+#### Completion boundary
+- This milestone ends at the repo-native harness governance contract: `status / info / list / doctor / synthetic bundle`.
+- Further `doctor.summary` field additions are not part of this milestone. Any new field requires a separate milestone or explicit consumer-driven justification.
+- `consumer integration` and `host-ready install` stay as follow-up tracks and are not part of this completion batch.
+
 ### `scripts/harness_verification_status.mjs`
 Repo-native harness verification bundle:
-- runs harness inventory status plus smoke slices `01` through `04`, `06`, `07`, `08`, `09`, `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`, `18`, `19`, `20`, `21`, `22`, `23`, `24`, `25`, `26`, `27`, `28`, `29`, `30`, and `31`
+- runs harness inventory status plus smoke slices `01` through `04`, `06`, `07`, `08`, `09`, `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`, `18`, `19`, `20`, `21`, `22`, `23`, `24`, `25`, `26`, `27`, `28`, `29`, `30`, `31`, and `32`
 - reports one synthetic harness status payload for the current repo posture
 - keeps harness verification separate from broader runtime or UI verification bundles
 
@@ -134,3 +158,4 @@ Use:
 - `node scripts/smoke-harness-slice-29.mjs`
 - `node scripts/smoke-harness-slice-30.mjs`
 - `node scripts/smoke-harness-slice-31.mjs`
+- `node scripts/smoke-harness-slice-32.mjs`

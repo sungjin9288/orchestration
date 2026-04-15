@@ -163,6 +163,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-31.mjs',
     purpose: 'Harness doctor summary.primaryActionMessage stays aligned with the representative harness operator guidance.',
   },
+  {
+    id: 'harness-doctor-summary-contract-freeze',
+    script: 'scripts/smoke-harness-slice-32.mjs',
+    purpose: 'Harness doctor summary frozen key set and current host baseline stay pinned for milestone completion.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
