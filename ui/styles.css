@@ -5902,6 +5902,20 @@ h3 {
   padding: 12px;
 }
 
+.relation-strip-hidden-compact {
+  gap: 8px;
+  padding: 12px;
+}
+
+.relation-strip-hidden-compact-block {
+  gap: 6px;
+  padding: 10px 11px;
+}
+
+.relation-strip-hidden-compact .detail-copy {
+  line-height: 1.42;
+}
+
 .transcript-card {
   gap: 8px;
   padding: 12px 13px;

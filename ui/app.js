@@ -2125,53 +2125,53 @@ function renderHarnessExecutionActionShelf(statusPayload) {
             ${
               hiddenHarnessExecutionResult?.harnessId === statusCard.primaryHarnessId
                 ? `
-                  <section class="relation-strip" data-harness-execution-result-hidden="true">
+                  <section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">
                     <div class="card-title-row">
                       <strong>최근 하네스 실행 결과가 숨겨져 있습니다</strong>
                       ${createToken('hidden', 'neutral')}
                     </div>
-                    <p class="detail-copy">필요하면 방금 숨긴 latest result register를 다시 표시할 수 있습니다.</p>
-                    <section class="relation-strip relation-strip-compact" data-harness-result-hidden-run-context="true">
+                    <p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 latest result register를 다시 표시할 수 있습니다.</p>
+                    <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-run-context="true">
                       <div class="card-title-row card-title-row-tight">
                         <strong>실행 기록</strong>
                       </div>
                       ${
                         hiddenHarnessExecutionResult.executedAt
-                          ? `<p class="detail-copy" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(formatDate(hiddenHarnessExecutionResult.executedAt))}</code></p>`
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(formatDate(hiddenHarnessExecutionResult.executedAt))}</code></p>`
                           : ''
                       }
                       ${
                         hiddenHarnessExecutionResult.resolvedInputPath
-                          ? `<p class="detail-copy" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
                           : ''
                       }
                       ${
                         hiddenHarnessExecutionResult.resolvedOutputPath
-                          ? `<p class="detail-copy" data-harness-result-hidden-output-summary="true">출력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}</code></p>`
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">출력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}</code></p>`
                           : ''
                       }
                     </section>
-                    <section class="relation-strip relation-strip-compact" data-harness-result-hidden-harness-context="true">
+                    <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-harness-context="true">
                       <div class="card-title-row card-title-row-tight">
                         <strong>하네스 컨텍스트</strong>
                       </div>
-                      <p class="detail-copy" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>${escapeHtml(statusCard.primaryHarnessId)}</code></p>
-                      <p class="detail-copy" data-harness-result-hidden-kind-summary="true">하네스 종류: <code>${escapeHtml(statusCard.primaryKind || 'unknown')}</code></p>
-                      <p class="detail-copy" data-harness-result-hidden-primary-command-summary="true">대표 명령: <code>${escapeHtml(statusCard.primaryCommand || 'unknown')}</code></p>
-                      <p class="detail-copy" data-harness-result-hidden-primary-runner-summary="true">대표 runner: <code>${escapeHtml(statusCard.primaryRunner || 'unknown')}</code></p>
-                      <p class="detail-copy" data-harness-result-hidden-posture-summary="true">대표 포지션: <code>${escapeHtml(statusCard.primaryPosture || 'unknown')}</code></p>
-                      <p class="detail-copy" data-harness-result-hidden-state-summary="true">현재 상태: <code>${escapeHtml(statusCard.primaryHarnessState)}</code></p>
-                      <p class="detail-copy" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(getHarnessBriefHostStateLabel({ currentHostState: statusCard.currentHostState }))}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>${escapeHtml(statusCard.primaryHarnessId)}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">하네스 종류: <code>${escapeHtml(statusCard.primaryKind || 'unknown')}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-command-summary="true">대표 명령: <code>${escapeHtml(statusCard.primaryCommand || 'unknown')}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-runner-summary="true">대표 runner: <code>${escapeHtml(statusCard.primaryRunner || 'unknown')}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-posture-summary="true">대표 포지션: <code>${escapeHtml(statusCard.primaryPosture || 'unknown')}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-state-summary="true">현재 상태: <code>${escapeHtml(statusCard.primaryHarnessState)}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(getHarnessBriefHostStateLabel({ currentHostState: statusCard.currentHostState }))}</code></p>
                     </section>
-                    <section class="relation-strip relation-strip-compact" data-harness-result-hidden-operator-context="true">
+                    <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-operator-context="true">
                       <div class="card-title-row card-title-row-tight">
                         <strong>운영 컨텍스트</strong>
                       </div>
-                      <p class="detail-copy" data-harness-result-hidden-action-summary="true">권장 액션: <code>${escapeHtml(getHarnessOperatorActionLabel(operatorAction))}</code></p>
-                      <p class="detail-copy" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>${escapeHtml(getHarnessOperatorActionLabel(operatorAction))}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
                       ${
                         operatorAction.message
-                          ? `<p class="detail-copy" data-harness-result-hidden-message-summary="true">운영 메모: ${escapeHtml(operatorAction.message)}</p>`
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-message-summary="true">운영 메모: ${escapeHtml(operatorAction.message)}</p>`
                           : ''
                       }
                     </section>
