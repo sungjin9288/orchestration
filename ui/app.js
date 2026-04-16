@@ -2052,7 +2052,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath || visibleHarnessExecutionResult.outputPath || '')}"
                                     data-harness-result-reuse="true"
                                   >
-                                    경로 다시 채우기
+                                    경로 채우기
                                   </button>
                                   <button
                                     class="secondary-button"
