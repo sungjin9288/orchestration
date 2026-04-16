@@ -585,6 +585,13 @@ Post-freeze execution hidden-result preview-density follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden latest execution semantics plus current `statusCard` and `operatorAction` payloads
 - this keeps the layering explicit: `hidden execution result register -> hidden preview density -> compact preview log`
 
+### Local-only execution preview base class cleanup
+Post-freeze execution preview base-class follow-up:
+- `ui/app.js` now reuses the existing `log-viewer` base class together with `log-viewer-compact` for both visible and hidden execution preview `<pre>` blocks so preview styling no longer depends on the undefined `task-evidence-log` class name
+- the change does not introduce a new route, snapshot key, or visibility state; it reuses the existing preview classes already used elsewhere in the execution and artifact surfaces
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only latest and hidden execution preview semantics plus current `statusCard` and `operatorAction` payloads
+- this keeps the layering explicit: `execution result register + hidden execution result register -> preview base class -> log viewer compact`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
