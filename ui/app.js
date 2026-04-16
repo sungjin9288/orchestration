@@ -2175,7 +2175,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                     </section>
-                    <div class="form-actions form-actions-inline">
+                    <div class="form-actions form-actions-inline form-actions-hidden-compact">
                       <button
                         class="secondary-button"
                         type="button"

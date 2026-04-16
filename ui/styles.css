@@ -5916,6 +5916,16 @@ h3 {
   line-height: 1.42;
 }
 
+.surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact {
+  gap: 8px;
+  padding: 10px 11px;
+}
+
+.surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact .secondary-button {
+  padding: 8px 11px;
+  font-size: 0.76rem;
+}
+
 .transcript-card {
   gap: 8px;
   padding: 12px 13px;
