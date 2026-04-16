@@ -2137,6 +2137,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         : ''
                     }
                     <p class="detail-copy" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>${escapeHtml(statusCard.primaryHarnessId)}</code></p>
+                    <p class="detail-copy" data-harness-result-hidden-posture-summary="true">대표 포지션: <code>${escapeHtml(statusCard.primaryPosture || 'unknown')}</code></p>
                     <p class="detail-copy" data-harness-result-hidden-state-summary="true">현재 상태: <code>${escapeHtml(statusCard.primaryHarnessState)}</code></p>
                     <p class="detail-copy" data-harness-result-hidden-action-summary="true">권장 액션: <code>${escapeHtml(getHarnessOperatorActionLabel(operatorAction))}</code></p>
                     <p class="detail-copy" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(getHarnessBriefHostStateLabel({ currentHostState: statusCard.currentHostState }))}</code></p>
