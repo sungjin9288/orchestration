@@ -2131,6 +2131,16 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${createToken('hidden', 'neutral')}
                     </div>
                     <p class="detail-copy">필요하면 방금 숨긴 latest result register를 다시 표시할 수 있습니다.</p>
+                    ${
+                      hiddenHarnessExecutionResult.resolvedInputPath
+                        ? `<p class="detail-copy" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
+                        : ''
+                    }
+                    ${
+                      hiddenHarnessExecutionResult.resolvedOutputPath
+                        ? `<p class="detail-copy" data-harness-result-hidden-output-summary="true">출력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}</code></p>`
+                        : ''
+                    }
                     <div class="form-actions form-actions-inline">
                       <button
                         class="secondary-button"
