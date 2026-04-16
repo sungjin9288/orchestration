@@ -2142,6 +2142,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     <p class="detail-copy" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(getHarnessBriefHostStateLabel({ currentHostState: statusCard.currentHostState }))}</code></p>
                     <p class="detail-copy" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
                     ${
+                      operatorAction.message
+                        ? `<p class="detail-copy" data-harness-result-hidden-message-summary="true">운영 메모: ${escapeHtml(operatorAction.message)}</p>`
+                        : ''
+                    }
+                    ${
                       hiddenHarnessExecutionResult.resolvedInputPath
                         ? `<p class="detail-copy" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
                         : ''
