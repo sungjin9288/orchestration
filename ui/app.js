@@ -2009,7 +2009,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <strong>최근 하네스 실행 결과</strong>
                       ${createToken('success', 'success')}
                     </div>
-                    <div class="token-row">
+                    <div class="token-row token-row-compact">
                       ${createToken(`대표:${visibleHarnessExecutionResult.harnessId}`, 'neutral')}
                       ${
                         visibleHarnessExecutionResult.outputPath

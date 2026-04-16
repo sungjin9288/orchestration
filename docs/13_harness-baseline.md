@@ -557,6 +557,13 @@ Post-freeze execution latest-result preview-empty follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `latestHarnessExecution` semantics plus current `statusCard` and `operatorAction` payloads
 - this keeps the layering explicit: `execution result register -> visible preview-empty density -> compact empty copy`
 
+### Local-only latest-result token-row density
+Post-freeze execution latest-result token-density follow-up:
+- `ui/app.js` now adds the existing `token-row-compact` class to the visible latest-result token row so the latest register keeps the same compact token rhythm already used across the execution surface
+- the change does not introduce a new route, snapshot key, or visibility state; it reuses the existing compact token-row token already used elsewhere in the UI shell
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `latestHarnessExecution` semantics plus current `statusCard` and `operatorAction` payloads
+- this keeps the layering explicit: `execution result register -> visible token density -> compact token row`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
