@@ -2345,7 +2345,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   data-harness-history-rerun="true"
                                   ${state.loading || state.mutating ? 'disabled' : ''}
                                 >
-                                  같은 경로로 재실행
+                                  같은 경로 재실행
                                 </button>
                               </div>
                             </div>
