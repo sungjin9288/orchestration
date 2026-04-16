@@ -2093,7 +2093,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     data-preview-text="${escapeHtml(visibleHarnessExecutionResult.outputPreview || visibleHarnessExecutionResult.stdoutPreview || '')}"
                                     data-harness-preview-copy="true"
                                   >
-                                    미리보기 복사
+                                    미리보기
                                   </button>
                                 `
                                 : ''

@@ -515,6 +515,13 @@ Post-freeze execution latest-result output-copy-label follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `latestHarnessExecution` semantics plus current `statusCard` and `operatorAction` payloads
 - this keeps the layering explicit: `execution result register -> visible output copy wording -> output copy action label`
 
+### Local-only latest-result preview-copy label wording
+Post-freeze execution latest-result preview-copy-label follow-up:
+- `ui/app.js` now shortens the visible latest-result preview-copy button label to `미리보기` so it stays consistent with the compact hidden action row wording
+- the change does not introduce a new route, snapshot key, or visibility state; it adjusts only the operator-facing label for the existing latest-result preview-copy action already in render scope
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `latestHarnessExecution` semantics plus current `statusCard` and `operatorAction` payloads
+- this keeps the layering explicit: `execution result register -> visible preview copy wording -> preview copy action label`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
