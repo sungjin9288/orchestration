@@ -298,6 +298,13 @@ Post-freeze execution hidden-result reuse-path follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only latest execution payload plus current hidden-result semantics
 - this keeps the layering explicit: `hidden execution result register -> reuse execution paths action -> execution form draft`
 
+### Local-only hidden-result rerun
+Post-freeze execution hidden-result rerun follow-up:
+- `ui/app.js` `Execution` now exposes `같은 경로로 재실행` directly inside the hidden latest-result strip when the hidden execution already carries a resolved input path
+- the change does not introduce a new route, snapshot key, or visibility state; it reuses the existing `rerunHarnessExecutionPaths(...)` helper with the current hidden latest execution payload
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only latest execution payload plus current hidden-result semantics and the existing explicit run route
+- this keeps the layering explicit: `hidden execution result register -> rerun execution paths action -> existing run-harness route`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
