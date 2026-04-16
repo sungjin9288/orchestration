@@ -424,6 +424,13 @@ Post-freeze execution hidden-result header follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics plus current `latestHarnessExecution`, `statusCard`, and `operatorAction` payloads
 - this keeps the layering explicit: `hidden execution result register -> hidden header density -> tight title row`
 
+### Local-only hidden-result root wording
+Post-freeze execution hidden-result copy follow-up:
+- `ui/app.js` now localizes the hidden latest-result root token label and intro copy while reusing the tight title-row presentation at the root header
+- the change does not introduce a new route, snapshot key, or visibility state; it adjusts only root-level wording for the existing hidden latest-result strip already in render scope
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics plus current `latestHarnessExecution`, `statusCard`, and `operatorAction` payloads
+- this keeps the layering explicit: `hidden execution result register -> hidden root wording -> localized header copy`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
