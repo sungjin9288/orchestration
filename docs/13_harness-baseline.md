@@ -578,6 +578,13 @@ Post-freeze execution latest-result preview-density follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `latestHarnessExecution` semantics plus current `statusCard` and `operatorAction` payloads
 - this keeps the layering explicit: `execution result register -> visible preview density -> compact preview log`
 
+### Local-only hidden-result preview density
+Post-freeze execution hidden-result preview-density follow-up:
+- `ui/app.js` now adds the existing `log-viewer-compact` class to the hidden latest-result preview `<pre>` so the hidden strip keeps the same compact preview footprint as the visible latest-result register
+- the change does not introduce a new route, snapshot key, or visibility state; it reuses the existing compact preview token already used elsewhere in the execution surface
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden latest execution semantics plus current `statusCard` and `operatorAction` payloads
+- this keeps the layering explicit: `hidden execution result register -> hidden preview density -> compact preview log`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`

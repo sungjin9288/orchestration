@@ -2254,7 +2254,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     </div>
                     ${
                       hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview
-                        ? `<pre class="task-evidence-log" data-harness-result-hidden-preview="true">${escapeHtml(hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview)}</pre>`
+                        ? `<pre class="task-evidence-log log-viewer-compact" data-harness-result-hidden-preview="true">${escapeHtml(hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview)}</pre>`
                         : ''
                     }
                   </section>
