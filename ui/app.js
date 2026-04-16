@@ -2153,6 +2153,16 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                             >
                               입력 경로 복사
                             </button>
+                            <button
+                              class="secondary-button"
+                              type="button"
+                              data-action="reuse-harness-execution-paths"
+                              data-input-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}"
+                              data-output-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath || hiddenHarnessExecutionResult.outputPath || '')}"
+                              data-harness-result-hidden-reuse="true"
+                            >
+                              경로 다시 채우기
+                            </button>
                           `
                           : ''
                       }
