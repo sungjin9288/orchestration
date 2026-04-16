@@ -2004,7 +2004,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
             ${
               visibleHarnessExecutionResult?.harnessId === statusCard.primaryHarnessId
                 ? `
-                  <section class="relation-strip" data-harness-execution-result="true">
+                  <section class="relation-strip relation-strip-compact" data-harness-execution-result="true">
                     <div class="card-title-row card-title-row-tight">
                       <strong>최근 하네스 실행 결과</strong>
                       ${createToken('success', 'success')}
