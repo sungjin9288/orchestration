@@ -2131,11 +2131,6 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${createToken('hidden', 'neutral')}
                     </div>
                     <p class="detail-copy">필요하면 방금 숨긴 latest result register를 다시 표시할 수 있습니다.</p>
-                    ${
-                      hiddenHarnessExecutionResult.executedAt
-                        ? `<p class="detail-copy" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(formatDate(hiddenHarnessExecutionResult.executedAt))}</code></p>`
-                        : ''
-                    }
                     <section class="relation-strip relation-strip-compact" data-harness-result-hidden-harness-context="true">
                       <div class="card-title-row card-title-row-tight">
                         <strong>하네스 컨텍스트</strong>
@@ -2160,16 +2155,26 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                     </section>
-                    ${
-                      hiddenHarnessExecutionResult.resolvedInputPath
-                        ? `<p class="detail-copy" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
-                        : ''
-                    }
-                    ${
-                      hiddenHarnessExecutionResult.resolvedOutputPath
-                        ? `<p class="detail-copy" data-harness-result-hidden-output-summary="true">출력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}</code></p>`
-                        : ''
-                    }
+                    <section class="relation-strip relation-strip-compact" data-harness-result-hidden-run-context="true">
+                      <div class="card-title-row card-title-row-tight">
+                        <strong>실행 기록</strong>
+                      </div>
+                      ${
+                        hiddenHarnessExecutionResult.executedAt
+                          ? `<p class="detail-copy" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(formatDate(hiddenHarnessExecutionResult.executedAt))}</code></p>`
+                          : ''
+                      }
+                      ${
+                        hiddenHarnessExecutionResult.resolvedInputPath
+                          ? `<p class="detail-copy" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
+                          : ''
+                      }
+                      ${
+                        hiddenHarnessExecutionResult.resolvedOutputPath
+                          ? `<p class="detail-copy" data-harness-result-hidden-output-summary="true">출력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}</code></p>`
+                          : ''
+                      }
+                    </section>
                     <div class="form-actions form-actions-inline">
                       <button
                         class="secondary-button"
