@@ -592,6 +592,13 @@ Post-freeze execution preview base-class follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only latest and hidden execution preview semantics plus current `statusCard` and `operatorAction` payloads
 - this keeps the layering explicit: `execution result register + hidden execution result register -> preview base class -> log viewer compact`
 
+### Local-only recent-history action density
+Post-freeze execution recent-history action-density follow-up:
+- `ui/app.js` now adds the existing `form-actions-compact` class to the visible recent-history action row so the history register keeps the same tighter operator scan rhythm already used by the visible latest-result register
+- the change does not introduce a new route, snapshot key, or visibility state; it reuses the existing compact action-row token already used elsewhere in the execution surface
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `recentHarnessExecutions` semantics plus current `statusCard` and `operatorAction` payloads
+- this keeps the layering explicit: `execution history register -> history action density -> compact action row`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
