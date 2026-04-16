@@ -536,6 +536,13 @@ Post-freeze execution latest-result reuse-label wording follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `latestHarnessExecution` semantics plus current `statusCard` and `operatorAction` payloads
 - this keeps the layering explicit: `execution result register -> visible reuse wording -> reuse action label`
 
+### Local-only latest-result action-row density
+Post-freeze execution latest-result action-density follow-up:
+- `ui/app.js` now adds the existing `form-actions-compact` class to the visible latest-result action row so the latest register keeps the same compact scan rhythm as the hidden strip without introducing a new presentation contract
+- the change does not introduce a new route, snapshot key, or visibility state; it reuses the existing compact action-row token already used elsewhere in the execution surface
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `latestHarnessExecution` semantics plus current `statusCard` and `operatorAction` payloads
+- this keeps the layering explicit: `execution result register -> visible action density -> compact action row`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`

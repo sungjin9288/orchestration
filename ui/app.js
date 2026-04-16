@@ -2031,7 +2031,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     ${
                       visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.resolvedOutputPath
                         ? `
-                          <div class="form-actions form-actions-inline">
+                          <div class="form-actions form-actions-inline form-actions-compact">
                             ${
                               visibleHarnessExecutionResult.resolvedInputPath
                                 ? `
