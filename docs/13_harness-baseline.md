@@ -550,6 +550,13 @@ Post-freeze execution latest-result detail-density follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `latestHarnessExecution` semantics plus current `statusCard` and `operatorAction` payloads
 - this keeps the layering explicit: `execution result register -> visible detail density -> compact path rows`
 
+### Local-only latest-result preview-empty density
+Post-freeze execution latest-result preview-empty follow-up:
+- `ui/app.js` now adds the existing `detail-copy-compact` class to the visible latest-result preview-empty fallback copy so the latest register keeps the same compact copy rhythm even when no preview text is available
+- the change does not introduce a new route, snapshot key, or visibility state; it reuses the existing compact detail-copy token already used elsewhere in the execution surface
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `latestHarnessExecution` semantics plus current `statusCard` and `operatorAction` payloads
+- this keeps the layering explicit: `execution result register -> visible preview-empty density -> compact empty copy`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
