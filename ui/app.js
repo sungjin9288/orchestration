@@ -2132,6 +2132,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     </div>
                     <p class="detail-copy">필요하면 방금 숨긴 latest result register를 다시 표시할 수 있습니다.</p>
                     ${
+                      hiddenHarnessExecutionResult.executedAt
+                        ? `<p class="detail-copy" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(formatDate(hiddenHarnessExecutionResult.executedAt))}</code></p>`
+                        : ''
+                    }
+                    ${
                       hiddenHarnessExecutionResult.resolvedInputPath
                         ? `<p class="detail-copy" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
                         : ''
