@@ -473,6 +473,13 @@ Post-freeze execution hidden-result preview-copy-label follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics plus current `latestHarnessExecution`, `statusCard`, and `operatorAction` payloads
 - this keeps the layering explicit: `hidden execution result register -> hidden preview copy wording -> preview copy action label`
 
+### Local-only recent-history reuse label wording
+Post-freeze execution recent-history reuse-label follow-up:
+- `ui/app.js` now shortens the recent-history reuse button label to `경로 채우기` so it stays consistent with the compact hidden action row wording
+- the change does not introduce a new route, snapshot key, or visibility state; it adjusts only the operator-facing label for the existing recent-history reuse action already in render scope
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `recentHarnessExecutions` semantics plus current `latestHarnessExecution`, `statusCard`, and `operatorAction` payloads
+- this keeps the layering explicit: `execution history register -> history reuse wording -> reuse action label`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
