@@ -2183,7 +2183,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         data-execution-key="${escapeHtml(getHarnessExecutionResultKey(hiddenHarnessExecutionResult) || '')}"
                         data-harness-result-show="true"
                       >
-                        숨긴 결과 다시 보기
+                        결과 다시 보기
                       </button>
                       ${
                         hiddenHarnessExecutionResult.resolvedInputPath
