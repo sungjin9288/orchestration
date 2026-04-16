@@ -326,6 +326,13 @@ Post-freeze execution hidden-result metadata follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics and current consumer-status payload
 - this keeps the layering explicit: `hidden execution result register -> hidden harness/state summary -> statusCard + local latest execution payload`
 
+### Local-only hidden-result command template summary
+Post-freeze execution hidden-result operator-context follow-up:
+- `ui/app.js` `Execution` now renders the representative repo-native command template directly inside the hidden latest-result strip
+- the change does not introduce a new route, snapshot key, or visibility state; it reuses the existing hidden latest execution context plus `derived.harnessConsumerStatus.operatorAction`
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics and current consumer-status payload
+- this keeps the layering explicit: `hidden execution result register -> hidden command summary -> operatorAction + local latest execution payload`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`

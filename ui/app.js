@@ -2138,6 +2138,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     }
                     <p class="detail-copy" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>${escapeHtml(statusCard.primaryHarnessId)}</code></p>
                     <p class="detail-copy" data-harness-result-hidden-state-summary="true">현재 상태: <code>${escapeHtml(statusCard.primaryHarnessState)}</code></p>
+                    <p class="detail-copy" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
                     ${
                       hiddenHarnessExecutionResult.resolvedInputPath
                         ? `<p class="detail-copy" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
