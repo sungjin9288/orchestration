@@ -2246,7 +2246,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               data-preview-text="${escapeHtml(hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview || '')}"
                               data-harness-result-hidden-preview-copy="true"
                             >
-                              미리보기 복사
+                              미리보기
                             </button>
                           `
                           : ''
