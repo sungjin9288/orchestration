@@ -487,6 +487,13 @@ Post-freeze execution recent-history rerun-label follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `recentHarnessExecutions` semantics plus current `latestHarnessExecution`, `statusCard`, and `operatorAction` payloads
 - this keeps the layering explicit: `execution history register -> history rerun wording -> rerun action label`
 
+### Local-only recent-history input-copy label wording
+Post-freeze execution recent-history input-copy-label follow-up:
+- `ui/app.js` now shortens the recent-history input-copy button label to `입력 경로` so it stays consistent with the compact hidden action row wording
+- the change does not introduce a new route, snapshot key, or visibility state; it adjusts only the operator-facing label for the existing recent-history input-copy action already in render scope
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `recentHarnessExecutions` semantics plus current `latestHarnessExecution`, `statusCard`, and `operatorAction` payloads
+- this keeps the layering explicit: `execution history register -> history input copy wording -> input copy action label`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`

@@ -2297,7 +2297,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
                                         data-harness-input-copy="true"
                                       >
-                                        입력 경로 복사
+                                        입력 경로
                                       </button>
                                     `
                                     : ''
