@@ -2195,7 +2195,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               data-input-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}"
                               data-harness-result-hidden-input-copy="true"
                             >
-                              입력 경로 복사
+                              입력 경로
                             </button>
                             <button
                               class="secondary-button"

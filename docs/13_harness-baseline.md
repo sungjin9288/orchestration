@@ -286,7 +286,7 @@ Post-freeze execution hidden-result output-path copy follow-up:
 
 ### Local-only hidden-result input path copy
 Post-freeze execution hidden-result input-path copy follow-up:
-- `ui/app.js` `Execution` now exposes `입력 경로 복사` directly inside the hidden latest-result strip when the hidden execution already carries a resolved input path
+- `ui/app.js` `Execution` now exposes the hidden input-path copy action directly inside the hidden latest-result strip when the hidden execution already carries a resolved input path
 - the change does not introduce a new route, snapshot key, or visibility state; it reuses the existing `copy-harness-input-path` clipboard-or-status affordance with the current hidden latest execution payload
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only latest execution payload plus current hidden-result semantics
 - this keeps the layering explicit: `hidden execution result register -> copy hidden input path action -> local clipboard or status`
@@ -458,6 +458,13 @@ Post-freeze execution hidden-result output-copy-label follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it adjusts only the operator-facing label for the existing hidden latest-result output-copy action already in render scope
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics plus current `latestHarnessExecution`, `statusCard`, and `operatorAction` payloads
 - this keeps the layering explicit: `hidden execution result register -> hidden output copy wording -> output copy action label`
+
+### Local-only hidden-result input-copy label wording
+Post-freeze execution hidden-result input-copy-label follow-up:
+- `ui/app.js` now shortens the hidden latest-result input-copy button label to `입력 경로` so it better fits the compact hidden action row
+- the change does not introduce a new route, snapshot key, or visibility state; it adjusts only the operator-facing label for the existing hidden latest-result input-copy action already in render scope
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics plus current `latestHarnessExecution`, `statusCard`, and `operatorAction` payloads
+- this keeps the layering explicit: `hidden execution result register -> hidden input copy wording -> input copy action label`
 
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
