@@ -2321,7 +2321,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
                                         data-harness-output-copy="true"
                                       >
-                                        출력 경로 복사
+                                        출력 경로
                                       </button>
                                     `
                                     : ''
