@@ -396,6 +396,13 @@ Post-freeze execution hidden-result run-context follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics plus current `latestHarnessExecution` payload
 - this keeps the layering explicit: `hidden execution result register -> hidden run-context group -> executedAt + resolved paths`
 
+### Local-only hidden-result block ordering
+Post-freeze execution hidden-result ordering follow-up:
+- `ui/app.js` `Execution` now renders the hidden latest-result blocks in this order: `실행 기록 -> 하네스 컨텍스트 -> 운영 컨텍스트`
+- the change does not introduce a new route, snapshot key, or visibility state; it reorders only the existing compact blocks already present in the hidden latest-result strip
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics plus current `latestHarnessExecution`, `statusCard`, and `operatorAction` payloads
+- this keeps the layering explicit: `hidden execution result register -> hidden block ordering -> run context first`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
