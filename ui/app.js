@@ -2013,7 +2013,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${createToken(`대표:${visibleHarnessExecutionResult.harnessId}`, 'neutral')}
                       ${
                         visibleHarnessExecutionResult.outputPath
-                          ? createToken('출력파일', 'accent')
+                          ? createToken('출력 파일', 'accent')
                           : createToken('표준 출력', 'neutral')
                       }
                       ${
