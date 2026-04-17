@@ -627,6 +627,13 @@ Post-freeze execution recent-history text-density follow-up:
 - this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only recent-history presentation semantics
 - this keeps the layering explicit: `execution history register -> history text density -> compact register typography`
 
+### Local-only recent-history list density
+Post-freeze execution recent-history list-density follow-up:
+- `ui/app.js` now adds a dedicated `harness-execution-history-list-compact` class to the visible recent-history list container so the list gap can tighten without touching the shared `stack` token used across the shell
+- `ui/styles.css` scopes that list treatment to the recent-history container only by trimming the list gap from the base stack rhythm while leaving generic stack semantics unchanged elsewhere
+- this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only recent-history presentation semantics
+- this keeps the layering explicit: `execution history register -> history list density -> compact list gap`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`

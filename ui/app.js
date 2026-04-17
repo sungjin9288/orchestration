@@ -2269,7 +2269,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <strong>최근 실행 기록</strong>
                       ${createToken(`${recentHarnessExecutions.length}건`, 'neutral')}
                     </div>
-                    <div class="stack" data-harness-execution-history-list="true">
+                    <div class="stack harness-execution-history-list-compact" data-harness-execution-history-list="true">
                       ${recentHarnessExecutions
                         .map(
                           (execution, index) => `

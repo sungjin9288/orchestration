@@ -4290,6 +4290,10 @@ h3 {
   gap: 12px;
 }
 
+.harness-execution-history-list-compact {
+  gap: 10px;
+}
+
 .card {
   padding: 12px;
 }
