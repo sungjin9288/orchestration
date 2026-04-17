@@ -2006,7 +2006,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                 ? `
                   <section class="relation-strip relation-strip-compact" data-harness-execution-result="true">
                     <div class="card-title-row card-title-row-tight">
-                      <strong>최근 하네스 실행 결과</strong>
+                      <strong>최근 실행 결과</strong>
                       ${createToken('success', 'success')}
                     </div>
                     <div class="token-row token-row-compact">

@@ -14,19 +14,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
-const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-307');
-const port = 4607;
+const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-379');
+const port = 4680;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
-const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 
-assert.match(serveUi, /outputPreview:/);
-assert.match(appJs, /data-harness-execution-result="true"/);
-assert.match(appJs, /data-harness-execution-preview="true"/);
-assert.match(appJs, /최근 실행 결과/);
-assert.match(appJs, /state\.lastHarnessExecutionResult = payload\.harnessExecution \|\| null;/);
+assert.match(
+  appJs,
+  /<section class="relation-strip relation-strip-compact" data-harness-execution-result="true">[\s\S]*?<strong>최근 실행 결과<\/strong>/s,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -59,13 +56,13 @@ async function waitForServer() {
         return;
       }
     } catch (_error) {
-      // Retry until the server is ready.
+      // Retry until ready.
     }
 
     await delay(200);
   }
 
-  throw new Error('Timed out waiting for ui-slice-307 server');
+  throw new Error('Timed out waiting for ui-slice-379 server');
 }
 
 async function main() {
@@ -82,22 +79,11 @@ async function main() {
   );
 
   let stderr = '';
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-307-'));
-  const inputPath = path.join(tempDir, 'harness-input.txt');
-  const outputPath = path.join(tempDir, 'harness-output.md');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-379-'));
+  const inputPath = path.join(tempDir, 'visible-title-wording.txt');
+  const outputPath = path.join(tempDir, 'visible-title-wording.md');
 
-  fs.writeFileSync(
-    inputPath,
-    [
-      'Execution result preview smoke',
-      '',
-      'This fixture proves the execution route also returns preview evidence.',
-      '',
-      '- local-only execution evidence',
-      '- preview contract',
-    ].join('\n'),
-    'utf8',
-  );
+  fs.writeFileSync(inputPath, 'Execution visible title wording smoke\n', 'utf8');
 
   server.stderr.on('data', (chunk) => {
     stderr += chunk.toString();
@@ -114,17 +100,16 @@ async function main() {
     assert.equal(runPayload.harnessExecution?.harnessId, 'markitdown');
     assert.equal(runPayload.harnessExecution?.resolvedOutputPath, outputPath);
     assert.ok(runPayload.harnessExecution?.executedAt);
-    assert.match(runPayload.harnessExecution?.outputPreview || '', /Execution result preview smoke/i);
+    assert.match(runPayload.harnessExecution?.outputPreview || '', /Execution visible title wording smoke/i);
 
     console.log(
       JSON.stringify(
         {
           ok: true,
-          harnessExecutionEvidence: {
-            insertionPoint: 'executionOperatorActionShelf->executionResultRegister',
+          harnessExecutionVisibleTitleWording: {
+            insertionPoint: 'executionResultRegister->visibleTitleWording->sectionTitle',
+            title: '최근 실행 결과',
             route: '/api/harness/operator-action/run',
-            previewMarker: 'data-harness-execution-preview',
-            outputPath: runPayload.harnessExecution.resolvedOutputPath,
           },
         },
         null,
@@ -133,7 +118,6 @@ async function main() {
     );
   } catch (error) {
     const detail = stderr.trim();
-
     throw new Error(
       detail
         ? `${error instanceof Error ? error.message : String(error)}\n${detail}`
