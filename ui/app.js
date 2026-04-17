@@ -17288,7 +17288,7 @@ function hideHarnessExecutionResult(actionButton) {
   state.hiddenHarnessExecutionResultKey = executionKey;
   render();
   elements.refreshStatus.textContent =
-    '최근 하네스 실행 결과를 숨겼습니다. 필요하면 실행 기록에서 다시 볼 수 있습니다.';
+    '최근 실행 결과를 숨겼습니다. 필요하면 실행 기록에서 다시 볼 수 있습니다.';
 }
 
 function showHarnessExecutionResult(actionButton, statusPayload) {

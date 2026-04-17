@@ -648,6 +648,13 @@ Post-freeze execution recent-history title-wording follow-up:
 - this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only recent-history presentation semantics
 - this keeps the layering explicit: `execution history register -> history title wording -> section title`
 
+### Local-only hidden-result hide status wording
+Post-freeze execution hidden-result hide-status wording follow-up:
+- `ui/app.js` now shortens the hide success status copy from `최근 하네스 실행 결과를 숨겼습니다.` to `최근 실행 결과를 숨겼습니다.` while keeping the existing `실행 기록에서 다시 볼 수 있습니다.` guidance unchanged
+- this keeps the hidden latest-result feedback in the same operator wording rhythm as the visible/hidden execution surfaces without changing hide/show behavior, route flow, or local visibility state semantics
+- this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result presentation semantics
+- this keeps the layering explicit: `execution result register -> hide execution result status wording -> refresh status copy`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
