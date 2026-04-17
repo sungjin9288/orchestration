@@ -620,6 +620,13 @@ Post-freeze execution recent-history item-density follow-up:
 - this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only recent-history presentation semantics
 - this keeps the layering explicit: `execution history register -> history item density -> compact register card`
 
+### Local-only recent-history text density
+Post-freeze execution recent-history text-density follow-up:
+- `ui/styles.css` now tightens `control-overview-register-label` and `control-overview-register-value` typography only when those rows are rendered inside the existing `control-overview-register-compact` history card variant
+- the shared register token remains unchanged outside recent-history, so this narrows only label/value scan density for the local execution-history surface instead of widening typography semantics shell-wide
+- this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only recent-history presentation semantics
+- this keeps the layering explicit: `execution history register -> history text density -> compact register typography`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`

@@ -2421,6 +2421,16 @@ h3 {
   padding: 0;
 }
 
+.control-overview-register-compact .control-overview-register-label {
+  font-size: 0.6rem;
+  line-height: 1.02;
+}
+
+.control-overview-register-compact .control-overview-register-value {
+  font-size: 0.77rem;
+  line-height: 1.18;
+}
+
 .control-overview-register-label,
 .control-overview-queue-meta-label,
 .control-overview-detail-label {
