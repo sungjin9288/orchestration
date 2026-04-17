@@ -2265,7 +2265,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
               recentHarnessExecutions.length
                 ? `
                   <section class="relation-strip relation-strip-compact" data-harness-execution-history="true">
-                    <div class="card-title-row">
+                    <div class="card-title-row card-title-row-tight">
                       <strong>최근 실행 기록</strong>
                       ${createToken(`${recentHarnessExecutions.length}건`, 'neutral')}
                     </div>
