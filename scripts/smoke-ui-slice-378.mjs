@@ -14,16 +14,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-344');
-const port = 4645;
+const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-378');
+const port = 4679;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 
-assert.match(appJs, /data-harness-execution-result-hidden="true"/);
-assert.match(appJs, /<div class="card-title-row card-title-row-tight">/);
-assert.match(appJs, /createToken\('숨김', 'neutral'\)/);
-assert.match(appJs, /필요하면 방금 숨긴 실행 결과를 다시 표시할 수 있습니다\./);
+assert.match(
+  appJs,
+  /<section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">[\s\S]*?필요하면 방금 숨긴 실행 결과를 다시 표시할 수 있습니다\./s,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -62,7 +62,7 @@ async function waitForServer() {
     await delay(200);
   }
 
-  throw new Error('Timed out waiting for ui-slice-344 server');
+  throw new Error('Timed out waiting for ui-slice-378 server');
 }
 
 async function main() {
@@ -79,11 +79,11 @@ async function main() {
   );
 
   let stderr = '';
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-344-'));
-  const inputPath = path.join(tempDir, 'hidden-root-wording.txt');
-  const outputPath = path.join(tempDir, 'hidden-root-wording.md');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-378-'));
+  const inputPath = path.join(tempDir, 'hidden-helper-wording.txt');
+  const outputPath = path.join(tempDir, 'hidden-helper-wording.md');
 
-  fs.writeFileSync(inputPath, 'Execution hidden root wording smoke\n', 'utf8');
+  fs.writeFileSync(inputPath, 'Execution hidden helper wording smoke\n', 'utf8');
 
   server.stderr.on('data', (chunk) => {
     stderr += chunk.toString();
@@ -106,10 +106,9 @@ async function main() {
       JSON.stringify(
         {
           ok: true,
-          harnessExecutionHiddenRootWording: {
-            insertionPoint: 'hiddenExecutionResultRegister->hiddenRootWording->localizedHeaderCopy',
-            headerClass: 'card-title-row-tight',
-            tokenLabel: '숨김',
+          harnessExecutionHiddenHelperWording: {
+            insertionPoint: 'hiddenExecutionResultRegister->hiddenHelperWording->helperCopy',
+            helperCopy: '필요하면 방금 숨긴 실행 결과를 다시 표시할 수 있습니다.',
             route: '/api/harness/operator-action/run',
           },
         },

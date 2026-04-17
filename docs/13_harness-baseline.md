@@ -662,6 +662,13 @@ Post-freeze execution hidden-result title-wording follow-up:
 - this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result presentation semantics
 - this keeps the layering explicit: `hidden execution result register -> hidden title wording -> section title`
 
+### Local-only hidden-result helper wording
+Post-freeze execution hidden-result helper-wording follow-up:
+- `ui/app.js` now shortens the hidden latest-result helper copy from `필요하면 방금 숨긴 최신 실행 결과를 다시 표시할 수 있습니다.` to `필요하면 방금 숨긴 실행 결과를 다시 표시할 수 있습니다.`
+- this keeps the hidden helper line in the same compact execution wording baseline as the surrounding hidden latest-result title and status copy without changing hide/show behavior, route flow, or local visibility state semantics
+- this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result presentation semantics
+- this keeps the layering explicit: `hidden execution result register -> hidden helper wording -> helper copy`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
