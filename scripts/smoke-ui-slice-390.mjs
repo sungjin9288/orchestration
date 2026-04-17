@@ -14,20 +14,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
-const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-310');
-const port = 4610;
+const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-390');
+const port = 4691;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
-const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 
-assert.match(serveUi, /url\.pathname === '\/api\/harness\/operator-action\/clear-history'/);
-assert.match(serveUi, /function clearHarnessExecutionMemory\(\)/);
-assert.match(serveUi, /kind: 'clear-harness-operator-action-history'/);
-assert.match(appJs, /data-action="clear-harness-execution-history"/);
-assert.match(appJs, /data-harness-clear-history="true"/);
-assert.match(appJs, /await postJson\('\/api\/harness\/operator-action\/clear-history', \{/);
 assert.match(appJs, /하네스 \$\{statusCard\.primaryHarnessId\}의 실행 기록을 비우는 중…/);
 assert.match(appJs, /하네스 \$\{statusCard\.primaryHarnessId\}의 실행 기록을 비웠습니다\./);
 
@@ -68,7 +60,7 @@ async function waitForServer() {
     await delay(200);
   }
 
-  throw new Error('Timed out waiting for ui-slice-310 server');
+  throw new Error('Timed out waiting for ui-slice-390 server');
 }
 
 async function main() {
@@ -85,14 +77,11 @@ async function main() {
   );
 
   let stderr = '';
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-310-'));
-  const inputPathA = path.join(tempDir, 'history-a.txt');
-  const inputPathB = path.join(tempDir, 'history-b.txt');
-  const outputPathA = path.join(tempDir, 'history-a.md');
-  const outputPathB = path.join(tempDir, 'history-b.md');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-390-'));
+  const inputPath = path.join(tempDir, 'clear-history-status-wording.txt');
+  const outputPath = path.join(tempDir, 'clear-history-status-wording.md');
 
-  fs.writeFileSync(inputPathA, 'Execution history clear smoke A\n', 'utf8');
-  fs.writeFileSync(inputPathB, 'Execution history clear smoke B\n', 'utf8');
+  fs.writeFileSync(inputPath, 'Execution clear history status wording smoke\n', 'utf8');
 
   server.stderr.on('data', (chunk) => {
     stderr += chunk.toString();
@@ -102,37 +91,26 @@ async function main() {
     await waitForServer();
 
     await postJson('/api/harness/operator-action/run', {
-      inputPath: inputPathA,
-      outputPath: outputPathA,
+      inputPath,
+      outputPath,
     });
-    await postJson('/api/harness/operator-action/run', {
-      inputPath: inputPathB,
-      outputPath: outputPathB,
-    });
-
-    const beforeClear = await fetchJson(`${baseUrl}/api/snapshot`);
-    assert.ok((beforeClear.derived?.recentHarnessExecutions || []).length >= 2);
-    assert.ok(beforeClear.derived?.latestHarnessExecution);
 
     const clearPayload = await postJson('/api/harness/operator-action/clear-history', {
       harnessId: 'markitdown',
     });
+
     assert.equal(clearPayload.mutation?.kind, 'clear-harness-operator-action-history');
     assert.equal(clearPayload.mutation?.harnessId, 'markitdown');
-
-    const afterClear = await fetchJson(`${baseUrl}/api/snapshot`);
-    assert.equal(afterClear.derived?.latestHarnessExecution || null, null);
-    assert.deepEqual(afterClear.derived?.recentHarnessExecutions || [], []);
 
     console.log(
       JSON.stringify(
         {
           ok: true,
-          harnessExecutionHistoryClear: {
-            insertionPoint: 'executionOperatorActionShelf->clearExecutionHistoryAction->localOnlyRoute',
+          harnessExecutionClearHistoryStatusWording: {
+            insertionPoint: 'executionClearHistoryAction->statusWording->progressAndSuccessCopy',
+            pendingMessage: '하네스 markitdown의 실행 기록을 비우는 중…',
+            successMessage: '하네스 markitdown의 실행 기록을 비웠습니다.',
             route: '/api/harness/operator-action/clear-history',
-            clearedLatest: afterClear.derived?.latestHarnessExecution || null,
-            clearedHistoryCount: (afterClear.derived?.recentHarnessExecutions || []).length,
           },
         },
         null,

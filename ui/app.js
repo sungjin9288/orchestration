@@ -17406,7 +17406,7 @@ async function clearHarnessExecutionHistory(statusPayload) {
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId} 실행 기록을 비우는 중…`;
+  elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId}의 실행 기록을 비우는 중…`;
   render();
 
   try {
@@ -17419,7 +17419,7 @@ async function clearHarnessExecutionHistory(statusPayload) {
     state.hiddenHarnessExecutionResultKey = null;
     state.lastHarnessExecutionResult = null;
     render();
-    elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId} 실행 기록을 비웠습니다.`;
+    elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId}의 실행 기록을 비웠습니다.`;
   } finally {
     state.mutating = false;
     render();

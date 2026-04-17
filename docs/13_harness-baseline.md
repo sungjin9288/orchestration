@@ -431,6 +431,13 @@ Post-freeze execution rerun pending-status follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only rerun presentation semantics
 - this keeps the layering explicit: `execution rerun action -> pending status wording -> fallback harness label`
 
+### Local-only clear-history status wording
+Post-freeze execution clear-history status wording follow-up:
+- `ui/app.js` now renders the clear-history progress/success status copy as `하네스 <id>의 실행 기록 ...` so the helper wording matches the same operator-facing possessive baseline used by rerun status copy
+- this keeps the clear-history action status copy inside the same local-only presentation layer while preserving the existing `statusCard.primaryHarnessId` source, clear-history helper flow, and runtime truth
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only clear-history presentation semantics
+- this keeps the layering explicit: `execution clear-history action -> status wording -> progress and success copy`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
