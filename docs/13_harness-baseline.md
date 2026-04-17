@@ -382,6 +382,13 @@ Post-freeze execution hidden-result representative-runner follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics and current consumer-status payload
 - this keeps the layering explicit: `hidden execution result register -> hidden primary-runner summary -> statusCard.primaryRunner + local latest execution payload`
 
+### Local-only hidden-result primary-runner wording
+Post-freeze execution hidden-result representative-runner wording follow-up:
+- `ui/app.js` now renders the hidden latest-result representative-runner summary label as `대표 러너` instead of the mixed-language `대표 runner`
+- this keeps the hidden harness-context block in the same Korean operator wording baseline as adjacent `대표 하네스`, `대표 명령`, and `대표 포지션` summaries without changing the underlying `statusCard.primaryRunner` source
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result presentation semantics
+- this keeps the layering explicit: `hidden execution result register -> hidden primary-runner wording -> summary label`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
