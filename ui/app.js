@@ -17454,7 +17454,9 @@ async function rerunHarnessExecutionPaths(actionButton) {
     inputPath,
     outputPath,
     statusPayload,
-    pendingMessage: `하네스 ${statusCard?.primaryHarnessId || 'unknown'}를 최근 실행 경로로 다시 실행하는 중…`,
+    pendingMessage: statusCard?.primaryHarnessId
+      ? `하네스 ${statusCard.primaryHarnessId}의 최근 실행 경로를 다시 실행하는 중…`
+      : '미확인 하네스의 최근 실행 경로를 다시 실행하는 중…',
   });
 }
 

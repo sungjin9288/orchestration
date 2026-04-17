@@ -14,16 +14,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-318');
-const port = 4619;
+const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-389');
+const port = 4690;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 
-assert.match(appJs, /data-action="rerun-harness-execution-paths"/);
-assert.match(appJs, /data-harness-result-rerun="true"/);
-assert.match(appJs, /async function rerunHarnessExecutionPaths\(actionButton\)/);
-assert.match(appJs, /await executeHarnessOperatorAction\(\{/);
 assert.match(
   appJs,
   /pendingMessage: statusCard\?\.primaryHarnessId[\s\S]*\? `하네스 \$\{statusCard\.primaryHarnessId\}의 최근 실행 경로를 다시 실행하는 중…`[\s\S]*: '미확인 하네스의 최근 실행 경로를 다시 실행하는 중…',/,
@@ -66,7 +62,7 @@ async function waitForServer() {
     await delay(200);
   }
 
-  throw new Error('Timed out waiting for ui-slice-318 server');
+  throw new Error('Timed out waiting for ui-slice-389 server');
 }
 
 async function main() {
@@ -83,11 +79,11 @@ async function main() {
   );
 
   let stderr = '';
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-318-'));
-  const inputPath = path.join(tempDir, 'result-rerun.txt');
-  const outputPath = path.join(tempDir, 'result-rerun.md');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-389-'));
+  const inputPath = path.join(tempDir, 'rerun-pending-wording.txt');
+  const outputPath = path.join(tempDir, 'rerun-pending-wording.md');
 
-  fs.writeFileSync(inputPath, 'Execution result rerun smoke\n', 'utf8');
+  fs.writeFileSync(inputPath, 'Execution rerun pending wording smoke\n', 'utf8');
 
   server.stderr.on('data', (chunk) => {
     stderr += chunk.toString();
@@ -96,42 +92,25 @@ async function main() {
   try {
     await waitForServer();
 
-    const firstRun = await postJson('/api/harness/operator-action/run', {
+    const runPayload = await postJson('/api/harness/operator-action/run', {
       inputPath,
       outputPath,
     });
-    assert.equal(firstRun.harnessExecution?.resolvedInputPath, inputPath);
-    assert.equal(firstRun.harnessExecution?.resolvedOutputPath, outputPath);
+    const recentHarnessExecutions = runPayload.derived?.recentHarnessExecutions || [];
 
-    const secondRun = await postJson('/api/harness/operator-action/run', {
-      inputPath: firstRun.harnessExecution?.resolvedInputPath,
-      outputPath: firstRun.harnessExecution?.resolvedOutputPath,
-    });
-    assert.equal(secondRun.harnessExecution?.resolvedInputPath, inputPath);
-    assert.equal(secondRun.harnessExecution?.resolvedOutputPath, outputPath);
-
-    const refreshedSnapshot = await fetchJson(`${baseUrl}/api/snapshot`);
-    const latestHarnessExecution = refreshedSnapshot.derived?.latestHarnessExecution || null;
-    const recentHarnessExecutions = refreshedSnapshot.derived?.recentHarnessExecutions || [];
-
-    assert.ok(latestHarnessExecution);
-    assert.equal(latestHarnessExecution.resolvedInputPath, inputPath);
-    assert.equal(latestHarnessExecution.resolvedOutputPath, outputPath);
     assert.ok(Array.isArray(recentHarnessExecutions));
-    assert.ok(recentHarnessExecutions.length >= 2);
+    assert.ok(recentHarnessExecutions.length >= 1);
     assert.equal(recentHarnessExecutions[0]?.resolvedInputPath, inputPath);
-    assert.equal(recentHarnessExecutions[1]?.resolvedInputPath, inputPath);
+    assert.equal(recentHarnessExecutions[0]?.resolvedOutputPath, outputPath);
 
     console.log(
       JSON.stringify(
         {
           ok: true,
-          harnessExecutionResultRerun: {
-            insertionPoint: 'executionResultRegister->rerunExecutionPathsAction->runHarnessOperatorActionRoute',
-            sourceMarker: 'data-harness-result-rerun',
+          harnessExecutionRerunPendingWording: {
+            insertionPoint: 'executionRerunAction->pendingStatusWording->fallbackHarnessLabel',
+            pendingMessage: '미확인 하네스의 최근 실행 경로를 다시 실행하는 중…',
             route: '/api/harness/operator-action/run',
-            resolvedInputPath: inputPath,
-            resolvedOutputPath: outputPath,
           },
         },
         null,
