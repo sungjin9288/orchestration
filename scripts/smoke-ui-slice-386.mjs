@@ -14,14 +14,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-335');
-const port = 4636;
+const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-386');
+const port = 4687;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 
-assert.match(appJs, /data-harness-result-hidden-kind-summary="true"/);
-assert.match(appJs, /statusCard\.primaryKind \|\| '미확인'/);
+assert.match(
+  appJs,
+  /data-harness-result-hidden-kind-summary="true">하네스 종류: <code>\$\{escapeHtml\(statusCard\.primaryKind \|\| '미확인'\)\}<\/code><\/p>/,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -60,7 +62,7 @@ async function waitForServer() {
     await delay(200);
   }
 
-  throw new Error('Timed out waiting for ui-slice-335 server');
+  throw new Error('Timed out waiting for ui-slice-386 server');
 }
 
 async function main() {
@@ -77,11 +79,11 @@ async function main() {
   );
 
   let stderr = '';
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-335-'));
-  const inputPath = path.join(tempDir, 'hidden-kind-summary.txt');
-  const outputPath = path.join(tempDir, 'hidden-kind-summary.md');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-386-'));
+  const inputPath = path.join(tempDir, 'hidden-kind-fallback-wording.txt');
+  const outputPath = path.join(tempDir, 'hidden-kind-fallback-wording.md');
 
-  fs.writeFileSync(inputPath, 'Execution hidden kind summary smoke\n', 'utf8');
+  fs.writeFileSync(inputPath, 'Execution hidden kind fallback wording smoke\n', 'utf8');
 
   server.stderr.on('data', (chunk) => {
     stderr += chunk.toString();
@@ -94,19 +96,19 @@ async function main() {
       inputPath,
       outputPath,
     });
-    const harnessConsumerStatus = runPayload.derived?.harnessConsumerStatus || null;
 
-    assert.ok(harnessConsumerStatus?.statusCard?.primaryKind);
+    assert.equal(runPayload.harnessExecution?.harnessId, 'markitdown');
+    assert.equal(runPayload.harnessExecution?.resolvedInputPath, inputPath);
+    assert.equal(runPayload.harnessExecution?.resolvedOutputPath, outputPath);
 
     console.log(
       JSON.stringify(
         {
           ok: true,
-          harnessExecutionHiddenKindSummary: {
-            insertionPoint: 'hiddenExecutionResultRegister->hiddenKindSummary->statusCardPrimaryKind',
-            sourceMarker: 'data-harness-result-hidden-kind-summary',
+          harnessExecutionHiddenKindFallbackWording: {
+            insertionPoint: 'hiddenExecutionResultRegister->hiddenKindFallbackWording->fallbackValue',
+            fallbackValue: '미확인',
             route: '/api/harness/operator-action/run',
-            primaryKind: harnessConsumerStatus.statusCard.primaryKind,
           },
         },
         null,
