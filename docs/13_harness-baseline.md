@@ -641,6 +641,13 @@ Post-freeze execution recent-history output-fallback wording follow-up:
 - this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only recent-history presentation semantics
 - this keeps the layering explicit: `execution history register -> history output fallback wording -> output value label`
 
+### Local-only recent-history title wording
+Post-freeze execution recent-history title-wording follow-up:
+- `ui/app.js` now shortens the visible recent-history section title from `최근 실행 기록` to `실행 기록` so it aligns with the existing hidden run-context block wording
+- this keeps the visible history register in the same execution-record naming rhythm as adjacent hidden/visible execution surfaces while leaving history payload ordering, route behavior, and newest-first semantics unchanged
+- this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only recent-history presentation semantics
+- this keeps the layering explicit: `execution history register -> history title wording -> section title`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
