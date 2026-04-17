@@ -389,6 +389,13 @@ Post-freeze execution hidden-result representative-runner wording follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result presentation semantics
 - this keeps the layering explicit: `hidden execution result register -> hidden primary-runner wording -> summary label`
 
+### Local-only hidden-result posture wording
+Post-freeze execution hidden-result posture wording follow-up:
+- `ui/app.js` now renders the hidden latest-result representative-posture summary label as `대표 정책` instead of `대표 포지션`
+- this keeps the hidden harness-context block in the same policy-facing operator wording baseline while preserving the existing `statusCard.primaryPosture` source and compact summary structure
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result presentation semantics
+- this keeps the layering explicit: `hidden execution result register -> hidden posture wording -> summary label`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
