@@ -599,6 +599,13 @@ Post-freeze execution recent-history action-density follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `recentHarnessExecutions` semantics plus current `statusCard` and `operatorAction` payloads
 - this keeps the layering explicit: `execution history register -> history action density -> compact action row`
 
+### Local-only recent-history root density
+Post-freeze execution recent-history root-density follow-up:
+- `ui/app.js` now adds the existing `relation-strip-compact` class to the visible recent-history root so the history register keeps the same tighter board rhythm already used by the latest-result and hidden execution strips
+- the change does not introduce a new route, snapshot key, or visibility state; it reuses the existing compact relation-strip token already used elsewhere in the execution surface
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `recentHarnessExecutions` semantics plus current `statusCard` and `operatorAction` payloads
+- this keeps the layering explicit: `execution history register -> history root density -> compact relation strip`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
