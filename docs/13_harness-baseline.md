@@ -634,6 +634,13 @@ Post-freeze execution recent-history list-density follow-up:
 - this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only recent-history presentation semantics
 - this keeps the layering explicit: `execution history register -> history list density -> compact list gap`
 
+### Local-only recent-history output fallback wording
+Post-freeze execution recent-history output-fallback wording follow-up:
+- `ui/app.js` now renders the recent-history output fallback as `표준 출력 전용` instead of the mixed-language `stdout only` label when a run has no persisted output path
+- this keeps the recent-history register in the same Korean operator copy rhythm as the rest of the execution surface while leaving run semantics, path resolution, and route behavior unchanged
+- this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only recent-history presentation semantics
+- this keeps the layering explicit: `execution history register -> history output fallback wording -> output value label`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`

@@ -2284,7 +2284,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               </div>
                               <div class="control-overview-register-row">
                                 <span class="control-overview-register-label">출력</span>
-                                <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || 'stdout only')}</strong>
+                                <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '표준 출력 전용')}</strong>
                               </div>
                               <div class="form-actions form-actions-inline form-actions-compact">
                                 ${
