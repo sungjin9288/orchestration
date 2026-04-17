@@ -613,6 +613,13 @@ Post-freeze execution recent-history header-density follow-up:
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only `recentHarnessExecutions` semantics plus current `statusCard` and `operatorAction` payloads
 - this keeps the layering explicit: `execution history register -> history header density -> tight title row`
 
+### Local-only recent-history item density
+Post-freeze execution recent-history item-density follow-up:
+- `ui/app.js` now adds a dedicated `control-overview-register-compact` class to visible recent-history item cards so each execution register row keeps a tighter card footprint without changing shared register behavior outside the history surface
+- `ui/styles.css` scopes the compact item treatment to recent-history register cards only by trimming card gap/padding and inner row gap while leaving the base `control-overview-register` token untouched for the rest of the shell
+- this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only recent-history presentation semantics
+- this keeps the layering explicit: `execution history register -> history item density -> compact register card`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`

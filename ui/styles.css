@@ -2403,12 +2403,22 @@ h3 {
   background: rgba(247, 249, 251, 0.96);
 }
 
+.control-overview-register-compact {
+  gap: 4px;
+  padding: 5px 6px;
+}
+
 .control-overview-register-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding: 1px 0;
+}
+
+.control-overview-register-compact .control-overview-register-row {
+  gap: 6px;
+  padding: 0;
 }
 
 .control-overview-register-label,

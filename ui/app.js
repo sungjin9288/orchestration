@@ -2273,7 +2273,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${recentHarnessExecutions
                         .map(
                           (execution, index) => `
-                            <div class="control-overview-register" data-harness-execution-history-item="true">
+                            <div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">
                               <div class="control-overview-register-row">
                                 <span class="control-overview-register-label">실행</span>
                                 <strong class="control-overview-register-value">${escapeHtml(formatDate(execution.executedAt))}</strong>
