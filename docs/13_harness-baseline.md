@@ -676,6 +676,13 @@ Post-freeze execution visible-result title-wording follow-up:
 - this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result presentation semantics
 - this keeps the layering explicit: `execution result register -> visible title wording -> section title`
 
+### Local-only visible-result stdout token wording
+Post-freeze execution visible-result token-wording follow-up:
+- `ui/app.js` now renders the visible latest-result no-output token as `표준 출력` instead of `stdout` while preserving the existing `출력파일` token for persisted output-path runs
+- this keeps the visible latest-result token row in the same Korean operator wording baseline as the surrounding execution titles and path fallbacks without changing restore behavior, route flow, or local visibility state semantics
+- this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result presentation semantics
+- this keeps the layering explicit: `execution result register -> visible stdout token wording -> token label`
+
 ### Current host-ready proof
 - the current maintainer host now has `markitdown` available in `PATH`
 - `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`

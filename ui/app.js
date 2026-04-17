@@ -2014,7 +2014,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${
                         visibleHarnessExecutionResult.outputPath
                           ? createToken('출력파일', 'accent')
-                          : createToken('stdout', 'neutral')
+                          : createToken('표준 출력', 'neutral')
                       }
                       ${
                         visibleHarnessExecutionResult.executedAt
