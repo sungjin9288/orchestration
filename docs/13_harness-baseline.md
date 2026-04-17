@@ -445,6 +445,13 @@ Post-freeze execution clear-history failure-wording follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only clear-history fallback presentation semantics
 - this keeps the layering explicit: `execution clear-history action -> failure wording -> fallback copy`
 
+### Local-only clear-history guard wording
+Post-freeze execution clear-history guard-wording follow-up:
+- `ui/app.js` now renders the client-side clear-history guard message as `현재 비울 실행 기록이 없습니다.` instead of the more implementation-facing `비울 수 있는 대표 하네스 실행 기록이 없습니다.` copy
+- this keeps the local-only clear-history action in the same operator-facing wording baseline while preserving the existing `statusCard.primaryHarnessId` guard condition, button visibility rule, and clear-history helper flow
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only clear-history guard presentation semantics
+- this keeps the layering explicit: `execution clear-history action -> guard wording -> missing history message`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`

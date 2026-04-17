@@ -17401,7 +17401,7 @@ async function clearHarnessExecutionHistory(statusPayload) {
   const statusCard = statusPayload?.statusCard || null;
 
   if (!statusCard?.primaryHarnessId) {
-    throw new Error('비울 수 있는 대표 하네스 실행 기록이 없습니다.');
+    throw new Error('현재 비울 실행 기록이 없습니다.');
   }
 
   state.error = null;

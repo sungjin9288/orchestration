@@ -29,6 +29,7 @@ assert.match(serveUi, /하네스 실행 기록을 비우지 못했습니다\./);
 assert.match(appJs, /data-action="clear-harness-execution-history"/);
 assert.match(appJs, /data-harness-clear-history="true"/);
 assert.match(appJs, /await postJson\('\/api\/harness\/operator-action\/clear-history', \{/);
+assert.match(appJs, /현재 비울 실행 기록이 없습니다\./);
 assert.match(appJs, /하네스 \$\{statusCard\.primaryHarnessId\}의 실행 기록을 비우는 중…/);
 assert.match(appJs, /하네스 \$\{statusCard\.primaryHarnessId\}의 실행 기록을 비웠습니다\./);
 
