@@ -14,14 +14,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-337');
-const port = 4638;
+const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-388');
+const port = 4689;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 
-assert.match(appJs, /data-harness-result-hidden-primary-runner-summary="true"/);
-assert.match(appJs, /statusCard\.primaryRunner \|\| '미확인'/);
+assert.match(
+  appJs,
+  /data-harness-result-hidden-primary-runner-summary="true">대표 러너: <code>\$\{escapeHtml\(statusCard\.primaryRunner \|\| '미확인'\)\}<\/code><\/p>/,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -60,7 +62,7 @@ async function waitForServer() {
     await delay(200);
   }
 
-  throw new Error('Timed out waiting for ui-slice-337 server');
+  throw new Error('Timed out waiting for ui-slice-388 server');
 }
 
 async function main() {
@@ -77,11 +79,11 @@ async function main() {
   );
 
   let stderr = '';
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-337-'));
-  const inputPath = path.join(tempDir, 'hidden-primary-runner-summary.txt');
-  const outputPath = path.join(tempDir, 'hidden-primary-runner-summary.md');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-388-'));
+  const inputPath = path.join(tempDir, 'hidden-runner-fallback-wording.txt');
+  const outputPath = path.join(tempDir, 'hidden-runner-fallback-wording.md');
 
-  fs.writeFileSync(inputPath, 'Execution hidden primary runner summary smoke\n', 'utf8');
+  fs.writeFileSync(inputPath, 'Execution hidden runner fallback wording smoke\n', 'utf8');
 
   server.stderr.on('data', (chunk) => {
     stderr += chunk.toString();
@@ -94,19 +96,19 @@ async function main() {
       inputPath,
       outputPath,
     });
-    const harnessConsumerStatus = runPayload.derived?.harnessConsumerStatus || null;
 
-    assert.ok(harnessConsumerStatus?.statusCard?.primaryRunner);
+    assert.equal(runPayload.harnessExecution?.harnessId, 'markitdown');
+    assert.equal(runPayload.harnessExecution?.resolvedInputPath, inputPath);
+    assert.equal(runPayload.harnessExecution?.resolvedOutputPath, outputPath);
 
     console.log(
       JSON.stringify(
         {
           ok: true,
-          harnessExecutionHiddenPrimaryRunnerSummary: {
-            insertionPoint: 'hiddenExecutionResultRegister->hiddenPrimaryRunnerSummary->statusCardPrimaryRunner',
-            sourceMarker: 'data-harness-result-hidden-primary-runner-summary',
+          harnessExecutionHiddenPrimaryRunnerFallbackWording: {
+            insertionPoint: 'hiddenExecutionResultRegister->hiddenPrimaryRunnerFallbackWording->fallbackValue',
+            fallbackValue: '미확인',
             route: '/api/harness/operator-action/run',
-            primaryRunner: harnessConsumerStatus.statusCard.primaryRunner,
           },
         },
         null,

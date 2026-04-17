@@ -2158,7 +2158,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>${escapeHtml(statusCard.primaryHarnessId)}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">하네스 종류: <code>${escapeHtml(statusCard.primaryKind || '미확인')}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-command-summary="true">대표 명령: <code>${escapeHtml(statusCard.primaryCommand || '미확인')}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-runner-summary="true">대표 러너: <code>${escapeHtml(statusCard.primaryRunner || 'unknown')}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-runner-summary="true">대표 러너: <code>${escapeHtml(statusCard.primaryRunner || '미확인')}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-posture-summary="true">대표 정책: <code>${escapeHtml(statusCard.primaryPosture || '미확인')}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-state-summary="true">현재 상태: <code>${escapeHtml(statusCard.primaryHarnessState)}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(getHarnessBriefHostStateLabel({ currentHostState: statusCard.currentHostState }))}</code></p>

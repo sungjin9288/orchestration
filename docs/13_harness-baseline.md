@@ -417,6 +417,13 @@ Post-freeze execution hidden-result representative-command fallback follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result presentation semantics
 - this keeps the layering explicit: `hidden execution result register -> hidden primary-command fallback wording -> fallback value`
 
+### Local-only hidden-result primary-runner fallback wording
+Post-freeze execution hidden-result representative-runner fallback follow-up:
+- `ui/app.js` now renders the hidden latest-result representative-runner fallback as `미확인` instead of the implementation-facing `unknown`
+- this keeps the hidden harness-context block in the same operator-facing wording baseline while preserving the existing `statusCard.primaryRunner` source, summary structure, and runtime truth
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result presentation semantics
+- this keeps the layering explicit: `hidden execution result register -> hidden primary-runner fallback wording -> fallback value`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
