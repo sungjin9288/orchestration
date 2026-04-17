@@ -1965,7 +1965,7 @@ const server = createServer(async (request, response) => {
       return;
     } catch (error) {
       json(response, 400, {
-        error: error.message || '하네스 실행 기록 비우기에 실패했습니다.',
+        error: error.message || '하네스 실행 기록을 비우지 못했습니다.',
       });
       return;
     }

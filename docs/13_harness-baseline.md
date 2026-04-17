@@ -438,6 +438,13 @@ Post-freeze execution clear-history status wording follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only clear-history presentation semantics
 - this keeps the layering explicit: `execution clear-history action -> status wording -> progress and success copy`
 
+### Local-only clear-history failure wording
+Post-freeze execution clear-history failure-wording follow-up:
+- `scripts/serve-ui-slice-01.mjs` now renders the clear-history failure fallback as `하네스 실행 기록을 비우지 못했습니다.` instead of the less direct `하네스 실행 기록 비우기에 실패했습니다.` copy
+- this keeps the clear-history route in the same operator-facing Korean wording baseline while preserving the existing local-only `POST /api/harness/operator-action/clear-history` contract, mutation kind, and success-path behavior
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only clear-history fallback presentation semantics
+- this keeps the layering explicit: `execution clear-history action -> failure wording -> fallback copy`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
