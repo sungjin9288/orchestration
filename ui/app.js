@@ -2127,7 +2127,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                 ? `
                   <section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">
                     <div class="card-title-row card-title-row-tight">
-                      <strong>최근 하네스 실행 결과가 숨겨져 있습니다</strong>
+                      <strong>최근 실행 결과가 숨겨져 있습니다</strong>
                       ${createToken('숨김', 'neutral')}
                     </div>
                     <p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 최신 실행 결과를 다시 표시할 수 있습니다.</p>

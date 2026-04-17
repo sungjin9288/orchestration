@@ -14,15 +14,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-343');
-const port = 4644;
+const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-377');
+const port = 4678;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 
-assert.match(appJs, /data-harness-execution-result-hidden="true"/);
-assert.match(appJs, /<div class="card-title-row card-title-row-tight">/);
-assert.match(appJs, /<strong>최근 실행 결과가 숨겨져 있습니다<\/strong>/);
+assert.match(
+  appJs,
+  /<section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">[\s\S]*?<strong>최근 실행 결과가 숨겨져 있습니다<\/strong>/s,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -61,7 +62,7 @@ async function waitForServer() {
     await delay(200);
   }
 
-  throw new Error('Timed out waiting for ui-slice-343 server');
+  throw new Error('Timed out waiting for ui-slice-377 server');
 }
 
 async function main() {
@@ -78,11 +79,11 @@ async function main() {
   );
 
   let stderr = '';
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-343-'));
-  const inputPath = path.join(tempDir, 'hidden-header-density.txt');
-  const outputPath = path.join(tempDir, 'hidden-header-density.md');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-ui-slice-377-'));
+  const inputPath = path.join(tempDir, 'hidden-title-wording.txt');
+  const outputPath = path.join(tempDir, 'hidden-title-wording.md');
 
-  fs.writeFileSync(inputPath, 'Execution hidden header density smoke\n', 'utf8');
+  fs.writeFileSync(inputPath, 'Execution hidden title wording smoke\n', 'utf8');
 
   server.stderr.on('data', (chunk) => {
     stderr += chunk.toString();
@@ -105,9 +106,9 @@ async function main() {
       JSON.stringify(
         {
           ok: true,
-          harnessExecutionHiddenHeaderDensity: {
-            insertionPoint: 'hiddenExecutionResultRegister->hiddenHeaderDensity->tightTitleRow',
-            headerClass: 'card-title-row-tight',
+          harnessExecutionHiddenTitleWording: {
+            insertionPoint: 'hiddenExecutionResultRegister->hiddenTitleWording->sectionTitle',
+            title: '최근 실행 결과가 숨겨져 있습니다',
             route: '/api/harness/operator-action/run',
           },
         },
