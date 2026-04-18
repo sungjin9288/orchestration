@@ -15478,7 +15478,7 @@ function renderTaskDetail(task, data) {
         <div class="taskboard-detail-signal-row">${taskboardDetailSignalRow}</div>
         <div class="relation-strip">
           <div class="card-title-row">
-            <strong>task.worktreeRef와 현재 project_path</strong>
+            <strong>저장된 워크트리 경로와 현재 프로젝트 경로</strong>
             ${createToken(worktreeRelation.label, worktreeRelation.tone)}
           </div>
           <p class="detail-copy">${escapeHtml(worktreeRelation.copy)}</p>
