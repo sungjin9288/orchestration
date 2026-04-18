@@ -711,6 +711,13 @@ Post-freeze execution hidden-result follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden-result action emphasis styling
 - this keeps the layering explicit: `hidden execution result register -> hidden action row -> copy control utility tier`
 
+### Local-only hidden-result action-shelf polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now wraps the hidden latest-result action row in a compact shelf treatment instead of leaving the concealed controls on a flat inline strip
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden-result action-row presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden action row -> compact action shelf`
+
 ### Local-only hidden-result block ordering
 Post-freeze execution hidden-result ordering follow-up:
 - `ui/app.js` `Execution` now renders the hidden latest-result blocks in this order: `실행 기록 -> 하네스 컨텍스트 -> 운영 컨텍스트`
