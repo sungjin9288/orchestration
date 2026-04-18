@@ -2307,80 +2307,82 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         ${recentHarnessExecutions
                           .map(
                             (execution, index) => `
-                              <div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">
-                                <div class="control-overview-register-row">
-                                  <span class="control-overview-register-label">실행</span>
-                                  <strong class="control-overview-register-value">${escapeHtml(formatDate(execution.executedAt))}</strong>
-                                </div>
-                                <div class="control-overview-register-row">
-                                  <span class="control-overview-register-label">입력</span>
-                                  <strong class="control-overview-register-value">${escapeHtml(execution.inputPath || execution.resolvedInputPath || '경로 없음')}</strong>
-                                </div>
-                                <div class="control-overview-register-row">
-                                  <span class="control-overview-register-label">출력</span>
-                                  <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '표준 출력 전용')}</strong>
-                                </div>
-                                <div class="form-actions form-actions-inline form-actions-compact">
-                                  ${
-                                    execution.inputPath || execution.resolvedInputPath
-                                      ? `
-                                        <button
-                                          class="secondary-button"
-                                          type="button"
-                                          data-action="copy-harness-input-path"
-                                          data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
-                                          data-harness-input-copy="true"
-                                        >
-                                          입력 경로
-                                        </button>
-                                      `
-                                      : ''
-                                  }
-                                  <button
-                                    class="secondary-button"
-                                    type="button"
-                                    data-action="restore-harness-execution-preview"
-                                    data-history-index="${String(index)}"
-                                    data-harness-history-preview="true"
-                                  >
-                                    결과 다시 보기
-                                  </button>
-                                  ${
-                                    execution.outputPath || execution.resolvedOutputPath
-                                      ? `
-                                        <button
-                                          class="secondary-button"
-                                          type="button"
-                                          data-action="copy-harness-output-path"
-                                          data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
-                                          data-harness-output-copy="true"
-                                        >
-                                          출력 경로
-                                        </button>
-                                      `
-                                      : ''
-                                  }
-                                  <button
-                                    class="secondary-button"
-                                    type="button"
-                                    data-action="reuse-harness-execution-paths"
-                                    data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
-                                    data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
-                                    data-harness-history-reuse="true"
-                                  >
-                                    경로 채우기
-                                  </button>
-                                  <button
-                                    class="secondary-button"
-                                    type="button"
-                                    data-action="rerun-harness-execution-paths"
-                                    data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
-                                    data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
-                                    data-harness-history-rerun="true"
-                                    ${state.loading || state.mutating ? 'disabled' : ''}
-                                  >
-                                    같은 경로 재실행
-                                  </button>
+                              <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
+                                <div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">
+                                  <div class="control-overview-register-row">
+                                    <span class="control-overview-register-label">실행</span>
+                                    <strong class="control-overview-register-value">${escapeHtml(formatDate(execution.executedAt))}</strong>
+                                  </div>
+                                  <div class="control-overview-register-row">
+                                    <span class="control-overview-register-label">입력</span>
+                                    <strong class="control-overview-register-value">${escapeHtml(execution.inputPath || execution.resolvedInputPath || '경로 없음')}</strong>
+                                  </div>
+                                  <div class="control-overview-register-row">
+                                    <span class="control-overview-register-label">출력</span>
+                                    <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '표준 출력 전용')}</strong>
+                                  </div>
+                                  <div class="form-actions form-actions-inline form-actions-compact">
+                                    ${
+                                      execution.inputPath || execution.resolvedInputPath
+                                        ? `
+                                          <button
+                                            class="secondary-button"
+                                            type="button"
+                                            data-action="copy-harness-input-path"
+                                            data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
+                                            data-harness-input-copy="true"
+                                          >
+                                            입력 경로
+                                          </button>
+                                        `
+                                        : ''
+                                    }
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="restore-harness-execution-preview"
+                                      data-history-index="${String(index)}"
+                                      data-harness-history-preview="true"
+                                    >
+                                      결과 다시 보기
+                                    </button>
+                                    ${
+                                      execution.outputPath || execution.resolvedOutputPath
+                                        ? `
+                                          <button
+                                            class="secondary-button"
+                                            type="button"
+                                            data-action="copy-harness-output-path"
+                                            data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
+                                            data-harness-output-copy="true"
+                                          >
+                                            출력 경로
+                                          </button>
+                                        `
+                                        : ''
+                                    }
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="reuse-harness-execution-paths"
+                                      data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
+                                      data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
+                                      data-harness-history-reuse="true"
+                                    >
+                                      경로 채우기
+                                    </button>
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="rerun-harness-execution-paths"
+                                      data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
+                                      data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
+                                      data-harness-history-rerun="true"
+                                      ${state.loading || state.mutating ? 'disabled' : ''}
+                                    >
+                                      같은 경로 재실행
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             `,
