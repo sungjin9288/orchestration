@@ -732,6 +732,13 @@ Post-freeze execution hidden-result follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden-result preview height styling
 - this keeps the layering explicit: `hidden execution result register -> hidden preview excerpt -> compact evidence height`
 
+### Local-only hidden-result run-context accent polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now lifts the hidden latest-result `실행 기록` block into a slightly stronger summary shell so the first-read run context stands with the preview evidence panel instead of blending into the other hidden metadata blocks
+- this keeps the execution desk aligned with the `DESIGN.md` compact packet rhythm while preserving the existing hidden-result execution record payload, preview payload, show/copy/reuse/preview-copy/rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden run-context presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden run-context group -> first-read summary accent`
+
 ### Local-only hidden-result block ordering
 Post-freeze execution hidden-result ordering follow-up:
 - `ui/app.js` `Execution` now renders the hidden latest-result blocks in this order: `실행 기록 -> 하네스 컨텍스트 -> 운영 컨텍스트`
