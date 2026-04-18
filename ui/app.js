@@ -3219,7 +3219,7 @@ function renderLinkedWorktreeSwitchPanel(data, projectActionDisabled) {
               <div class="card-title-row">
                 <strong>${escapeHtml(option.branch || buildLinkedWorktreeFallbackName(option))}</strong>
                 <div class="token-row">
-                  ${option.isCurrentProjectPath ? createToken('현재 project_path', 'success') : ''}
+                  ${option.isCurrentProjectPath ? createToken('현재 프로젝트 경로', 'success') : ''}
                   ${
                     option.registeredProjectId
                       ? createToken(`등록됨:${option.registeredProjectName || option.registeredProjectId}`, 'neutral')
