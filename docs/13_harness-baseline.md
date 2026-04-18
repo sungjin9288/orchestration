@@ -564,6 +564,13 @@ Post-freeze harness-run control-zone follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only harness-run control-zone presentation styling
 - this keeps the layering explicit: `harness run desk -> command desk design polish -> prep zone + action zone`
 
+### Local-only harness-run helper-cluster design polish
+Post-freeze harness-run support-zone follow-up:
+- `ui/app.js` and `ui/styles.css` now group the command desk and path policy note into one compact helper cluster instead of two stacked independent helper panels
+- this keeps the execution desk aligned with the `DESIGN.md` desk-cluster / helper-zone direction while preserving the existing command template string, field semantics, downstream copy action, clear-history path, path guidance text, and harness-run submit flow
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only harness-run helper-zone presentation styling
+- this keeps the layering explicit: `harness run desk -> helper cluster design polish -> command zone + policy note`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`

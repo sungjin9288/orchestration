@@ -5620,6 +5620,36 @@ h3 {
   font-size: 0.76em;
 }
 
+.harness-run-helper-cluster {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(33, 57, 49, 0.15);
+  background:
+    radial-gradient(circle at top right, rgba(55, 93, 120, 0.1), transparent 46%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(244, 247, 248, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 20px 34px rgba(20, 34, 42, 0.08);
+}
+
+.harness-run-helper-cluster::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: clamp(116px, 32%, 164px);
+  height: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--execution) 76%, #ffffff 24%), transparent);
+  pointer-events: none;
+}
+
+.harness-run-helper-cluster .harness-run-command-desk,
+.harness-run-helper-cluster .form-help-policy-note {
+  box-shadow: none;
+}
+
 .harness-run-action-shelf {
   position: relative;
   display: flex;
