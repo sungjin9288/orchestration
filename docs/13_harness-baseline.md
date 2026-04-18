@@ -697,6 +697,13 @@ Post-freeze execution hidden-result follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden-result action emphasis styling
 - this keeps the layering explicit: `hidden execution result register -> hidden action row -> show control emphasis`
 
+### Local-only hidden-result preview read-tier polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now lowers the hidden latest-result `미리보기` button into a quieter read-tier control instead of leaving it at the same generic weight as the stronger reuse and rerun controls
+- this keeps the execution desk aligned with the `DESIGN.md` operator-control hierarchy while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden-result action emphasis styling
+- this keeps the layering explicit: `hidden execution result register -> hidden action row -> preview control emphasis`
+
 ### Local-only hidden-result block ordering
 Post-freeze execution hidden-result ordering follow-up:
 - `ui/app.js` `Execution` now renders the hidden latest-result blocks in this order: `실행 기록 -> 하네스 컨텍스트 -> 운영 컨텍스트`
