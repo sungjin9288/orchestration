@@ -1965,7 +1965,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                   data-harness-output-path="true"
                 />
               </label>
-              <div class="form-actions form-actions-inline">
+              <div
+                class="form-actions form-actions-inline harness-run-action-shelf"
+                data-harness-run-action-shelf="true"
+              >
                 <button
                   class="secondary-button"
                   type="button"

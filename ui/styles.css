@@ -5620,6 +5620,37 @@ h3 {
   font-size: 0.76em;
 }
 
+.harness-run-action-shelf {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(33, 57, 49, 0.12);
+  background:
+    radial-gradient(circle at top left, rgba(55, 93, 120, 0.1), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(247, 250, 252, 0.96));
+  box-shadow: 0 12px 22px rgba(20, 34, 42, 0.06);
+}
+
+.harness-run-action-shelf::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: clamp(72px, 22%, 108px);
+  height: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--execution) 72%, #ffffff 28%), transparent);
+  pointer-events: none;
+}
+
+.harness-run-action-shelf .primary-button,
+.harness-run-action-shelf .secondary-button,
+.harness-run-action-shelf .danger-button {
+  box-shadow: 0 10px 18px rgba(20, 34, 42, 0.08);
+}
+
 .decision-action-head {
   display: flex;
   justify-content: space-between;

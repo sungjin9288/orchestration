@@ -529,6 +529,13 @@ Post-freeze harness-run design follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only harness-run helper presentation styling
 - this keeps the layering explicit: `harness run form -> policy note design polish -> helper note`
 
+### Local-only harness-run action-shelf design polish
+Post-freeze harness-run action-row follow-up:
+- `ui/app.js` and `ui/styles.css` now render the harness-run button row as a compact command shelf with a light rail, padded control band, and tighter action grouping instead of a flat inline button line
+- this keeps the execution desk aligned with the `DESIGN.md` desk-card / command-shelf direction while preserving the existing button order, submit semantics, clear-history path, and command-copy action
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only harness-run action-row presentation styling
+- this keeps the layering explicit: `harness run form -> action shelf design polish -> command row`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
