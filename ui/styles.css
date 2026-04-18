@@ -5845,6 +5845,12 @@ h3 {
   color: color-mix(in srgb, var(--execution) 72%, #1f2732 28%);
 }
 
+.harness-execution-history-summary-rack .control-overview-register-row:not(:first-child) .control-overview-register-value {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.76rem;
+  letter-spacing: -0.01em;
+}
+
 .harness-execution-history-item-packet .form-actions-compact {
   margin-top: 2px;
 }

@@ -620,6 +620,13 @@ Post-freeze harness-run history follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history summary typography styling
 - this keeps the layering explicit: `harness run desk -> execution-history summary emphasis polish -> history row label/value hierarchy`
 
+### Local-only execution-history path-value mono polish
+Post-freeze harness-run history follow-up:
+- `ui/styles.css` now gives the visible execution-history summary rack input/output path values a machine-readable mono emphasis instead of leaving those supporting lines in the same proportional value treatment as the executed-at summary
+- this keeps the execution desk aligned with the `DESIGN.md` operational-id guidance while preserving the existing executed-at summary, input/output summaries, action shelf, newest-first ordering, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history path typography styling
+- this keeps the layering explicit: `harness run desk -> execution-history path-value mono polish -> history row path values`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
