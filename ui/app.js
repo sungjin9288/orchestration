@@ -15465,7 +15465,7 @@ function renderTaskDetail(task, data) {
           </div>
           <div class="kv-item">
             <p class="detail-key">워크트리</p>
-            <strong>${escapeHtml(task.worktreeRef || '연결 안 됨')}</strong>
+            <strong>${escapeHtml(task.worktreeRef || '아직 연결 안 됨')}</strong>
             <p class="detail-copy">${
               currentWorktreeOption
                 ? escapeHtml(formatWorktreeOptionLabel(currentWorktreeOption))

@@ -466,6 +466,13 @@ Post-freeze execution latest-run id-fallback wording follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only latest-run id-fallback presentation semantics
 - this keeps the layering explicit: `taskboard latest-run summary -> id fallback wording -> value label`
 
+### Local-only latest-run worktree fallback wording
+Post-freeze execution latest-run worktree-fallback wording follow-up:
+- `ui/app.js` now renders the taskboard latest-run worktree fallback as `아직 연결 안 됨` instead of the terser `연결 안 됨` label when no worktree ref is linked
+- this keeps the latest-run summary in the same operator-facing wording baseline while preserving the existing `task.worktreeRef` relation, taskboard summary structure, and linked-worktree semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only latest-run worktree-fallback presentation semantics
+- this keeps the layering explicit: `taskboard latest-run summary -> worktree fallback wording -> value label`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
