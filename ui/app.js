@@ -1943,77 +1943,79 @@ function renderHarnessExecutionActionShelf(statusPayload) {
         operatorAction.repoNativeCommand
           ? `
             <form class="stack" data-form="run-harness-operator-action" data-harness-execution-form="true">
-              <div class="harness-run-prep-cluster" data-harness-run-prep-cluster="true">
-                <div
-                  class="control-overview-copy harness-run-template-note"
-                  data-harness-run-template-note="true"
-                >
-                  <span class="harness-run-template-kicker">실행 템플릿</span>
-                  <code class="harness-run-template-command">${escapeHtml(operatorAction.repoNativeCommand)}</code>
+              <div class="harness-run-command-desk" data-harness-run-command-desk="true">
+                <div class="harness-run-prep-cluster" data-harness-run-prep-cluster="true">
+                  <div
+                    class="control-overview-copy harness-run-template-note"
+                    data-harness-run-template-note="true"
+                  >
+                    <span class="harness-run-template-kicker">실행 템플릿</span>
+                    <code class="harness-run-template-command">${escapeHtml(operatorAction.repoNativeCommand)}</code>
+                  </div>
+                  <div
+                    class="field-grid field-grid-compact harness-run-field-rack"
+                    data-harness-run-field-rack="true"
+                  >
+                    <label class="field field-compact">
+                      <span class="field-label">입력 파일 경로</span>
+                      <input
+                        name="inputPath"
+                        type="text"
+                        placeholder="docs/example.md"
+                        required
+                        value="${escapeHtml(state.harnessExecutionDraftInputPath)}"
+                        data-harness-input-path="true"
+                      />
+                    </label>
+                    <label class="field field-compact">
+                      <span class="field-label">출력 파일 경로</span>
+                      <input
+                        name="outputPath"
+                        type="text"
+                        placeholder="tmp/markitdown-output.md"
+                        value="${escapeHtml(state.harnessExecutionDraftOutputPath)}"
+                        data-harness-output-path="true"
+                      />
+                    </label>
+                  </div>
                 </div>
                 <div
-                  class="field-grid field-grid-compact harness-run-field-rack"
-                  data-harness-run-field-rack="true"
+                  class="form-actions form-actions-inline harness-run-action-shelf"
+                  data-harness-run-action-shelf="true"
                 >
-                  <label class="field field-compact">
-                    <span class="field-label">입력 파일 경로</span>
-                    <input
-                      name="inputPath"
-                      type="text"
-                      placeholder="docs/example.md"
-                      required
-                      value="${escapeHtml(state.harnessExecutionDraftInputPath)}"
-                      data-harness-input-path="true"
-                    />
-                  </label>
-                  <label class="field field-compact">
-                    <span class="field-label">출력 파일 경로</span>
-                    <input
-                      name="outputPath"
-                      type="text"
-                      placeholder="tmp/markitdown-output.md"
-                      value="${escapeHtml(state.harnessExecutionDraftOutputPath)}"
-                      data-harness-output-path="true"
-                    />
-                  </label>
+                  <button
+                    class="secondary-button"
+                    type="button"
+                    data-action="copy-harness-command"
+                    data-command="${escapeHtml(operatorAction.repoNativeCommand)}"
+                    data-harness-operator-command="true"
+                  >
+                    명령 복사
+                  </button>
+                  ${
+                    hasExecutionHistory
+                      ? `
+                        <button
+                          class="secondary-button"
+                          type="button"
+                          data-action="clear-harness-execution-history"
+                          data-harness-clear-history="true"
+                          ${state.loading || state.mutating ? 'disabled' : ''}
+                        >
+                          실행 기록 비우기
+                        </button>
+                      `
+                      : ''
+                  }
+                  <button
+                    class="primary-button"
+                    type="submit"
+                    data-harness-run-submit="true"
+                    ${state.loading || state.mutating ? 'disabled' : ''}
+                  >
+                    하네스 실행
+                  </button>
                 </div>
-              </div>
-              <div
-                class="form-actions form-actions-inline harness-run-action-shelf"
-                data-harness-run-action-shelf="true"
-              >
-                <button
-                  class="secondary-button"
-                  type="button"
-                  data-action="copy-harness-command"
-                  data-command="${escapeHtml(operatorAction.repoNativeCommand)}"
-                  data-harness-operator-command="true"
-                >
-                  명령 복사
-                </button>
-                ${
-                  hasExecutionHistory
-                    ? `
-                      <button
-                        class="secondary-button"
-                        type="button"
-                        data-action="clear-harness-execution-history"
-                        data-harness-clear-history="true"
-                        ${state.loading || state.mutating ? 'disabled' : ''}
-                      >
-                        실행 기록 비우기
-                      </button>
-                    `
-                    : ''
-                }
-                <button
-                  class="primary-button"
-                  type="submit"
-                  data-harness-run-submit="true"
-                  ${state.loading || state.mutating ? 'disabled' : ''}
-                >
-                  하네스 실행
-                </button>
               </div>
               <p
                 class="form-help form-help-policy-note"
