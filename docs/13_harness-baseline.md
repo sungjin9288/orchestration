@@ -508,6 +508,13 @@ Post-freeze worktree relation heading follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only worktree-relation heading presentation semantics
 - this keeps the layering explicit: `task detail worktree relation -> heading wording -> title`
 
+### Local-only worktree option current-project token wording
+Post-freeze worktree option token follow-up:
+- `ui/app.js` now renders the `formatWorktreeOptionLabel(...)` current-project marker as `현재 프로젝트 경로` instead of the mixed `현재 project_path`
+- this keeps linked-worktree option labels in the accepted operator-facing Korean baseline while preserving the existing worktree option ordering, current-project-path detection, and linked-worktree relation semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only worktree-option token presentation semantics
+- this keeps the layering explicit: `worktree option label -> current project token wording -> token label`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`

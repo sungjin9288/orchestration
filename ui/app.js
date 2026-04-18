@@ -543,7 +543,7 @@ function formatWorktreeOptionLabel(option) {
   const parts = [option.branch || 'detached', option.path];
 
   if (option.isCurrentProjectPath) {
-    parts.push('현재 project_path');
+    parts.push('현재 프로젝트 경로');
   }
 
   return parts.join(' · ');
