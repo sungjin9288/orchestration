@@ -15460,7 +15460,7 @@ function renderTaskDetail(task, data) {
         <div class="kv-grid">
           <div class="kv-item">
             <p class="detail-key">최신 실행 기록</p>
-            <strong>${escapeHtml(latestRun?.id || '없음')}</strong>
+            <strong>${escapeHtml(latestRun?.id || '아직 없음')}</strong>
             <p class="detail-copy">${latestRun ? `${escapeHtml(getRunStatusDisplay(latestRun.status))} · ${escapeHtml(formatDate(latestRun.startedAt))}` : '아직 실행 기록이 없습니다.'}</p>
           </div>
           <div class="kv-item">

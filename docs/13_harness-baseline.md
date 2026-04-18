@@ -459,6 +459,13 @@ Post-freeze execution latest-run empty-state wording follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only latest-run empty-state presentation semantics
 - this keeps the layering explicit: `taskboard latest-run summary -> empty-state wording -> helper copy`
 
+### Local-only latest-run id fallback wording
+Post-freeze execution latest-run id-fallback wording follow-up:
+- `ui/app.js` now renders the taskboard latest-run id fallback as `아직 없음` instead of the terser `없음` label when no latest run is linked
+- this keeps the latest-run summary in the same operator-facing wording baseline while preserving the existing latest-run selection logic, taskboard summary structure, and run-derived state semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only latest-run id-fallback presentation semantics
+- this keeps the layering explicit: `taskboard latest-run summary -> id fallback wording -> value label`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
