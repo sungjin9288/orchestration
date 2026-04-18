@@ -1942,7 +1942,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       ${
         operatorAction.repoNativeCommand
           ? `
-            <p class="control-overview-copy">실행 템플릿: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
+            <div
+              class="control-overview-copy harness-run-template-note"
+              data-harness-run-template-note="true"
+            >
+              <span class="harness-run-template-kicker">실행 템플릿</span>
+              <code class="harness-run-template-command">${escapeHtml(operatorAction.repoNativeCommand)}</code>
+            </div>
             <form class="stack" data-form="run-harness-operator-action" data-harness-execution-form="true">
               <div
                 class="field-grid field-grid-compact harness-run-field-rack"
