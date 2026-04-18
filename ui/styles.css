@@ -5829,6 +5829,22 @@ h3 {
   padding: 2px 0;
 }
 
+.harness-execution-history-summary-rack .control-overview-register-label {
+  letter-spacing: 0.08em;
+  color: rgba(43, 58, 69, 0.68);
+}
+
+.harness-execution-history-summary-rack .control-overview-register-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--text) 88%, var(--execution) 12%);
+}
+
+.harness-execution-history-summary-rack .control-overview-register-row:first-child .control-overview-register-value {
+  font-size: 0.84rem;
+  color: color-mix(in srgb, var(--execution) 72%, #1f2732 28%);
+}
+
 .harness-execution-history-item-packet .form-actions-compact {
   margin-top: 2px;
 }
