@@ -606,6 +606,13 @@ Post-freeze harness-run history follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history row control presentation styling
 - this keeps the layering explicit: `harness run desk -> execution-history action-shelf design polish -> history row controls`
 
+### Local-only execution-history summary-rack design polish
+Post-freeze harness-run history follow-up:
+- `ui/app.js` and `ui/styles.css` now wrap each visible execution-history row summary in one compact summary rack instead of leaving the `실행 / 입력 / 출력` lines as a flat generic register body inside the new row packet
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing executed-at summary, input/output summaries, action shelf, newest-first ordering, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history row summary presentation styling
+- this keeps the layering explicit: `harness run desk -> execution-history summary-rack design polish -> history row summary`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`

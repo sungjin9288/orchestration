@@ -2309,17 +2309,19 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                             (execution, index) => `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
                                 <div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">
-                                  <div class="control-overview-register-row">
-                                    <span class="control-overview-register-label">실행</span>
-                                    <strong class="control-overview-register-value">${escapeHtml(formatDate(execution.executedAt))}</strong>
-                                  </div>
-                                  <div class="control-overview-register-row">
-                                    <span class="control-overview-register-label">입력</span>
-                                    <strong class="control-overview-register-value">${escapeHtml(execution.inputPath || execution.resolvedInputPath || '경로 없음')}</strong>
-                                  </div>
-                                  <div class="control-overview-register-row">
-                                    <span class="control-overview-register-label">출력</span>
-                                    <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '표준 출력 전용')}</strong>
+                                  <div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">
+                                    <div class="control-overview-register-row">
+                                      <span class="control-overview-register-label">실행</span>
+                                      <strong class="control-overview-register-value">${escapeHtml(formatDate(execution.executedAt))}</strong>
+                                    </div>
+                                    <div class="control-overview-register-row">
+                                      <span class="control-overview-register-label">입력</span>
+                                      <strong class="control-overview-register-value">${escapeHtml(execution.inputPath || execution.resolvedInputPath || '경로 없음')}</strong>
+                                    </div>
+                                    <div class="control-overview-register-row">
+                                      <span class="control-overview-register-label">출력</span>
+                                      <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '표준 출력 전용')}</strong>
+                                    </div>
                                   </div>
                                   <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
                                     <div class="form-actions form-actions-inline form-actions-compact">
