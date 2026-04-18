@@ -3146,7 +3146,7 @@ function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
 
   if (!task.worktreeRef) {
     return {
-      copy: '저장된 워크트리 경로가 아직 설정되지 않았습니다.',
+      copy: '아직 저장된 워크트리 경로가 없습니다.',
       label: '워크트리:미설정',
       status: 'not-set',
       switchOption: null,

@@ -480,6 +480,13 @@ Post-freeze execution latest-run worktree-detail wording follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only latest-run worktree-detail presentation semantics
 - this keeps the layering explicit: `taskboard latest-run summary -> worktree detail wording -> detail copy`
 
+### Local-only worktree helper not-set wording
+Post-freeze worktree helper wording follow-up:
+- `ui/app.js` now renders the `buildTaskWorktreeRelation(...)` not-set helper copy as `아직 저장된 워크트리 경로가 없습니다.` instead of `저장된 워크트리 경로가 아직 설정되지 않았습니다.`
+- this keeps the worktree helper batch in the same operator-facing time-baseline while preserving the existing `task.worktreeRef` relation, current project-path comparison semantics, linked-worktree helper structure, and follow-up action semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only worktree-helper not-set presentation semantics
+- this keeps the layering explicit: `worktree helper batch -> not-set branch wording -> helper copy`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
