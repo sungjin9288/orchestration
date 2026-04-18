@@ -536,6 +536,13 @@ Post-freeze harness-run action-row follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only harness-run action-row presentation styling
 - this keeps the layering explicit: `harness run form -> action shelf design polish -> command row`
 
+### Local-only harness-run field-rack design polish
+Post-freeze harness-run input follow-up:
+- `ui/app.js` and `ui/styles.css` now render the input/output path fields as a compact intake rack with a shared light rail and grouped field band instead of two independent flat fields
+- this keeps the execution desk aligned with the `DESIGN.md` intake-desk direction while preserving the existing field names, placeholders, required input rule, and harness-run submit semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only harness-run field-cluster presentation styling
+- this keeps the layering explicit: `harness run form -> field rack design polish -> input cluster`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`

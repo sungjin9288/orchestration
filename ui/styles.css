@@ -5651,6 +5651,40 @@ h3 {
   box-shadow: 0 10px 18px rgba(20, 34, 42, 0.08);
 }
 
+.harness-run-field-rack {
+  position: relative;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(33, 57, 49, 0.12);
+  background:
+    radial-gradient(circle at top left, rgba(55, 93, 120, 0.08), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 247, 241, 0.96));
+  box-shadow: 0 12px 22px rgba(20, 34, 42, 0.05);
+}
+
+.harness-run-field-rack::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: clamp(80px, 26%, 116px);
+  height: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--execution) 68%, #ffffff 32%), transparent);
+  pointer-events: none;
+}
+
+.harness-run-field-rack .field {
+  padding: 0;
+}
+
+.harness-run-field-rack .field-label {
+  color: color-mix(in srgb, var(--execution) 76%, var(--muted));
+}
+
+.harness-run-field-rack .field input {
+  box-shadow: 0 8px 16px rgba(20, 34, 42, 0.04);
+}
+
 .decision-action-head {
   display: flex;
   justify-content: space-between;

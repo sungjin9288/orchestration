@@ -1944,27 +1944,32 @@ function renderHarnessExecutionActionShelf(statusPayload) {
           ? `
             <p class="control-overview-copy">실행 템플릿: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
             <form class="stack" data-form="run-harness-operator-action" data-harness-execution-form="true">
-              <label class="field">
-                <span class="field-label">입력 파일 경로</span>
-                <input
-                  name="inputPath"
-                  type="text"
-                  placeholder="docs/example.md"
-                  required
-                  value="${escapeHtml(state.harnessExecutionDraftInputPath)}"
-                  data-harness-input-path="true"
-                />
-              </label>
-              <label class="field">
-                <span class="field-label">출력 파일 경로</span>
-                <input
-                  name="outputPath"
-                  type="text"
-                  placeholder="tmp/markitdown-output.md"
-                  value="${escapeHtml(state.harnessExecutionDraftOutputPath)}"
-                  data-harness-output-path="true"
-                />
-              </label>
+              <div
+                class="field-grid field-grid-compact harness-run-field-rack"
+                data-harness-run-field-rack="true"
+              >
+                <label class="field field-compact">
+                  <span class="field-label">입력 파일 경로</span>
+                  <input
+                    name="inputPath"
+                    type="text"
+                    placeholder="docs/example.md"
+                    required
+                    value="${escapeHtml(state.harnessExecutionDraftInputPath)}"
+                    data-harness-input-path="true"
+                  />
+                </label>
+                <label class="field field-compact">
+                  <span class="field-label">출력 파일 경로</span>
+                  <input
+                    name="outputPath"
+                    type="text"
+                    placeholder="tmp/markitdown-output.md"
+                    value="${escapeHtml(state.harnessExecutionDraftOutputPath)}"
+                    data-harness-output-path="true"
+                  />
+                </label>
+              </div>
               <div
                 class="form-actions form-actions-inline harness-run-action-shelf"
                 data-harness-run-action-shelf="true"
