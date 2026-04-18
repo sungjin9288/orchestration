@@ -5571,6 +5571,55 @@ h3 {
   font-size: 0.9rem;
 }
 
+.form-help-policy-note {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  padding: 11px 12px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(33, 57, 49, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(55, 93, 120, 0.12), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 249, 252, 0.96));
+  box-shadow: 0 12px 22px rgba(20, 34, 42, 0.06);
+}
+
+.form-help-policy-note::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: clamp(72px, 24%, 112px);
+  height: 2px;
+  background: linear-gradient(90deg, var(--execution), transparent);
+  pointer-events: none;
+}
+
+.form-help-policy-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.64rem;
+  line-height: 1.05;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--execution) 76%, #223746 24%);
+  font-weight: 700;
+}
+
+.form-help-policy-copy {
+  color: #465761;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.form-help-policy-note code {
+  border-radius: 999px;
+  padding: 0.1rem 0.42rem;
+  background: rgba(42, 59, 72, 0.08);
+  color: #1d2a35;
+  font-size: 0.76em;
+}
+
 .decision-action-head {
   display: flex;
   justify-content: space-between;

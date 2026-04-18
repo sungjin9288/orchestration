@@ -1999,7 +1999,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                   하네스 실행
                 </button>
               </div>
-              <p class="form-help">상대 경로는 현재 프로젝트 경로 기준으로 풀고, 절대 경로는 현재 프로젝트 경로, repo root, 또는 <code>/tmp</code> 하위만 허용합니다.</p>
+              <p
+                class="form-help form-help-policy-note"
+                data-harness-run-path-guidance="true"
+              >
+                <span class="form-help-policy-kicker">경로 정책</span>
+                <span class="form-help-policy-copy">상대 경로는 현재 프로젝트 경로 기준으로 풀고, 절대 경로는 현재 프로젝트 경로, <code>repo root</code>, 또는 <code>/tmp</code> 하위만 허용합니다.</span>
+              </p>
             </form>
             ${
               visibleHarnessExecutionResult?.harnessId === statusCard.primaryHarnessId
