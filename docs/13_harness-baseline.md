@@ -674,6 +674,13 @@ Post-freeze execution hidden-result run-context follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result execution record into one compact read-only block: `실행 기록`
 - the change does not introduce a new route, snapshot key, or visibility state; it reorganizes only the existing hidden latest execution timestamp and resolved path summaries already in render scope
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics plus current `latestHarnessExecution` payload
+
+### Local-only hidden-result rerun CTA emphasis polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now raises the hidden latest-result `같은 경로 재실행` button into a stronger execution tier instead of leaving it at the same generic weight as the surrounding hidden-result controls
+- this keeps the execution desk aligned with the `DESIGN.md` operator-control hierarchy while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden-result action emphasis styling
+- this keeps the layering explicit: `hidden execution result register -> hidden action row -> rerun control emphasis`
 - this keeps the layering explicit: `hidden execution result register -> hidden run-context group -> executedAt + resolved paths`
 
 ### Local-only hidden-result block ordering

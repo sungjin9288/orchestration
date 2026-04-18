@@ -1,0 +1,29 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..');
+const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
+const stylesCss = fs.readFileSync(stylesPath, 'utf8');
+
+assert.match(
+  stylesCss,
+  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact > \.form-actions-hidden-compact \[data-harness-result-hidden-rerun="true"\]\s*\{[\s\S]*border-color:\s*rgba\(55,\s*93,\s*120,\s*0\.2\);[\s\S]*background:\s*linear-gradient\(180deg,\s*rgba\(238,\s*247,\s*255,\s*0\.95\),\s*rgba\(224,\s*237,\s*248,\s*0\.98\)\);[\s\S]*color:\s*color-mix\(in srgb,\s*var\(--execution\)\s*76%,\s*#20313d\s*24%\);/s,
+);
+
+console.log(
+  JSON.stringify(
+    {
+      ok: true,
+      harnessExecutionHiddenResultRerunCtaEmphasis: {
+        insertionPoint: 'hiddenExecutionResultRegister->hiddenRerunCtaEmphasis->rerunControl',
+        marker: 'hidden result rerun button uses execution emphasis',
+      },
+    },
+    null,
+    2,
+  ),
+);
