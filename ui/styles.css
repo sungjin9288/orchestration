@@ -6479,6 +6479,15 @@ h3 {
   font-size: 0.76rem;
 }
 
+.surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact [data-harness-result-hidden-reuse="true"] {
+  border-color: rgba(121, 98, 47, 0.16);
+  background: linear-gradient(180deg, rgba(250, 245, 233, 0.95), rgba(242, 236, 220, 0.98));
+  color: color-mix(in srgb, var(--text) 74%, var(--deliverables) 26%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.66),
+    0 7px 14px rgba(121, 98, 47, 0.08);
+}
+
 .surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact [data-harness-result-hidden-rerun="true"] {
   border-color: rgba(55, 93, 120, 0.2);
   background: linear-gradient(180deg, rgba(238, 247, 255, 0.95), rgba(224, 237, 248, 0.98));

@@ -683,6 +683,13 @@ Post-freeze execution hidden-result follow-up:
 - this keeps the layering explicit: `hidden execution result register -> hidden action row -> rerun control emphasis`
 - this keeps the layering explicit: `hidden execution result register -> hidden run-context group -> executedAt + resolved paths`
 
+### Local-only hidden-result reuse control mid-tier polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now raises the hidden latest-result `경로 채우기` button into a mid-tier path-reuse control instead of leaving it at the same generic weight as the quieter hidden-result controls
+- this keeps the execution desk aligned with the `DESIGN.md` operator-control hierarchy while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden-result action emphasis styling
+- this keeps the layering explicit: `hidden execution result register -> hidden action row -> reuse control emphasis`
+
 ### Local-only hidden-result block ordering
 Post-freeze execution hidden-result ordering follow-up:
 - `ui/app.js` `Execution` now renders the hidden latest-result blocks in this order: `실행 기록 -> 하네스 컨텍스트 -> 운영 컨텍스트`
