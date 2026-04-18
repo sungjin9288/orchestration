@@ -550,6 +550,13 @@ Post-freeze harness-run template follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only harness-run template presentation styling
 - this keeps the layering explicit: `harness run desk -> template note design polish -> command template`
 
+### Local-only harness-run prep-cluster design polish
+Post-freeze harness-run preparation follow-up:
+- `ui/app.js` and `ui/styles.css` now group the command template note and input/output field rack into one compact preparation cluster instead of two adjacent independent cards
+- this keeps the execution desk aligned with the `DESIGN.md` desk-cluster / intake-zone direction while preserving the existing command template string, field names, placeholders, required input rule, downstream copy action, and harness-run submit flow
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only harness-run preparation-zone presentation styling
+- this keeps the layering explicit: `harness run desk -> prep cluster design polish -> template + input zone`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`

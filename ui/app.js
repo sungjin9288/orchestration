@@ -1942,39 +1942,41 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       ${
         operatorAction.repoNativeCommand
           ? `
-            <div
-              class="control-overview-copy harness-run-template-note"
-              data-harness-run-template-note="true"
-            >
-              <span class="harness-run-template-kicker">실행 템플릿</span>
-              <code class="harness-run-template-command">${escapeHtml(operatorAction.repoNativeCommand)}</code>
-            </div>
             <form class="stack" data-form="run-harness-operator-action" data-harness-execution-form="true">
-              <div
-                class="field-grid field-grid-compact harness-run-field-rack"
-                data-harness-run-field-rack="true"
-              >
-                <label class="field field-compact">
-                  <span class="field-label">입력 파일 경로</span>
-                  <input
-                    name="inputPath"
-                    type="text"
-                    placeholder="docs/example.md"
-                    required
-                    value="${escapeHtml(state.harnessExecutionDraftInputPath)}"
-                    data-harness-input-path="true"
-                  />
-                </label>
-                <label class="field field-compact">
-                  <span class="field-label">출력 파일 경로</span>
-                  <input
-                    name="outputPath"
-                    type="text"
-                    placeholder="tmp/markitdown-output.md"
-                    value="${escapeHtml(state.harnessExecutionDraftOutputPath)}"
-                    data-harness-output-path="true"
-                  />
-                </label>
+              <div class="harness-run-prep-cluster" data-harness-run-prep-cluster="true">
+                <div
+                  class="control-overview-copy harness-run-template-note"
+                  data-harness-run-template-note="true"
+                >
+                  <span class="harness-run-template-kicker">실행 템플릿</span>
+                  <code class="harness-run-template-command">${escapeHtml(operatorAction.repoNativeCommand)}</code>
+                </div>
+                <div
+                  class="field-grid field-grid-compact harness-run-field-rack"
+                  data-harness-run-field-rack="true"
+                >
+                  <label class="field field-compact">
+                    <span class="field-label">입력 파일 경로</span>
+                    <input
+                      name="inputPath"
+                      type="text"
+                      placeholder="docs/example.md"
+                      required
+                      value="${escapeHtml(state.harnessExecutionDraftInputPath)}"
+                      data-harness-input-path="true"
+                    />
+                  </label>
+                  <label class="field field-compact">
+                    <span class="field-label">출력 파일 경로</span>
+                    <input
+                      name="outputPath"
+                      type="text"
+                      placeholder="tmp/markitdown-output.md"
+                      value="${escapeHtml(state.harnessExecutionDraftOutputPath)}"
+                      data-harness-output-path="true"
+                    />
+                  </label>
+                </div>
               </div>
               <div
                 class="form-actions form-actions-inline harness-run-action-shelf"
