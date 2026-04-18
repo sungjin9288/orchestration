@@ -2154,6 +2154,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
               hiddenHarnessExecutionResult?.harnessId === statusCard.primaryHarnessId
                 ? `
                   <section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">
+                    <div
+                      class="harness-execution-result-hidden-packet"
+                      data-harness-execution-result-hidden-packet="true"
+                    >
                     <div class="card-title-row card-title-row-tight">
                       <strong>최근 실행 결과가 숨겨져 있습니다</strong>
                       ${createToken('숨김', 'neutral')}
@@ -2285,6 +2289,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         ? `<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">${escapeHtml(hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview)}</pre>`
                         : ''
                     }
+                    </div>
                   </section>
                 `
                 : ''

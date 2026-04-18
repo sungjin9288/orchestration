@@ -578,6 +578,13 @@ Post-freeze harness-run result-surface follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only latest-result presentation styling
 - this keeps the layering explicit: `harness run desk -> latest-result packet design polish -> visible result surface`
 
+### Local-only hidden-result packet design polish
+Post-freeze harness-run hidden-result follow-up:
+- `ui/app.js` and `ui/styles.css` now wrap the hidden latest-result root in one compact hidden packet instead of leaving the hidden evidence branch as a flat generic relation strip
+- this keeps the execution desk aligned with the `DESIGN.md` desk-card / packet direction while preserving the existing hidden context blocks, preview, restore actions, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result presentation styling
+- this keeps the layering explicit: `harness run desk -> hidden-result packet design polish -> hidden result surface`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
