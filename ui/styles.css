@@ -5883,10 +5883,16 @@ h3 {
   position: relative;
   z-index: 1;
   margin-top: 0;
+  gap: 5px;
 }
 
 .harness-execution-history-action-shelf .secondary-button {
-  box-shadow: 0 8px 14px rgba(20, 34, 42, 0.06);
+  padding: 6px 9px;
+  min-height: 28px;
+  font-size: 0.68rem;
+  line-height: 1.08;
+  letter-spacing: 0.03em;
+  box-shadow: 0 6px 12px rgba(20, 34, 42, 0.05);
 }
 
 .harness-run-action-shelf {

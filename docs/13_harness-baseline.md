@@ -627,6 +627,13 @@ Post-freeze harness-run history follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history path typography styling
 - this keeps the layering explicit: `harness run desk -> execution-history path-value mono polish -> history row path values`
 
+### Local-only execution-history action-button density polish
+Post-freeze harness-run history follow-up:
+- `ui/styles.css` now tightens the visible execution-history action shelf button density instead of leaving the row controls at the generic secondary-button padding used elsewhere in the surface
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing input/output copy actions, preview, reuse, rerun flow, newest-first ordering, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history control spacing and type styling
+- this keeps the layering explicit: `harness run desk -> execution-history action-button density polish -> history row control buttons`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
