@@ -4023,7 +4023,7 @@ function getMissionExecutionPreview(mission, data) {
       latestRunRole: null,
       linkedTask,
       preferredInboxItem: null,
-      stagePreview: '아직 기록된 실행 기록이 없습니다.',
+      stagePreview: '아직 실행 기록이 없습니다.',
     };
   }
 
@@ -4064,7 +4064,7 @@ function getMissionExecutionPreview(mission, data) {
       ? `가장 최근 실행 로그: ${getExecutionRoleDisplay(latestRunRole)}${
           latestRunNextStage ? ` -> ${getExecutionStageDisplay(latestRunNextStage)}` : ''
         } (${getRunStatusDisplay(latestRun.status)}).`
-      : '아직 기록된 실행 기록이 없습니다.',
+      : '아직 실행 기록이 없습니다.',
   };
 }
 
@@ -15461,7 +15461,7 @@ function renderTaskDetail(task, data) {
           <div class="kv-item">
             <p class="detail-key">최신 실행 기록</p>
             <strong>${escapeHtml(latestRun?.id || '없음')}</strong>
-            <p class="detail-copy">${latestRun ? `${escapeHtml(getRunStatusDisplay(latestRun.status))} · ${escapeHtml(formatDate(latestRun.startedAt))}` : '기록된 실행 기록이 없습니다.'}</p>
+            <p class="detail-copy">${latestRun ? `${escapeHtml(getRunStatusDisplay(latestRun.status))} · ${escapeHtml(formatDate(latestRun.startedAt))}` : '아직 실행 기록이 없습니다.'}</p>
           </div>
           <div class="kv-item">
             <p class="detail-key">워크트리</p>
