@@ -648,6 +648,13 @@ Post-freeze harness-run history follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history action emphasis styling
 - this keeps the layering explicit: `harness run desk -> execution-history rerun CTA emphasis polish -> history row rerun control`
 
+### Local-only execution-history reuse control mid-tier polish
+Post-freeze harness-run history follow-up:
+- `ui/styles.css` now raises the visible execution-history `경로 채우기` button into a mid-tier path-reuse control instead of leaving it at the same generic weight as preview inside the history action shelf
+- this keeps the execution desk aligned with the `DESIGN.md` operator-control hierarchy while preserving the existing reuse helper, preview, rerun, copy actions, newest-first ordering, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history action emphasis styling
+- this keeps the layering explicit: `harness run desk -> execution-history reuse control mid-tier polish -> history row reuse control`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`
