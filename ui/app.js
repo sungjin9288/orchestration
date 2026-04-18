@@ -15471,7 +15471,7 @@ function renderTaskDetail(task, data) {
                 ? escapeHtml(formatWorktreeOptionLabel(currentWorktreeOption))
                 : task.worktreeRef
                   ? '저장된 워크트리 경로가 현재 탐지된 연결 워크트리 목록 밖에 있습니다.'
-                  : '저장된 워크트리 경로가 아직 설정되지 않았습니다.'
+                  : '아직 저장된 워크트리 경로가 없습니다.'
             }</p>
           </div>
         </div>

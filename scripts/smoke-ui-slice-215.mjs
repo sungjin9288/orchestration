@@ -14,6 +14,7 @@ assert.match(appJs, /<p class="detail-key">최신 실행 기록<\/p>/);
 assert.match(appJs, /latestRun\?\.id \|\| '아직 없음'/);
 assert.match(appJs, /task\.worktreeRef \|\| '아직 연결 안 됨'/);
 assert.match(appJs, /'아직 실행 기록이 없습니다\.'/);
+assert.match(appJs, /'아직 저장된 워크트리 경로가 없습니다\.'/);
 
 assert.doesNotMatch(appJs, /stagePreview: '아직 기록된 실행 run이 없습니다\.'/);
 assert.doesNotMatch(appJs, /<p class="detail-key">최신 run<\/p>/);
@@ -24,7 +25,7 @@ console.log(
     {
       ok: true,
       taskboardLatestRunHelperCopy: {
-        markers: ['아직 실행 기록이 없습니다.', '최신 실행 기록', '아직 없음', '아직 연결 안 됨'],
+        markers: ['아직 실행 기록이 없습니다.', '최신 실행 기록', '아직 없음', '아직 연결 안 됨', '아직 저장된 워크트리 경로가 없습니다.'],
       },
     },
     null,
