@@ -515,6 +515,13 @@ Post-freeze worktree option token follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only worktree-option token presentation semantics
 - this keeps the layering explicit: `worktree option label -> current project token wording -> token label`
 
+### Local-only harness-run form-help wording
+Post-freeze harness-run form-help follow-up:
+- `ui/app.js` now renders the harness-run path help as `현재 프로젝트 경로` instead of the mixed `현재 project_path`
+- this keeps the operator-facing path guidance in the accepted Korean baseline while preserving the existing relative-path resolution rule, absolute-path allowlist, and harness-run submit flow
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only harness-run form-help presentation semantics
+- this keeps the layering explicit: `harness run form -> path form-help wording -> helper copy`
+
 ### Local-only hidden-result metadata consolidation
 Post-freeze execution hidden-result readability follow-up:
 - `ui/app.js` `Execution` now groups the hidden latest-result metadata into two compact read-only blocks: `하네스 컨텍스트` and `운영 컨텍스트`

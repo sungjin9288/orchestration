@@ -29,7 +29,7 @@ assert.match(serveUi, /const harnessExecution = runHarnessOperatorAction\(input\
 assert.match(appJs, /data-form="run-harness-operator-action"/);
 assert.match(appJs, /data-harness-run-submit="true"/);
 assert.match(appJs, /await postJson\('\/api\/harness\/operator-action\/run', \{/);
-assert.match(appJs, /상대 경로는 현재 project_path 기준으로 풀고/);
+assert.match(appJs, /상대 경로는 현재 프로젝트 경로 기준으로 풀고/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
