@@ -2031,119 +2031,121 @@ function renderHarnessExecutionActionShelf(statusPayload) {
               visibleHarnessExecutionResult?.harnessId === statusCard.primaryHarnessId
                 ? `
                   <section class="relation-strip relation-strip-compact" data-harness-execution-result="true">
-                    <div class="card-title-row card-title-row-tight">
-                      <strong>최근 실행 결과</strong>
-                      ${createToken('완료', 'success')}
-                    </div>
-                    <div class="token-row token-row-compact">
-                      ${createToken(`대표:${visibleHarnessExecutionResult.harnessId}`, 'neutral')}
+                    <div class="harness-execution-result-packet" data-harness-execution-result-packet="true">
+                      <div class="card-title-row card-title-row-tight">
+                        <strong>최근 실행 결과</strong>
+                        ${createToken('완료', 'success')}
+                      </div>
+                      <div class="token-row token-row-compact">
+                        ${createToken(`대표:${visibleHarnessExecutionResult.harnessId}`, 'neutral')}
+                        ${
+                          visibleHarnessExecutionResult.outputPath
+                            ? createToken('출력 파일', 'accent')
+                            : createToken('표준 출력', 'neutral')
+                        }
+                        ${
+                          visibleHarnessExecutionResult.executedAt
+                            ? createToken(`실행:${formatDate(visibleHarnessExecutionResult.executedAt)}`, 'neutral')
+                            : ''
+                        }
+                      </div>
+                      <p class="detail-copy detail-copy-compact">입력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.inputPath || '')}</code></p>
                       ${
-                        visibleHarnessExecutionResult.outputPath
-                          ? createToken('출력 파일', 'accent')
-                          : createToken('표준 출력', 'neutral')
-                      }
-                      ${
-                        visibleHarnessExecutionResult.executedAt
-                          ? createToken(`실행:${formatDate(visibleHarnessExecutionResult.executedAt)}`, 'neutral')
+                        visibleHarnessExecutionResult.resolvedOutputPath
+                          ? `<p class="detail-copy detail-copy-compact">출력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}</code></p>`
                           : ''
                       }
+                      ${
+                        visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.resolvedOutputPath
+                          ? `
+                            <div class="form-actions form-actions-inline form-actions-compact">
+                              ${
+                                visibleHarnessExecutionResult.resolvedInputPath
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-input-path"
+                                      data-input-path="${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath)}"
+                                      data-harness-input-copy="true"
+                                    >
+                                      입력 경로
+                                    </button>
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="reuse-harness-execution-paths"
+                                      data-input-path="${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath)}"
+                                      data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath || visibleHarnessExecutionResult.outputPath || '')}"
+                                      data-harness-result-reuse="true"
+                                    >
+                                      경로 채우기
+                                    </button>
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="rerun-harness-execution-paths"
+                                      data-input-path="${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath)}"
+                                      data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath || visibleHarnessExecutionResult.outputPath || '')}"
+                                      data-harness-result-rerun="true"
+                                      ${state.loading || state.mutating ? 'disabled' : ''}
+                                    >
+                                      같은 경로 재실행
+                                    </button>
+                                  `
+                                  : ''
+                              }
+                              ${
+                                visibleHarnessExecutionResult.resolvedOutputPath
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-output-path"
+                                      data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}"
+                                      data-harness-output-copy="true"
+                                    >
+                                      출력 경로
+                                    </button>
+                                  `
+                                  : ''
+                              }
+                              ${
+                                visibleHarnessExecutionResult.outputPreview || visibleHarnessExecutionResult.stdoutPreview
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-execution-preview"
+                                      data-preview-text="${escapeHtml(visibleHarnessExecutionResult.outputPreview || visibleHarnessExecutionResult.stdoutPreview || '')}"
+                                      data-harness-preview-copy="true"
+                                    >
+                                      미리보기
+                                    </button>
+                                  `
+                                  : ''
+                              }
+                              <button
+                                class="secondary-button"
+                                type="button"
+                                data-action="hide-harness-execution-result"
+                                data-execution-key="${escapeHtml(getHarnessExecutionResultKey(visibleHarnessExecutionResult) || '')}"
+                                data-harness-result-hide="true"
+                              >
+                                결과 숨기기
+                              </button>
+                            </div>
+                          `
+                          : ''
+                      }
+                      ${
+                        visibleHarnessExecutionResult.outputPreview
+                          ? `<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">${escapeHtml(visibleHarnessExecutionResult.outputPreview)}</pre>`
+                          : visibleHarnessExecutionResult.stdoutPreview
+                            ? `<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">${escapeHtml(visibleHarnessExecutionResult.stdoutPreview)}</pre>`
+                            : '<p class="detail-copy detail-copy-compact">미리보기 가능한 출력이 없습니다.</p>'
+                      }
                     </div>
-                    <p class="detail-copy detail-copy-compact">입력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.inputPath || '')}</code></p>
-                    ${
-                      visibleHarnessExecutionResult.resolvedOutputPath
-                        ? `<p class="detail-copy detail-copy-compact">출력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}</code></p>`
-                        : ''
-                    }
-                    ${
-                      visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.resolvedOutputPath
-                        ? `
-                          <div class="form-actions form-actions-inline form-actions-compact">
-                            ${
-                              visibleHarnessExecutionResult.resolvedInputPath
-                                ? `
-                                  <button
-                                    class="secondary-button"
-                                    type="button"
-                                    data-action="copy-harness-input-path"
-                                    data-input-path="${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath)}"
-                                    data-harness-input-copy="true"
-                                  >
-                                    입력 경로
-                                  </button>
-                                  <button
-                                    class="secondary-button"
-                                    type="button"
-                                    data-action="reuse-harness-execution-paths"
-                                    data-input-path="${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath)}"
-                                    data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath || visibleHarnessExecutionResult.outputPath || '')}"
-                                    data-harness-result-reuse="true"
-                                  >
-                                    경로 채우기
-                                  </button>
-                                  <button
-                                    class="secondary-button"
-                                    type="button"
-                                    data-action="rerun-harness-execution-paths"
-                                    data-input-path="${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath)}"
-                                    data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath || visibleHarnessExecutionResult.outputPath || '')}"
-                                    data-harness-result-rerun="true"
-                                    ${state.loading || state.mutating ? 'disabled' : ''}
-                                  >
-                                    같은 경로 재실행
-                                  </button>
-                                `
-                                : ''
-                            }
-                            ${
-                              visibleHarnessExecutionResult.resolvedOutputPath
-                                ? `
-                                  <button
-                                    class="secondary-button"
-                                    type="button"
-                                    data-action="copy-harness-output-path"
-                                    data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}"
-                                    data-harness-output-copy="true"
-                                  >
-                                    출력 경로
-                                  </button>
-                                `
-                                : ''
-                            }
-                            ${
-                              visibleHarnessExecutionResult.outputPreview || visibleHarnessExecutionResult.stdoutPreview
-                                ? `
-                                  <button
-                                    class="secondary-button"
-                                    type="button"
-                                    data-action="copy-harness-execution-preview"
-                                    data-preview-text="${escapeHtml(visibleHarnessExecutionResult.outputPreview || visibleHarnessExecutionResult.stdoutPreview || '')}"
-                                    data-harness-preview-copy="true"
-                                  >
-                                    미리보기
-                                  </button>
-                                `
-                                : ''
-                            }
-                            <button
-                              class="secondary-button"
-                              type="button"
-                              data-action="hide-harness-execution-result"
-                              data-execution-key="${escapeHtml(getHarnessExecutionResultKey(visibleHarnessExecutionResult) || '')}"
-                              data-harness-result-hide="true"
-                            >
-                              결과 숨기기
-                            </button>
-                          </div>
-                        `
-                        : ''
-                    }
-                    ${
-                      visibleHarnessExecutionResult.outputPreview
-                        ? `<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">${escapeHtml(visibleHarnessExecutionResult.outputPreview)}</pre>`
-                        : visibleHarnessExecutionResult.stdoutPreview
-                          ? `<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">${escapeHtml(visibleHarnessExecutionResult.stdoutPreview)}</pre>`
-                          : '<p class="detail-copy detail-copy-compact">미리보기 가능한 출력이 없습니다.</p>'
-                    }
                   </section>
                 `
                 : ''
