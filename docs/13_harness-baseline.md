@@ -758,6 +758,13 @@ Post-freeze execution hidden-result ordering follow-up:
 - `ui/app.js` `Execution` now renders the hidden latest-result blocks in this order: `실행 기록 -> 하네스 컨텍스트 -> 운영 컨텍스트`
 - the change does not introduce a new route, snapshot key, or visibility state; it reorders only the existing compact blocks already present in the hidden latest-result strip
 - this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only hidden-result semantics plus current `latestHarnessExecution`, `statusCard`, and `operatorAction` payloads
+
+### Local-only visible-result preview-evidence panel polish
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now lifts the visible latest-result preview `<pre>` into a compact evidence panel instead of leaving the shown excerpt as a generic pale log block under the visible result packet
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing visible-result preview payload, copy/reuse/rerun/hide actions, route semantics, and local-only latest-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result preview presentation styling
+- this keeps the layering explicit: `visible execution result register -> preview excerpt -> compact evidence panel`
 - this keeps the layering explicit: `hidden execution result register -> hidden block ordering -> run context first`
 
 ### Local-only hidden-result compact density
