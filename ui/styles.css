@@ -5737,6 +5737,11 @@ h3 {
     0 7px 14px rgba(62, 104, 84, 0.08);
 }
 
+.harness-execution-result-packet .card-title-row-tight strong {
+  color: rgba(24, 38, 50, 0.96);
+  letter-spacing: 0.01em;
+}
+
 .harness-execution-result-packet .form-actions-compact,
 .harness-execution-result-packet [data-harness-execution-preview="true"] {
   position: relative;
