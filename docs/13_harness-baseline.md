@@ -765,6 +765,13 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing visible-result preview payload, copy/reuse/rerun/hide actions, route semantics, and local-only latest-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result preview presentation styling
 - this keeps the layering explicit: `visible execution result register -> preview excerpt -> compact evidence panel`
+
+### Local-only visible-result preview compact-height polish
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now lowers the visible latest-result preview `<pre>` away from the inherited `log-viewer-compact` height floor so the shown excerpt reads as a compact evidence block instead of a full log pane
+- this keeps the execution desk aligned with the `DESIGN.md` compact packet rhythm while preserving the existing visible-result preview payload, copy/reuse/rerun/hide actions, route semantics, and local-only latest-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result preview height styling
+- this keeps the layering explicit: `visible execution result register -> preview excerpt -> compact evidence height`
 - this keeps the layering explicit: `hidden execution result register -> hidden block ordering -> run context first`
 
 ### Local-only hidden-result compact density
