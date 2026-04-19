@@ -807,6 +807,13 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` operator-control hierarchy while preserving the existing visible-result preview payload, copy/reuse/rerun/hide actions, route semantics, and local-only latest-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result action emphasis styling
 - this keeps the layering explicit: `visible execution result register -> action row -> hide control read tier`
+
+### Local-only visible-result path-value mono polish
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now gives the visible latest-result input/output path values a machine-readable mono emphasis instead of leaving those supporting lines in the same proportional treatment as the surrounding detail copy
+- this keeps the execution desk aligned with the `DESIGN.md` operational-id guidance while preserving the existing visible-result path rows, preview payload, action row hierarchy, route semantics, and local-only latest-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result path typography styling
+- this keeps the layering explicit: `visible execution result register -> path detail rows -> mono value emphasis`
 - this keeps the layering explicit: `hidden execution result register -> hidden block ordering -> run context first`
 
 ### Local-only hidden-result compact density

@@ -5680,6 +5680,12 @@ h3 {
   line-height: 1.45;
 }
 
+.harness-execution-result-packet .detail-copy-compact code {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.76rem;
+  letter-spacing: -0.01em;
+}
+
 .harness-execution-result-packet .form-actions-compact,
 .harness-execution-result-packet [data-harness-execution-preview="true"] {
   position: relative;
