@@ -6566,6 +6566,12 @@ h3 {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
 }
 
+.surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-operator-context="true"] {
+  border-color: rgba(121, 98, 47, 0.1);
+  background: linear-gradient(180deg, rgba(251, 249, 242, 0.94), rgba(246, 243, 236, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
 .transcript-card {
   gap: 8px;
   padding: 12px 13px;
