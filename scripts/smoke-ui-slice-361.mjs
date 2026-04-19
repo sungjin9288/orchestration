@@ -23,11 +23,11 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 assert.match(appJs, /data-harness-execution-result="true"/);
 assert.match(
   appJs,
-  /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact">입력:/,
+  /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력:/,
 );
 assert.match(
   appJs,
-  /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact">출력:/,
+  /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">출력:/,
 );
 
 async function fetchJson(url, options = {}) {

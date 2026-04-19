@@ -814,6 +814,13 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` operational-id guidance while preserving the existing visible-result path rows, preview payload, action row hierarchy, route semantics, and local-only latest-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result path typography styling
 - this keeps the layering explicit: `visible execution result register -> path detail rows -> mono value emphasis`
+
+### Local-only visible-result path label/value hierarchy polish
+Post-freeze execution visible-result follow-up:
+- `ui/app.js` and `ui/styles.css` now give the visible latest-result input/output path rows a dedicated label/value hierarchy instead of leaving the row label and path value at the same generic compact-copy weight
+- this keeps the execution desk aligned with the `DESIGN.md` operational-id guidance while preserving the existing visible-result path rows, preview payload, action row hierarchy, route semantics, and local-only latest-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result path-row presentation styling
+- this keeps the layering explicit: `visible execution result register -> path detail rows -> label/value hierarchy`
 - this keeps the layering explicit: `hidden execution result register -> hidden block ordering -> run context first`
 
 ### Local-only hidden-result compact density

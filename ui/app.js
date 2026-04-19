@@ -2049,10 +2049,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                             : ''
                         }
                       </div>
-                      <p class="detail-copy detail-copy-compact">입력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.inputPath || '')}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.inputPath || '')}</code></p>
                       ${
                         visibleHarnessExecutionResult.resolvedOutputPath
-                          ? `<p class="detail-copy detail-copy-compact">출력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}</code></p>`
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">출력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}</code></p>`
                           : ''
                       }
                       ${
