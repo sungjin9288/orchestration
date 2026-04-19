@@ -842,6 +842,13 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet hierarchy while preserving the existing visible-result token wording, token count, path rows, preview payload, action row hierarchy, route semantics, and local-only latest-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result token-tone presentation styling
 - this keeps the layering explicit: `visible execution result register -> summary token row -> accent highlight tier`
+
+### Local-only visible-result header status-badge polish
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now lifts the visible latest-result header `완료` token into a packet-aware status badge instead of leaving the header verdict at the same generic success-token weight used across unrelated surfaces
+- this keeps the execution desk aligned with the `DESIGN.md` packet hierarchy while preserving the existing visible-result title copy, token wording, token count, path rows, preview payload, action row hierarchy, route semantics, and local-only latest-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result header status presentation styling
+- this keeps the layering explicit: `visible execution result register -> header status row -> success badge tier`
 - this keeps the layering explicit: `hidden execution result register -> hidden block ordering -> run context first`
 
 ### Local-only hidden-result compact density
