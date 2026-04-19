@@ -821,6 +821,13 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` operational-id guidance while preserving the existing visible-result path rows, preview payload, action row hierarchy, route semantics, and local-only latest-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result path-row presentation styling
 - this keeps the layering explicit: `visible execution result register -> path detail rows -> label/value hierarchy`
+
+### Local-only visible-result token-row summary-strip polish
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now lifts the visible latest-result `token-row-compact` into a compact summary strip instead of leaving the shown token cluster floating with only the generic token rhythm inside the packet shell
+- this keeps the execution desk aligned with the `DESIGN.md` packet cadence while preserving the existing visible-result token wording, token count, path rows, preview payload, action row hierarchy, route semantics, and local-only latest-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result token-row presentation styling
+- this keeps the layering explicit: `visible execution result register -> summary token row -> compact strip treatment`
 - this keeps the layering explicit: `hidden execution result register -> hidden block ordering -> run context first`
 
 ### Local-only hidden-result compact density
