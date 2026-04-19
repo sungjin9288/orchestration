@@ -779,6 +779,13 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` operator-control hierarchy while preserving the existing visible-result preview payload, copy/reuse/rerun/hide actions, route semantics, and local-only latest-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result action emphasis styling
 - this keeps the layering explicit: `visible execution result register -> action row -> copy control utility tier`
+
+### Local-only visible-result rerun CTA emphasis polish
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now raises the visible latest-result `같은 경로 재실행` button into a stronger execution tier instead of leaving it at the same generic weight as preview, reuse, and hide controls inside the visible action row
+- this keeps the execution desk aligned with the `DESIGN.md` operator-control hierarchy while preserving the existing visible-result preview payload, copy/reuse/rerun/hide actions, route semantics, and local-only latest-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result action emphasis styling
+- this keeps the layering explicit: `visible execution result register -> action row -> rerun control emphasis`
 - this keeps the layering explicit: `hidden execution result register -> hidden block ordering -> run context first`
 
 ### Local-only hidden-result compact density
