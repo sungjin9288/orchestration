@@ -6608,13 +6608,18 @@ h3 {
 }
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   z-index: 1;
   padding: 8px 11px;
+  padding-inline: 10px;
   min-height: 32px;
   font-size: 0.76rem;
   line-height: 1.12;
   letter-spacing: 0.01em;
+  text-align: center;
 }
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact [data-harness-result-show="true"] {
