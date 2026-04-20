@@ -6583,6 +6583,8 @@ h3 {
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact {
   position: relative;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   gap: 7px 8px;
   padding: 11px 11px 12px;
   border-radius: 10px;
