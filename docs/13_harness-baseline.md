@@ -863,6 +863,13 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet framing direction while preserving the existing visible-result title copy, status badge wording, token count, path rows, preview payload, action row hierarchy, route semantics, and local-only latest-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result packet framing styling
 - this keeps the layering explicit: `visible execution result register -> packet frame -> top rail emphasis`
+
+### Local-only visible-result packet border-contrast emphasis
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now strengthens the visible latest-result packet border contrast instead of leaving the shell boundary at the same soft card edge weight used before the framing polish sequence
+- this keeps the execution desk aligned with the `DESIGN.md` packet framing direction while preserving the existing visible-result title copy, status badge wording, token count, path rows, preview payload, action row hierarchy, route semantics, and local-only latest-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible-result packet shell styling
+- this keeps the layering explicit: `visible execution result register -> packet frame -> border contrast`
 - this keeps the layering explicit: `hidden execution result register -> hidden block ordering -> run context first`
 
 ### Local-only hidden-result compact density
