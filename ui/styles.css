@@ -6691,6 +6691,19 @@ h3 {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
 }
 
+.surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-harness-context="true"] .detail-copy-compact {
+  color: rgba(79, 91, 101, 0.8);
+  letter-spacing: 0.01em;
+}
+
+.surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-harness-context="true"] .detail-copy-compact code {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.75rem;
+  letter-spacing: -0.01em;
+  color: rgba(30, 42, 52, 0.93);
+  font-weight: 600;
+}
+
 .surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-operator-context="true"] {
   border-color: rgba(121, 98, 47, 0.1);
   background: linear-gradient(180deg, rgba(251, 249, 242, 0.94), rgba(246, 243, 236, 0.98));

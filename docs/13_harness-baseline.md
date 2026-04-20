@@ -606,6 +606,13 @@ Post-freeze execution hidden-result follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden run-context value presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden run-context group -> value emphasis`
 
+### Local-only hidden-result harness-context value emphasis
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now gives the hidden latest-result `하네스 컨텍스트` block a machine-readable mono emphasis for code values instead of leaving representative harness, kind, command, runner, posture, state, and host values at the same generic compact-copy weight as their labels
+- this keeps the execution desk aligned with the `DESIGN.md` hidden packet rhythm while preserving the existing hidden harness metadata payload, preview, restore actions, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden harness-context value presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden harness-context group -> value emphasis`
+
 ### Local-only execution-history packet design polish
 Post-freeze harness-run history follow-up:
 - `ui/app.js` and `ui/styles.css` now wrap the visible execution-history root in one compact history packet instead of leaving the history register as a flat generic relation strip
