@@ -5837,9 +5837,11 @@ h3 {
   content: "";
   position: absolute;
   inset: 0 auto auto 0;
-  width: clamp(92px, 28%, 132px);
-  height: 2px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--execution) 64%, #ffffff 36%), transparent);
+  width: clamp(102px, 31%, 146px);
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--execution) 72%, #ffffff 28%), transparent);
+  box-shadow: 0 4px 10px rgba(55, 93, 120, 0.07);
   pointer-events: none;
 }
 
