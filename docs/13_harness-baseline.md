@@ -802,6 +802,13 @@ Post-freeze execution hidden-result follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf top-rail styling
 - this keeps the layering explicit: `hidden execution result register -> action shelf -> top-rail lead`
 
+### Local-only hidden-result action-shelf button rhythm polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now gives the hidden latest-result action shelf buttons an explicit compact min-height and tighter line-height so the concealed control row reads with a steadier button rhythm instead of inheriting the looser generic secondary-button baseline
+- this keeps the execution desk aligned with the `DESIGN.md` compact control-rack rhythm while preserving the existing hidden-result action shelf framing, button tiers, preview payload, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf button rhythm styling
+- this keeps the layering explicit: `hidden execution result register -> action shelf -> button rhythm`
+
 ### Local-only hidden-result block ordering
 Post-freeze execution hidden-result ordering follow-up:
 - `ui/app.js` `Execution` now renders the hidden latest-result blocks in this order: `실행 기록 -> 하네스 컨텍스트 -> 운영 컨텍스트`

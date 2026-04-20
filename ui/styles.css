@@ -6611,7 +6611,10 @@ h3 {
   position: relative;
   z-index: 1;
   padding: 8px 11px;
+  min-height: 32px;
   font-size: 0.76rem;
+  line-height: 1.12;
+  letter-spacing: 0.01em;
 }
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact [data-harness-result-show="true"] {
