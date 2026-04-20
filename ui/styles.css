@@ -6672,6 +6672,19 @@ h3 {
     0 8px 16px rgba(20, 34, 42, 0.04);
 }
 
+.surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-run-context="true"] .detail-copy-compact {
+  color: rgba(71, 84, 96, 0.82);
+  letter-spacing: 0.01em;
+}
+
+.surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-run-context="true"] .detail-copy-compact code {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.75rem;
+  letter-spacing: -0.01em;
+  color: rgba(29, 41, 52, 0.94);
+  font-weight: 600;
+}
+
 .surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-harness-context="true"] {
   border-color: rgba(33, 57, 49, 0.09);
   background: linear-gradient(180deg, rgba(250, 251, 252, 0.94), rgba(243, 246, 248, 0.98));

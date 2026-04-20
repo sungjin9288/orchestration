@@ -599,6 +599,13 @@ Post-freeze harness-run hidden-result follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result packet framing styling
 - this keeps the layering explicit: `harness run desk -> hidden-result packet shell -> top rail emphasis`
 
+### Local-only hidden-result run-context value emphasis
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now gives the hidden latest-result `실행 기록` block a machine-readable mono emphasis for code values instead of leaving executed-at, input, and output values at the same generic compact-copy weight as their labels
+- this keeps the execution desk aligned with the `DESIGN.md` hidden packet rhythm while preserving the existing hidden execution record payload, preview, restore actions, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden run-context value presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden run-context group -> value emphasis`
+
 ### Local-only execution-history packet design polish
 Post-freeze harness-run history follow-up:
 - `ui/app.js` and `ui/styles.css` now wrap the visible execution-history root in one compact history packet instead of leaving the history register as a flat generic relation strip
