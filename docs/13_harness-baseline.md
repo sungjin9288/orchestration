@@ -844,6 +844,13 @@ Post-freeze execution hidden-result follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf overflow-boundary styling
 - this keeps the layering explicit: `hidden execution result register -> action shelf -> button overflow boundary`
 
+### Local-only hidden-result preview frame-radius polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now gives the hidden latest-result preview `<pre>` a compact frame radius so the concealed evidence panel closes with the same packet-family edge language as the surrounding hidden register
+- this keeps the execution desk aligned with the `DESIGN.md` compact packet rhythm while preserving the existing hidden-result preview payload, copy/reuse/rerun/show flow, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden preview frame styling
+- this keeps the layering explicit: `hidden execution result register -> hidden preview excerpt -> frame radius`
+
 ### Local-only hidden-result block ordering
 Post-freeze execution hidden-result ordering follow-up:
 - `ui/app.js` `Execution` now renders the hidden latest-result blocks in this order: `실행 기록 -> 하네스 컨텍스트 -> 운영 컨텍스트`
