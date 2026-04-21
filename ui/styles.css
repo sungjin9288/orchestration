@@ -6672,6 +6672,7 @@ h3 {
 .surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-preview="true"] {
   margin-top: 2px;
   min-height: 168px;
+  padding: 14px 15px;
   border-radius: 12px;
   border: 1px solid rgba(55, 93, 120, 0.22);
   background: linear-gradient(180deg, rgba(26, 37, 46, 0.98), rgba(20, 29, 36, 0.98));
