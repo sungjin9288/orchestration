@@ -6682,7 +6682,7 @@ h3 {
 }
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-run-context="true"] {
-  border-color: rgba(55, 93, 120, 0.16);
+  border-color: rgba(55, 93, 120, 0.18);
   background:
     radial-gradient(circle at top left, rgba(55, 93, 120, 0.08), transparent 46%),
     linear-gradient(180deg, rgba(248, 251, 253, 0.97), rgba(239, 244, 248, 0.99));
