@@ -1485,3 +1485,10 @@ Use:
 - `node scripts/smoke-ui-slice-316.mjs`
 - `node scripts/smoke-ui-slice-317.mjs`
 - `node scripts/smoke-ui-slice-318.mjs`
+
+### Local-only hidden-result run-context outer-shadow polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now raises the hidden latest-result `실행 기록` block outer shadow one step so the first-read summary shell lifts more clearly above the supporting metadata stack after the action-shelf tier polish
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden run-context payload, preview, restore actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden run-context shadow presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden run-context block -> outer shadow`
