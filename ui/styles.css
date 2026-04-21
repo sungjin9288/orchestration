@@ -6611,6 +6611,7 @@ h3 {
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact .secondary-button {
   flex: 0 0 auto;
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6624,6 +6625,8 @@ h3 {
   letter-spacing: 0.01em;
   text-align: center;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact [data-harness-result-show="true"] {
