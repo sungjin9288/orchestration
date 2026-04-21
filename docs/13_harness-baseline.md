@@ -774,6 +774,13 @@ Post-freeze execution hidden-result follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf rail presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden action row -> rail glow`
 
+### Local-only hidden-result action-shelf background-contrast polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now raises the hidden latest-result action shelf face contrast one step so the concealed control rack reads less like a flat utility tray after the stronger rail glow and outer shadow pass
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf background presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden action row -> background contrast`
+
 ### Local-only hidden-result preview-evidence panel polish
 Post-freeze execution hidden-result follow-up:
 - `ui/styles.css` now lifts the hidden latest-result preview `<pre>` into a compact evidence panel instead of leaving the concealed excerpt as a generic dark log block under the new action shelf
