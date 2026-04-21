@@ -18,7 +18,10 @@ assert.match(
   stylesCss,
   /background:\s*linear-gradient\(180deg,\s*rgba\(250,\s*251,\s*252,\s*0\.94\),\s*rgba\(243,\s*246,\s*248,\s*0\.98\)\);/,
 );
-assert.match(stylesCss, /box-shadow:\s*inset 0 1px 0 rgba\(255,\s*255,\s*255,\s*0\.68\);/);
+assert.match(
+  stylesCss,
+  /box-shadow:\s*(?:inset 0 1px 0 rgba\(255,\s*255,\s*255,\s*0\.68\);|inset 0 1px 0 rgba\(255,\s*255,\s*255,\s*0\.68\),\s*0 7px 14px rgba\(20,\s*34,\s*42,\s*0\.035\);)/,
+);
 
 console.log(
   JSON.stringify(

@@ -1492,3 +1492,10 @@ Post-freeze execution hidden-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden run-context payload, preview, restore actions, route semantics, and local-only hidden-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden run-context shadow presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden run-context block -> outer shadow`
+
+### Local-only hidden-result harness-context outer-shadow polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now raises the hidden latest-result `하네스 컨텍스트` block outer shadow one step so the quieter supporting tier keeps a cleaner lift below the strengthened run-context shell
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden harness-context payload, preview, restore actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden harness-context shadow presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden harness-context block -> outer shadow`
