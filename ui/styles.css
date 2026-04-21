@@ -6605,7 +6605,7 @@ h3 {
   height: 2px;
   border-radius: 999px;
   background: linear-gradient(90deg, color-mix(in srgb, var(--execution) 60%, #ffffff 40%), transparent);
-  box-shadow: 0 3px 8px rgba(55, 93, 120, 0.08);
+  box-shadow: 0 4px 10px rgba(55, 93, 120, 0.09);
   pointer-events: none;
 }
 
