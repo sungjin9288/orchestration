@@ -795,6 +795,13 @@ Post-freeze execution hidden-result follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden operator-context presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden operator-context group -> note tier`
 
+### Local-only hidden-result operator-context border-balance polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now raises the hidden latest-result `운영 컨텍스트` block border contrast one step so the quiet operator-note tier still keeps a readable packet edge beside the now-stronger run-context and harness-context shells
+- this keeps the execution desk aligned with the `DESIGN.md` compact packet rhythm while preserving the existing hidden-result operator metadata payload, preview payload, show/copy/reuse/preview-copy/rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden operator-context border presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden operator-context group -> border balance`
+
 ### Local-only hidden-result operator-context value emphasis
 Post-freeze execution hidden-result follow-up:
 - `ui/styles.css` now gives the hidden latest-result `운영 컨텍스트` block a machine-readable mono emphasis for code values so the recommended operator action and repo-native command read more clearly than their supporting labels, while the plain-text operator note stays at the quieter note tier
