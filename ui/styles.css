@@ -6661,7 +6661,7 @@ h3 {
 }
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact [data-harness-result-hidden-rerun="true"] {
-  border-color: rgba(55, 93, 120, 0.2);
+  border-color: rgba(55, 93, 120, 0.22);
   background: linear-gradient(180deg, rgba(238, 247, 255, 0.95), rgba(224, 237, 248, 0.98));
   color: color-mix(in srgb, var(--execution) 76%, #20313d 24%);
   box-shadow:
