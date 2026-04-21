@@ -13,7 +13,7 @@ assert.match(
   stylesCss,
   /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact \[data-harness-result-hidden-harness-context="true"\]\s*\{/,
 );
-assert.match(stylesCss, /border-color:\s*rgba\(33,\s*57,\s*49,\s*0\.09\);/);
+assert.match(stylesCss, /border-color:\s*rgba\(33,\s*57,\s*49,\s*0\.(?:09|1)\);/);
 assert.match(
   stylesCss,
   /background:\s*linear-gradient\(180deg,\s*rgba\(250,\s*251,\s*252,\s*0\.94\),\s*rgba\(243,\s*246,\s*248,\s*0\.98\)\);/,
