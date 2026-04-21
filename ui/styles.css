@@ -6588,7 +6588,7 @@ h3 {
   gap: 7px 8px;
   padding: 11px 11px 12px;
   border-radius: 10px;
-  border: 1px solid rgba(33, 57, 49, 0.1);
+  border: 1px solid rgba(33, 57, 49, 0.11);
   background:
     radial-gradient(circle at top left, rgba(55, 93, 120, 0.08), transparent 42%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(243, 247, 249, 0.94));
