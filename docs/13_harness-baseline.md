@@ -802,6 +802,13 @@ Post-freeze execution hidden-result follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf utility-button border presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden action row -> copy button edge`
 
+### Local-only hidden-result action-shelf reuse-button border polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now raises the hidden latest-result `reuse` button border contrast one step so the mid-tier reuse control keeps a clearer edge against the strengthened concealed shelf face
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf mid-tier button border presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden action row -> reuse button edge`
+
 ### Local-only hidden-result preview-evidence panel polish
 Post-freeze execution hidden-result follow-up:
 - `ui/styles.css` now lifts the hidden latest-result preview `<pre>` into a compact evidence panel instead of leaving the concealed excerpt as a generic dark log block under the new action shelf
