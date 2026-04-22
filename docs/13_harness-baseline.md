@@ -1534,3 +1534,10 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing visible preview payload, copy/reuse/rerun/hide flow, route semantics, and visible-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible preview outer-shadow presentation styling
 - this keeps the layering explicit: `execution result register -> visible preview excerpt -> outer shadow`
+
+### Local-only visible-result show-button border polish
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now raises the visible latest-result `결과 다시 보기` button border one step so the lead read-tier control edge reads more clearly against the strengthened visible action shelf
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing visible preview payload, copy/reuse/rerun/hide flow, route semantics, and visible-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible show-button border presentation styling
+- this keeps the layering explicit: `execution result register -> visible action shelf -> show button border`
