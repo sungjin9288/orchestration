@@ -11,6 +11,10 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(
   stylesCss,
+  /\.harness-execution-result-packet \.card-title-row-tight\s*\{[\s\S]*padding:\s*6px 8px;[\s\S]*border-radius:\s*10px;[\s\S]*box-shadow:\s*[\s\S]*0 5px 11px rgba\(20,\s*34,\s*42,\s*0\.035\);/s,
+);
+assert.match(
+  stylesCss,
   /\.harness-execution-result-packet \.card-title-row-tight strong\s*\{[\s\S]*color:\s*rgba\(24,\s*38,\s*50,\s*0\.96\);[\s\S]*letter-spacing:\s*0\.01em;/s,
 );
 
