@@ -5790,7 +5790,7 @@ h3 {
 }
 
 .harness-execution-result-packet .form-actions-compact [data-harness-result-reuse="true"] {
-  border-color: rgba(121, 98, 47, 0.16);
+  border-color: rgba(121, 98, 47, 0.18);
   background: linear-gradient(180deg, rgba(250, 245, 233, 0.96), rgba(242, 235, 219, 0.98));
   color: color-mix(in srgb, var(--text) 74%, var(--deliverables) 26%);
   box-shadow:
