@@ -11,16 +11,16 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(
   stylesCss,
-  /\.harness-execution-history-packet \.card-title-row-tight \.token-neutral\s*\{[\s\S]*border-color:\s*rgba\(33,\s*57,\s*49,\s*0\.1\);[\s\S]*background:\s*linear-gradient\(180deg,\s*rgba\(248,\s*250,\s*251,\s*0\.96\),\s*rgba\(240,\s*244,\s*247,\s*0\.99\)\);[\s\S]*color:\s*rgba\(67,\s*79,\s*90,\s*0\.84\);/s,
+  /\.harness-execution-history-packet \.card-title-row-tight \.token-neutral\s*\{[\s\S]*box-shadow:\s*[\s\S]*0 7px 14px rgba\(20,\s*34,\s*42,\s*0\.055\);/s,
 );
 
 console.log(
   JSON.stringify(
     {
       ok: true,
-      harnessExecutionHistoryHeaderTokenBalance: {
-        insertionPoint: 'executionHistoryPacket->headerRowShell->countTokenSupportTier',
-        marker: 'history header token keeps support tier',
+      harnessExecutionHistoryHeaderTokenShadowFollowup: {
+        insertionPoint: 'executionHistoryPacket->headerRowShell->countTokenShadow',
+        marker: 'history header token uses stronger shadow followup',
       },
     },
     null,
