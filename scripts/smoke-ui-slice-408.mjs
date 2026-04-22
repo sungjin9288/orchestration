@@ -18,6 +18,10 @@ assert.match(
 );
 
 assert.match(stylesCss, /\.harness-run-command-desk\s*\{/);
+assert.match(
+  stylesCss,
+  /\.harness-run-command-desk\s*\{[\s\S]*box-shadow:\s*[\s\S]*0 20px 34px rgba\(20,\s*34,\s*42,\s*0\.08\);/s,
+);
 assert.match(stylesCss, /\.harness-run-command-desk::before\s*\{/);
 assert.match(stylesCss, /\.harness-run-command-desk \.harness-run-prep-cluster,/);
 

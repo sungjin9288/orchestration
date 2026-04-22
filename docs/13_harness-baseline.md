@@ -1632,3 +1632,10 @@ Post-freeze harness-run desk follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` desk-card cadence while preserving the existing command template, path guidance note, clear-history action, submit flow, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only helper-cluster outer-shadow presentation styling
 - this keeps the layering explicit: `harness run desk -> helper cluster shell -> outer shadow`
+
+### Local-only harness-run command-desk outer-shadow follow-up
+Post-freeze harness-run desk follow-up:
+- `ui/styles.css` now raises the visible harness-run command-desk outer shadow one step so the shared prep-and-action shell keeps cleaner lift inside the strengthened helper cluster
+- this keeps the execution desk aligned with the `DESIGN.md` desk-card cadence while preserving the existing command template, preparation cluster, action shelf, clear-history flow, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only command-desk outer-shadow presentation styling
+- this keeps the layering explicit: `harness run desk -> helper cluster shell -> command desk shell -> outer shadow`
