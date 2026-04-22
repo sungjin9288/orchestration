@@ -1667,3 +1667,10 @@ Post-freeze execution recent-history follow-up:
 - this keeps the execution history register aligned with the `DESIGN.md` desk-card cadence while preserving the existing header wording, history count token, list ordering, row payload, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history header-row outer-shadow presentation styling
 - this keeps the layering explicit: `execution history packet -> header row shell -> outer shadow`
+
+### Local-only execution-history header-token balance follow-up
+Post-freeze execution recent-history follow-up:
+- `ui/styles.css` now lifts the visible execution-history header `token-neutral` count chip into a lighter support-tier token so the count reads more clearly inside the strengthened header shell
+- this keeps the execution history register aligned with the `DESIGN.md` token cadence while preserving the existing history count wording, header wording, list ordering, row payload, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history header-token presentation styling
+- this keeps the layering explicit: `execution history packet -> header row shell -> count token support tier`
