@@ -35,6 +35,10 @@ assert.match(
   stylesCss,
   /\.harness-execution-history-packet \.card-title-row-tight \.token-neutral\s*\{[\s\S]*border-color:\s*rgba\(33,\s*57,\s*49,\s*0\.1\);[\s\S]*background:\s*linear-gradient\(180deg,\s*rgba\(248,\s*250,\s*251,\s*0\.96\),\s*rgba\(240,\s*244,\s*247,\s*0\.99\)\);[\s\S]*color:\s*rgba\(67,\s*79,\s*90,\s*0\.84\);/s,
 );
+assert.match(
+  stylesCss,
+  /\.harness-execution-history-packet \.card-title-row-tight strong\s*\{[\s\S]*color:\s*rgba\(22,\s*36,\s*48,\s*0\.97\);[\s\S]*letter-spacing:\s*0\.01em;/s,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -118,13 +122,14 @@ async function main() {
       JSON.stringify(
         {
           ok: true,
-          harnessExecutionHistoryHeaderDensity: {
-            insertionPoint: 'executionHistoryRegister->historyHeaderDensity->tightTitleRow',
-            headerClass: 'card-title-row-tight',
-            route: '/api/harness/operator-action/run',
-          },
-        },
-        null,
+      harnessExecutionHistoryHeaderDensity: {
+        insertionPoint: 'executionHistoryRegister->historyHeaderDensity->tightTitleRow',
+        headerClass: 'card-title-row-tight',
+        marker: 'history header title uses stronger title ink',
+        route: '/api/harness/operator-action/run',
+      },
+    },
+    null,
         2,
       ),
     );

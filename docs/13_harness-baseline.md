@@ -1675,6 +1675,13 @@ Post-freeze execution recent-history follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history header-token presentation styling
 - this keeps the layering explicit: `execution history packet -> header row shell -> count token support tier`
 
+### Local-only execution-history header-title ink follow-up
+Post-freeze execution recent-history follow-up:
+- `ui/styles.css` now deepens the visible execution-history header `strong` title ink one step so the top history label reads more clearly beside the strengthened count token
+- this keeps the execution history register aligned with the `DESIGN.md` title hierarchy while preserving the existing history header wording, count wording, list ordering, row payload, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history header-title ink presentation styling
+- this keeps the layering explicit: `execution history packet -> header row shell -> title ink emphasis`
+
 ### Local-only visible-result header-status shadow follow-up
 Post-freeze visible-result follow-up:
 - `ui/styles.css` now raises the visible latest-result header `token-success` shadow one step so the status badge reads more clearly inside the strengthened header shell
