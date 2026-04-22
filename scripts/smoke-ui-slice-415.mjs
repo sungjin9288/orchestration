@@ -18,6 +18,10 @@ assert.match(
 );
 
 assert.match(stylesCss, /\.harness-execution-history-summary-rack\s*\{/);
+assert.match(
+  stylesCss,
+  /\.harness-execution-history-summary-rack\s*\{[\s\S]*box-shadow:\s*[\s\S]*0 8px 16px rgba\(20,\s*34,\s*42,\s*0\.045\);/s,
+);
 assert.match(stylesCss, /\.harness-execution-history-summary-rack::before\s*\{/);
 assert.match(
   stylesCss,

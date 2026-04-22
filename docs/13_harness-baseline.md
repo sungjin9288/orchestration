@@ -1611,3 +1611,10 @@ Post-freeze harness-run history follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing execution timestamp, input/output summaries, per-row actions, newest-first ordering, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history row-packet outer-shadow presentation styling
 - this keeps the layering explicit: `harness run desk -> execution-history row packet -> outer shadow`
+
+### Local-only execution-history summary-rack outer-shadow follow-up
+Post-freeze harness-run history follow-up:
+- `ui/styles.css` now raises each visible execution-history summary rack outer shadow one step so the row-level evidence cluster keeps cleaner lift inside the strengthened item packet
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing executed-at summary, input/output summaries, action shelf, newest-first ordering, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history summary-rack outer-shadow presentation styling
+- this keeps the layering explicit: `harness run desk -> execution-history summary rack -> outer shadow`
