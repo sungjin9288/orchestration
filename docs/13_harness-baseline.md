@@ -1681,3 +1681,10 @@ Post-freeze visible-result follow-up:
 - this keeps the latest-result register aligned with the `DESIGN.md` token cadence while preserving the existing status wording, header wording, preview payload, action hierarchy, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result header-status token presentation styling
 - this keeps the layering explicit: `visible result packet -> header row shell -> success badge tier`
+
+### Local-only visible-result header-title ink follow-up
+Post-freeze visible-result follow-up:
+- `ui/styles.css` now deepens the visible latest-result header `strong` title ink one step so the header lead reads more clearly beside the strengthened status badge
+- this keeps the latest-result register aligned with the `DESIGN.md` title hierarchy while preserving the existing header wording, status wording, preview payload, action hierarchy, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result header-title ink presentation styling
+- this keeps the layering explicit: `visible result packet -> header row shell -> title ink emphasis`
