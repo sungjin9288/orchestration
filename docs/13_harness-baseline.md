@@ -1513,3 +1513,10 @@ Post-freeze execution hidden-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only hidden-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden preview spacing presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden preview excerpt -> stack separation`
+
+### Local-only hidden-result preview outer-shadow follow-up polish
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now raises the hidden latest-result preview `<pre>` outer shadow one step so the concealed evidence frame keeps a cleaner lift after the preview stack separation pass
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden preview outer-shadow presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden preview excerpt -> outer shadow`
