@@ -5806,7 +5806,7 @@ h3 {
 }
 
 .harness-execution-result-packet [data-harness-execution-preview="true"] {
-  margin: 0;
+  margin: 4px 0 0;
   min-height: 168px;
   padding: 11px 12px;
   border-radius: 10px;
