@@ -19,6 +19,10 @@ assert.match(stylesCss, /\.harness-run-template-note\s*\{/);
 assert.match(stylesCss, /\.harness-run-template-note::before\s*\{/);
 assert.match(stylesCss, /\.harness-run-template-kicker\s*\{/);
 assert.match(stylesCss, /\.harness-run-template-command\s*\{/);
+assert.match(
+  stylesCss,
+  /\.harness-run-prep-cluster\s+\.harness-run-template-note\s*\{[\s\S]*box-shadow:\s*0 14px 24px rgba\(20,\s*34,\s*42,\s*0\.05\);/s,
+);
 
 console.log(
   JSON.stringify(

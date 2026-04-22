@@ -6205,6 +6205,10 @@ h3 {
   box-shadow: 0 14px 24px rgba(20, 34, 42, 0.05);
 }
 
+.harness-run-prep-cluster .harness-run-template-note {
+  box-shadow: 0 14px 24px rgba(20, 34, 42, 0.05);
+}
+
 .harness-run-template-note {
   position: relative;
   display: grid;
