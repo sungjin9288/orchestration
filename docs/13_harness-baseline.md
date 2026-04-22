@@ -1625,3 +1625,10 @@ Post-freeze harness-run history follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing input/output copy actions, preview, reuse, rerun flow, newest-first ordering, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history action-shelf outer-shadow presentation styling
 - this keeps the layering explicit: `harness run desk -> execution-history action shelf -> outer shadow`
+
+### Local-only harness-run helper-cluster outer-shadow follow-up
+Post-freeze harness-run desk follow-up:
+- `ui/styles.css` now raises the visible harness-run helper cluster outer shadow one step so the shared command-desk and path-policy shell keeps cleaner lift above the strengthened latest-result and history packets
+- this keeps the execution desk aligned with the `DESIGN.md` desk-card cadence while preserving the existing command template, path guidance note, clear-history action, submit flow, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only helper-cluster outer-shadow presentation styling
+- this keeps the layering explicit: `harness run desk -> helper cluster shell -> outer shadow`
