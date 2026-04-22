@@ -5650,6 +5650,14 @@ h3 {
   box-shadow: none;
 }
 
+.harness-run-helper-cluster .form-help-policy-note {
+  box-shadow: 0 14px 24px rgba(20, 34, 42, 0.06);
+}
+
+.harness-run-helper-cluster .harness-run-command-desk {
+  box-shadow: none;
+}
+
 .harness-execution-result-packet {
   position: relative;
   display: grid;

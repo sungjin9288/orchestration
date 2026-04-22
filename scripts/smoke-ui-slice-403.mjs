@@ -21,6 +21,10 @@ assert.match(stylesCss, /\.form-help-policy-note::before\s*\{/);
 assert.match(stylesCss, /\.form-help-policy-kicker\s*\{/);
 assert.match(stylesCss, /\.form-help-policy-copy\s*\{/);
 assert.match(stylesCss, /\.form-help-policy-note code\s*\{/);
+assert.match(
+  stylesCss,
+  /\.harness-run-helper-cluster\s+\.form-help-policy-note\s*\{[\s\S]*box-shadow:\s*0 14px 24px rgba\(20,\s*34,\s*42,\s*0\.06\);/s,
+);
 
 console.log(
   JSON.stringify(
