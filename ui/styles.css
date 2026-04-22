@@ -6024,6 +6024,7 @@ h3 {
   font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 0.76rem;
   letter-spacing: -0.01em;
+  color: color-mix(in srgb, var(--text) 84%, var(--execution) 16%);
 }
 
 .harness-execution-history-item-packet .form-actions-compact {

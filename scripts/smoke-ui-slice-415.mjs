@@ -31,6 +31,10 @@ assert.match(
   stylesCss,
   /\.harness-execution-history-summary-rack \.control-overview-register-row:first-child \.control-overview-register-value\s*\{[\s\S]*font-size:\s*0\.84rem;[\s\S]*color:\s*color-mix\(in srgb,\s*var\(--execution\)\s*76%,\s*#1f2732\s*24%\);/s,
 );
+assert.match(
+  stylesCss,
+  /\.harness-execution-history-summary-rack \.control-overview-register-row:not\(:first-child\) \.control-overview-register-value\s*\{[\s\S]*font-family:\s*"IBM Plex Mono",\s*"SFMono-Regular",\s*Consolas,\s*monospace;[\s\S]*font-size:\s*0\.76rem;[\s\S]*letter-spacing:\s*-0\.01em;[\s\S]*color:\s*color-mix\(in srgb,\s*var\(--text\)\s*84%,\s*var\(--execution\)\s*16%\);/s,
+);
 
 console.log(
   JSON.stringify(
@@ -38,7 +42,7 @@ console.log(
       ok: true,
       harnessExecutionHistorySummaryRackDesign: {
         insertionPoint: 'harnessRunDesk->historySummaryRackDesign->historyRowSummary',
-        marker: 'history summary rack first row uses stronger execution ink',
+        marker: 'history summary rack supporting rows use balanced value ink',
       },
     },
     null,
