@@ -11,7 +11,7 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(
   stylesCss,
-  /\.harness-execution-result-packet \.token-row-compact\s*\{[\s\S]*gap:\s*5px;[\s\S]*padding:\s*7px 8px;[\s\S]*border-radius:\s*10px;[\s\S]*border:\s*1px solid rgba\(33,\s*57,\s*49,\s*0\.1\);/s,
+  /\.harness-execution-result-packet \.token-row-compact\s*\{[\s\S]*gap:\s*5px;[\s\S]*padding:\s*7px 8px;[\s\S]*border-radius:\s*10px;[\s\S]*border:\s*1px solid rgba\(33,\s*57,\s*49,\s*0\.1\);[\s\S]*box-shadow:\s*(?:inset 0 1px 0 rgba\(255,\s*255,\s*255,\s*0\.66\);|[\s\S]*0 6px 12px rgba\(20,\s*34,\s*42,\s*0\.04\);)/s,
 );
 assert.match(
   stylesCss,

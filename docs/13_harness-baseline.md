@@ -1569,3 +1569,10 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing visible preview payload, copy/reuse/rerun/hide flow, route semantics, and visible-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible rerun-button border presentation styling
 - this keeps the layering explicit: `execution result register -> visible action shelf -> rerun button border`
+
+### Local-only visible-result token-row outer-shadow polish
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now raises the visible latest-result summary token row outer shadow one step so the compact metadata strip keeps a cleaner lift above the path rows and action shelf
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing visible-result token wording, token count, path rows, preview payload, action row hierarchy, route semantics, and visible-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible token-row outer-shadow presentation styling
+- this keeps the layering explicit: `execution result register -> summary token row -> outer shadow`
