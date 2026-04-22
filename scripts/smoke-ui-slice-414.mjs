@@ -18,6 +18,10 @@ assert.match(
 );
 
 assert.match(stylesCss, /\.harness-execution-history-action-shelf\s*\{/);
+assert.match(
+  stylesCss,
+  /\.harness-execution-history-action-shelf\s*\{[\s\S]*box-shadow:\s*[\s\S]*0 10px 18px rgba\(20,\s*34,\s*42,\s*0\.05\);/s,
+);
 assert.match(stylesCss, /\.harness-execution-history-action-shelf::before\s*\{/);
 assert.match(
   stylesCss,
