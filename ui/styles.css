@@ -6670,7 +6670,7 @@ h3 {
 }
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-preview="true"] {
-  margin-top: 2px;
+  margin-top: 4px;
   min-height: 168px;
   padding: 14px 15px;
   border-radius: 12px;
