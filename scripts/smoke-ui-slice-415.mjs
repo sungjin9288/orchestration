@@ -27,6 +27,10 @@ assert.match(
   stylesCss,
   /\.harness-execution-history-summary-rack \.control-overview-register-row\s*\{[\s\S]*padding:\s*2px 0;/s,
 );
+assert.match(
+  stylesCss,
+  /\.harness-execution-history-summary-rack \.control-overview-register-row:first-child \.control-overview-register-value\s*\{[\s\S]*font-size:\s*0\.84rem;[\s\S]*color:\s*color-mix\(in srgb,\s*var\(--execution\)\s*76%,\s*#1f2732\s*24%\);/s,
+);
 
 console.log(
   JSON.stringify(
@@ -34,7 +38,7 @@ console.log(
       ok: true,
       harnessExecutionHistorySummaryRackDesign: {
         insertionPoint: 'harnessRunDesk->historySummaryRackDesign->historyRowSummary',
-        marker: 'data-harness-execution-history-summary-rack',
+        marker: 'history summary rack first row uses stronger execution ink',
       },
     },
     null,
