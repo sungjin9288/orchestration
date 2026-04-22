@@ -29,6 +29,10 @@ assert.match(
 );
 assert.match(
   stylesCss,
+  /\.harness-execution-history-summary-rack \.control-overview-register-label\s*\{[\s\S]*letter-spacing:\s*0\.08em;[\s\S]*color:\s*rgba\(43,\s*58,\s*69,\s*0\.7\);/s,
+);
+assert.match(
+  stylesCss,
   /\.harness-execution-history-summary-rack \.control-overview-register-row:first-child \.control-overview-register-value\s*\{[\s\S]*font-size:\s*0\.84rem;[\s\S]*color:\s*color-mix\(in srgb,\s*var\(--execution\)\s*76%,\s*#1f2732\s*24%\);/s,
 );
 assert.match(
@@ -42,7 +46,7 @@ console.log(
       ok: true,
       harnessExecutionHistorySummaryRackDesign: {
         insertionPoint: 'harnessRunDesk->historySummaryRackDesign->historyRowSummary',
-        marker: 'history summary rack supporting rows use balanced value ink',
+        marker: 'history summary rack uses balanced label tone',
       },
     },
     null,
