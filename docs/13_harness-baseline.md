@@ -1576,3 +1576,10 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing visible-result token wording, token count, path rows, preview payload, action row hierarchy, route semantics, and visible-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible token-row outer-shadow presentation styling
 - this keeps the layering explicit: `execution result register -> summary token row -> outer shadow`
+
+### Local-only visible-result path-row outer-shadow polish
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now raises the visible latest-result input/output path rows with a lighter shell so the supporting path detail tier keeps cleaner separation below the summary token row
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing visible-result path labels, path values, preview payload, action row hierarchy, route semantics, and visible-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible path-row outer-shadow presentation styling
+- this keeps the layering explicit: `execution result register -> path detail rows -> outer shadow`

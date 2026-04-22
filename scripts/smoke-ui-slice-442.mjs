@@ -16,7 +16,7 @@ assert.match(appJs, /data-harness-execution-output-summary="true"/);
 
 assert.match(
   stylesCss,
-  /\.harness-execution-result-packet \[data-harness-execution-input-summary="true"\],\s*\.harness-execution-result-packet \[data-harness-execution-output-summary="true"\]\s*\{[\s\S]*color:\s*rgba\(74,\s*91,\s*102,\s*0\.78\);[\s\S]*letter-spacing:\s*0\.01em;/s,
+  /\.harness-execution-result-packet \[data-harness-execution-input-summary="true"\],\s*\.harness-execution-result-packet \[data-harness-execution-output-summary="true"\]\s*\{[\s\S]*color:\s*rgba\(74,\s*91,\s*102,\s*0\.78\);[\s\S]*letter-spacing:\s*0\.01em;[\s\S]*padding:\s*7px 8px;[\s\S]*border-radius:\s*10px;/s,
 );
 assert.match(
   stylesCss,
