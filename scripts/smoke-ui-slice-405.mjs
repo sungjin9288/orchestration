@@ -19,6 +19,10 @@ assert.match(stylesCss, /\.harness-run-field-rack\s*\{/);
 assert.match(stylesCss, /\.harness-run-field-rack::before\s*\{/);
 assert.match(stylesCss, /\.harness-run-field-rack \.field-label\s*\{/);
 assert.match(stylesCss, /\.harness-run-field-rack \.field input\s*\{/);
+assert.match(
+  stylesCss,
+  /\.harness-run-prep-cluster\s+\.harness-run-field-rack\s*\{[\s\S]*box-shadow:\s*0 14px 24px rgba\(20,\s*34,\s*42,\s*0\.05\);/s,
+);
 
 console.log(
   JSON.stringify(

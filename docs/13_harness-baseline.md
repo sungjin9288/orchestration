@@ -1646,3 +1646,10 @@ Post-freeze harness-run desk follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` desk-card cadence while preserving the existing path guidance copy, repo-root and `/tmp` policy wording, command template, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only path-policy-note outer-shadow presentation styling
 - this keeps the layering explicit: `harness run desk -> helper cluster shell -> path-policy note shell -> outer shadow`
+
+### Local-only harness-run field-rack outer-shadow follow-up
+Post-freeze harness-run desk follow-up:
+- `ui/styles.css` now restores a lighter visible outer shadow for the prep-cluster field rack so the input/output intake shell keeps cleaner lift beside the template note
+- this keeps the execution desk aligned with the `DESIGN.md` desk-card cadence while preserving the existing input/output field semantics, command template, submit flow, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only field-rack outer-shadow presentation styling
+- this keeps the layering explicit: `harness run desk -> prep cluster shell -> field-rack shell -> outer shadow`
