@@ -1527,3 +1527,10 @@ Post-freeze execution visible-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing visible preview payload, copy/reuse/rerun/hide flow, route semantics, and visible-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible preview spacing presentation styling
 - this keeps the layering explicit: `execution result register -> visible preview excerpt -> stack separation`
+
+### Local-only visible-result preview outer-shadow polish
+Post-freeze execution visible-result follow-up:
+- `ui/styles.css` now raises the visible latest-result preview `<pre>` outer shadow one step so the shown evidence frame keeps a cleaner lift after the preview stack-separation pass
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing visible preview payload, copy/reuse/rerun/hide flow, route semantics, and visible-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside visible preview outer-shadow presentation styling
+- this keeps the layering explicit: `execution result register -> visible preview excerpt -> outer shadow`

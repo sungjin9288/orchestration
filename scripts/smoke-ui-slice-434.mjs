@@ -15,7 +15,7 @@ assert.match(
 );
 assert.match(
   stylesCss,
-  /box-shadow:\s*inset 0 1px 0 rgba\(255,\s*255,\s*255,\s*0\.7\),\s*0 10px 18px rgba\(20,\s*34,\s*42,\s*0\.05\);/s,
+  /box-shadow:\s*inset 0 1px 0 rgba\(255,\s*255,\s*255,\s*0\.7\),\s*(?:0 10px 18px rgba\(20,\s*34,\s*42,\s*0\.05\)|0 11px 20px rgba\(20,\s*34,\s*42,\s*0\.06\));/s,
 );
 
 console.log(
