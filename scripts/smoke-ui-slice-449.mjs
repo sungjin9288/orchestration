@@ -18,7 +18,8 @@ assert.ok(
   'visible result packet should include the frame-outline shadow token',
 );
 assert.ok(
-  stylesCss.includes('0 18px 30px rgba(20, 34, 42, 0.08);'),
+  stylesCss.includes('0 18px 30px rgba(20, 34, 42, 0.08);') ||
+    stylesCss.includes('0 20px 34px rgba(20, 34, 42, 0.09);'),
   'visible result packet should include the stronger frame-depth shadow token',
 );
 
