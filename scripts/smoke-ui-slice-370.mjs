@@ -14,16 +14,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-370');
 const port = 4671;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(appJs, /data-harness-execution-history="true"/);
 assert.match(
   appJs,
   /data-harness-execution-history="true"[\s\S]*?<div class="card-title-row card-title-row-tight">/,
+);
+assert.match(
+  stylesCss,
+  /\.harness-execution-history-packet \.card-title-row-tight\s*\{[\s\S]*padding:\s*5px 7px;[\s\S]*border-radius:\s*10px;[\s\S]*box-shadow:\s*[\s\S]*0 4px 10px rgba\(20,\s*34,\s*42,\s*0\.03\);/s,
 );
 
 async function fetchJson(url, options = {}) {

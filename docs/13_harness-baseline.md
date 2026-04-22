@@ -1660,3 +1660,10 @@ Post-freeze harness-run desk follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` desk-card cadence while preserving the existing command template string, input/output field semantics, submit flow, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only template-note outer-shadow presentation styling
 - this keeps the layering explicit: `harness run desk -> prep cluster shell -> template-note shell -> outer shadow`
+
+### Local-only execution-history header-row outer-shadow follow-up
+Post-freeze execution recent-history follow-up:
+- `ui/styles.css` now lifts the visible execution-history `card-title-row-tight` into a lighter shell so the first-read header tier sits more clearly above the history row packet stack
+- this keeps the execution history register aligned with the `DESIGN.md` desk-card cadence while preserving the existing header wording, history count token, list ordering, row payload, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history header-row outer-shadow presentation styling
+- this keeps the layering explicit: `execution history packet -> header row shell -> outer shadow`
