@@ -1863,3 +1863,10 @@ Post-freeze hidden-result metadata follow-up:
 - this keeps the hidden latest-result register aligned with the `DESIGN.md` metadata hierarchy while preserving the existing hidden run-context payload, preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden run-context copy-density presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden run-context summary -> supporting copy density`
+
+### Local-only hidden-result run-context code line-height follow-up
+Post-freeze hidden-result metadata follow-up:
+- `ui/styles.css` now gives the hidden latest-result `실행 기록` block mono code values explicit `line-height: 1.3` so executed-at and path tokens keep tighter machine-readable rhythm inside the strengthened run-context shell
+- this keeps the hidden latest-result register aligned with the `DESIGN.md` metadata hierarchy while preserving the existing hidden run-context payload, preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden run-context mono-value rhythm presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden run-context summary -> mono value rhythm`
