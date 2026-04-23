@@ -1793,3 +1793,10 @@ Post-freeze visible-result follow-up:
 - this keeps the latest-result register aligned with the `DESIGN.md` evidence hierarchy while preserving the existing preview payload, copy/reuse/rerun/hide flow, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result preview-pane border presentation styling
 - this keeps the layering explicit: `visible result packet -> preview evidence pane -> execution excerpt`
+
+### Local-only visible-result preview-pane outer-shadow follow-up
+Post-freeze visible-result follow-up:
+- `ui/styles.css` now raises the visible latest-result preview pane outer shadow one step so the execution evidence excerpt keeps cleaner lift below the strengthened action row
+- this keeps the latest-result register aligned with the `DESIGN.md` evidence hierarchy while preserving the existing preview payload, copy/reuse/rerun/hide flow, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result preview-pane shadow presentation styling
+- this keeps the layering explicit: `visible result packet -> preview evidence pane -> execution excerpt lift`
