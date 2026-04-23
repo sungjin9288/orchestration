@@ -1744,3 +1744,10 @@ Post-freeze visible-result follow-up:
 - this keeps the latest-result register aligned with the `DESIGN.md` title hierarchy while preserving the existing header wording, status wording, preview payload, action hierarchy, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result header-title ink presentation styling
 - this keeps the layering explicit: `visible result packet -> header row shell -> title ink emphasis`
+
+### Local-only execution-history action-shelf rerun-button border follow-up
+Post-freeze execution-history follow-up:
+- `ui/styles.css` now raises the visible execution-history action-shelf rerun-button border one step so the execution-tier rerun control keeps clearer edge separation beside the already-strengthened preview and reuse controls
+- this keeps the execution history register aligned with the `DESIGN.md` action hierarchy while preserving the existing rerun/reuse flow, preview flow, input/output copy actions, row payload, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history action-shelf rerun-button border presentation styling
+- this keeps the layering explicit: `execution history item packet -> action shelf -> rerun control execution tier`
