@@ -11,11 +11,11 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(
   stylesCss,
-  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact \[data-harness-result-hidden-harness-context="true"\] \.detail-copy-compact\s*\{[\s\S]*color:\s*rgba\(79,\s*91,\s*101,\s*0\.8\);[\s\S]*letter-spacing:\s*0\.01em;/s,
+  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact \[data-harness-result-hidden-harness-context="true"\] \.detail-copy-compact\s*\{[^}]*color:\s*rgba\(79,\s*91,\s*101,\s*0\.8\);[^}]*(?:line-height:\s*1\.42;)?[^}]*letter-spacing:\s*0\.01em;[^}]*\}/s,
 );
 assert.match(
   stylesCss,
-  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact \[data-harness-result-hidden-harness-context="true"\] \.detail-copy-compact code\s*\{[\s\S]*font-family:\s*"IBM Plex Mono",\s*"SFMono-Regular",\s*Consolas,\s*monospace;[\s\S]*font-size:\s*0\.75rem;[\s\S]*color:\s*rgba\(30,\s*42,\s*52,\s*0\.93\);[\s\S]*font-weight:\s*600;/s,
+  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact \[data-harness-result-hidden-harness-context="true"\] \.detail-copy-compact code\s*\{[^}]*font-family:\s*"IBM Plex Mono",\s*"SFMono-Regular",\s*Consolas,\s*monospace;[^}]*font-size:\s*0\.75rem;[^}]*color:\s*rgba\(30,\s*42,\s*52,\s*0\.93\);[^}]*font-weight:\s*600;[^}]*\}/s,
 );
 
 console.log(
