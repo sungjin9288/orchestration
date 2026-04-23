@@ -6833,6 +6833,7 @@ h3 {
 .surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-operator-context="true"] .detail-copy-compact code {
   font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 0.75rem;
+  line-height: 1.3;
   letter-spacing: -0.01em;
   color: rgba(76, 59, 28, 0.92);
   font-weight: 600;
