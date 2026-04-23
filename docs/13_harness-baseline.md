@@ -1779,3 +1779,10 @@ Post-freeze visible-result follow-up:
 - this keeps the latest-result register aligned with the `DESIGN.md` action hierarchy while preserving the existing copy/reuse/rerun/hide flow, preview payload, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result action-row copy-button shadow presentation styling
 - this keeps the layering explicit: `visible result packet -> action row shelf -> copy controls utility tier`
+
+### Local-only visible-result action-row hide-button shadow follow-up
+Post-freeze visible-result follow-up:
+- `ui/styles.css` now adds a light outer shadow to the visible latest-result action-row hide button so the quiet read-tier visibility control keeps subtle lift alongside the preview and copy controls
+- this keeps the latest-result register aligned with the `DESIGN.md` action hierarchy while preserving the existing copy/reuse/rerun/hide flow, preview payload, local visibility behavior, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result action-row hide-button shadow presentation styling
+- this keeps the layering explicit: `visible result packet -> action row shelf -> hide control read tier`
