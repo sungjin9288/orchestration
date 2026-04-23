@@ -1724,6 +1724,13 @@ Post-freeze execution recent-history follow-up:
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history action-shelf preview-button border presentation styling
 - this keeps the layering explicit: `execution history item packet -> action shelf -> preview control read tier`
 
+### Local-only execution-history action-shelf reuse-button border follow-up
+Post-freeze execution recent-history follow-up:
+- `ui/styles.css` now raises the visible execution-history action-shelf reuse-button border one step so the mid-tier path-reuse control keeps clearer edge separation beside the stronger rerun control
+- this keeps the execution history register aligned with the `DESIGN.md` action hierarchy while preserving the existing reuse/rerun flow, preview flow, input/output copy actions, row payload, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history action-shelf reuse-button border presentation styling
+- this keeps the layering explicit: `execution history item packet -> action shelf -> reuse control mid tier`
+
 ### Local-only visible-result header-status shadow follow-up
 Post-freeze visible-result follow-up:
 - `ui/styles.css` now raises the visible latest-result header `token-success` shadow one step so the status badge reads more clearly inside the strengthened header shell
