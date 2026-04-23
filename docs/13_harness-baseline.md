@@ -1849,3 +1849,10 @@ Post-freeze hidden-result follow-up:
 - this keeps the hidden latest-result register aligned with the `DESIGN.md` evidence hierarchy while preserving the existing hidden preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden-result preview-pane ink presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden preview excerpt -> execution excerpt ink`
+
+### Local-only hidden-result run-context line-height follow-up
+Post-freeze hidden-result metadata follow-up:
+- `ui/styles.css` now gives the hidden latest-result `실행 기록` block explicit `line-height: 1.42` on supporting compact copy so executed-at and path summaries keep a tighter summary rhythm inside the strengthened run-context shell
+- this keeps the hidden latest-result register aligned with the `DESIGN.md` metadata hierarchy while preserving the existing hidden run-context payload, preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden run-context copy-rhythm presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden run-context summary -> supporting copy rhythm`
