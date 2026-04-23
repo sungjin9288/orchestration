@@ -1821,3 +1821,10 @@ Post-freeze visible-result follow-up:
 - this keeps the latest-result register aligned with the `DESIGN.md` evidence hierarchy while preserving the existing preview payload, copy/reuse/rerun/hide flow, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result preview-pane typography presentation styling
 - this keeps the layering explicit: `visible result packet -> preview evidence pane -> execution excerpt rhythm`
+
+### Local-only visible-result preview-pane font-size follow-up
+Post-freeze visible-result follow-up:
+- `ui/styles.css` now gives the visible latest-result preview pane an explicit `font-size: 0.83rem` so the execution evidence text keeps compact density on the strengthened light evidence surface
+- this keeps the latest-result register aligned with the `DESIGN.md` evidence hierarchy while preserving the existing preview payload, copy/reuse/rerun/hide flow, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result preview-pane typography presentation styling
+- this keeps the layering explicit: `visible result packet -> preview evidence pane -> execution excerpt density`
