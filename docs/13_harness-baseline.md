@@ -1751,3 +1751,10 @@ Post-freeze execution-history follow-up:
 - this keeps the execution history register aligned with the `DESIGN.md` action hierarchy while preserving the existing rerun/reuse flow, preview flow, input/output copy actions, row payload, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only execution-history action-shelf rerun-button border presentation styling
 - this keeps the layering explicit: `execution history item packet -> action shelf -> rerun control execution tier`
+
+### Local-only visible-result action-row rerun-button shadow follow-up
+Post-freeze visible-result follow-up:
+- `ui/styles.css` now raises the visible latest-result action-row rerun-button shadow one step so the execution-tier rerun control keeps cleaner lift inside the already-strengthened visible action shelf
+- this keeps the latest-result register aligned with the `DESIGN.md` action hierarchy while preserving the existing copy/reuse/rerun/hide flow, preview payload, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result action-row rerun-button shadow presentation styling
+- this keeps the layering explicit: `visible result packet -> action row shelf -> rerun control execution tier`
