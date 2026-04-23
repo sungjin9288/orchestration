@@ -1758,3 +1758,10 @@ Post-freeze visible-result follow-up:
 - this keeps the latest-result register aligned with the `DESIGN.md` action hierarchy while preserving the existing copy/reuse/rerun/hide flow, preview payload, and route semantics
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result action-row rerun-button shadow presentation styling
 - this keeps the layering explicit: `visible result packet -> action row shelf -> rerun control execution tier`
+
+### Local-only visible-result action-row reuse-button shadow follow-up
+Post-freeze visible-result follow-up:
+- `ui/styles.css` now raises the visible latest-result action-row reuse-button shadow one step so the mid-tier path-reuse control keeps cleaner lift beneath the strengthened rerun control
+- this keeps the latest-result register aligned with the `DESIGN.md` action hierarchy while preserving the existing copy/reuse/rerun/hide flow, preview payload, and route semantics
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result action-row reuse-button shadow presentation styling
+- this keeps the layering explicit: `visible result packet -> action row shelf -> reuse control mid tier`
