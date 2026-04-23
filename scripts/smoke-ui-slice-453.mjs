@@ -11,7 +11,7 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(
   stylesCss,
-  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact \[data-harness-result-hidden-harness-context="true"\] \.detail-copy-compact\s*\{[^}]*color:\s*rgba\(79,\s*91,\s*101,\s*0\.8\);[^}]*(?:line-height:\s*1\.42;)?[^}]*letter-spacing:\s*0\.01em;[^}]*\}/s,
+  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact \[data-harness-result-hidden-harness-context="true"\] \.detail-copy-compact\s*\{[^}]*color:\s*rgba\(79,\s*91,\s*101,\s*0\.8\);[^}]*(?:font-size:\s*0\.84rem;)?[^}]*(?:line-height:\s*1\.42;)?[^}]*letter-spacing:\s*0\.01em;[^}]*\}/s,
 );
 assert.match(
   stylesCss,

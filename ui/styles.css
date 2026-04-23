@@ -6801,6 +6801,7 @@ h3 {
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact [data-harness-result-hidden-harness-context="true"] .detail-copy-compact {
   color: rgba(79, 91, 101, 0.8);
+  font-size: 0.84rem;
   line-height: 1.42;
   letter-spacing: 0.01em;
 }

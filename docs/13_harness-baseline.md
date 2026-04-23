@@ -1884,3 +1884,10 @@ Post-freeze hidden-result metadata follow-up:
 - this keeps the hidden latest-result register aligned with the `DESIGN.md` metadata hierarchy while preserving the existing hidden harness-context payload, preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden harness-context copy-rhythm presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden harness-context summary -> supporting copy rhythm`
+
+### Local-only hidden-result harness-context font-size follow-up
+Post-freeze hidden-result metadata follow-up:
+- `ui/styles.css` now gives the hidden latest-result `하네스 컨텍스트` block explicit `font-size: 0.84rem` on supporting compact copy so representative harness summaries keep denser supporting scan cadence inside the strengthened harness-context shell
+- this keeps the hidden latest-result register aligned with the `DESIGN.md` metadata hierarchy while preserving the existing hidden harness-context payload, preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden harness-context copy-density presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden harness-context summary -> supporting copy density`
