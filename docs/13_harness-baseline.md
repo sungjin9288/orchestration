@@ -1933,3 +1933,10 @@ Post-freeze execution hidden-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf spacing presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden action row -> rack gap cadence`
+
+### Local-only hidden-result action-shelf padding follow-up
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now tightens the hidden latest-result action shelf padding to `10px 11px 11px` so the concealed control rack keeps a slightly thinner compact band under the newly tightened hidden metadata and gap cadence stack
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf padding presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden action row -> compact shelf band`
