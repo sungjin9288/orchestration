@@ -1919,3 +1919,10 @@ Post-freeze hidden-result metadata follow-up:
 - this keeps the hidden latest-result register aligned with the `DESIGN.md` metadata hierarchy while preserving the existing hidden operator-context payload, preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden operator-context mono-value rhythm presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden operator-context summary -> mono value rhythm`
+
+### Local-only hidden-result operator-context code font-size follow-up
+Post-freeze hidden-result metadata follow-up:
+- `ui/styles.css` now gives the hidden latest-result `운영 컨텍스트` mono code values explicit `font-size: 0.74rem` so repo-native command and action tokens keep denser machine-readable scan cadence inside the quiet operator-context note tier
+- this keeps the hidden latest-result register aligned with the `DESIGN.md` metadata hierarchy while preserving the existing hidden operator-context payload, preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden operator-context mono-value density presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden operator-context summary -> mono value density`

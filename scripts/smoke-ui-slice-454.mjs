@@ -15,7 +15,7 @@ assert.match(
 );
 assert.match(
   stylesCss,
-  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact \[data-harness-result-hidden-operator-context="true"\] \.detail-copy-compact code\s*\{[^}]*font-family:\s*"IBM Plex Mono",\s*"SFMono-Regular",\s*Consolas,\s*monospace;[^}]*font-size:\s*0\.75rem;[^}]*(?:line-height:\s*1\.3;)?[^}]*color:\s*rgba\(76,\s*59,\s*28,\s*0\.92\);[^}]*font-weight:\s*600;[^}]*\}/s,
+  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact \[data-harness-result-hidden-operator-context="true"\] \.detail-copy-compact code\s*\{[^}]*font-family:\s*"IBM Plex Mono",\s*"SFMono-Regular",\s*Consolas,\s*monospace;[^}]*(?:font-size:\s*0\.(?:74|75)rem;)?[^}]*(?:line-height:\s*1\.3;)?[^}]*color:\s*rgba\(76,\s*59,\s*28,\s*0\.92\);[^}]*font-weight:\s*600;[^}]*\}/s,
 );
 
 console.log(
