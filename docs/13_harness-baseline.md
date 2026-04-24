@@ -1975,3 +1975,10 @@ Post-freeze execution hidden-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf button-inline-density presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden action row -> button horizontal density`
+
+### Local-only hidden-result action-shelf button vertical-padding follow-up
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now tightens the hidden latest-result action shelf button vertical padding to `7px 11px` so the concealed control row keeps denser button fill inside the newly tightened hidden button-height baseline
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf button-vertical-density presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden action row -> button vertical density`
