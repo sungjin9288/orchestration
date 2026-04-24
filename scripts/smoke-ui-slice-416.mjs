@@ -11,7 +11,7 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(
   stylesCss,
-  /\.harness-execution-history-summary-rack \.control-overview-register-label\s*\{[\s\S]*letter-spacing:\s*0\.08em;[\s\S]*color:\s*rgba\(43,\s*58,\s*69,\s*0\.68\);/s,
+  /\.harness-execution-history-summary-rack \.control-overview-register-label\s*\{[\s\S]*letter-spacing:\s*0\.08em;[\s\S]*color:\s*rgba\(43,\s*58,\s*69,\s*0\.7\);/s,
 );
 assert.match(
   stylesCss,

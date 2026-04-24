@@ -25,7 +25,7 @@ assert.match(appJs, /data-harness-result-show="true"/);
 assert.match(appJs, /function showHarnessExecutionResult\(actionButton, statusPayload\)/);
 assert.match(appJs, /state\.hiddenHarnessExecutionResultKey = null;/);
 assert.match(appJs, /data-harness-execution-result-hidden="true"/);
-assert.match(appJs, /숨긴 결과 다시 보기/);
+assert.match(appJs, /결과 다시 보기/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

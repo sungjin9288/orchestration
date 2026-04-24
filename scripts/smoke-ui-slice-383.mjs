@@ -22,7 +22,7 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /data-harness-result-hidden-primary-runner-summary="true">대표 러너: <code>\$\{escapeHtml\(statusCard\.primaryRunner \|\| 'unknown'\)\}<\/code><\/p>/,
+  /data-harness-result-hidden-primary-runner-summary="true">대표 러너: <code>\$\{escapeHtml\(statusCard\.primaryRunner \|\| '미확인'\)\}<\/code><\/p>/,
 );
 
 async function fetchJson(url, options = {}) {

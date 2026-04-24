@@ -16,8 +16,8 @@ assert.match(appJs, /data-harness-copy-command="true"/);
 assert.match(appJs, /명령 복사/);
 assert.match(appJs, /async function copyHarnessCommand\(command\) \{/);
 assert.match(appJs, /if \(globalThis\.navigator\?\.clipboard\?\.writeText\)/);
-assert.match(appJs, /await globalThis\.navigator\.clipboard\.writeText\(command\);/);
-assert.match(appJs, /클립보드 미지원 환경입니다\. 명령을 직접 실행하세요:/);
+assert.match(appJs, /await globalThis\.navigator\.clipboard\.writeText\(value\);/);
+assert.match(appJs, /클립보드 미지원 환경입니다\. 명령 템플릿을 직접 채워 실행하세요:/);
 assert.match(appJs, /actionButton\.dataset\.action === 'copy-harness-command'/);
 assert.doesNotMatch(appJs, /harness-run\.mjs doctor/);
 

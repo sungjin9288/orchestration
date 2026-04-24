@@ -11,7 +11,7 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(
   stylesCss,
-  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact > \.form-actions-hidden-compact\s*\{[\s\S]*border:\s*1px solid rgba\(33,\s*57,\s*49,\s*0\.11\);[\s\S]*background:\s*[\s\S]*linear-gradient\(180deg,\s*rgba\(255,\s*255,\s*255,\s*0\.84\),\s*rgba\(243,\s*247,\s*249,\s*0\.94\)\);[\s\S]*0 8px 14px rgba\(20,\s*34,\s*42,\s*0\.045\);/s,
+  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact > \.form-actions-hidden-compact\s*\{[\s\S]*border:\s*1px solid rgba\(33,\s*57,\s*49,\s*0\.11\);[\s\S]*background:\s*[\s\S]*linear-gradient\(180deg,\s*rgba\(255,\s*255,\s*255,\s*0\.88\),\s*rgba\(240,\s*245,\s*248,\s*0\.96\)\);[\s\S]*0 9px 16px rgba\(20,\s*34,\s*42,\s*0\.05\);/s,
 );
 
 console.log(

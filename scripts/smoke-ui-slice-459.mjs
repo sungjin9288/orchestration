@@ -11,7 +11,7 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(
   stylesCss,
-  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact > \.form-actions-hidden-compact\s*\{[\s\S]*flex-wrap:\s*wrap;[\s\S]*justify-content:\s*flex-start;[\s\S]*gap:\s*7px 8px;/s,
+  /\.surface\[data-surface="execution"\] \.relation-strip-hidden-compact > \.form-actions-hidden-compact\s*\{[\s\S]*flex-wrap:\s*wrap;[\s\S]*justify-content:\s*flex-start;[\s\S]*gap:\s*6px 8px;/s,
 );
 
 console.log(

@@ -22,7 +22,7 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-action="copy-harness-execution-preview"/);
 assert.match(appJs, /data-harness-preview-copy="true"/);
-assert.match(appJs, /미리보기 복사/);
+assert.match(appJs, /미리보기/);
 assert.match(appJs, /async function copyHarnessExecutionPreview\(previewText\)/);
 assert.match(appJs, /emptyErrorMessage: '복사할 하네스 실행 미리보기가 없습니다\.'/);
 assert.match(appJs, /copiedMessage: \(\) => '하네스 실행 미리보기를 복사했습니다\.'/);

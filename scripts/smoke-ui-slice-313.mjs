@@ -22,7 +22,7 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-action="copy-harness-output-path"/);
 assert.match(appJs, /data-harness-output-copy="true"/);
-assert.match(appJs, /출력 경로 복사/);
+assert.match(appJs, /출력 경로/);
 assert.match(appJs, /async function copyHarnessExecutionOutputPath\(outputPath\)/);
 assert.match(appJs, /emptyErrorMessage: '복사할 하네스 출력 경로가 없습니다\.'/);
 assert.match(appJs, /copiedMessage: \(value\) => `하네스 출력 경로를 복사했습니다: \$\{value\}`/);

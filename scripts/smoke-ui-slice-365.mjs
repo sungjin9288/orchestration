@@ -22,7 +22,7 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /<pre class="task-evidence-log log-viewer-compact" data-harness-execution-preview="true">/,
+  /<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">/,
 );
 
 async function fetchJson(url, options = {}) {

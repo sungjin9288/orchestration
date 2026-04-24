@@ -22,7 +22,7 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /data-harness-result-hidden-posture-summary="true">대표 정책: <code>\$\{escapeHtml\(statusCard\.primaryPosture \|\| 'unknown'\)\}<\/code><\/p>/,
+  /data-harness-result-hidden-posture-summary="true">대표 정책: <code>\$\{escapeHtml\(statusCard\.primaryPosture \|\| '미확인'\)\}<\/code><\/p>/,
 );
 
 async function fetchJson(url, options = {}) {
