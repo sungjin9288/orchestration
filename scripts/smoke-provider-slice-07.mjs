@@ -8,11 +8,13 @@ import executionCoordinatorModule from '../src/execution/execution-coordinator.j
 import localStubAdapterModule from '../src/execution/providers/local-stub-adapter.js';
 import openaiResponsesAdapterModule from '../src/execution/providers/openai-responses-adapter.js';
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
+import retryPolicyModule from '../src/execution/providers/openai-responses-retry-policy.js';
 
 const { createExecutionCoordinator } = executionCoordinatorModule;
 const { createLocalStubProviderAdapter } = localStubAdapterModule;
 const { createOpenAIResponsesProviderAdapter } = openaiResponsesAdapterModule;
 const { createRuntimeService } = runtimeServiceModule;
+const { DEFAULT_OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS } = retryPolicyModule;
 
 const repoRoot = process.cwd();
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-provider-slice-07');
@@ -39,6 +41,7 @@ const BUILDER_PREFLIGHT_CODE_CONTEXT_PATHS = [
   'src/execution/provider-adapter.js',
   'src/execution/execution-coordinator.js',
   'src/execution/providers/openai-responses-adapter.js',
+  'src/execution/providers/openai-responses-retry-policy.js',
   'ui/app.js',
 ];
 const DEFAULT_TARGET_FILES = [
@@ -169,9 +172,21 @@ function createQueuedFetch(initialResponses = []) {
     calls,
     fetchImpl,
     push(response) {
+      if (Array.isArray(response)) {
+        queue.push(...response);
+        return;
+      }
+
       queue.push(response);
     },
   };
+}
+
+function createTerminalStatusResponses(status, payload) {
+  return Array.from({ length: DEFAULT_OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS + 1 }, () => ({
+    status,
+    payload,
+  }));
 }
 
 function createPlannerArtifactMarkdown(label) {
@@ -1467,14 +1482,12 @@ await assertBuilderLiveMutationFailure({
   label: 'builder-live-mutation quota failure',
   project: liveProject,
   runtime,
-  builderLiveResponseFactory: () => ({
-    status: 429,
-    payload: {
+  builderLiveResponseFactory: () =>
+    createTerminalStatusResponses(429, {
       error: {
         message: 'Rate limited',
       },
-    },
-  }),
+    }),
 });
 
 await assertBuilderLiveMutationFailure({
@@ -1582,14 +1595,12 @@ await assertReviewerFailure({
   label: 'reviewer quota failure',
   project: liveProject,
   runtime,
-  reviewerResponseFactory: () => ({
-    status: 429,
-    payload: {
+  reviewerResponseFactory: () =>
+    createTerminalStatusResponses(429, {
       error: {
         message: 'Rate limited',
       },
-    },
-  }),
+    }),
 });
 
 await assertReviewerFailure({

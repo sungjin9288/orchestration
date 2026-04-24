@@ -17,7 +17,8 @@ Most agent products optimize for spectacle, chat, or provider breadth before the
 - `single-user-first`: the first user is one operator managing their own work, not a team workspace
 - `ops-first`: status, blockers, logs, artifacts, decisions, and approvals matter more than decorative UI
 - `v1 scope = development pack only`
-- `claw-empire` is a runtime/control-plane reference, not a product or architecture fork
+- `claw-empire` is a runtime/control-plane and product-shell reference, not a wholesale product or architecture fork
+- `OpenHarness` is a harness/governance reference for tool-use loops, skills, memory, permissions, and delegation, not a generalized platform-breadth target
 
 ## V1 Outcome
 The user can register or select a local project from `Taskboard`, create a task, run the current `development` pack loop end to end, inspect logs and artifacts, resolve review or approval gates in `Decision Inbox`, and close work explicitly without push, publish, or external release.
@@ -27,14 +28,14 @@ The frozen v1 outcome is now treated as reusable execution infrastructure, not t
 
 - keep the current local-first execution engine, provenance model, bounded mutation model, and approval or review gates
 - keep the current `Taskboard / Logs / Artifacts / Decision Inbox` shell available as `advanced ops mode`
-- shift the next primary product entry toward `goal input -> visible multi-role AI alignment -> bounded execution -> delivery`
+- shift the next primary product entry toward `goal input -> visible multi-role AI alignment -> meeting-oriented planning -> bounded execution -> delivery`
 - define that next primary experience around `Mission / Council / Execution / Deliverables`, not a more polished `Taskboard`-first operator console
-- allow the same display-only lane or heartbeat language to continue into `advanced ops mode` entry and first viewport when it improves operator orientation, as long as `Taskboard / Logs / Artifacts / Decision Inbox` remain the authoritative operator control surfaces
-- preserve the existing rejected boundaries: no office-simulator/company-management shell, no messenger-first posture, no ranking layer, no OAuth-first expansion, and no multi-provider-first reframing
-- allow a display-only `crew / HQ / flow` metaphor on the primary shell when it improves orientation, as long as runtime semantics, gate ownership, and ops-first execution rules remain primary
+- allow the next primary shell to adopt a company/ERP-style command-center frame with visible AI cast, meeting, attendance, desk, and workday cues when that makes the product legible to other operators or companies
+- allow the same command-center language to continue into `advanced ops mode` entry and first viewport when it improves operator orientation, as long as `Taskboard / Logs / Artifacts / Decision Inbox` remain the authoritative operator control surfaces
+- preserve the existing rejected boundaries: no budget/HR/org-management simulator, no messenger-first posture, no ranking layer, no OAuth-first expansion, and no multi-provider-first reframing
 
 ## Primary User
-An individual operator building or maintaining software locally who needs control over execution state, review gates, and delivery evidence without adding office-style collaboration overhead.
+An individual operator or internal champion building or maintaining software locally who needs control over execution state, review gates, and delivery evidence. The operating model stays single-user-first even when the shell adopts a company-style command center that can be handed to other operators or companies without reading like a debug console.
 
 ## V1 Scope
 ### In Scope
@@ -56,7 +57,7 @@ An individual operator building or maintaining software locally who needs contro
 - approval before commit
 
 ### Out of Scope
-- office-simulator or avatar-only product framing
+- budget/HR/org-management simulator or avatar-only gameplay framing
 - messenger-first workflows
 - ranking, XP, leaderboard, or gamification layers
 - generalized OAuth platform work
@@ -110,7 +111,10 @@ A human authorization record that binds the next allowed local step to the curre
 - Keep the shipped v1 path `local-demo-only` by default.
 
 ## Reference Position On claw-empire
-Orchestration 1.0 should reuse the useful control-plane ideas from `claw-empire`, especially around `project`, `task`, `worktree`, `log`, `report`, `api`, `AGENTS`, and bootstrap patterns. It should not copy the product framing, office metaphors, rankings, messenger posture, or platform-first assumptions.
+Orchestration 1.0 should reuse the useful control-plane ideas and selected product-shell cues from `claw-empire`, especially around `project`, `task`, `worktree`, `log`, `report`, `api`, `AGENTS`, bootstrap patterns, command-center density, visible AI cast, and meeting-oriented flow. It should not copy pixel-office gameplay, budget/HR/company-management, rankings, messenger posture, or platform-first assumptions.
+
+## Reference Position On OpenHarness
+Orchestration 1.0 may also reuse selective harness ideas from `OpenHarness`, especially around explicit agent loops, retry/backoff discipline, tool/skill/plugin boundaries, context and memory handling, path-level permission rules, approval dialogs, and delegation lifecycle. It should not copy generic agent-platform breadth, IM-channel expansion, or provider/platform sprawl.
 
 ## Success Criteria For V1
 - A project cannot execute without `project_path`.
