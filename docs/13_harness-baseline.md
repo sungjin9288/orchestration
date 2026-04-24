@@ -1982,3 +1982,10 @@ Post-freeze execution hidden-result follow-up:
 - this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf button-vertical-density presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden action row -> button vertical density`
+
+### Local-only hidden-result show-button shadow follow-up
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now gives the hidden latest-result `결과 다시 보기` button a light outer shadow so the lead read-tier control keeps clearer edge separation inside the tightened hidden action shelf
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf show-button shadow presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden action row -> show button lift`
