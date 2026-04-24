@@ -28,9 +28,9 @@ if (versionCheck.status !== 0) {
   process.exit(2);
 }
 
-const outputArgs = ['--format', 'markdown', resolvedInput];
+const outputArgs = [resolvedInput];
 if (outputPath) {
-  outputArgs.push('--output', path.resolve(process.cwd(), outputPath));
+  outputArgs.push('-o', path.resolve(process.cwd(), outputPath));
 }
 
 const result = spawnSync('markitdown', outputArgs, {
