@@ -244,6 +244,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: The company-shell redesign needs stronger internal harness discipline as well as a stronger outer shell. `OpenHarness` offers useful public patterns around explicit tool loops, retry/backoff, skill/plugin loading, memory/session handling, permission rules, approval dialogs, and delegation lifecycle without forcing a product-shell copy.
 - Impact: Future internal structure work may selectively borrow harness patterns such as path-level permission rules, hook points, memory/session resume discipline, plugin or skill boundaries, and delegated-task lifecycle management. This does not widen the product into a generic agent platform, IM-channel surface, or provider-breadth strategy.
 
+### DEC-045
+- Status: `Accepted`
+- Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
+- Why: The repo already treats policy and execution boundaries as inspectable files. Harnesses let us add capability without widening v1 scope, changing provider strategy, or diluting approval/review gates.
+- Impact: `src/execution/*` stays minimal; harnesses are documented in repo files, invoked explicitly, and remain `local-stub`-compatible. Multi-provider-first, messenger-first, or team-first harness posture remains out of scope.
+
 ## Rejected
 
 ### DEC-010
