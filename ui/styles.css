@@ -6723,7 +6723,9 @@ h3 {
   border-color: rgba(60, 95, 137, 0.1);
   background: linear-gradient(180deg, rgba(245, 248, 251, 0.94), rgba(236, 241, 246, 0.97));
   color: rgba(67, 79, 90, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.64);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.64),
+    0 5px 10px rgba(60, 95, 137, 0.055);
 }
 
 .surface[data-surface="execution"] .relation-strip-hidden-compact > .form-actions-hidden-compact [data-harness-result-hidden-input-copy="true"],
