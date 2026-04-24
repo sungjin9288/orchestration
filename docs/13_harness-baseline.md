@@ -1926,3 +1926,10 @@ Post-freeze hidden-result metadata follow-up:
 - this keeps the hidden latest-result register aligned with the `DESIGN.md` metadata hierarchy while preserving the existing hidden operator-context payload, preview payload, show/copy/reuse/preview-copy/rerun flow, route semantics, and local-only visibility contract
 - the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only hidden operator-context mono-value density presentation styling
 - this keeps the layering explicit: `hidden execution result register -> hidden operator-context summary -> mono value density`
+
+### Local-only hidden-result action-shelf gap follow-up
+Post-freeze execution hidden-result follow-up:
+- `ui/styles.css` now tightens the hidden latest-result action shelf vertical gap to `6px 8px` so the concealed control rack keeps slightly denser row cadence directly under the fully tightened hidden metadata stack
+- this keeps the execution desk aligned with the `DESIGN.md` packet-family cadence while preserving the existing hidden-result show, copy, reuse, preview-copy, rerun actions, route semantics, and local-only hidden-result visibility contract
+- the change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside hidden action-shelf spacing presentation styling
+- this keeps the layering explicit: `hidden execution result register -> hidden action row -> rack gap cadence`
