@@ -27,6 +27,16 @@ const SURFACE_DISPLAY_NAMES = {
   mission: '미션',
   taskboard: '작업판',
 };
+const SURFACE_NAV_GUIDANCE = {
+  artifacts: '작업 증적, 파일, 패킷 근거를 확인',
+  council: '역할별 의견과 실행 권고안을 정렬',
+  'decision-inbox': '승인·보류가 필요한 사람 판단을 처리',
+  deliverables: '완료 결과와 인계 패킷을 확인',
+  execution: '진행 중 작업, 막힘, 다음 실행을 확인',
+  logs: '실행 run 기록과 오류 흐름을 추적',
+  mission: '목표와 제약을 입력하고 첫 안건을 확인',
+  taskboard: '작업 셀 상태와 담당 desk 배정을 관제',
+};
 const NAV_GROUPS = {
   workflows: {
     defaultSurface: 'mission',
@@ -102,65 +112,77 @@ const GROUP_WORKSPACE_META = {
 };
 const GROUP_PLAYBOOK_META = {
   workflows: {
-    label: '운영 모드',
+    label: '한눈에 사용법',
     title: '업무 사용 순서',
+    copy: '왼쪽 버튼을 누르면 해당 desk만 열립니다. 작업 결과는 산출물, 근거는 아티팩트, 실행 흐름은 로그에서 확인합니다.',
     cards: [
       {
         step: '01',
         title: '안건 정리',
         note: '문제와 제약만 먼저 고정',
+        where: '확인: 미션',
       },
       {
         step: '02',
         title: '계획 정렬',
-        note: '담당과 실행 셀 확정',
+        note: '협의회에서 담당과 실행 셀 확정',
+        where: '확인: 협의회 → 실행',
       },
       {
         step: '03',
         title: '실행 인계',
-        note: '회의와 산출로 순서대로 넘김',
+        note: '완료 결과와 근거를 순서대로 확인',
+        where: '확인: 산출물 → 아티팩트',
       },
     ],
   },
   review: {
-    label: '운영 모드',
+    label: '한눈에 사용법',
     title: '검토 사용 순서',
+    copy: '승인이 필요하면 결정함, 실제 작업 근거는 아티팩트, 실행 중 무슨 일이 있었는지는 로그에서 봅니다.',
     cards: [
       {
         step: '01',
         title: '패킷 선택',
         note: '열린 증적 하나만 집음',
+        where: '확인: 아티팩트',
       },
       {
         step: '02',
         title: '근거 교차',
         note: 'run·gate·artifact 같이 확인',
+        where: '확인: 로그 + 결정함',
       },
       {
         step: '03',
         title: '판단 반영',
         note: '승인선 또는 다음 desk 결정',
+        where: '확인: 결정함',
       },
     ],
   },
   ops: {
-    label: '운영 모드',
+    label: '한눈에 사용법',
     title: '운영 사용 순서',
+    copy: '작업판은 세부 실행 셀의 관제 위치입니다. 여기서 담당 desk와 역할을 정리하고 실제 결과 확인은 산출물·아티팩트로 돌아갑니다.',
     cards: [
       {
         step: '01',
         title: '범위 선택',
         note: '업무·검토·운영 중 한 범위 편집',
+        where: '확인: 작업판',
       },
       {
         step: '02',
         title: '역할 배정',
         note: 'agent 역할과 desk 지정',
+        where: '확인: 회사 디렉터리',
       },
       {
         step: '03',
         title: '조직 반영',
         note: 'roster와 회사 구조 갱신',
+        where: '확인: 사이드바 상태',
       },
     ],
   },
@@ -10630,8 +10652,11 @@ function renderWorkspacePlaybook(activeGroupId) {
   return `
     <section class="workspace-playbook" data-nav-group="${escapeHtml(activeGroupId)}">
       <div class="workspace-playbook-head">
-        <p class="control-overview-label">${escapeHtml(meta.label)}</p>
-        <h3 class="workspace-playbook-title">${escapeHtml(meta.title)}</h3>
+        <div>
+          <p class="control-overview-label">${escapeHtml(meta.label)}</p>
+          <h3 class="workspace-playbook-title">${escapeHtml(meta.title)}</h3>
+        </div>
+        ${meta.copy ? `<p class="workspace-playbook-summary">${escapeHtml(meta.copy)}</p>` : ''}
       </div>
       <div class="workspace-playbook-grid">
         ${meta.cards
@@ -10642,6 +10667,7 @@ function renderWorkspacePlaybook(activeGroupId) {
                 <div class="workspace-playbook-copy">
                   <strong class="workspace-playbook-card-title">${escapeHtml(card.title)}</strong>
                   <p class="workspace-playbook-note">${escapeHtml(card.note)}</p>
+                  ${card.where ? `<span class="workspace-playbook-where">${escapeHtml(card.where)}</span>` : ''}
                 </div>
               </article>
             `,
@@ -11795,14 +11821,18 @@ function renderNav(data) {
     const count = getSurfaceDockCount(data, surface);
 
     const label = getSurfaceDisplayName(button.dataset.surface);
+    const guidance = SURFACE_NAV_GUIDANCE[surface] || '현재 desk의 상태와 다음 액션을 확인';
     button.innerHTML = `
       <span class="nav-button-main">
         <span class="nav-button-count">${escapeHtml(String(count))}</span>
-        <span class="nav-button-title">${escapeHtml(label)}</span>
+        <span class="nav-button-copy">
+          <span class="nav-button-title">${escapeHtml(label)}</span>
+          <span class="nav-button-help">${escapeHtml(guidance)}</span>
+        </span>
       </span>
     `;
     button.setAttribute('aria-current', isActive ? 'page' : 'false');
-    button.setAttribute('aria-label', `${label} ${count}건`);
+    button.setAttribute('aria-label', `${label} ${count}건. ${guidance}`);
   }
 }
 
