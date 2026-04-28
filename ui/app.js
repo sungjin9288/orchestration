@@ -37,6 +37,55 @@ const SURFACE_NAV_GUIDANCE = {
   mission: '목표와 제약을 입력하고 첫 안건을 확인',
   taskboard: '작업 셀 상태와 담당 desk 배정을 관제',
 };
+const SURFACE_LOCATION_GUIDANCE = {
+  artifacts: {
+    check: '파일·패킷·provenance',
+    next: '결정 필요 시 결정함',
+    resultSurface: 'deliverables',
+    targetSurface: 'decision-inbox',
+  },
+  council: {
+    check: '역할별 의견·권고안',
+    next: '실행 셀',
+    resultSurface: 'deliverables',
+    targetSurface: 'execution',
+  },
+  'decision-inbox': {
+    check: '승인·보류·해결 대기',
+    next: '승인 후 원래 desk',
+    resultSurface: 'artifacts',
+  },
+  deliverables: {
+    check: '완료 결과·인계 패킷',
+    next: '아티팩트',
+    resultSurface: 'artifacts',
+    targetSurface: 'artifacts',
+  },
+  execution: {
+    check: '진행 작업·막힘·다음 실행',
+    next: '산출물',
+    resultSurface: 'deliverables',
+    targetSurface: 'deliverables',
+  },
+  logs: {
+    check: 'run 기록·오류 흐름',
+    next: '아티팩트',
+    resultSurface: 'artifacts',
+    targetSurface: 'artifacts',
+  },
+  mission: {
+    check: '목표·제약·첫 안건',
+    next: '협의회',
+    resultSurface: 'deliverables',
+    targetSurface: 'council',
+  },
+  taskboard: {
+    check: '작업 셀·담당 desk',
+    next: '실행 또는 검토',
+    resultSurface: 'deliverables',
+    targetSurface: 'execution',
+  },
+};
 const NAV_GROUPS = {
   workflows: {
     defaultSurface: 'mission',
@@ -54,6 +103,7 @@ const NAV_GROUPS = {
     surfaces: ['taskboard'],
   },
 };
+const NAV_GROUP_ORDER = Object.keys(NAV_GROUPS);
 const SURFACE_TO_NAV_GROUP = Object.fromEntries(
   Object.entries(NAV_GROUPS).flatMap(([groupId, group]) =>
     group.surfaces.map((surface) => [surface, groupId]),
@@ -120,18 +170,21 @@ const GROUP_PLAYBOOK_META = {
         step: '01',
         title: '안건 정리',
         note: '문제와 제약만 먼저 고정',
+        surfaces: ['mission'],
         where: '확인: 미션',
       },
       {
         step: '02',
         title: '계획 정렬',
         note: '협의회에서 담당과 실행 셀 확정',
+        surfaces: ['council', 'execution'],
         where: '확인: 협의회 → 실행',
       },
       {
         step: '03',
         title: '실행 인계',
         note: '완료 결과와 근거를 순서대로 확인',
+        surfaces: ['deliverables'],
         where: '확인: 산출물 → 아티팩트',
       },
     ],
@@ -145,18 +198,21 @@ const GROUP_PLAYBOOK_META = {
         step: '01',
         title: '패킷 선택',
         note: '열린 증적 하나만 집음',
+        surfaces: ['artifacts'],
         where: '확인: 아티팩트',
       },
       {
         step: '02',
         title: '근거 교차',
         note: 'run·gate·artifact 같이 확인',
+        surfaces: ['logs'],
         where: '확인: 로그 + 결정함',
       },
       {
         step: '03',
         title: '판단 반영',
         note: '승인선 또는 다음 desk 결정',
+        surfaces: ['decision-inbox'],
         where: '확인: 결정함',
       },
     ],
@@ -170,18 +226,21 @@ const GROUP_PLAYBOOK_META = {
         step: '01',
         title: '범위 선택',
         note: '업무·검토·운영 중 한 범위 편집',
+        surfaces: ['taskboard'],
         where: '확인: 작업판',
       },
       {
         step: '02',
         title: '역할 배정',
         note: 'agent 역할과 desk 지정',
+        surfaces: ['taskboard'],
         where: '확인: 회사 디렉터리',
       },
       {
         step: '03',
         title: '조직 반영',
         note: 'roster와 회사 구조 갱신',
+        surfaces: ['taskboard'],
         where: '확인: 사이드바 상태',
       },
     ],
@@ -280,6 +339,7 @@ const state = {
   selectedInboxItemId: null,
   selectedRunLogs: null,
   lastHarnessExecutionResult: null,
+  lastHarnessOutputBriefResult: null,
   hiddenHarnessExecutionResultKey: null,
   harnessExecutionDraftInputPath: '',
   harnessExecutionDraftOutputPath: '',
@@ -326,6 +386,8 @@ const elements = {
     gates: document.querySelector('#office-sidebar-gates'),
   },
   controlOverview: document.querySelector('#control-overview'),
+  workspaceMain: document.querySelector('#workspace-main'),
+  workspaceLiveStatus: document.querySelector('#workspace-live-status'),
   navGroups: [...document.querySelectorAll('.nav-group')],
   navGroupTabs: [...document.querySelectorAll('.nav-group-tab')],
   surfaces: {
@@ -1779,6 +1841,7 @@ function getHarnessExecutionResultKey(execution) {
   return [
     execution.projectId || '',
     execution.harnessId || '',
+    execution.requestId || execution.executionId || '',
     execution.executedAt || '',
     execution.resolvedInputPath || execution.inputPath || '',
     execution.resolvedOutputPath || execution.outputPath || '',
@@ -1818,6 +1881,287 @@ function getRecentHarnessExecutions(data, statusPayload) {
 
     return (candidate.projectId || null) === activeProjectId;
   });
+}
+
+function getHarnessPolicyReportPayload(execution) {
+  if (execution?.actionMode !== 'policy-report' || !execution.stdoutPreview) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(execution.stdoutPreview);
+
+    return payload?.mode === 'markitdown-policy-report' ? payload : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function renderHarnessPolicyReportSummary(execution) {
+  const payload = getHarnessPolicyReportPayload(execution);
+
+  if (!payload) {
+    return '';
+  }
+
+  const pathPolicy = payload.pathPolicy || {};
+  const markitdown = payload.markitdown || {};
+
+  return `
+    <section
+      class="control-overview-register control-overview-register-compact"
+      data-harness-policy-report-summary="true"
+    >
+      <div class="control-overview-register-row">
+        <span class="control-overview-register-label">입력 확인</span>
+        <strong class="control-overview-register-value">${escapeHtml(payload.input?.exists ? '파일 있음' : '파일 없음')} · ${escapeHtml(String(payload.input?.sizeBytes ?? 0))} bytes</strong>
+      </div>
+      <div class="control-overview-register-row">
+        <span class="control-overview-register-label">출력 예정</span>
+        <strong class="control-overview-register-value">${escapeHtml(payload.output?.wouldWrite ? payload.output.resolvedPath || '경로 미지정' : '출력 파일 없음')}</strong>
+      </div>
+      <div class="control-overview-register-row">
+        <span class="control-overview-register-label">권한 정책</span>
+        <strong class="control-overview-register-value">${escapeHtml(pathPolicy.readsWithCurrentProcessPrivileges ? '현재 프로세스 권한으로 읽음' : '권한 정책 미확인')}</strong>
+      </div>
+      <div class="control-overview-register-row">
+        <span class="control-overview-register-label">실행 방식</span>
+        <strong class="control-overview-register-value">${escapeHtml(pathPolicy.executesConversion ? '변환 실행' : 'no-write preflight')}</strong>
+      </div>
+      <div class="control-overview-register-row">
+        <span class="control-overview-register-label">CLI 상태</span>
+        <strong class="control-overview-register-value">${escapeHtml(markitdown.available ? 'markitdown 사용 가능' : 'markitdown 미설치 또는 확인 실패')}</strong>
+      </div>
+      ${
+        pathPolicy.guidance
+          ? `<p class="detail-copy detail-copy-compact" data-harness-policy-report-guidance="true">${escapeHtml(pathPolicy.guidance)}</p>`
+          : ''
+      }
+    </section>
+  `;
+}
+
+function formatHarnessPolicyReportForCopy(payload) {
+  if (!payload) {
+    return '';
+  }
+
+  const pathPolicy = payload.pathPolicy || {};
+  const markitdown = payload.markitdown || {};
+
+  return [
+    '하네스 정책 리포트',
+    `입력 확인: ${payload.input?.exists ? '파일 있음' : '파일 없음'} · ${String(payload.input?.sizeBytes ?? 0)} bytes`,
+    `출력 예정: ${payload.output?.wouldWrite ? payload.output.resolvedPath || '경로 미지정' : '출력 파일 없음'}`,
+    `권한 정책: ${pathPolicy.readsWithCurrentProcessPrivileges ? '현재 프로세스 권한으로 읽음' : '권한 정책 미확인'}`,
+    `실행 방식: ${pathPolicy.executesConversion ? '변환 실행' : 'no-write preflight'}`,
+    `CLI 상태: ${markitdown.available ? 'markitdown 사용 가능' : 'markitdown 미설치 또는 확인 실패'}`,
+    pathPolicy.guidance ? `안내: ${pathPolicy.guidance}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+function getHarnessExecutionModeLabel(execution) {
+  return execution?.actionMode === 'policy-report' ? '정책 리포트' : '실행 결과';
+}
+
+function getHarnessExecutionResultTitle(execution) {
+  return execution?.actionMode === 'policy-report' ? '최근 정책 리포트' : '최근 실행 결과';
+}
+
+function getHarnessExecutionHideActionLabel(execution) {
+  return execution?.actionMode === 'policy-report' ? '리포트 숨기기' : '결과 숨기기';
+}
+
+function getHarnessExecutionShowActionLabel(execution) {
+  return execution?.actionMode === 'policy-report' ? '리포트 다시 보기' : '결과 다시 보기';
+}
+
+function getHarnessExecutionBriefActionLabel(execution) {
+  return execution?.actionMode === 'policy-report' ? '리포트 요약' : '출력 요약';
+}
+
+function getHarnessExecutionBriefCopyActionLabel(execution) {
+  return execution?.actionMode === 'policy-report' ? '리포트 요약 복사' : '요약 복사';
+}
+
+function getHarnessExecutionBriefCopyStatusLabel(execution) {
+  return execution?.actionMode === 'policy-report' ? '리포트 요약' : '출력 요약';
+}
+
+function getHarnessExecutionBriefCopyTitle(execution) {
+  return `하네스 ${getHarnessExecutionBriefCopyStatusLabel(execution)}`;
+}
+
+function getHarnessExecutionOutputLabel(execution) {
+  return execution?.actionMode === 'policy-report' ? '출력 예정' : '출력';
+}
+
+function getHarnessExecutionOutputPathActionLabel(execution) {
+  return execution?.actionMode === 'policy-report' ? '출력 예정 경로' : '출력 경로';
+}
+
+function getHarnessExecutionRerunActionLabel(execution) {
+  return execution?.actionMode === 'policy-report' ? '같은 경로 정책 리포트' : '같은 경로 재실행';
+}
+
+function getHarnessExecutionPathHandoffLabel(execution) {
+  const hasInputPath = Boolean(execution?.resolvedInputPath || execution?.inputPath);
+  const hasOutputPath = Boolean(execution?.resolvedOutputPath || execution?.outputPath);
+
+  if (hasInputPath && hasOutputPath) {
+    return `입력/${getHarnessExecutionOutputPathActionLabel(execution)}`;
+  }
+  if (hasInputPath) {
+    return '입력 경로';
+  }
+  if (hasOutputPath) {
+    return getHarnessExecutionOutputPathActionLabel(execution);
+  }
+
+  return '';
+}
+
+function getHarnessExecutionHandoffLabel(execution) {
+  if (!execution?.harnessId) {
+    return '없음';
+  }
+
+  const handoffs = ['패킷 복사'];
+  const pathHandoffLabel = getHarnessExecutionPathHandoffLabel(execution);
+
+  if (execution.requestId || execution.executionId) {
+    handoffs.push('요청 ID');
+  }
+  if (pathHandoffLabel) {
+    handoffs.push(pathHandoffLabel);
+  }
+  if (execution.outputPreview || execution.stdoutPreview) {
+    handoffs.push('미리보기', getHarnessExecutionBriefActionLabel(execution));
+  }
+  if (getHarnessOutputBriefResult(execution)) {
+    handoffs.push(getHarnessExecutionBriefCopyActionLabel(execution));
+  }
+  if (getHarnessPolicyReportPayload(execution)) {
+    handoffs.push('리포트 복사');
+  }
+
+  return handoffs.join(' · ');
+}
+
+function formatHarnessExecutionPacketForCopy(execution) {
+  if (!execution?.harnessId) {
+    return '';
+  }
+
+  const inputPath = execution.resolvedInputPath || execution.inputPath || '경로 없음';
+  const outputPath =
+    execution.resolvedOutputPath || execution.outputPath || '표준 출력 전용';
+  const requestId = execution.requestId || execution.executionId || '요청 ID 없음';
+
+  return [
+    '하네스 실행 패킷',
+    `대표 하네스: ${execution.harnessId}`,
+    `모드: ${getHarnessExecutionModeLabel(execution)}`,
+    `요청 ID: ${requestId}`,
+    `실행 시각: ${execution.executedAt ? formatDate(execution.executedAt) : '기록 없음'}`,
+    `입력: ${inputPath}`,
+    `${getHarnessExecutionOutputLabel(execution)}: ${outputPath}`,
+    `핸드오프: ${getHarnessExecutionHandoffLabel(execution)}`,
+    `미리보기: ${execution.outputPreview || execution.stdoutPreview ? '있음' : '없음'}`,
+    `${getHarnessExecutionBriefCopyStatusLabel(execution)}: ${getHarnessOutputBriefResult(execution) ? '있음' : '없음'}`,
+    `정책 리포트: ${getHarnessPolicyReportPayload(execution) ? '있음' : '없음'}`,
+  ].join('\n');
+}
+
+function getHarnessOutputBriefResult(execution) {
+  const executionKey = getHarnessExecutionResultKey(execution);
+
+  if (!executionKey || state.lastHarnessOutputBriefResult?.executionKey !== executionKey) {
+    return null;
+  }
+
+  return state.lastHarnessOutputBriefResult.outputBrief || null;
+}
+
+function getHarnessOutputBriefTypeLabel(type) {
+  const labels = {
+    command: 'command',
+    context: 'context',
+    fail: 'fail',
+    pass: 'pass',
+    warn: 'warn',
+  };
+
+  return labels[type] || type || 'context';
+}
+
+function renderHarnessOutputBriefSummary(execution) {
+  const outputBrief = getHarnessOutputBriefResult(execution);
+
+  if (!outputBrief) {
+    return '';
+  }
+
+  const counts = outputBrief.countsByType || {};
+  const briefLines = Array.isArray(outputBrief.briefLines) ? outputBrief.briefLines : [];
+
+  return `
+    <section
+      class="control-overview-register control-overview-register-compact"
+      data-harness-output-brief-summary="true"
+    >
+      <div class="control-overview-register-row">
+        <span class="control-overview-register-label">요약 범위</span>
+        <strong class="control-overview-register-value">${escapeHtml(String(outputBrief.input?.nonEmptyLineCount || 0))} lines · ${escapeHtml(String(outputBrief.input?.charCount || 0))} chars</strong>
+      </div>
+      <div class="control-overview-register-row">
+        <span class="control-overview-register-label">중요도</span>
+        <strong class="control-overview-register-value">fail ${escapeHtml(String(counts.fail || 0))} · warn ${escapeHtml(String(counts.warn || 0))} · pass ${escapeHtml(String(counts.pass || 0))}</strong>
+      </div>
+      <div class="control-overview-register-row">
+        <span class="control-overview-register-label">처리 방식</span>
+        <strong class="control-overview-register-value">${escapeHtml(outputBrief.installsShellHooks ? 'hook 사용' : 'hook 없음')} · ${escapeHtml(outputBrief.rewritesCommands ? 'command rewrite' : 'rewrite 없음')}</strong>
+      </div>
+      <div class="stack stack-compact" data-harness-output-brief-lines="true">
+        ${
+          briefLines.length > 0
+            ? briefLines
+                .map(
+                  (line) => `
+                    <p class="detail-copy detail-copy-compact">
+                      <code>${escapeHtml(getHarnessOutputBriefTypeLabel(line.type))}</code>
+                      ${escapeHtml(line.text || '')}
+                    </p>
+                  `,
+                )
+                .join('')
+            : '<p class="detail-copy detail-copy-compact">요약할 주요 라인이 없습니다.</p>'
+        }
+      </div>
+    </section>
+  `;
+}
+
+function formatHarnessOutputBriefForCopy(outputBrief, execution) {
+  if (!outputBrief) {
+    return '';
+  }
+
+  const counts = outputBrief.countsByType || {};
+  const briefLines = Array.isArray(outputBrief.briefLines) ? outputBrief.briefLines : [];
+  const header = [
+    getHarnessExecutionBriefCopyTitle(execution),
+    `범위: ${String(outputBrief.input?.nonEmptyLineCount || 0)} lines · ${String(outputBrief.input?.charCount || 0)} chars`,
+    `중요도: fail ${String(counts.fail || 0)} · warn ${String(counts.warn || 0)} · pass ${String(counts.pass || 0)}`,
+    `처리 방식: ${outputBrief.installsShellHooks ? 'hook 사용' : 'hook 없음'} · ${outputBrief.rewritesCommands ? 'command rewrite' : 'rewrite 없음'}`,
+  ];
+  const lineText = briefLines.map(
+    (line) => `[${getHarnessOutputBriefTypeLabel(line.type)}] ${line.text || ''}`.trim(),
+  );
+
+  return [...header, ...lineText].join('\n');
 }
 
 function getHarnessBriefSignalValue(brief) {
@@ -2031,6 +2375,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         : ''
                     }
                     <button
+                      class="secondary-button"
+                      type="button"
+                      data-action="preview-harness-policy-report"
+                      data-harness-policy-report="true"
+                      ${state.loading || state.mutating ? 'disabled' : ''}
+                    >
+                      정책 리포트 확인
+                    </button>
+                    <button
                       class="primary-button"
                       type="submit"
                       data-harness-run-submit="true"
@@ -2055,11 +2408,21 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                   <section class="relation-strip relation-strip-compact" data-harness-execution-result="true">
                     <div class="harness-execution-result-packet" data-harness-execution-result-packet="true">
                       <div class="card-title-row card-title-row-tight">
-                        <strong>최근 실행 결과</strong>
-                        ${createToken('완료', 'success')}
+                        <strong>${escapeHtml(getHarnessExecutionResultTitle(visibleHarnessExecutionResult))}</strong>
+                        ${createToken(visibleHarnessExecutionResult.actionMode === 'policy-report' ? 'no-write' : '완료', visibleHarnessExecutionResult.actionMode === 'policy-report' ? 'neutral' : 'success')}
                       </div>
                       <div class="token-row token-row-compact">
                         ${createToken(`대표:${visibleHarnessExecutionResult.harnessId}`, 'neutral')}
+                        ${
+                          visibleHarnessExecutionResult.actionMode === 'policy-report'
+                            ? createToken('정책 리포트', 'neutral')
+                            : ''
+                        }
+                        ${
+                          visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId
+                            ? createToken(`요청:${visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId}`, 'neutral')
+                            : ''
+                        }
                         ${
                           visibleHarnessExecutionResult.outputPath
                             ? createToken('출력 파일', 'accent')
@@ -2072,11 +2435,20 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         }
                       </div>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.inputPath || '')}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(getHarnessExecutionModeLabel(visibleHarnessExecutionResult))}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffLabel(visibleHarnessExecutionResult))}</code></p>
                       ${
                         visibleHarnessExecutionResult.resolvedOutputPath
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">출력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}</code></p>`
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(visibleHarnessExecutionResult))}: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}</code></p>`
+                          : `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(visibleHarnessExecutionResult))}: <code>표준 출력 전용</code></p>`
+                      }
+                      ${
+                        visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-execution-request-summary="true">요청 ID: <code>${escapeHtml(visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId)}</code></p>`
                           : ''
                       }
+                      ${renderHarnessPolicyReportSummary(visibleHarnessExecutionResult)}
+                      ${renderHarnessOutputBriefSummary(visibleHarnessExecutionResult)}
                       ${
                         visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.resolvedOutputPath
                           ? `
@@ -2109,10 +2481,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       data-action="rerun-harness-execution-paths"
                                       data-input-path="${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath)}"
                                       data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath || visibleHarnessExecutionResult.outputPath || '')}"
+                                      data-policy-report="${visibleHarnessExecutionResult.actionMode === 'policy-report' ? 'true' : 'false'}"
                                       data-harness-result-rerun="true"
                                       ${state.loading || state.mutating ? 'disabled' : ''}
                                     >
-                                      같은 경로 재실행
+                                      ${escapeHtml(getHarnessExecutionRerunActionLabel(visibleHarnessExecutionResult))}
                                     </button>
                                   `
                                   : ''
@@ -2125,13 +2498,38 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       type="button"
                                       data-action="copy-harness-output-path"
                                       data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}"
+                                      data-output-path-label="${escapeHtml(getHarnessExecutionOutputPathActionLabel(visibleHarnessExecutionResult))}"
                                       data-harness-output-copy="true"
                                     >
-                                      출력 경로
+                                      ${escapeHtml(getHarnessExecutionOutputPathActionLabel(visibleHarnessExecutionResult))}
                                     </button>
                                   `
                                   : ''
                               }
+                              ${
+                                visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-request-id"
+                                      data-request-id="${escapeHtml(visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId || '')}"
+                                      data-harness-request-id-copy="true"
+                                    >
+                                      요청 ID
+                                    </button>
+                                  `
+                                  : ''
+                              }
+                              <button
+                                class="secondary-button"
+                                type="button"
+                                data-action="copy-harness-execution-packet"
+                                data-execution-packet-text="${escapeHtml(formatHarnessExecutionPacketForCopy(visibleHarnessExecutionResult))}"
+                                data-harness-execution-packet-copy="true"
+                              >
+                                패킷 복사
+                              </button>
                               ${
                                 visibleHarnessExecutionResult.outputPreview || visibleHarnessExecutionResult.stdoutPreview
                                   ? `
@@ -2144,6 +2542,48 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     >
                                       미리보기
                                     </button>
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="summarize-harness-execution-preview"
+                                      data-execution-key="${escapeHtml(getHarnessExecutionResultKey(visibleHarnessExecutionResult) || '')}"
+                                      data-preview-text="${escapeHtml(visibleHarnessExecutionResult.outputPreview || visibleHarnessExecutionResult.stdoutPreview || '')}"
+                                      data-harness-output-brief="true"
+                                      ${state.loading || state.mutating ? 'disabled' : ''}
+                                    >
+                                      ${escapeHtml(getHarnessExecutionBriefActionLabel(visibleHarnessExecutionResult))}
+                                    </button>
+                                  `
+                                  : ''
+                              }
+                              ${
+                                getHarnessOutputBriefResult(visibleHarnessExecutionResult)
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-output-brief"
+                                      data-output-brief-text="${escapeHtml(formatHarnessOutputBriefForCopy(getHarnessOutputBriefResult(visibleHarnessExecutionResult), visibleHarnessExecutionResult))}"
+                                      data-output-brief-label="${escapeHtml(getHarnessExecutionBriefCopyStatusLabel(visibleHarnessExecutionResult))}"
+                                      data-harness-output-brief-copy="true"
+                                    >
+                                      ${escapeHtml(getHarnessExecutionBriefCopyActionLabel(visibleHarnessExecutionResult))}
+                                    </button>
+                                  `
+                                  : ''
+                              }
+                              ${
+                                getHarnessPolicyReportPayload(visibleHarnessExecutionResult)
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-policy-report"
+                                      data-policy-report-text="${escapeHtml(formatHarnessPolicyReportForCopy(getHarnessPolicyReportPayload(visibleHarnessExecutionResult)))}"
+                                      data-harness-policy-report-copy="true"
+                                    >
+                                      리포트 복사
+                                    </button>
                                   `
                                   : ''
                               }
@@ -2154,7 +2594,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 data-execution-key="${escapeHtml(getHarnessExecutionResultKey(visibleHarnessExecutionResult) || '')}"
                                 data-harness-result-hide="true"
                               >
-                                결과 숨기기
+                                ${escapeHtml(getHarnessExecutionHideActionLabel(visibleHarnessExecutionResult))}
                               </button>
                             </div>
                           `
@@ -2181,19 +2621,26 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       data-harness-execution-result-hidden-packet="true"
                     >
                     <div class="card-title-row card-title-row-tight">
-                      <strong>최근 실행 결과가 숨겨져 있습니다</strong>
+                      <strong>${escapeHtml(getHarnessExecutionResultTitle(hiddenHarnessExecutionResult))}가 숨겨져 있습니다</strong>
                       ${createToken('숨김', 'neutral')}
                     </div>
-                    <p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 실행 결과를 다시 표시할 수 있습니다.</p>
+                    <p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 ${escapeHtml(getHarnessExecutionModeLabel(hiddenHarnessExecutionResult))}를 다시 표시할 수 있습니다.</p>
                     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-run-context="true">
                       <div class="card-title-row card-title-row-tight">
                         <strong>실행 기록</strong>
                       </div>
                       ${
+                        hiddenHarnessExecutionResult.requestId || hiddenHarnessExecutionResult.executionId
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-request-summary="true">요청 ID: <code>${escapeHtml(hiddenHarnessExecutionResult.requestId || hiddenHarnessExecutionResult.executionId)}</code></p>`
+                          : ''
+                      }
+                      ${
                         hiddenHarnessExecutionResult.executedAt
                           ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(formatDate(hiddenHarnessExecutionResult.executedAt))}</code></p>`
                           : ''
                       }
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(getHarnessExecutionModeLabel(hiddenHarnessExecutionResult))}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffLabel(hiddenHarnessExecutionResult))}</code></p>
                       ${
                         hiddenHarnessExecutionResult.resolvedInputPath
                           ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
@@ -2201,8 +2648,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       }
                       ${
                         hiddenHarnessExecutionResult.resolvedOutputPath
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">출력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}</code></p>`
-                          : ''
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult))}: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}</code></p>`
+                          : `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult))}: <code>표준 출력 전용</code></p>`
                       }
                     </section>
                     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-harness-context="true">
@@ -2237,7 +2684,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         data-execution-key="${escapeHtml(getHarnessExecutionResultKey(hiddenHarnessExecutionResult) || '')}"
                         data-harness-result-show="true"
                       >
-                        결과 다시 보기
+                        ${escapeHtml(getHarnessExecutionShowActionLabel(hiddenHarnessExecutionResult))}
                       </button>
                       ${
                         hiddenHarnessExecutionResult.resolvedInputPath
@@ -2267,10 +2714,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               data-action="rerun-harness-execution-paths"
                               data-input-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}"
                               data-output-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath || hiddenHarnessExecutionResult.outputPath || '')}"
+                              data-policy-report="${hiddenHarnessExecutionResult.actionMode === 'policy-report' ? 'true' : 'false'}"
                               data-harness-result-hidden-rerun="true"
                               ${state.loading || state.mutating ? 'disabled' : ''}
                             >
-                              같은 경로 재실행
+                              ${escapeHtml(getHarnessExecutionRerunActionLabel(hiddenHarnessExecutionResult))}
                             </button>
                           `
                           : ''
@@ -2283,9 +2731,49 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               type="button"
                               data-action="copy-harness-output-path"
                               data-output-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}"
+                              data-output-path-label="${escapeHtml(getHarnessExecutionOutputPathActionLabel(hiddenHarnessExecutionResult))}"
                               data-harness-result-hidden-output-copy="true"
                             >
-                              출력 경로
+                              ${escapeHtml(getHarnessExecutionOutputPathActionLabel(hiddenHarnessExecutionResult))}
+                            </button>
+                          `
+                          : ''
+                      }
+                      ${
+                        hiddenHarnessExecutionResult.requestId || hiddenHarnessExecutionResult.executionId
+                          ? `
+                            <button
+                              class="secondary-button"
+                              type="button"
+                              data-action="copy-harness-request-id"
+                              data-request-id="${escapeHtml(hiddenHarnessExecutionResult.requestId || hiddenHarnessExecutionResult.executionId || '')}"
+                              data-harness-result-hidden-request-id-copy="true"
+                            >
+                              요청 ID
+                            </button>
+                          `
+                          : ''
+                      }
+                      <button
+                        class="secondary-button"
+                        type="button"
+                        data-action="copy-harness-execution-packet"
+                        data-execution-packet-text="${escapeHtml(formatHarnessExecutionPacketForCopy(hiddenHarnessExecutionResult))}"
+                        data-harness-result-hidden-packet-copy="true"
+                      >
+                        패킷 복사
+                      </button>
+                      ${
+                        getHarnessPolicyReportPayload(hiddenHarnessExecutionResult)
+                          ? `
+                            <button
+                              class="secondary-button"
+                              type="button"
+                              data-action="copy-harness-policy-report"
+                              data-policy-report-text="${escapeHtml(formatHarnessPolicyReportForCopy(getHarnessPolicyReportPayload(hiddenHarnessExecutionResult)))}"
+                              data-harness-result-hidden-policy-report-copy="true"
+                            >
+                              리포트 복사
                             </button>
                           `
                           : ''
@@ -2301,6 +2789,18 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               data-harness-result-hidden-preview-copy="true"
                             >
                               미리보기
+                            </button>
+                            <button
+                              class="secondary-button"
+                              type="button"
+                              data-action="summarize-harness-execution-preview"
+                              data-execution-key="${escapeHtml(getHarnessExecutionResultKey(hiddenHarnessExecutionResult) || '')}"
+                              data-hidden-execution-key="${escapeHtml(getHarnessExecutionResultKey(hiddenHarnessExecutionResult) || '')}"
+                              data-preview-text="${escapeHtml(hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview || '')}"
+                              data-harness-result-hidden-output-brief="true"
+                              ${state.loading || state.mutating ? 'disabled' : ''}
+                            >
+                              ${escapeHtml(getHarnessExecutionBriefActionLabel(hiddenHarnessExecutionResult))}
                             </button>
                           `
                           : ''
@@ -2333,15 +2833,27 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 <div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">
                                   <div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">
                                     <div class="control-overview-register-row">
+                                      <span class="control-overview-register-label">요청</span>
+                                      <strong class="control-overview-register-value">${escapeHtml(execution.requestId || execution.executionId || `최근 ${index + 1}`)}</strong>
+                                    </div>
+                                    <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">실행</span>
                                       <strong class="control-overview-register-value">${escapeHtml(formatDate(execution.executedAt))}</strong>
+                                    </div>
+                                    <div class="control-overview-register-row">
+                                      <span class="control-overview-register-label">모드</span>
+                                      <strong class="control-overview-register-value">${escapeHtml(getHarnessExecutionModeLabel(execution))}</strong>
+                                    </div>
+                                    <div class="control-overview-register-row">
+                                      <span class="control-overview-register-label">핸드오프</span>
+                                      <strong class="control-overview-register-value">${escapeHtml(getHarnessExecutionHandoffLabel(execution))}</strong>
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">입력</span>
                                       <strong class="control-overview-register-value">${escapeHtml(execution.inputPath || execution.resolvedInputPath || '경로 없음')}</strong>
                                     </div>
                                     <div class="control-overview-register-row">
-                                      <span class="control-overview-register-label">출력</span>
+                                      <span class="control-overview-register-label">${escapeHtml(getHarnessExecutionOutputLabel(execution))}</span>
                                       <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '표준 출력 전용')}</strong>
                                     </div>
                                   </div>
@@ -2369,7 +2881,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         data-history-index="${String(index)}"
                                         data-harness-history-preview="true"
                                       >
-                                        결과 다시 보기
+                                        ${escapeHtml(getHarnessExecutionShowActionLabel(execution))}
                                       </button>
                                       ${
                                         execution.outputPath || execution.resolvedOutputPath
@@ -2379,9 +2891,49 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                               type="button"
                                               data-action="copy-harness-output-path"
                                               data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
+                                              data-output-path-label="${escapeHtml(getHarnessExecutionOutputPathActionLabel(execution))}"
                                               data-harness-output-copy="true"
                                             >
-                                              출력 경로
+                                              ${escapeHtml(getHarnessExecutionOutputPathActionLabel(execution))}
+                                            </button>
+                                          `
+                                          : ''
+                                      }
+                                      ${
+                                        execution.requestId || execution.executionId
+                                          ? `
+                                            <button
+                                              class="secondary-button"
+                                              type="button"
+                                              data-action="copy-harness-request-id"
+                                              data-request-id="${escapeHtml(execution.requestId || execution.executionId || '')}"
+                                              data-harness-history-request-id-copy="true"
+                                            >
+                                              요청 ID
+                                            </button>
+                                          `
+                                          : ''
+                                      }
+                                      <button
+                                        class="secondary-button"
+                                        type="button"
+                                        data-action="copy-harness-execution-packet"
+                                        data-execution-packet-text="${escapeHtml(formatHarnessExecutionPacketForCopy(execution))}"
+                                        data-harness-history-packet-copy="true"
+                                      >
+                                        패킷 복사
+                                      </button>
+                                      ${
+                                        getHarnessPolicyReportPayload(execution)
+                                          ? `
+                                            <button
+                                              class="secondary-button"
+                                              type="button"
+                                              data-action="copy-harness-policy-report"
+                                              data-policy-report-text="${escapeHtml(formatHarnessPolicyReportForCopy(getHarnessPolicyReportPayload(execution)))}"
+                                              data-harness-history-policy-report-copy="true"
+                                            >
+                                              리포트 복사
                                             </button>
                                           `
                                           : ''
@@ -2402,11 +2954,39 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         data-action="rerun-harness-execution-paths"
                                         data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
                                         data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
+                                        data-policy-report="${execution.actionMode === 'policy-report' ? 'true' : 'false'}"
                                         data-harness-history-rerun="true"
                                         ${state.loading || state.mutating ? 'disabled' : ''}
                                       >
-                                        같은 경로 재실행
+                                        ${escapeHtml(getHarnessExecutionRerunActionLabel(execution))}
                                       </button>
+                                      ${
+                                        execution.outputPreview || execution.stdoutPreview
+                                          ? `
+                                            <button
+                                              class="secondary-button"
+                                              type="button"
+                                              data-action="copy-harness-execution-preview"
+                                              data-preview-text="${escapeHtml(execution.outputPreview || execution.stdoutPreview || '')}"
+                                              data-harness-history-preview-copy="true"
+                                            >
+                                              미리보기
+                                            </button>
+                                            <button
+                                              class="secondary-button"
+                                              type="button"
+                                              data-action="summarize-harness-execution-preview"
+                                              data-execution-key="${escapeHtml(getHarnessExecutionResultKey(execution) || '')}"
+                                              data-history-index="${String(index)}"
+                                              data-preview-text="${escapeHtml(execution.outputPreview || execution.stdoutPreview || '')}"
+                                              data-harness-history-output-brief="true"
+                                              ${state.loading || state.mutating ? 'disabled' : ''}
+                                            >
+                                              ${escapeHtml(getHarnessExecutionBriefActionLabel(execution))}
+                                            </button>
+                                          `
+                                          : ''
+                                      }
                                     </div>
                                   </div>
                                 </div>
@@ -9021,6 +9601,7 @@ async function handleSurfaceChange(surface) {
   state.menuGroup = getNavGroupForSurface(surface);
   state.surface = surface;
   render();
+  elements.workspaceMain?.focus();
 }
 
 async function handleNavGroupChange(groupId) {
@@ -9033,6 +9614,41 @@ async function handleNavGroupChange(groupId) {
   }
 
   render();
+}
+
+async function handleNavGroupTabKeydown(event) {
+  const tab = event.target.closest('[data-nav-group-tab]');
+
+  if (!tab) {
+    return;
+  }
+
+  const currentGroupId = tab.dataset.navGroupTab;
+  const currentIndex = NAV_GROUP_ORDER.indexOf(currentGroupId);
+
+  if (currentIndex < 0) {
+    return;
+  }
+
+  let targetIndex = currentIndex;
+
+  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+    targetIndex = (currentIndex + 1) % NAV_GROUP_ORDER.length;
+  } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+    targetIndex = (currentIndex - 1 + NAV_GROUP_ORDER.length) % NAV_GROUP_ORDER.length;
+  } else if (event.key === 'Home') {
+    targetIndex = 0;
+  } else if (event.key === 'End') {
+    targetIndex = NAV_GROUP_ORDER.length - 1;
+  } else {
+    return;
+  }
+
+  event.preventDefault();
+
+  const targetGroupId = NAV_GROUP_ORDER[targetIndex];
+  await handleNavGroupChange(targetGroupId);
+  elements.navGroupTabs.find((entry) => entry.dataset.navGroupTab === targetGroupId)?.focus();
 }
 
 function createCompanyMemberId() {
@@ -10507,7 +11123,7 @@ function renderCompanyDirectory(data) {
                               data-action="open-company-seat"
                               data-id="${escapeHtml(member.id)}"
                               data-target-surface="${escapeHtml(member.surface)}"
-                              aria-current="${isCurrentSurface ? 'true' : 'false'}"
+                              ${isCurrentSurface ? 'aria-current="true"' : ''}
                               data-selection-state="${isCurrentSurface ? 'active' : isActiveGroup ? 'group' : 'idle'}"
                             >
                               <div class="company-directory-avatar">${escapeHtml(member.name.slice(0, 2).toUpperCase())}</div>
@@ -10646,32 +11262,205 @@ function renderControlOverviewSignalStrip(items) {
   `;
 }
 
-function renderWorkspacePlaybook(activeGroupId) {
-  const meta = GROUP_PLAYBOOK_META[activeGroupId] || GROUP_PLAYBOOK_META.workflows;
+function renderWorkspacePlaybookShortcutButtons(
+  card,
+  activeGroupId,
+  currentPlaybookStep,
+  playbookCardLabelIds,
+  playbookCardCurrentId,
+  shortcutGroupDescriptionIds,
+  playbookCardDescriptionIds,
+) {
+  const surfaces = Array.isArray(card.surfaces) ? card.surfaces : [];
+
+  if (!surfaces.length) {
+    return '';
+  }
+
+  const shortcutLabelId = `workspace-playbook-shortcut-label-${activeGroupId}-${card.step}`;
+  const shortcutGroupLabelIds = [playbookCardLabelIds, playbookCardCurrentId, shortcutLabelId]
+    .filter(Boolean)
+    .join(' ');
 
   return `
-    <section class="workspace-playbook" data-nav-group="${escapeHtml(activeGroupId)}">
+    <div class="workspace-playbook-shortcuts" role="group" aria-labelledby="${escapeHtml(shortcutGroupLabelIds)}"${shortcutGroupDescriptionIds ? ` aria-describedby="${escapeHtml(shortcutGroupDescriptionIds)}"` : ''}>
+      <span class="workspace-playbook-shortcut-label" id="${escapeHtml(shortcutLabelId)}">바로 열기</span>
+      ${surfaces
+        .map((surface) => {
+          const surfaceLabel = getSurfaceDisplayName(surface);
+          const shortcutButtonId = `workspace-playbook-shortcut-${activeGroupId}-${card.step}-${surface}`;
+          const shortcutButtonLabelIds = [shortcutButtonId, playbookCardLabelIds]
+            .filter(Boolean)
+            .join(' ');
+          const isCurrentSurface = surface === state.surface;
+          const isCurrentStepShortcut = isCurrentSurface && card.step === currentPlaybookStep;
+          const isSameSurfaceShortcut = isCurrentSurface && !isCurrentStepShortcut;
+          const shortcutLabel = isCurrentStepShortcut
+            ? `현재 · ${surfaceLabel}`
+            : isSameSurfaceShortcut
+              ? `같은 desk · ${surfaceLabel}`
+              : surfaceLabel;
+
+          return `
+            <button
+              id="${escapeHtml(shortcutButtonId)}"
+              class="workspace-playbook-shortcut ${isCurrentStepShortcut ? 'is-current-surface' : ''}${isSameSurfaceShortcut ? ' is-same-surface' : ''}"
+              type="button"
+              data-action="open-surface"
+              data-target-surface="${escapeHtml(surface)}"
+              data-selection-state="${isCurrentStepShortcut ? 'active' : isSameSurfaceShortcut ? 'same-surface' : 'idle'}"
+              aria-controls="surface-${escapeHtml(surface)}"
+              ${isCurrentStepShortcut ? 'aria-current="page"' : ''}
+              aria-labelledby="${escapeHtml(shortcutButtonLabelIds)}"
+              aria-describedby="${escapeHtml(playbookCardDescriptionIds)}"
+              ${state.loading || state.mutating ? 'disabled' : ''}
+            >
+              ${escapeHtml(shortcutLabel)}
+            </button>
+          `;
+        })
+        .join('')}
+    </div>
+  `;
+}
+
+function renderWorkspacePlaybook(activeGroupId) {
+  const meta = GROUP_PLAYBOOK_META[activeGroupId] || GROUP_PLAYBOOK_META.workflows;
+  const playbookTitleId = `workspace-playbook-title-${activeGroupId}`;
+  const playbookSummaryId = `workspace-playbook-summary-${activeGroupId}`;
+  const currentPlaybookCard = meta.cards.find(
+    (card) => Array.isArray(card.surfaces) && card.surfaces.includes(state.surface),
+  );
+  const currentPlaybookStep = currentPlaybookCard ? currentPlaybookCard.step : '';
+  const activeSurfaceLabel = getSurfaceDisplayName(state.surface);
+  const location = SURFACE_LOCATION_GUIDANCE[state.surface] || {
+    check: '현재 desk 상태',
+    next: '다음 액션',
+  };
+  const resultSurface = location.resultSurface || 'deliverables';
+  const resultSurfaceLabel = getSurfaceDisplayName(resultSurface);
+  const targetSurfaceLabel = location.targetSurface
+    ? getSurfaceDisplayName(location.targetSurface)
+    : '';
+  const locationCellIds = {
+    current: {
+      label: `workspace-location-label-${state.surface}-current`,
+      note: `workspace-location-note-${state.surface}-current`,
+      value: `workspace-location-value-${state.surface}-current`,
+    },
+    check: {
+      label: `workspace-location-label-${state.surface}-check`,
+      value: `workspace-location-value-${state.surface}-check`,
+    },
+    result: {
+      action: `workspace-location-action-${state.surface}-result`,
+      label: `workspace-location-label-${state.surface}-result`,
+      value: `workspace-location-value-${state.surface}-result`,
+    },
+    next: {
+      action: `workspace-location-action-${state.surface}-next`,
+      label: `workspace-location-label-${state.surface}-next`,
+      static: `workspace-location-static-${state.surface}-next`,
+      value: `workspace-location-value-${state.surface}-next`,
+    },
+  };
+
+  return `
+    <section class="workspace-playbook" data-nav-group="${escapeHtml(activeGroupId)}" aria-labelledby="${escapeHtml(playbookTitleId)}"${meta.copy ? ` aria-describedby="${escapeHtml(playbookSummaryId)}"` : ''}>
       <div class="workspace-playbook-head">
         <div>
           <p class="control-overview-label">${escapeHtml(meta.label)}</p>
-          <h3 class="workspace-playbook-title">${escapeHtml(meta.title)}</h3>
+          <h3 class="workspace-playbook-title" id="${escapeHtml(playbookTitleId)}">${escapeHtml(meta.title)}</h3>
         </div>
-        ${meta.copy ? `<p class="workspace-playbook-summary">${escapeHtml(meta.copy)}</p>` : ''}
+        ${meta.copy ? `<p class="workspace-playbook-summary" id="${escapeHtml(playbookSummaryId)}">${escapeHtml(meta.copy)}</p>` : ''}
       </div>
-      <div class="workspace-playbook-grid">
+      <div class="workspace-location-strip" role="list" aria-label="현재 위치, 여기서 확인, 결과 확인, 다음 이동">
+        <article class="workspace-location-cell workspace-location-cell-current" role="listitem" aria-current="location" aria-labelledby="${escapeHtml(`${locationCellIds.current.label} ${locationCellIds.current.value}`)}" aria-describedby="${escapeHtml(locationCellIds.current.note)}">
+          <span class="workspace-location-label" id="${escapeHtml(locationCellIds.current.label)}">현재 위치</span>
+          <strong class="workspace-location-value" id="${escapeHtml(locationCellIds.current.value)}">${escapeHtml(activeSurfaceLabel)}</strong>
+          <span class="workspace-location-current-note" id="${escapeHtml(locationCellIds.current.note)}">지금 보고 있음</span>
+        </article>
+        <article class="workspace-location-cell" role="listitem" aria-labelledby="${escapeHtml(`${locationCellIds.check.label} ${locationCellIds.check.value}`)}">
+          <span class="workspace-location-label" id="${escapeHtml(locationCellIds.check.label)}">여기서 확인</span>
+          <strong class="workspace-location-value" id="${escapeHtml(locationCellIds.check.value)}">${escapeHtml(location.check)}</strong>
+        </article>
+        <article class="workspace-location-cell" role="listitem" aria-labelledby="${escapeHtml(`${locationCellIds.result.label} ${locationCellIds.result.value}`)}">
+          <span class="workspace-location-label" id="${escapeHtml(locationCellIds.result.label)}">결과 확인</span>
+          <strong class="workspace-location-value" id="${escapeHtml(locationCellIds.result.value)}">${escapeHtml(resultSurfaceLabel)}</strong>
+          <button
+            id="${escapeHtml(locationCellIds.result.action)}"
+            class="workspace-location-action workspace-location-action-secondary"
+            type="button"
+            data-action="open-surface"
+            data-target-surface="${escapeHtml(resultSurface)}"
+            aria-controls="surface-${escapeHtml(resultSurface)}"
+            aria-labelledby="${escapeHtml(`${locationCellIds.result.label} ${locationCellIds.result.action}`)}"
+            aria-describedby="${escapeHtml(locationCellIds.result.value)}"
+            ${state.loading || state.mutating ? 'disabled' : ''}
+          >
+            ${escapeHtml(resultSurfaceLabel)} 보기
+          </button>
+        </article>
+        <article class="workspace-location-cell" role="listitem" aria-labelledby="${escapeHtml(`${locationCellIds.next.label} ${locationCellIds.next.value}`)}"${location.targetSurface ? '' : ` aria-describedby="${escapeHtml(locationCellIds.next.static)}"`}>
+          <span class="workspace-location-label" id="${escapeHtml(locationCellIds.next.label)}">다음 이동</span>
+          <strong class="workspace-location-value" id="${escapeHtml(locationCellIds.next.value)}">${escapeHtml(location.next)}</strong>
+          ${
+            location.targetSurface
+              ? `
+                <button
+                  id="${escapeHtml(locationCellIds.next.action)}"
+                  class="workspace-location-action"
+                  type="button"
+                  data-action="open-surface"
+                  data-target-surface="${escapeHtml(location.targetSurface)}"
+                  aria-controls="surface-${escapeHtml(location.targetSurface)}"
+                  aria-labelledby="${escapeHtml(`${locationCellIds.next.label} ${locationCellIds.next.action}`)}"
+                  aria-describedby="${escapeHtml(locationCellIds.next.value)}"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                >
+                  ${escapeHtml(targetSurfaceLabel)} 열기
+                </button>
+              `
+              : `<span class="workspace-location-static" id="${escapeHtml(locationCellIds.next.static)}">결정 후 원래 desk로 돌아갑니다</span>`
+          }
+        </article>
+      </div>
+      <div class="workspace-playbook-grid" role="list" aria-label="${escapeHtml(meta.title)} 단계">
         ${meta.cards
-          .map(
-            (card) => `
-              <article class="workspace-playbook-card">
-                <span class="workspace-playbook-step">${escapeHtml(card.step)}</span>
+          .map((card) => {
+            const isCurrentStep = card.step === currentPlaybookStep;
+            const playbookCardStepId = `workspace-playbook-card-step-${activeGroupId}-${card.step}`;
+            const playbookCardTitleId = `workspace-playbook-card-title-${activeGroupId}-${card.step}`;
+            const playbookCardNoteId = `workspace-playbook-card-note-${activeGroupId}-${card.step}`;
+            const playbookCardWhereId = card.where
+              ? `workspace-playbook-card-where-${activeGroupId}-${card.step}`
+              : '';
+            const playbookCardCurrentId = isCurrentStep
+              ? `workspace-playbook-card-current-${activeGroupId}-${card.step}`
+              : '';
+            const playbookCardLabelIds = `${playbookCardStepId} ${playbookCardTitleId}`;
+            const playbookCardDescriptionIds = [playbookCardCurrentId, playbookCardNoteId, playbookCardWhereId]
+              .filter(Boolean)
+              .join(' ');
+            const shortcutGroupDescriptionIds = [playbookCardNoteId, playbookCardWhereId]
+              .filter(Boolean)
+              .join(' ');
+
+            return `
+              <article class="workspace-playbook-card ${isCurrentStep ? 'is-current-step' : ''}" role="listitem" data-step-state="${isCurrentStep ? 'current' : 'idle'}" ${isCurrentStep ? 'aria-current="step"' : ''} aria-labelledby="${escapeHtml(playbookCardLabelIds)}" aria-describedby="${escapeHtml(playbookCardDescriptionIds)}">
+                <span class="workspace-playbook-step" id="${escapeHtml(playbookCardStepId)}">${escapeHtml(card.step)}</span>
                 <div class="workspace-playbook-copy">
-                  <strong class="workspace-playbook-card-title">${escapeHtml(card.title)}</strong>
-                  <p class="workspace-playbook-note">${escapeHtml(card.note)}</p>
-                  ${card.where ? `<span class="workspace-playbook-where">${escapeHtml(card.where)}</span>` : ''}
+                  <div class="workspace-playbook-title-row">
+                    <strong class="workspace-playbook-card-title" id="${escapeHtml(playbookCardTitleId)}">${escapeHtml(card.title)}</strong>
+                    ${isCurrentStep ? `<span class="workspace-playbook-current-step" id="${escapeHtml(playbookCardCurrentId)}">현재 단계</span>` : ''}
+                  </div>
+                  <p class="workspace-playbook-note" id="${escapeHtml(playbookCardNoteId)}">${escapeHtml(card.note)}</p>
+                  ${card.where ? `<span class="workspace-playbook-where" id="${escapeHtml(playbookCardWhereId)}">${escapeHtml(card.where)}</span>` : ''}
+                  ${renderWorkspacePlaybookShortcutButtons(card, activeGroupId, currentPlaybookStep, playbookCardLabelIds, playbookCardCurrentId, shortcutGroupDescriptionIds, playbookCardDescriptionIds)}
                 </div>
               </article>
-            `,
-          )
+            `;
+          })
           .join('')}
       </div>
     </section>
@@ -10686,7 +11475,7 @@ function renderWorkflowQueueLane(entry) {
       type="button"
       data-action="open-surface"
       data-target-surface="${escapeHtml(entry.surface)}"
-      aria-current="${isActive ? 'true' : 'false'}"
+      ${isActive ? 'aria-current="true"' : ''}
       data-selection-state="${isActive ? 'active' : 'idle'}"
     >
       <div class="workflow-stage-head">
@@ -10727,7 +11516,7 @@ function renderReviewLaneCard(entry) {
       type="button"
       data-action="open-surface"
       data-target-surface="${escapeHtml(entry.surface)}"
-      aria-current="${isActive ? 'true' : 'false'}"
+      ${isActive ? 'aria-current="true"' : ''}
       data-selection-state="${isActive ? 'active' : 'idle'}"
     >
       <div class="review-lane-card-head">
@@ -11776,6 +12565,9 @@ function renderControlOverview(data) {
   elements.refreshButton.disabled = state.loading || state.mutating;
   renderWorkspaceHeader(data, context);
   renderCompanyDirectory(data);
+  if (elements.workspaceLiveStatus) {
+    elements.workspaceLiveStatus.textContent = `현재 workspace: ${getSurfaceDisplayName(state.surface)}. 메뉴 그룹: ${getNavGroupLabel(activeGroupId)}`;
+  }
 
   if (activeGroupId === 'review') {
     elements.controlOverview.innerHTML = renderReviewOverview(data, context, activeGroupId);
@@ -11799,6 +12591,7 @@ function renderNav(data) {
 
     tab.classList.toggle('is-active', isActive);
     tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    tab.setAttribute('tabindex', isActive ? '0' : '-1');
   }
 
   for (const group of elements.navGroups) {
@@ -11806,6 +12599,8 @@ function renderNav(data) {
     const isActive = groupId === activeGroupId;
 
     group.classList.toggle('is-active', isActive);
+    group.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+    group.setAttribute('tabindex', isActive ? '0' : '-1');
 
     if (isActive) {
       group.removeAttribute('hidden');
@@ -11831,7 +12626,12 @@ function renderNav(data) {
         </span>
       </span>
     `;
-    button.setAttribute('aria-current', isActive ? 'page' : 'false');
+    button.setAttribute('aria-controls', `surface-${surface}`);
+    if (isActive) {
+      button.setAttribute('aria-current', 'page');
+    } else {
+      button.removeAttribute('aria-current');
+    }
     button.setAttribute('aria-label', `${label} ${count}건. ${guidance}`);
   }
 }
@@ -17318,13 +18118,15 @@ async function copyHarnessCommand(command) {
   });
 }
 
-async function copyHarnessExecutionOutputPath(outputPath) {
+async function copyHarnessExecutionOutputPath(outputPath, label = '출력 경로') {
+  const outputLabel = label || '출력 경로';
+
   await copyTextValue({
     value: outputPath,
-    emptyErrorMessage: '복사할 하네스 출력 경로가 없습니다.',
-    copiedMessage: (value) => `하네스 출력 경로를 복사했습니다: ${value}`,
+    emptyErrorMessage: `복사할 하네스 ${outputLabel}가 없습니다.`,
+    copiedMessage: (value) => `하네스 ${outputLabel}를 복사했습니다: ${value}`,
     unsupportedMessage: (value) =>
-      `클립보드 미지원 환경입니다. 출력 경로를 직접 확인하세요: ${value}`,
+      `클립보드 미지원 환경입니다. ${outputLabel}를 직접 확인하세요: ${value}`,
   });
 }
 
@@ -17338,6 +18140,16 @@ async function copyHarnessExecutionInputPath(inputPath) {
   });
 }
 
+async function copyHarnessExecutionRequestId(requestId) {
+  await copyTextValue({
+    value: requestId,
+    emptyErrorMessage: '복사할 하네스 요청 ID가 없습니다.',
+    copiedMessage: (value) => `하네스 요청 ID를 복사했습니다: ${value}`,
+    unsupportedMessage: (value) =>
+      `클립보드 미지원 환경입니다. 요청 ID를 직접 확인하세요: ${value}`,
+  });
+}
+
 async function copyHarnessExecutionPreview(previewText) {
   await copyTextValue({
     value: previewText,
@@ -17348,10 +18160,100 @@ async function copyHarnessExecutionPreview(previewText) {
   });
 }
 
+async function copyHarnessExecutionPacket(packetText) {
+  await copyTextValue({
+    value: packetText,
+    emptyErrorMessage: '복사할 하네스 실행 패킷이 없습니다.',
+    copiedMessage: () => '하네스 실행 패킷을 복사했습니다.',
+    unsupportedMessage: () =>
+      '클립보드 미지원 환경입니다. 하네스 실행 패킷을 직접 확인하세요.',
+  });
+}
+
+async function copyHarnessOutputBrief(briefText, label = '출력 요약') {
+  const briefLabel = label || '출력 요약';
+
+  await copyTextValue({
+    value: briefText,
+    emptyErrorMessage: `복사할 하네스 ${briefLabel}이 없습니다.`,
+    copiedMessage: () => `하네스 ${briefLabel}을 복사했습니다.`,
+    unsupportedMessage: () =>
+      `클립보드 미지원 환경입니다. 하네스 ${briefLabel}을 직접 확인하세요.`,
+  });
+}
+
+async function copyHarnessPolicyReport(reportText) {
+  await copyTextValue({
+    value: reportText,
+    emptyErrorMessage: '복사할 하네스 정책 리포트가 없습니다.',
+    copiedMessage: () => '하네스 정책 리포트를 복사했습니다.',
+    unsupportedMessage: () =>
+      '클립보드 미지원 환경입니다. 하네스 정책 리포트를 직접 확인하세요.',
+  });
+}
+
+async function summarizeHarnessExecutionPreview(actionButton) {
+  const previewText = String(actionButton?.dataset.previewText || '').trim();
+  const executionKey = String(actionButton?.dataset.executionKey || '').trim();
+  const hiddenExecutionKey = String(actionButton?.dataset.hiddenExecutionKey || '').trim();
+  const historyIndex = Number.parseInt(actionButton?.dataset.historyIndex || '', 10);
+  const statusPayload = getHarnessConsumerStatus(getDerived());
+  const currentExecution = getLatestHarnessExecution(getDerived(), statusPayload);
+  const currentExecutionKey = getHarnessExecutionResultKey(currentExecution);
+  const recentHarnessExecutions = getRecentHarnessExecutions(getDerived(), statusPayload);
+  const historyExecution =
+    Number.isInteger(historyIndex) && historyIndex >= 0
+      ? recentHarnessExecutions[historyIndex] || null
+      : null;
+  const hiddenExecution =
+    hiddenExecutionKey && currentExecutionKey === hiddenExecutionKey ? currentExecution : null;
+  const targetExecutionKey =
+    getHarnessExecutionResultKey(historyExecution) ||
+    getHarnessExecutionResultKey(hiddenExecution) ||
+    executionKey;
+
+  if (!previewText || !targetExecutionKey) {
+    throw new Error('요약할 하네스 실행 미리보기가 없습니다.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = '하네스 실행 미리보기를 요약하는 중…';
+  render();
+
+  try {
+    const payload = await postJson('/api/harness/output-brief', {
+      maxLines: 6,
+      text: previewText,
+    });
+
+    state.lastHarnessOutputBriefResult = {
+      executionKey: targetExecutionKey,
+      outputBrief: payload.outputBrief || null,
+    };
+    if (historyExecution) {
+      state.hiddenHarnessExecutionResultKey = null;
+      state.lastHarnessExecutionResult = historyExecution;
+    }
+    if (hiddenExecution) {
+      state.hiddenHarnessExecutionResultKey = null;
+      state.lastHarnessExecutionResult = hiddenExecution;
+    }
+    render();
+    elements.refreshStatus.textContent = '하네스 실행 미리보기 요약을 만들었습니다.';
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
 function hideHarnessExecutionResult(actionButton) {
   const executionKey = String(actionButton?.dataset.executionKey || '').trim();
+  const statusPayload = getHarnessConsumerStatus(getDerived());
+  const currentExecution = getLatestHarnessExecution(getDerived(), statusPayload);
+  const currentExecutionKey = getHarnessExecutionResultKey(currentExecution);
 
-  if (!executionKey) {
+  if (!executionKey || !currentExecution?.harnessId || currentExecutionKey !== executionKey) {
     throw new Error('숨길 하네스 실행 결과를 찾지 못했습니다.');
   }
 
@@ -17359,7 +18261,7 @@ function hideHarnessExecutionResult(actionButton) {
   state.hiddenHarnessExecutionResultKey = executionKey;
   render();
   elements.refreshStatus.textContent =
-    '최근 실행 결과를 숨겼습니다. 필요하면 실행 기록에서 다시 볼 수 있습니다.';
+    `${getHarnessExecutionResultTitle(currentExecution)}를 숨겼습니다. 필요하면 실행 기록에서 다시 볼 수 있습니다.`;
 }
 
 function showHarnessExecutionResult(actionButton, statusPayload) {
@@ -17379,7 +18281,7 @@ function showHarnessExecutionResult(actionButton, statusPayload) {
   const executedAtLabel = currentExecution.executedAt
     ? formatDate(currentExecution.executedAt)
     : '최근 실행';
-  elements.refreshStatus.textContent = `숨긴 실행 결과를 다시 표시했습니다: ${currentExecution.harnessId} · ${executedAtLabel}`;
+  elements.refreshStatus.textContent = `숨긴 ${getHarnessExecutionModeLabel(currentExecution)}를 다시 표시했습니다: ${currentExecution.harnessId} · ${executedAtLabel}`;
 }
 
 function restoreHarnessExecutionPreview(actionButton, statusPayload) {
@@ -17402,10 +18304,10 @@ function restoreHarnessExecutionPreview(actionButton, statusPayload) {
   const executedAtLabel = targetExecution.executedAt
     ? formatDate(targetExecution.executedAt)
     : '최근 실행';
-  elements.refreshStatus.textContent = `실행 결과를 다시 표시했습니다: ${targetExecution.harnessId} · ${executedAtLabel}`;
+  elements.refreshStatus.textContent = `${getHarnessExecutionModeLabel(targetExecution)}를 다시 표시했습니다: ${targetExecution.harnessId} · ${executedAtLabel}`;
 }
 
-async function executeHarnessOperatorAction({ inputPath, outputPath, statusPayload, pendingMessage }) {
+async function executeHarnessOperatorAction({ inputPath, outputPath, statusPayload, pendingMessage, policyReport = false }) {
   const operatorAction = statusPayload?.operatorAction || null;
   const statusCard = statusPayload?.statusCard || null;
 
@@ -17431,6 +18333,7 @@ async function executeHarnessOperatorAction({ inputPath, outputPath, statusPaylo
     const payload = await postJson('/api/harness/operator-action/run', {
       inputPath,
       outputPath,
+      policyReport,
     });
 
     applySnapshotPayload(payload);
@@ -17439,19 +18342,47 @@ async function executeHarnessOperatorAction({ inputPath, outputPath, statusPaylo
     state.lastHarnessExecutionResult = payload.harnessExecution || null;
     render();
 
-    const execution = payload.harnessExecution || {};
-    const outputCopy =
-      execution.resolvedOutputPath
-        ? `출력: ${execution.resolvedOutputPath}`
-        : execution.stdoutPreview
-          ? '표준 출력 미리보기를 반환했습니다.'
-          : '출력 파일 없이 완료됐습니다.';
+  const execution = payload.harnessExecution || {};
+  const requestCopy =
+    execution.requestId || execution.executionId
+      ? `요청: ${execution.requestId || execution.executionId}. `
+      : '';
+  const outputCopy =
+    execution.resolvedOutputPath
+      ? `출력: ${execution.resolvedOutputPath}`
+      : execution.stdoutPreview
+        ? '표준 출력 미리보기를 반환했습니다.'
+        : '출력 파일 없이 완료됐습니다.';
 
-    elements.refreshStatus.textContent = `하네스 ${execution.harnessId || statusCard.primaryHarnessId} 실행 완료. ${outputCopy}`;
+  elements.refreshStatus.textContent =
+    execution.actionMode === 'policy-report'
+      ? `하네스 ${execution.harnessId || statusCard.primaryHarnessId} 정책 리포트 확인 완료. ${requestCopy}${execution.stdoutPreview ? '리포트 미리보기를 반환했습니다.' : outputCopy}`
+      : `하네스 ${execution.harnessId || statusCard.primaryHarnessId} 실행 완료. ${requestCopy}${outputCopy}`;
   } finally {
     state.mutating = false;
     render();
   }
+}
+
+async function previewHarnessPolicyReport(actionButton) {
+  const form = actionButton?.closest?.('[data-form="run-harness-operator-action"]');
+  const statusPayload = getHarnessConsumerStatus(getDerived());
+
+  if (!form) {
+    throw new Error('정책 리포트를 확인할 실행 폼을 찾지 못했습니다.');
+  }
+
+  const formData = new FormData(form);
+  const inputPath = String(formData.get('inputPath') || '').trim();
+  const outputPath = String(formData.get('outputPath') || '').trim();
+
+  await executeHarnessOperatorAction({
+    inputPath,
+    outputPath,
+    statusPayload,
+    policyReport: true,
+    pendingMessage: '하네스 정책 리포트를 확인하는 중…',
+  });
 }
 
 async function runHarnessOperatorAction(form) {
@@ -17514,6 +18445,7 @@ function reuseHarnessExecutionPaths(actionButton) {
 async function rerunHarnessExecutionPaths(actionButton) {
   const inputPath = String(actionButton?.dataset.inputPath || '').trim();
   const outputPath = String(actionButton?.dataset.outputPath || '').trim();
+  const policyReport = actionButton?.dataset.policyReport === 'true';
   const statusPayload = getHarnessConsumerStatus(getDerived());
   const statusCard = statusPayload?.statusCard || null;
 
@@ -17525,9 +18457,10 @@ async function rerunHarnessExecutionPaths(actionButton) {
     inputPath,
     outputPath,
     statusPayload,
+    policyReport,
     pendingMessage: statusCard?.primaryHarnessId
-      ? `하네스 ${statusCard.primaryHarnessId}의 최근 실행 경로를 다시 실행하는 중…`
-      : '미확인 하네스의 최근 실행 경로를 다시 실행하는 중…',
+      ? `하네스 ${statusCard.primaryHarnessId}의 최근 실행 경로를 ${policyReport ? '정책 리포트로 다시 확인' : '다시 실행'}하는 중…`
+      : `미확인 하네스의 최근 실행 경로를 ${policyReport ? '정책 리포트로 다시 확인' : '다시 실행'}하는 중…`,
   });
 }
 
@@ -17551,7 +18484,12 @@ function render() {
   renderControlOverview(data);
 
   for (const surfaceId of SURFACE_IDS) {
-    elements.surfaces[surfaceId].classList.toggle('is-active', surfaceId === state.surface);
+    const isActive = surfaceId === state.surface;
+    const surface = elements.surfaces[surfaceId];
+
+    surface.classList.toggle('is-active', isActive);
+    surface.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+    surface.setAttribute('tabindex', isActive ? '0' : '-1');
   }
 
   if (state.error) {
@@ -17580,8 +18518,7 @@ document.addEventListener('click', async (event) => {
   }
 
   if (actionButton?.dataset.action === 'open-surface') {
-    state.surface = actionButton.dataset.targetSurface || state.surface;
-    render();
+    await handleSurfaceChange(actionButton.dataset.targetSurface || state.surface);
     return;
   }
 
@@ -17590,8 +18527,7 @@ document.addEventListener('click', async (event) => {
       syncSelectionsFromMission(actionButton.dataset.id);
     }
 
-    state.surface = actionButton.dataset.targetSurface || 'mission';
-    render();
+    await handleSurfaceChange(actionButton.dataset.targetSurface || 'mission');
     return;
   }
 
@@ -17709,7 +18645,10 @@ document.addEventListener('click', async (event) => {
       }
 
       if (actionButton.dataset.action === 'copy-harness-output-path') {
-        await copyHarnessExecutionOutputPath(actionButton.dataset.outputPath);
+        await copyHarnessExecutionOutputPath(
+          actionButton.dataset.outputPath,
+          actionButton.dataset.outputPathLabel,
+        );
         return;
       }
 
@@ -17718,8 +18657,36 @@ document.addEventListener('click', async (event) => {
         return;
       }
 
+      if (actionButton.dataset.action === 'copy-harness-request-id') {
+        await copyHarnessExecutionRequestId(actionButton.dataset.requestId);
+        return;
+      }
+
       if (actionButton.dataset.action === 'copy-harness-execution-preview') {
         await copyHarnessExecutionPreview(actionButton.dataset.previewText);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'copy-harness-execution-packet') {
+        await copyHarnessExecutionPacket(actionButton.dataset.executionPacketText);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'copy-harness-output-brief') {
+        await copyHarnessOutputBrief(
+          actionButton.dataset.outputBriefText,
+          actionButton.dataset.outputBriefLabel,
+        );
+        return;
+      }
+
+      if (actionButton.dataset.action === 'copy-harness-policy-report') {
+        await copyHarnessPolicyReport(actionButton.dataset.policyReportText);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'summarize-harness-execution-preview') {
+        await summarizeHarnessExecutionPreview(actionButton);
         return;
       }
 
@@ -17750,6 +18717,11 @@ document.addEventListener('click', async (event) => {
 
       if (actionButton.dataset.action === 'rerun-harness-execution-paths') {
         await rerunHarnessExecutionPaths(actionButton);
+        return;
+      }
+
+      if (actionButton.dataset.action === 'preview-harness-policy-report') {
+        await previewHarnessPolicyReport(actionButton);
         return;
       }
 
@@ -17901,6 +18873,10 @@ function handleFormInput(event) {
 
 document.addEventListener('input', handleFormInput);
 document.addEventListener('change', handleFormInput);
+
+document.addEventListener('keydown', async (event) => {
+  await handleNavGroupTabKeydown(event);
+});
 
 document.addEventListener('submit', async (event) => {
   const runHarnessOperatorActionForm = event.target.closest(

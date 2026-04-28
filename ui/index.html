@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
+    <a class="skip-link" href="#workspace-main">현재 workspace로 바로가기</a>
     <div class="app-shell">
       <aside class="office-sidebar" aria-label="워크플로우 사이드바">
         <section class="office-brand-card">
@@ -60,51 +61,101 @@
         <nav class="primary-nav office-sidebar-nav" aria-label="주요 표면">
           <div class="nav-group-tabs" role="tablist" aria-label="주요 메뉴 그룹">
             <button
+              id="nav-group-tab-workflows"
               class="nav-group-tab is-active"
               data-nav-group-tab="workflows"
               type="button"
               role="tab"
               aria-selected="true"
+              aria-controls="nav-group-workflows"
             >
-              업무
+              <span class="nav-group-tab-label">업무</span>
+              <span class="nav-group-tab-help">목표·실행</span>
             </button>
             <button
+              id="nav-group-tab-review"
               class="nav-group-tab"
               data-nav-group-tab="review"
               type="button"
               role="tab"
               aria-selected="false"
+              aria-controls="nav-group-review"
             >
-              검토
+              <span class="nav-group-tab-label">검토</span>
+              <span class="nav-group-tab-help">승인·근거</span>
             </button>
             <button
+              id="nav-group-tab-ops"
               class="nav-group-tab"
               data-nav-group-tab="ops"
               type="button"
               role="tab"
               aria-selected="false"
+              aria-controls="nav-group-ops"
             >
-              운영
+              <span class="nav-group-tab-label">운영</span>
+              <span class="nav-group-tab-help">작업판</span>
             </button>
           </div>
-          <div class="nav-group" data-nav-group="workflows">
+          <div
+            id="nav-group-workflows"
+            class="nav-group"
+            data-nav-group="workflows"
+            role="tabpanel"
+            aria-labelledby="nav-group-tab-workflows"
+            aria-hidden="false"
+            tabindex="0"
+          >
+            <div class="nav-group-summary" aria-label="업무 메뉴 안내">
+              <span class="nav-group-summary-label">업무 메뉴</span>
+              <strong class="nav-group-summary-title">목표부터 결과 패킷까지</strong>
+              <p class="nav-group-summary-copy">미션 · 협의회 · 실행 · 산출물을 순서대로 확인합니다.</p>
+            </div>
             <div class="nav-button-row">
-              <button class="nav-button is-active" data-surface="mission" type="button">미션</button>
-              <button class="nav-button" data-surface="council" type="button">협의회</button>
-              <button class="nav-button" data-surface="execution" type="button">실행</button>
-              <button class="nav-button" data-surface="deliverables" type="button">산출물</button>
+              <button class="nav-button is-active" data-surface="mission" type="button" aria-controls="surface-mission">미션</button>
+              <button class="nav-button" data-surface="council" type="button" aria-controls="surface-council">협의회</button>
+              <button class="nav-button" data-surface="execution" type="button" aria-controls="surface-execution">실행</button>
+              <button class="nav-button" data-surface="deliverables" type="button" aria-controls="surface-deliverables">산출물</button>
             </div>
           </div>
-          <div class="nav-group" data-nav-group="review" hidden>
+          <div
+            id="nav-group-review"
+            class="nav-group"
+            data-nav-group="review"
+            role="tabpanel"
+            aria-labelledby="nav-group-tab-review"
+            aria-hidden="true"
+            tabindex="-1"
+            hidden
+          >
+            <div class="nav-group-summary" aria-label="검토 메뉴 안내">
+              <span class="nav-group-summary-label">검토 메뉴</span>
+              <strong class="nav-group-summary-title">승인·근거·로그 확인</strong>
+              <p class="nav-group-summary-copy">결정함 · 아티팩트 · 로그에서 판단 근거를 교차 확인합니다.</p>
+            </div>
             <div class="nav-button-row">
-              <button class="nav-button" data-surface="decision-inbox" type="button">결정함</button>
-              <button class="nav-button" data-surface="artifacts" type="button">아티팩트</button>
-              <button class="nav-button" data-surface="logs" type="button">로그</button>
+              <button class="nav-button" data-surface="decision-inbox" type="button" aria-controls="surface-decision-inbox">결정함</button>
+              <button class="nav-button" data-surface="artifacts" type="button" aria-controls="surface-artifacts">아티팩트</button>
+              <button class="nav-button" data-surface="logs" type="button" aria-controls="surface-logs">로그</button>
             </div>
           </div>
-          <div class="nav-group" data-nav-group="ops" hidden>
+          <div
+            id="nav-group-ops"
+            class="nav-group"
+            data-nav-group="ops"
+            role="tabpanel"
+            aria-labelledby="nav-group-tab-ops"
+            aria-hidden="true"
+            tabindex="-1"
+            hidden
+          >
+            <div class="nav-group-summary" aria-label="운영 메뉴 안내">
+              <span class="nav-group-summary-label">운영 메뉴</span>
+              <strong class="nav-group-summary-title">작업 셀과 담당 desk 관제</strong>
+              <p class="nav-group-summary-copy">작업판에서 실행 셀 상태와 역할 배정을 확인합니다.</p>
+            </div>
             <div class="nav-button-row">
-              <button class="nav-button" data-surface="taskboard" type="button">작업판</button>
+              <button class="nav-button" data-surface="taskboard" type="button" aria-controls="surface-taskboard">작업판</button>
             </div>
           </div>
         </nav>
@@ -148,16 +199,17 @@
         </header>
 
         <section id="control-overview" class="control-overview" aria-label="현재 운영 개요"></section>
+        <p id="workspace-live-status" class="sr-only" aria-live="polite" aria-atomic="true">현재 workspace: 미션</p>
 
-        <main class="surface-stack">
-          <section id="surface-mission" class="surface is-active" data-surface="mission" aria-label="미션"></section>
-          <section id="surface-council" class="surface" data-surface="council" aria-label="협의회"></section>
-          <section id="surface-execution" class="surface" data-surface="execution" aria-label="실행"></section>
-          <section id="surface-deliverables" class="surface" data-surface="deliverables" aria-label="산출물"></section>
-          <section id="surface-taskboard" class="surface" data-surface="taskboard" aria-label="작업판"></section>
-          <section id="surface-logs" class="surface" data-surface="logs" aria-label="로그"></section>
-          <section id="surface-artifacts" class="surface" data-surface="artifacts" aria-label="아티팩트"></section>
-          <section id="surface-decision-inbox" class="surface" data-surface="decision-inbox" aria-label="결정함"></section>
+        <main id="workspace-main" class="surface-stack" aria-labelledby="shell-dashboard-title" aria-describedby="workspace-live-status" tabindex="-1">
+          <section id="surface-mission" class="surface is-active" data-surface="mission" aria-label="미션" aria-hidden="false" tabindex="0"></section>
+          <section id="surface-council" class="surface" data-surface="council" aria-label="협의회" aria-hidden="true" tabindex="-1"></section>
+          <section id="surface-execution" class="surface" data-surface="execution" aria-label="실행" aria-hidden="true" tabindex="-1"></section>
+          <section id="surface-deliverables" class="surface" data-surface="deliverables" aria-label="산출물" aria-hidden="true" tabindex="-1"></section>
+          <section id="surface-taskboard" class="surface" data-surface="taskboard" aria-label="작업판" aria-hidden="true" tabindex="-1"></section>
+          <section id="surface-logs" class="surface" data-surface="logs" aria-label="로그" aria-hidden="true" tabindex="-1"></section>
+          <section id="surface-artifacts" class="surface" data-surface="artifacts" aria-label="아티팩트" aria-hidden="true" tabindex="-1"></section>
+          <section id="surface-decision-inbox" class="surface" data-surface="decision-inbox" aria-label="결정함" aria-hidden="true" tabindex="-1"></section>
         </main>
       </div>
     </div>

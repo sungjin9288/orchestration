@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..');
+const appPath = path.join(repoRoot, 'ui', 'app.js');
+
+const appJs = fs.readFileSync(appPath, 'utf8');
+
+assert.match(appJs, /function getHarnessExecutionBriefCopyTitle\(execution\)/);
+assert.match(appJs, /return `하네스 \$\{getHarnessExecutionBriefCopyStatusLabel\(execution\)\}`/);
+assert.match(appJs, /function formatHarnessOutputBriefForCopy\(outputBrief, execution\)/);
+assert.match(appJs, /getHarnessExecutionBriefCopyTitle\(execution\)/);
+assert.match(
+  appJs,
+  /formatHarnessOutputBriefForCopy\(getHarnessOutputBriefResult\(visibleHarnessExecutionResult\), visibleHarnessExecutionResult\)/,
+);
+assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\)\)\}"/);
+assert.doesNotMatch(
+  appJs,
+  /data-output-brief-text="\$\{escapeHtml\(formatHarnessOutputBriefForCopy\(getHarnessOutputBriefResult\(visibleHarnessExecutionResult\)\)\)\}"/,
+);
+
+console.log(
+  JSON.stringify(
+    {
+      ok: true,
+      harnessExecutionBriefCopyPayloadTitle: {
+        helper: 'getHarnessExecutionBriefCopyTitle',
+        derivedFrom: 'getHarnessExecutionBriefCopyStatusLabel',
+        defaultTitle: '하네스 출력 요약',
+        policyReportTitle: '하네스 리포트 요약',
+        surface: 'latest-result copy payload',
+      },
+    },
+    null,
+    2,
+  ),
+);

@@ -33,7 +33,9 @@ assert.match(appJs, /class="nav-button-main"/);
 assert.match(appJs, /class="nav-button-count"/);
 assert.match(appJs, /const NAV_GROUPS = \{/);
 assert.match(appJs, /function handleNavGroupChange\(groupId\)/);
-assert.match(appJs, /button\.setAttribute\('aria-current', isActive \? 'page' : 'false'\);/);
+assert.match(appJs, /button\.setAttribute\('aria-current', 'page'\);/);
+assert.match(appJs, /button\.removeAttribute\('aria-current'\);/);
+assert.doesNotMatch(appJs, /button\.setAttribute\('aria-current', isActive \? 'page' : 'false'\);/);
 assert.doesNotMatch(appJs, /nav-button-kicker/);
 assert.doesNotMatch(appJs, /nav-button-meta/);
 

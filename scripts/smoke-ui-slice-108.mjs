@@ -17,7 +17,8 @@ assert.match(appJs, /<div class="control-overview-grid control-overview-grid-rev
 assert.match(appJs, /<div class="control-overview-grid control-overview-grid-ops ops-overview-shell"/);
 assert.match(appJs, /class="workflow-stage-card \$\{isActive \? 'is-active' : ''\}"/);
 assert.match(appJs, /class="review-lane-card \$\{isActive \? 'is-active' : ''\}"/);
-assert.match(appJs, /aria-current="\$\{isActive \? 'true' : 'false'\}"/);
+assert.match(appJs, /\$\{isActive \? 'aria-current="true"' : ''\}/);
+assert.doesNotMatch(appJs, /aria-current="\$\{isActive \? 'true' : 'false'\}"/);
 assert.match(appJs, /data-selection-state="\$\{isActive \? 'active' : 'idle'\}"/);
 assert.match(appJs, /data-action="open-surface"/);
 assert.match(appJs, /data-action="open-company-seat"/);
@@ -45,8 +46,10 @@ assert.match(appJs, /다음 인계/);
 assert.match(appJs, /막힘/);
 assert.match(appJs, /실행 라인업/);
 assert.match(appJs, /class="nav-button-main"/);
-assert.match(appJs, /button\.setAttribute\('aria-current', isActive \? 'page' : 'false'\);/);
-assert.match(appJs, /button\.setAttribute\('aria-label', `\$\{label\} \$\{count\}건`\);/);
+assert.match(appJs, /button\.setAttribute\('aria-current', 'page'\);/);
+assert.match(appJs, /button\.removeAttribute\('aria-current'\);/);
+assert.doesNotMatch(appJs, /button\.setAttribute\('aria-current', isActive \? 'page' : 'false'\);/);
+assert.match(appJs, /button\.setAttribute\('aria-label', `\$\{label\} \$\{count\}건\. \$\{guidance\}`\);/);
 assert.doesNotMatch(appJs, /nav-button-kicker/);
 assert.doesNotMatch(appJs, /nav-button-meta/);
 
@@ -77,6 +80,7 @@ console.log(
         focusRegisters: ['현재 데스크', '담당', '안건', '실행', '근거', '지금 처리', '다음 인계'],
         checkRegisters: ['막힘', '다음', '근거'],
         accentCarriers: ['workflow-stage-card', 'review-lane-card', 'workflow-stage-meta', 'review-lane-card-meta', 'nav-button.is-active'],
+        currentAttribute: 'active lane cards only render aria-current=true',
       },
     },
     null,

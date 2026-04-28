@@ -14,7 +14,8 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(appJs, /data-selection-state="\$\{isActive \? 'active' : 'idle'\}"/);
 assert.match(appJs, /data-selection-state="\$\{isCurrentSurface \? 'active' : isActiveGroup \? 'group' : 'idle'\}"/);
-assert.match(appJs, /aria-current="\$\{isCurrentSurface \? 'true' : 'false'\}"/);
+assert.match(appJs, /\$\{isCurrentSurface \? 'aria-current="true"' : ''\}/);
+assert.doesNotMatch(appJs, /aria-current="\$\{isCurrentSurface \? 'true' : 'false'\}"/);
 assert.match(appJs, /data-selection-state="\$\{groupId === editorGroupId \? 'active' : 'idle'\}"/);
 
 assert.match(styles, /\.workflow-stage-card\[data-selection-state='idle'\],\s*\.review-lane-card\[data-selection-state='idle'\] \{/s);
@@ -33,7 +34,7 @@ console.log(
         app: [
           "workflow/review data-selection-state active|idle",
           "company-directory-row active|group|idle",
-          "company-directory-row aria-current",
+          "company-directory-row conditional aria-current",
           "ops-team-section active|idle",
         ],
         styles: [

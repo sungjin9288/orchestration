@@ -2299,6 +2299,101 @@ h3 {
   text-align: right;
 }
 
+.workspace-location-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.workspace-location-cell {
+  display: grid;
+  gap: 4px;
+  min-height: 54px;
+  padding: 9px 10px;
+  border: 1px solid rgba(20, 34, 42, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.workspace-location-cell-current {
+  border-color: rgba(37, 99, 235, 0.18);
+  background: rgba(37, 99, 235, 0.07);
+}
+
+.workspace-location-label {
+  color: #5c6b75;
+  font-size: 0.63rem;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+
+.workspace-location-value {
+  color: #13212c;
+  font-size: 0.82rem;
+  line-height: 1.24;
+  font-weight: 700;
+}
+
+.workspace-location-current-note {
+  width: fit-content;
+  margin-top: 1px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.11);
+  color: #173f91;
+  font-size: 0.62rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.workspace-location-action {
+  width: fit-content;
+  min-height: 26px;
+  margin-top: 2px;
+  padding: 0 9px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.08);
+  color: #214f9d;
+  font-size: 0.68rem;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.workspace-location-action:hover,
+.workspace-location-action:focus-visible {
+  border-color: rgba(37, 99, 235, 0.28);
+  background: rgba(37, 99, 235, 0.12);
+  outline: none;
+}
+
+.workspace-location-action:disabled {
+  cursor: default;
+  opacity: 0.62;
+}
+
+.workspace-location-action-secondary {
+  border-color: rgba(20, 34, 42, 0.1);
+  background: rgba(244, 247, 250, 0.96);
+  color: #344a5f;
+}
+
+.workspace-location-action-secondary:hover,
+.workspace-location-action-secondary:focus-visible {
+  border-color: rgba(37, 99, 235, 0.2);
+  background: rgba(244, 248, 255, 0.98);
+}
+
+.workspace-location-static {
+  margin-top: 2px;
+  color: #60707c;
+  font-size: 0.68rem;
+  line-height: 1.28;
+}
+
 .workspace-playbook-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2316,6 +2411,11 @@ h3 {
   box-shadow: 0 1px 0 rgba(12, 22, 30, 0.04);
 }
 
+.workspace-playbook-card.is-current-step {
+  border-color: rgba(37, 99, 235, 0.2);
+  background: rgba(244, 248, 255, 0.98);
+}
+
 .workspace-playbook-step {
   display: inline-flex;
   align-items: center;
@@ -2330,16 +2430,42 @@ h3 {
   font-weight: 700;
 }
 
+.workspace-playbook-card.is-current-step .workspace-playbook-step {
+  background: rgba(37, 99, 235, 0.16);
+  color: #173f91;
+}
+
 .workspace-playbook-copy {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
 
+.workspace-playbook-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
 .workspace-playbook-card-title {
   font-size: 0.79rem;
   line-height: 1.2;
   color: #13212c;
+}
+
+.workspace-playbook-current-step {
+  display: inline-flex;
+  min-height: 18px;
+  align-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #173f91;
+  font-size: 0.6rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 
 .workspace-playbook-note {
@@ -2362,6 +2488,61 @@ h3 {
   font-size: 0.66rem;
   line-height: 1;
   font-weight: 700;
+}
+
+.workspace-playbook-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.workspace-playbook-shortcut-label {
+  color: #60707c;
+  font-size: 0.62rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.workspace-playbook-shortcut {
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgba(20, 34, 42, 0.1);
+  border-radius: 6px;
+  background: rgba(244, 247, 250, 0.96);
+  color: #344a5f;
+  font-size: 0.66rem;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.workspace-playbook-shortcut:hover,
+.workspace-playbook-shortcut:focus-visible {
+  border-color: rgba(37, 99, 235, 0.22);
+  background: rgba(244, 248, 255, 0.98);
+  color: #214f9d;
+  outline: none;
+}
+
+.workspace-playbook-shortcut.is-current-surface {
+  border-color: rgba(37, 99, 235, 0.24);
+  background: rgba(37, 99, 235, 0.1);
+  color: #173f91;
+}
+
+.workspace-playbook-shortcut.is-same-surface {
+  border-color: rgba(60, 95, 137, 0.26);
+  background: rgba(60, 95, 137, 0.08);
+  color: #334a68;
+}
+
+.workspace-playbook-shortcut:disabled {
+  cursor: default;
+  opacity: 0.62;
 }
 
 .control-overview-grid {
@@ -3526,18 +3707,32 @@ h3 {
 }
 
 .nav-group-tab {
+  display: grid;
+  gap: 2px;
+  place-items: center;
   min-height: 38px;
   border: 1px solid rgba(20, 34, 42, 0.08);
   border-radius: 7px;
-  padding: 0 10px;
+  padding: 6px 8px;
   background: rgba(244, 247, 250, 0.94);
   color: #5b6872;
   cursor: pointer;
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
   text-align: center;
   transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.nav-group-tab-label {
+  font-size: 0.74rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.nav-group-tab-help {
+  color: #6b7882;
+  font-size: 0.58rem;
+  line-height: 1.05;
+  font-weight: 600;
 }
 
 .nav-group-tab:hover,
@@ -3554,6 +3749,10 @@ h3 {
   color: #17314d;
 }
 
+.nav-group-tab.is-active .nav-group-tab-help {
+  color: #2f5f9f;
+}
+
 .nav-group {
   display: none;
   padding: 10px;
@@ -3565,6 +3764,41 @@ h3 {
 
 .nav-group.is-active {
   display: grid;
+}
+
+.nav-group:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.18);
+  outline-offset: 3px;
+}
+
+.nav-group-summary {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 9px 10px;
+  border: 1px solid rgba(20, 34, 42, 0.08);
+  border-radius: 7px;
+  background: rgba(247, 249, 251, 0.96);
+}
+
+.nav-group-summary-label {
+  color: #5c6b75;
+  font-size: 0.62rem;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+}
+
+.nav-group-summary-title {
+  color: #13212c;
+  font-size: 0.8rem;
+  line-height: 1.22;
+}
+
+.nav-group-summary-copy {
+  margin: 0;
+  color: #60707c;
+  font-size: 0.68rem;
+  line-height: 1.3;
 }
 
 .nav-button-row {
@@ -3889,6 +4123,48 @@ h3 {
 
 .surface-stack {
   display: grid;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 50;
+  transform: translateY(-140%);
+  padding: 9px 12px;
+  border: 1px solid rgba(20, 34, 42, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.98);
+  color: #17314d;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 14px 36px rgba(20, 34, 42, 0.16);
+  transition: transform 140ms ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid rgba(37, 99, 235, 0.22);
+  outline-offset: 3px;
+}
+
+.surface-stack:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.16);
+  outline-offset: 5px;
 }
 
 .surface {
@@ -8636,6 +8912,10 @@ h3 {
   }
 
   .workspace-playbook-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-location-strip {
     grid-template-columns: 1fr;
   }
 

@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..');
+const appPath = path.join(repoRoot, 'ui', 'app.js');
+
+const appJs = fs.readFileSync(appPath, 'utf8');
+
+assert.match(appJs, /function getHarnessExecutionHideActionLabel\(execution\)/);
+assert.match(appJs, /execution\?\.actionMode === 'policy-report' \? '리포트 숨기기' : '결과 숨기기'/);
+assert.match(appJs, /function getHarnessExecutionShowActionLabel\(execution\)/);
+assert.match(appJs, /execution\?\.actionMode === 'policy-report' \? '리포트 다시 보기' : '결과 다시 보기'/);
+assert.match(appJs, /getHarnessExecutionHideActionLabel\(visibleHarnessExecutionResult\)/);
+assert.match(appJs, /getHarnessExecutionShowActionLabel\(hiddenHarnessExecutionResult\)/);
+assert.match(appJs, /getHarnessExecutionShowActionLabel\(execution\)/);
+assert.match(appJs, /data-harness-result-hide="true"/);
+assert.match(appJs, /data-harness-result-show="true"/);
+assert.match(appJs, /data-harness-history-preview="true"/);
+
+console.log(
+  JSON.stringify(
+    {
+      ok: true,
+      harnessExecutionVisibilityActionLabels: {
+        hide: ['리포트 숨기기', '결과 숨기기'],
+        show: ['리포트 다시 보기', '결과 다시 보기'],
+        surfaces: ['latest-result', 'hidden-result', 'recent-history'],
+      },
+    },
+    null,
+    2,
+  ),
+);

@@ -12,7 +12,8 @@ const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const appJs = fs.readFileSync(appPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(appJs, /aria-current="\$\{isActive \? 'true' : 'false'\}"/);
+assert.match(appJs, /\$\{isActive \? 'aria-current="true"' : ''\}/);
+assert.doesNotMatch(appJs, /aria-current="\$\{isActive \? 'true' : 'false'\}"/);
 assert.match(appJs, /data-selection-state="\$\{isActive \? 'active' : 'idle'\}"/);
 assert.match(appJs, /workflow-stage-active-label">현재 보기</);
 assert.match(appJs, /review-lane-card-active-label">현재 보기</);
@@ -28,7 +29,7 @@ console.log(
     {
       ok: true,
       queueSelectionContrast: {
-        app: ['aria-current', 'data-selection-state', 'workflow-stage-active-label', 'review-lane-card-active-label'],
+        app: ['conditional aria-current', 'data-selection-state', 'workflow-stage-active-label', 'review-lane-card-active-label'],
         styles: [
           'workflow-stage-card::before',
           'review-lane-card::before',

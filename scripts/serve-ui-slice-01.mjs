@@ -24,8 +24,10 @@ const tempRoot = path.resolve(tmpdir());
 const harnessRunScript = path.join(repoRoot, 'scripts', 'harness-run.mjs');
 const harnessConsumerStatusScript = path.join(repoRoot, 'scripts', 'harness-consumer-status.mjs');
 const harnessConsumerBriefScript = path.join(repoRoot, 'scripts', 'harness-consumer-brief.mjs');
+const verificationOutputBriefScript = path.join(repoRoot, 'scripts', 'verification-output-brief.mjs');
 let latestHarnessExecution = null;
 let recentHarnessExecutions = [];
+let harnessExecutionSequence = 0;
 
 function parseArgs(argv) {
   const options = {
@@ -389,6 +391,11 @@ function clearHarnessExecutionMemory() {
   recentHarnessExecutions = [];
 }
 
+function nextHarnessExecutionRequestId() {
+  harnessExecutionSequence += 1;
+  return `harness-exec-${String(harnessExecutionSequence).padStart(4, '0')}`;
+}
+
 function readHarnessConsumerStatusPayload() {
   try {
     const output = execFileSync(process.execPath, [harnessConsumerStatusScript], {
@@ -498,6 +505,7 @@ function runHarnessOperatorAction(input = {}) {
   const resolutionBase = path.resolve(activeProject?.projectPath || repoRoot);
   const inputPath = String(input.inputPath || '').trim();
   const outputPath = String(input.outputPath || '').trim();
+  const policyReport = input.policyReport === true;
 
   if (!inputPath) {
     throw new Error('입력 파일 경로가 필요합니다.');
@@ -524,6 +532,7 @@ function runHarnessOperatorAction(input = {}) {
   const runArgs = [
     harnessRunScript,
     operatorAction.harnessId,
+    ...(policyReport ? ['--policy-report'] : []),
     resolvedInputPath,
     ...(resolvedOutputPath ? [resolvedOutputPath] : []),
   ];
@@ -541,9 +550,14 @@ function runHarnessOperatorAction(input = {}) {
     );
   }
 
+  const requestId = nextHarnessExecutionRequestId();
+
   return {
+    executionId: requestId,
     executedAt: new Date().toISOString(),
+    actionMode: policyReport ? 'policy-report' : 'conversion',
     harnessId: operatorAction.harnessId,
+    requestId,
     currentHostState: statusCard.currentHostState,
     inputPath,
     outputPath: outputPath || null,
@@ -551,13 +565,47 @@ function runHarnessOperatorAction(input = {}) {
     repoNativeCommand: operatorAction.repoNativeCommand,
     resolvedInputPath,
     resolvedOutputPath,
-    outputExists: resolvedOutputPath ? existsSync(resolvedOutputPath) : false,
+    outputExists: !policyReport && resolvedOutputPath ? existsSync(resolvedOutputPath) : false,
     outputPreview:
-      resolvedOutputPath && existsSync(resolvedOutputPath)
+      !policyReport && resolvedOutputPath && existsSync(resolvedOutputPath)
         ? readFileSync(resolvedOutputPath, 'utf8').slice(0, 800)
         : null,
-    stdoutPreview: stdout ? stdout.slice(0, 400) : null,
+    stdoutPreview: stdout ? stdout.slice(0, policyReport ? 1600 : 400) : null,
   };
+}
+
+function runVerificationOutputBrief(input = {}) {
+  const text = String(input.text || '').trim();
+  const maxLines = Number.isInteger(input.maxLines) && input.maxLines > 0 ? input.maxLines : 6;
+
+  if (!text) {
+    throw new Error('요약할 실행 미리보기 텍스트가 필요합니다.');
+  }
+
+  const result = spawnSync(
+    process.execPath,
+    [verificationOutputBriefScript, '--max-lines', String(maxLines)],
+    {
+      cwd: repoRoot,
+      input: text,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    },
+  );
+  const stdout = String(result.stdout || '').trim();
+  const stderr = String(result.stderr || '').trim();
+
+  if (result.status !== 0) {
+    throw new Error(stderr || stdout || `verification output brief failed with status ${result.status}`);
+  }
+
+  const payload = JSON.parse(stdout);
+
+  if (payload?.ok !== true || payload.mode !== 'verification-output-brief') {
+    throw new Error('verification output brief returned an unexpected payload.');
+  }
+
+  return payload;
 }
 
 function buildSnapshotResponse(extra = {}) {
@@ -1966,6 +2014,25 @@ const server = createServer(async (request, response) => {
     } catch (error) {
       json(response, 400, {
         error: error.message || '하네스 실행 기록을 비우지 못했습니다.',
+      });
+      return;
+    }
+  }
+
+  if (method === 'POST' && url.pathname === '/api/harness/output-brief') {
+    try {
+      const input = await readJsonBody(request);
+      const outputBrief = runVerificationOutputBrief(input);
+
+      json(response, 200, {
+        ok: true,
+        mode: 'harness-output-brief',
+        outputBrief,
+      });
+      return;
+    } catch (error) {
+      json(response, 400, {
+        error: error.message || '하네스 출력 요약을 만들지 못했습니다.',
       });
       return;
     }
