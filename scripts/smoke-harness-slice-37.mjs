@@ -19,7 +19,7 @@ const bareDispatchResult = spawnSync(process.execPath, [runScript, 'markitdown']
 assert.equal(bareDispatchResult.status, 2, `bare markitdown dispatch should require args: ${bareDispatchResult.stderr}`);
 assert.match(
   bareDispatchResult.stderr,
-  /Usage: markitdown-convert\.mjs <input-file> \[output-file\]/,
+  /Usage: markitdown-convert\.mjs \[--policy-report\|--dry-run\] <input-file> \[output-file\]/,
 );
 
 const consumerStatusResult = spawnSync(process.execPath, [consumerStatusScript], {

@@ -24,7 +24,7 @@ const deferredHarnessesFromState = payload.harnesses
   .map((harness) => harness.id);
 
 assert.deepEqual(payload.deferredHarnessIds, deferredHarnessesFromState);
-assert.deepEqual(payload.deferredHarnessIds, ['mempalace']);
+assert.deepEqual(payload.deferredHarnessIds, ['mempalace', 'openscreen']);
 
 console.log(
   JSON.stringify(

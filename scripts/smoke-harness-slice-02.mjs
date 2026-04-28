@@ -30,13 +30,28 @@ assert.equal(payload.mode, 'harness-status');
 assert.equal(payload.ok, true);
 
 const ids = payload.harnesses.map((harness) => harness.id);
-assert.deepEqual(ids, ['markitdown', 'mempalace', 'hermes-agent', 'free-code']);
+assert.deepEqual(ids, [
+  'markitdown',
+  'mempalace',
+  'hermes-agent',
+  'free-code',
+  'CL4R1T4S',
+  'andrej-karpathy-skills',
+  'openscreen',
+  'rtk',
+  'free-claude-code',
+]);
 
 const postures = Object.fromEntries(payload.harnesses.map((harness) => [harness.id, harness.posture]));
 assert.equal(postures.markitdown, 'approved-now');
 assert.equal(postures.mempalace, 'future-post-v1');
 assert.equal(postures['hermes-agent'], 'signal-only');
 assert.equal(postures['free-code'], 'signal-only');
+assert.equal(postures.CL4R1T4S, 'signal-only');
+assert.equal(postures['andrej-karpathy-skills'], 'signal-only');
+assert.equal(postures.openscreen, 'future-post-v1');
+assert.equal(postures.rtk, 'signal-only');
+assert.equal(postures['free-claude-code'], 'signal-only');
 
 console.log(
   JSON.stringify(

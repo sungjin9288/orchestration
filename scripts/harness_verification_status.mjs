@@ -193,6 +193,36 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-37.mjs',
     purpose: 'Harness consumer command templates stay aligned with wrappers that require runtime arguments and do not over-claim zero-arg launchability.',
   },
+  {
+    id: 'harness-memory-brief-preview',
+    script: 'scripts/smoke-harness-slice-38.mjs',
+    purpose: 'Local memory brief preview stays read-only, source-of-truth scoped, and dependency-free.',
+  },
+  {
+    id: 'harness-prompt-provenance-guard',
+    script: 'scripts/smoke-harness-slice-39.mjs',
+    purpose: 'Prompt provenance guard stays source-only and blocks direct prompt-leak corpus import.',
+  },
+  {
+    id: 'harness-external-reference-inventory-sync',
+    script: 'scripts/smoke-harness-slice-40.mjs',
+    purpose: 'Harness runtime inventory stays aligned with documented external reference signals.',
+  },
+  {
+    id: 'harness-work-quality-guard',
+    script: 'scripts/smoke-harness-slice-41.mjs',
+    purpose: 'Repo-native work quality guard keeps imported guideline signals source-only and policy-anchored.',
+  },
+  {
+    id: 'harness-verification-output-brief',
+    script: 'scripts/smoke-harness-slice-42.mjs',
+    purpose: 'Explicit verification output brief stays local, hook-free, and command-rewrite-free.',
+  },
+  {
+    id: 'harness-markitdown-policy-report',
+    script: 'scripts/smoke-harness-slice-43.mjs',
+    purpose: 'Markitdown wrapper exposes a no-write policy report before document conversion.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

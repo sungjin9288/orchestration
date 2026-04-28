@@ -19,7 +19,16 @@ const markitdown = statusPayload.harnesses.find((harness) => harness.id === 'mar
 assert.ok(markitdown, 'markitdown harness missing');
 assert.equal(markitdown.posture, 'approved-now');
 
-for (const blockedHarnessId of ['mempalace', 'hermes-agent', 'free-code']) {
+for (const blockedHarnessId of [
+  'mempalace',
+  'hermes-agent',
+  'free-code',
+  'CL4R1T4S',
+  'andrej-karpathy-skills',
+  'openscreen',
+  'rtk',
+  'free-claude-code',
+]) {
   const blockedResult = spawnSync(process.execPath, [runScript, blockedHarnessId], {
     cwd: repoRoot,
     encoding: 'utf8',
@@ -40,7 +49,16 @@ console.log(
     {
       ok: true,
       runScript,
-      blockedHarnesses: ['mempalace', 'hermes-agent', 'free-code'],
+      blockedHarnesses: [
+        'mempalace',
+        'hermes-agent',
+        'free-code',
+        'CL4R1T4S',
+        'andrej-karpathy-skills',
+        'openscreen',
+        'rtk',
+        'free-claude-code',
+      ],
     },
     null,
     2,

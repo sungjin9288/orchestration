@@ -30,6 +30,19 @@ assert.equal(mempalaceInfoPayload.harness.id, 'mempalace');
 assert.equal(mempalaceInfoPayload.harness.posture, 'future-post-v1');
 assert.equal(mempalaceInfoPayload.harness.runner, null);
 
+const cl4r1t4sInfoResult = spawnSync(process.execPath, [runScript, 'info', 'CL4R1T4S'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+assert.equal(cl4r1t4sInfoResult.status, 0, `CL4R1T4S info failed: ${cl4r1t4sInfoResult.stderr}`);
+
+const cl4r1t4sInfoPayload = JSON.parse(cl4r1t4sInfoResult.stdout);
+assert.equal(cl4r1t4sInfoPayload.harness.id, 'CL4R1T4S');
+assert.equal(cl4r1t4sInfoPayload.harness.posture, 'signal-only');
+assert.equal(cl4r1t4sInfoPayload.harness.runner, null);
+assert.equal(cl4r1t4sInfoPayload.harness.executable, false);
+assert.equal(cl4r1t4sInfoPayload.harness.state, 'policy-blocked');
+
 const missingInfoResult = spawnSync(process.execPath, [runScript, 'info'], {
   cwd: repoRoot,
   encoding: 'utf8',
@@ -42,7 +55,7 @@ console.log(
     {
       ok: true,
       runScript,
-      checkedHarnesses: ['markitdown', 'mempalace'],
+      checkedHarnesses: ['markitdown', 'mempalace', 'CL4R1T4S'],
     },
     null,
     2,

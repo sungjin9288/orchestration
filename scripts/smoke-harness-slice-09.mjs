@@ -20,7 +20,7 @@ assert.equal(payload.ok, true);
 assert.ok(Array.isArray(payload.actionQueue), 'doctor actionQueue missing');
 assert.equal(payload.actionQueue.length, payload.harnesses.length);
 
-const [firstAction, secondAction, thirdAction] = payload.actionQueue;
+const [firstAction, secondAction, thirdAction, fourthAction] = payload.actionQueue;
 
 assert.ok(firstAction, 'expected first doctor action');
 assert.equal(firstAction.harnessId, 'markitdown');
@@ -32,8 +32,12 @@ assert.equal(secondAction.harnessId, 'mempalace');
 assert.equal(secondAction.state, 'deferred');
 
 assert.ok(thirdAction, 'expected third doctor action');
-assert.equal(thirdAction.state, 'policy-blocked');
-assert.ok(['hermes-agent', 'free-code'].includes(thirdAction.harnessId));
+assert.equal(thirdAction.harnessId, 'openscreen');
+assert.equal(thirdAction.state, 'deferred');
+
+assert.ok(fourthAction, 'expected fourth doctor action');
+assert.equal(fourthAction.state, 'policy-blocked');
+assert.ok(['hermes-agent', 'free-code'].includes(fourthAction.harnessId));
 
 console.log(
   JSON.stringify(

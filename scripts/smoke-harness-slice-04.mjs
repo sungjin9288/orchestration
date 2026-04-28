@@ -25,7 +25,10 @@ const approvedDispatchResult = spawnSync(process.execPath, [runScript, 'markitdo
   encoding: 'utf8',
 });
 assert.equal(approvedDispatchResult.status, 2, 'markitdown dispatch should surface wrapper usage without args');
-assert.match(approvedDispatchResult.stderr, /Usage: markitdown-convert\.mjs <input-file> \[output-file\]/);
+assert.match(
+  approvedDispatchResult.stderr,
+  /Usage: markitdown-convert\.mjs \[--policy-report\|--dry-run\] <input-file> \[output-file\]/,
+);
 
 console.log(
   JSON.stringify(
