@@ -35,6 +35,11 @@ const informationalChecks = [
     script: 'scripts/smoke-v1-start-runbook.mjs',
     purpose: 'V1 start runbook keeps local gate, push deferral, and host-dependent lanes explicit',
   },
+  {
+    id: 'v1-dogfood-triage',
+    script: 'scripts/smoke-v1-dogfood-triage.mjs',
+    purpose: 'V1 dogfood triage evidence keeps first local run result, approval stop, and linked-worktree next action explicit',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
