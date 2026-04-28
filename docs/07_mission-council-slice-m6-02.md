@@ -9,7 +9,8 @@
 - 현재 `Taskboard / Logs / Artifacts / Decision Inbox` 셸도 유지한다.
 - 하지만 기본 제품 진입점을 `operator control plane`이 아니라 `AI orchestration start point`로 바꾸는 첫 단위를 정의한다.
 
-이 문서는 아직 구현이 아니라 첫 구현 범위 명세다.
+이 문서는 첫 구현 범위 명세로 시작했으며, 현재 `main`에서는 아래 `Current Main Status`에
+기록된 bounded behavior로 구현 완료된 source-of-truth 상태를 함께 고정한다.
 
 ## Slice Goal
 첫 slice는 아래 경험 하나를 닫아야 한다.
@@ -227,15 +228,15 @@ Must remain available because:
 - current operator trust path
 
 ## Acceptance Checklist
-- [ ] 사용자는 `Mission`에서 목표를 입력할 수 있다.
-- [ ] mission 생성은 active project 없이 열리지 않는다.
-- [ ] mission 하나는 linked task 하나만 만든다.
-- [ ] `Council`은 최소 4개 역할의 visible contribution을 보여준다.
-- [ ] recommendation approval 전에는 downstream execution이 자동 시작되지 않는다.
-- [ ] approval 후 자동 진행은 `planner -> architect -> task-breaker -> builder preflight`까지만 허용된다.
-- [ ] builder live-mutation 이후 semantics는 current v1과 동일하다.
-- [ ] current `Taskboard / Logs / Artifacts / Decision Inbox` shell은 `advanced ops mode`로 계속 접근 가능하다.
-- [ ] current source-of-truth task/run/artifact/review/approval contracts는 유지된다.
+- [x] 사용자는 `Mission`에서 목표를 입력할 수 있다.
+- [x] mission 생성은 active project 없이 열리지 않는다.
+- [x] mission 하나는 linked task 하나만 만든다.
+- [x] `Council`은 최소 4개 역할의 visible contribution을 보여준다.
+- [x] recommendation approval 전에는 downstream execution이 자동 시작되지 않는다.
+- [x] approval 후 자동 진행은 `planner -> architect -> task-breaker -> builder preflight`까지만 허용된다.
+- [x] builder live-mutation 이후 semantics는 current v1과 동일하다.
+- [x] current `Taskboard / Logs / Artifacts / Decision Inbox` shell은 `advanced ops mode`로 계속 접근 가능하다.
+- [x] current source-of-truth task/run/artifact/review/approval contracts는 유지된다.
 
 ## Suggested Implementation Order
 

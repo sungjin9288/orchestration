@@ -26,6 +26,21 @@ These projects are signals, not direct dependencies:
   exposes an MCP tools posture. Useful as a local-only memory harness signal for future post-v1 work.
 - `free-code` fork (Claude Code): CLI harness posture with multi-provider switching and looser
   guardrails as a signal. Not a v1 dependency; do not adopt its multi-provider-first posture.
+- `CL4R1T4S` (elder-plinius): adversarial prompt-leak / jailbreak corpus posture. Useful only as a
+  signal-only negative guardrail for prompt provenance checks; do not import its code, prompts, or
+  attack content into the repo.
+- `andrej-karpathy-skills` (forrestchang): guideline/skill packaging around thinking before
+  coding, simplicity, surgical changes, and verification. Useful as a source-only quality signal;
+  do not overwrite repo instructions or import upstream agent/plugin config.
+- `openscreen` (siddharthvaddem): local desktop screen-recording and product-demo capture app.
+  Useful as a future local evidence-capture signal; do not introduce Electron/media capture into
+  the current v1 runtime path.
+- `rtk` (rtk-ai): command-output compaction proxy with shell-hook integrations. Useful as a signal
+  for explicit verification-output briefs; do not install hooks, rewrite commands, or copy code
+  until its upstream license metadata conflict is resolved.
+- `free-claude-code` (Alishahryar1): multi-provider Claude Code proxy and messaging posture.
+  Useful only as a rate-limit/request-optimization signal; do not adopt provider proxying,
+  messaging bots, or free-provider routing.
 
 ## Approved Harness Applications (Now)
 1. **Document-to-Markdown preprocessing** via `markitdown` CLI
@@ -37,6 +52,7 @@ These projects are signals, not direct dependencies:
    - Treat memory as an external harness with explicit ingest/export boundaries.
    - Only local-first memory stores are acceptable.
    - No networked, account-bound, or multi-tenant memory systems in v1.
+   - Current repo-native memory work is limited to read-only preview briefs over source-of-truth files; no persistent memory store is adopted yet.
 
 ## Out Of Scope (Still)
 - Any harness that implies multi-provider-first execution.
@@ -44,6 +60,8 @@ These projects are signals, not direct dependencies:
 - Budget/HR/org-management simulators.
 - Multiplayer workspace or team-first runtime semantics.
 - "curl | bash" auto-installers or guardrail removal as default guidance.
+- No prompt leak, jailbreak, or upstream AGPL prompt corpora as default harness, prompt, or smoke
+  content.
 
 ## Minimal Integration Contract
 Harnesses must:
@@ -69,12 +87,49 @@ Wrapper for optional local `markitdown` CLI usage:
 - converts a document into markdown for later inspection
 - refuses to run if `markitdown` is not installed
 - does not change runtime behavior or UI
+- supports `--policy-report` / `--dry-run` to emit a JSON preflight without running conversion or
+  writing output
+- records that markitdown reads input with current process privileges, so untrusted files require
+  operator review before conversion
 
 ### `scripts/harness-status.mjs`
 Local harness inventory and posture report:
 - reports approved/future/signal-only posture for current external harness references
 - checks whether the related local command is available in `PATH`
 - makes it explicit that command availability does not imply repo adoption
+- includes `CL4R1T4S` as a policy-blocked signal-only reference so prompt-leak research remains a
+  negative guardrail instead of an executable harness or imported prompt corpus
+
+### `scripts/memory-brief.mjs`
+Local read-only memory brief inspired by the `mempalace` reference signal:
+- scans only repo source-of-truth docs and task ledgers
+- emits a JSON summary of accepted decisions, open task lines, lessons, and optional search hits
+- persists nothing, mutates no runtime state, and requires no external memory dependency
+- keeps the future memory-store decision separate from the current executable harness path
+
+### `scripts/prompt-provenance-guard.mjs`
+Local source-only prompt provenance guard inspired by the `CL4R1T4S` reference signal:
+- scans only repo-owned prompt contracts under `prompts/`
+- verifies required prompt contract anchors, including forbidden-action and done-criteria sections
+- blocks direct import markers for CL4R1T4S, prompt-leak, jailbreak, and system-prompt extraction
+  content
+- persists nothing, mutates no runtime state, and requires no external corpus or dependency
+- keeps adversarial prompt research as a negative guardrail rather than executable harness material
+
+### `scripts/work-quality-guard.mjs`
+Local source-only quality guard inspired by the `andrej-karpathy-skills` reference signal:
+- scans repo-owned source-of-truth docs and task ledgers only
+- verifies that planning, simplicity, surgical-change, verification, local-ops, and review-before-done
+  anchors remain visible in repo policy
+- imports no upstream plugin config, mutates no runtime state, and requires no external dependency
+- keeps guideline adoption inside repo-native checks rather than replacing `AGENTS.md`
+
+### `scripts/verification-output-brief.mjs`
+Local explicit output brief inspired by the `rtk` reference signal:
+- accepts stdin or a local `--file` input and emits a compact JSON brief of command/test output
+- classifies failure, warning, pass, command, and context lines without executing commands itself
+- installs no shell hooks, rewrites no commands, and requires no external dependency
+- keeps output compaction as an operator-invoked helper instead of an automatic CLI proxy
 
 ### `scripts/harness-run.mjs`
 Repo-native execution gate for approved harnesses:
@@ -163,13 +218,52 @@ Post-freeze execution mutation follow-up:
 - relative paths are resolved against the current `project_path`; absolute paths remain limited to the current `project_path`, repo root, or `/tmp`
 - this keeps the layering explicit: `doctor.summary -> consumer status -> snapshot derived -> execution operator-action shelf -> explicit local-only mutation route`
 - this is still not a general shell launch API or provider mutation path
+- the same route accepts `policyReport=true` for the representative `markitdown` wrapper and runs
+  `--policy-report` as a no-write preflight; the `Execution` action shelf exposes this as `정책 리포트 확인`
+  before conversion
+- policy-report results are displayed as a structured no-write summary in the existing execution
+  result packet before the raw JSON preview, so the operator can see input existence, output target,
+  current-process privilege posture, execution mode, and CLI availability without parsing raw logs
+- when a policy-report summary is visible, the same result packet exposes `리포트 복사`; the copied
+  text is derived only from the parsed policy-report payload and uses the existing local
+  clipboard-or-status fallback
+- hidden-result and recent-history packets expose the same `리포트 복사` action when their stdout
+  preview still contains a parseable policy-report payload; no hidden/history-specific report store
+  is introduced
 
 ### Explicit execution evidence surface
 Post-freeze execution evidence follow-up:
-- the same explicit execution route now returns a small evidence payload: `executedAt`, resolved input/output paths, `outputPreview`, and `stdoutPreview`
+- the same explicit execution route now returns a small evidence payload: `requestId`, `executionId`, `executedAt`, resolved input/output paths, `outputPreview`, and `stdoutPreview`
 - `ui/app.js` `Execution` action shelf renders a local-only `최근 하네스 실행 결과` register immediately under the explicit run form when a route call succeeds
+- latest-result, hidden-result, and recent-history packets expose `요청 ID` copy actions when a local request id exists, using the existing clipboard-or-status fallback only
+- latest-result and hidden-result packets now show `모드` with the same `정책 리포트` / `실행 결과` action-mode label used by packet copy and recent-history rows, so concealed or restored evidence keeps the same read contract
+- latest-result and hidden-result titles are mode-aware as well: policy-report packets show `최근 정책 리포트`, including when hidden/restored, while normal execution packets keep `최근 실행 결과`
+- hide/show affordances are mode-aware across latest-result, hidden-result, and recent-history:
+  policy-report packets use `리포트 숨기기` / `리포트 다시 보기`, while normal execution packets keep
+  `결과 숨기기` / `결과 다시 보기`
+- preview brief actions are mode-aware across latest-result, hidden-result, recent-history, and the
+  handoff summary: policy-report packets show `리포트 요약`, while normal execution packets keep
+  `출력 요약`
+- output-brief copy actions and clipboard feedback use the same mode-aware label source:
+  policy-report packets show `리포트 요약 복사` and status copy as `리포트 요약`, while normal
+  execution packets keep `요약 복사` and status copy as `출력 요약`
+- copied output-brief payload titles use that same label source: policy-report packets copy as
+  `하네스 리포트 요약`, while normal execution packets keep `하네스 출력 요약`
+- copied execution packets use the same mode-aware brief presence label, so policy-report packets
+  report `리포트 요약: 있음/없음` while normal execution packets keep `출력 요약: 있음/없음`
+- latest-result, hidden-result, and recent-history packets also show `핸드오프`, a derived local summary of available copy/reuse/brief/report affordances, including mode-aware path labels such as `입력/출력 예정 경로`, so the operator can see what can be handed off before scanning the full action shelf
+- latest-result and hidden-result packets keep the output row visible even when no output file exists by showing `표준 출력 전용`, matching the recent-history fallback and making the result location explicit
+- output labels are mode-aware across latest-result, hidden-result, recent-history, and packet-copy text: policy-report packets show `출력 예정`, while normal execution packets keep `출력`
+- output-path copy actions are also mode-aware across latest-result, hidden-result, and recent-history: policy-report packets show `출력 예정 경로`, while normal execution packets keep `출력 경로`
+- output-path copy feedback uses the same mode-aware label, so clipboard status messages also say `출력 예정 경로` for policy-report packets instead of implying a written output file
+- rerun actions preserve the packet mode across latest-result, hidden-result, and recent-history:
+  policy-report packets show `같은 경로 정책 리포트` and rerun with `policyReport=true`, while
+  normal execution packets keep `같은 경로 재실행`
+- latest-result, hidden-result, and recent-history packets also expose `패킷 복사`; the copied text
+  contains only local execution metadata such as harness id, mode, request id, timestamp, paths,
+  handoff summary, and preview/output-brief/report presence
 - the evidence register stays transient and local-only; it is not written into `doctor.summary`, consumer payloads, or snapshot-derived frozen contracts
-- this keeps the layering explicit: `explicit local-only mutation route -> transient execution result register`
+- this keeps the layering explicit: `explicit local-only mutation route -> transient execution result register -> local-only request id / packet copy affordance`
 
 ### Local-only execution evidence restore
 Post-freeze execution evidence restore follow-up:
@@ -181,7 +275,8 @@ Post-freeze execution evidence restore follow-up:
 ### Local-only recent execution history
 Post-freeze execution history follow-up:
 - `scripts/serve-ui-slice-01.mjs` now keeps a short server-process local array of recent explicit harness executions and exposes it only as `derived.recentHarnessExecutions`
-- `ui/app.js` `Execution` renders a compact `최근 실행 기록` register under the current detailed execution result so the operator can compare the newest local runs after refresh
+- `ui/app.js` `Execution` renders a compact `최근 실행 기록` register under the current detailed execution result so the operator can compare the newest local runs after refresh, including the local `requestId` that identifies each execution within the current server process
+- each recent-history row now shows `모드` as either `정책 리포트` or `실행 결과`, using the same local action-mode label as `패킷 복사`, so the operator can tell why `리포트 복사` is available without inferring from buttons alone
 - the history stays local-only, newest-first, and bounded; it is not written into frozen harness producers, consumer payloads, runtime artifacts, or persistent runtime state
 - this keeps the layering explicit: `explicit local-only mutation route -> snapshot-derived recentHarnessExecutions -> execution history register`
 
@@ -231,9 +326,31 @@ Post-freeze execution input copy follow-up:
 ### Local-only execution preview copy
 Post-freeze execution preview copy follow-up:
 - `ui/app.js` `Execution` now exposes `미리보기 복사` on the latest-result register when an execution preview body exists
+- hidden-result and recent-history packets expose the same `미리보기` copy action when an execution preview body exists
 - the action does not introduce a new route or snapshot key; it reuses the existing browser clipboard-or-status fallback pattern and copies the already available `outputPreview` or `stdoutPreview`
-- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only latest execution payload
-- this keeps the layering explicit: `latest execution result register -> copy execution preview action -> local-only clipboard or status affordance`
+- this remains outside frozen producer, consumer, and runtime persistence contracts: it consumes only the existing local-only execution result/history payloads
+- this keeps the layering explicit: `execution result/history register -> copy execution preview action -> local-only clipboard or status affordance`
+
+### Local-only execution preview brief
+Post-freeze execution preview brief follow-up:
+- `scripts/serve-ui-slice-01.mjs` exposes one narrow local-only read route at `POST /api/harness/output-brief`
+- the route passes an existing execution preview body to `scripts/verification-output-brief.mjs` through stdin and returns its JSON payload
+- `ui/app.js` adds a mode-aware preview brief action on the visible latest-result register when a
+  preview exists: policy-report packets show `리포트 요약`, while normal execution packets keep
+  `출력 요약`; the resulting compact fail/warn/pass/command/context summary renders in the same
+  result packet
+- recent execution history rows expose the same mode-aware brief action; selecting one restores that
+  row into the latest-result packet and attaches the brief there instead of adding a second
+  persistent summary store
+- hidden-result packets also expose the same mode-aware brief action when a preview exists;
+  selecting it clears the hidden result key, restores the same execution into the latest-result
+  packet, and attaches the brief there instead of rendering a second hidden summary surface
+- when a brief is attached to the latest-result packet, the same packet exposes mode-aware brief copy:
+  policy-report packets show `리포트 요약 복사`, normal execution packets keep `요약 복사`, and the
+  copy text is derived only from the visible brief payload using the existing local
+  clipboard-or-status fallback
+- this installs no shell hooks, rewrites no commands, and does not mutate runtime artifacts or the frozen harness producer/consumer contracts
+- this keeps the layering explicit: `latest execution preview -> explicit output brief route -> repo-native verification-output-brief -> visible result summary -> local-only copy affordance`
 
 ### Local-only latest-result path reuse
 Post-freeze execution latest-result reuse follow-up:
@@ -1406,8 +1523,9 @@ Post-freeze execution visible-result output-file token wording follow-up:
 
 ### `scripts/harness_verification_status.mjs`
 Repo-native harness verification bundle:
-- runs harness inventory status plus smoke slices `01` through `04`, `06`, `07`, `08`, `09`, `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`, `18`, `19`, `20`, `21`, `22`, `23`, `24`, `25`, `26`, `27`, `28`, `29`, `30`, `31`, `32`, `33`, `34`, `35`, `36`, and `37`
-- reports one synthetic harness status payload for the current repo posture
+- runs harness inventory status plus smoke slices `01` through `04` and `06` through `43`
+- treats `scripts/smoke-harness-slice-05.mjs` as the out-of-bundle aggregate self-check that pins the current 43-check id order
+- reports one synthetic harness status payload for the current repo posture with 43 required checks
 - keeps harness verification separate from broader runtime or UI verification bundles
 
 ## Verification
@@ -1461,6 +1579,13 @@ Use:
 - `node scripts/smoke-harness-slice-35.mjs`
 - `node scripts/smoke-harness-slice-36.mjs`
 - `node scripts/smoke-harness-slice-37.mjs`
+- `node scripts/smoke-harness-slice-38.mjs`
+- `node scripts/smoke-harness-slice-39.mjs`
+- `node scripts/smoke-harness-slice-40.mjs`
+- `node scripts/smoke-harness-slice-41.mjs`
+- `node scripts/smoke-harness-slice-42.mjs`
+- `node scripts/smoke-harness-slice-43.mjs`
+- `node scripts/ui_qa_status.mjs`
 - `node scripts/smoke-ui-slice-295.mjs`
 - `node scripts/smoke-ui-slice-296.mjs`
 - `node scripts/smoke-ui-slice-297.mjs`
@@ -1485,6 +1610,14 @@ Use:
 - `node scripts/smoke-ui-slice-316.mjs`
 - `node scripts/smoke-ui-slice-317.mjs`
 - `node scripts/smoke-ui-slice-318.mjs`
+- `node scripts/smoke-ui-slice-628.mjs`
+- `node scripts/smoke-ui-slice-630.mjs`
+- `node scripts/smoke-ui-slice-631.mjs`
+- `node scripts/smoke-ui-slice-632.mjs`
+- `node scripts/smoke-ui-slice-633.mjs`
+- `node scripts/smoke-ui-slice-634.mjs`
+- `node scripts/smoke-ui-slice-635.mjs`
+- `node scripts/smoke-ui-slice-636.mjs`
 
 ### Local-only hidden-result run-context outer-shadow polish
 Post-freeze execution hidden-result follow-up:

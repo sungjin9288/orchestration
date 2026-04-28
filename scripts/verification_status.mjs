@@ -20,6 +20,11 @@ const informationalChecks = [
     script: 'scripts/smoke-openspace-slice-01.mjs',
     purpose: 'OpenSpace wiring and local skill discovery stay connected to the repo without treating host execute_task timeout as a runtime blocker',
   },
+  {
+    id: 'openspace-doc-status',
+    script: 'scripts/smoke-openspace-slice-02.mjs',
+    purpose: 'OpenSpace integration documentation keeps repo wiring acceptance separate from host credential follow-up',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

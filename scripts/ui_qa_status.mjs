@@ -52,6 +52,41 @@ const smokeChecks = [
     script: 'scripts/smoke-ui-slice-59.mjs',
     purpose: 'Primary shell freeze baseline stays green',
   },
+  {
+    id: 'harness-brief-mode-labels',
+    script: 'scripts/smoke-ui-slice-628.mjs',
+    purpose: 'Harness preview brief actions stay mode-aware across latest, hidden, history, and handoff surfaces',
+  },
+  {
+    id: 'harness-brief-copy-payload-title',
+    script: 'scripts/smoke-ui-slice-630.mjs',
+    purpose: 'Harness output-brief copy payload titles stay aligned with policy-report versus execution mode',
+  },
+  {
+    id: 'harness-packet-brief-presence-label',
+    script: 'scripts/smoke-ui-slice-631.mjs',
+    purpose: 'Harness packet-copy brief presence labels stay mode-aware',
+  },
+  {
+    id: 'harness-preview-brief-doc-mode-labels',
+    script: 'scripts/smoke-ui-slice-632.mjs',
+    purpose: 'Harness preview-brief baseline documentation stays aligned with mode-aware UI labels',
+  },
+  {
+    id: 'harness-baseline-verification-doc-bundle',
+    script: 'scripts/smoke-ui-slice-634.mjs',
+    purpose: 'Harness baseline verification documentation stays aligned with the current aggregate bundle',
+  },
+  {
+    id: 'pre-real-readiness-ui-qa-status-doc',
+    script: 'scripts/smoke-ui-slice-635.mjs',
+    purpose: 'Pre-real-test readiness documentation keeps the UI QA aggregate and snapshot lane semantics visible',
+  },
+  {
+    id: 'mission-council-slice-doc-status',
+    script: 'scripts/smoke-ui-slice-636.mjs',
+    purpose: 'Mission/Council slice documentation stays aligned with implemented current-main acceptance status',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

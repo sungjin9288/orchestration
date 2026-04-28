@@ -322,14 +322,30 @@ Success metric:
 - retention/delete/archive semantics
 
 ## Minimal Acceptance Checklist
-- [ ] shared OpenSpace install exists outside the repo
-- [ ] host agent can reach `openspace-mcp`
-- [ ] upstream host skills are synced in the host skill dir
-- [ ] Orchestration bridge skills exist under `.agents/skills/`
-- [ ] bridge skills point back to repo docs as authority
-- [ ] optional `DESIGN.md` exists only if UI work is intended
-- [ ] first pilot is limited to planner/architect/task-breaker/reviewer/UI assistance
-- [ ] current smoke and freeze semantics remain unchanged
+- [x] shared OpenSpace install exists outside the repo at `/Users/sungjin/dev/personal/agent-infra/OpenSpace`
+- [x] host MCP config registers `openspace` and points at the shared OpenSpace workspace
+- [x] configured host skill dirs include this repo's `.agents/skills`
+- [x] reusable host skills `delegate-task` and `skill-discovery` are available in the configured skill dir
+- [x] Orchestration bridge skills exist under `.agents/skills/`
+- [x] bridge skills point back to repo docs as authority
+- [x] optional `DESIGN.md` exists because this repo has an active UI shell
+- [x] first pilot remains limited to planner/architect/task-breaker/reviewer/UI assistance
+- [x] current smoke and freeze semantics remain unchanged
+
+## Current Verification Status
+`node scripts/smoke-openspace-slice-01.mjs` is the current repo wiring check for this
+integration. The current verified shape is:
+
+- repo-local bridge skill directories are present
+- local OpenSpace skill discovery finds the expected Orchestration bridge skills plus host skills
+- Codex MCP config contains `[mcp_servers.openspace]`
+- Codex MCP config mentions this repo's `.agents/skills`
+- Codex MCP config mentions `/Users/sungjin/dev/personal/agent-infra/OpenSpace`
+- `execute_task` reaches OpenSpace runtime initialization from the current shell context
+- current shell `execute_task` stops at `blocked_missing_host_llm_credentials` because OpenRouter cookie auth is not visible in this shell context
+
+Treat `blocked_missing_host_llm_credentials` as host execution follow-up, not repo wiring
+regression. Do not move OpenSpace state into repo source-of-truth files to work around it.
 
 ## Validation After Adoption
 After any real rollout, re-run the repo's existing required synthetic gates before treating the integration as accepted.
@@ -341,19 +357,25 @@ At minimum, keep the required baseline from `tasks/todo.md` authoritative instea
 - This repo is a strong fit because it already has stable workflow boundaries.
 - The main risk is semantic drift, not install complexity.
 
-## Current Smoke Command
+## Current Smoke Commands
 
-This repo now carries a dedicated OpenSpace integration smoke:
+This repo now carries dedicated OpenSpace integration smokes:
 
 ```bash
 node scripts/smoke-openspace-slice-01.mjs
+node scripts/smoke-openspace-slice-02.mjs
 ```
 
-The smoke checks:
+`smoke-openspace-slice-01` checks:
 - repo-local bridge skill presence
 - Codex MCP config registration for `openspace`
 - local `search_skills(..., source="local")` discovery against `.agents/skills`
 - best-effort `execute_task(...)` from the current shell context
+
+`smoke-openspace-slice-02` checks:
+- this document's minimal acceptance checklist stays aligned with verified repo wiring
+- host credential follow-up remains explicit and is not treated as repo wiring regression
+- repo source-of-truth files remain authoritative over OpenSpace state
 
 Expected outcomes:
 - `executeTask.status == "ok"` means the current shell context can execute OpenSpace end to end
