@@ -256,7 +256,9 @@ The current operator-usable v1 baseline is complete on `main`.
 
 The next development priority is:
 
-`artifact redaction policy`
+`v1 dogfood result triage`
+
+The preview-only artifact redaction policy is already implemented for `change-summary` structured preview and should not be reopened unless dogfood exposes a concrete redaction regression.
 
 Optional real-live reruns remain non-blocking operational housekeeping when configured env is visible to the current execution context. The historical execution spec for that work remains locked in:
 

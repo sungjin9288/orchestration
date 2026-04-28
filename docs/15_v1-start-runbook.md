@@ -1,0 +1,121 @@
+# V1 Start Runbook
+
+## Purpose
+This document defines the handoff from development closeout into v1 start.
+
+It does not stage, commit, push, publish, merge, or widen runtime behavior. It exists so the
+operator can decide whether the current local `main` is ready for v1 dogfooding and what must
+be checked before the first real v1 run.
+
+## Current Status
+- Frozen v1 control-plane baseline is complete on current `main`.
+- Post-v1 primary shell baseline `Mission / Council / Execution / Deliverables` is implemented.
+- Preview-only repo-content redaction for `change-summary` structured preview is already implemented; raw artifacts remain the source of truth.
+- `Taskboard / Logs / Artifacts / Decision Inbox` remain the authoritative advanced-ops surfaces.
+- Local `main` may be ahead of `origin/main`; push remains a separate approval-sensitive action.
+- OpenSpace repo wiring and skill discovery are green, but `execute_task` can remain blocked by host LLM credentials.
+
+## Start Definition
+V1 start is allowed when all of the following are true:
+
+1. The working tree is clean.
+2. Required synthetic gates pass.
+3. Representative browser/runtime smoke passes.
+4. No local runtime listener remains after smoke execution.
+5. Any live-provider or OpenSpace red is classified as external host/env condition, not repo regression.
+6. Push has either been explicitly approved or intentionally deferred.
+
+## Required Local Gate
+Run these before declaring v1 start readiness:
+
+```sh
+git status --short --branch
+git diff --check
+node scripts/ui_qa_status.mjs
+node scripts/harness_verification_status.mjs
+node scripts/verification_status.mjs
+node scripts/smoke-qa-slice-07.mjs
+lsof -iTCP -sTCP:LISTEN -n -P | rg 'runtime-qa-slice-07|59006|4315' || true
+```
+
+Expected result:
+- `git status` shows a clean tree except the known ahead count when push is deferred.
+- `ui_qa_status` passes all required checks; snapshot reachability may be informational skipped when the UI server is off.
+- `harness_verification_status` passes all required harness checks.
+- `verification_status` passes required checks and informational OpenSpace lanes.
+- `smoke-qa-slice-07` passes project registration, mission/task setup, builder approval/run, artifacts/logs, reviewer run, duplicate guards, and secret scan.
+- listener check returns no relevant runtime listener.
+
+## Optional Live Rehearsal
+Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
+
+Before live rehearsal, confirm host env visibility:
+
+```sh
+launchctl getenv OPENAI_API_KEY
+launchctl getenv OPENAI_RESPONSES_MODEL
+```
+
+Then run:
+
+```sh
+node scripts/smoke-provider-live-slice-05.mjs
+node scripts/smoke-qa-live-slice-07.mjs
+```
+
+If env values are missing or provider auth/quota fails, record the exact blocker and keep it separate from repo readiness.
+
+## OpenSpace Boundary
+OpenSpace is v1-supporting infrastructure, not a v1 start blocker by itself.
+
+- `scripts/smoke-openspace-slice-01.mjs` should confirm repo wiring and local skill discovery.
+- `scripts/smoke-openspace-slice-02.mjs` should confirm the integration doc boundary.
+- `scripts/smoke-openspace-slice-03.mjs` should confirm repo-local skills separate discovery readiness from `execute_task` host credential readiness.
+- `blocked_missing_host_llm_credentials` is a host follow-up, not repo wiring regression.
+
+## First V1 Dogfood Scenario
+Use the current local project as the first dogfood target unless a different local repo is explicitly selected.
+
+Scenario:
+1. Register or select a real local project.
+2. Create one small development task with a concrete outcome.
+3. Run `Mission -> Council -> Execution -> Deliverables`.
+4. Confirm the advanced-ops handoff can show the same work through `Taskboard / Logs / Artifacts / Decision Inbox`.
+5. Stop before push, publish, merge, or external release unless explicitly approved.
+
+Evidence to record:
+
+```md
+- date:
+- branch:
+- head:
+- project_path:
+- command:
+- result: pass | fail | skipped
+- runtimeRoot:
+- outputRoot:
+- key run ids:
+- key artifact ids:
+- approval/review state:
+- operator friction:
+- follow-up:
+```
+
+## Stop Criteria
+Do not start v1 dogfooding if any of these are true:
+
+- local synthetic required gate fails
+- `smoke-qa-slice-07` fails for a repo-side reason
+- worktree is dirty from unclassified changes
+- runtime listener remains after smoke execution
+- the user-facing flow does not explain current action, result location, or next destination
+
+## Next Development Priority
+After v1 start readiness is recorded, the next development priority is v1 dogfood result triage.
+
+Default next action:
+- run one real local development task through `Mission -> Council -> Execution -> Deliverables`
+- record operator friction, artifact/review/approval evidence, and any stop criteria hit
+- fix only the highest-severity local-first workflow regression found by that run
+
+Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.

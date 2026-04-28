@@ -30,6 +30,11 @@ const informationalChecks = [
     script: 'scripts/smoke-openspace-slice-03.mjs',
     purpose: 'OpenSpace repo-local skills keep discovery and execute_task host credential readiness separate',
   },
+  {
+    id: 'v1-start-runbook',
+    script: 'scripts/smoke-v1-start-runbook.mjs',
+    purpose: 'V1 start runbook keeps local gate, push deferral, and host-dependent lanes explicit',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

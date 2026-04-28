@@ -856,3 +856,5 @@
 - commit split을 준비할 때는 고수준 bundle 이름만으로는 부족하다. 실제 `git status`, modified file list, untracked file list, ignored evidence를 기준으로 exact staging manifest를 만들고, mixed-purpose 문서는 patch-staging caveat를 명시해야 승인 후 staging에서 실수할 가능성이 줄어든다.
 - 첫 bundle이 이미 staged인 상태에서 다음 bundle을 검증할 때는 바로 `git add`를 이어서 치면 split boundary가 무너진다. 이때는 targeted `git diff --name-only`와 `git ls-files --others`로 다음 bundle readiness를 확인하고, 실제 staging은 이전 staged bundle이 커밋된 뒤로 미루는 편이 안전하다.
 - repo-local delegation skill은 MCP wiring이 green이라고 해서 `execute_task` 실행 가능성을 단정하면 안 된다. OpenSpace처럼 discovery는 성공하지만 host LLM credential이 없어서 `blocked_missing_host_llm_credentials`가 날 수 있는 경우, skill 문서와 smoke는 discovery/wiring readiness와 execution credential readiness를 분리해 고정해야 한다.
+- v1 시작 전에는 기능을 더 여는 것보다 start definition, required local gate, optional live boundary, stop criteria를 하나의 runbook으로 고정하는 편이 안전하다. 이렇게 하면 push를 미루더라도 현재 local `main`에서 무엇을 통과해야 dogfooding을 시작할 수 있는지 흔들리지 않는다.
+- handoff/runbook 문서가 과거 backlog priority를 계속 next step으로 말하면 이미 완료된 기능을 다시 여는 drift가 생긴다. dogfood 직전에는 completed policy와 true next action을 분리해 적고, source-only smoke가 stale priority 문구를 고정하지 않게 같이 갱신해야 한다.
