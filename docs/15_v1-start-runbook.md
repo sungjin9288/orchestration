@@ -46,6 +46,30 @@ Expected result:
 - `smoke-qa-slice-07` passes project registration, mission/task setup, builder approval/run, artifacts/logs, reviewer run, duplicate guards, and secret scan.
 - listener check returns no relevant runtime listener.
 
+## Latest Local Readiness Evidence
+Recorded at `2026-04-29 01:21:17 +0900` on local `main`.
+
+This evidence was collected before this readiness-record documentation update. The gate head was
+`88819f9a859f97624f0f64569b05b9a7742682ec`.
+
+- branch: `main`
+- repo status: clean tree with `main...origin/main [ahead 7]`
+- project_path: `/Users/sungjin/dev/personal/orchestration`
+- required gate result: pass
+- `git diff --check`: pass
+- `node scripts/ui_qa_status.mjs`: pass, `16/16` required checks; snapshot reachability skipped because the local UI server was off
+- `node scripts/harness_verification_status.mjs`: pass, `44/44` checks
+- `node scripts/verification_status.mjs`: pass, required `knowledge-work-pack` plus informational OpenSpace and v1 runbook lanes
+- `node scripts/smoke-qa-slice-07.mjs`: pass
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-qa-slice-07`
+- outputRoot: `/Users/sungjin/dev/personal/orchestration/output/playwright/qa-slice-07`
+- key run ids: `run-0005` builder, `run-0006` reviewer
+- key artifact ids: `artifact-0005` change summary, `artifact-0006` patch, `artifact-0007` diff, `artifact-0008` review
+- approval/review state: `approval-0001`, builder/reviewer readiness `ready`
+- listener check: no `runtime-qa-slice-07`, `59006`, or `4315` listener remained
+- push state: deferred; no push was performed
+- follow-up: start `v1 dogfood result triage` with a real local task, then fix only the highest-severity local-first workflow regression found
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 

@@ -859,3 +859,4 @@
 - v1 시작 전에는 기능을 더 여는 것보다 start definition, required local gate, optional live boundary, stop criteria를 하나의 runbook으로 고정하는 편이 안전하다. 이렇게 하면 push를 미루더라도 현재 local `main`에서 무엇을 통과해야 dogfooding을 시작할 수 있는지 흔들리지 않는다.
 - handoff/runbook 문서가 과거 backlog priority를 계속 next step으로 말하면 이미 완료된 기능을 다시 여는 drift가 생긴다. dogfood 직전에는 completed policy와 true next action을 분리해 적고, source-only smoke가 stale priority 문구를 고정하지 않게 같이 갱신해야 한다.
 - Hermes Agent처럼 전체 플랫폼 성격이 강한 레퍼런스는 바로 provider/runtime으로 붙이지 말고 `future-post-v1` harness reference로 먼저 격리해야 한다. ACP adapter, permission bridge, file safety, redaction, retry, skill/memory fencing처럼 재사용 가능한 패턴만 문서화하고, gateway/cron/cloud backend/provider breadth는 smoke로 명시적으로 막아 두는 편이 scope drift를 줄인다.
+- readiness evidence를 문서로 커밋할 때는 gate를 실제로 돌린 head와 documentation update head를 섞지 않아야 한다. gate 기준 commit, clean/ahead 상태, runtimeRoot/outputRoot, run/artifact id, listener result를 명시하면 이후 dogfood triage가 어떤 runtime evidence 위에서 시작됐는지 추적하기 쉽다.

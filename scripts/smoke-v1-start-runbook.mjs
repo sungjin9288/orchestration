@@ -34,6 +34,21 @@ for (const command of [
   assert.match(runbook, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 }
 
+assert.match(runbook, /## Latest Local Readiness Evidence/);
+assert.match(runbook, /Recorded at `2026-04-29 01:21:17 \+0900` on local `main`/);
+assert.match(runbook, /This evidence was collected before this readiness-record documentation update/);
+assert.match(runbook, /88819f9a859f97624f0f64569b05b9a7742682ec/);
+assert.match(runbook, /repo status: clean tree with `main\.\.\.origin\/main \[ahead 7\]`/);
+assert.match(runbook, /`node scripts\/ui_qa_status\.mjs`: pass, `16\/16` required checks/);
+assert.match(runbook, /`node scripts\/harness_verification_status\.mjs`: pass, `44\/44` checks/);
+assert.match(runbook, /`node scripts\/smoke-qa-slice-07\.mjs`: pass/);
+assert.match(runbook, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-qa-slice-07`/);
+assert.match(runbook, /outputRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/output\/playwright\/qa-slice-07`/);
+assert.match(runbook, /`run-0005` builder, `run-0006` reviewer/);
+assert.match(runbook, /`artifact-0005` change summary, `artifact-0006` patch, `artifact-0007` diff, `artifact-0008` review/);
+assert.match(runbook, /listener check: no `runtime-qa-slice-07`, `59006`, or `4315` listener remained/);
+assert.match(runbook, /push state: deferred; no push was performed/);
+assert.match(runbook, /follow-up: start `v1 dogfood result triage`/);
 assert.match(runbook, /node scripts\/smoke-provider-live-slice-05\.mjs/);
 assert.match(runbook, /node scripts\/smoke-qa-live-slice-07\.mjs/);
 assert.match(runbook, /scripts\/smoke-openspace-slice-03\.mjs/);
