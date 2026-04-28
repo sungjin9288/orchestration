@@ -20,8 +20,10 @@ These projects are signals, not direct dependencies:
   file-type conversion surface. Useful as a local harness for artifact preprocessing and
   documentation ingestion, not as a runtime dependency.
 - `hermes-agent` (NousResearch): self-improving agent with skills, memory, MCP integration,
-  and multi-provider + multi-platform gateway posture. Useful for thinking about skill registry
-  and memory separation, not for multi-platform bots or provider breadth in v1.
+  ACP adapter support, and multi-provider + multi-platform gateway posture. Useful for thinking
+  about an optional ACP harness bridge, permission mediation, file-safety denylist, redaction,
+  retry jitter, skill registry, and memory separation. Not a signal to add multi-platform bots,
+  provider breadth, cron autonomy, or cloud terminal backends to v1.
 - `mempalace` (MemPalace): local-first memory store that keeps raw verbatim conversations and
   exposes an MCP tools posture. Useful as a local-only memory harness signal for future post-v1 work.
 - `free-code` fork (Claude Code): CLI harness posture with multi-provider switching and looser
@@ -54,9 +56,18 @@ These projects are signals, not direct dependencies:
    - No networked, account-bound, or multi-tenant memory systems in v1.
    - Current repo-native memory work is limited to read-only preview briefs over source-of-truth files; no persistent memory store is adopted yet.
 
+3. **Hermes Agent ACP bridge (future-post-v1)**
+   - Treat Hermes as an optional ACP-compatible harness reference, not as a core Orchestration runtime or provider adapter.
+   - Safe reference areas are the ACP adapter manifest/server shape, permission callback bridge, file-safety denylist, secret redaction patterns, jittered retry utility, SKILL.md preprocessing boundaries, and memory-provider fencing.
+   - Any future experiment must be explicit, local-only, operator-invoked, and non-default.
+   - Hermes must remain non-executable in the current harness gate until a separate approved wrapper defines input, output, permission, credential, and evidence boundaries.
+   - Do not install Hermes through `curl | bash` from this repo; if tested later, review the installer and dependency graph first in a separate operator-controlled workspace.
+
 ## Out Of Scope (Still)
 - Any harness that implies multi-provider-first execution.
 - Messenger-first bot surfaces or multi-platform chat gateways.
+- Hermes gateway surfaces such as Telegram, Discord, Slack, WhatsApp, Signal, Email, or webhooks in the current v1 path.
+- Hermes cron autonomy, cloud terminal backends, or unattended background execution in the current v1 path.
 - Budget/HR/org-management simulators.
 - Multiplayer workspace or team-first runtime semantics.
 - "curl | bash" auto-installers or guardrail removal as default guidance.
@@ -1523,9 +1534,9 @@ Post-freeze execution visible-result output-file token wording follow-up:
 
 ### `scripts/harness_verification_status.mjs`
 Repo-native harness verification bundle:
-- runs harness inventory status plus smoke slices `01` through `04` and `06` through `43`
-- treats `scripts/smoke-harness-slice-05.mjs` as the out-of-bundle aggregate self-check that pins the current 43-check id order
-- reports one synthetic harness status payload for the current repo posture with 43 required checks
+- runs harness inventory status plus smoke slices `01` through `04` and `06` through `44`
+- treats `scripts/smoke-harness-slice-05.mjs` as the out-of-bundle aggregate self-check that pins the current 44-check id order
+- reports one synthetic harness status payload for the current repo posture with 44 required checks
 - keeps harness verification separate from broader runtime or UI verification bundles
 
 ## Verification
@@ -1585,6 +1596,7 @@ Use:
 - `node scripts/smoke-harness-slice-41.mjs`
 - `node scripts/smoke-harness-slice-42.mjs`
 - `node scripts/smoke-harness-slice-43.mjs`
+- `node scripts/smoke-harness-slice-44.mjs`
 - `node scripts/ui_qa_status.mjs`
 - `node scripts/smoke-ui-slice-295.mjs`
 - `node scripts/smoke-ui-slice-296.mjs`

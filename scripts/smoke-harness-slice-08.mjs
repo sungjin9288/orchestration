@@ -40,7 +40,7 @@ assert.ok(['ready', 'install-required'].includes(markitdown.state));
 assert.equal(markitdown.available ? markitdown.state : 'install-required', markitdown.state);
 assert.equal(mempalace.state, 'deferred');
 assert.equal(cl4r1t4s.state, 'policy-blocked');
-assert.equal(hermes.state, 'policy-blocked');
+assert.equal(hermes.state, 'deferred');
 assert.equal(andrej.state, 'policy-blocked');
 assert.equal(openscreen.state, 'deferred');
 assert.equal(rtk.state, 'policy-blocked');

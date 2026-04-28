@@ -45,7 +45,7 @@ assert.deepEqual(ids, [
 const postures = Object.fromEntries(payload.harnesses.map((harness) => [harness.id, harness.posture]));
 assert.equal(postures.markitdown, 'approved-now');
 assert.equal(postures.mempalace, 'future-post-v1');
-assert.equal(postures['hermes-agent'], 'signal-only');
+assert.equal(postures['hermes-agent'], 'future-post-v1');
 assert.equal(postures['free-code'], 'signal-only');
 assert.equal(postures.CL4R1T4S, 'signal-only');
 assert.equal(postures['andrej-karpathy-skills'], 'signal-only');

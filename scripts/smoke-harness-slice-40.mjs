@@ -37,8 +37,18 @@ const statusIds = payload.harnesses.map((harness) => harness.id);
 assert.deepEqual(statusIds, expectedExternalReferenceIds);
 assert.equal(payload.counts.total, expectedExternalReferenceIds.length);
 assert.equal(payload.counts.byPosture['approved-now'], 1);
-assert.equal(payload.counts.byPosture['future-post-v1'], 2);
-assert.equal(payload.counts.byPosture['signal-only'], 6);
+assert.equal(payload.counts.byPosture['future-post-v1'], 3);
+assert.equal(payload.counts.byPosture['signal-only'], 5);
+
+const hermes = payload.harnesses.find((harness) => harness.id === 'hermes-agent');
+assert.ok(hermes, 'hermes-agent status entry missing');
+assert.equal(hermes.posture, 'future-post-v1');
+assert.equal(hermes.state, 'deferred');
+assert.equal(hermes.executable, false);
+assert.equal(hermes.runner, null);
+assert.match(hermes.kind, /acp-agent-harness-reference/);
+assert.match(hermes.note, /Future ACP harness reference only/);
+assert.match(hermes.note, /Do not adopt its multi-provider, messaging gateway, cron, or cloud backend posture into v1/);
 
 const cl4r1t4s = payload.harnesses.find((harness) => harness.id === 'CL4R1T4S');
 assert.ok(cl4r1t4s, 'CL4R1T4S status entry missing');
@@ -60,7 +70,9 @@ console.log(
       externalReferenceInventory: {
         mode: payload.mode,
         harnessCount: payload.counts.total,
+        futurePostV1Count: payload.counts.byPosture['future-post-v1'],
         signalOnlyCount: payload.counts.byPosture['signal-only'],
+        hermesAgentState: hermes.state,
         cl4r1t4sState: cl4r1t4s.state,
         rtkState: rtk.state,
       },

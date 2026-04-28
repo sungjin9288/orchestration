@@ -25,7 +25,6 @@ const policyBlockedHarnessesFromState = payload.harnesses
 
 assert.deepEqual(payload.policyBlockedHarnessIds, policyBlockedHarnessesFromState);
 assert.deepEqual(payload.policyBlockedHarnessIds, [
-  'hermes-agent',
   'free-code',
   'CL4R1T4S',
   'andrej-karpathy-skills',

@@ -223,6 +223,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-43.mjs',
     purpose: 'Markitdown wrapper exposes a no-write policy report before document conversion.',
   },
+  {
+    id: 'harness-hermes-agent-acp-bridge-boundary',
+    script: 'scripts/smoke-harness-slice-44.mjs',
+    purpose: 'Hermes Agent stays a future ACP harness reference without becoming a core runtime, provider, gateway, or executable v1 harness.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

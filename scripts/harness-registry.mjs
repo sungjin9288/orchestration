@@ -20,12 +20,12 @@ export const harnesses = [
   },
   {
     id: 'hermes-agent',
-    posture: 'signal-only',
-    kind: 'multi-provider-agent-platform',
+    posture: 'future-post-v1',
+    kind: 'acp-agent-harness-reference',
     command: 'hermes',
     checkArgs: ['--help'],
-    note: 'Reference only. Do not adopt its multi-provider or messaging gateway posture into v1.',
-    installReview: 'review upstream install flow before any local experiment',
+    note: 'Future ACP harness reference only. Do not adopt its multi-provider, messaging gateway, cron, or cloud backend posture into v1.',
+    installReview: 'review upstream MIT license, ACP adapter, permission bridge, file-safety, redaction, retry, skills, and memory boundaries before any local experiment',
   },
   {
     id: 'free-code',

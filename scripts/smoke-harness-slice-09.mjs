@@ -32,12 +32,12 @@ assert.equal(secondAction.harnessId, 'mempalace');
 assert.equal(secondAction.state, 'deferred');
 
 assert.ok(thirdAction, 'expected third doctor action');
-assert.equal(thirdAction.harnessId, 'openscreen');
+assert.equal(thirdAction.harnessId, 'hermes-agent');
 assert.equal(thirdAction.state, 'deferred');
 
 assert.ok(fourthAction, 'expected fourth doctor action');
-assert.equal(fourthAction.state, 'policy-blocked');
-assert.ok(['hermes-agent', 'free-code'].includes(fourthAction.harnessId));
+assert.equal(fourthAction.harnessId, 'openscreen');
+assert.equal(fourthAction.state, 'deferred');
 
 console.log(
   JSON.stringify(
