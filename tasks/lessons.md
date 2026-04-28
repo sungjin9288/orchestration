@@ -855,3 +855,4 @@
 - 대규모 dirty worktree가 커밋 직전까지 쌓였을 때는 바로 staging하지 말고 closeout plan으로 bundle 분류, verification matrix, browser evidence, commit order를 먼저 고정하는 편이 안전하다. 이렇게 하면 reviewable 단위가 명확해지고, 커밋 승인 전에도 어떤 검증이 최종 기준인지 흔들리지 않는다.
 - commit split을 준비할 때는 고수준 bundle 이름만으로는 부족하다. 실제 `git status`, modified file list, untracked file list, ignored evidence를 기준으로 exact staging manifest를 만들고, mixed-purpose 문서는 patch-staging caveat를 명시해야 승인 후 staging에서 실수할 가능성이 줄어든다.
 - 첫 bundle이 이미 staged인 상태에서 다음 bundle을 검증할 때는 바로 `git add`를 이어서 치면 split boundary가 무너진다. 이때는 targeted `git diff --name-only`와 `git ls-files --others`로 다음 bundle readiness를 확인하고, 실제 staging은 이전 staged bundle이 커밋된 뒤로 미루는 편이 안전하다.
+- repo-local delegation skill은 MCP wiring이 green이라고 해서 `execute_task` 실행 가능성을 단정하면 안 된다. OpenSpace처럼 discovery는 성공하지만 host LLM credential이 없어서 `blocked_missing_host_llm_credentials`가 날 수 있는 경우, skill 문서와 smoke는 discovery/wiring readiness와 execution credential readiness를 분리해 고정해야 한다.

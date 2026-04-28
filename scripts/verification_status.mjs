@@ -25,6 +25,11 @@ const informationalChecks = [
     script: 'scripts/smoke-openspace-slice-02.mjs',
     purpose: 'OpenSpace integration documentation keeps repo wiring acceptance separate from host credential follow-up',
   },
+  {
+    id: 'openspace-skill-credential-boundary',
+    script: 'scripts/smoke-openspace-slice-03.mjs',
+    purpose: 'OpenSpace repo-local skills keep discovery and execute_task host credential readiness separate',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
