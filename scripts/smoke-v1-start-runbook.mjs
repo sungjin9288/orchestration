@@ -95,6 +95,11 @@ assert.match(runbook, /`artifact-0005` change summary, `artifact-0006` patch, `a
 assert.match(runbook, /surfaces verified: `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, `Decision Inbox`/);
 assert.match(runbook, /the first v1 user-flow kickoff smoke is now verified on clean\/published `main`/);
 assert.match(runbook, /next implementation should be driven by a concrete regression or usability issue/);
+assert.match(runbook, /node scripts\/v1-kickoff-evidence-triage\.mjs/);
+assert.match(runbook, /do-not-open-new-implementation-without-a-concrete-regression-or-usability-issue/);
+assert.match(runbook, /current `kickoffReady` may be false while the recorded clean\/published proof remains valid/);
+assert.match(runbook, /cleanPublishedProofRecorded=true/);
+assert.match(runbook, /do not open a new implementation slice without a concrete regression or usability issue/);
 assert.match(runbook, /Do not reopen the already-completed preview-only artifact redaction policy/);
 assert.match(handoff, /current local v1 development baseline is complete on `main`/);
 assert.match(handoff, /node scripts\/v1-local-completion-status\.mjs` reports `localDevelopmentComplete=true`/);
@@ -111,6 +116,8 @@ assert.match(handoff, /head `23b4a8e464b45a2ad4cdc99eb52c74af3dadc20c`/);
 assert.match(handoff, /passed without `V1_KICKOFF_ALLOW_DIRTY`/);
 assert.match(handoff, /scenario covered `task-0001`, `approval-0001`, builder `run-0005`, reviewer `run-0006`/);
 assert.match(handoff, /verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`/);
+assert.match(handoff, /node scripts\/v1-kickoff-evidence-triage\.mjs/);
+assert.match(handoff, /checks the clean proof plus retained runtime\/output evidence/);
 assert.match(handoff, /preview-only artifact redaction policy is already implemented/);
 
 assert.match(verificationStatus, /v1-start-runbook/);

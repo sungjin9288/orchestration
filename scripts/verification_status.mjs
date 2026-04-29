@@ -66,6 +66,11 @@ const informationalChecks = [
     script: 'scripts/smoke-v1-kickoff-status.mjs',
     purpose: 'V1 kickoff status moves the post-dogfood baseline into the first user-flow slice without executing dogfood or mutating runtime state',
   },
+  {
+    id: 'v1-kickoff-evidence-triage',
+    script: 'scripts/smoke-v1-kickoff-evidence-triage.mjs',
+    purpose: 'V1 kickoff evidence triage keeps post-proof implementation entry gated on concrete regressions or usability issues',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

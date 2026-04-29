@@ -285,6 +285,8 @@ Latest clean proof:
 - scenario covered `task-0001`, `approval-0001`, builder `run-0005`, reviewer `run-0006`, and artifacts `artifact-0005` through `artifact-0008`
 - verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`
 
+Use `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear. It is read-only, checks the clean proof plus retained runtime/output evidence, and should keep implementation closed unless there is a concrete regression or usability issue.
+
 The preview-only artifact redaction policy is already implemented for `change-summary` structured preview and should not be reopened unless dogfood exposes a concrete redaction regression.
 
 Optional real-live reruns remain non-blocking operational housekeeping when configured env is visible to the current execution context. The historical execution spec for that work remains locked in:

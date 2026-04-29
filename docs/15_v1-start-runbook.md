@@ -177,6 +177,15 @@ Resulting default posture:
 - do not rerun execute-mode dogfood by default
 - next implementation should be driven by a concrete regression or usability issue found from this evidence, not by reopening completed v1 readiness work
 
+Use `node scripts/v1-kickoff-evidence-triage.mjs` to summarize the clean proof, retained runtime/output evidence, and implementation gate. The command is read-only and should return `do-not-open-new-implementation-without-a-concrete-regression-or-usability-issue` when no concrete issue is detected.
+
+If the working tree is dirty because a new documentation or triage slice is in progress, current `kickoffReady` may be false while the recorded clean/published proof remains valid. Treat that as an in-progress source state, not a kickoff regression, when `cleanPublishedProofRecorded=true` and retained evidence files are present.
+
+Default post-proof rule:
+- do not open a new implementation slice without a concrete regression or usability issue
+- keep optional execute-mode dogfood separate and approval-gated
+- treat missing runtime/output evidence as an evidence-recording issue, not as permission to widen runtime behavior
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
@@ -249,6 +258,7 @@ First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs
 
 Default next action without approval:
 - inspect the clean/published kickoff evidence and only open a new implementation slice for a concrete regression or usability issue
+- run `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
