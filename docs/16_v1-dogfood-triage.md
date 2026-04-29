@@ -319,8 +319,8 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Retain Dogfood Run 005 linked worktree as current dirty evidence until explicit cleanup approval is given.
-- Start the first v1 kickoff slice only after deciding whether to keep, inspect, or clean the new dogfood evidence.
+- Dogfood Run 005 retained linked worktree cleanup has completed after explicit operator approval.
+- Start the first v1 kickoff slice after committing and publishing the cleanup-completed status update.
 
 ## Dogfood Evidence Inventory
 The retained dirty linked worktree lifecycle is now checked by `scripts/v1-dogfood-evidence-inventory.mjs`.
@@ -331,12 +331,12 @@ Inventory behavior:
 - It reports cleanup command previews only; it does not remove worktrees, delete branches, reset files, commit, push, merge, release, or close out.
 - Before cleanup, retained dirty worktrees are valid only when the expected marker mutation is present.
 - After cleanup, the expected valid state for a specific dogfood run is that both its retained worktree path is absent and its `worktree/*` branch is deleted.
-- Mixed lifecycle state is valid when older dogfood evidence has been cleaned and the latest intentionally retained dogfood evidence remains dirty by design.
+- Mixed lifecycle state is valid when older dogfood evidence has been cleaned and the latest intentionally retained dogfood evidence remains dirty by design; after approved cleanup, all retained dogfood worktree paths and branches should be absent.
 - The runtime evidence roots remain available under `var/` for historical proof.
 
 Cleanup completed after explicit operator approval:
 - Dogfood Run 002 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-run-002`; branch deleted: `worktree/v1-dogfood-run-002`.
 - Dogfood Run 004 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-001`; branch deleted: `worktree/v1-dogfood-runner-001`.
 
-Current retained evidence awaiting explicit cleanup approval:
-- Dogfood Run 005 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-002`; branch retained: `worktree/v1-dogfood-runner-002`.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 005 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-002`; branch deleted: `worktree/v1-dogfood-runner-002`.

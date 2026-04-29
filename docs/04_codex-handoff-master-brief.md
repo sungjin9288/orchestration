@@ -261,12 +261,10 @@ Current local completion snapshot:
 - `node scripts/verification_status.mjs` remains green
 - Dogfood Run 001 through Dogfood Run 005 evidence is recorded
 - push had completed before the retained cleanup documentation update; any later local commit must be pushed explicitly
-- Dogfood Run 002 and Run 004 retained dogfood linked worktree cleanup has completed after explicit operator approval
-- Dogfood Run 005 linked worktree evidence is currently retained dirty by design and cleanup is approval-gated
+- Dogfood Run 002, Run 004, and Run 005 retained dogfood linked worktree cleanup has completed after explicit operator approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve cleanup of Dogfood Run 005 retained linked worktree evidence
 - approve another intentional `--execute --slug <slug>` dogfood run
 
 The preview-only artifact redaction policy is already implemented for `change-summary` structured preview and should not be reopened unless dogfood exposes a concrete redaction regression.

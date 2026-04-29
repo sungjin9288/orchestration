@@ -159,7 +159,9 @@ const report = {
   dogfoodEvidence,
   main,
   nextRecommendedAction: main.clean
-    ? 'await explicit operator approval for retained dogfood cleanup or another execute dogfood slug, or continue with no-op defer state'
+    ? dogfoodEvidence.cleanupBlockedUntilApproval
+      ? 'await explicit operator approval for retained dogfood cleanup or another execute dogfood slug, or continue with no-op defer state'
+      : 'await explicit operator approval for another execute dogfood slug or continue with no-op defer state'
     : 'finish or commit the current local changes before push or another execute dogfood run',
   operatorChoices: getOperatorChoices(main, dogfoodEvidence),
   safetyBoundary: {

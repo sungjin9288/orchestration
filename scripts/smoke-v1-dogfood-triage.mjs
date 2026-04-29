@@ -129,8 +129,8 @@ assert.match(dogfood, /reviewer run: `run-0006`/);
 assert.match(dogfood, /reviewer source run: `run-0005`/);
 assert.match(dogfood, /reviewer raw verdict: `pass`/);
 assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
-assert.match(dogfood, /Retain Dogfood Run 005 linked worktree as current dirty evidence/);
-assert.match(dogfood, /Current retained evidence awaiting explicit cleanup approval/);
+assert.match(dogfood, /Dogfood Run 005 retained linked worktree cleanup has completed after explicit operator approval/);
+assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 
 console.log(
   JSON.stringify(
@@ -140,7 +140,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 005',
         result: 'pass',
-        nextAction: 'retain Dogfood Run 005 linked worktree until explicit cleanup approval',
+        nextAction: 'Dogfood Run 005 retained linked worktree cleanup completed after explicit operator approval',
       },
     },
     null,
