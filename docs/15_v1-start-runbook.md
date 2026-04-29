@@ -145,6 +145,14 @@ First v1 kickoff slice:
 
 Additional execute-mode dogfood is optional and approval-gated; do not run another dogfood pass by default once the kickoff status is green.
 
+Runtime/browser proof for the kickoff slice:
+
+```sh
+node scripts/smoke-v1-user-flow-kickoff.mjs
+```
+
+During development of the kickoff smoke itself, `V1_KICKOFF_ALLOW_DIRTY=1` may be used only when the sole blocker is unpublished local source changes from the current slice. Do not use that override as release evidence after the smoke is committed and pushed.
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
@@ -217,6 +225,7 @@ First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs
 
 Default next action without approval:
 - start the first v1 user-flow kickoff slice
+- run `node scripts/smoke-v1-user-flow-kickoff.mjs` from clean/published `main`
 
 Explicit approval-gated next actions:
 - run another intentional `--execute --slug <slug>` dogfood pass

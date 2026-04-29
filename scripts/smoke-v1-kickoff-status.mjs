@@ -36,8 +36,12 @@ assert.match(runbook, /Register or select a local project/);
 assert.match(runbook, /Mission \/ Council \/ Execution \/ Deliverables/);
 assert.match(runbook, /Taskboard \/ Logs \/ Artifacts \/ Decision Inbox/);
 assert.match(runbook, /Additional execute-mode dogfood is optional/);
+assert.match(runbook, /node scripts\/smoke-v1-user-flow-kickoff\.mjs/);
+assert.match(runbook, /V1_KICKOFF_ALLOW_DIRTY=1/);
+assert.match(runbook, /Do not use that override as release evidence/);
 assert.match(handoff, /first v1 user-flow kickoff slice/);
 assert.match(handoff, /node scripts\/v1-kickoff-status\.mjs/);
+assert.match(handoff, /node scripts\/smoke-v1-user-flow-kickoff\.mjs/);
 assert.match(handoff, /do not run another dogfood pass by default/);
 
 assert.match(verificationStatus, /v1-kickoff-status/);
