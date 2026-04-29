@@ -257,17 +257,14 @@ The current local v1 development baseline is complete on `main`.
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports `localDevelopmentComplete=true`
-- current `main` is clean and ahead of `origin/main`
+- current `main` is clean; publish state is reported by `git status --short --branch`
 - `node scripts/verification_status.mjs` remains green
 - Dogfood Run 001 through Dogfood Run 004 evidence is recorded
-- retained dogfood linked worktrees are intentionally dirty evidence and cleanup remains approval-gated
-- push remains approval-gated and has not been performed
+- push had completed before the retained cleanup documentation update; any later local commit must be pushed explicitly
+- retained dogfood linked worktree cleanup has completed after explicit operator approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- keep deferring push
-- approve pushing local `main`
-- approve destructive cleanup of retained dogfood evidence worktrees
 - approve another intentional `--execute --slug <slug>` dogfood run
 
 The preview-only artifact redaction policy is already implemented for `change-summary` structured preview and should not be reopened unless dogfood exposes a concrete redaction regression.

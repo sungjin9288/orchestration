@@ -90,10 +90,13 @@ function getDogfoodEvidenceSummary(result) {
 
   return {
     cleanupBlockedUntilApproval: result.parsed?.cleanupBlockedUntilApproval === true,
+    cleanupCompleted: result.parsed?.cleanupCompleted === true,
     cleanupPolicy: result.parsed?.cleanupPolicy || null,
     inventoryOk: result.ok,
+    retainedEvidenceAvailable: result.parsed?.retainedEvidenceAvailable === true,
     retainedEvidenceWorktrees: retainedEvidenceWorktrees.map((entry) => ({
       branch: entry.branch,
+      branchExists: entry.branchExists,
       cleanupApprovalRequired: entry.cleanupApprovalRequired,
       dirtyByDesign: entry.dirtyByDesign,
       exists: entry.exists,
@@ -107,7 +110,9 @@ function getDogfoodEvidenceSummary(result) {
 }
 
 function getOperatorChoices(main, dogfoodEvidence) {
-  const hasRetainedEvidence = dogfoodEvidence.retainedEvidenceWorktrees.some((entry) => entry.exists);
+  const hasRetainedEvidence = dogfoodEvidence.retainedEvidenceWorktrees.some(
+    (entry) => entry.exists || entry.branchExists,
+  );
 
   return [
     {
@@ -153,7 +158,7 @@ const report = {
   dogfoodEvidence,
   main,
   nextRecommendedAction: main.clean
-    ? 'await explicit operator approval for push, retained dogfood cleanup, or another execute dogfood slug'
+    ? 'await explicit operator approval for another execute dogfood slug or continue with no-op defer state'
     : 'finish or commit the current local changes before push or another execute dogfood run',
   operatorChoices: getOperatorChoices(main, dogfoodEvidence),
   safetyBoundary: {

@@ -89,7 +89,7 @@ assert.match(dogfood, /`--execute --slug <slug>`/);
 assert.match(dogfood, /refuses an existing linked worktree path/);
 assert.match(dogfood, /dirty source repo/);
 assert.match(dogfood, /never runs `commit-package`, `local commit`, `push`, `merge`, `release-package`, or `close-out`/);
-assert.match(dogfood, /Discarding that branch or removing the linked worktree remains a destructive cleanup action/);
+assert.match(dogfood, /The retained worktrees and branches were removed only after explicit operator cleanup approval/);
 assert.match(dogfood, /## Dogfood Run 004/);
 assert.match(dogfood, /Recorded at `2026-04-29 16:19:39 \+0900` on local `main`/);
 assert.match(dogfood, /d2076aef100d915969b73addbc7d8d082423175d/);
@@ -109,7 +109,7 @@ assert.match(dogfood, /reviewer source run: `run-0005`/);
 assert.match(dogfood, /reviewer raw verdict: `pass`/);
 assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
 assert.match(dogfood, /The repo-native runner self-dogfood passed/);
-assert.match(dogfood, /Keep both dirty dogfood linked worktrees as retained evidence/);
+assert.match(dogfood, /Retained dogfood linked worktree cleanup has completed after explicit operator approval/);
 
 console.log(
   JSON.stringify(
@@ -119,7 +119,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 004',
         result: 'pass',
-        nextAction: 'keep dirty dogfood linked worktrees as retained evidence until explicit cleanup approval',
+        nextAction: 'retained dogfood linked worktree cleanup completed after explicit operator approval',
       },
     },
     null,

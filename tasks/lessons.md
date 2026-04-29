@@ -874,3 +874,4 @@
 - completion status script는 커밋 전 dirty 상태에서도 실행 가능해야 한다. `ok`를 completion boolean에 직접 묶으면 검증 중인 자기 변경 때문에 실패하므로, status collection success와 `localDevelopmentComplete` 판단을 분리해야 개발 중 검증과 커밋 후 completion evidence를 모두 안정적으로 얻을 수 있다.
 - handoff 문서의 immediate priority가 과거 완료 전 next step을 계속 가리키면 다음 실행자가 이미 완료된 dogfood triage를 다시 열 수 있다. local completion snapshot이 생긴 뒤에는 handoff priority를 implementation backlog가 아니라 approval-gated operator choices로 바꾸고 smoke로 stale next-step 문구를 막아야 한다.
 - handoff만 최신화하고 start runbook의 next priority를 그대로 두면 source-of-truth 문서끼리 충돌한다. 완료된 dogfood triage를 기준으로 local completion status를 도입했다면 runbook의 default next action도 no-approval defer push와 approval-gated operator choices로 같이 전환해야 한다.
+- retained evidence cleanup을 실제 수행하면 기존 inventory는 “dirty evidence exists”뿐 아니라 “cleanup completed”도 green state로 받아야 한다. worktree path와 branch가 모두 사라졌는지 확인하고 runtime evidence root는 보존하면 destructive cleanup과 historical evidence를 분리할 수 있다.

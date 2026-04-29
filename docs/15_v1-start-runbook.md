@@ -85,10 +85,10 @@ This evidence was collected before this post-dogfood handoff documentation updat
 - retained evidence inventory: `node scripts/v1-dogfood-evidence-inventory.mjs` returned `ok=true`
 - retained linked worktrees: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-run-002`, `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-001`
 - retained linked worktree status: both are dirty by design with `prompts/builder.md` marker mutation
-- cleanup state: destructive cleanup remains blocked until explicit operator approval
+- cleanup state: destructive cleanup was completed after explicit operator approval
 - `node scripts/verification_status.mjs`: pass, `1/1` required checks and `7/7` informational checks
 - push state: deferred; no push was performed
-- follow-up: choose between explicit cleanup approval for retained dogfood worktrees, another intentional `--execute --slug <slug>` dogfood run, or push approval when local development is ready to publish
+- follow-up: push and retained dogfood cleanup were later completed; another intentional `--execute --slug <slug>` dogfood run still requires explicit approval
 
 ## Operator Decision Status
 Use `node scripts/v1-operator-status.mjs` when the next action is unclear after post-dogfood handoff.
@@ -96,33 +96,33 @@ Use `node scripts/v1-operator-status.mjs` when the next action is unclear after 
 The command produces a read-only status summary for:
 - current `main` clean/dirty state, head, and ahead count
 - `node scripts/verification_status.mjs` aggregate status
-- retained dogfood evidence inventory and cleanup approval state
-- operator choices for deferring push, pushing `main`, cleaning retained dogfood worktrees, or running another execute-mode dogfood slug
+- retained dogfood evidence inventory and cleanup completion state
+- operator choices for deferring push or running another execute-mode dogfood slug
 
 Safety boundary:
 - the script does not push, remove worktrees, delete branches, execute dogfood, commit, merge, release, or close out
-- `push-main`, `cleanup-retained-dogfood-worktrees`, and `run-another-dogfood-execute` remain explicit operator approval decisions
+- cleanup has been completed after explicit operator approval; `run-another-dogfood-execute` remains an explicit operator approval decision
 - `verification_status` is serialized through `var/locks/verification_status.lock`, so nested status checks do not run shared smoke runtime roots concurrently
-- default safe action remains to defer push until the operator explicitly chooses push, retained dogfood cleanup, or another execute dogfood slug
+- default safe action remains to defer new execution unless the operator explicitly chooses another execute dogfood slug
 
 Manual concurrency regression check:
 - run `node scripts/smoke-verification-status-lock-concurrency.mjs` when changing `verification_status` locking or `v1-operator-status` nested verification behavior
 - keep this smoke standalone; do not add it to `scripts/verification_status.mjs`, because it intentionally spawns concurrent `verification_status` children to prove lock serialization
 
 ## Local Completion Status
-Use `node scripts/v1-local-completion-status.mjs` to summarize whether current local development is complete while publish and cleanup remain approval-gated.
+Use `node scripts/v1-local-completion-status.mjs` to summarize whether current local development is complete after publish has completed and cleanup has completed.
 
 The command reports `localDevelopmentComplete=true` only when:
 - current `main` is clean
 - `verification_status` is green
 - retained dogfood evidence inventory is green
-- push is available but still pending explicit approval
-- retained dogfood cleanup remains blocked behind explicit approval
+- push is complete or, before publish, available but still pending explicit approval
+- retained dogfood cleanup is complete or, before cleanup, blocked behind explicit approval
 
 Safety boundary:
 - the script is read-only
 - it does not push, clean worktrees, execute dogfood, commit, merge, release, or close out
-- `defer-push` is the only next action listed as allowed without approval
+- `defer-push` remains the no-op next action listed as allowed without approval
 
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
@@ -194,11 +194,13 @@ V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfo
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 
 Default next action without approval:
-- defer push
+- defer push or new execution
 
 Explicit approval-gated next actions:
-- push local `main`
-- clean retained dogfood linked worktree evidence
 - run another intentional `--execute --slug <slug>` dogfood pass
+
+Completed approval-gated actions:
+- push is complete
+- retained dogfood linked worktree cleanup is complete
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.

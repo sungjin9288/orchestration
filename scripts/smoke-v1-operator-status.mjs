@@ -25,6 +25,8 @@ assert.match(status, /action: 'defer-push'/);
 assert.match(status, /action: 'push-main'/);
 assert.match(status, /action: 'cleanup-retained-dogfood-worktrees'/);
 assert.match(status, /action: 'run-another-dogfood-execute'/);
+assert.match(status, /cleanupCompleted/);
+assert.match(status, /retainedEvidenceAvailable/);
 assert.match(status, /requiresExplicitApproval: true/);
 assert.match(status, /doesNotPush: true/);
 assert.match(status, /doesNotRemoveWorktrees: true/);
@@ -36,7 +38,7 @@ assert.match(runbook, /## Operator Decision Status/);
 assert.match(runbook, /node scripts\/v1-operator-status\.mjs/);
 assert.match(runbook, /read-only status summary/);
 assert.match(runbook, /does not push, remove worktrees, delete branches, execute dogfood, commit, merge, release, or close out/);
-assert.match(runbook, /push, retained dogfood cleanup, or another execute dogfood slug/);
+assert.match(runbook, /cleanup has been completed after explicit operator approval/);
 
 assert.match(verificationStatus, /v1-operator-status/);
 assert.match(verificationStatus, /scripts\/smoke-v1-operator-status\.mjs/);
@@ -53,7 +55,7 @@ assert.match(runbook, /keep this smoke standalone/);
 assert.match(completionStatus, /mode: 'v1-local-completion-status'/);
 assert.match(completionStatus, /nextAllowedWithoutApproval: \['defer-push'\]/);
 assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
-assert.match(runbook, /publish and cleanup remain approval-gated/);
+assert.match(runbook, /publish has completed and cleanup has completed/);
 
 console.log(
   JSON.stringify(
@@ -61,8 +63,6 @@ console.log(
       ok: true,
       v1OperatorStatus: {
         approvalGatedChoices: [
-          'push-main',
-          'cleanup-retained-dogfood-worktrees',
           'run-another-dogfood-execute',
         ],
         document: 'docs/15_v1-start-runbook.md',

@@ -19,7 +19,10 @@ assert.match(inventory, /dogfood-run-002/);
 assert.match(inventory, /dogfood-run-004/);
 assert.match(inventory, /worktree\/v1-dogfood-run-002/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-001/);
-assert.match(inventory, /cleanupApprovalRequired: true/);
+assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
+assert.match(inventory, /cleanupCompleted/);
+assert.match(inventory, /retainedEvidenceAvailable/);
+assert.match(inventory, /branchExists/);
 assert.match(inventory, /requiresExplicitOperatorApproval: true/);
 assert.match(inventory, /runnerExecutesCleanup: false/);
 assert.match(inventory, /git worktree remove/);
@@ -28,7 +31,7 @@ assert.match(inventory, /builder-live-mutation approval-0001 prompts\/builder\.m
 
 assert.match(dogfood, /## Dogfood Evidence Inventory/);
 assert.match(dogfood, /scripts\/v1-dogfood-evidence-inventory\.mjs/);
-assert.match(dogfood, /destructive cleanup approval gate/);
+assert.match(dogfood, /Cleanup completed after explicit operator approval/);
 assert.match(dogfood, /does not remove worktrees, delete branches, reset files, commit, push, merge, release, or close out/);
 assert.match(dogfood, /Dogfood Run 002/);
 assert.match(dogfood, /Dogfood Run 004/);
@@ -41,7 +44,7 @@ console.log(
     {
       ok: true,
       v1DogfoodEvidenceInventory: {
-        cleanupApprovalRequired: true,
+        cleanupCompletedSupported: true,
         document: 'docs/16_v1-dogfood-triage.md',
         inventory: 'scripts/v1-dogfood-evidence-inventory.mjs',
         retainedEvidenceWorktrees: ['dogfood-run-002', 'dogfood-run-004'],

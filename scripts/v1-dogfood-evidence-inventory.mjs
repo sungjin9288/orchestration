@@ -54,6 +54,7 @@ function readTextOrEmpty(filePath) {
 
 function inspectDogfoodWorktree(entry) {
   const exists = pathExists(entry.path);
+  const branchExists = runGitOrNull(repoRoot, ['show-ref', '--verify', '--quiet', `refs/heads/${entry.branch}`]) === '';
   const currentBranch = exists ? runGitOrNull(entry.path, ['branch', '--show-current']) : null;
   const statusShort = exists ? runGitOrNull(entry.path, ['status', '--short']) || '' : '';
   const expectedDirtyFilePath = path.join(entry.path, entry.expectedDirtyFile);
@@ -68,7 +69,8 @@ function inspectDogfoodWorktree(entry) {
 
   return {
     ...entry,
-    cleanupApprovalRequired: true,
+    branchExists,
+    cleanupApprovalRequired: exists || branchExists,
     cleanupCommandsPreview: [
       `git worktree remove ${JSON.stringify(entry.path)}`,
       `git branch -D ${JSON.stringify(entry.branch)}`,
@@ -86,13 +88,18 @@ function inspectDogfoodWorktree(entry) {
 
 const mainStatusShort = runGitOrNull(repoRoot, ['status', '--short']) || '';
 const worktrees = retainedDogfoodWorktrees.map(inspectDogfoodWorktree);
-const missingEvidence = worktrees.filter((entry) => !entry.exists || !entry.dirtyByDesign);
-const cleanupBlockedUntilApproval = worktrees.some((entry) => entry.exists);
+const retainedEvidenceAvailable = worktrees.every((entry) => entry.exists && entry.branchExists && entry.dirtyByDesign);
+const cleanupCompleted = worktrees.every((entry) => !entry.exists && !entry.branchExists);
+const unexpectedEvidenceState = worktrees.filter(
+  (entry) => !cleanupCompleted && !(entry.exists && entry.branchExists && entry.dirtyByDesign),
+);
+const cleanupBlockedUntilApproval = worktrees.some((entry) => entry.exists || entry.branchExists);
 
 const report = {
-  ok: missingEvidence.length === 0,
+  ok: retainedEvidenceAvailable || cleanupCompleted,
   mode: 'v1-dogfood-evidence-inventory',
   cleanupBlockedUntilApproval,
+  cleanupCompleted,
   cleanupPolicy: {
     destructive: true,
     requiresExplicitOperatorApproval: true,
@@ -102,8 +109,11 @@ const report = {
     path: repoRoot,
     statusShort: mainStatusShort || 'clean',
   },
+  retainedEvidenceAvailable,
   retainedDogfoodWorktrees: worktrees,
-  failures: missingEvidence.map((entry) => ({
+  failures: unexpectedEvidenceState.map((entry) => ({
+    branchExists: entry.branchExists,
+    cleanupCompleted,
     id: entry.id,
     exists: entry.exists,
     dirtyByDesign: entry.dirtyByDesign,

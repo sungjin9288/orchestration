@@ -61,9 +61,9 @@ assert.match(runbook, /node scripts\/v1-dogfood-evidence-inventory\.mjs` returne
 assert.match(runbook, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-run-002/);
 assert.match(runbook, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-001/);
 assert.match(runbook, /both are dirty by design with `prompts\/builder\.md` marker mutation/);
-assert.match(runbook, /destructive cleanup remains blocked until explicit operator approval/);
+assert.match(runbook, /destructive cleanup was completed after explicit operator approval/);
 assert.match(runbook, /`node scripts\/verification_status\.mjs`: pass, `1\/1` required checks and `7\/7` informational checks/);
-assert.match(runbook, /choose between explicit cleanup approval for retained dogfood worktrees/);
+assert.match(runbook, /follow-up: push and retained dogfood cleanup were later completed/);
 assert.match(runbook, /node scripts\/smoke-provider-live-slice-05\.mjs/);
 assert.match(runbook, /node scripts\/smoke-qa-live-slice-07\.mjs/);
 assert.match(runbook, /scripts\/smoke-openspace-slice-03\.mjs/);
@@ -72,15 +72,15 @@ assert.match(runbook, /Current local completion is now represented by `node scri
 assert.match(runbook, /Default next action without approval/);
 assert.match(runbook, /defer push/);
 assert.match(runbook, /Explicit approval-gated next actions/);
-assert.match(runbook, /push local `main`/);
-assert.match(runbook, /clean retained dogfood linked worktree evidence/);
+assert.match(runbook, /push is complete/);
+assert.match(runbook, /retained dogfood linked worktree cleanup is complete/);
 assert.match(runbook, /run another intentional `--execute --slug <slug>` dogfood pass/);
 assert.match(runbook, /Do not reopen the already-completed preview-only artifact redaction policy/);
 assert.match(handoff, /current local v1 development baseline is complete on `main`/);
 assert.match(handoff, /node scripts\/v1-local-completion-status\.mjs` reports `localDevelopmentComplete=true`/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
-assert.match(handoff, /approve pushing local `main`/);
-assert.match(handoff, /approve destructive cleanup of retained dogfood evidence worktrees/);
+assert.match(handoff, /push had completed before the retained cleanup documentation update/);
+assert.match(handoff, /retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /approve another intentional `--execute --slug <slug>` dogfood run/);
 assert.match(handoff, /preview-only artifact redaction policy is already implemented/);
 
