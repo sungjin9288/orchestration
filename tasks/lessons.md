@@ -866,3 +866,4 @@
 - 반복 가능한 dogfood runner를 만들 때는 실행 convenience보다 기본 safety posture가 먼저다. 기본값은 `--dry-run`으로 두고, 실제 linked worktree 생성과 승인 소비는 `--execute --slug`처럼 operator가 명시한 경우에만 열어야 low-signal mutation, branch/path collision, commit/push/release drift를 막을 수 있다.
 - runner 자체도 한 번은 self-dogfood execute로 검증해야 한다. 다만 그 evidence는 새 linked worktree dirty state로만 남기고, 현재 `main` clean 여부, listener cleanup, never-run downstream list를 같이 기록해야 runner convenience가 commit/release authority로 오해되지 않는다.
 - dogfood linked worktree cleanup은 실제 삭제 전에 read-only inventory부터 두는 편이 안전하다. path/branch/dirty marker/runtime root와 cleanup command preview를 먼저 고정하면 evidence 보존과 destructive cleanup approval boundary를 분리할 수 있다.
+- dogfood 후 handoff 문서는 “모든 v1 gate를 다시 통과했다”는 선언이 아니라 현재 clean head, ahead count, dogfood evidence 범위, retained cleanup blocker, push deferral, 다음 operator choice를 분리해서 적어야 한다. 그래야 readiness evidence와 후속 의사결정 상태가 섞이지 않는다.

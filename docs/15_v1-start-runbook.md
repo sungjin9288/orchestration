@@ -70,6 +70,26 @@ This evidence was collected before this readiness-record documentation update. T
 - push state: deferred; no push was performed
 - follow-up: start `v1 dogfood result triage` with a real local task, then fix only the highest-severity local-first workflow regression found
 
+## Post-Dogfood Local Handoff Evidence
+Recorded at `2026-04-29 16:34:42 +0900` on local `main`.
+
+This evidence was collected before this post-dogfood handoff documentation update. The handoff head was
+`5f8f4778aa22d2a94ccc569628f96487e3a4918f`.
+
+- branch: `main`
+- repo status: clean tree with `main...origin/main [ahead 14]`
+- project_path: `/Users/sungjin/dev/personal/orchestration`
+- dogfood triage status: `Dogfood Run 001` through `Dogfood Run 004` recorded
+- dogfood runner status: `scripts/v1-dogfood-linked-worktree-runner.mjs` defaults to `--dry-run`; execute mode requires explicit `--execute --slug <slug>`
+- dogfood self-execute result: `Dogfood Run 004` passed through linked worktree creation, approval consumption, builder live mutation, reviewer, and artifact bundle capture
+- retained evidence inventory: `node scripts/v1-dogfood-evidence-inventory.mjs` returned `ok=true`
+- retained linked worktrees: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-run-002`, `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-001`
+- retained linked worktree status: both are dirty by design with `prompts/builder.md` marker mutation
+- cleanup state: destructive cleanup remains blocked until explicit operator approval
+- `node scripts/verification_status.mjs`: pass, `1/1` required checks and `7/7` informational checks
+- push state: deferred; no push was performed
+- follow-up: choose between explicit cleanup approval for retained dogfood worktrees, another intentional `--execute --slug <slug>` dogfood run, or push approval when local development is ready to publish
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
