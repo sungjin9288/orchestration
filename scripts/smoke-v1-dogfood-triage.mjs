@@ -57,6 +57,31 @@ assert.match(dogfood, /Current `main` stayed clean; mutation was isolated to the
 assert.match(dogfood, /The local-stub builder mutation is intentionally low-signal/);
 assert.match(dogfood, /Review the linked worktree mutation through reviewer flow/);
 assert.match(dogfood, /Do not commit the linked worktree mutation unless/);
+assert.match(dogfood, /## Dogfood Run 003/);
+assert.match(dogfood, /Recorded at `2026-04-29 16:05:08 \+0900` on local `main`/);
+assert.match(dogfood, /dd8527e86945506988231ef1e8518f023d5ba27e/);
+assert.match(dogfood, /temporary API reviewer dogfood runner/);
+assert.match(dogfood, /no `runtime-v1-dogfood-run-002`, `60459`, `59138`, `4315`, or `59006` listener remained/);
+assert.match(dogfood, /source git status after run: clean tree with `main\.\.\.origin\/main \[ahead 10\]`/);
+assert.match(dogfood, /still dirty by design, `prompts\/builder\.md` modified/);
+assert.match(dogfood, /no linked worktree commit was performed/);
+assert.match(dogfood, /successful builder live mutation `run-0005`/);
+assert.match(dogfood, /\/api\/tasks\/task-0001\/run-reviewer/);
+assert.match(dogfood, /review artifact `artifact-0008`/);
+assert.match(dogfood, /moved to `Review` with review status `passed`/);
+assert.match(dogfood, /commit-package readiness is now allowed/);
+assert.match(dogfood, /reviewer run: `run-0006`/);
+assert.match(dogfood, /raw verdict: `pass`/);
+assert.match(dogfood, /next stage: `human gate`/);
+assert.match(dogfood, /run roles: `planner`, `architect`, `task-breaker`, `builder:preflight`, `builder:live-mutation`, `reviewer`/);
+assert.match(dogfood, /artifact types: `plan`, `architecture`, `breakdown`, `preflight`, `change-summary`, `patch`, `diff`, `review`/);
+assert.match(dogfood, /commit package readiness: allowed with source review artifact `artifact-0008`/);
+assert.match(dogfood, /Reviewer Report: V1 dogfood linked worktree live mutation/);
+assert.match(dogfood, /Route to human gate after review/);
+assert.match(dogfood, /Reviewer anchoring worked/);
+assert.match(dogfood, /Task review state advanced to `passed`/);
+assert.match(dogfood, /Do not promote the local-stub marker mutation as implementation output/);
+assert.match(dogfood, /convert the reusable API dogfood runner into a repo-native script/);
 
 console.log(
   JSON.stringify(
@@ -64,9 +89,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 002',
+        run: 'Dogfood Run 003',
         result: 'pass',
-        nextAction: 'review linked worktree mutation before promotion or discard',
+        nextAction: 'discard dogfood branch or convert reusable runner into a repo-native script',
       },
     },
     null,

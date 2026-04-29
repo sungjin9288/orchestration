@@ -107,3 +107,67 @@ Triage finding:
 Next action:
 - Review the linked worktree mutation through reviewer flow before deciding whether the generated change should be discarded, manually improved, or converted into a real implementation slice.
 - Do not commit the linked worktree mutation unless it is intentionally promoted from dogfood evidence into reviewed implementation work.
+
+## Dogfood Run 003
+Recorded at `2026-04-29 16:05:08 +0900` on local `main`.
+
+- head: `dd8527e86945506988231ef1e8518f023d5ba27e`
+- linked worktree branch: `worktree/v1-dogfood-run-002`
+- linked worktree path: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-run-002`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-v1-dogfood-run-002`
+- command: temporary API reviewer dogfood runner against `scripts/serve-ui-slice-01.mjs`
+- result: pass
+- listener cleanup: no `runtime-v1-dogfood-run-002`, `60459`, `59138`, `4315`, or `59006` listener remained
+- source git status after run: clean tree with `main...origin/main [ahead 10]`
+- linked worktree status after run: still dirty by design, `prompts/builder.md` modified
+- push state: deferred; no push was performed
+- commit state: no linked worktree commit was performed
+
+Scenario executed:
+1. Reused Dogfood Run 002 runtime state with successful builder live mutation `run-0005`.
+2. Ran reviewer through `/api/tasks/task-0001/run-reviewer`.
+3. Confirmed reviewer created review artifact `artifact-0008`.
+4. Confirmed reviewer stayed anchored to source builder run `run-0005`.
+5. Confirmed task moved to `Review` with review status `passed`.
+6. Confirmed commit-package readiness is now allowed but no commit-package, local commit, push, merge, or release was executed.
+
+Evidence:
+- reviewer run: `run-0006`
+- review artifact: `artifact-0008`
+- source builder run: `run-0005`
+- raw verdict: `pass`
+- mapped review status: `passed`
+- next stage: `human gate`
+- decision created: `false`
+- artifact types: `plan`, `architecture`, `breakdown`, `preflight`, `change-summary`, `patch`, `diff`, `review`
+- run roles: `planner`, `architect`, `task-breaker`, `builder:preflight`, `builder:live-mutation`, `reviewer`
+- pending inbox items after review: none
+- commit package readiness: allowed with source review artifact `artifact-0008`
+
+Reviewer artifact excerpt:
+
+```md
+# Reviewer Report: V1 dogfood linked worktree live mutation
+
+## Review Verdict
+- verdict: pass
+- source builder run: run-0005
+- preflight artifact: artifact-0004
+- change-summary artifact: artifact-0005
+- patch artifact: artifact-0006
+- diff artifact: artifact-0007
+
+## Next Action
+- Route to human gate after review.
+```
+
+Triage finding:
+- Product flow passed through `Mission -> Council -> Execution preflight -> Decision Inbox approval -> Builder live mutation -> Reviewer`.
+- Reviewer anchoring worked: review artifact points back to builder run `run-0005` and the latest builder mutation bundle.
+- Task review state advanced to `passed`, and the downstream human gate/commit-package readiness became available.
+- Current `main` stayed clean; linked worktree mutation remained isolated and uncommitted.
+- No runtime listener remained after the run.
+
+Next action:
+- Do not promote the local-stub marker mutation as implementation output.
+- Either discard the linked worktree dogfood branch after evidence review, or convert the reusable API dogfood runner into a repo-native script if this flow should become a repeatable v1 dogfood gate.
