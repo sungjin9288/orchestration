@@ -47,6 +47,10 @@ assert.match(dogfood, /`--execute --slug <slug>`/);
 assert.match(dogfood, /refuses an existing linked worktree path/);
 assert.match(dogfood, /never runs `commit-package`, `local commit`, `push`, `merge`, `release-package`, or `close-out`/);
 assert.match(dogfood, /Dogfood Run 002 linked worktree remains dirty by design/);
+assert.match(dogfood, /Dogfood Run 004 linked worktree remains dirty by design/);
+assert.match(dogfood, /## Dogfood Run 004/);
+assert.match(dogfood, /The repo-native runner self-dogfood passed/);
+assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
 assert.match(verificationStatus, /v1-dogfood-runner/);
 assert.match(verificationStatus, /scripts\/smoke-v1-dogfood-runner\.mjs/);

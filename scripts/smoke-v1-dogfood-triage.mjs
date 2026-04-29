@@ -90,6 +90,26 @@ assert.match(dogfood, /refuses an existing linked worktree path/);
 assert.match(dogfood, /dirty source repo/);
 assert.match(dogfood, /never runs `commit-package`, `local commit`, `push`, `merge`, `release-package`, or `close-out`/);
 assert.match(dogfood, /Discarding that branch or removing the linked worktree remains a destructive cleanup action/);
+assert.match(dogfood, /## Dogfood Run 004/);
+assert.match(dogfood, /Recorded at `2026-04-29 16:19:39 \+0900` on local `main`/);
+assert.match(dogfood, /d2076aef100d915969b73addbc7d8d082423175d/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-001/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-001`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-001`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-001`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-001`, `61654`, `4315`, or `59006` listener remained/);
+assert.match(dogfood, /source git status after run: clean tree with `main\.\.\.origin\/main \[ahead 12\]`/);
+assert.match(dogfood, /linked worktree status after run: dirty by design, `prompts\/builder\.md` modified/);
+assert.match(dogfood, /Ran the repo-native dogfood runner in explicit execute mode/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-001`/);
+assert.match(dogfood, /Consumed builder live-mutation approval `approval-0001`|consumed builder live-mutation approval `approval-0001`/);
+assert.match(dogfood, /builder live mutation run: `run-0005`/);
+assert.match(dogfood, /reviewer run: `run-0006`/);
+assert.match(dogfood, /reviewer source run: `run-0005`/);
+assert.match(dogfood, /reviewer raw verdict: `pass`/);
+assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
+assert.match(dogfood, /The repo-native runner self-dogfood passed/);
+assert.match(dogfood, /Keep both dirty dogfood linked worktrees as retained evidence/);
 
 console.log(
   JSON.stringify(
@@ -97,9 +117,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 003',
+        run: 'Dogfood Run 004',
         result: 'pass',
-        nextAction: 'discard dogfood branch with explicit approval or use repo-native runner for repeatable gated dogfood',
+        nextAction: 'keep dirty dogfood linked worktrees as retained evidence until explicit cleanup approval',
       },
     },
     null,

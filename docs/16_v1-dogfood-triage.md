@@ -188,5 +188,71 @@ Mutation behavior is explicit:
 
 Current retained evidence:
 - Dogfood Run 002 linked worktree remains dirty by design at `/Users/sungjin/dev/personal/orchestration--v1-dogfood-run-002`.
+- Dogfood Run 004 linked worktree remains dirty by design at `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-001`.
 - The existing dirty linked worktree is evidence for the reviewed local-stub marker mutation, not implementation output to promote.
 - Discarding that branch or removing the linked worktree remains a destructive cleanup action and requires an explicit operator decision.
+
+## Dogfood Run 004
+Recorded at `2026-04-29 16:19:39 +0900` on local `main`.
+
+- head: `d2076aef100d915969b73addbc7d8d082423175d`
+- command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-001`
+- source project_path: `/Users/sungjin/dev/personal/orchestration`
+- linked worktree branch: `worktree/v1-dogfood-runner-001`
+- linked worktree path: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-001`
+- provider mode: `local-stub`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-v1-dogfood-runner-v1-dogfood-runner-001`
+- result: pass
+- listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-001`, `61654`, `4315`, or `59006` listener remained
+- source git status after run: clean tree with `main...origin/main [ahead 12]`
+- linked worktree status after run: dirty by design, `prompts/builder.md` modified
+- push state: deferred; no push was performed
+- commit state: no linked worktree commit was performed
+
+Scenario executed:
+1. Ran the repo-native dogfood runner in explicit execute mode with operator-chosen slug `v1-dogfood-runner-001`.
+2. Registered the source repo as `project-0001`.
+3. Created linked worktree project `project-0002` at `worktree/v1-dogfood-runner-001`.
+4. Created mission `mission-0001` with autodrafted council session `councilSession-0001`.
+5. Approved the council recommendation and consumed builder live-mutation approval `approval-0001`.
+6. Ran builder live mutation `run-0005`, then reviewer `run-0006`.
+7. Confirmed the runner did not run `commit-package`, `local commit`, `push`, `merge`, `release-package`, or `close-out`.
+
+Evidence:
+- task: `task-0001`
+- task lifecycle after run: `Review`
+- task review status after run: `passed`
+- approval: `approval-0001`, status `approved`, consumed by `run-0005`
+- builder live mutation run: `run-0005`
+- reviewer run: `run-0006`
+- reviewer source run: `run-0005`
+- reviewer raw verdict: `pass`
+- reviewer mapped status: `passed`
+- artifact types: `plan`, `architecture`, `breakdown`, `preflight`, `change-summary`, `patch`, `diff`, `review`
+- changed files: `prompts/builder.md`
+- never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`
+
+Linked worktree diff:
+
+```diff
+diff --git a/prompts/builder.md b/prompts/builder.md
+index aedcc3d..d9fe367 100644
+--- a/prompts/builder.md
++++ b/prompts/builder.md
+@@ -134,3 +134,4 @@ Do not run reviewer live, commit, merge, release, or advance task lifecycle from
+   - no reviewer, commit, merge, or release action ran
+ - No unapproved architecture change was made
+ - The work is ready for review-facing inspection, not marked complete
++<!-- builder-live-mutation approval-0001 prompts/builder.md -->
+```
+
+Triage finding:
+- The repo-native runner self-dogfood passed the same local-stub linked worktree proof as the temporary runner.
+- The runner's execute mode produced the expected project, linked worktree, mission, council, approval, builder, reviewer, run, and artifact evidence.
+- Current `main` stayed clean; mutation was isolated to the new linked worktree.
+- No runtime listener remained after the run.
+- The generated marker mutation is still low-signal harness proof and remains non-promotable implementation output.
+
+Next action:
+- Keep both dirty dogfood linked worktrees as retained evidence until explicit cleanup approval is given.
+- Use `--dry-run` for routine runner safety checks and reserve `--execute --slug <slug>` for intentional new linked-worktree dogfood evidence.
