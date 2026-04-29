@@ -36,6 +36,9 @@ assert.match(runbook, /push, retained dogfood cleanup, or another execute dogfoo
 
 assert.match(verificationStatus, /v1-operator-status/);
 assert.match(verificationStatus, /scripts\/smoke-v1-operator-status\.mjs/);
+assert.match(verificationStatus, /acquireVerificationLock/);
+assert.match(verificationStatus, /verification_status\.lock/);
+assert.match(verificationStatus, /serialized: true/);
 
 console.log(
   JSON.stringify(

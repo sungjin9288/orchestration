@@ -868,3 +868,4 @@
 - dogfood linked worktree cleanup은 실제 삭제 전에 read-only inventory부터 두는 편이 안전하다. path/branch/dirty marker/runtime root와 cleanup command preview를 먼저 고정하면 evidence 보존과 destructive cleanup approval boundary를 분리할 수 있다.
 - dogfood 후 handoff 문서는 “모든 v1 gate를 다시 통과했다”는 선언이 아니라 현재 clean head, ahead count, dogfood evidence 범위, retained cleanup blocker, push deferral, 다음 operator choice를 분리해서 적어야 한다. 그래야 readiness evidence와 후속 의사결정 상태가 섞이지 않는다.
 - 개발이 implementation-complete 상태에 가까워지면 다음 행동을 문서 prose에만 남기지 말고 read-only operator status로 묶는 편이 안전하다. clean/ahead 상태, verification aggregate, retained evidence inventory, approval-gated choices를 하나의 JSON으로 보여 주면 Codex가 push, cleanup, execute dogfood 같은 승인 민감 작업을 임의로 진행하는 drift를 줄일 수 있다.
+- status script가 내부에서 aggregate smoke를 호출한다면 같은 aggregate를 병렬로 돌렸을 때 shared runtime root가 충돌할 수 있다. read-only wrapper라도 nested verification을 실행한다면 top-level aggregate에 repo-local lock을 두어 직렬화하고, lock 상태를 JSON에 노출해야 병렬 실행 false failure를 막을 수 있다.

@@ -102,6 +102,7 @@ The command produces a read-only status summary for:
 Safety boundary:
 - the script does not push, remove worktrees, delete branches, execute dogfood, commit, merge, release, or close out
 - `push-main`, `cleanup-retained-dogfood-worktrees`, and `run-another-dogfood-execute` remain explicit operator approval decisions
+- `verification_status` is serialized through `var/locks/verification_status.lock`, so nested status checks do not run shared smoke runtime roots concurrently
 - default safe action remains to defer push until the operator explicitly chooses push, retained dogfood cleanup, or another execute dogfood slug
 
 ## Optional Live Rehearsal

@@ -1,10 +1,16 @@
 import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
+const lockRoot = path.join(repoRoot, 'var', 'locks');
+const lockPath = path.join(lockRoot, 'verification_status.lock');
+const lockWaitMs = 120_000;
+const staleLockMs = 10 * 60_000;
 
 const requiredChecks = [
   {
@@ -90,53 +96,127 @@ function executeChecks(checks, blocking) {
   });
 }
 
-const requiredResults = executeChecks(requiredChecks, true);
-const informationalResults = executeChecks(informationalChecks, false);
-const allResults = [...requiredResults, ...informationalResults];
+function sleepSync(milliseconds) {
+  const buffer = new SharedArrayBuffer(4);
+  const view = new Int32Array(buffer);
+  Atomics.wait(view, 0, 0, milliseconds);
+}
 
-const failedRequiredChecks = requiredResults.filter((check) => !check.ok).length;
-const passedRequiredChecks = requiredResults.length - failedRequiredChecks;
-const failedInformationalChecks = informationalResults.filter((check) => !check.ok).length;
-const passedInformationalChecks = informationalResults.length - failedInformationalChecks;
+function removeLockIfStale(now) {
+  try {
+    const stats = fs.statSync(lockPath);
+    if (now - stats.mtimeMs < staleLockMs) {
+      return false;
+    }
+    fs.rmSync(lockPath, { recursive: true, force: true });
+    return true;
+  } catch (_error) {
+    return false;
+  }
+}
 
-const report = {
-  ok: failedRequiredChecks === 0,
-  mode: 'synthetic-verification-status',
-  counts: {
-    totalChecks: allResults.length,
-    requiredChecks: requiredResults.length,
-    passedRequiredChecks,
-    failedRequiredChecks,
-    informationalChecks: informationalResults.length,
-    passedInformationalChecks,
-    failedInformationalChecks,
-  },
-  required: requiredResults.map((check) => ({
-    id: check.id,
-    script: check.script,
-    purpose: check.purpose,
-    ok: check.ok,
-    status: check.status,
-  })),
-  informational: informationalResults.map((check) => ({
-    id: check.id,
-    script: check.script,
-    purpose: check.purpose,
-    ok: check.ok,
-    status: check.status,
-  })),
-  failures: allResults
-    .filter((check) => !check.ok)
-    .map((check) => ({
+function acquireVerificationLock() {
+  fs.mkdirSync(lockRoot, { recursive: true });
+  const startTime = Date.now();
+
+  while (Date.now() - startTime <= lockWaitMs) {
+    try {
+      fs.mkdirSync(lockPath);
+      fs.writeFileSync(
+        path.join(lockPath, 'owner.json'),
+        `${JSON.stringify(
+          {
+            host: os.hostname(),
+            pid: process.pid,
+            startedAt: new Date().toISOString(),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      return { acquired: true, path: lockPath };
+    } catch (error) {
+      if (error?.code !== 'EEXIST') {
+        throw error;
+      }
+      removeLockIfStale(Date.now());
+      sleepSync(250);
+    }
+  }
+
+  throw new Error(`Timed out waiting for verification_status lock: ${lockPath}`);
+}
+
+function releaseVerificationLock(lock) {
+  if (!lock?.acquired) {
+    return;
+  }
+  fs.rmSync(lock.path, { recursive: true, force: true });
+}
+
+function buildReport() {
+  const requiredResults = executeChecks(requiredChecks, true);
+  const informationalResults = executeChecks(informationalChecks, false);
+  const allResults = [...requiredResults, ...informationalResults];
+
+  const failedRequiredChecks = requiredResults.filter((check) => !check.ok).length;
+  const passedRequiredChecks = requiredResults.length - failedRequiredChecks;
+  const failedInformationalChecks = informationalResults.filter((check) => !check.ok).length;
+  const passedInformationalChecks = informationalResults.length - failedInformationalChecks;
+
+  return {
+    ok: failedRequiredChecks === 0,
+    mode: 'synthetic-verification-status',
+    concurrency: {
+      lockPath: path.relative(repoRoot, lockPath),
+      serialized: true,
+    },
+    counts: {
+      totalChecks: allResults.length,
+      requiredChecks: requiredResults.length,
+      passedRequiredChecks,
+      failedRequiredChecks,
+      informationalChecks: informationalResults.length,
+      passedInformationalChecks,
+      failedInformationalChecks,
+    },
+    required: requiredResults.map((check) => ({
       id: check.id,
       script: check.script,
-      blocking: check.blocking,
+      purpose: check.purpose,
+      ok: check.ok,
       status: check.status,
-      signal: check.signal,
-      stdout: check.stdout,
-      stderr: check.stderr,
     })),
-};
+    informational: informationalResults.map((check) => ({
+      id: check.id,
+      script: check.script,
+      purpose: check.purpose,
+      ok: check.ok,
+      status: check.status,
+    })),
+    failures: allResults
+      .filter((check) => !check.ok)
+      .map((check) => ({
+        id: check.id,
+        script: check.script,
+        blocking: check.blocking,
+        status: check.status,
+        signal: check.signal,
+        stdout: check.stdout,
+        stderr: check.stderr,
+      })),
+  };
+}
 
-console.log(JSON.stringify(report, null, 2));
-process.exit(report.ok ? 0 : 1);
+const lock = acquireVerificationLock();
+let exitCode = 1;
+
+try {
+  const report = buildReport();
+  exitCode = report.ok ? 0 : 1;
+  console.log(JSON.stringify(report, null, 2));
+} finally {
+  releaseVerificationLock(lock);
+}
+
+process.exit(exitCode);
