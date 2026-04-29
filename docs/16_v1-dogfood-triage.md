@@ -256,3 +256,16 @@ Triage finding:
 Next action:
 - Keep both dirty dogfood linked worktrees as retained evidence until explicit cleanup approval is given.
 - Use `--dry-run` for routine runner safety checks and reserve `--execute --slug <slug>` for intentional new linked-worktree dogfood evidence.
+
+## Dogfood Evidence Inventory
+The retained dirty linked worktrees are now checked by `scripts/v1-dogfood-evidence-inventory.mjs`.
+
+Inventory behavior:
+- The inventory is read-only and exists to preserve the destructive cleanup approval gate.
+- It checks Dogfood Run 002 and Dogfood Run 004 linked worktree paths, branch names, dirty marker files, runtime roots, and current source repo status.
+- It reports cleanup command previews only; it does not remove worktrees, delete branches, reset files, commit, push, merge, release, or close out.
+- Cleanup remains blocked until explicit operator approval because both retained worktrees contain reviewed dogfood evidence.
+
+Current retained evidence set:
+- Dogfood Run 002: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-run-002`, branch `worktree/v1-dogfood-run-002`.
+- Dogfood Run 004: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-001`, branch `worktree/v1-dogfood-runner-001`.

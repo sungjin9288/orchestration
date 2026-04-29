@@ -45,6 +45,11 @@ const informationalChecks = [
     script: 'scripts/smoke-v1-dogfood-runner.mjs',
     purpose: 'V1 linked-worktree dogfood runner stays dry-run by default and requires explicit execute plus slug before mutating an isolated worktree',
   },
+  {
+    id: 'v1-dogfood-evidence-inventory',
+    script: 'scripts/smoke-v1-dogfood-evidence-inventory.mjs',
+    purpose: 'V1 dogfood retained linked-worktree evidence stays visible while destructive cleanup remains approval-gated',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
