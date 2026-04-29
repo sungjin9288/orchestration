@@ -67,9 +67,21 @@ assert.match(runbook, /choose between explicit cleanup approval for retained dog
 assert.match(runbook, /node scripts\/smoke-provider-live-slice-05\.mjs/);
 assert.match(runbook, /node scripts\/smoke-qa-live-slice-07\.mjs/);
 assert.match(runbook, /scripts\/smoke-openspace-slice-03\.mjs/);
-assert.match(runbook, /next development priority is v1 dogfood result triage/);
+assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 004/);
+assert.match(runbook, /Current local completion is now represented by `node scripts\/v1-local-completion-status\.mjs`/);
+assert.match(runbook, /Default next action without approval/);
+assert.match(runbook, /defer push/);
+assert.match(runbook, /Explicit approval-gated next actions/);
+assert.match(runbook, /push local `main`/);
+assert.match(runbook, /clean retained dogfood linked worktree evidence/);
+assert.match(runbook, /run another intentional `--execute --slug <slug>` dogfood pass/);
 assert.match(runbook, /Do not reopen the already-completed preview-only artifact redaction policy/);
-assert.match(handoff, /`v1 dogfood result triage`/);
+assert.match(handoff, /current local v1 development baseline is complete on `main`/);
+assert.match(handoff, /node scripts\/v1-local-completion-status\.mjs` reports `localDevelopmentComplete=true`/);
+assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
+assert.match(handoff, /approve pushing local `main`/);
+assert.match(handoff, /approve destructive cleanup of retained dogfood evidence worktrees/);
+assert.match(handoff, /approve another intentional `--execute --slug <slug>` dogfood run/);
 assert.match(handoff, /preview-only artifact redaction policy is already implemented/);
 
 assert.match(verificationStatus, /v1-start-runbook/);
@@ -84,7 +96,7 @@ console.log(
         requiredGatePinned: true,
         pushDeferredBoundaryPinned: true,
         openSpaceCredentialBoundaryPinned: true,
-        nextPriorityPinned: 'v1 dogfood result triage',
+        nextPriorityPinned: 'approval-gated operator choices after completed dogfood triage',
       },
     },
     null,

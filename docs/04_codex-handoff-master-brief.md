@@ -252,11 +252,23 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current operator-usable v1 baseline is complete on `main`.
+The current local v1 development baseline is complete on `main`.
 
-The next development priority is:
+Current local completion snapshot:
 
-`v1 dogfood result triage`
+- `node scripts/v1-local-completion-status.mjs` reports `localDevelopmentComplete=true`
+- current `main` is clean and ahead of `origin/main`
+- `node scripts/verification_status.mjs` remains green
+- Dogfood Run 001 through Dogfood Run 004 evidence is recorded
+- retained dogfood linked worktrees are intentionally dirty evidence and cleanup remains approval-gated
+- push remains approval-gated and has not been performed
+
+The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
+
+- keep deferring push
+- approve pushing local `main`
+- approve destructive cleanup of retained dogfood evidence worktrees
+- approve another intentional `--execute --slug <slug>` dogfood run
 
 The preview-only artifact redaction policy is already implemented for `change-summary` structured preview and should not be reopened unless dogfood exposes a concrete redaction regression.
 

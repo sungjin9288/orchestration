@@ -189,11 +189,16 @@ Do not start v1 dogfooding if any of these are true:
 - the user-facing flow does not explain current action, result location, or next destination
 
 ## Next Development Priority
-After v1 start readiness is recorded, the next development priority is v1 dogfood result triage.
+V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 004.
 
-Default next action:
-- run one real local development task through `Mission -> Council -> Execution -> Deliverables`
-- record operator friction, artifact/review/approval evidence, and any stop criteria hit
-- fix only the highest-severity local-first workflow regression found by that run
+Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
+
+Default next action without approval:
+- defer push
+
+Explicit approval-gated next actions:
+- push local `main`
+- clean retained dogfood linked worktree evidence
+- run another intentional `--execute --slug <slug>` dogfood pass
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.

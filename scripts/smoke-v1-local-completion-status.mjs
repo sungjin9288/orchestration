@@ -8,9 +8,11 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const completionStatusPath = path.join(repoRoot, 'scripts', 'v1-local-completion-status.mjs');
 const runbookPath = path.join(repoRoot, 'docs', '15_v1-start-runbook.md');
+const handoffPath = path.join(repoRoot, 'docs', '04_codex-handoff-master-brief.md');
 
 const completionStatus = fs.readFileSync(completionStatusPath, 'utf8');
 const runbook = fs.readFileSync(runbookPath, 'utf8');
+const handoff = fs.readFileSync(handoffPath, 'utf8');
 
 assert.match(completionStatus, /mode: 'v1-local-completion-status'/);
 assert.match(completionStatus, /scripts\/v1-operator-status\.mjs/);
@@ -28,6 +30,13 @@ assert.match(runbook, /## Local Completion Status/);
 assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
 assert.match(runbook, /current local development is complete/);
 assert.match(runbook, /publish and cleanup remain approval-gated/);
+assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 004/);
+assert.match(runbook, /Default next action without approval/);
+assert.match(handoff, /current local v1 development baseline is complete on `main`/);
+assert.match(handoff, /localDevelopmentComplete=true/);
+assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
+assert.match(handoff, /approve pushing local `main`/);
+assert.match(handoff, /approve destructive cleanup of retained dogfood evidence worktrees/);
 
 console.log(
   JSON.stringify(
