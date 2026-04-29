@@ -10,11 +10,13 @@ const statusPath = path.join(repoRoot, 'scripts', 'v1-operator-status.mjs');
 const runbookPath = path.join(repoRoot, 'docs', '15_v1-start-runbook.md');
 const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_status.mjs');
 const lockConcurrencySmokePath = path.join(repoRoot, 'scripts', 'smoke-verification-status-lock-concurrency.mjs');
+const completionStatusPath = path.join(repoRoot, 'scripts', 'v1-local-completion-status.mjs');
 
 const status = fs.readFileSync(statusPath, 'utf8');
 const runbook = fs.readFileSync(runbookPath, 'utf8');
 const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 const lockConcurrencySmoke = fs.readFileSync(lockConcurrencySmokePath, 'utf8');
+const completionStatus = fs.readFileSync(completionStatusPath, 'utf8');
 
 assert.match(status, /mode: 'v1-operator-status'/);
 assert.match(status, /scripts\/verification_status\.mjs/);
@@ -48,6 +50,10 @@ assert.match(lockConcurrencySmoke, /Promise\.all\(concurrentChecks\.map\(runNode
 assert.match(lockConcurrencySmoke, /childTimeoutMs = 180_000/);
 assert.match(runbook, /node scripts\/smoke-verification-status-lock-concurrency\.mjs/);
 assert.match(runbook, /keep this smoke standalone/);
+assert.match(completionStatus, /mode: 'v1-local-completion-status'/);
+assert.match(completionStatus, /nextAllowedWithoutApproval: \['defer-push'\]/);
+assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
+assert.match(runbook, /publish and cleanup remain approval-gated/);
 
 console.log(
   JSON.stringify(

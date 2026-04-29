@@ -109,6 +109,21 @@ Manual concurrency regression check:
 - run `node scripts/smoke-verification-status-lock-concurrency.mjs` when changing `verification_status` locking or `v1-operator-status` nested verification behavior
 - keep this smoke standalone; do not add it to `scripts/verification_status.mjs`, because it intentionally spawns concurrent `verification_status` children to prove lock serialization
 
+## Local Completion Status
+Use `node scripts/v1-local-completion-status.mjs` to summarize whether current local development is complete while publish and cleanup remain approval-gated.
+
+The command reports `localDevelopmentComplete=true` only when:
+- current `main` is clean
+- `verification_status` is green
+- retained dogfood evidence inventory is green
+- push is available but still pending explicit approval
+- retained dogfood cleanup remains blocked behind explicit approval
+
+Safety boundary:
+- the script is read-only
+- it does not push, clean worktrees, execute dogfood, commit, merge, release, or close out
+- `defer-push` is the only next action listed as allowed without approval
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
