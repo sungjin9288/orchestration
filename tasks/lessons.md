@@ -867,3 +867,4 @@
 - runner 자체도 한 번은 self-dogfood execute로 검증해야 한다. 다만 그 evidence는 새 linked worktree dirty state로만 남기고, 현재 `main` clean 여부, listener cleanup, never-run downstream list를 같이 기록해야 runner convenience가 commit/release authority로 오해되지 않는다.
 - dogfood linked worktree cleanup은 실제 삭제 전에 read-only inventory부터 두는 편이 안전하다. path/branch/dirty marker/runtime root와 cleanup command preview를 먼저 고정하면 evidence 보존과 destructive cleanup approval boundary를 분리할 수 있다.
 - dogfood 후 handoff 문서는 “모든 v1 gate를 다시 통과했다”는 선언이 아니라 현재 clean head, ahead count, dogfood evidence 범위, retained cleanup blocker, push deferral, 다음 operator choice를 분리해서 적어야 한다. 그래야 readiness evidence와 후속 의사결정 상태가 섞이지 않는다.
+- 개발이 implementation-complete 상태에 가까워지면 다음 행동을 문서 prose에만 남기지 말고 read-only operator status로 묶는 편이 안전하다. clean/ahead 상태, verification aggregate, retained evidence inventory, approval-gated choices를 하나의 JSON으로 보여 주면 Codex가 push, cleanup, execute dogfood 같은 승인 민감 작업을 임의로 진행하는 drift를 줄일 수 있다.

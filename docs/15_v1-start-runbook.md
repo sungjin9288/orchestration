@@ -90,6 +90,20 @@ This evidence was collected before this post-dogfood handoff documentation updat
 - push state: deferred; no push was performed
 - follow-up: choose between explicit cleanup approval for retained dogfood worktrees, another intentional `--execute --slug <slug>` dogfood run, or push approval when local development is ready to publish
 
+## Operator Decision Status
+Use `node scripts/v1-operator-status.mjs` when the next action is unclear after post-dogfood handoff.
+
+The command produces a read-only status summary for:
+- current `main` clean/dirty state, head, and ahead count
+- `node scripts/verification_status.mjs` aggregate status
+- retained dogfood evidence inventory and cleanup approval state
+- operator choices for deferring push, pushing `main`, cleaning retained dogfood worktrees, or running another execute-mode dogfood slug
+
+Safety boundary:
+- the script does not push, remove worktrees, delete branches, execute dogfood, commit, merge, release, or close out
+- `push-main`, `cleanup-retained-dogfood-worktrees`, and `run-another-dogfood-execute` remain explicit operator approval decisions
+- default safe action remains to defer push until the operator explicitly chooses push, retained dogfood cleanup, or another execute dogfood slug
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 

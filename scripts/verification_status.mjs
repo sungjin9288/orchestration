@@ -50,6 +50,11 @@ const informationalChecks = [
     script: 'scripts/smoke-v1-dogfood-evidence-inventory.mjs',
     purpose: 'V1 dogfood retained linked-worktree evidence stays visible while destructive cleanup remains approval-gated',
   },
+  {
+    id: 'v1-operator-status',
+    script: 'scripts/smoke-v1-operator-status.mjs',
+    purpose: 'V1 local operator status keeps push, cleanup, and execute-dogfood choices explicit and approval-gated',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
