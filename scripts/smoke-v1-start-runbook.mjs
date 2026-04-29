@@ -69,12 +69,16 @@ assert.match(runbook, /node scripts\/smoke-qa-live-slice-07\.mjs/);
 assert.match(runbook, /scripts\/smoke-openspace-slice-03\.mjs/);
 assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 005/);
 assert.match(runbook, /Current local completion is now represented by `node scripts\/v1-local-completion-status\.mjs`/);
+assert.match(runbook, /First v1 kickoff readiness is represented by `node scripts\/v1-kickoff-status\.mjs`/);
 assert.match(runbook, /Default next action without approval/);
-assert.match(runbook, /defer push/);
+assert.match(runbook, /start the first v1 user-flow kickoff slice/);
 assert.match(runbook, /Explicit approval-gated next actions/);
 assert.match(runbook, /push is complete/);
 assert.match(runbook, /Dogfood Run 002, Run 004, and Run 005 retained dogfood linked worktree cleanup is complete/);
 assert.match(runbook, /run another intentional `--execute --slug <slug>` dogfood pass/);
+assert.match(runbook, /## V1 Kickoff Status/);
+assert.match(runbook, /node scripts\/v1-kickoff-status\.mjs/);
+assert.match(runbook, /Additional execute-mode dogfood is optional and approval-gated/);
 assert.match(runbook, /Do not reopen the already-completed preview-only artifact redaction policy/);
 assert.match(handoff, /current local v1 development baseline is complete on `main`/);
 assert.match(handoff, /node scripts\/v1-local-completion-status\.mjs` reports `localDevelopmentComplete=true`/);
@@ -82,6 +86,9 @@ assert.match(handoff, /The next action is no longer an implementation backlog it
 assert.match(handoff, /push had completed before the retained cleanup documentation update/);
 assert.match(handoff, /Dogfood Run 002, Run 004, and Run 005 retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /approve another intentional `--execute --slug <slug>` dogfood run/);
+assert.match(handoff, /first v1 user-flow kickoff slice/);
+assert.match(handoff, /node scripts\/v1-kickoff-status\.mjs/);
+assert.match(handoff, /do not run another dogfood pass by default/);
 assert.match(handoff, /preview-only artifact redaction policy is already implemented/);
 
 assert.match(verificationStatus, /v1-start-runbook/);

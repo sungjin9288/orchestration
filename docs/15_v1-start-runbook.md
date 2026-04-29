@@ -124,6 +124,27 @@ Safety boundary:
 - it does not push, clean worktrees, execute dogfood, commit, merge, release, or close out
 - `defer-push` remains the no-op next action listed as allowed without approval
 
+## V1 Kickoff Status
+Use `node scripts/v1-kickoff-status.mjs` after local completion is green and dogfood cleanup is complete.
+
+The command is read-only and exists to prevent the project from looping on additional dogfood by default.
+
+It reports the first v1 kickoff slice as ready only when:
+- local development is complete
+- current `main` is published
+- verification is green
+- retained dogfood cleanup is complete
+- no approval-gated blocker remains except optional additional execute-mode dogfood
+
+First v1 kickoff slice:
+- Register or select a local project.
+- Create one small development task with a concrete operator-facing outcome.
+- Run the work through `Mission / Council / Execution / Deliverables`.
+- Confirm `Taskboard / Logs / Artifacts / Decision Inbox` still show where the result, evidence, approval, and next action live.
+- Stop before push, publish, merge, external release, or hidden cleanup unless explicitly approved.
+
+Additional execute-mode dogfood is optional and approval-gated; do not run another dogfood pass by default once the kickoff status is green.
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
@@ -192,9 +213,10 @@ Do not start v1 dogfooding if any of these are true:
 V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 005.
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
+First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- defer push or new execution
+- start the first v1 user-flow kickoff slice
 
 Explicit approval-gated next actions:
 - run another intentional `--execute --slug <slug>` dogfood pass

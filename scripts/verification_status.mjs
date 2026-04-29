@@ -61,6 +61,11 @@ const informationalChecks = [
     script: 'scripts/smoke-v1-operator-status.mjs',
     purpose: 'V1 local operator status keeps publish, cleanup, and execute-dogfood states explicit and approval-aware',
   },
+  {
+    id: 'v1-kickoff-status',
+    script: 'scripts/smoke-v1-kickoff-status.mjs',
+    purpose: 'V1 kickoff status moves the post-dogfood baseline into the first user-flow slice without executing dogfood or mutating runtime state',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

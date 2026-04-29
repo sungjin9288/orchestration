@@ -267,6 +267,12 @@ The next action is no longer an implementation backlog item by default. It is an
 
 - approve another intentional `--execute --slug <slug>` dogfood run
 
+The default non-dogfood continuation is the first v1 user-flow kickoff slice. Before implementing it, run:
+
+- `node scripts/v1-kickoff-status.mjs`
+
+If that status is green, do not run another dogfood pass by default. Start the slice that registers or selects a local project, creates one task, runs `Mission / Council / Execution / Deliverables`, and verifies that `Taskboard / Logs / Artifacts / Decision Inbox` explain where the result and next action live.
+
 The preview-only artifact redaction policy is already implemented for `change-summary` structured preview and should not be reopened unless dogfood exposes a concrete redaction regression.
 
 Optional real-live reruns remain non-blocking operational housekeeping when configured env is visible to the current execution context. The historical execution spec for that work remains locked in:
