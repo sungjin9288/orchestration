@@ -9,10 +9,12 @@ const repoRoot = path.resolve(__dirname, '..');
 const statusPath = path.join(repoRoot, 'scripts', 'v1-operator-status.mjs');
 const runbookPath = path.join(repoRoot, 'docs', '15_v1-start-runbook.md');
 const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_status.mjs');
+const lockConcurrencySmokePath = path.join(repoRoot, 'scripts', 'smoke-verification-status-lock-concurrency.mjs');
 
 const status = fs.readFileSync(statusPath, 'utf8');
 const runbook = fs.readFileSync(runbookPath, 'utf8');
 const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
+const lockConcurrencySmoke = fs.readFileSync(lockConcurrencySmokePath, 'utf8');
 
 assert.match(status, /mode: 'v1-operator-status'/);
 assert.match(status, /scripts\/verification_status\.mjs/);
@@ -39,6 +41,13 @@ assert.match(verificationStatus, /scripts\/smoke-v1-operator-status\.mjs/);
 assert.match(verificationStatus, /acquireVerificationLock/);
 assert.match(verificationStatus, /verification_status\.lock/);
 assert.match(verificationStatus, /serialized: true/);
+
+assert.match(lockConcurrencySmoke, /verification-status-lock-concurrency-smoke/);
+assert.match(lockConcurrencySmoke, /do not add this recursive concurrency smoke to scripts\/verification_status\.mjs/);
+assert.match(lockConcurrencySmoke, /Promise\.all\(concurrentChecks\.map\(runNodeCheck\)\)/);
+assert.match(lockConcurrencySmoke, /childTimeoutMs = 180_000/);
+assert.match(runbook, /node scripts\/smoke-verification-status-lock-concurrency\.mjs/);
+assert.match(runbook, /keep this smoke standalone/);
 
 console.log(
   JSON.stringify(

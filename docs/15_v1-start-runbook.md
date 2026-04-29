@@ -105,6 +105,10 @@ Safety boundary:
 - `verification_status` is serialized through `var/locks/verification_status.lock`, so nested status checks do not run shared smoke runtime roots concurrently
 - default safe action remains to defer push until the operator explicitly chooses push, retained dogfood cleanup, or another execute dogfood slug
 
+Manual concurrency regression check:
+- run `node scripts/smoke-verification-status-lock-concurrency.mjs` when changing `verification_status` locking or `v1-operator-status` nested verification behavior
+- keep this smoke standalone; do not add it to `scripts/verification_status.mjs`, because it intentionally spawns concurrent `verification_status` children to prove lock serialization
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
