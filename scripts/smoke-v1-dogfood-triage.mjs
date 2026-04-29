@@ -82,6 +82,14 @@ assert.match(dogfood, /Reviewer anchoring worked/);
 assert.match(dogfood, /Task review state advanced to `passed`/);
 assert.match(dogfood, /Do not promote the local-stub marker mutation as implementation output/);
 assert.match(dogfood, /convert the reusable API dogfood runner into a repo-native script/);
+assert.match(dogfood, /## Repo-native Dogfood Runner/);
+assert.match(dogfood, /scripts\/v1-dogfood-linked-worktree-runner\.mjs/);
+assert.match(dogfood, /defaults to non-mutating `--dry-run`/);
+assert.match(dogfood, /`--execute --slug <slug>`/);
+assert.match(dogfood, /refuses an existing linked worktree path/);
+assert.match(dogfood, /dirty source repo/);
+assert.match(dogfood, /never runs `commit-package`, `local commit`, `push`, `merge`, `release-package`, or `close-out`/);
+assert.match(dogfood, /Discarding that branch or removing the linked worktree remains a destructive cleanup action/);
 
 console.log(
   JSON.stringify(
@@ -91,7 +99,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 003',
         result: 'pass',
-        nextAction: 'discard dogfood branch or convert reusable runner into a repo-native script',
+        nextAction: 'discard dogfood branch with explicit approval or use repo-native runner for repeatable gated dogfood',
       },
     },
     null,

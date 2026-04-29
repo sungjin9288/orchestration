@@ -171,3 +171,22 @@ Triage finding:
 Next action:
 - Do not promote the local-stub marker mutation as implementation output.
 - Either discard the linked worktree dogfood branch after evidence review, or convert the reusable API dogfood runner into a repo-native script if this flow should become a repeatable v1 dogfood gate.
+
+## Repo-native Dogfood Runner
+The repeated temporary API runner has been converted into `scripts/v1-dogfood-linked-worktree-runner.mjs`.
+
+Default behavior is safe preview:
+- The runner defaults to non-mutating `--dry-run`.
+- `--dry-run` reports source `project_path`, target branch, target linked worktree path, runtime root, source git status, existing-path checks, and the no-commit/no-push boundary.
+- `--dry-run` does not start the UI server, create runtime state, create a branch, create a linked worktree, request approval, mutate files, commit, push, merge, release, or close out.
+
+Mutation behavior is explicit:
+- `--execute --slug <slug>` is required before the runner starts `scripts/serve-ui-slice-01.mjs` and calls the product API flow.
+- Execute mode refuses an existing linked worktree path, an existing `worktree/<slug>` branch, a dirty source repo, or an existing runtime root.
+- Execute mode registers the source project, creates the linked worktree through `/api/projects/:id/linked-worktrees`, creates a mission/council flow, approves the council recommendation, approves the pending builder live-mutation approval, runs builder live mutation, and runs reviewer unless `--skip-reviewer` is supplied.
+- Execute mode never runs `commit-package`, `local commit`, `push`, `merge`, `release-package`, or `close-out`.
+
+Current retained evidence:
+- Dogfood Run 002 linked worktree remains dirty by design at `/Users/sungjin/dev/personal/orchestration--v1-dogfood-run-002`.
+- The existing dirty linked worktree is evidence for the reviewed local-stub marker mutation, not implementation output to promote.
+- Discarding that branch or removing the linked worktree remains a destructive cleanup action and requires an explicit operator decision.

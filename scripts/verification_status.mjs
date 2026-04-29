@@ -38,7 +38,12 @@ const informationalChecks = [
   {
     id: 'v1-dogfood-triage',
     script: 'scripts/smoke-v1-dogfood-triage.mjs',
-    purpose: 'V1 dogfood triage evidence keeps first local run result, approval stop, and linked-worktree next action explicit',
+    purpose: 'V1 dogfood triage evidence keeps local run results, linked-worktree mutation/review evidence, and destructive cleanup boundary explicit',
+  },
+  {
+    id: 'v1-dogfood-runner',
+    script: 'scripts/smoke-v1-dogfood-runner.mjs',
+    purpose: 'V1 linked-worktree dogfood runner stays dry-run by default and requires explicit execute plus slug before mutating an isolated worktree',
   },
 ];
 
