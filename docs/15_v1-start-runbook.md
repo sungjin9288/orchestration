@@ -153,6 +153,30 @@ node scripts/smoke-v1-user-flow-kickoff.mjs
 
 During development of the kickoff smoke itself, `V1_KICKOFF_ALLOW_DIRTY=1` may be used only when the sole blocker is unpublished local source changes from the current slice. Do not use that override as release evidence after the smoke is committed and pushed.
 
+## Clean Published Kickoff Evidence
+Recorded at `2026-04-30 00:23:38 +0900` on published `main`.
+
+Repository state:
+- head: `23b4a8e464b45a2ad4cdc99eb52c74af3dadc20c`
+- repo status: clean tree with `main...origin/main`
+- `node scripts/v1-kickoff-status.mjs`: pass, `kickoffReady=true`, `mainPublished=true`, `verificationOk=true`, `cleanupSettled=true`
+- `node scripts/ui_qa_status.mjs`: pass, `17/17` required checks; `/api/snapshot` reachability remained informational `skipped` because no local UI server was running
+
+Runtime/browser proof:
+- command: `node scripts/smoke-v1-user-flow-kickoff.mjs`
+- result: pass without `V1_KICKOFF_ALLOW_DIRTY`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-v1-user-flow-kickoff`
+- outputRoot: `/Users/sungjin/dev/personal/orchestration/output/playwright/v1-user-flow-kickoff`
+- scenario: `task-0001`, approval `approval-0001`, builder `run-0005`, reviewer `run-0006`
+- artifacts: `artifact-0005` change summary, `artifact-0006` patch, `artifact-0007` diff, `artifact-0008` review
+- surfaces verified: `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, `Decision Inbox`
+- safety boundary: no commit, push, merge, release, or external release was executed
+
+Resulting default posture:
+- the first v1 user-flow kickoff smoke is now verified on clean/published `main`
+- do not rerun execute-mode dogfood by default
+- next implementation should be driven by a concrete regression or usability issue found from this evidence, not by reopening completed v1 readiness work
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
@@ -224,8 +248,8 @@ Current local completion is now represented by `node scripts/v1-local-completion
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- start the first v1 user-flow kickoff slice
-- run `node scripts/smoke-v1-user-flow-kickoff.mjs` from clean/published `main`
+- inspect the clean/published kickoff evidence and only open a new implementation slice for a concrete regression or usability issue
+- keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
 - run another intentional `--execute --slug <slug>` dogfood pass

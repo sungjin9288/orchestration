@@ -71,7 +71,8 @@ assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfoo
 assert.match(runbook, /Current local completion is now represented by `node scripts\/v1-local-completion-status\.mjs`/);
 assert.match(runbook, /First v1 kickoff readiness is represented by `node scripts\/v1-kickoff-status\.mjs`/);
 assert.match(runbook, /Default next action without approval/);
-assert.match(runbook, /start the first v1 user-flow kickoff slice/);
+assert.match(runbook, /inspect the clean\/published kickoff evidence/);
+assert.match(runbook, /representative clean user-flow proof command/);
 assert.match(runbook, /Explicit approval-gated next actions/);
 assert.match(runbook, /push is complete/);
 assert.match(runbook, /Dogfood Run 002, Run 004, and Run 005 retained dogfood linked worktree cleanup is complete/);
@@ -79,6 +80,21 @@ assert.match(runbook, /run another intentional `--execute --slug <slug>` dogfood
 assert.match(runbook, /## V1 Kickoff Status/);
 assert.match(runbook, /node scripts\/v1-kickoff-status\.mjs/);
 assert.match(runbook, /Additional execute-mode dogfood is optional and approval-gated/);
+assert.match(runbook, /## Clean Published Kickoff Evidence/);
+assert.match(runbook, /Recorded at `2026-04-30 00:23:38 \+0900` on published `main`/);
+assert.match(runbook, /23b4a8e464b45a2ad4cdc99eb52c74af3dadc20c/);
+assert.match(runbook, /repo status: clean tree with `main\.\.\.origin\/main`/);
+assert.match(runbook, /`node scripts\/v1-kickoff-status\.mjs`: pass, `kickoffReady=true`, `mainPublished=true`, `verificationOk=true`, `cleanupSettled=true`/);
+assert.match(runbook, /`node scripts\/ui_qa_status\.mjs`: pass, `17\/17` required checks/);
+assert.match(runbook, /command: `node scripts\/smoke-v1-user-flow-kickoff\.mjs`/);
+assert.match(runbook, /result: pass without `V1_KICKOFF_ALLOW_DIRTY`/);
+assert.match(runbook, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-user-flow-kickoff`/);
+assert.match(runbook, /outputRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/output\/playwright\/v1-user-flow-kickoff`/);
+assert.match(runbook, /scenario: `task-0001`, approval `approval-0001`, builder `run-0005`, reviewer `run-0006`/);
+assert.match(runbook, /`artifact-0005` change summary, `artifact-0006` patch, `artifact-0007` diff, `artifact-0008` review/);
+assert.match(runbook, /surfaces verified: `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, `Decision Inbox`/);
+assert.match(runbook, /the first v1 user-flow kickoff smoke is now verified on clean\/published `main`/);
+assert.match(runbook, /next implementation should be driven by a concrete regression or usability issue/);
 assert.match(runbook, /Do not reopen the already-completed preview-only artifact redaction policy/);
 assert.match(handoff, /current local v1 development baseline is complete on `main`/);
 assert.match(handoff, /node scripts\/v1-local-completion-status\.mjs` reports `localDevelopmentComplete=true`/);
@@ -87,8 +103,14 @@ assert.match(handoff, /push had completed before the retained cleanup documentat
 assert.match(handoff, /Dogfood Run 002, Run 004, and Run 005 retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /approve another intentional `--execute --slug <slug>` dogfood run/);
 assert.match(handoff, /first v1 user-flow kickoff slice/);
+assert.match(handoff, /The first v1 user-flow kickoff slice has now been verified on clean\/published `main`/);
 assert.match(handoff, /node scripts\/v1-kickoff-status\.mjs/);
 assert.match(handoff, /do not run another dogfood pass by default/);
+assert.match(handoff, /recorded on `2026-04-30 00:23:38 \+0900`/);
+assert.match(handoff, /head `23b4a8e464b45a2ad4cdc99eb52c74af3dadc20c`/);
+assert.match(handoff, /passed without `V1_KICKOFF_ALLOW_DIRTY`/);
+assert.match(handoff, /scenario covered `task-0001`, `approval-0001`, builder `run-0005`, reviewer `run-0006`/);
+assert.match(handoff, /verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`/);
 assert.match(handoff, /preview-only artifact redaction policy is already implemented/);
 
 assert.match(verificationStatus, /v1-start-runbook/);

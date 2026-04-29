@@ -267,15 +267,23 @@ The next action is no longer an implementation backlog item by default. It is an
 
 - approve another intentional `--execute --slug <slug>` dogfood run
 
-The default non-dogfood continuation is the first v1 user-flow kickoff slice. Before implementing it, run:
+The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
 
 - `node scripts/v1-kickoff-status.mjs`
 
-If that status is green, do not run another dogfood pass by default. Start the slice that registers or selects a local project, creates one task, runs `Mission / Council / Execution / Deliverables`, and verifies that `Taskboard / Logs / Artifacts / Decision Inbox` explain where the result and next action live.
+If that status is green, do not run another dogfood pass by default. Use the existing clean kickoff evidence to decide whether there is a concrete regression or usability issue to fix.
 
 The runtime/browser proof command for that first slice is:
 
 - `node scripts/smoke-v1-user-flow-kickoff.mjs`
+
+Latest clean proof:
+
+- recorded on `2026-04-30 00:23:38 +0900`
+- head `23b4a8e464b45a2ad4cdc99eb52c74af3dadc20c`
+- `node scripts/smoke-v1-user-flow-kickoff.mjs` passed without `V1_KICKOFF_ALLOW_DIRTY`
+- scenario covered `task-0001`, `approval-0001`, builder `run-0005`, reviewer `run-0006`, and artifacts `artifact-0005` through `artifact-0008`
+- verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`
 
 The preview-only artifact redaction policy is already implemented for `change-summary` structured preview and should not be reopened unless dogfood exposes a concrete redaction regression.
 
