@@ -2334,6 +2334,12 @@ h3 {
   font-weight: 700;
 }
 
+.workspace-location-hint {
+  color: #5b6872;
+  font-size: 0.66rem;
+  line-height: 1.25;
+}
+
 .workspace-location-current-note {
   width: fit-content;
   margin-top: 1px;

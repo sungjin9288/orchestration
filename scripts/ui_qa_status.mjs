@@ -87,6 +87,11 @@ const smokeChecks = [
     script: 'scripts/smoke-ui-slice-636.mjs',
     purpose: 'Mission/Council slice documentation stays aligned with implemented current-main acceptance status',
   },
+  {
+    id: 'workspace-click-outcome-guidance',
+    script: 'scripts/smoke-ui-slice-637.mjs',
+    purpose: 'Workspace playbook tells operators where results live and what each shortcut opens',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

@@ -19,7 +19,7 @@ assert.match(appJs, /workspace-location-action workspace-location-action-seconda
 assert.match(appJs, /const resultSurface = location\.resultSurface \|\| 'deliverables';/);
 assert.match(appJs, /data-target-surface="\$\{escapeHtml\(resultSurface\)\}"/);
 assert.match(appJs, /aria-controls="surface-\$\{escapeHtml\(resultSurface\)\}"/);
-assert.match(appJs, /\$\{escapeHtml\(resultSurfaceLabel\)\} 보기/);
+assert.match(appJs, /\$\{escapeHtml\(resultSurfaceLabel\)\}에서 결과 보기/);
 assert.match(appJs, /data-action="open-surface"/);
 
 assert.match(styles, /\.workspace-location-strip \{[\s\S]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\);/);

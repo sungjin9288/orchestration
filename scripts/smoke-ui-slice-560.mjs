@@ -22,7 +22,7 @@ assert.match(appJs, /data-action="open-surface"/);
 assert.match(appJs, /data-target-surface="\$\{escapeHtml\(location\.targetSurface\)\}"/);
 assert.match(appJs, /aria-controls="surface-\$\{escapeHtml\(location\.targetSurface\)\}"/);
 assert.match(appJs, /const targetSurfaceLabel = location\.targetSurface/);
-assert.match(appJs, /\$\{escapeHtml\(targetSurfaceLabel\)\} 열기/);
+assert.match(appJs, /\$\{escapeHtml\(targetSurfaceLabel\)\}에서 다음 처리 열기/);
 assert.match(appJs, /class="workspace-location-static"/);
 assert.match(appJs, /결정 후 원래 desk로 돌아갑니다/);
 

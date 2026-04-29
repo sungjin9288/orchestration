@@ -41,48 +41,64 @@ const SURFACE_LOCATION_GUIDANCE = {
   artifacts: {
     check: '파일·패킷·provenance',
     next: '결정 필요 시 결정함',
+    nextHint: '승인·보류·해결이 필요하면 결정함 큐가 열립니다.',
     resultSurface: 'deliverables',
+    resultHint: '최종 결과 패킷과 전달 상태는 산출물에서 확인합니다.',
     targetSurface: 'decision-inbox',
   },
   council: {
     check: '역할별 의견·권고안',
     next: '실행 셀',
+    nextHint: '역할별 결론 이후 실행 지시 보드가 열립니다.',
     resultSurface: 'deliverables',
+    resultHint: '회의 이후 완성된 결과 패킷은 산출물에서 확인합니다.',
     targetSurface: 'execution',
   },
   'decision-inbox': {
     check: '승인·보류·해결 대기',
     next: '승인 후 원래 desk',
+    nextHint: '결정 처리 후에는 원래 작업 desk로 돌아가 흐름을 이어갑니다.',
     resultSurface: 'artifacts',
+    resultHint: '승인 근거와 연결 증적은 아티팩트에서 확인합니다.',
   },
   deliverables: {
     check: '완료 결과·인계 패킷',
     next: '아티팩트',
+    nextHint: '결과를 뒷받침하는 원문 증적과 연결 근거가 열립니다.',
     resultSurface: 'artifacts',
+    resultHint: '검토 가능한 원문 증적과 패킷 근거는 아티팩트에 남습니다.',
     targetSurface: 'artifacts',
   },
   execution: {
     check: '진행 작업·막힘·다음 실행',
     next: '산출물',
+    nextHint: '실행 결과가 패킷으로 정리된 전달 데스크가 열립니다.',
     resultSurface: 'deliverables',
+    resultHint: '실행으로 만든 작업 결과는 산출물 패킷에서 확인합니다.',
     targetSurface: 'deliverables',
   },
   logs: {
     check: 'run 기록·오류 흐름',
     next: '아티팩트',
+    nextHint: '선택한 run에서 나온 증적 패킷이 열립니다.',
     resultSurface: 'artifacts',
+    resultHint: 'run이 만든 원문 증적과 연결 근거는 아티팩트에서 확인합니다.',
     targetSurface: 'artifacts',
   },
   mission: {
     check: '목표·제약·첫 안건',
     next: '협의회',
+    nextHint: '목표와 제약을 역할별 의견으로 정렬하는 회의실이 열립니다.',
     resultSurface: 'deliverables',
+    resultHint: '최종 작업 결과와 인계 패킷은 산출물에서 확인합니다.',
     targetSurface: 'council',
   },
   taskboard: {
     check: '작업 셀·담당 desk',
     next: '실행 또는 검토',
+    nextHint: '현재 작업 셀의 실행 보드가 열리고 필요한 검토선으로 이어집니다.',
     resultSurface: 'deliverables',
+    resultHint: '작업 셀의 완료 결과는 산출물에서 확인합니다.',
     targetSurface: 'execution',
   },
 };
@@ -11336,6 +11352,8 @@ function renderWorkspacePlaybook(activeGroupId) {
   const location = SURFACE_LOCATION_GUIDANCE[state.surface] || {
     check: '현재 desk 상태',
     next: '다음 액션',
+    nextHint: '다음으로 처리할 desk가 열립니다.',
+    resultHint: '작업 결과는 산출물에서 확인합니다.',
   };
   const resultSurface = location.resultSurface || 'deliverables';
   const resultSurfaceLabel = getSurfaceDisplayName(resultSurface);
@@ -11387,6 +11405,7 @@ function renderWorkspacePlaybook(activeGroupId) {
         <article class="workspace-location-cell" role="listitem" aria-labelledby="${escapeHtml(`${locationCellIds.result.label} ${locationCellIds.result.value}`)}">
           <span class="workspace-location-label" id="${escapeHtml(locationCellIds.result.label)}">결과 확인</span>
           <strong class="workspace-location-value" id="${escapeHtml(locationCellIds.result.value)}">${escapeHtml(resultSurfaceLabel)}</strong>
+          <span class="workspace-location-hint">${escapeHtml(location.resultHint || '작업 결과는 산출물에서 확인합니다.')}</span>
           <button
             id="${escapeHtml(locationCellIds.result.action)}"
             class="workspace-location-action workspace-location-action-secondary"
@@ -11398,12 +11417,13 @@ function renderWorkspacePlaybook(activeGroupId) {
             aria-describedby="${escapeHtml(locationCellIds.result.value)}"
             ${state.loading || state.mutating ? 'disabled' : ''}
           >
-            ${escapeHtml(resultSurfaceLabel)} 보기
+            ${escapeHtml(resultSurfaceLabel)}에서 결과 보기
           </button>
         </article>
         <article class="workspace-location-cell" role="listitem" aria-labelledby="${escapeHtml(`${locationCellIds.next.label} ${locationCellIds.next.value}`)}"${location.targetSurface ? '' : ` aria-describedby="${escapeHtml(locationCellIds.next.static)}"`}>
           <span class="workspace-location-label" id="${escapeHtml(locationCellIds.next.label)}">다음 이동</span>
           <strong class="workspace-location-value" id="${escapeHtml(locationCellIds.next.value)}">${escapeHtml(location.next)}</strong>
+          <span class="workspace-location-hint">${escapeHtml(location.nextHint || '다음으로 처리할 desk가 열립니다.')}</span>
           ${
             location.targetSurface
               ? `
@@ -11418,7 +11438,7 @@ function renderWorkspacePlaybook(activeGroupId) {
                   aria-describedby="${escapeHtml(locationCellIds.next.value)}"
                   ${state.loading || state.mutating ? 'disabled' : ''}
                 >
-                  ${escapeHtml(targetSurfaceLabel)} 열기
+                  ${escapeHtml(targetSurfaceLabel)}에서 다음 처리 열기
                 </button>
               `
               : `<span class="workspace-location-static" id="${escapeHtml(locationCellIds.next.static)}">결정 후 원래 desk로 돌아갑니다</span>`
