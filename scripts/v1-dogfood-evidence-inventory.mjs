@@ -22,6 +22,13 @@ const retainedDogfoodWorktrees = [
     path: '/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-001',
     runtimeRoot: path.join(repoRoot, 'var', 'runtime-v1-dogfood-runner-v1-dogfood-runner-001'),
   },
+  {
+    branch: 'worktree/v1-dogfood-runner-002',
+    expectedDirtyFile: 'prompts/builder.md',
+    id: 'dogfood-run-005',
+    path: '/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-002',
+    runtimeRoot: path.join(repoRoot, 'var', 'runtime-v1-dogfood-runner-v1-dogfood-runner-002'),
+  },
 ];
 
 function runGit(cwd, args) {
@@ -88,15 +95,18 @@ function inspectDogfoodWorktree(entry) {
 
 const mainStatusShort = runGitOrNull(repoRoot, ['status', '--short']) || '';
 const worktrees = retainedDogfoodWorktrees.map(inspectDogfoodWorktree);
-const retainedEvidenceAvailable = worktrees.every((entry) => entry.exists && entry.branchExists && entry.dirtyByDesign);
+const validEvidenceLifecycle = worktrees.every(
+  (entry) => (entry.exists && entry.branchExists && entry.dirtyByDesign) || (!entry.exists && !entry.branchExists),
+);
+const retainedEvidenceAvailable = worktrees.some((entry) => entry.exists && entry.branchExists && entry.dirtyByDesign);
 const cleanupCompleted = worktrees.every((entry) => !entry.exists && !entry.branchExists);
 const unexpectedEvidenceState = worktrees.filter(
-  (entry) => !cleanupCompleted && !(entry.exists && entry.branchExists && entry.dirtyByDesign),
+  (entry) => !((entry.exists && entry.branchExists && entry.dirtyByDesign) || (!entry.exists && !entry.branchExists)),
 );
 const cleanupBlockedUntilApproval = worktrees.some((entry) => entry.exists || entry.branchExists);
 
 const report = {
-  ok: retainedEvidenceAvailable || cleanupCompleted,
+  ok: validEvidenceLifecycle,
   mode: 'v1-dogfood-evidence-inventory',
   cleanupBlockedUntilApproval,
   cleanupCompleted,
@@ -111,6 +121,7 @@ const report = {
   },
   retainedEvidenceAvailable,
   retainedDogfoodWorktrees: worktrees,
+  validEvidenceLifecycle,
   failures: unexpectedEvidenceState.map((entry) => ({
     branchExists: entry.branchExists,
     cleanupCompleted,

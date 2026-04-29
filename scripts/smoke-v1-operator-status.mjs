@@ -27,6 +27,7 @@ assert.match(status, /action: 'cleanup-retained-dogfood-worktrees'/);
 assert.match(status, /action: 'run-another-dogfood-execute'/);
 assert.match(status, /cleanupCompleted/);
 assert.match(status, /retainedEvidenceAvailable/);
+assert.match(status, /validEvidenceLifecycle/);
 assert.match(status, /requiresExplicitApproval: true/);
 assert.match(status, /doesNotPush: true/);
 assert.match(status, /doesNotRemoveWorktrees: true/);
@@ -37,8 +38,9 @@ assert.match(status, /doesNotRunDogfoodExecute: true/);
 assert.match(runbook, /## Operator Decision Status/);
 assert.match(runbook, /node scripts\/v1-operator-status\.mjs/);
 assert.match(runbook, /read-only status summary/);
+assert.match(runbook, /retained dogfood evidence inventory, mixed cleanup-completed plus retained-evidence state, and cleanup approval state/);
 assert.match(runbook, /does not push, remove worktrees, delete branches, execute dogfood, commit, merge, release, or close out/);
-assert.match(runbook, /cleanup has been completed after explicit operator approval/);
+assert.match(runbook, /Dogfood Run 005 cleanup and `run-another-dogfood-execute` remain explicit operator approval decisions/);
 
 assert.match(verificationStatus, /v1-operator-status/);
 assert.match(verificationStatus, /scripts\/smoke-v1-operator-status\.mjs/);
@@ -55,7 +57,7 @@ assert.match(runbook, /keep this smoke standalone/);
 assert.match(completionStatus, /mode: 'v1-local-completion-status'/);
 assert.match(completionStatus, /nextAllowedWithoutApproval: \['defer-push'\]/);
 assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
-assert.match(runbook, /publish has completed and cleanup has completed/);
+assert.match(runbook, /publish has completed and current retained evidence is either cleaned or explicitly approval-blocked/);
 
 console.log(
   JSON.stringify(
@@ -63,6 +65,7 @@ console.log(
       ok: true,
       v1OperatorStatus: {
         approvalGatedChoices: [
+          'cleanup-retained-dogfood-worktrees',
           'run-another-dogfood-execute',
         ],
         document: 'docs/15_v1-start-runbook.md',

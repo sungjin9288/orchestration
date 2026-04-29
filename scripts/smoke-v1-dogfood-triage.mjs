@@ -110,6 +110,27 @@ assert.match(dogfood, /reviewer raw verdict: `pass`/);
 assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
 assert.match(dogfood, /The repo-native runner self-dogfood passed/);
 assert.match(dogfood, /Retained dogfood linked worktree cleanup has completed after explicit operator approval/);
+assert.match(dogfood, /## Dogfood Run 005/);
+assert.match(dogfood, /Recorded at `2026-04-29 19:22:17 \+0900` on local `main`/);
+assert.match(dogfood, /b62618b96cf54295097ba00ccd15f8abf3677b32/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-002/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-002`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-002`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-002`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-002`, `52378`, `4315`, or `59006` listener remained/);
+assert.match(dogfood, /source git status after run: clean tree with `main\.\.\.origin\/main`/);
+assert.match(dogfood, /linked worktree status after run: dirty by design, `prompts\/builder\.md` modified/);
+assert.match(dogfood, /push state: no push was required for source `main`/);
+assert.match(dogfood, /no linked worktree commit was performed/);
+assert.match(dogfood, /operator-chosen slug `v1-dogfood-runner-002`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-002`/);
+assert.match(dogfood, /builder live mutation run: `run-0005`/);
+assert.match(dogfood, /reviewer run: `run-0006`/);
+assert.match(dogfood, /reviewer source run: `run-0005`/);
+assert.match(dogfood, /reviewer raw verdict: `pass`/);
+assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
+assert.match(dogfood, /Retain Dogfood Run 005 linked worktree as current dirty evidence/);
+assert.match(dogfood, /Current retained evidence awaiting explicit cleanup approval/);
 
 console.log(
   JSON.stringify(
@@ -117,9 +138,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 004',
+        run: 'Dogfood Run 005',
         result: 'pass',
-        nextAction: 'retained dogfood linked worktree cleanup completed after explicit operator approval',
+        nextAction: 'retain Dogfood Run 005 linked worktree until explicit cleanup approval',
       },
     },
     null,

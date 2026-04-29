@@ -94,6 +94,7 @@ function getDogfoodEvidenceSummary(result) {
     cleanupPolicy: result.parsed?.cleanupPolicy || null,
     inventoryOk: result.ok,
     retainedEvidenceAvailable: result.parsed?.retainedEvidenceAvailable === true,
+    validEvidenceLifecycle: result.parsed?.validEvidenceLifecycle === true,
     retainedEvidenceWorktrees: retainedEvidenceWorktrees.map((entry) => ({
       branch: entry.branch,
       branchExists: entry.branchExists,
@@ -158,7 +159,7 @@ const report = {
   dogfoodEvidence,
   main,
   nextRecommendedAction: main.clean
-    ? 'await explicit operator approval for another execute dogfood slug or continue with no-op defer state'
+    ? 'await explicit operator approval for retained dogfood cleanup or another execute dogfood slug, or continue with no-op defer state'
     : 'finish or commit the current local changes before push or another execute dogfood run',
   operatorChoices: getOperatorChoices(main, dogfoodEvidence),
   safetyBoundary: {

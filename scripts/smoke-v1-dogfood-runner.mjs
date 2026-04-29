@@ -50,6 +50,10 @@ assert.match(dogfood, /Dogfood Run 002 linked worktree was retained dirty by des
 assert.match(dogfood, /Dogfood Run 004 linked worktree was retained dirty by design/);
 assert.match(dogfood, /## Dogfood Run 004/);
 assert.match(dogfood, /The repo-native runner self-dogfood passed/);
+assert.match(dogfood, /## Dogfood Run 005/);
+assert.match(dogfood, /v1-dogfood-runner-002/);
+assert.match(dogfood, /The repo-native runner repeated the local-stub linked worktree proof/);
+assert.match(dogfood, /Retain Dogfood Run 005 linked worktree as current dirty evidence/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
 assert.match(verificationStatus, /v1-dogfood-runner/);
