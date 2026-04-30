@@ -97,8 +97,8 @@ Recorded at `2026-04-30 10:49:50 +0900` on published `main`.
 - command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-003`
 - source head: `175403dcc165cb4b8750ec60b14eace637a56912`
 - retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-003`
-- retained linked worktree status: Dogfood Run 006 is dirty by design with `prompts/builder.md` marker mutation
-- cleanup state: Dogfood Run 006 retained linked worktree cleanup requires explicit destructive approval
+- retained linked worktree status: cleaned up after explicit destructive approval
+- cleanup state: Dogfood Run 006 retained linked worktree cleanup has completed
 - result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
 
 ## Operator Decision Status

@@ -261,13 +261,11 @@ Current local completion snapshot:
 - `node scripts/verification_status.mjs` remains green
 - Dogfood Run 001 through Dogfood Run 006 evidence is recorded
 - push had completed before the retained cleanup documentation update; any later local commit must be pushed explicitly
-- Dogfood Run 002, Run 004, and Run 005 retained dogfood linked worktree cleanup has completed after explicit operator approval
-- Dogfood Run 006 is intentionally retained in `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-003` with only `prompts/builder.md` dirty by design
+- Dogfood Run 002, Run 004, Run 005, and Run 006 retained dogfood linked worktree cleanup has completed after explicit operator approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
 - approve another intentional `--execute --slug <slug>` dogfood run
-- clean up Dogfood Run 006 retained linked worktree after explicit destructive approval
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
 
