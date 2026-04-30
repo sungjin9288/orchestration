@@ -131,6 +131,17 @@ assert.match(dogfood, /reviewer raw verdict: `pass`/);
 assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
 assert.match(dogfood, /Dogfood Run 005 retained linked worktree cleanup has completed after explicit operator approval/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
+assert.match(dogfood, /## Dogfood Run 006/);
+assert.match(dogfood, /Recorded at `2026-04-30 10:49:50 \+0900` on published `main`/);
+assert.match(dogfood, /175403dcc165cb4b8750ec60b14eace637a56912/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-003/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-003`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-003`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-003`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-003`, `56028`, `4315`, or `59006` listener remained/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-003`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-003`/);
+assert.match(dogfood, /Dogfood Run 006 linked worktree is retained dirty by design/);
 
 console.log(
   JSON.stringify(
@@ -138,9 +149,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 005',
+        run: 'Dogfood Run 006',
         result: 'pass',
-        nextAction: 'Dogfood Run 005 retained linked worktree cleanup completed after explicit operator approval',
+        nextAction: 'Dogfood Run 006 retained linked worktree awaits explicit cleanup approval',
       },
     },
     null,

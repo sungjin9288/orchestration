@@ -90,6 +90,17 @@ This evidence was collected before this post-dogfood handoff documentation updat
 - push state: deferred; no push was performed
 - follow-up: push and retained dogfood cleanup were completed; any further intentional `--execute --slug <slug>` dogfood run requires explicit approval
 
+## Additional Dogfood Execute Evidence
+Recorded at `2026-04-30 10:49:50 +0900` on published `main`.
+
+- dogfood triage status: `Dogfood Run 001` through `Dogfood Run 006` recorded
+- command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-003`
+- source head: `175403dcc165cb4b8750ec60b14eace637a56912`
+- retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-003`
+- retained linked worktree status: Dogfood Run 006 is dirty by design with `prompts/builder.md` marker mutation
+- cleanup state: Dogfood Run 006 retained linked worktree cleanup requires explicit destructive approval
+- result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
+
 ## Operator Decision Status
 Use `node scripts/v1-operator-status.mjs` when the next action is unclear after post-dogfood handoff.
 
@@ -251,7 +262,7 @@ Do not start v1 dogfooding if any of these are true:
 - the user-facing flow does not explain current action, result location, or next destination
 
 ## Next Development Priority
-V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 005.
+V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 006.
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
