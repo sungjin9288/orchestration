@@ -130,8 +130,8 @@ Recorded at `2026-05-01 00:24:18 +0900` on published `main`.
 - command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-006`
 - source head: `895d945fe9d8810436b396e791a5ae8bed8c7675`
 - retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-006`
-- retained linked worktree status: dirty by design, `prompts/builder.md` modified
-- cleanup state: Dogfood Run 009 retained linked worktree cleanup is pending explicit operator approval
+- retained linked worktree status: cleaned up after explicit destructive approval
+- cleanup state: Dogfood Run 009 retained linked worktree cleanup has completed
 - result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
 
 ## Operator Decision Status
@@ -351,14 +351,13 @@ Default next action without approval:
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- cleanup Dogfood Run 009 retained linked worktree
 - run another intentional `--execute --slug <slug>` dogfood pass
 
 Completed approval-gated actions:
 - push is complete
-- Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, and Run 008 retained dogfood linked worktree cleanup is complete
+- Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, and Run 009 retained dogfood linked worktree cleanup is complete
 
 Currently retained evidence:
-- Dogfood Run 009 linked worktree remains dirty by design until explicit cleanup approval.
+- No dogfood linked worktree remains retained after Dogfood Run 009 cleanup.
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.
