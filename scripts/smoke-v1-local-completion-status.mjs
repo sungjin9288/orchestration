@@ -33,14 +33,14 @@ assert.match(runbook, /## Local Completion Status/);
 assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
 assert.match(runbook, /current local development is complete/);
 assert.match(runbook, /publish has completed and cleanup has completed/);
-assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 005/);
+assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 007/);
 assert.match(runbook, /Default next action without approval/);
-assert.match(runbook, /start the first v1 user-flow kickoff slice/);
+assert.match(runbook, /representative clean user-flow proof command/);
 assert.match(handoff, /current local v1 development baseline is complete on `main`/);
 assert.match(handoff, /localDevelopmentComplete=true/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
 assert.match(handoff, /push had completed before the retained cleanup documentation update/);
-assert.match(handoff, /Dogfood Run 002, Run 004, and Run 005 retained dogfood linked worktree cleanup has completed/);
+assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, and Run 007 retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /node scripts\/v1-kickoff-status\.mjs/);
 
 console.log(

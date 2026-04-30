@@ -449,8 +449,8 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Dogfood Run 007 is intentionally retained until explicit destructive cleanup approval.
-- The linked worktree mutation must not be committed, pushed, merged, released, or closed out.
+- Dogfood Run 007 retained linked worktree cleanup has completed after explicit operator approval.
+- The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
 The retained dirty linked worktree lifecycle is now checked by `scripts/v1-dogfood-evidence-inventory.mjs`.
@@ -474,5 +474,5 @@ Cleanup completed after explicit operator approval:
 Cleanup completed after explicit operator approval:
 - Dogfood Run 006 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-003`; branch deleted: `worktree/v1-dogfood-runner-003`.
 
-Currently retained until explicit cleanup approval:
-- Dogfood Run 007 worktree retained dirty by design: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-004`; branch retained: `worktree/v1-dogfood-runner-004`.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 007 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-004`; branch deleted: `worktree/v1-dogfood-runner-004`.

@@ -77,8 +77,8 @@ assert.match(runbook, /dogfood triage status: `Dogfood Run 001` through `Dogfood
 assert.match(runbook, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-004/);
 assert.match(runbook, /3498832bc1a17c13568bcffe074e47485982f20e/);
 assert.match(runbook, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-004/);
-assert.match(runbook, /retained linked worktree status: dirty by design with `prompts\/builder\.md` marker mutation/);
-assert.match(runbook, /Dogfood Run 007 retained linked worktree cleanup requires explicit destructive approval/);
+assert.match(runbook, /retained linked worktree status: cleaned up after explicit destructive approval/);
+assert.match(runbook, /Dogfood Run 007 retained linked worktree cleanup has completed/);
 assert.match(runbook, /node scripts\/smoke-provider-live-slice-05\.mjs/);
 assert.match(runbook, /node scripts\/smoke-qa-live-slice-07\.mjs/);
 assert.match(runbook, /scripts\/smoke-openspace-slice-03\.mjs/);
@@ -90,7 +90,7 @@ assert.match(runbook, /inspect the clean\/published kickoff evidence/);
 assert.match(runbook, /representative clean user-flow proof command/);
 assert.match(runbook, /Explicit approval-gated next actions/);
 assert.match(runbook, /push is complete/);
-assert.match(runbook, /Dogfood Run 002, Run 004, Run 005, and Run 006 retained dogfood linked worktree cleanup is complete/);
+assert.match(runbook, /Dogfood Run 002, Run 004, Run 005, Run 006, and Run 007 retained dogfood linked worktree cleanup is complete/);
 assert.match(runbook, /run another intentional `--execute --slug <slug>` dogfood pass/);
 assert.match(runbook, /## V1 Kickoff Status/);
 assert.match(runbook, /node scripts\/v1-kickoff-status\.mjs/);
@@ -120,7 +120,7 @@ assert.match(handoff, /current local v1 development baseline is complete on `mai
 assert.match(handoff, /node scripts\/v1-local-completion-status\.mjs` reports `localDevelopmentComplete=true`/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
 assert.match(handoff, /push had completed before the retained cleanup documentation update/);
-assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, and Run 006 retained dogfood linked worktree cleanup has completed/);
+assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, and Run 007 retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /approve another intentional `--execute --slug <slug>` dogfood run/);
 assert.match(handoff, /first v1 user-flow kickoff slice/);
 assert.match(handoff, /The first v1 user-flow kickoff slice has now been verified on clean\/published `main`/);

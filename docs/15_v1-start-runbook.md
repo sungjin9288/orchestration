@@ -108,8 +108,8 @@ Recorded at `2026-04-30 20:39:45 +0900` on published `main`.
 - command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-004`
 - source head: `3498832bc1a17c13568bcffe074e47485982f20e`
 - retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-004`
-- retained linked worktree status: dirty by design with `prompts/builder.md` marker mutation
-- cleanup state: Dogfood Run 007 retained linked worktree cleanup requires explicit destructive approval
+- retained linked worktree status: cleaned up after explicit destructive approval
+- cleanup state: Dogfood Run 007 retained linked worktree cleanup has completed
 - result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
 
 ## Operator Decision Status
@@ -288,6 +288,6 @@ Explicit approval-gated next actions:
 
 Completed approval-gated actions:
 - push is complete
-- Dogfood Run 002, Run 004, Run 005, and Run 006 retained dogfood linked worktree cleanup is complete
+- Dogfood Run 002, Run 004, Run 005, Run 006, and Run 007 retained dogfood linked worktree cleanup is complete
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.
