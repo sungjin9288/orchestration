@@ -123,6 +123,17 @@ Recorded at `2026-04-30 23:00:37 +0900` on published `main`.
 - cleanup state: Dogfood Run 008 retained linked worktree cleanup has completed
 - result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
 
+## Additional Dogfood Execute Evidence
+Recorded at `2026-05-01 00:24:18 +0900` on published `main`.
+
+- dogfood triage status: `Dogfood Run 001` through `Dogfood Run 009` recorded
+- command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-006`
+- source head: `895d945fe9d8810436b396e791a5ae8bed8c7675`
+- retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-006`
+- retained linked worktree status: dirty by design, `prompts/builder.md` modified
+- cleanup state: Dogfood Run 009 retained linked worktree cleanup is pending explicit operator approval
+- result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
+
 ## Operator Decision Status
 Use `node scripts/v1-operator-status.mjs` when the next action is unclear after post-dogfood handoff.
 
@@ -329,7 +340,7 @@ Do not start v1 dogfooding if any of these are true:
 - the user-facing flow does not explain current action, result location, or next destination
 
 ## Next Development Priority
-V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 008.
+V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 009.
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
@@ -340,6 +351,7 @@ Default next action without approval:
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
+- cleanup Dogfood Run 009 retained linked worktree
 - run another intentional `--execute --slug <slug>` dogfood pass
 
 Completed approval-gated actions:
@@ -347,6 +359,6 @@ Completed approval-gated actions:
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, and Run 008 retained dogfood linked worktree cleanup is complete
 
 Currently retained evidence:
-- No dogfood linked worktree remains retained after Dogfood Run 008 cleanup.
+- Dogfood Run 009 linked worktree remains dirty by design until explicit cleanup approval.
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.
