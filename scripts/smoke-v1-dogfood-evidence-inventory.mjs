@@ -19,10 +19,12 @@ assert.match(inventory, /dogfood-run-002/);
 assert.match(inventory, /dogfood-run-004/);
 assert.match(inventory, /dogfood-run-005/);
 assert.match(inventory, /dogfood-run-006/);
+assert.match(inventory, /dogfood-run-007/);
 assert.match(inventory, /worktree\/v1-dogfood-run-002/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-001/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-002/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-003/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-004/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -42,9 +44,11 @@ assert.match(dogfood, /Dogfood Run 002/);
 assert.match(dogfood, /Dogfood Run 004/);
 assert.match(dogfood, /Dogfood Run 005/);
 assert.match(dogfood, /Dogfood Run 006/);
+assert.match(dogfood, /Dogfood Run 007/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
+assert.match(dogfood, /Dogfood Run 007 worktree retained dirty by design/);
 
 assert.match(verificationStatus, /v1-dogfood-evidence-inventory/);
 assert.match(verificationStatus, /scripts\/smoke-v1-dogfood-evidence-inventory\.mjs/);
@@ -62,6 +66,7 @@ console.log(
           'dogfood-run-004',
           'dogfood-run-005',
           'dogfood-run-006',
+          'dogfood-run-007',
         ],
       },
     },

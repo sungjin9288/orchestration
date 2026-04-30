@@ -101,6 +101,17 @@ Recorded at `2026-04-30 10:49:50 +0900` on published `main`.
 - cleanup state: Dogfood Run 006 retained linked worktree cleanup has completed
 - result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
 
+## Additional Dogfood Execute Evidence
+Recorded at `2026-04-30 20:39:45 +0900` on published `main`.
+
+- dogfood triage status: `Dogfood Run 001` through `Dogfood Run 007` recorded
+- command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-004`
+- source head: `3498832bc1a17c13568bcffe074e47485982f20e`
+- retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-004`
+- retained linked worktree status: dirty by design with `prompts/builder.md` marker mutation
+- cleanup state: Dogfood Run 007 retained linked worktree cleanup requires explicit destructive approval
+- result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
+
 ## Operator Decision Status
 Use `node scripts/v1-operator-status.mjs` when the next action is unclear after post-dogfood handoff.
 
@@ -262,7 +273,7 @@ Do not start v1 dogfooding if any of these are true:
 - the user-facing flow does not explain current action, result location, or next destination
 
 ## Next Development Priority
-V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 006.
+V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 007.
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
@@ -277,6 +288,6 @@ Explicit approval-gated next actions:
 
 Completed approval-gated actions:
 - push is complete
-- Dogfood Run 002, Run 004, and Run 005 retained dogfood linked worktree cleanup is complete
+- Dogfood Run 002, Run 004, Run 005, and Run 006 retained dogfood linked worktree cleanup is complete
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.
