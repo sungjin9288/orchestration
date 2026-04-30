@@ -279,8 +279,8 @@ The runtime/browser proof command for that first slice is:
 
 Latest clean proof:
 
-- recorded on `2026-04-30 22:09:09 +0900`
-- head `37a82e5e54db0733512eb26429f25ca1abdc2b50`
+- recorded on `2026-04-30 22:36:59 +0900`
+- head `eae6513170730728c713ce2d8ba63a584a35769c`
 - `node scripts/smoke-v1-user-flow-kickoff.mjs` passed without `V1_KICKOFF_ALLOW_DIRTY`
 - scenario covered `task-0001`, `approval-0001`, builder `run-0005`, reviewer `run-0006`, and artifacts `artifact-0005` through `artifact-0008`
 - verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`

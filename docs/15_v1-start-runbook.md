@@ -230,6 +230,29 @@ Evidence-sync follow-up:
 - `node scripts/ui_qa_status.mjs` initially exposed a stale source-only expectation in `scripts/smoke-ui-slice-634.mjs`: the source-of-truth harness doc already records 45 harness checks, while the UI QA doc-smoke still expected 44.
 - this follow-up updates that smoke expectation to the existing 45-check harness aggregate and restores `node scripts/ui_qa_status.mjs` to `17/17` required checks.
 
+## Published Head Kickoff Proof After Evidence Sync
+Recorded at `2026-04-30 22:36:59 +0900` on published `main` after the evidence-sync update was committed and pushed.
+
+Repository state:
+- head: `eae6513170730728c713ce2d8ba63a584a35769c`
+- repo status: clean tree with `main...origin/main`
+- `node scripts/v1-kickoff-status.mjs`: pass, `kickoffReady=true`, `mainPublished=true`, `verificationOk=true`, `cleanupSettled=true`
+
+Runtime/browser proof:
+- command: `node scripts/smoke-v1-user-flow-kickoff.mjs`
+- result: pass without `V1_KICKOFF_ALLOW_DIRTY`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-v1-user-flow-kickoff`
+- outputRoot: `/Users/sungjin/dev/personal/orchestration/output/playwright/v1-user-flow-kickoff`
+- scenario: `task-0001`, approval `approval-0001`, builder `run-0005`, reviewer `run-0006`
+- artifacts: `artifact-0005` change summary, `artifact-0006` patch, `artifact-0007` diff, `artifact-0008` review
+- surfaces verified: `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, `Decision Inbox`
+- safety boundary: no commit, push, merge, release, or external release was executed
+
+Evidence-sync result:
+- current published head now has the same clean kickoff runtime/browser proof as the earlier current-head rerun
+- no concrete regression or usability issue was detected by this proof
+- do not open a new implementation slice without a concrete regression or usability issue
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
