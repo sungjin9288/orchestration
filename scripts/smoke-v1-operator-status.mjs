@@ -40,7 +40,7 @@ assert.match(runbook, /node scripts\/v1-operator-status\.mjs/);
 assert.match(runbook, /read-only status summary/);
 assert.match(runbook, /retained dogfood evidence inventory and cleanup completion state/);
 assert.match(runbook, /does not push, remove worktrees, delete branches, execute dogfood, commit, merge, release, or close out/);
-assert.match(runbook, /retained dogfood cleanup has been completed after explicit operator approval/);
+assert.match(runbook, /retained dogfood cleanup can be either completed or currently blocked behind explicit cleanup approval/);
 
 assert.match(verificationStatus, /v1-operator-status/);
 assert.match(verificationStatus, /scripts\/smoke-v1-operator-status\.mjs/);
@@ -57,7 +57,7 @@ assert.match(runbook, /keep this smoke standalone/);
 assert.match(completionStatus, /mode: 'v1-local-completion-status'/);
 assert.match(completionStatus, /nextAllowedWithoutApproval: \['defer-push'\]/);
 assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
-assert.match(runbook, /publish has completed and cleanup has completed/);
+assert.match(runbook, /publish has completed and retained cleanup is either complete or approval-blocked/);
 
 console.log(
   JSON.stringify(

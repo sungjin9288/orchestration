@@ -155,6 +155,18 @@ assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-004`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-004`/);
 assert.match(dogfood, /Dogfood Run 007 retained linked worktree cleanup has completed after explicit operator approval/);
 assert.match(dogfood, /Dogfood Run 007 worktree removed/);
+assert.match(dogfood, /## Dogfood Run 008/);
+assert.match(dogfood, /Recorded at `2026-04-30 23:00:37 \+0900` on published `main`/);
+assert.match(dogfood, /68d235db5066b11e6ef1805e0210f4f3d52f4035/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-005/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-005`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-005`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-005`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-005`, `51931`, `4315`, or `59006` listener remained/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-005`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-005`/);
+assert.match(dogfood, /Dogfood Run 008 retained linked worktree cleanup is pending explicit operator approval/);
+assert.match(dogfood, /Dogfood Run 008 worktree retained/);
 
 console.log(
   JSON.stringify(
@@ -162,9 +174,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 007',
+        run: 'Dogfood Run 008',
         result: 'pass',
-        nextAction: 'Dogfood Run 007 retained linked worktree cleanup completed after explicit operator approval',
+        nextAction: 'Dogfood Run 008 retained linked worktree cleanup pending explicit operator approval',
       },
     },
     null,

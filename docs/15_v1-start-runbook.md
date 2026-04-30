@@ -112,6 +112,17 @@ Recorded at `2026-04-30 20:39:45 +0900` on published `main`.
 - cleanup state: Dogfood Run 007 retained linked worktree cleanup has completed
 - result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
 
+## Additional Dogfood Execute Evidence
+Recorded at `2026-04-30 23:00:37 +0900` on published `main`.
+
+- dogfood triage status: `Dogfood Run 001` through `Dogfood Run 008` recorded
+- command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-005`
+- source head: `68d235db5066b11e6ef1805e0210f4f3d52f4035`
+- retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-005`
+- retained linked worktree status: dirty by design, `prompts/builder.md` modified
+- cleanup state: Dogfood Run 008 retained linked worktree cleanup is pending explicit operator approval
+- result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
+
 ## Operator Decision Status
 Use `node scripts/v1-operator-status.mjs` when the next action is unclear after post-dogfood handoff.
 
@@ -123,7 +134,7 @@ The command produces a read-only status summary for:
 
 Safety boundary:
 - the script does not push, remove worktrees, delete branches, execute dogfood, commit, merge, release, or close out
-- retained dogfood cleanup has been completed after explicit operator approval; `run-another-dogfood-execute` remains an explicit operator approval decision
+- retained dogfood cleanup can be either completed or currently blocked behind explicit cleanup approval; `run-another-dogfood-execute` remains a separate explicit operator approval decision
 - `verification_status` is serialized through `var/locks/verification_status.lock`, so nested status checks do not run shared smoke runtime roots concurrently
 - default safe action remains to defer new execution unless the operator explicitly chooses another execute dogfood slug
 
@@ -132,7 +143,7 @@ Manual concurrency regression check:
 - keep this smoke standalone; do not add it to `scripts/verification_status.mjs`, because it intentionally spawns concurrent `verification_status` children to prove lock serialization
 
 ## Local Completion Status
-Use `node scripts/v1-local-completion-status.mjs` to summarize whether current local development is complete after publish has completed and cleanup has completed.
+Use `node scripts/v1-local-completion-status.mjs` to summarize whether current local development is complete after publish has completed and retained cleanup is either complete or approval-blocked.
 
 The command reports `localDevelopmentComplete=true` only when:
 - current `main` is clean
@@ -318,7 +329,7 @@ Do not start v1 dogfooding if any of these are true:
 - the user-facing flow does not explain current action, result location, or next destination
 
 ## Next Development Priority
-V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 007.
+V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 008.
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
@@ -329,10 +340,14 @@ Default next action without approval:
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
+- cleanup Dogfood Run 008 retained linked worktree
 - run another intentional `--execute --slug <slug>` dogfood pass
 
 Completed approval-gated actions:
 - push is complete
 - Dogfood Run 002, Run 004, Run 005, Run 006, and Run 007 retained dogfood linked worktree cleanup is complete
+
+Currently retained evidence:
+- Dogfood Run 008 linked worktree remains dirty by design until explicit cleanup approval
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.
