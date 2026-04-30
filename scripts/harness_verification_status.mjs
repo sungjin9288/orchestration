@@ -228,6 +228,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-44.mjs',
     purpose: 'Hermes Agent stays a future ACP harness reference without becoming a core runtime, provider, gateway, or executable v1 harness.',
   },
+  {
+    id: 'harness-hermes-agent-internal-composition',
+    script: 'scripts/smoke-harness-slice-45.mjs',
+    purpose: 'Hermes-style function-calling loop is adopted as an internal repo-native agent harness without importing the upstream runtime or widening v1 scope.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

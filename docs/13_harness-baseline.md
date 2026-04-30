@@ -63,6 +63,18 @@ These projects are signals, not direct dependencies:
    - Hermes must remain non-executable in the current harness gate until a separate approved wrapper defines input, output, permission, credential, and evidence boundaries.
    - Do not install Hermes through `curl | bash` from this repo; if tested later, review the installer and dependency graph first in a separate operator-controlled workspace.
 
+4. **Hermes-style internal agent harness (current v1)**
+   - `orchestration-hermes-agent-internal` is now the repo-native internal composition of the Hermes Agent pattern; it is not an imported upstream Hermes runtime.
+   - The borrowed pattern is the function-calling loop shape: `API request -> Agent -> Tool Executor -> Function Tool`.
+   - The local mapping is `project/task intake -> planner -> architect -> task-breaker -> builder-preflight -> builder-live-mutation -> reviewer -> explicit local follow-up`.
+   - `planner -> architect -> task-breaker -> builder-preflight -> builder-live-mutation -> reviewer` stays the current v1 agent loop, and every mutation still requires the existing approval/review/evidence gates.
+   - `Tool Executor` maps to repo-owned gates such as `harness-run`, explicit local-only UI mutation routes, and script entrypoints; it does not become a generic shell executor.
+   - `Function Tool` maps to bounded repo wrappers such as `markitdown-convert`, `memory-brief`, `prompt-provenance-guard`, `work-quality-guard`, and `verification-output-brief`.
+   - Provider breadth, messenger gateways, cron autonomy, cloud terminal backends, and unattended execution remain excluded from the v1 path.
+   - Current status and regression entrypoints:
+     - `node scripts/hermes-agent-internal-harness-status.mjs`
+     - `node scripts/smoke-harness-slice-45.mjs`
+
 ## Out Of Scope (Still)
 - Any harness that implies multi-provider-first execution.
 - Messenger-first bot surfaces or multi-platform chat gateways.
@@ -1534,9 +1546,9 @@ Post-freeze execution visible-result output-file token wording follow-up:
 
 ### `scripts/harness_verification_status.mjs`
 Repo-native harness verification bundle:
-- runs harness inventory status plus smoke slices `01` through `04` and `06` through `44`
-- treats `scripts/smoke-harness-slice-05.mjs` as the out-of-bundle aggregate self-check that pins the current 44-check id order
-- reports one synthetic harness status payload for the current repo posture with 44 required checks
+- runs harness inventory status plus smoke slices `01` through `04` and `06` through `45`
+- treats `scripts/smoke-harness-slice-05.mjs` as the out-of-bundle aggregate self-check that pins the current 45-check id order
+- reports one synthetic harness status payload for the current repo posture with 45 required checks
 - keeps harness verification separate from broader runtime or UI verification bundles
 
 ## Verification
@@ -1549,6 +1561,7 @@ Use:
 - `node scripts/harness-run.mjs doctor`
 - `node scripts/harness-consumer-status.mjs`
 - `node scripts/harness-consumer-brief.mjs`
+- `node scripts/hermes-agent-internal-harness-status.mjs`
 - `node scripts/harness_verification_status.mjs`
 - `node --check ui/app.js`
 - `node --check scripts/serve-ui-slice-01.mjs`
@@ -1597,6 +1610,7 @@ Use:
 - `node scripts/smoke-harness-slice-42.mjs`
 - `node scripts/smoke-harness-slice-43.mjs`
 - `node scripts/smoke-harness-slice-44.mjs`
+- `node scripts/smoke-harness-slice-45.mjs`
 - `node scripts/ui_qa_status.mjs`
 - `node scripts/smoke-ui-slice-295.mjs`
 - `node scripts/smoke-ui-slice-296.mjs`
