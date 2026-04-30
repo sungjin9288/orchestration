@@ -52,8 +52,9 @@ assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
 assert.match(dogfood, /Dogfood Run 007 worktree removed/);
-assert.match(dogfood, /Dogfood Run 008 worktree retained/);
-assert.match(dogfood, /cleanup pending explicit operator approval/);
+assert.match(dogfood, /Dogfood Run 008 worktree removed/);
+assert.doesNotMatch(dogfood, /Dogfood Run 008 worktree retained/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending explicit operator approval/);
 
 assert.match(verificationStatus, /v1-dogfood-evidence-inventory/);
 assert.match(verificationStatus, /scripts\/smoke-v1-dogfood-evidence-inventory\.mjs/);

@@ -261,12 +261,10 @@ Current local completion snapshot:
 - `node scripts/verification_status.mjs` remains green
 - Dogfood Run 001 through Dogfood Run 008 evidence is recorded
 - push had completed before the retained cleanup documentation update; any later local commit must be pushed explicitly
-- Dogfood Run 002, Run 004, Run 005, Run 006, and Run 007 retained dogfood linked worktree cleanup has completed after explicit operator approval
-- Dogfood Run 008 retained dogfood linked worktree cleanup is pending explicit operator approval
+- Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, and Run 008 retained dogfood linked worktree cleanup has completed after explicit operator approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve cleanup for Dogfood Run 008 retained linked worktree
 - approve another intentional `--execute --slug <slug>` dogfood run
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
