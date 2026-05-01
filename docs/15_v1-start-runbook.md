@@ -141,8 +141,8 @@ Recorded at `2026-05-01 00:59:49 +0900` on published `main`.
 - command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-007`
 - source head: `4b9a8f97a86bc7adba743046af8fa25f25a146a9`
 - retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-007`
-- retained linked worktree status: retained dirty by design until explicit destructive cleanup approval
-- cleanup state: Dogfood Run 010 retained linked worktree cleanup is pending explicit operator approval
+- retained linked worktree status: cleaned up after explicit destructive approval
+- cleanup state: Dogfood Run 010 retained linked worktree cleanup has completed
 - result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
 
 ## Operator Decision Status
@@ -357,19 +357,18 @@ Current local completion is now represented by `node scripts/v1-local-completion
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- inspect the retained Dogfood Run 010 evidence and do not open a new implementation slice without a concrete regression or usability issue
+- inspect the clean/published kickoff evidence after the final cleanup evidence is published and only open a new implementation slice for a concrete regression or usability issue
 - run `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- clean up Dogfood Run 010 retained linked worktree evidence
 - run another intentional `--execute --slug <slug>` dogfood pass
 
 Completed approval-gated actions:
 - push is complete
-- Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, and Run 009 retained dogfood linked worktree cleanup is complete
+- Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, and Run 010 retained dogfood linked worktree cleanup is complete
 
 Currently retained evidence:
-- Dogfood Run 010 linked worktree remains retained until explicit cleanup approval: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-007` on branch `worktree/v1-dogfood-runner-007`.
+- No dogfood linked worktree remains retained after Dogfood Run 010 cleanup.
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.
