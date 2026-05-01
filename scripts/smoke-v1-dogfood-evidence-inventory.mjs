@@ -23,6 +23,7 @@ assert.match(inventory, /dogfood-run-007/);
 assert.match(inventory, /dogfood-run-008/);
 assert.match(inventory, /dogfood-run-009/);
 assert.match(inventory, /dogfood-run-010/);
+assert.match(inventory, /dogfood-run-011/);
 assert.match(inventory, /worktree\/v1-dogfood-run-002/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-001/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-002/);
@@ -31,6 +32,7 @@ assert.match(inventory, /worktree\/v1-dogfood-runner-004/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-005/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-006/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-007/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-008/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -54,6 +56,7 @@ assert.match(dogfood, /Dogfood Run 007/);
 assert.match(dogfood, /Dogfood Run 008/);
 assert.match(dogfood, /Dogfood Run 009/);
 assert.match(dogfood, /Dogfood Run 010/);
+assert.match(dogfood, /Dogfood Run 011/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
@@ -61,8 +64,8 @@ assert.match(dogfood, /Dogfood Run 007 worktree removed/);
 assert.match(dogfood, /Dogfood Run 008 worktree removed/);
 assert.match(dogfood, /Dogfood Run 009 worktree removed/);
 assert.match(dogfood, /Dogfood Run 010 worktree removed/);
-assert.doesNotMatch(dogfood, /Dogfood Run 010 worktree retained/);
-assert.doesNotMatch(dogfood, /Retained cleanup pending explicit operator approval/);
+assert.match(dogfood, /Dogfood Run 011 worktree retained/);
+assert.match(dogfood, /Retained cleanup pending explicit operator approval/);
 
 assert.match(verificationStatus, /v1-dogfood-evidence-inventory/);
 assert.match(verificationStatus, /scripts\/smoke-v1-dogfood-evidence-inventory\.mjs/);
@@ -84,6 +87,7 @@ console.log(
           'dogfood-run-008',
           'dogfood-run-009',
           'dogfood-run-010',
+          'dogfood-run-011',
         ],
       },
     },
