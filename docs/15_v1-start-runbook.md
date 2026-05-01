@@ -198,7 +198,7 @@ Manual concurrency regression check:
 - keep this smoke standalone; do not add it to `scripts/verification_status.mjs`, because it intentionally spawns concurrent `verification_status` children to prove lock serialization
 
 ## Local Completion Status
-Use `node scripts/v1-local-completion-status.mjs` to summarize whether current local development is complete after publish has completed and retained cleanup is either complete or approval-blocked.
+Use `node scripts/v1-local-completion-status.mjs` to summarize whether current local development is complete, retained-evidence commit is pending, and retained cleanup is either complete or approval-blocked.
 
 The command reports `localDevelopmentComplete=true` only when:
 - current `main` is clean
@@ -231,17 +231,17 @@ First v1 kickoff slice:
 - Confirm `Taskboard / Logs / Artifacts / Decision Inbox` still show where the result, evidence, approval, and next action live.
 - Stop before push, publish, merge, external release, or hidden cleanup unless explicitly approved.
 
-Additional execute-mode dogfood is optional and approval-gated; do not run another dogfood pass by default once the kickoff status is green. Dogfood Run 014 was intentionally run after approval, and its retained linked worktree cleanup has completed after explicit approval.
+Additional execute-mode dogfood is optional and approval-gated; do not run another dogfood pass by default once the kickoff status is green. Dogfood Run 015 was intentionally run after approval, and its retained linked worktree cleanup is pending explicit approval.
 
 ## Additional Dogfood Execute Evidence
-Recorded at `2026-05-01 18:14:39 +0900` on published `main`.
+Recorded at `2026-05-01 18:44:06 +0900` on published `main`.
 
-- dogfood triage status: `Dogfood Run 001` through `Dogfood Run 014` recorded
-- command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-011`
-- source head: `178f4de0c46ce43a6f15fd82aea1b884c71f8233`
-- retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-011`
-- retained linked worktree status: cleaned up after explicit destructive approval
-- cleanup state: Dogfood Run 014 retained linked worktree cleanup has completed
+- dogfood triage status: `Dogfood Run 001` through `Dogfood Run 015` recorded
+- command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-012`
+- source head: `8d9aa3f2cce37c022be039c75be7bf11833ea66f`
+- retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-012`
+- retained linked worktree status: retained dirty by design until explicit destructive cleanup approval
+- cleanup state: Dogfood Run 015 retained linked worktree cleanup is pending explicit approval
 - result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
 
 Runtime/browser proof for the kickoff slice:
@@ -395,13 +395,13 @@ Do not start v1 dogfooding if any of these are true:
 - the user-facing flow does not explain current action, result location, or next destination
 
 ## Next Development Priority
-V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 014.
+V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 015.
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- inspect the clean/published kickoff and dogfood evidence after the final cleanup evidence is published and only open a new implementation slice for a concrete regression or usability issue
+- inspect the retained Dogfood Run 015 evidence and approval blocker; only open a new implementation slice for a concrete regression or usability issue
 - run `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
@@ -413,6 +413,6 @@ Completed approval-gated actions:
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, and Run 014 retained dogfood linked worktree cleanup is complete
 
 Currently retained evidence:
-- No dogfood linked worktree remains retained after Dogfood Run 014 cleanup.
+- Dogfood Run 015 linked worktree remains retained until explicit cleanup approval: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-012` on branch `worktree/v1-dogfood-runner-012`.
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.

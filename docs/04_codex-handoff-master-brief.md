@@ -252,20 +252,23 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current local v1 development baseline is complete on `main` after the explicitly approved Dogfood Run 014 execute and cleanup loop.
+The current local v1 development baseline is in retained-evidence state after the explicitly approved Dogfood Run 015 execute pass.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including push and cleanup approval gates
-- current `main` publish state is reported by `git status --short --branch`; after Dogfood Run 014 cleanup, docs/inventory updates are ready for evidence commit and publish approval
-- `node scripts/verification_status.mjs` remains green
-- Dogfood Run 001 through Dogfood Run 014 evidence is recorded
-- push had completed before the Dogfood Run 014 execute pass; Run 014 cleanup-completed evidence docs are ready for publish after commit approval
+- current `main` publish state is reported by `git status --short --branch`; after Dogfood Run 015 execute, retained-evidence docs/inventory updates are ready for evidence commit approval
+- `node scripts/verification_status.mjs` must remain green after the retained-evidence update
+- Dogfood Run 001 through Dogfood Run 015 evidence is recorded
+- push had completed before the Dogfood Run 015 execute pass; Run 015 retained-evidence docs are ready for local evidence commit and later publish approval
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, and Run 014 retained dogfood linked worktree cleanup has completed after explicit operator approval
+- Dogfood Run 015 retained dogfood linked worktree cleanup is pending explicit operator approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve a local evidence commit for Dogfood Run 014 cleanup-completed evidence
+- approve a local evidence commit for Dogfood Run 015 retained evidence
+- approve destructive cleanup for `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-012` and `worktree/v1-dogfood-runner-012`
+- approve a local evidence commit for Dogfood Run 015 cleanup-completed evidence after cleanup
 - approve publishing the cleanup-completed evidence to `origin/main`
 - approve another intentional `--execute --slug <slug>` dogfood run
 

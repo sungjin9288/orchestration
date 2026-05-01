@@ -57,7 +57,8 @@ assert.match(runbook, /keep this smoke standalone/);
 assert.match(completionStatus, /mode: 'v1-local-completion-status'/);
 assert.match(completionStatus, /nextAllowedWithoutApproval: \['defer-push'\]/);
 assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
-assert.match(runbook, /publish has completed and retained cleanup is either complete or approval-blocked/);
+assert.match(runbook, /retained-evidence commit is pending/);
+assert.match(runbook, /retained cleanup is either complete or approval-blocked/);
 
 console.log(
   JSON.stringify(
