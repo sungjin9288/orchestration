@@ -36,12 +36,11 @@ assert.match(runbook, /publish has completed and retained cleanup is either comp
 assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 014/);
 assert.match(runbook, /Default next action without approval/);
 assert.match(runbook, /representative clean user-flow proof command/);
-assert.match(handoff, /current local v1 development baseline was clean and published before the explicitly approved Dogfood Run 014 execute pass/);
-assert.match(handoff, /localDevelopmentComplete=false` while Dogfood Run 014 retained linked worktree cleanup remains approval-blocked and evidence docs remain local/);
+assert.match(handoff, /current local v1 development baseline is complete on `main` after the explicitly approved Dogfood Run 014 execute and cleanup loop/);
+assert.match(handoff, /local completion state, including push and cleanup approval gates/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
-assert.match(handoff, /push had completed before the Dogfood Run 014 execute pass; Run 014 retained-evidence docs are local until commit approval/);
-assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, and Run 013 retained dogfood linked worktree cleanup has completed/);
-assert.match(handoff, /Dogfood Run 014 retained linked worktree cleanup is pending explicit operator approval/);
+assert.match(handoff, /push had completed before the Dogfood Run 014 execute pass; Run 014 cleanup-completed evidence docs are ready for publish after commit approval/);
+assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, and Run 014 retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /node scripts\/v1-kickoff-status\.mjs/);
 
 console.log(

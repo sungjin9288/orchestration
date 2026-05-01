@@ -76,11 +76,12 @@ assert.match(dogfood, /Dogfood Run 010 worktree removed/);
 assert.match(dogfood, /Dogfood Run 011 worktree removed/);
 assert.match(dogfood, /Dogfood Run 012 worktree removed/);
 assert.match(dogfood, /Dogfood Run 013 worktree removed/);
-assert.match(dogfood, /Dogfood Run 014 worktree retained dirty by design/);
+assert.match(dogfood, /Dogfood Run 014 worktree removed/);
 assert.doesNotMatch(dogfood, /Dogfood Run 011 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 012 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 013 worktree retained/);
-assert.match(dogfood, /Retained cleanup pending explicit operator approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 014 worktree retained/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending explicit operator approval/);
 
 assert.match(verificationStatus, /v1-dogfood-evidence-inventory/);
 assert.match(verificationStatus, /scripts\/smoke-v1-dogfood-evidence-inventory\.mjs/);
