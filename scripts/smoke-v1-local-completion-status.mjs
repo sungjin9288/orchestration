@@ -32,17 +32,16 @@ assert.match(completionStatus, /doesNotCommit: true/);
 assert.match(runbook, /## Local Completion Status/);
 assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
 assert.match(runbook, /current local development is complete/);
-assert.match(runbook, /retained-evidence commit or cleanup approval is pending/);
+assert.match(runbook, /cleanup-completed evidence commit or publish approval is pending/);
 assert.match(runbook, /retained cleanup is either complete or approval-blocked/);
 assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 017/);
 assert.match(runbook, /Default next action without approval/);
 assert.match(runbook, /representative clean user-flow proof command/);
-assert.match(handoff, /current local v1 development baseline is complete on `main` after the explicitly approved Dogfood Run 017 execute pass/);
+assert.match(handoff, /current local v1 development baseline is complete on `main` after the explicitly approved Dogfood Run 017 execute and cleanup loop/);
 assert.match(handoff, /local completion state, including push and cleanup approval gates/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
-assert.match(handoff, /push had completed before the Dogfood Run 017 execute pass; Run 017 retained-evidence docs are ready for local evidence commit and later publish approval/);
-assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, and Run 016 retained dogfood linked worktree cleanup has completed/);
-assert.match(handoff, /Dogfood Run 017 retained linked worktree cleanup is pending explicit destructive approval/);
+assert.match(handoff, /push had completed before the Dogfood Run 017 execute pass; Run 017 cleanup-completed docs are ready for local evidence commit and later publish approval/);
+assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, and Run 017 retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /node scripts\/v1-kickoff-status\.mjs/);
 
 console.log(
