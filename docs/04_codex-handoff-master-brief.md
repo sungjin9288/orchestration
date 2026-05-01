@@ -252,20 +252,22 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current local v1 development baseline is complete on `main`.
+The current local v1 development baseline was clean and published before the explicitly approved Dogfood Run 013 execute pass.
 
 Current local completion snapshot:
 
-- `node scripts/v1-local-completion-status.mjs` reports `localDevelopmentComplete=false` while Run 012 evidence and cleanup-completed docs remain uncommitted
-- current `main` publish state is reported by `git status --short --branch`; after Dogfood Run 012 evidence cleanup, docs/inventory updates remain local until commit approval
+- `node scripts/v1-local-completion-status.mjs` reports `localDevelopmentComplete=false` while Dogfood Run 013 retained linked worktree cleanup remains approval-blocked and evidence docs remain local
+- current `main` publish state is reported by `git status --short --branch`; after Dogfood Run 013 execute, docs/inventory updates remain local until commit approval
 - `node scripts/verification_status.mjs` remains green
-- Dogfood Run 001 through Dogfood Run 012 evidence is recorded
-- push had completed before the Dogfood Run 012 execute pass; Run 012 cleanup-completed evidence docs are local until commit approval
+- Dogfood Run 001 through Dogfood Run 013 evidence is recorded locally
+- push had completed before the Dogfood Run 013 execute pass; Run 013 retained-evidence docs are local until commit approval
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, and Run 012 retained dogfood linked worktree cleanup has completed after explicit operator approval
+- Dogfood Run 013 retained linked worktree cleanup is pending explicit operator approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve a local evidence commit for Dogfood Run 012 execute plus cleanup evidence
+- approve a local evidence commit for Dogfood Run 013 retained evidence
+- approve destructive cleanup for the retained Dogfood Run 013 linked worktree and branch
 - approve another intentional `--execute --slug <slug>` dogfood run
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
