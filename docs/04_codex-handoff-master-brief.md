@@ -260,9 +260,8 @@ Current local completion snapshot:
 - current `main` is clean; publish state is reported by `git status --short --branch`
 - `node scripts/verification_status.mjs` remains green
 - Dogfood Run 001 through Dogfood Run 011 evidence is recorded
-- push had completed before the Dogfood Run 011 execute pass; Dogfood Run 011 retained evidence is pending explicit cleanup approval
-- Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, and Run 010 retained dogfood linked worktree cleanup has completed after explicit operator approval
-- Dogfood Run 011 linked worktree remains retained at `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-008` on branch `worktree/v1-dogfood-runner-008`
+- push had completed before the Dogfood Run 011 execute pass; final cleanup evidence is ready for publish after the cleanup commit
+- Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, and Run 011 retained dogfood linked worktree cleanup has completed after explicit operator approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 

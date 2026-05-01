@@ -39,9 +39,8 @@ assert.match(runbook, /representative clean user-flow proof command/);
 assert.match(handoff, /current local v1 development baseline is complete on `main`/);
 assert.match(handoff, /localDevelopmentComplete=true/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
-assert.match(handoff, /push had completed before the Dogfood Run 011 execute pass; Dogfood Run 011 retained evidence is pending explicit cleanup approval/);
-assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, and Run 010 retained dogfood linked worktree cleanup has completed/);
-assert.match(handoff, /Dogfood Run 011 linked worktree remains retained/);
+assert.match(handoff, /push had completed before the Dogfood Run 011 execute pass; final cleanup evidence is ready for publish after the cleanup commit/);
+assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, and Run 011 retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /node scripts\/v1-kickoff-status\.mjs/);
 
 console.log(
