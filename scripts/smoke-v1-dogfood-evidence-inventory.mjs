@@ -30,6 +30,7 @@ assert.match(inventory, /dogfood-run-014/);
 assert.match(inventory, /dogfood-run-015/);
 assert.match(inventory, /dogfood-run-016/);
 assert.match(inventory, /dogfood-run-017/);
+assert.match(inventory, /dogfood-run-018/);
 assert.match(inventory, /worktree\/v1-dogfood-run-002/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-001/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-002/);
@@ -45,6 +46,7 @@ assert.match(inventory, /worktree\/v1-dogfood-runner-011/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-012/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-013/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-014/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-015/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -75,6 +77,7 @@ assert.match(dogfood, /Dogfood Run 014/);
 assert.match(dogfood, /Dogfood Run 015/);
 assert.match(dogfood, /Dogfood Run 016/);
 assert.match(dogfood, /Dogfood Run 017/);
+assert.match(dogfood, /Dogfood Run 018/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
@@ -89,6 +92,7 @@ assert.match(dogfood, /Dogfood Run 014 worktree removed/);
 assert.match(dogfood, /Dogfood Run 015 worktree removed/);
 assert.match(dogfood, /Dogfood Run 016 worktree removed/);
 assert.match(dogfood, /Dogfood Run 017 worktree removed/);
+assert.match(dogfood, /Dogfood Run 018 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 011 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 012 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 013 worktree retained/);
@@ -96,7 +100,7 @@ assert.doesNotMatch(dogfood, /Dogfood Run 014 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 015 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 016 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 017 worktree retained/);
-assert.doesNotMatch(dogfood, /Retained cleanup pending explicit operator approval/);
+assert.match(dogfood, /Retained cleanup pending explicit operator approval/);
 
 assert.match(verificationStatus, /v1-dogfood-evidence-inventory/);
 assert.match(verificationStatus, /scripts\/smoke-v1-dogfood-evidence-inventory\.mjs/);
@@ -125,6 +129,7 @@ console.log(
           'dogfood-run-015',
           'dogfood-run-016',
           'dogfood-run-017',
+          'dogfood-run-018',
         ],
       },
     },
