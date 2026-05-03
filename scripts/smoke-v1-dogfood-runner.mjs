@@ -105,6 +105,9 @@ assert.match(dogfood, /Dogfood Run 021 retained linked worktree cleanup has comp
 assert.match(dogfood, /## Dogfood Run 022/);
 assert.match(dogfood, /v1-dogfood-runner-019/);
 assert.match(dogfood, /Dogfood Run 022 retained linked worktree cleanup has completed after explicit operator approval/);
+assert.match(dogfood, /## Dogfood Run 023/);
+assert.match(dogfood, /v1-dogfood-runner-020/);
+assert.match(dogfood, /Dogfood Run 023 retained linked worktree cleanup is pending explicit operator approval/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
 assert.match(verificationStatus, /v1-dogfood-runner/);

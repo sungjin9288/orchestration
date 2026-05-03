@@ -252,21 +252,23 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current local v1 development baseline is complete on `main` after the explicitly approved Dogfood Run 022 execute and cleanup loop.
+The current local v1 development baseline was clean/published after the explicitly approved Dogfood Run 022 execute and cleanup loop. Dogfood Run 023 has now been explicitly approved and executed as retained linked-worktree evidence, with cleanup still pending explicit destructive approval.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including push and cleanup approval gates
-- current `main` publish state is reported by `git status --short --branch`; after Dogfood Run 022 cleanup, cleanup-completed docs/inventory updates are ready for evidence commit approval and later publish approval
-- `node scripts/verification_status.mjs` must remain green after the cleanup-completed update
-- Dogfood Run 001 through Dogfood Run 022 evidence is recorded
-- push had completed before the Dogfood Run 022 execute pass; Run 022 cleanup-completed docs are ready for local evidence commit and later publish approval
+- current `main` publish state is reported by `git status --short --branch`; after Dogfood Run 023 execute, retained-evidence docs/inventory updates are ready for evidence commit approval and later cleanup approval
+- `node scripts/verification_status.mjs` must remain green after the retained-evidence update
+- Dogfood Run 001 through Dogfood Run 023 evidence is recorded
+- push had completed before the Dogfood Run 023 execute pass; Run 023 retained-evidence docs are ready for local evidence commit and later destructive cleanup approval
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, and Run 022 retained dogfood linked worktree cleanup has completed after explicit operator approval
+- Dogfood Run 023 retained linked worktree remains dirty by design at `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-020` until explicit destructive cleanup approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve a local evidence commit for Dogfood Run 022 cleanup-completed evidence
-- approve publishing the cleanup-completed evidence to `origin/main`
+- approve a local evidence commit for Dogfood Run 023 retained evidence
+- approve destructive cleanup for the Dogfood Run 023 retained linked worktree and branch
+- approve publishing the cleanup-completed evidence to `origin/main` after cleanup is recorded
 - approve another intentional `--execute --slug <slug>` dogfood run only after the clean/published baseline is restored
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
