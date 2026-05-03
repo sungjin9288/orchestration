@@ -28,6 +28,9 @@ const PLAYWRIGHT_VIEWPORT = {
   height: 960,
   width: 1440,
 };
+const PLAYWRIGHT_POLL_ACTION_TIMEOUT_MS = 5_000;
+const BROWSER_POLL_ATTEMPTS = 12;
+const BROWSER_POLL_INTERVAL_MS = 250;
 const SERVER_FETCH_STATE_ENV = 'QA_SLICE_07_SERVER_FETCH_STUB_STATE';
 const SOURCE_OF_TRUTH_PATHS = [
   'AGENTS.md',
@@ -448,8 +451,11 @@ async function postJson(baseUrl, pathname, body = {}) {
   return response.payload;
 }
 
-async function waitForValue(check, label) {
-  for (let attempt = 0; attempt < 60; attempt += 1) {
+async function waitForValue(check, label, options = {}) {
+  const attempts = options.attempts || 60;
+  const intervalMs = options.intervalMs || 200;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
     let value = null;
 
     try {
@@ -462,10 +468,17 @@ async function waitForValue(check, label) {
       return value;
     }
 
-    await delay(200);
+    await delay(intervalMs);
   }
 
   throw new Error(`Timed out waiting for ${label}`);
+}
+
+async function waitForBrowserValue(check, label) {
+  return waitForValue(check, label, {
+    attempts: BROWSER_POLL_ATTEMPTS,
+    intervalMs: BROWSER_POLL_INTERVAL_MS,
+  });
 }
 
 async function waitForSnapshotPayload(baseUrl, label, predicate = null) {
@@ -565,20 +578,26 @@ function runCode({ codeBody, outputRoot, overrideEnvVar, sessionName, timeoutMs 
   });
 }
 
-function evaluate({ expression, outputRoot, overrideEnvVar, sessionName }) {
+function evaluate({
+  expression,
+  outputRoot,
+  overrideEnvVar,
+  sessionName,
+  timeoutMs = PLAYWRIGHT_POLL_ACTION_TIMEOUT_MS,
+}) {
   return parsePlaywrightResult(
     runPlaywrightCli({
       outputRoot,
       overrideEnvVar,
       sessionName,
       args: ['eval', expression],
-      timeoutMs: 60_000,
+      timeoutMs,
     }),
   );
 }
 
 async function waitForSurfaceNavReady({ outputRoot, overrideEnvVar, sessionName, surface }) {
-  return waitForValue(async () => {
+  return waitForBrowserValue(async () => {
     const navReady = evaluate({
       expression: `Boolean(document.querySelector(${JSON.stringify(`#surface-${surface}`)}) && document.querySelector('[data-nav-group-tab]')) ? 'ready' : null`,
       outputRoot,
@@ -614,7 +633,7 @@ function snapshotPage({ outputRoot, overrideEnvVar, sessionName }) {
     overrideEnvVar,
     sessionName,
     args: ['snapshot'],
-    timeoutMs: 60_000,
+    timeoutMs: PLAYWRIGHT_POLL_ACTION_TIMEOUT_MS,
   });
   return readLatestAccessibilitySnapshot(outputRoot);
 }
@@ -638,7 +657,7 @@ function getBodyText({ outputRoot, overrideEnvVar, sessionName }) {
 }
 
 async function waitForSnapshotText({ outputRoot, overrideEnvVar, pattern, sessionName, label }) {
-  return waitForValue(async () => {
+  return waitForBrowserValue(async () => {
     const snapshotText = snapshotPage({
       outputRoot,
       overrideEnvVar,
@@ -650,7 +669,7 @@ async function waitForSnapshotText({ outputRoot, overrideEnvVar, pattern, sessio
 }
 
 async function waitForBodyText({ outputRoot, overrideEnvVar, pattern, sessionName, label }) {
-  return waitForValue(async () => {
+  return waitForBrowserValue(async () => {
     const bodyText = getBodyText({
       outputRoot,
       overrideEnvVar,
@@ -1489,7 +1508,7 @@ async function clickSurface({
     selector: navGroupSelector,
     sessionName,
   });
-  await waitForValue(async () => {
+  await waitForBrowserValue(async () => {
     const groupVisible = evaluate({
       expression: `document.querySelector(${JSON.stringify(navGroupPanelSelector)}) && !document.querySelector(${JSON.stringify(navGroupPanelSelector)})?.hasAttribute('hidden') ? 'ready' : null`,
       outputRoot,
@@ -1508,7 +1527,7 @@ async function clickSurface({
   });
 
   if (surface === 'taskboard' && qaOptions?.taskId) {
-    await waitForValue(async () => {
+    await waitForBrowserValue(async () => {
       const taskRowVisible = evaluate({
         expression: `Boolean(document.querySelector(${JSON.stringify(`#surface-taskboard [data-action="select-task"][data-id="${qaOptions.taskId}"]`)}))`,
         outputRoot,
@@ -1528,7 +1547,7 @@ async function waitForActiveSurface({
   surface,
   label,
 }) {
-  return waitForValue(async () => {
+  return waitForBrowserValue(async () => {
     const value = evaluate({
       expression: `document.querySelector('.nav-group:not([hidden]) .nav-button.is-active')?.dataset.surface === ${JSON.stringify(surface)} && document.querySelector(${JSON.stringify(`#surface-${surface}`)})?.classList.contains('is-active') ? ${JSON.stringify(surface)} : null`,
       outputRoot,
@@ -1661,7 +1680,7 @@ async function triggerBrowserBuilderLiveMutation({
     surface: 'taskboard',
     label: 'taskboard landing before live mutation',
   });
-  await waitForValue(async () => {
+  await waitForBrowserValue(async () => {
     const taskRowVisible = evaluate({
       expression: `Boolean(document.querySelector(${JSON.stringify(`#surface-taskboard.is-active [data-action="select-task"][data-id="${taskId}"]`)}))`,
       outputRoot,
@@ -1690,7 +1709,7 @@ async function triggerBrowserBuilderLiveMutation({
   assertSecretAbsent(taskText, secret, 'taskboard pre-run body');
 
   const runButtonSelector = `[data-action="run-builder-live-mutation"][data-id="${taskId}"]`;
-  await waitForValue(async () => {
+  await waitForBrowserValue(async () => {
     const buttonVisible = evaluate({
       expression: `Boolean(document.querySelector(${JSON.stringify(runButtonSelector)}))`,
       outputRoot,
@@ -1755,7 +1774,7 @@ async function triggerBrowserReviewer({
   assertSecretAbsent(taskText, secret, 'taskboard pre-review body');
 
   const reviewerButtonSelector = `#surface-taskboard [data-action="run-reviewer"][data-id="${taskId}"]:not([disabled])`;
-  await waitForValue(async () => {
+  await waitForBrowserValue(async () => {
     const buttonVisible = evaluate({
       expression: `Boolean(document.querySelector(${JSON.stringify(reviewerButtonSelector)}))`,
       outputRoot,
@@ -1802,7 +1821,7 @@ async function verifyBrowserLogsLanding({
     label: 'logs landing after builder live mutation',
   });
 
-  await waitForValue(async () => {
+  await waitForBrowserValue(async () => {
     const selector = `[data-action="select-run"][data-id="${runId}"]`;
     const runVisible = evaluate({
       expression: `Boolean(document.querySelector(${JSON.stringify(selector)}))`,
@@ -2567,7 +2586,8 @@ async function runSharedQaSlice07Flow({
       },
       stageTimings,
       timeoutBudgetMs: {
-        browserPoll: 12_000,
+        browserPoll: BROWSER_POLL_ATTEMPTS * (PLAYWRIGHT_POLL_ACTION_TIMEOUT_MS + BROWSER_POLL_INTERVAL_MS),
+        browserPollAction: PLAYWRIGHT_POLL_ACTION_TIMEOUT_MS,
         playwrightAction: 60_000,
         playwrightOpen: 120_000,
         providerRequest: DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS,
