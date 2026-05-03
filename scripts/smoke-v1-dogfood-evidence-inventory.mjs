@@ -36,6 +36,7 @@ assert.match(inventory, /dogfood-run-020/);
 assert.match(inventory, /dogfood-run-021/);
 assert.match(inventory, /dogfood-run-022/);
 assert.match(inventory, /dogfood-run-023/);
+assert.match(inventory, /dogfood-run-024/);
 assert.match(inventory, /worktree\/v1-dogfood-run-002/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-001/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-002/);
@@ -57,6 +58,7 @@ assert.match(inventory, /worktree\/v1-dogfood-runner-017/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-018/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-019/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-020/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-021/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -93,6 +95,7 @@ assert.match(dogfood, /Dogfood Run 020/);
 assert.match(dogfood, /Dogfood Run 021/);
 assert.match(dogfood, /Dogfood Run 022/);
 assert.match(dogfood, /Dogfood Run 023/);
+assert.match(dogfood, /Dogfood Run 024/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
@@ -114,6 +117,8 @@ assert.match(dogfood, /Dogfood Run 021 worktree removed/);
 assert.match(dogfood, /Dogfood Run 022 worktree removed/);
 assert.match(dogfood, /Dogfood Run 023 worktree removed/);
 assert.match(dogfood, /after approved cleanup, all retained dogfood worktree paths and branches should be absent/);
+assert.match(dogfood, /Retained cleanup pending explicit operator approval/);
+assert.match(dogfood, /Dogfood Run 024 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 011 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 012 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 013 worktree retained/);
@@ -161,6 +166,7 @@ console.log(
           'dogfood-run-021',
           'dogfood-run-022',
           'dogfood-run-023',
+          'dogfood-run-024',
         ],
       },
     },
