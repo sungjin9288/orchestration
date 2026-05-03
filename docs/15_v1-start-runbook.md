@@ -231,7 +231,7 @@ First v1 kickoff slice:
 - Confirm `Taskboard / Logs / Artifacts / Decision Inbox` still show where the result, evidence, approval, and next action live.
 - Stop before push, publish, merge, external release, or hidden cleanup unless explicitly approved.
 
-Additional execute-mode dogfood is optional and approval-gated; do not run another dogfood pass by default once the kickoff status is green. Dogfood Run 024 was intentionally run after approval, and its retained linked worktree cleanup is pending explicit destructive cleanup approval.
+Additional execute-mode dogfood is optional and approval-gated; do not run another dogfood pass by default once the kickoff status is green. Dogfood Run 024 was intentionally run after approval, and its retained linked worktree cleanup has completed after explicit destructive cleanup approval.
 
 ## Additional Dogfood Execute Evidence
 Recorded at `2026-05-03 22:07:42 +0900` on published `main`.
@@ -262,8 +262,8 @@ Recorded at `2026-05-04 02:02:30 +0900` on published `main`.
 - command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-021`
 - source head: `e473e5fdd4d8c1d69794b7a2de8b3af505c39958`
 - retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-021`
-- retained linked worktree status: retained dirty by design until explicit destructive approval
-- cleanup state: Dogfood Run 024 retained linked worktree cleanup is pending explicit operator approval
+- retained linked worktree status: cleaned up after explicit destructive approval
+- cleanup state: Dogfood Run 024 retained linked worktree cleanup has completed
 - result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
 
 Runtime/browser proof for the kickoff slice:
@@ -423,22 +423,20 @@ Current local completion is now represented by `node scripts/v1-local-completion
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- inspect the retained Dogfood Run 024 evidence; only open a new implementation slice for a concrete regression or usability issue
+- inspect the Dogfood Run 024 evidence; only open a new implementation slice for a concrete regression or usability issue
 - run `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- commit Dogfood Run 024 retained-evidence docs locally
-- clean up the Dogfood Run 024 retained linked worktree and branch
 - publish the cleanup-completed evidence to `origin/main` after cleanup is recorded
 - run another intentional `--execute --slug <slug>` dogfood pass only after the clean/published baseline is restored
 
 Completed approval-gated actions:
 - previous baseline push was complete before Dogfood Run 024 execute
-- Dogfood Run 023 retained-evidence docs were committed locally
-- Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, and Run 023 retained dogfood linked worktree cleanup is complete
+- Dogfood Run 024 retained-evidence docs were committed locally
+- Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup is complete
 
 Currently retained evidence:
-- Dogfood Run 024 linked worktree remains retained dirty by design at `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-021` until explicit destructive cleanup approval.
+- No retained dogfood linked worktree remains. Dogfood Run 024 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-021`.
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.
