@@ -417,6 +417,20 @@ assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-025`/);
 assert.match(dogfood, /Dogfood Run 028 retained linked worktree cleanup has completed after explicit operator approval/);
 assert.match(dogfood, /Dogfood Run 028 worktree removed/);
 assert.doesNotMatch(dogfood, /Dogfood Run 028 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 029/);
+assert.match(dogfood, /Recorded at `2026-05-04 23:48:28 \+0900` on published `main`/);
+assert.match(dogfood, /cbd6db3ae6036883b913111a19489fda5bdc1869/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-026/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-026`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-026`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-026`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-026` or `53283` listener remained/);
+assert.match(dogfood, /source git status after run: clean tree with `main\.\.\.origin\/main`/);
+assert.match(dogfood, /linked worktree status after run: dirty by design, `prompts\/builder\.md` modified/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-026`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-026`/);
+assert.match(dogfood, /Retained cleanup pending explicit operator approval/);
+assert.match(dogfood, /Dogfood Run 029 worktree retained/);
 
 console.log(
   JSON.stringify(
@@ -424,9 +438,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 028',
+        run: 'Dogfood Run 029',
         result: 'pass',
-        nextAction: 'Dogfood Run 028 retained linked worktree cleanup completed after explicit operator approval',
+        nextAction: 'Dogfood Run 029 retained linked worktree cleanup pending explicit operator approval',
       },
     },
     null,
