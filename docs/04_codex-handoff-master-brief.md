@@ -252,13 +252,13 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The last clean/published v1 development baseline is `main` at `cbd6db3ae6036883b913111a19489fda5bdc1869` after Dogfood Run 028 cleanup-completed evidence and V1 kickoff browser flake hardening were published. Dogfood Run 029 execute has completed after explicit operator approval, and its retained linked worktree remains approval-blocked until separate destructive cleanup approval.
+The last clean/published v1 development baseline is `main` at `cbd6db3ae6036883b913111a19489fda5bdc1869` after Dogfood Run 028 cleanup-completed evidence and V1 kickoff browser flake hardening were published. Dogfood Run 029 retained-evidence commit `054b5b1` is local, its retained linked worktree cleanup has completed after explicit destructive cleanup approval, and its cleanup-completed evidence is local until separate commit and push approvals publish it.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; during the Run 029 retained-evidence update, `main` is expected to be dirty until explicit commit approval is given, then ahead of `origin/main` until explicit push approval is given
-- `node scripts/verification_status.mjs` must remain green after the Run 029 retained-evidence update
+- current `main` publish state is reported by `git status --short --branch`; during the Run 029 cleanup-completed evidence update, `main` is expected to be dirty until explicit commit approval is given, then ahead of `origin/main` until explicit push approval is given
+- `node scripts/verification_status.mjs` must remain green after the Run 029 cleanup-completed evidence update
 - Dogfood Run 001 through Dogfood Run 029 evidence is recorded
 - Dogfood Run 028 cleanup-completed evidence is already published on current `origin/main`
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed after explicit operator approval
@@ -267,13 +267,12 @@ Current local completion snapshot:
 - Dogfood Run 026 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-023` and branch `worktree/v1-dogfood-runner-023` have been removed after explicit cleanup approval
 - Dogfood Run 027 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-024` and branch `worktree/v1-dogfood-runner-024` have been removed after explicit cleanup approval
 - Dogfood Run 028 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-025` and branch `worktree/v1-dogfood-runner-025` have been removed after explicit cleanup approval
-- Dogfood Run 029 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-026` and branch `worktree/v1-dogfood-runner-026` remain dirty by design until explicit cleanup approval
+- Dogfood Run 029 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-026` and branch `worktree/v1-dogfood-runner-026` have been removed after explicit cleanup approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve a local retained-evidence commit for Dogfood Run 029
-- approve destructive cleanup for the Dogfood Run 029 retained linked worktree and branch
-- approve publishing only after a local evidence commit makes `main` ahead of `origin/main`
+- approve a local cleanup-completed evidence commit for Dogfood Run 029
+- approve publishing only after the cleanup-completed evidence commit is created and explicit push approval is given
 - approve another intentional `--execute --slug <slug>` dogfood run only after the clean/published baseline is restored
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
