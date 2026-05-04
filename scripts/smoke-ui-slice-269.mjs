@@ -30,8 +30,12 @@ assert.match(qaSlice06Runner, /QA_BROWSER_FLAKE_ERROR_PATTERN =\s*[\s\S]*visibil
 assert.match(qaSlice07Runner, /QA_BROWSER_FLAKE_ERROR_PATTERN =\s*[\s\S]*visibility/);
 assert.match(qaSlice06Runner, /QA_BROWSER_FLAKE_ERROR_PATTERN =\s*[\s\S]*Timed out waiting for/);
 assert.match(qaSlice07Runner, /QA_BROWSER_FLAKE_ERROR_PATTERN =\s*[\s\S]*Timed out waiting for/);
+assert.match(qaSlice06Runner, /QA_BROWSER_FLAKE_ERROR_PATTERN =\s*[\s\S]*ETIMEDOUT/);
+assert.match(qaSlice07Runner, /QA_BROWSER_FLAKE_ERROR_PATTERN =\s*[\s\S]*ETIMEDOUT/);
 assert.match(qaSlice06Runner, /qa\.refresh\(\)/);
 assert.match(qaSlice07Runner, /qa\.refresh\(\)/);
+assert.match(qaSlice06Runner, /args: \['open', `--browser=\$\{browser\}`, `--config=\$\{configPath\}`, url\],\s*timeoutMs: 60_000/s);
+assert.match(qaSlice07Runner, /args: \['open', `--browser=\$\{browser\}`, `--config=\$\{configPath\}`, url\],\s*timeoutMs: 60_000/s);
 
 console.log(
   JSON.stringify(
@@ -54,6 +58,8 @@ console.log(
           'scripts/qa-slice-07-runner.mjs: browser visibility timeouts',
           'scripts/qa-slice-06-runner.mjs: browser wait timeouts',
           'scripts/qa-slice-07-runner.mjs: browser wait timeouts',
+          'scripts/qa-slice-06-runner.mjs: prepare-browser-harness timeout retry',
+          'scripts/qa-slice-07-runner.mjs: prepare-browser-harness timeout retry',
           'scripts/qa-slice-06-runner.mjs: QA refresh hook',
           'scripts/qa-slice-07-runner.mjs: QA refresh hook',
         ],

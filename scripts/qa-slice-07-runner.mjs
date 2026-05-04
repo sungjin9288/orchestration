@@ -61,7 +61,7 @@ const DEFAULT_TARGET_FILES = [
   'src/execution/provider-adapter.js',
 ];
 const QA_BROWSER_FLAKE_ERROR_PATTERN =
-  /Timed out waiting for|project bootstrap landing|visibility|logs landing after builder live mutation|logs landing after reviewer run|artifacts landing after builder live mutation/i;
+  /ETIMEDOUT|prepare-browser-harness|Timed out waiting for|project bootstrap landing|visibility|logs landing after builder live mutation|logs landing after reviewer run|artifacts landing after builder live mutation/i;
 const MISSION_BOOTSTRAP_LANDING_PATTERN = /Start With This Project|이 프로젝트로 시작/i;
 const MISSION_BOOTSTRAP_CONTEXT_PATTERN =
   /Mission Start|Mission Project Access|Start With This Project|미션 시작|프로젝트를 먼저 고른 뒤 미션을 만듭니다|로컬 프로젝트 경로를 먼저 등록하세요/i;
@@ -535,6 +535,7 @@ function openPlaywrightSession({ browser, configPath, outputRoot, overrideEnvVar
     overrideEnvVar,
     sessionName,
     args: ['open', `--browser=${browser}`, `--config=${configPath}`, url],
+    timeoutMs: 60_000,
   });
 }
 
