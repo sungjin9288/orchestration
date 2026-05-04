@@ -252,23 +252,21 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The last clean/published v1 development baseline is `main` at `3eef237d952fc0327fac101e427deec4438e6301` after the V1 post-publish next-action alignment push. Dogfood Run 025 has now been explicitly approved and executed as linked-worktree evidence, but its retained linked worktree cleanup is still pending explicit destructive cleanup approval.
+The last clean/published v1 development baseline is `main` at `3eef237d952fc0327fac101e427deec4438e6301` after the V1 post-publish next-action alignment push. Dogfood Run 025 has now been explicitly approved, executed as linked-worktree evidence, committed locally as retained evidence, and cleaned up after explicit destructive cleanup approval.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; during this evidence-recording slice it may be dirty until Dogfood Run 025 retained-evidence docs are committed after approval
-- `node scripts/verification_status.mjs` must remain green after the Run 025 retained-evidence update
+- current `main` publish state is reported by `git status --short --branch`; after the Run 025 cleanup-completed evidence commit, `main` is expected to be ahead of `origin/main` until explicit push approval is given
+- `node scripts/verification_status.mjs` must remain green after the Run 025 cleanup-completed evidence update
 - Dogfood Run 001 through Dogfood Run 025 evidence is recorded
 - push had completed before the Dogfood Run 025 execute pass; Run 024 cleanup-completed evidence, the V1 kickoff browser polling hardening fix, and the post-publish next-action alignment are already published on current `main`
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed after explicit operator approval
 - Dogfood Run 024 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-021` and branch `worktree/v1-dogfood-runner-021` have been removed
-- Dogfood Run 025 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-022` and branch `worktree/v1-dogfood-runner-022` remain as retained dirty evidence until cleanup approval
+- Dogfood Run 025 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-022` and branch `worktree/v1-dogfood-runner-022` have been removed after explicit cleanup approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve a local evidence commit for Dogfood Run 025 retained evidence
-- approve destructive cleanup for the Dogfood Run 025 retained linked worktree and branch
 - approve publishing only after a future local commit makes `main` ahead of `origin/main`
 - approve another intentional `--execute --slug <slug>` dogfood run only after the clean/published baseline is restored
 

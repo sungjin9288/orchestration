@@ -1624,7 +1624,7 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Dogfood Run 025 retained linked worktree cleanup is pending explicit destructive cleanup approval.
+- Dogfood Run 025 retained linked worktree cleanup has completed after explicit operator approval.
 - The linked worktree mutation must not be committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
@@ -1638,9 +1638,6 @@ Inventory behavior:
 - After cleanup, the expected valid state for a specific dogfood run is that both its retained worktree path is absent and its `worktree/*` branch is deleted.
 - Mixed lifecycle state is valid when older dogfood evidence has been cleaned and the latest intentionally retained dogfood evidence remains dirty by design; after approved cleanup, all retained dogfood worktree paths and branches should be absent.
 - The runtime evidence roots remain available under `var/` for historical proof.
-
-Retained cleanup pending explicit operator approval:
-- Dogfood Run 025 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-022`; branch retained: `worktree/v1-dogfood-runner-022`; dirty marker file: `prompts/builder.md`.
 
 Cleanup completed after explicit operator approval:
 - Dogfood Run 002 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-run-002`; branch deleted: `worktree/v1-dogfood-run-002`.
@@ -1705,3 +1702,6 @@ Cleanup completed after explicit operator approval:
 
 Cleanup completed after explicit operator approval:
 - Dogfood Run 024 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-021`; branch deleted: `worktree/v1-dogfood-runner-021`.
+
+Cleanup completed after explicit operator approval:
+- Dogfood Run 025 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-022`; branch deleted: `worktree/v1-dogfood-runner-022`.

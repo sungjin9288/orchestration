@@ -37,10 +37,10 @@ assert.match(runbook, /retained cleanup is either complete or approval-blocked/)
 assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 025/);
 assert.match(runbook, /Default next action without approval/);
 assert.match(runbook, /representative clean user-flow proof command/);
-assert.match(runbook, /commit Dogfood Run 025 retained-evidence docs locally after explicit commit approval/);
-assert.match(runbook, /clean up the Dogfood Run 025 retained linked worktree and branch only after explicit destructive cleanup approval/);
+assert.doesNotMatch(runbook, /commit Dogfood Run 025 retained-evidence docs locally after explicit commit approval/);
+assert.doesNotMatch(runbook, /clean up the Dogfood Run 025 retained linked worktree and branch only after explicit destructive cleanup approval/);
 assert.match(handoff, /last clean\/published v1 development baseline is `main` at `3eef237d952fc0327fac101e427deec4438e6301`/);
-assert.match(handoff, /Dogfood Run 025 has now been explicitly approved and executed as linked-worktree evidence/);
+assert.match(handoff, /Dogfood Run 025 has now been explicitly approved, executed as linked-worktree evidence, committed locally as retained evidence, and cleaned up after explicit destructive cleanup approval/);
 assert.match(handoff, /local completion state, including whether any future local commit has reopened the push approval gate/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
 assert.match(handoff, /push had completed before the Dogfood Run 025 execute pass/);
