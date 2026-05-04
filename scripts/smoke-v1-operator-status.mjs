@@ -66,6 +66,7 @@ console.log(
       ok: true,
       v1OperatorStatus: {
         approvalGatedChoices: [
+          'cleanup-retained-dogfood-worktrees',
           'run-another-dogfood-execute',
         ],
         document: 'docs/15_v1-start-runbook.md',
