@@ -198,7 +198,7 @@ Manual concurrency regression check:
 - keep this smoke standalone; do not add it to `scripts/verification_status.mjs`, because it intentionally spawns concurrent `verification_status` children to prove lock serialization
 
 ## Local Completion Status
-Use `node scripts/v1-local-completion-status.mjs` to summarize whether current local development is complete, retained-evidence or cleanup-completed evidence commit/publish approval is pending, and retained cleanup is either complete or approval-blocked.
+Use `node scripts/v1-local-completion-status.mjs` to summarize whether current local development is complete, whether push approval is currently available because local `main` is ahead of `origin/main`, and whether retained cleanup is either complete or approval-blocked.
 
 The command reports `localDevelopmentComplete=true` only when:
 - current `main` is clean
@@ -428,12 +428,13 @@ Default next action without approval:
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- publish the cleanup-completed evidence to `origin/main` after cleanup is recorded
+- publish only if a future local commit makes `main` ahead of `origin/main`; no publish action is currently pending on the clean/published baseline
 - run another intentional `--execute --slug <slug>` dogfood pass only after the clean/published baseline is restored
 
 Completed approval-gated actions:
 - previous baseline push was complete before Dogfood Run 024 execute
 - Dogfood Run 024 retained-evidence docs were committed locally
+- Dogfood Run 024 cleanup-completed evidence and the V1 kickoff browser polling hardening fix are published on current `main`
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup is complete
 
 Currently retained evidence:

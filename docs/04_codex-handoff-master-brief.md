@@ -252,21 +252,21 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current local v1 development baseline was clean/published after the explicitly approved Dogfood Run 023 execute and cleanup loop. Dogfood Run 024 has now been explicitly approved, executed as linked-worktree evidence, and cleaned up after explicit destructive approval.
+The current local v1 development baseline is clean/published on `main` after the explicitly approved Dogfood Run 024 execute and cleanup loop plus the V1 kickoff browser polling hardening push. Dogfood Run 024 has now been explicitly approved, executed as linked-worktree evidence, cleaned up after explicit destructive approval, and published as part of the current baseline.
 
 Current local completion snapshot:
 
-- `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including push and dogfood execution approval gates
-- current `main` publish state is reported by `git status --short --branch`; after Dogfood Run 024 cleanup, cleanup-completed docs/inventory updates are ready for publish approval
+- `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
+- current `main` publish state is reported by `git status --short --branch`; current expected state is clean `main...origin/main` with no cleanup-completed evidence publish pending
 - `node scripts/verification_status.mjs` must remain green after the cleanup-completed evidence update
 - Dogfood Run 001 through Dogfood Run 024 evidence is recorded
-- push had completed before the Dogfood Run 024 execute pass; Run 024 retained-evidence docs were committed locally and cleanup-completed evidence now requires separate publish approval
+- push had completed before the Dogfood Run 024 execute pass; Run 024 retained-evidence docs, cleanup-completed evidence, and the V1 kickoff browser polling hardening fix are now published on current `main`
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed after explicit operator approval
 - Dogfood Run 024 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-021` and branch `worktree/v1-dogfood-runner-021` have been removed
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve publishing the cleanup-completed evidence to `origin/main` after cleanup is recorded
+- approve publishing only if a future local commit makes `main` ahead of `origin/main`; no publish action is currently pending on the clean/published baseline
 - approve another intentional `--execute --slug <slug>` dogfood run only after the clean/published baseline is restored
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
