@@ -88,7 +88,8 @@ live path red가 나와도 아래 경우는 repo bug와 분리한다.
 - live rehearsal 전에는 아래 env가 현재 Codex app session에서 보여야 한다
   - `OPENAI_API_KEY`
   - `OPENAI_RESPONSES_MODEL`
-- browser rehearsal은 같은 `qa-slice-07` daemon session을 공유하므로 `smoke-qa-slice-07.mjs` 와 `smoke-qa-live-slice-07.mjs` 를 병렬로 실행하지 않는다
+- browser rehearsal은 실행마다 짧은 고유 Playwright daemon session name을 만들어 stale page/server state를 피하되, macOS socket path length 한계도 넘지 않게 유지한다
+- operator evidence를 수집할 때는 runtime/output evidence 해석이 섞이지 않도록 `smoke-qa-slice-07.mjs` 와 `smoke-qa-live-slice-07.mjs` 를 exact entrypoint 기준으로 순차 실행한다
 
 ### Scenario A: Local-Stub Canonical Flow
 1. `node scripts/smoke-qa-slice-07.mjs`

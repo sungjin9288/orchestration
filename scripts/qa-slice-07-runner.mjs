@@ -552,6 +552,11 @@ function closePlaywrightSession({ outputRoot, overrideEnvVar, sessionName }) {
   }
 }
 
+function createPlaywrightSessionName(prefix) {
+  const compactPrefix = prefix.replace('qa-slice-', 'q');
+  return `${compactPrefix}-${crypto.randomBytes(3).toString('hex')}`;
+}
+
 function captureFailureScreenshot({ filename, outputRoot, overrideEnvVar, sessionName }) {
   try {
     runPlaywrightCli({
@@ -1902,7 +1907,7 @@ async function prepareBrowserHarness({
   serverEnv,
 }) {
   const configPath = path.join(outputRoot, 'playwright-cli.json');
-  const sessionName = 'qa-slice-07';
+  const sessionName = createPlaywrightSessionName('qa-slice-07');
   const port = await allocatePort();
   const baseUrl = `http://127.0.0.1:${port}`;
   const server = startUiServer({
