@@ -231,7 +231,7 @@ First v1 kickoff slice:
 - Confirm `Taskboard / Logs / Artifacts / Decision Inbox` still show where the result, evidence, approval, and next action live.
 - Stop before push, publish, merge, external release, or hidden cleanup unless explicitly approved.
 
-Additional execute-mode dogfood is optional and approval-gated; do not run another dogfood pass by default once the kickoff status is green. Dogfood Run 030 was intentionally run after approval, and its retained linked worktree now waits for explicit destructive cleanup approval.
+Additional execute-mode dogfood is optional and approval-gated; do not run another dogfood pass by default once the kickoff status is green. Dogfood Run 030 was intentionally run after approval, and its retained linked worktree cleanup completed after explicit destructive cleanup approval.
 
 ## Additional Dogfood Execute Evidence
 Recorded at `2026-05-03 22:07:42 +0900` on published `main`.
@@ -328,8 +328,8 @@ Recorded at `2026-05-05 02:39:23 +0900` on published `main`.
 - command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-027`
 - source head: `b636665b0ae60d5f45b92f9405fe110f3972452a`
 - retained linked worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-027`
-- retained linked worktree status: retained dirty by design until explicit destructive cleanup approval
-- cleanup state: Dogfood Run 030 retained linked worktree cleanup is pending explicit destructive approval
+- retained linked worktree status: cleaned up after explicit destructive approval
+- cleanup state: Dogfood Run 030 retained linked worktree cleanup has completed
 - result: reviewer `pass`, task review status `passed`, no commit-package, local commit, push, merge, release-package, or close-out ran
 
 Runtime/browser proof for the kickoff slice:
@@ -494,8 +494,7 @@ Default next action without approval:
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- commit Dogfood Run 030 retained-evidence docs locally after explicit commit approval
-- clean up the Dogfood Run 030 retained linked worktree and branch only after explicit destructive cleanup approval
+- commit Dogfood Run 030 cleanup-completed evidence locally after explicit commit approval
 - publish the Dogfood Run 030 evidence commits only after cleanup-completed evidence is committed locally and explicit push approval is given
 - run another intentional `--execute --slug <slug>` dogfood pass only after the clean/published baseline is restored
 
@@ -524,9 +523,11 @@ Completed approval-gated actions:
 - Dogfood Run 029 retained dogfood linked worktree cleanup is complete
 - Dogfood Run 029 cleanup-completed evidence is published on current `main`
 - Dogfood Run 030 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
+- Dogfood Run 030 retained-evidence docs were committed locally
+- Dogfood Run 030 retained dogfood linked worktree cleanup is complete
 
 Current retained evidence status:
-- Dogfood Run 030 linked worktree remains retained for inspection at `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-027` on branch `worktree/v1-dogfood-runner-027`; only `prompts/builder.md` is dirty by design.
+- No retained dogfood linked worktree remains. Dogfood Run 030 linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-027` and branch `worktree/v1-dogfood-runner-027` have been removed after explicit destructive cleanup approval.
 - Dogfood Run 029 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-026`.
 - Dogfood Run 030 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-027`.
 

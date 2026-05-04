@@ -252,13 +252,13 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The last clean/published v1 development baseline is `main` at `b636665b0ae60d5f45b92f9405fe110f3972452a` after Dogfood Run 029 retained-evidence and cleanup-completed evidence were published. Dogfood Run 030 execute was explicitly approved and completed on that published baseline; its retained linked worktree is intentionally dirty by design until explicit destructive cleanup approval is given.
+The last clean/published v1 development baseline is `main` at `b636665b0ae60d5f45b92f9405fe110f3972452a` after Dogfood Run 029 retained-evidence and cleanup-completed evidence were published. Dogfood Run 030 retained-evidence commit `eecd9ce` is local, its retained linked worktree cleanup has completed after explicit destructive cleanup approval, and its cleanup-completed evidence is local until separate commit and push approvals publish it.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; during the Run 030 retained-evidence update, `main` is expected to be dirty until explicit commit approval is given, then ahead of `origin/main` until explicit push approval is given
-- `node scripts/verification_status.mjs` must remain green after the Run 030 retained-evidence update
+- current `main` publish state is reported by `git status --short --branch`; during the Run 030 cleanup-completed evidence update, `main` is expected to be dirty until explicit commit approval is given, then ahead of `origin/main` until explicit push approval is given
+- `node scripts/verification_status.mjs` must remain green after the Run 030 cleanup-completed evidence update
 - Dogfood Run 001 through Dogfood Run 030 evidence is recorded
 - Dogfood Run 029 cleanup-completed evidence is already published on current `origin/main`
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed after explicit operator approval
@@ -268,12 +268,11 @@ Current local completion snapshot:
 - Dogfood Run 027 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-024` and branch `worktree/v1-dogfood-runner-024` have been removed after explicit cleanup approval
 - Dogfood Run 028 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-025` and branch `worktree/v1-dogfood-runner-025` have been removed after explicit cleanup approval
 - Dogfood Run 029 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-026` and branch `worktree/v1-dogfood-runner-026` have been removed after explicit cleanup approval
-- Dogfood Run 030 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-027` and branch `worktree/v1-dogfood-runner-027` remain retained until explicit cleanup approval
+- Dogfood Run 030 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-027` and branch `worktree/v1-dogfood-runner-027` have been removed after explicit cleanup approval
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve a local retained-evidence commit for Dogfood Run 030
-- approve destructive cleanup for the Dogfood Run 030 retained linked worktree and branch
+- approve a local cleanup-completed evidence commit for Dogfood Run 030
 - approve publishing only after the cleanup-completed evidence commit is created and explicit push approval is given
 - approve another intentional `--execute --slug <slug>` dogfood run only after the clean/published baseline is restored
 
