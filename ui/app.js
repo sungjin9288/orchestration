@@ -19039,16 +19039,37 @@ function registerQaHooks() {
     return;
   }
 
+  const getQaState = () => ({
+    loading: state.loading,
+    menuGroup: state.menuGroup,
+    mutating: state.mutating,
+    selectedInboxItemId: state.selectedInboxItemId,
+    selectedTaskId: state.selectedTaskId,
+    surface: state.surface,
+  });
+  const waitForQaIdle = async (timeoutMs = 30_000) => {
+    const startedAt = Date.now();
+
+    while (state.loading || state.mutating) {
+      if (Date.now() - startedAt > timeoutMs) {
+        throw new Error('QA hook idle timeout');
+      }
+
+      await new Promise((resolve) => {
+        window.setTimeout(resolve, 100);
+      });
+    }
+  };
+
   window.__orchestrationQa = {
     getState() {
-      return {
-        loading: state.loading,
-        menuGroup: state.menuGroup,
-        mutating: state.mutating,
-        selectedInboxItemId: state.selectedInboxItemId,
-        selectedTaskId: state.selectedTaskId,
-        surface: state.surface,
-      };
+      return getQaState();
+    },
+    async refresh() {
+      await waitForQaIdle();
+      await refreshData();
+      await waitForQaIdle();
+      return getQaState();
     },
     openSurface(surface, options = {}) {
       if (!SURFACE_IDS.includes(surface)) {
