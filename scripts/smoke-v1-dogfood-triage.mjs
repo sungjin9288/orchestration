@@ -432,6 +432,21 @@ assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-026`/);
 assert.match(dogfood, /Dogfood Run 029 retained linked worktree cleanup has completed after explicit operator approval/);
 assert.match(dogfood, /Dogfood Run 029 worktree removed/);
 assert.doesNotMatch(dogfood, /Dogfood Run 029 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 030/);
+assert.match(dogfood, /Recorded at `2026-05-05 02:39:23 \+0900` on published `main`/);
+assert.match(dogfood, /b636665b0ae60d5f45b92f9405fe110f3972452a/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-027/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-027`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-027`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-027`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-027` or `61883` listener remained/);
+assert.match(dogfood, /source git status after run: clean tree with `main\.\.\.origin\/main`/);
+assert.match(dogfood, /linked worktree status after run: dirty by design, `prompts\/builder\.md` modified/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-027`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-027`/);
+assert.match(dogfood, /Dogfood Run 030 retained linked worktree cleanup is pending explicit operator approval/);
+assert.match(dogfood, /Dogfood Run 030 worktree retained/);
+assert.doesNotMatch(dogfood, /Dogfood Run 030 retained linked worktree cleanup has completed/);
 
 console.log(
   JSON.stringify(
@@ -439,9 +454,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 029',
+        run: 'Dogfood Run 030',
         result: 'pass',
-        nextAction: 'Dogfood Run 029 retained linked worktree cleanup completed after explicit operator approval',
+        nextAction: 'Dogfood Run 030 retained linked worktree cleanup pending explicit operator approval',
       },
     },
     null,
