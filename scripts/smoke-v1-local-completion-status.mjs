@@ -40,12 +40,12 @@ assert.match(runbook, /representative clean user-flow proof command/);
 assert.doesNotMatch(runbook, /commit Dogfood Run 025 retained-evidence docs locally after explicit commit approval/);
 assert.doesNotMatch(runbook, /clean up the Dogfood Run 025 retained linked worktree and branch only after explicit destructive cleanup approval/);
 assert.doesNotMatch(runbook, /clean up the Dogfood Run 026 retained linked worktree and branch only after explicit destructive cleanup approval/);
-assert.match(runbook, /clean up the Dogfood Run 027 retained linked worktree and branch only after explicit destructive cleanup approval/);
-assert.match(handoff, /last clean\/published v1 development baseline is `main` at `224c34b1a385ee5666de84681eea8bfba37fc93d`/);
-assert.match(handoff, /Dogfood Run 027 has now been explicitly approved and executed as linked-worktree evidence; its retained linked worktree remains dirty by design until explicit destructive cleanup approval/);
+assert.doesNotMatch(runbook, /clean up the Dogfood Run 027 retained linked worktree and branch only after explicit destructive cleanup approval/);
+assert.match(handoff, /last clean\/published v1 development baseline is `main` at `bcf040258a02c6d12244cf3ed75dde1fe302d897`/);
+assert.match(handoff, /Dogfood Run 027 retained linked worktree cleanup has now completed after explicit destructive cleanup approval/);
 assert.match(handoff, /local completion state, including whether any future local commit has reopened the push approval gate/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
-assert.match(handoff, /push had completed before the Dogfood Run 027 execute pass/);
+assert.match(handoff, /push completed before Dogfood Run 027 cleanup/);
 assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /node scripts\/v1-kickoff-status\.mjs/);
 
