@@ -34,7 +34,7 @@ assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
 assert.match(runbook, /current local development is complete/);
 assert.match(runbook, /whether push approval is currently available because local `main` is ahead of `origin\/main`/);
 assert.match(runbook, /retained cleanup is either complete or approval-blocked/);
-assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 033/);
+assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 034/);
 assert.match(runbook, /Default next action without approval/);
 assert.match(runbook, /representative clean user-flow proof command/);
 assert.doesNotMatch(runbook, /commit Dogfood Run 025 retained-evidence docs locally after explicit commit approval/);
@@ -50,13 +50,13 @@ assert.match(runbook, /Dogfood Run 031 cleanup-completed evidence is published o
 assert.match(runbook, /Dogfood Run 032 retained dogfood linked worktree cleanup is complete/);
 assert.match(runbook, /Dogfood Run 033 retained-evidence docs were committed locally before destructive cleanup/);
 assert.match(runbook, /Dogfood Run 033 retained dogfood linked worktree cleanup is complete/);
-assert.match(handoff, /last clean\/published v1 development baseline is `main` at `e9150ebab0ad9098556d7659fda822fe1db4694c`/);
-assert.match(handoff, /Dogfood Run 033 retained-evidence commit `bc834ff` was created locally before cleanup/);
-assert.match(handoff, /retained linked worktree cleanup has completed/);
-assert.match(handoff, /cleanup-completed evidence update restores the no-retained-worktree baseline once committed and pushed/);
+assert.match(runbook, /Dogfood Run 034 retained-evidence docs are being recorded locally before destructive cleanup/);
+assert.match(handoff, /last clean\/published v1 development baseline is `main` at `10ff7e4e7df9a549a21280b8a95ef3853b5a9c33`/);
+assert.match(handoff, /Dogfood Run 034 has executed from that clean\/published baseline/);
+assert.match(handoff, /records its isolated dirty linked worktree before cleanup/);
 assert.match(handoff, /local completion state, including whether any future local commit has reopened the push approval gate/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
-assert.match(handoff, /Dogfood Run 033 retained-evidence is committed locally as `bc834ff`/);
+assert.match(handoff, /Dogfood Run 034 retained-evidence is being recorded locally before cleanup/);
 assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /node scripts\/v1-kickoff-status\.mjs/);
 
