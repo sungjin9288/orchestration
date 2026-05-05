@@ -184,22 +184,31 @@ assert.match(runbook, /b636665b0ae60d5f45b92f9405fe110f3972452a/);
 assert.match(runbook, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-027/);
 assert.match(runbook, /retained linked worktree status: cleaned up after explicit destructive approval/);
 assert.match(runbook, /Dogfood Run 030 retained linked worktree cleanup has completed/);
+assert.match(runbook, /Recorded at `2026-05-05 10:37:24 \+0900` on published `main`/);
+assert.match(runbook, /dogfood triage status: `Dogfood Run 001` through `Dogfood Run 031` recorded/);
+assert.match(runbook, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-028/);
+assert.match(runbook, /23a8f230e7cc8f9f125e0e2671ac1add6d3556de/);
+assert.match(runbook, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-028/);
+assert.match(runbook, /retained linked worktree status: retained dirty by design until explicit destructive approval/);
+assert.match(runbook, /Dogfood Run 031 retained linked worktree cleanup is pending explicit destructive approval/);
 assert.match(runbook, /node scripts\/smoke-provider-live-slice-05\.mjs/);
 assert.match(runbook, /node scripts\/smoke-qa-live-slice-07\.mjs/);
 assert.match(runbook, /scripts\/smoke-openspace-slice-03\.mjs/);
-assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 030/);
+assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 031/);
 assert.match(runbook, /Current local completion is now represented by `node scripts\/v1-local-completion-status\.mjs`/);
 assert.match(runbook, /First v1 kickoff readiness is represented by `node scripts\/v1-kickoff-status\.mjs`/);
 assert.match(runbook, /Default next action without approval/);
-assert.match(runbook, /inspect the Dogfood Run 030 evidence/);
+assert.match(runbook, /inspect the Dogfood Run 031 evidence/);
 assert.match(runbook, /representative clean user-flow proof command/);
 assert.match(runbook, /Explicit approval-gated next actions/);
 assert.doesNotMatch(runbook, /clean up the Dogfood Run 026 retained linked worktree and branch only after explicit destructive cleanup approval/);
 assert.doesNotMatch(runbook, /clean up the Dogfood Run 028 retained linked worktree and branch only after explicit destructive cleanup approval/);
 assert.doesNotMatch(runbook, /clean up the Dogfood Run 029 retained linked worktree and branch only after explicit destructive cleanup approval/);
-assert.match(runbook, /commit Dogfood Run 030 cleanup-completed evidence locally after explicit commit approval/);
+assert.doesNotMatch(runbook, /commit Dogfood Run 030 cleanup-completed evidence locally after explicit commit approval/);
 assert.doesNotMatch(runbook, /clean up the Dogfood Run 030 retained linked worktree and branch only after explicit destructive cleanup approval/);
-assert.match(runbook, /publish the Dogfood Run 030 evidence commits only after cleanup-completed evidence is committed locally and explicit push approval is given/);
+assert.match(runbook, /commit Dogfood Run 031 retained-evidence docs locally after explicit commit approval/);
+assert.match(runbook, /clean up the Dogfood Run 031 retained linked worktree and branch only after explicit destructive cleanup approval/);
+assert.match(runbook, /publish the Dogfood Run 031 evidence commits only after cleanup-completed evidence is committed locally and explicit push approval is given/);
 assert.match(runbook, /previous baseline push was complete before Dogfood Run 024 execute/);
 assert.doesNotMatch(runbook, /commit Dogfood Run 024 retained-evidence docs locally/);
 assert.doesNotMatch(runbook, /clean up the Dogfood Run 024 retained linked worktree and branch/);
@@ -227,13 +236,15 @@ assert.match(runbook, /Dogfood Run 029 retained-evidence docs were committed loc
 assert.match(runbook, /Dogfood Run 029 retained dogfood linked worktree cleanup is complete/);
 assert.match(runbook, /Dogfood Run 029 cleanup-completed evidence is published on current `main`/);
 assert.match(runbook, /Dogfood Run 030 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out/);
-assert.match(runbook, /Dogfood Run 030 retained-evidence docs were committed locally/);
+assert.match(runbook, /Dogfood Run 030 retained-evidence docs were committed locally and published to `origin\/main`/);
 assert.match(runbook, /Dogfood Run 030 retained dogfood linked worktree cleanup is complete/);
-assert.match(runbook, /No retained dogfood linked worktree remains/);
-assert.match(runbook, /worktree\/v1-dogfood-runner-027/);
-assert.match(runbook, /Dogfood Run 029 runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-026`/);
+assert.match(runbook, /Dogfood Run 030 cleanup-completed evidence is published on current `main`/);
+assert.match(runbook, /Dogfood Run 031 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out/);
+assert.match(runbook, /Dogfood Run 031 linked worktree remains retained for inspection/);
+assert.match(runbook, /worktree\/v1-dogfood-runner-028/);
 assert.match(runbook, /Dogfood Run 030 runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-027`/);
-assert.match(runbook, /publish the Dogfood Run 030 evidence commits only after cleanup-completed evidence is committed locally and explicit push approval is given/);
+assert.match(runbook, /Dogfood Run 031 runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-028`/);
+assert.match(runbook, /publish the Dogfood Run 031 evidence commits only after cleanup-completed evidence is committed locally and explicit push approval is given/);
 assert.doesNotMatch(runbook, /no publish action is currently pending on the clean\/published baseline/);
 assert.match(runbook, /Dogfood Run 024 cleanup-completed evidence and the V1 kickoff browser polling hardening fix are published on current `main`/);
 assert.doesNotMatch(runbook, /publish the cleanup-completed evidence to `origin\/main` after cleanup is recorded/);
@@ -273,12 +284,12 @@ assert.match(runbook, /eae6513170730728c713ce2d8ba63a584a35769c/);
 assert.match(runbook, /current published head now has the same clean kickoff runtime\/browser proof as the earlier current-head rerun/);
 assert.match(runbook, /no concrete regression or usability issue was detected by this proof/);
 assert.match(runbook, /Do not reopen the already-completed preview-only artifact redaction policy/);
-assert.match(handoff, /last clean\/published v1 development baseline is `main` at `b636665b0ae60d5f45b92f9405fe110f3972452a`/);
-assert.match(handoff, /Dogfood Run 030 retained-evidence commit `eecd9ce` is local/);
-assert.match(handoff, /retained linked worktree cleanup has completed after explicit destructive cleanup approval/);
+assert.match(handoff, /last clean\/published v1 development baseline is `main` at `23a8f230e7cc8f9f125e0e2671ac1add6d3556de`/);
+assert.match(handoff, /Dogfood Run 031 execute was explicitly approved and completed on that published baseline/);
+assert.match(handoff, /retained linked worktree remains intentionally dirty by design until explicit destructive cleanup approval/);
 assert.match(handoff, /node scripts\/v1-local-completion-status\.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
-assert.match(handoff, /Dogfood Run 029 cleanup-completed evidence is already published on current `origin\/main`/);
+assert.match(handoff, /Dogfood Run 030 cleanup-completed evidence is already published on current `origin\/main`/);
 assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed/);
 assert.match(handoff, /Dogfood Run 024 retained linked worktree path/);
 assert.match(handoff, /Dogfood Run 025 retained linked worktree path/);
@@ -287,13 +298,16 @@ assert.match(handoff, /Dogfood Run 027 retained linked worktree path/);
 assert.match(handoff, /Dogfood Run 028 retained linked worktree path/);
 assert.match(handoff, /Dogfood Run 029 retained linked worktree path/);
 assert.match(handoff, /Dogfood Run 030 retained linked worktree path/);
-assert.match(handoff, /Dogfood Run 001 through Dogfood Run 030 evidence is recorded/);
+assert.match(handoff, /Dogfood Run 031 retained linked worktree path/);
+assert.match(handoff, /Dogfood Run 001 through Dogfood Run 031 evidence is recorded/);
 assert.doesNotMatch(handoff, /approve a local evidence commit for Dogfood Run 024 retained evidence/);
 assert.doesNotMatch(handoff, /approve destructive cleanup for the Dogfood Run 024 retained linked worktree and branch/);
 assert.doesNotMatch(handoff, /approve a local evidence commit for Dogfood Run 025 retained evidence/);
 assert.doesNotMatch(handoff, /approve destructive cleanup for the Dogfood Run 025 retained linked worktree and branch/);
-assert.match(handoff, /approve a local cleanup-completed evidence commit for Dogfood Run 030/);
+assert.doesNotMatch(handoff, /approve a local cleanup-completed evidence commit for Dogfood Run 030/);
 assert.doesNotMatch(handoff, /approve destructive cleanup for the Dogfood Run 030 retained linked worktree and branch/);
+assert.match(handoff, /approve a local retained-evidence commit for Dogfood Run 031/);
+assert.match(handoff, /approve destructive cleanup for the Dogfood Run 031 retained linked worktree and branch/);
 assert.match(handoff, /approve publishing only after the cleanup-completed evidence commit is created and explicit push approval is given/);
 assert.doesNotMatch(handoff, /approve destructive cleanup for the Dogfood Run 026 retained linked worktree and branch/);
 assert.doesNotMatch(handoff, /no publish action is currently pending on the clean\/published baseline/);
@@ -324,7 +338,7 @@ console.log(
         requiredGatePinned: true,
         pushDeferredBoundaryPinned: true,
         openSpaceCredentialBoundaryPinned: true,
-        nextPriorityPinned: 'approval-gated cleanup-completed evidence commit after Dogfood Run 030 cleanup',
+        nextPriorityPinned: 'approval-gated retained-evidence commit and cleanup for Dogfood Run 031',
       },
     },
     null,
