@@ -34,6 +34,14 @@ assert.match(qaSlice06Runner, /QA_BROWSER_FLAKE_ERROR_PATTERN =\s*[\s\S]*ETIMEDO
 assert.match(qaSlice07Runner, /QA_BROWSER_FLAKE_ERROR_PATTERN =\s*[\s\S]*ETIMEDOUT/);
 assert.match(qaSlice06Runner, /qa\.refresh\(\)/);
 assert.match(qaSlice07Runner, /qa\.refresh\(\)/);
+assert.match(qaSlice06Runner, /async function refreshBrowser\(\{ baseUrl, outputRoot, overrideEnvVar, sessionName \}\)/);
+assert.match(qaSlice07Runner, /async function refreshBrowser\(\{ baseUrl, outputRoot, overrideEnvVar, sessionName \}\)/);
+assert.match(qaSlice06Runner, /const expectedUrl = \$\{JSON\.stringify\(baseUrl \|\| ''\)\};/);
+assert.match(qaSlice07Runner, /const expectedUrl = \$\{JSON\.stringify\(baseUrl \|\| ''\)\};/);
+assert.match(qaSlice06Runner, /page\.goto\(expectedUrl, \{ waitUntil: 'domcontentloaded' \}\)/);
+assert.match(qaSlice07Runner, /page\.goto\(expectedUrl, \{ waitUntil: 'domcontentloaded' \}\)/);
+assert.match(qaSlice06Runner, /document\.querySelector\('#workspace-main'\) && typeof window\.__orchestrationQa\?\.refresh === 'function'/);
+assert.match(qaSlice07Runner, /document\.querySelector\('#workspace-main'\) && typeof window\.__orchestrationQa\?\.refresh === 'function'/);
 assert.match(qaSlice06Runner, /args: \['open', `--browser=\$\{browser\}`, `--config=\$\{configPath\}`, url\],\s*timeoutMs: 60_000/s);
 assert.match(qaSlice07Runner, /args: \['open', `--browser=\$\{browser\}`, `--config=\$\{configPath\}`, url\],\s*timeoutMs: 60_000/s);
 
@@ -62,6 +70,8 @@ console.log(
           'scripts/qa-slice-07-runner.mjs: prepare-browser-harness timeout retry',
           'scripts/qa-slice-06-runner.mjs: QA refresh hook',
           'scripts/qa-slice-07-runner.mjs: QA refresh hook',
+          'scripts/qa-slice-06-runner.mjs: app page recovery before QA refresh',
+          'scripts/qa-slice-07-runner.mjs: app page recovery before QA refresh',
         ],
       },
     },

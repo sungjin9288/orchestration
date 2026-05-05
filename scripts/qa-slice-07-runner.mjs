@@ -1935,10 +1935,23 @@ async function prepareBrowserHarness({
   };
 }
 
-async function refreshBrowser({ outputRoot, overrideEnvVar, sessionName }) {
+async function refreshBrowser({ baseUrl, outputRoot, overrideEnvVar, sessionName }) {
   runCode({
     codeBody: `
-const qa = await page.evaluateHandle(() => window.__orchestrationQa);
+const expectedUrl = ${JSON.stringify(baseUrl || '')};
+const appReady = () =>
+  Boolean(document.querySelector('#workspace-main') && typeof window.__orchestrationQa?.refresh === 'function');
+
+if (!appReady() && expectedUrl) {
+  await page.goto(expectedUrl, { waitUntil: 'domcontentloaded' });
+}
+
+await page.waitForFunction(() =>
+  Boolean(document.querySelector('#workspace-main') && typeof window.__orchestrationQa?.refresh === 'function'),
+  null,
+  { timeout: 15000 },
+);
+
 await page.evaluate(async () => {
   const qa = window.__orchestrationQa;
   if (typeof qa?.refresh !== 'function') {
@@ -1947,7 +1960,6 @@ await page.evaluate(async () => {
 
   await qa.refresh();
 });
-await qa.dispose();
 `,
     outputRoot,
     overrideEnvVar,
@@ -2105,6 +2117,7 @@ async function runSharedQaSlice07Flow({
 
     await runStage('browser-refresh-after-project', () =>
       refreshBrowser({
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         sessionName: harness.sessionName,
@@ -2163,6 +2176,7 @@ async function runSharedQaSlice07Flow({
 
     await runStage('browser-refresh-before-approval-request', () =>
       refreshBrowser({
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         sessionName: harness.sessionName,
@@ -2255,6 +2269,7 @@ async function runSharedQaSlice07Flow({
 
     await runStage('browser-refresh-before-builder-run', () =>
       refreshBrowser({
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         sessionName: harness.sessionName,
@@ -2396,6 +2411,7 @@ async function runSharedQaSlice07Flow({
 
     await runStage('browser-refresh-before-builder-logs-check', () =>
       refreshBrowser({
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         sessionName: harness.sessionName,
@@ -2425,6 +2441,7 @@ async function runSharedQaSlice07Flow({
 
     await runStage('browser-refresh-before-reviewer-run', () =>
       refreshBrowser({
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         sessionName: harness.sessionName,
@@ -2521,6 +2538,7 @@ async function runSharedQaSlice07Flow({
 
     await runStage('browser-refresh-before-reviewer-logs-check', () =>
       refreshBrowser({
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         sessionName: harness.sessionName,
