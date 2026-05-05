@@ -43,6 +43,7 @@ assert.match(inventory, /dogfood-run-028/);
 assert.match(inventory, /dogfood-run-029/);
 assert.match(inventory, /dogfood-run-030/);
 assert.match(inventory, /dogfood-run-031/);
+assert.match(inventory, /dogfood-run-032/);
 assert.match(inventory, /worktree\/v1-dogfood-run-002/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-001/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-002/);
@@ -73,6 +74,7 @@ assert.match(inventory, /worktree\/v1-dogfood-runner-025/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-026/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-027/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-028/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-029/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -117,6 +119,7 @@ assert.match(dogfood, /Dogfood Run 028/);
 assert.match(dogfood, /Dogfood Run 029/);
 assert.match(dogfood, /Dogfood Run 030/);
 assert.match(dogfood, /Dogfood Run 031/);
+assert.match(dogfood, /Dogfood Run 032/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
@@ -146,7 +149,8 @@ assert.match(dogfood, /Dogfood Run 028 worktree removed/);
 assert.match(dogfood, /Dogfood Run 029 worktree removed/);
 assert.match(dogfood, /Dogfood Run 030 worktree removed/);
 assert.match(dogfood, /Dogfood Run 031 worktree removed/);
-assert.doesNotMatch(dogfood, /Retained cleanup pending explicit operator approval/);
+assert.match(dogfood, /Retained cleanup pending explicit operator approval/);
+assert.match(dogfood, /Dogfood Run 032 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 030 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 031 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 027 worktree retained/);
@@ -211,6 +215,7 @@ console.log(
           'dogfood-run-029',
           'dogfood-run-030',
           'dogfood-run-031',
+          'dogfood-run-032',
         ],
       },
     },

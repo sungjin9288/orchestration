@@ -123,6 +123,18 @@ assert.match(dogfood, /Dogfood Run 027 retained linked worktree cleanup has comp
 assert.match(dogfood, /## Dogfood Run 028/);
 assert.match(dogfood, /v1-dogfood-runner-025/);
 assert.match(dogfood, /Dogfood Run 028 retained linked worktree cleanup has completed after explicit operator approval/);
+assert.match(dogfood, /## Dogfood Run 029/);
+assert.match(dogfood, /v1-dogfood-runner-026/);
+assert.match(dogfood, /Dogfood Run 029 retained linked worktree cleanup has completed after explicit operator approval/);
+assert.match(dogfood, /## Dogfood Run 030/);
+assert.match(dogfood, /v1-dogfood-runner-027/);
+assert.match(dogfood, /Dogfood Run 030 retained linked worktree cleanup has completed after explicit operator approval/);
+assert.match(dogfood, /## Dogfood Run 031/);
+assert.match(dogfood, /v1-dogfood-runner-028/);
+assert.match(dogfood, /Dogfood Run 031 retained linked worktree cleanup has completed after explicit operator approval/);
+assert.match(dogfood, /## Dogfood Run 032/);
+assert.match(dogfood, /v1-dogfood-runner-029/);
+assert.match(dogfood, /Dogfood Run 032 worktree retained/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
 assert.match(verificationStatus, /v1-dogfood-runner/);
