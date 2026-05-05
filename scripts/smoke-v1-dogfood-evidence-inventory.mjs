@@ -48,6 +48,7 @@ assert.match(inventory, /dogfood-run-033/);
 assert.match(inventory, /dogfood-run-034/);
 assert.match(inventory, /dogfood-run-035/);
 assert.match(inventory, /dogfood-run-036/);
+assert.match(inventory, /dogfood-run-037/);
 assert.match(inventory, /worktree\/v1-dogfood-run-002/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-001/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-002/);
@@ -83,6 +84,7 @@ assert.match(inventory, /worktree\/v1-dogfood-runner-030/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-031/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-032/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-033/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-034/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -132,6 +134,7 @@ assert.match(dogfood, /Dogfood Run 033/);
 assert.match(dogfood, /Dogfood Run 034/);
 assert.match(dogfood, /Dogfood Run 035/);
 assert.match(dogfood, /Dogfood Run 036/);
+assert.match(dogfood, /Dogfood Run 037/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
@@ -166,8 +169,10 @@ assert.match(dogfood, /Dogfood Run 033 worktree removed/);
 assert.match(dogfood, /Dogfood Run 034 worktree removed/);
 assert.match(dogfood, /Dogfood Run 035 worktree removed/);
 assert.match(dogfood, /Dogfood Run 036 worktree removed/);
-assert.doesNotMatch(dogfood, /Retained cleanup pending explicit operator approval/);
+assert.match(dogfood, /Retained cleanup pending explicit operator approval/);
+assert.match(dogfood, /Dogfood Run 037 worktree retained/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-033/);
+assert.match(dogfood, /worktree\/v1-dogfood-runner-034/);
 assert.doesNotMatch(dogfood, /Dogfood Run 030 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 031 worktree retained/);
 assert.doesNotMatch(dogfood, /Dogfood Run 032 worktree retained/);
@@ -242,6 +247,7 @@ console.log(
           'dogfood-run-034',
           'dogfood-run-035',
           'dogfood-run-036',
+          'dogfood-run-037',
         ],
       },
     },
