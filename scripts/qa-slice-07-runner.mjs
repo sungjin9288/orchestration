@@ -602,19 +602,6 @@ function evaluate({
   );
 }
 
-async function waitForSurfaceNavReady({ outputRoot, overrideEnvVar, sessionName, surface }) {
-  return waitForBrowserValue(async () => {
-    const navReady = evaluate({
-      expression: `Boolean(document.querySelector(${JSON.stringify(`#surface-${surface}`)}) && document.querySelector('[data-nav-group-tab]')) ? 'ready' : null`,
-      outputRoot,
-      overrideEnvVar,
-      sessionName,
-    });
-
-    return navReady === 'ready' ? navReady : null;
-  }, `${surface} navigation ready`);
-}
-
 function readLatestAccessibilitySnapshot(outputRoot) {
   const snapshotDir = path.join(outputRoot, '.playwright-cli');
   const snapshotPaths = fs
@@ -684,6 +671,44 @@ async function waitForBodyText({ outputRoot, overrideEnvVar, pattern, sessionNam
 
     return pattern.test(bodyText) ? bodyText : null;
   }, label);
+}
+
+function assertBrowserTextWithSelector({
+  outputRoot,
+  overrideEnvVar,
+  patterns,
+  secret,
+  selector,
+  sessionName,
+  label,
+}) {
+  const patternPayloads = patterns.map((pattern) => ({
+    flags: pattern.flags,
+    source: pattern.source,
+  }));
+
+  runCode({
+    codeBody: `
+const selector = ${JSON.stringify(selector)};
+const patterns = ${JSON.stringify(patternPayloads)}.map((pattern) => new RegExp(pattern.source, pattern.flags));
+const label = ${JSON.stringify(label)};
+const secret = ${JSON.stringify(secret || '')};
+
+await page.waitForSelector(selector, { timeout: 15000 });
+const bodyText = document.body ? document.body.innerText.replace(/\\s+/g, ' ').trim() : '';
+for (const pattern of patterns) {
+  if (!pattern.test(bodyText)) {
+    throw new Error(\`\${label} text mismatch: \${pattern}\`);
+  }
+}
+if (secret && bodyText.includes(secret)) {
+  throw new Error(\`\${label} leaked secret into browser DOM text\`);
+}
+`,
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+  });
 }
 
 function createResponse(status, payload) {
@@ -1459,91 +1484,62 @@ async function verifyBrowserProjectSummary({
 }
 
 async function clickSurface({
+  baseUrl = '',
   outputRoot,
   overrideEnvVar,
   qaOptions = null,
   sessionName,
   surface,
 }) {
-  await waitForSurfaceNavReady({
-    outputRoot,
-    overrideEnvVar,
-    sessionName,
-    surface,
-  });
+  runCode({
+    codeBody: `
+const expectedUrl = ${JSON.stringify(baseUrl || '')};
+const surface = ${JSON.stringify(surface)};
+const qaOptions = ${JSON.stringify(qaOptions || {})};
+const hookReady = () =>
+  Boolean(document.querySelector('#workspace-main') && typeof window.__orchestrationQa?.openSurface === 'function');
+const onExpectedApp = () => Boolean(expectedUrl && page.url().startsWith(expectedUrl));
 
-  const navGroup =
-    {
-      artifacts: 'review',
-      council: 'workflows',
-      'decision-inbox': 'review',
-      deliverables: 'workflows',
-      execution: 'workflows',
-      logs: 'review',
-      mission: 'workflows',
-      taskboard: 'ops',
-    }[surface] || 'workflows';
+if (expectedUrl && (!hookReady() || !onExpectedApp())) {
+  await page.goto(expectedUrl, { waitUntil: 'domcontentloaded' });
+}
 
-  const navGroupSelector = `.nav-group-tab[data-nav-group-tab="${navGroup}"]`;
-  const navGroupPanelSelector = `.nav-group[data-nav-group="${navGroup}"]`;
-  const surfaceSelector = `${navGroupPanelSelector}:not([hidden]) .nav-button[data-surface="${surface}"]`;
-  const hookResult = evaluate({
-    expression: `(() => {
-      const qa = window.__orchestrationQa;
-      if (typeof qa?.openSurface !== 'function') {
-        return null;
-      }
+await page.waitForFunction(() =>
+  Boolean(document.querySelector('#workspace-main') && typeof window.__orchestrationQa?.openSurface === 'function'),
+  null,
+  { timeout: 15000 },
+);
 
-      return {
-        opened: qa.openSurface(${JSON.stringify(surface)}, ${JSON.stringify(qaOptions)}),
-        state: typeof qa.getState === 'function' ? qa.getState() : null,
-      };
-    })()`,
-    outputRoot,
-    overrideEnvVar,
-    sessionName,
-  });
-
-  if (hookResult?.opened) {
-    return;
+await page.evaluate(({ surface, qaOptions }) => {
+  const qa = window.__orchestrationQa;
+  const opened = qa.openSurface(surface, qaOptions);
+  if (!opened) {
+    throw new Error(\`QA surface hook rejected \${surface}\`);
   }
+}, { surface, qaOptions });
 
-  clickSelector({
+await page.waitForFunction((surface) => {
+  const qa = window.__orchestrationQa;
+  const state = typeof qa?.getState === 'function' ? qa.getState() : null;
+  const panel = document.querySelector(\`#surface-\${surface}\`);
+  return Boolean(state?.surface === surface && panel?.classList.contains('is-active'));
+}, surface, { timeout: 15000 });
+
+if (surface === 'taskboard' && qaOptions?.taskId) {
+  await page.waitForFunction(({ taskId }) => {
+    const qa = window.__orchestrationQa;
+    const state = typeof qa?.getState === 'function' ? qa.getState() : null;
+    const row = document.querySelector(\`#surface-taskboard [data-action="select-task"][data-id="\${taskId}"]\`);
+    return Boolean(state?.selectedTaskId === taskId && row);
+  }, { taskId: qaOptions.taskId }, {
+  timeout: 15000,
+  });
+}
+`,
     outputRoot,
     overrideEnvVar,
-    selector: navGroupSelector,
     sessionName,
   });
-  await waitForBrowserValue(async () => {
-    const groupVisible = evaluate({
-      expression: `document.querySelector(${JSON.stringify(navGroupPanelSelector)}) && !document.querySelector(${JSON.stringify(navGroupPanelSelector)})?.hasAttribute('hidden') ? 'ready' : null`,
-      outputRoot,
-      overrideEnvVar,
-      sessionName,
-    });
-
-    return groupVisible === 'ready' ? groupVisible : null;
-  }, `${navGroup} nav group visibility`);
-
-  clickSelector({
-    outputRoot,
-    overrideEnvVar,
-    selector: surfaceSelector,
-    sessionName,
-  });
-
-  if (surface === 'taskboard' && qaOptions?.taskId) {
-    await waitForBrowserValue(async () => {
-      const taskRowVisible = evaluate({
-        expression: `Boolean(document.querySelector(${JSON.stringify(`#surface-taskboard [data-action="select-task"][data-id="${qaOptions.taskId}"]`)}))`,
-        outputRoot,
-        overrideEnvVar,
-        sessionName,
-      });
-
-      return taskRowVisible ? 'ready' : null;
-    }, 'taskboard row availability after nav click');
-  }
 }
 
 async function waitForActiveSurface({
@@ -1553,16 +1549,20 @@ async function waitForActiveSurface({
   surface,
   label,
 }) {
-  return waitForBrowserValue(async () => {
-    const value = evaluate({
-      expression: `document.querySelector('.nav-group:not([hidden]) .nav-button.is-active')?.dataset.surface === ${JSON.stringify(surface)} && document.querySelector(${JSON.stringify(`#surface-${surface}`)})?.classList.contains('is-active') ? ${JSON.stringify(surface)} : null`,
-      outputRoot,
-      overrideEnvVar,
-      sessionName,
-    });
-
-    return value === surface ? value : null;
-  }, label);
+  return runCode({
+    codeBody: `
+const surface = ${JSON.stringify(surface)};
+await page.waitForFunction((surface) => {
+  const qa = window.__orchestrationQa;
+  const state = typeof qa?.getState === 'function' ? qa.getState() : null;
+  const panel = document.querySelector(\`#surface-\${surface}\`);
+  return Boolean(state?.surface === surface && panel?.classList.contains('is-active'));
+}, surface, { timeout: 15000 });
+`,
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+  });
 }
 
 async function triggerBrowserApprovalRequest({
@@ -1613,6 +1613,7 @@ async function triggerBrowserApprovalRequest({
 }
 
 async function triggerBrowserApprovalResolve({
+  baseUrl,
   inboxItemId,
   outputRoot,
   overrideEnvVar,
@@ -1622,6 +1623,7 @@ async function triggerBrowserApprovalResolve({
   const domTexts = [];
 
   await clickSurface({
+    baseUrl,
     outputRoot,
     overrideEnvVar,
     sessionName,
@@ -1663,6 +1665,7 @@ async function triggerBrowserApprovalResolve({
 }
 
 async function triggerBrowserBuilderLiveMutation({
+  baseUrl,
   outputRoot,
   overrideEnvVar,
   secret,
@@ -1673,72 +1676,34 @@ async function triggerBrowserBuilderLiveMutation({
   const domTexts = [];
 
   await clickSurface({
+    baseUrl,
     outputRoot,
     overrideEnvVar,
     qaOptions: { taskId },
     sessionName,
     surface: 'taskboard',
   });
-  await waitForActiveSurface({
+
+  const runButtonSelector = `[data-action="run-builder-live-mutation"][data-id="${taskId}"]`;
+  assertBrowserTextWithSelector({
     outputRoot,
     overrideEnvVar,
-    sessionName,
-    surface: 'taskboard',
-    label: 'taskboard landing before live mutation',
-  });
-  await waitForBrowserValue(async () => {
-    const taskRowVisible = evaluate({
-      expression: `Boolean(document.querySelector(${JSON.stringify(`#surface-taskboard.is-active [data-action="select-task"][data-id="${taskId}"]`)}))`,
-      outputRoot,
-      overrideEnvVar,
-      sessionName,
-    });
-
-    return taskRowVisible ? 'ready' : null;
-  }, 'taskboard task row visibility before live mutation');
-
-  clickSelector({
-    outputRoot,
-    overrideEnvVar,
-    selector: `[data-action="select-task"][data-id="${taskId}"]`,
-    sessionName,
-  });
-
-  const taskText = await waitForBodyText({
-    outputRoot,
-    overrideEnvVar,
-    pattern: new RegExp(escapeRegExp(taskTitle)),
+    patterns: [
+      new RegExp(escapeRegExp(taskTitle)),
+      /작전 변경 실행|라이브 변경 실행|현재 빌더 승인은 이미 승인됐습니다/i,
+    ],
+    secret,
+    selector: runButtonSelector,
     sessionName,
     label: 'selected task before live mutation run',
   });
-  domTexts.push(taskText);
-  assertSecretAbsent(taskText, secret, 'taskboard pre-run body');
-
-  const runButtonSelector = `[data-action="run-builder-live-mutation"][data-id="${taskId}"]`;
-  await waitForBrowserValue(async () => {
-    const buttonVisible = evaluate({
-      expression: `Boolean(document.querySelector(${JSON.stringify(runButtonSelector)}))`,
-      outputRoot,
-      overrideEnvVar,
-      sessionName,
-    });
-
-    return buttonVisible ? runButtonSelector : null;
-  }, 'live mutation run button visibility');
-
-  const guardReadyText = getBodyText({
-    outputRoot,
-    overrideEnvVar,
-    sessionName,
-  });
-  domTexts.push(guardReadyText);
-  assert.match(guardReadyText, /작전 변경 실행|라이브 변경 실행|현재 빌더 승인은 이미 승인됐습니다/i);
-  assertSecretAbsent(guardReadyText, secret, 'live mutation ready guard body');
+  domTexts.push(taskTitle);
 
   return domTexts;
 }
 
 async function triggerBrowserReviewer({
+  baseUrl,
   outputRoot,
   overrideEnvVar,
   secret,
@@ -1749,64 +1714,34 @@ async function triggerBrowserReviewer({
   const domTexts = [];
 
   await clickSurface({
+    baseUrl,
     outputRoot,
     overrideEnvVar,
+    qaOptions: { taskId },
     sessionName,
     surface: 'taskboard',
   });
-  await waitForActiveSurface({
-    outputRoot,
-    overrideEnvVar,
-    sessionName,
-    surface: 'taskboard',
-    label: 'taskboard landing before reviewer run',
-  });
 
-  clickSelector({
+  const reviewerButtonSelector = `#surface-taskboard [data-action="run-reviewer"][data-id="${taskId}"]:not([disabled])`;
+  assertBrowserTextWithSelector({
     outputRoot,
     overrideEnvVar,
-    selector: `[data-action="select-task"][data-id="${taskId}"]`,
-    sessionName,
-  });
-
-  const taskText = await waitForBodyText({
-    outputRoot,
-    overrideEnvVar,
-    pattern: new RegExp(escapeRegExp(taskTitle)),
+    patterns: [
+      new RegExp(escapeRegExp(taskTitle)),
+      /리뷰어 실행|최종 리뷰 아티팩트를 기록합니다|최신 변경 번들을 점검해 리뷰 보고를 남길 수 있습니다/i,
+    ],
+    secret,
+    selector: reviewerButtonSelector,
     sessionName,
     label: 'selected task before reviewer run',
   });
-  domTexts.push(taskText);
-  assertSecretAbsent(taskText, secret, 'taskboard pre-review body');
-
-  const reviewerButtonSelector = `#surface-taskboard [data-action="run-reviewer"][data-id="${taskId}"]:not([disabled])`;
-  await waitForBrowserValue(async () => {
-    const buttonVisible = evaluate({
-      expression: `Boolean(document.querySelector(${JSON.stringify(reviewerButtonSelector)}))`,
-      outputRoot,
-      overrideEnvVar,
-      sessionName,
-    });
-
-    return buttonVisible ? reviewerButtonSelector : null;
-  }, 'reviewer run button visibility');
-
-  const reviewerReadyText = getBodyText({
-    outputRoot,
-    overrideEnvVar,
-    sessionName,
-  });
-  domTexts.push(reviewerReadyText);
-  assert.match(
-    reviewerReadyText,
-    /리뷰어 실행|최종 리뷰 아티팩트를 기록합니다|최신 변경 번들을 점검해 리뷰 보고를 남길 수 있습니다/i,
-  );
-  assertSecretAbsent(reviewerReadyText, secret, 'reviewer run body');
+  domTexts.push(taskTitle);
 
   return domTexts;
 }
 
 async function verifyBrowserLogsLanding({
+  baseUrl,
   outputRoot,
   overrideEnvVar,
   runId,
@@ -1814,6 +1749,7 @@ async function verifyBrowserLogsLanding({
   sessionName,
 }) {
   await clickSurface({
+    baseUrl,
     outputRoot,
     overrideEnvVar,
     sessionName,
@@ -1860,12 +1796,14 @@ async function verifyBrowserLogsLanding({
 
 async function verifyBrowserArtifactSelection({
   artifactId,
+  baseUrl,
   outputRoot,
   overrideEnvVar,
   secret,
   sessionName,
 }) {
   await clickSurface({
+    baseUrl,
     outputRoot,
     overrideEnvVar,
     sessionName,
@@ -1941,8 +1879,9 @@ async function refreshBrowser({ baseUrl, outputRoot, overrideEnvVar, sessionName
 const expectedUrl = ${JSON.stringify(baseUrl || '')};
 const appReady = () =>
   Boolean(document.querySelector('#workspace-main') && typeof window.__orchestrationQa?.refresh === 'function');
+const onExpectedApp = () => Boolean(expectedUrl && page.url().startsWith(expectedUrl));
 
-if (!appReady() && expectedUrl) {
+if (expectedUrl && (!appReady() || !onExpectedApp())) {
   await page.goto(expectedUrl, { waitUntil: 'domcontentloaded' });
 }
 
@@ -2278,6 +2217,7 @@ async function runSharedQaSlice07Flow({
 
     const runTexts = await runStage('browser-verify-builder-run-entry', () =>
       triggerBrowserBuilderLiveMutation({
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         secret: secretToCheck,
@@ -2419,6 +2359,7 @@ async function runSharedQaSlice07Flow({
     );
     const logsText = await runStage('browser-verify-builder-logs-landing', () =>
       verifyBrowserLogsLanding({
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         runId: builderRun.id,
@@ -2431,6 +2372,7 @@ async function runSharedQaSlice07Flow({
     const artifactText = await runStage('browser-verify-change-summary-selection', () =>
       verifyBrowserArtifactSelection({
         artifactId: changeSummaryArtifact.id,
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         secret: secretToCheck,
@@ -2449,6 +2391,7 @@ async function runSharedQaSlice07Flow({
     );
     const reviewerTexts = await runStage('browser-trigger-reviewer', () =>
       triggerBrowserReviewer({
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         secret: secretToCheck,
@@ -2546,6 +2489,7 @@ async function runSharedQaSlice07Flow({
     );
     const reviewerLogsText = await runStage('browser-verify-reviewer-logs-landing', () =>
       verifyBrowserLogsLanding({
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         runId: reviewerRun.id,
@@ -2558,6 +2502,7 @@ async function runSharedQaSlice07Flow({
     const reviewArtifactText = await runStage('browser-verify-review-artifact-selection', () =>
       verifyBrowserArtifactSelection({
         artifactId: reviewArtifact.id,
+        baseUrl: harness.baseUrl,
         outputRoot,
         overrideEnvVar,
         secret: secretToCheck,
