@@ -252,15 +252,15 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The last clean/published v1 development baseline is `main` at `3346561612772ac8577698058df385f6b5eeece3` after the V1 kickoff browser hook-navigation fix was published. Dogfood Run 038 executed from that clean/published baseline, and this retained-evidence update records the intentionally dirty linked worktree before cleanup. The retained linked worktree remains present until the retained-evidence commit is created and destructive cleanup removes it.
+The last clean/published v1 development baseline is `main` at `3346561612772ac8577698058df385f6b5eeece3` after the V1 kickoff browser hook-navigation fix was published. Dogfood Run 038 executed from that clean/published baseline, retained-evidence commit `5cafefb` preserved the intentionally dirty linked worktree evidence before cleanup, and the retained linked worktree cleanup has completed. This cleanup-completed evidence update restores the no-retained-worktree baseline once it is committed and pushed.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; during the Run 038 retained-evidence update, `main` is expected to be dirty until the retained-evidence commit is created, then ahead of `origin/main` until cleanup evidence is committed and the approved push publishes it
-- `node scripts/verification_status.mjs` must remain green after the Run 038 retained-evidence update
+- current `main` publish state is reported by `git status --short --branch`; during the Run 038 cleanup-completed evidence update, `main` is expected to be dirty until the cleanup-completed commit is created, then ahead of `origin/main` until the approved push publishes it
+- `node scripts/verification_status.mjs` must remain green after the Run 038 cleanup-completed evidence update
 - Dogfood Run 001 through Dogfood Run 038 evidence is recorded
-- Dogfood Run 038 retained-evidence is being recorded locally before destructive cleanup
+- Dogfood Run 038 retained-evidence was committed locally as `5cafefb` before destructive cleanup
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed after explicit operator approval
 - Dogfood Run 024 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-021` and branch `worktree/v1-dogfood-runner-021` have been removed
 - Dogfood Run 025 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-022` and branch `worktree/v1-dogfood-runner-022` have been removed after explicit cleanup approval
@@ -276,12 +276,11 @@ Current local completion snapshot:
 - Dogfood Run 035 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-032` and branch `worktree/v1-dogfood-runner-032` have been removed after retained-evidence commit `7459131` was preserved
 - Dogfood Run 036 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-033` and branch `worktree/v1-dogfood-runner-033` have been removed after retained-evidence commit `993c992` was preserved
 - Dogfood Run 037 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-034` and branch `worktree/v1-dogfood-runner-034` have been removed after retained-evidence commit `98a8122` was preserved
-- Dogfood Run 038 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-035` and branch `worktree/v1-dogfood-runner-035` remain retained until cleanup
+- Dogfood Run 038 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-035` and branch `worktree/v1-dogfood-runner-035` have been removed after retained-evidence commit `5cafefb` was preserved
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve the local retained-evidence commit for Dogfood Run 038 before destructive cleanup
-- approve destructive cleanup for the Dogfood Run 038 retained linked worktree and branch after retained-evidence is preserved
+- approve the local cleanup-completed evidence commit for Dogfood Run 038 after verification
 - no publish action remains only after cleanup-completed evidence is committed and pushed to `origin/main`
 - approve another intentional `--execute --slug <slug>` dogfood run only after the clean/published baseline is restored
 
