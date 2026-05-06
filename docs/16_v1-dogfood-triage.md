@@ -3011,8 +3011,9 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Dogfood Run 046 retained-evidence docs and smoke guards are being recorded locally before destructive cleanup.
-- Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-043` and `worktree/v1-dogfood-runner-043` requires explicit destructive cleanup approval after retained-evidence is preserved.
+- Dogfood Run 046 retained-evidence commit `ed6752a` preserved docs and smoke guards before destructive cleanup.
+- Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-043` and `worktree/v1-dogfood-runner-043` completed after explicit destructive cleanup approval.
+- Dogfood Run 046 cleanup-completed docs and smoke guards are being recorded locally before the cleanup-completed evidence commit and approved push.
 - The linked worktree mutation must not be committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
@@ -3156,6 +3157,7 @@ Cleanup completed after explicit operator approval:
 
 No retained dogfood linked worktree remained after Dogfood Run 045 cleanup before the next approved execute-mode pass.
 
-Retained cleanup pending after explicit Dogfood Run 046 execute approval:
-- Dogfood Run 046 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-043`; branch retained: `worktree/v1-dogfood-runner-043`; expected dirty marker: `prompts/builder.md`.
-- Cleanup requires explicit destructive approval after the retained-evidence docs and smoke guards are committed.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 046 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-043`; branch deleted: `worktree/v1-dogfood-runner-043`; retained-evidence commit `ed6752a` was preserved before cleanup.
+
+No retained dogfood linked worktree remained after Dogfood Run 046 cleanup before the next approved execute-mode pass.
