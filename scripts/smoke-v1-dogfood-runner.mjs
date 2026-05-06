@@ -188,9 +188,9 @@ assert.match(dogfood, /Dogfood Run 044 worktree removed/);
 assert.doesNotMatch(dogfood, /Dogfood Run 044 worktree retained/);
 assert.match(dogfood, /## Dogfood Run 045/);
 assert.match(dogfood, /v1-dogfood-runner-042/);
-assert.match(dogfood, /Dogfood Run 045 worktree retained/);
-assert.match(dogfood, /Commit the retained-evidence docs before destructive cleanup/);
-assert.doesNotMatch(dogfood, /Dogfood Run 045 worktree removed/);
+assert.match(dogfood, /Dogfood Run 045 retained linked worktree cleanup has completed after retained-evidence commit `5633a92` was preserved/);
+assert.match(dogfood, /Dogfood Run 045 worktree removed/);
+assert.doesNotMatch(dogfood, /Dogfood Run 045 worktree retained/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
 assert.match(verificationStatus, /v1-dogfood-runner/);

@@ -673,9 +673,9 @@ assert.match(dogfood, /source git status after run: clean tree with `main\.\.\.o
 assert.match(dogfood, /linked worktree status after run: dirty by design, `prompts\/builder\.md` modified/);
 assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-042`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-042`/);
-assert.match(dogfood, /Dogfood Run 045 worktree retained/);
-assert.match(dogfood, /Commit the retained-evidence docs before destructive cleanup/);
-assert.doesNotMatch(dogfood, /Dogfood Run 045 worktree removed/);
+assert.match(dogfood, /Dogfood Run 045 retained linked worktree cleanup has completed after retained-evidence commit `5633a92` was preserved/);
+assert.match(dogfood, /Dogfood Run 045 worktree removed/);
+assert.doesNotMatch(dogfood, /Dogfood Run 045 worktree retained/);
 
 console.log(
   JSON.stringify(
@@ -685,7 +685,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 045',
         result: 'pass',
-        nextAction: 'Dogfood Run 045 retained until retained-evidence commit and cleanup approval',
+        nextAction: 'Dogfood Run 045 cleanup-completed evidence pending commit approval',
       },
     },
     null,
