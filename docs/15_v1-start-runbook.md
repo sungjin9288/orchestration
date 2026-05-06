@@ -624,6 +624,23 @@ node scripts/smoke-qa-live-slice-07.mjs
 
 If env values are missing or provider auth/quota fails, record the exact blocker and keep it separate from repo readiness.
 
+### Latest Pre-Real Rehearsal Evidence
+Recorded at `2026-05-07 01:34:39 +0900` on clean/published `main`.
+
+- branch: `main`
+- repo status: clean tree with `main...origin/main`
+- local-stub canonical browser path: pass
+- command: `node scripts/smoke-qa-slice-07.mjs`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-qa-slice-07`
+- outputRoot: `/Users/sungjin/dev/personal/orchestration/output/playwright/qa-slice-07`
+- key run ids: `run-0005` builder, `run-0006` reviewer
+- key artifact ids: `artifact-0005` change summary, `artifact-0006` patch, `artifact-0007` diff, `artifact-0008` review
+- approval/review state: `approval-0001`, builder/reviewer readiness `ready`
+- surfaces covered by the browser path: project bootstrap, mission create/select, linked task creation, builder approval, builder live mutation, logs/artifacts landing, reviewer, duplicate guards, and secret scan
+- live provider rehearsal: skipped because current process env and `launchctl` both reported `OPENAI_API_KEY=false` and `OPENAI_RESPONSES_MODEL=(unset)`
+- classification: external/env visibility blocker, not a repo regression
+- follow-up: provide visible live-provider env in the Codex app session, then rerun `node scripts/smoke-provider-live-slice-05.mjs` followed by `node scripts/smoke-qa-live-slice-07.mjs`
+
 ## OpenSpace Boundary
 OpenSpace is v1-supporting infrastructure, not a v1 start blocker by itself.
 
