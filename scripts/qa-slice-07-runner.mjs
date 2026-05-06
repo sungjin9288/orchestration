@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { createServer as createNetServer } from 'node:net';
@@ -507,16 +507,62 @@ function buildPlaywrightCliCommand(overrideEnvVar) {
   return ['npx', '--yes', '--package', `@playwright/cli@${PLAYWRIGHT_CLI_VERSION}`, 'playwright-cli'];
 }
 
+function truncateCliOutput(value, maxLength = 2_000) {
+  const text = String(value || '').trim();
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength)}... [truncated ${text.length - maxLength} chars]`;
+}
+
 function runPlaywrightCli({ outputRoot, overrideEnvVar, sessionName, args, timeoutMs = 120_000 }) {
   const [command, ...baseArgs] = buildPlaywrightCliCommand(overrideEnvVar);
-
-  return execFileSync(command, [...baseArgs, '--session', sessionName, ...args], {
+  const fullArgs = [...baseArgs, '--session', sessionName, ...args];
+  const result = spawnSync(command, fullArgs, {
     cwd: outputRoot,
     encoding: 'utf8',
     env: process.env,
+    killSignal: 'SIGKILL',
     maxBuffer: 10 * 1024 * 1024,
     timeout: timeoutMs,
   });
+
+  if (result.error) {
+    const error = new Error(
+      [
+        `playwright-cli ${args[0] || 'command'} failed: ${result.error.code || result.error.message}`,
+        `[timeoutMs=${timeoutMs}]`,
+        `[session=${sessionName}]`,
+        `[stdout=${truncateCliOutput(result.stdout)}]`,
+        `[stderr=${truncateCliOutput(result.stderr)}]`,
+      ].join(' '),
+    );
+
+    error.cause = result.error;
+    error.stdout = result.stdout || '';
+    error.stderr = result.stderr || '';
+    throw error;
+  }
+
+  if (result.status !== 0) {
+    const error = new Error(
+      [
+        `playwright-cli ${args[0] || 'command'} exited with status ${result.status}`,
+        `[signal=${result.signal || 'none'}]`,
+        `[session=${sessionName}]`,
+        `[stdout=${truncateCliOutput(result.stdout)}]`,
+        `[stderr=${truncateCliOutput(result.stderr)}]`,
+      ].join(' '),
+    );
+
+    error.stdout = result.stdout || '';
+    error.stderr = result.stderr || '';
+    throw error;
+  }
+
+  return result.stdout || '';
 }
 
 function parsePlaywrightResult(output) {

@@ -36,6 +36,14 @@ assert.match(qaSlice06Runner, /qa\.refresh\(\)/);
 assert.match(qaSlice07Runner, /qa\.refresh\(\)/);
 assert.match(qaSlice06Runner, /function assertBrowserTextWithSelector\(\{/);
 assert.match(qaSlice07Runner, /function assertBrowserTextWithSelector\(\{/);
+assert.match(qaSlice06Runner, /import \{ execFileSync, spawn, spawnSync \} from 'node:child_process';/);
+assert.match(qaSlice07Runner, /import \{ execFileSync, spawn, spawnSync \} from 'node:child_process';/);
+assert.match(qaSlice06Runner, /killSignal: 'SIGKILL'/);
+assert.match(qaSlice07Runner, /killSignal: 'SIGKILL'/);
+assert.match(qaSlice06Runner, /playwright-cli \$\{args\[0\] \|\| 'command'\} failed/);
+assert.match(qaSlice07Runner, /playwright-cli \$\{args\[0\] \|\| 'command'\} failed/);
+assert.match(qaSlice06Runner, /\[timeoutMs=\$\{timeoutMs\}\]/);
+assert.match(qaSlice07Runner, /\[timeoutMs=\$\{timeoutMs\}\]/);
 assert.match(qaSlice06Runner, /async function refreshBrowser\(\{ baseUrl, outputRoot, overrideEnvVar, sessionName \}\)/);
 assert.match(qaSlice07Runner, /async function refreshBrowser\(\{ baseUrl, outputRoot, overrideEnvVar, sessionName \}\)/);
 assert.match(qaSlice06Runner, /async function clickSurface\(\{\s*baseUrl = '',/);
@@ -113,6 +121,8 @@ console.log(
           'scripts/qa-slice-07-runner.mjs: stale app port recovery before QA hook',
           'scripts/qa-slice-06-runner.mjs: hook-driven surface navigation',
           'scripts/qa-slice-07-runner.mjs: hook-driven surface navigation',
+          'scripts/qa-slice-06-runner.mjs: SIGKILL-backed Playwright CLI timeout',
+          'scripts/qa-slice-07-runner.mjs: SIGKILL-backed Playwright CLI timeout',
         ],
       },
     },
