@@ -628,8 +628,9 @@ assert.match(dogfood, /linked worktree status after run: dirty by design, `promp
 assert.match(dogfood, /source project_path: `\/Users\/sungjin\/dev\/personal\/orchestration`/);
 assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-039`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-039`/);
-assert.match(dogfood, /Dogfood Run 042 retained linked worktree cleanup remains pending until retained-evidence docs are committed and destructive cleanup runs/);
-assert.match(dogfood, /Dogfood Run 042 worktree retained/);
+assert.match(dogfood, /Dogfood Run 042 retained linked worktree cleanup has completed after retained-evidence commit `a05e64f` was preserved/);
+assert.match(dogfood, /Dogfood Run 042 worktree removed/);
+assert.doesNotMatch(dogfood, /Dogfood Run 042 worktree retained/);
 
 console.log(
   JSON.stringify(
@@ -639,7 +640,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 042',
         result: 'pass',
-        nextAction: 'Dogfood Run 042 retained linked worktree cleanup pending until retained-evidence commit and destructive cleanup',
+        nextAction: 'Dogfood Run 042 retained linked worktree cleanup completed after retained-evidence commit',
       },
     },
     null,
