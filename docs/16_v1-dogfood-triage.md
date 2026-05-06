@@ -3079,9 +3079,9 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Dogfood Run 047 retained-evidence docs and smoke guards are being recorded locally before destructive cleanup.
-- Retained cleanup pending after explicit Dogfood Run 047 execute approval.
-- Dogfood Run 047 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-044`; branch retained: `worktree/v1-dogfood-runner-044`; expected dirty marker file: `prompts/builder.md`.
+- Dogfood Run 047 retained-evidence commit `2c11d66` preserved docs and smoke guards before destructive cleanup.
+- Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-044` and `worktree/v1-dogfood-runner-044` completed after explicit destructive cleanup approval.
+- Dogfood Run 047 cleanup-completed docs and smoke guards are being recorded locally before the cleanup-completed evidence commit and approved push.
 - The linked worktree mutation must not be committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
@@ -3230,5 +3230,7 @@ Cleanup completed after explicit operator approval:
 
 No retained dogfood linked worktree remained after Dogfood Run 046 cleanup before the next approved execute-mode pass.
 
-Retained cleanup pending after explicit Dogfood Run 047 execute approval:
-- Dogfood Run 047 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-044`; branch retained: `worktree/v1-dogfood-runner-044`; expected dirty marker file: `prompts/builder.md`; runtime evidence root: `var/runtime-v1-dogfood-runner-v1-dogfood-runner-044`.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 047 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-044`; branch deleted: `worktree/v1-dogfood-runner-044`; retained-evidence commit `2c11d66` was preserved before cleanup.
+
+No retained dogfood linked worktree remained after Dogfood Run 047 cleanup before the next approved execute-mode pass.
