@@ -57,6 +57,7 @@ assert.match(inventory, /dogfood-run-042/);
 assert.match(inventory, /dogfood-run-043/);
 assert.match(inventory, /dogfood-run-044/);
 assert.match(inventory, /dogfood-run-045/);
+assert.match(inventory, /dogfood-run-046/);
 assert.match(inventory, /worktree\/v1-dogfood-run-002/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-001/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-002/);
@@ -101,6 +102,7 @@ assert.match(inventory, /worktree\/v1-dogfood-runner-039/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-040/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-041/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-042/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-043/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -159,6 +161,7 @@ assert.match(dogfood, /Dogfood Run 042/);
 assert.match(dogfood, /Dogfood Run 043/);
 assert.match(dogfood, /Dogfood Run 044/);
 assert.match(dogfood, /Dogfood Run 045/);
+assert.match(dogfood, /Dogfood Run 046/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
@@ -202,7 +205,9 @@ assert.match(dogfood, /Dogfood Run 042 worktree removed/);
 assert.match(dogfood, /Dogfood Run 043 worktree removed/);
 assert.match(dogfood, /Dogfood Run 044 worktree removed/);
 assert.match(dogfood, /Dogfood Run 045 worktree removed/);
-assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 045 cleanup/);
+assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 045 cleanup before the next approved execute-mode pass/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 046 execute approval/);
+assert.match(dogfood, /Dogfood Run 046 worktree retained/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-036/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-037/);
@@ -211,6 +216,7 @@ assert.match(dogfood, /worktree\/v1-dogfood-runner-039/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-040/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-041/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-042/);
+assert.match(dogfood, /worktree\/v1-dogfood-runner-043/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-033/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-034/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-035/);
@@ -306,6 +312,7 @@ console.log(
           'dogfood-run-043',
           'dogfood-run-044',
           'dogfood-run-045',
+          'dogfood-run-046',
         ],
       },
     },

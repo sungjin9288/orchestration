@@ -191,6 +191,10 @@ assert.match(dogfood, /v1-dogfood-runner-042/);
 assert.match(dogfood, /Dogfood Run 045 retained linked worktree cleanup has completed after retained-evidence commit `5633a92` was preserved/);
 assert.match(dogfood, /Dogfood Run 045 worktree removed/);
 assert.doesNotMatch(dogfood, /Dogfood Run 045 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 046/);
+assert.match(dogfood, /v1-dogfood-runner-043/);
+assert.match(dogfood, /Dogfood Run 046 retained-evidence docs and smoke guards are being recorded locally before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 046 worktree retained/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
 assert.match(verificationStatus, /v1-dogfood-runner/);
