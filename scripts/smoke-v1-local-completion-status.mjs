@@ -81,12 +81,13 @@ assert.match(runbook, /Dogfood Run 043 execute was approved and completed withou
 assert.match(runbook, /Dogfood Run 043 retained-evidence docs were committed locally before destructive cleanup/);
 assert.match(runbook, /Dogfood Run 043 retained dogfood linked worktree cleanup is complete/);
 assert.match(runbook, /Dogfood Run 044 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out/);
-assert.match(runbook, /Dogfood Run 044 retained-evidence docs are being recorded locally before destructive cleanup/);
-assert.match(runbook, /Dogfood Run 044 linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-041` and branch `worktree\/v1-dogfood-runner-041` remain retained until the retained-evidence commit is created and destructive cleanup removes them/);
+assert.match(runbook, /Dogfood Run 044 retained-evidence docs were committed locally before destructive cleanup/);
+assert.match(runbook, /Dogfood Run 044 retained dogfood linked worktree cleanup is complete/);
+assert.match(runbook, /No retained dogfood linked worktree remains after Dogfood Run 044 cleanup/);
 assert.match(handoff, /last clean\/published v1 development baseline is `main` at `4255370723d576a35c12e913659284be52dcaeb8`/);
 assert.match(handoff, /Dogfood Run 044 executed from that clean\/published baseline/);
-assert.match(handoff, /this retained-evidence update records the intentionally dirty linked worktree before cleanup/);
-assert.match(handoff, /The retained linked worktree remains present until retained-evidence is committed and destructive cleanup is explicitly approved/);
+assert.match(handoff, /retained-evidence commit `347bca0` preserved the intentionally dirty linked worktree evidence before destructive cleanup/);
+assert.match(handoff, /retained linked worktree path and branch have now been removed after explicit cleanup approval/);
 assert.match(handoff, /Dogfood Run 039 retained-evidence was committed locally as `e2c2ff3` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 040 retained-evidence was committed locally as `07b4a16` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 041 retained-evidence was committed locally as `e10d29e` before destructive cleanup/);
@@ -95,8 +96,8 @@ assert.match(handoff, /Dogfood Run 042 retained-evidence was committed locally a
 assert.match(handoff, /Dogfood Run 042 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-039` and branch `worktree\/v1-dogfood-runner-039` have been removed after retained-evidence commit `a05e64f` was preserved/);
 assert.match(handoff, /Dogfood Run 043 retained-evidence was committed locally as `c756c6c` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 043 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-040` and branch `worktree\/v1-dogfood-runner-040` have been removed after retained-evidence commit `c756c6c` was preserved/);
-assert.match(handoff, /Dogfood Run 044 retained-evidence is being recorded locally before destructive cleanup/);
-assert.match(handoff, /Dogfood Run 044 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-041` and branch `worktree\/v1-dogfood-runner-041` remain retained until retained-evidence is committed and destructive cleanup removes them/);
+assert.match(handoff, /Dogfood Run 044 retained-evidence was committed locally as `347bca0` before destructive cleanup/);
+assert.match(handoff, /Dogfood Run 044 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-041` and branch `worktree\/v1-dogfood-runner-041` have been removed after retained-evidence commit `347bca0` was preserved/);
 assert.match(handoff, /local completion state, including whether any future local commit has reopened the push approval gate/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
 assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed/);
