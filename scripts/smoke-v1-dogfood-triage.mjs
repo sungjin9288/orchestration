@@ -691,6 +691,21 @@ assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-043`/);
 assert.match(dogfood, /Dogfood Run 046 retained-evidence commit `ed6752a` preserved docs and smoke guards before destructive cleanup/);
 assert.match(dogfood, /Dogfood Run 046 worktree removed/);
 assert.doesNotMatch(dogfood, /Dogfood Run 046 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 047/);
+assert.match(dogfood, /Recorded at `2026-05-06 23:38:58 \+0900` on published `main`/);
+assert.match(dogfood, /a016318e199380992bbfd41b0d1d6eb97a85d71f/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-044/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-044`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-044`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-044`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-044` or `59935` listener remained/);
+assert.match(dogfood, /source git status after run: clean tree with `main\.\.\.origin\/main`/);
+assert.match(dogfood, /linked worktree status after run: dirty by design, `prompts\/builder\.md` modified/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-044`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-044`/);
+assert.match(dogfood, /Dogfood Run 047 retained-evidence docs and smoke guards are being recorded locally before destructive cleanup/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 047 execute approval/);
+assert.match(dogfood, /Dogfood Run 047 worktree retained/);
 
 console.log(
   JSON.stringify(
@@ -698,9 +713,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 046',
+        run: 'Dogfood Run 047',
         result: 'pass',
-        nextAction: 'Dogfood Run 046 cleanup-completed evidence pending commit and approved push',
+        nextAction: 'Dogfood Run 047 retained-evidence pending commit before destructive cleanup',
       },
     },
     null,
