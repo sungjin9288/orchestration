@@ -295,6 +295,13 @@ const retainedDogfoodWorktrees = [
     path: '/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-040',
     runtimeRoot: path.join(repoRoot, 'var', 'runtime-v1-dogfood-runner-v1-dogfood-runner-040'),
   },
+  {
+    branch: 'worktree/v1-dogfood-runner-041',
+    expectedDirtyFile: 'prompts/builder.md',
+    id: 'dogfood-run-044',
+    path: '/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-041',
+    runtimeRoot: path.join(repoRoot, 'var', 'runtime-v1-dogfood-runner-v1-dogfood-runner-041'),
+  },
 ];
 
 function runGit(cwd, args) {
