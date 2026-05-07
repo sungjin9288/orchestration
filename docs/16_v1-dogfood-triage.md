@@ -3283,11 +3283,10 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Retained cleanup pending after explicit Dogfood Run 050 execute approval.
-- Dogfood Run 050 retained-evidence docs and smoke guards are being recorded locally before commit, cleanup, or push.
-- Dogfood Run 050 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-047`; branch retained: `worktree/v1-dogfood-runner-047`; expected dirty marker: `prompts/builder.md`.
-- Cleanup is blocked until retained-evidence docs and smoke guards are committed, then destructive cleanup receives explicit operator approval.
-- The linked worktree mutation must not be committed, pushed, merged, released, or closed out.
+- Dogfood Run 050 retained-evidence commit `dd41a03` preserved docs and smoke guards before destructive cleanup.
+- Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-047` and `worktree/v1-dogfood-runner-047` completed after explicit destructive cleanup approval.
+- Dogfood Run 050 cleanup-completed docs and smoke guards are being recorded locally before the cleanup-completed evidence commit and approved push.
+- The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
 The retained dirty linked worktree lifecycle is now checked by `scripts/v1-dogfood-evidence-inventory.mjs`.
@@ -3450,6 +3449,7 @@ Cleanup completed after explicit operator approval:
 
 No retained dogfood linked worktree remained after Dogfood Run 049 cleanup before the next approved execute-mode pass.
 
-Retained cleanup pending after explicit Dogfood Run 050 execute approval:
-- Dogfood Run 050 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-047`; branch retained: `worktree/v1-dogfood-runner-047`; expected dirty marker: `prompts/builder.md`.
-- Cleanup is blocked until retained-evidence docs and smoke guards are committed, then destructive cleanup receives explicit operator approval.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 050 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-047`; branch deleted: `worktree/v1-dogfood-runner-047`; retained-evidence commit `dd41a03` was preserved before cleanup.
+
+No retained dogfood linked worktree remained after Dogfood Run 050 cleanup before the next approved execute-mode pass.
