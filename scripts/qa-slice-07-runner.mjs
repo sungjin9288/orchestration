@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { createServer as createNetServer } from 'node:net';
@@ -517,17 +517,169 @@ function truncateCliOutput(value, maxLength = 2_000) {
   return `${text.slice(0, maxLength)}... [truncated ${text.length - maxLength} chars]`;
 }
 
-function runPlaywrightCli({ outputRoot, overrideEnvVar, sessionName, args, timeoutMs = 120_000 }) {
+function killPlaywrightCliSessionDaemons(sessionName) {
+  const sessionFileName = `${sessionName}.session`;
+  let processList = '';
+
+  try {
+    processList = execFileSync('ps', ['-axo', 'pid=,command='], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+  } catch (_error) {
+    return [];
+  }
+
+  const killedPids = [];
+
+  for (const line of processList.split('\n')) {
+    const match = line.trim().match(/^(\d+)\s+(.+)$/);
+
+    if (!match) {
+      continue;
+    }
+
+    const pid = Number.parseInt(match[1], 10);
+    const commandLine = match[2];
+    const isTargetSessionDaemon =
+      commandLine.includes('run-cli-server') &&
+      commandLine.includes('--daemon-session=') &&
+      commandLine.includes(sessionFileName);
+
+    if (!Number.isInteger(pid) || pid === process.pid || !isTargetSessionDaemon) {
+      continue;
+    }
+
+    try {
+      process.kill(pid, 'SIGKILL');
+      killedPids.push(pid);
+    } catch (_error) {
+      // Best-effort timeout cleanup only.
+    }
+  }
+
+  return killedPids;
+}
+
+function killPlaywrightCliProcess(child) {
+  if (!child.pid) {
+    return;
+  }
+
+  try {
+    if (process.platform === 'win32') {
+      child.kill('SIGKILL');
+    } else {
+      process.kill(-child.pid, 'SIGKILL');
+    }
+  } catch (_error) {
+    try {
+      child.kill('SIGKILL');
+    } catch (_fallbackError) {
+      // Best-effort timeout cleanup only.
+    }
+  }
+}
+
+function formatSessionCleanup(killedPids) {
+  return killedPids.length > 0 ? `killed:${killedPids.join(',')}` : 'none';
+}
+
+function spawnPlaywrightCli({ command, fullArgs, outputRoot, sessionName, timeoutMs }) {
+  return new Promise((resolve) => {
+    const stdoutChunks = [];
+    const stderrChunks = [];
+    let stdoutBytes = 0;
+    let stderrBytes = 0;
+    let timedOut = false;
+    let sessionCleanupPids = [];
+    const maxBuffer = 10 * 1024 * 1024;
+    const child = spawn(command, fullArgs, {
+      cwd: outputRoot,
+      detached: process.platform !== 'win32',
+      env: process.env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    const appendChunk = (chunks, chunk, currentBytes) => {
+      const nextBytes = currentBytes + chunk.length;
+
+      if (nextBytes <= maxBuffer) {
+        chunks.push(chunk);
+      }
+
+      return nextBytes;
+    };
+
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      sessionCleanupPids = killPlaywrightCliSessionDaemons(sessionName);
+      killPlaywrightCliProcess(child);
+    }, timeoutMs);
+
+    child.stdout?.on('data', (chunk) => {
+      stdoutBytes = appendChunk(stdoutChunks, chunk, stdoutBytes);
+    });
+    child.stderr?.on('data', (chunk) => {
+      stderrBytes = appendChunk(stderrChunks, chunk, stderrBytes);
+    });
+    child.on('error', (error) => {
+      clearTimeout(timeout);
+      resolve({
+        error,
+        sessionCleanupPids,
+        signal: null,
+        status: null,
+        stderr: Buffer.concat(stderrChunks).toString('utf8'),
+        stdout: Buffer.concat(stdoutChunks).toString('utf8'),
+        timedOut,
+      });
+    });
+    child.on('close', (status, signal) => {
+      clearTimeout(timeout);
+      if (timedOut && sessionCleanupPids.length === 0) {
+        sessionCleanupPids = killPlaywrightCliSessionDaemons(sessionName);
+      }
+      resolve({
+        error: null,
+        sessionCleanupPids,
+        signal,
+        status,
+        stderr: Buffer.concat(stderrChunks).toString('utf8'),
+        stdout: Buffer.concat(stdoutChunks).toString('utf8'),
+        timedOut,
+      });
+    });
+  });
+}
+
+async function runPlaywrightCli({ outputRoot, overrideEnvVar, sessionName, args, timeoutMs = 120_000 }) {
   const [command, ...baseArgs] = buildPlaywrightCliCommand(overrideEnvVar);
   const fullArgs = [...baseArgs, '--session', sessionName, ...args];
-  const result = spawnSync(command, fullArgs, {
-    cwd: outputRoot,
-    encoding: 'utf8',
-    env: process.env,
-    killSignal: 'SIGKILL',
-    maxBuffer: 10 * 1024 * 1024,
-    timeout: timeoutMs,
+  const result = await spawnPlaywrightCli({
+    command,
+    fullArgs,
+    outputRoot,
+    sessionName,
+    timeoutMs,
   });
+
+  if (result.timedOut) {
+    const error = new Error(
+      [
+        `playwright-cli ${args[0] || 'command'} failed: ETIMEDOUT`,
+        `[timeoutMs=${timeoutMs}]`,
+        `[session=${sessionName}]`,
+        `[sessionCleanup=${formatSessionCleanup(result.sessionCleanupPids)}]`,
+        `[stdout=${truncateCliOutput(result.stdout)}]`,
+        `[stderr=${truncateCliOutput(result.stderr)}]`,
+      ].join(' '),
+    );
+
+    error.stdout = result.stdout || '';
+    error.stderr = result.stderr || '';
+    throw error;
+  }
 
   if (result.error) {
     const error = new Error(
@@ -575,8 +727,8 @@ function parsePlaywrightResult(output) {
   return JSON.parse(match[1].trim());
 }
 
-function openPlaywrightSession({ browser, configPath, outputRoot, overrideEnvVar, sessionName, url }) {
-  runPlaywrightCli({
+async function openPlaywrightSession({ browser, configPath, outputRoot, overrideEnvVar, sessionName, url }) {
+  await runPlaywrightCli({
     outputRoot,
     overrideEnvVar,
     sessionName,
@@ -585,9 +737,9 @@ function openPlaywrightSession({ browser, configPath, outputRoot, overrideEnvVar
   });
 }
 
-function closePlaywrightSession({ outputRoot, overrideEnvVar, sessionName }) {
+async function closePlaywrightSession({ outputRoot, overrideEnvVar, sessionName }) {
   try {
-    runPlaywrightCli({
+    await runPlaywrightCli({
       outputRoot,
       overrideEnvVar,
       sessionName,
@@ -604,9 +756,9 @@ function createPlaywrightSessionName(prefix) {
   return `${compactPrefix}-${crypto.randomBytes(3).toString('hex')}`;
 }
 
-function captureFailureScreenshot({ filename, outputRoot, overrideEnvVar, sessionName }) {
+async function captureFailureScreenshot({ filename, outputRoot, overrideEnvVar, sessionName }) {
   try {
-    runPlaywrightCli({
+    await runPlaywrightCli({
       outputRoot,
       overrideEnvVar,
       sessionName,
@@ -618,7 +770,7 @@ function captureFailureScreenshot({ filename, outputRoot, overrideEnvVar, sessio
   }
 }
 
-function runCode({ codeBody, outputRoot, overrideEnvVar, sessionName, timeoutMs = 60_000 }) {
+async function runCode({ codeBody, outputRoot, overrideEnvVar, sessionName, timeoutMs = 60_000 }) {
   const wrappedCode = `async page => {\n${codeBody}\n}`;
 
   return runPlaywrightCli({
@@ -630,7 +782,7 @@ function runCode({ codeBody, outputRoot, overrideEnvVar, sessionName, timeoutMs 
   });
 }
 
-function evaluate({
+async function evaluate({
   expression,
   outputRoot,
   overrideEnvVar,
@@ -638,7 +790,7 @@ function evaluate({
   timeoutMs = PLAYWRIGHT_POLL_ACTION_TIMEOUT_MS,
 }) {
   return parsePlaywrightResult(
-    runPlaywrightCli({
+    await runPlaywrightCli({
       outputRoot,
       overrideEnvVar,
       sessionName,
@@ -666,8 +818,8 @@ function readLatestAccessibilitySnapshot(outputRoot) {
   return fs.readFileSync(snapshotPaths[0].filePath, 'utf8');
 }
 
-function snapshotPage({ outputRoot, overrideEnvVar, sessionName }) {
-  runPlaywrightCli({
+async function snapshotPage({ outputRoot, overrideEnvVar, sessionName }) {
+  await runPlaywrightCli({
     outputRoot,
     overrideEnvVar,
     sessionName,
@@ -677,8 +829,8 @@ function snapshotPage({ outputRoot, overrideEnvVar, sessionName }) {
   return readLatestAccessibilitySnapshot(outputRoot);
 }
 
-function clickSelector({ outputRoot, overrideEnvVar, selector, sessionName }) {
-  runCode({
+async function clickSelector({ outputRoot, overrideEnvVar, selector, sessionName }) {
+  await runCode({
     codeBody: `await page.locator(${JSON.stringify(selector)}).click();`,
     outputRoot,
     overrideEnvVar,
@@ -686,7 +838,7 @@ function clickSelector({ outputRoot, overrideEnvVar, selector, sessionName }) {
   });
 }
 
-function getBodyText({ outputRoot, overrideEnvVar, sessionName }) {
+async function getBodyText({ outputRoot, overrideEnvVar, sessionName }) {
   return evaluate({
     expression: `document.body ? document.body.innerText.replace(/\\s+/g, ' ').trim() : ''`,
     outputRoot,
@@ -697,7 +849,7 @@ function getBodyText({ outputRoot, overrideEnvVar, sessionName }) {
 
 async function waitForSnapshotText({ outputRoot, overrideEnvVar, pattern, sessionName, label }) {
   return waitForBrowserValue(async () => {
-    const snapshotText = snapshotPage({
+    const snapshotText = await snapshotPage({
       outputRoot,
       overrideEnvVar,
       sessionName,
@@ -709,7 +861,7 @@ async function waitForSnapshotText({ outputRoot, overrideEnvVar, pattern, sessio
 
 async function waitForBodyText({ outputRoot, overrideEnvVar, pattern, sessionName, label }) {
   return waitForBrowserValue(async () => {
-    const bodyText = getBodyText({
+    const bodyText = await getBodyText({
       outputRoot,
       overrideEnvVar,
       sessionName,
@@ -719,7 +871,7 @@ async function waitForBodyText({ outputRoot, overrideEnvVar, pattern, sessionNam
   }, label);
 }
 
-function assertBrowserTextWithSelector({
+async function assertBrowserTextWithSelector({
   outputRoot,
   overrideEnvVar,
   patterns,
@@ -733,7 +885,7 @@ function assertBrowserTextWithSelector({
     source: pattern.source,
   }));
 
-  runCode({
+  await runCode({
     codeBody: `
 const selector = ${JSON.stringify(selector)};
 const patterns = ${JSON.stringify(patternPayloads)}.map((pattern) => new RegExp(pattern.source, pattern.flags));
@@ -1537,7 +1689,7 @@ async function clickSurface({
   sessionName,
   surface,
 }) {
-  runCode({
+  await runCode({
     codeBody: `
 const expectedUrl = ${JSON.stringify(baseUrl || '')};
 const surface = ${JSON.stringify(surface)};
@@ -1621,7 +1773,7 @@ async function triggerBrowserApprovalRequest({
 }) {
   const domTexts = [];
 
-  clickSelector({
+  await clickSelector({
     outputRoot,
     overrideEnvVar,
     selector: `[data-action="select-task"][data-id="${taskId}"]`,
@@ -1648,7 +1800,7 @@ async function triggerBrowserApprovalRequest({
   domTexts.push(requestText);
   assertSecretAbsent(requestText, secret, 'live mutation request body');
 
-  clickSelector({
+  await clickSelector({
     outputRoot,
     overrideEnvVar,
     selector: '[data-action="request-builder-live-mutation-approval"]',
@@ -1683,7 +1835,7 @@ async function triggerBrowserApprovalResolve({
     label: 'decision inbox landing',
   });
 
-  clickSelector({
+  await clickSelector({
     outputRoot,
     overrideEnvVar,
     selector: `[data-action="select-inbox-item"][data-id="${inboxItemId}"]`,
@@ -1700,7 +1852,7 @@ async function triggerBrowserApprovalResolve({
   domTexts.push(itemText);
   assertSecretAbsent(itemText, secret, 'selected inbox approval body');
 
-  clickSelector({
+  await clickSelector({
     outputRoot,
     overrideEnvVar,
     selector: '[data-action="run-inbox-action"][data-verb="approve"]',
@@ -1731,7 +1883,7 @@ async function triggerBrowserBuilderLiveMutation({
   });
 
   const runButtonSelector = `[data-action="run-builder-live-mutation"][data-id="${taskId}"]`;
-  assertBrowserTextWithSelector({
+  await assertBrowserTextWithSelector({
     outputRoot,
     overrideEnvVar,
     patterns: [
@@ -1769,7 +1921,7 @@ async function triggerBrowserReviewer({
   });
 
   const reviewerButtonSelector = `#surface-taskboard [data-action="run-reviewer"][data-id="${taskId}"]:not([disabled])`;
-  assertBrowserTextWithSelector({
+  await assertBrowserTextWithSelector({
     outputRoot,
     overrideEnvVar,
     patterns: [
@@ -1811,7 +1963,7 @@ async function verifyBrowserLogsLanding({
 
   await waitForBrowserValue(async () => {
     const selector = `[data-action="select-run"][data-id="${runId}"]`;
-    const runVisible = evaluate({
+    const runVisible = await evaluate({
       expression: `Boolean(document.querySelector(${JSON.stringify(selector)}))`,
       outputRoot,
       overrideEnvVar,
@@ -1821,7 +1973,7 @@ async function verifyBrowserLogsLanding({
     return runVisible ? selector : null;
   }, 'logs run list entry visibility');
 
-  clickSelector({
+  await clickSelector({
     outputRoot,
     overrideEnvVar,
     selector: `[data-action="select-run"][data-id="${runId}"]`,
@@ -1863,7 +2015,7 @@ async function verifyBrowserArtifactSelection({
     label: 'artifacts landing after builder live mutation',
   });
 
-  clickSelector({
+  await clickSelector({
     outputRoot,
     overrideEnvVar,
     selector: `[data-action="select-artifact"][data-id="${artifactId}"]`,
@@ -1902,7 +2054,7 @@ async function prepareBrowserHarness({
   });
 
   await waitForServer(baseUrl);
-  openPlaywrightSession({
+  await openPlaywrightSession({
     browser,
     configPath,
     outputRoot,
@@ -1920,7 +2072,7 @@ async function prepareBrowserHarness({
 }
 
 async function refreshBrowser({ baseUrl, outputRoot, overrideEnvVar, sessionName }) {
-  runCode({
+  await runCode({
     codeBody: `
 const expectedUrl = ${JSON.stringify(baseUrl || '')};
 const appReady = () =>
@@ -2632,7 +2784,7 @@ async function runSharedQaSlice07Flow({
       },
     };
   } catch (error) {
-    captureFailureScreenshot({
+    await captureFailureScreenshot({
       filename: 'qa-slice-07-failure.png',
       outputRoot,
       overrideEnvVar,
@@ -2643,7 +2795,7 @@ async function runSharedQaSlice07Flow({
     }
     throw error;
   } finally {
-    closePlaywrightSession({
+    await closePlaywrightSession({
       outputRoot,
       overrideEnvVar,
       sessionName: harness.sessionName,

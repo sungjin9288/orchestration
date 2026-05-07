@@ -92,6 +92,11 @@ const smokeChecks = [
     script: 'scripts/smoke-ui-slice-637.mjs',
     purpose: 'Workspace playbook tells operators where results live and what each shortcut opens',
   },
+  {
+    id: 'deliverables-review-passed-result-routing',
+    script: 'scripts/smoke-ui-slice-638.mjs',
+    purpose: 'Review-passed result bundles route operators to Deliverables and use runtime review status correctly',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

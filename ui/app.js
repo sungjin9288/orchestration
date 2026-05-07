@@ -5253,6 +5253,20 @@ function getMissionNextActionPreview(mission, previews) {
     };
   }
 
+  if (
+    previews.deliverables?.latestReviewStatus === 'passed' &&
+    previews.deliverables?.currentDeliverableArtifact
+  ) {
+    const artifact = previews.deliverables.currentDeliverableArtifact;
+
+    return {
+      actionLabel: '결과 확인',
+      summary: `리뷰가 통과했고 ${artifact.type} ${artifact.id} 결과 패킷이 있으므로, 지금 가장 먼저 확인할 표면은 산출물입니다.`,
+      surface: 'deliverables',
+      tone: 'success',
+    };
+  }
+
   return {
     actionLabel: '실행',
     summary: `지금 가장 먼저 열어야 할 표면은 실행이며, 이유는 ${previews.execution.gatePreview}`,
@@ -5351,6 +5365,20 @@ function getMissionBriefControlSnapshot(mission, previews) {
       nextTitle: `${nextSurfaceLabel} 이동`,
       reasonCopy: previews.execution.blockedReason || previews.execution.gatePreview,
       reasonTitle: '차단 근거',
+    };
+  }
+
+  if (
+    previews.deliverables?.latestReviewStatus === 'passed' &&
+    previews.deliverables?.currentDeliverableArtifact
+  ) {
+    return {
+      currentCopy: '리뷰가 통과되어 최신 결과 패킷을 바로 확인할 수 있습니다.',
+      currentTitle: '리뷰 통과',
+      nextCopy: `${nextSurfaceLabel}에서 ${previews.nextActionPreview.actionLabel}를 먼저 확인합니다.`,
+      nextTitle: `${nextSurfaceLabel} 이동`,
+      reasonCopy: previews.deliverables.previewLine || previews.nextActionPreview.summary,
+      reasonTitle: '결과 패킷 근거',
     };
   }
 
@@ -5620,7 +5648,7 @@ function getDeliverablesControlSnapshot(
     };
   }
 
-  if (latestReviewStatus !== 'approved') {
+  if (latestReviewStatus !== 'passed') {
     return {
       currentCopy: '아직 리뷰가 닫히지 않아 현재 결과 패킷은 리뷰 라인 판단이 먼저입니다.',
       currentTitle: `리뷰 ${getReviewStatusDisplay(latestReviewStatus)}`,

@@ -36,10 +36,28 @@ assert.match(qaSlice06Runner, /qa\.refresh\(\)/);
 assert.match(qaSlice07Runner, /qa\.refresh\(\)/);
 assert.match(qaSlice06Runner, /function assertBrowserTextWithSelector\(\{/);
 assert.match(qaSlice07Runner, /function assertBrowserTextWithSelector\(\{/);
-assert.match(qaSlice06Runner, /import \{ execFileSync, spawn, spawnSync \} from 'node:child_process';/);
-assert.match(qaSlice07Runner, /import \{ execFileSync, spawn, spawnSync \} from 'node:child_process';/);
-assert.match(qaSlice06Runner, /killSignal: 'SIGKILL'/);
-assert.match(qaSlice07Runner, /killSignal: 'SIGKILL'/);
+assert.match(qaSlice06Runner, /import \{ execFileSync, spawn \} from 'node:child_process';/);
+assert.match(qaSlice07Runner, /import \{ execFileSync, spawn \} from 'node:child_process';/);
+assert.match(qaSlice06Runner, /function killPlaywrightCliSessionDaemons\(sessionName\)/);
+assert.match(qaSlice07Runner, /function killPlaywrightCliSessionDaemons\(sessionName\)/);
+assert.match(qaSlice06Runner, /commandLine\.includes\('run-cli-server'\)/);
+assert.match(qaSlice07Runner, /commandLine\.includes\('run-cli-server'\)/);
+assert.match(qaSlice06Runner, /commandLine\.includes\('--daemon-session='\)/);
+assert.match(qaSlice07Runner, /commandLine\.includes\('--daemon-session='\)/);
+assert.match(qaSlice06Runner, /commandLine\.includes\(sessionFileName\)/);
+assert.match(qaSlice07Runner, /commandLine\.includes\(sessionFileName\)/);
+assert.match(qaSlice06Runner, /function spawnPlaywrightCli\(\{ command, fullArgs, outputRoot, sessionName, timeoutMs \}\)/);
+assert.match(qaSlice07Runner, /function spawnPlaywrightCli\(\{ command, fullArgs, outputRoot, sessionName, timeoutMs \}\)/);
+assert.match(qaSlice06Runner, /detached: process\.platform !== 'win32'/);
+assert.match(qaSlice07Runner, /detached: process\.platform !== 'win32'/);
+assert.match(qaSlice06Runner, /killPlaywrightCliProcess\(child\)/);
+assert.match(qaSlice07Runner, /killPlaywrightCliProcess\(child\)/);
+assert.match(qaSlice06Runner, /playwright-cli \$\{args\[0\] \|\| 'command'\} failed: ETIMEDOUT/);
+assert.match(qaSlice07Runner, /playwright-cli \$\{args\[0\] \|\| 'command'\} failed: ETIMEDOUT/);
+assert.match(qaSlice06Runner, /\[sessionCleanup=\$\{formatSessionCleanup\(result\.sessionCleanupPids\)\}\]/);
+assert.match(qaSlice07Runner, /\[sessionCleanup=\$\{formatSessionCleanup\(result\.sessionCleanupPids\)\}\]/);
+assert.match(qaSlice06Runner, /async function runPlaywrightCli\(\{/);
+assert.match(qaSlice07Runner, /async function runPlaywrightCli\(\{/);
 assert.match(qaSlice06Runner, /playwright-cli \$\{args\[0\] \|\| 'command'\} failed/);
 assert.match(qaSlice07Runner, /playwright-cli \$\{args\[0\] \|\| 'command'\} failed/);
 assert.match(qaSlice06Runner, /\[timeoutMs=\$\{timeoutMs\}\]/);
@@ -121,8 +139,8 @@ console.log(
           'scripts/qa-slice-07-runner.mjs: stale app port recovery before QA hook',
           'scripts/qa-slice-06-runner.mjs: hook-driven surface navigation',
           'scripts/qa-slice-07-runner.mjs: hook-driven surface navigation',
-          'scripts/qa-slice-06-runner.mjs: SIGKILL-backed Playwright CLI timeout',
-          'scripts/qa-slice-07-runner.mjs: SIGKILL-backed Playwright CLI timeout',
+          'scripts/qa-slice-06-runner.mjs: session-scoped Playwright CLI daemon timeout cleanup',
+          'scripts/qa-slice-07-runner.mjs: session-scoped Playwright CLI daemon timeout cleanup',
         ],
       },
     },
