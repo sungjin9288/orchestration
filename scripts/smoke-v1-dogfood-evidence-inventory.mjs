@@ -109,6 +109,8 @@ assert.match(inventory, /dogfood-run-048/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-045/);
 assert.match(inventory, /dogfood-run-049/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-046/);
+assert.match(inventory, /dogfood-run-050/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-047/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -171,6 +173,7 @@ assert.match(dogfood, /Dogfood Run 046/);
 assert.match(dogfood, /Dogfood Run 047/);
 assert.match(dogfood, /Dogfood Run 048/);
 assert.match(dogfood, /Dogfood Run 049/);
+assert.match(dogfood, /Dogfood Run 050/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
@@ -231,6 +234,10 @@ assert.match(dogfood, /Dogfood Run 049 worktree removed/);
 assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 049 cleanup before the next approved execute-mode pass/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 049 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 049 worktree retained/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 050 execute approval/);
+assert.match(dogfood, /Dogfood Run 050 worktree retained/);
+assert.match(dogfood, /worktree\/v1-dogfood-runner-047/);
+assert.doesNotMatch(dogfood, /Dogfood Run 050 worktree removed/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-036/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-037/);
@@ -342,6 +349,7 @@ console.log(
           'dogfood-run-047',
           'dogfood-run-048',
           'dogfood-run-049',
+          'dogfood-run-050',
         ],
       },
     },
