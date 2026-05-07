@@ -3419,10 +3419,9 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Retained cleanup pending after explicit Dogfood Run 052 execute approval.
-- Dogfood Run 052 retained-evidence docs and smoke guards are being recorded locally before commit, cleanup, or push.
-- Dogfood Run 052 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-049`; branch retained: `worktree/v1-dogfood-runner-049`; expected dirty marker: `prompts/builder.md`.
-- Cleanup is blocked until retained-evidence docs and smoke guards are committed, then destructive cleanup receives explicit operator approval.
+- Dogfood Run 052 retained-evidence commit `5bcd9e7` preserved docs and smoke guards before destructive cleanup.
+- Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-049` and `worktree/v1-dogfood-runner-049` completed after explicit destructive cleanup approval.
+- Dogfood Run 052 cleanup-completed docs and smoke guards are being recorded locally before commit or push.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
@@ -3596,6 +3595,7 @@ Cleanup completed after explicit operator approval:
 
 No retained dogfood linked worktree remained after Dogfood Run 051 cleanup before the next approved execute-mode pass.
 
-Retained cleanup pending after explicit Dogfood Run 052 execute approval:
-- Dogfood Run 052 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-049`; branch retained: `worktree/v1-dogfood-runner-049`; expected dirty marker: `prompts/builder.md`.
-- Cleanup is blocked until retained-evidence docs and smoke guards are committed, then destructive cleanup receives explicit operator approval.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 052 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-049`; branch deleted: `worktree/v1-dogfood-runner-049`; retained-evidence commit `5bcd9e7` was preserved before cleanup.
+
+No retained dogfood linked worktree remained after Dogfood Run 052 cleanup before the next approved execute-mode pass.
