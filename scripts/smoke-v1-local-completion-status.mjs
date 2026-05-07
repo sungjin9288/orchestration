@@ -86,7 +86,7 @@ assert.match(runbook, /Dogfood Run 044 retained dogfood linked worktree cleanup 
 assert.match(runbook, /Dogfood Run 045 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out/);
 assert.match(runbook, /Dogfood Run 045 retained-evidence docs were committed locally before destructive cleanup/);
 assert.match(runbook, /Dogfood Run 045 retained dogfood linked worktree cleanup is complete/);
-assert.match(runbook, /No retained dogfood linked worktree remained after Dogfood Run 047 cleanup before Dogfood Run 048 execute/);
+assert.match(runbook, /No retained dogfood linked worktree remained after Dogfood Run 048 cleanup before the next approved execute-mode pass/);
 assert.doesNotMatch(runbook, /Dogfood Run 045 retained linked worktree remains/);
 assert.match(runbook, /Dogfood Run 046 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out/);
 assert.match(runbook, /Dogfood Run 046 retained-evidence docs were committed locally before destructive cleanup/);
@@ -99,12 +99,13 @@ assert.match(runbook, /Dogfood Run 047 retained dogfood linked worktree cleanup 
 assert.match(runbook, /Dogfood Run 047 cleanup-completed evidence is published on current `main`/);
 assert.match(runbook, /Dogfood Run 047 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-044` and branch `worktree\/v1-dogfood-runner-044` have been removed after retained-evidence commit `2c11d66` was preserved/);
 assert.match(runbook, /Dogfood Run 048 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out/);
-assert.match(runbook, /Dogfood Run 048 retained-evidence docs are being recorded locally before retained-evidence commit, cleanup, and push/);
-assert.match(runbook, /Dogfood Run 048 retained dogfood linked worktree cleanup is pending explicit destructive cleanup approval after retained-evidence commit preservation/);
-assert.match(runbook, /Dogfood Run 048 linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-045` and branch `worktree\/v1-dogfood-runner-045` remain retained until the retained-evidence commit is created and destructive cleanup removes them/);
+assert.match(runbook, /Dogfood Run 048 retained-evidence docs were committed locally before destructive cleanup/);
+assert.match(runbook, /Dogfood Run 048 retained dogfood linked worktree cleanup is complete/);
+assert.match(runbook, /Dogfood Run 048 cleanup-completed evidence is being recorded locally before commit\/push/);
+assert.match(runbook, /Dogfood Run 048 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-045` and branch `worktree\/v1-dogfood-runner-045` have been removed after retained-evidence commit `598bd6a` was preserved/);
 assert.match(handoff, /last clean\/published v1 development baseline is `main` at `1ff369edbf1b79d80f2e7631fe78eb4e7d612d53`/);
 assert.match(handoff, /Dogfood Run 048 executed from that clean\/published baseline/);
-assert.match(handoff, /intentionally dirty linked worktree evidence is retained until the retained-evidence commit is preserved and destructive cleanup is explicitly approved/);
+assert.match(handoff, /retained-evidence commit `598bd6a` preserved the intentionally dirty linked worktree evidence before explicit destructive cleanup removed the retained worktree and branch/);
 assert.match(handoff, /Dogfood Run 039 retained-evidence was committed locally as `e2c2ff3` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 040 retained-evidence was committed locally as `07b4a16` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 041 retained-evidence was committed locally as `e10d29e` before destructive cleanup/);
@@ -121,8 +122,8 @@ assert.match(handoff, /Dogfood Run 046 retained-evidence was committed locally a
 assert.match(handoff, /Dogfood Run 046 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-043` and branch `worktree\/v1-dogfood-runner-043` have been removed after retained-evidence commit `ed6752a` was preserved/);
 assert.match(handoff, /Dogfood Run 047 retained-evidence was committed locally as `2c11d66` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 047 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-044` and branch `worktree\/v1-dogfood-runner-044` have been removed after retained-evidence commit `2c11d66` was preserved/);
-assert.match(handoff, /Dogfood Run 048 retained-evidence is being recorded locally before retained-evidence commit and destructive cleanup/);
-assert.match(handoff, /Dogfood Run 048 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-045` and branch `worktree\/v1-dogfood-runner-045` remain retained dirty by design until retained-evidence commit preservation and explicit destructive cleanup approval/);
+assert.match(handoff, /Dogfood Run 048 retained-evidence was committed locally as `598bd6a` before destructive cleanup/);
+assert.match(handoff, /Dogfood Run 048 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-045` and branch `worktree\/v1-dogfood-runner-045` have been removed after retained-evidence commit `598bd6a` was preserved/);
 assert.match(handoff, /local completion state, including whether any future local commit has reopened the push approval gate/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
 assert.match(handoff, /Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed/);
