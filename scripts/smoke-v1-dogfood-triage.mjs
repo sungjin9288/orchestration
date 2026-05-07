@@ -751,8 +751,22 @@ assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-047`/);
 assert.match(dogfood, /Dogfood Run 050 retained-evidence commit `dd41a03` preserved docs and smoke guards before destructive cleanup/);
 assert.match(dogfood, /Dogfood Run 050 worktree removed/);
 assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 050 cleanup before the next approved execute-mode pass/);
+assert.match(dogfood, /Dogfood Run 050 cleanup-completed docs and smoke guards are published on current `main`/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 050 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 050 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 051/);
+assert.match(dogfood, /Recorded at `2026-05-07 16:42:05 \+0900` on published `main`/);
+assert.match(dogfood, /dae8891d66301dc80aad1ea5a2f06a772a9794db/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-048/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-048`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-048`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-048`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-048` or `61956` listener remained/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-048`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-048`/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 051 execute approval/);
+assert.match(dogfood, /Dogfood Run 051 worktree retained/);
+assert.match(dogfood, /Cleanup is blocked until retained-evidence docs and smoke guards are committed/);
 
 console.log(
   JSON.stringify(
@@ -760,9 +774,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 050',
+        run: 'Dogfood Run 051',
         result: 'pass',
-        nextAction: 'Dogfood Run 050 cleanup-completed evidence pending commit before push',
+        nextAction: 'Dogfood Run 051 retained-evidence commit pending before cleanup approval',
       },
     },
     null,
