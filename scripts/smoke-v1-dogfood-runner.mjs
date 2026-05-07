@@ -208,8 +208,10 @@ assert.match(dogfood, /Dogfood Run 048 worktree removed/);
 assert.doesNotMatch(dogfood, /Dogfood Run 048 worktree retained/);
 assert.match(dogfood, /## Dogfood Run 049/);
 assert.match(dogfood, /v1-dogfood-runner-046/);
-assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 049 execute approval/);
-assert.match(dogfood, /Dogfood Run 049 worktree retained/);
+assert.match(dogfood, /Dogfood Run 049 retained-evidence commit `18f7340` preserved docs and smoke guards before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 049 worktree removed/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 049 execute approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 049 worktree retained/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
 assert.match(verificationStatus, /v1-dogfood-runner/);
