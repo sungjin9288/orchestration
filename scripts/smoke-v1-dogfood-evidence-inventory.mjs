@@ -113,6 +113,12 @@ assert.match(inventory, /dogfood-run-050/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-047/);
 assert.match(inventory, /dogfood-run-051/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-048/);
+assert.match(inventory, /dogfood-run-052/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-049/);
+assert.match(inventory, /dogfood-run-053/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-050/);
+assert.match(inventory, /dogfood-run-054/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-051/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -263,7 +269,12 @@ assert.match(dogfood, /worktree\/v1-dogfood-runner-050/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-050/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 053 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 053 worktree retained/);
-assert.doesNotMatch(dogfood, /Cleanup is blocked until retained-evidence docs and smoke guards are committed/);
+assert.match(dogfood, /## Dogfood Run 054/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 054 execute approval/);
+assert.match(dogfood, /Dogfood Run 054 worktree retained/);
+assert.match(dogfood, /worktree\/v1-dogfood-runner-051/);
+assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-051/);
+assert.match(dogfood, /Cleanup is blocked until retained-evidence docs and smoke guards are committed/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-036/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-037/);
@@ -379,6 +390,7 @@ console.log(
           'dogfood-run-051',
           'dogfood-run-052',
           'dogfood-run-053',
+          'dogfood-run-054',
         ],
       },
     },
