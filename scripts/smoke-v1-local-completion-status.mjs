@@ -137,11 +137,12 @@ assert.match(runbook, /Dogfood Run 055 retained-evidence docs were committed loc
 assert.match(runbook, /Dogfood Run 055 retained dogfood linked worktree cleanup is complete/);
 assert.match(runbook, /Dogfood Run 055 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-052` and branch `worktree\/v1-dogfood-runner-052` have been removed after retained-evidence commit `699e3ac` was preserved/);
 assert.match(runbook, /Dogfood Run 056 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out/);
-assert.match(runbook, /Dogfood Run 056 retained-evidence docs are pending commit approval before destructive cleanup/);
-assert.match(runbook, /Dogfood Run 056 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-053` and branch `worktree\/v1-dogfood-runner-053` remain dirty by design until retained-evidence is committed and explicit destructive cleanup is approved/);
+assert.match(runbook, /Dogfood Run 056 retained-evidence docs were committed locally before destructive cleanup/);
+assert.match(runbook, /Dogfood Run 056 retained dogfood linked worktree cleanup is complete/);
+assert.match(runbook, /Dogfood Run 056 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-053` and branch `worktree\/v1-dogfood-runner-053` have been removed after retained-evidence commit `c8a7f51` was preserved/);
 assert.match(handoff, /last clean\/published v1 development baseline is `main` at `855fee2e04f474367c05101c92aad8cb363450b9`/);
 assert.match(handoff, /Dogfood Run 056 executed from that clean\/published baseline with slug `v1-dogfood-runner-053`/);
-assert.match(handoff, /retained-evidence docs and smoke guards are now pending commit approval/);
+assert.match(handoff, /retained-evidence commit `c8a7f51` preserved the docs and smoke guards/);
 assert.match(handoff, /Dogfood Run 049 retained-evidence was committed locally as `18f7340` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 039 retained-evidence was committed locally as `e2c2ff3` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 040 retained-evidence was committed locally as `07b4a16` before destructive cleanup/);
@@ -185,8 +186,8 @@ assert.match(handoff, /Dogfood Run 055 executed from clean\/published `main` wit
 assert.match(handoff, /Dogfood Run 055 retained-evidence was committed locally as `699e3ac` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 055 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-052` and branch `worktree\/v1-dogfood-runner-052` have been removed after retained-evidence commit `699e3ac` was preserved/);
 assert.match(handoff, /Dogfood Run 056 executed from clean\/published `main` with slug `v1-dogfood-runner-053` and stopped before commit-package, local commit, push, merge, release-package, or close-out/);
-assert.match(handoff, /Dogfood Run 056 retained-evidence is pending local commit approval before destructive cleanup/);
-assert.match(handoff, /Dogfood Run 056 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-053` and branch `worktree\/v1-dogfood-runner-053` remain dirty by design until retained-evidence is committed and explicit destructive cleanup is approved/);
+assert.match(handoff, /Dogfood Run 056 retained-evidence was committed locally as `c8a7f51` before destructive cleanup/);
+assert.match(handoff, /Dogfood Run 056 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-053` and branch `worktree\/v1-dogfood-runner-053` have been removed after retained-evidence commit `c8a7f51` was preserved/);
 assert.match(handoff, /Dogfood Run 001 through Dogfood Run 056 evidence is recorded/);
 assert.match(handoff, /local completion state, including whether any future local commit has reopened the push approval gate/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);

@@ -291,8 +291,11 @@ assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfoo
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 055 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 055 worktree retained/);
 assert.match(dogfood, /## Dogfood Run 056/);
-assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 056 execute approval/);
-assert.match(dogfood, /Dogfood Run 056 worktree retained/);
+assert.match(dogfood, /Dogfood Run 056 retained-evidence commit `c8a7f51` preserved docs and smoke guards before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 056 worktree removed/);
+assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 056 cleanup before any next approved execute-mode pass/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 056 execute approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 056 worktree retained/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-053/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-053/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
