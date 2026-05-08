@@ -121,6 +121,8 @@ assert.match(inventory, /dogfood-run-054/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-051/);
 assert.match(inventory, /dogfood-run-055/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-052/);
+assert.match(inventory, /dogfood-run-056/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-053/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -283,11 +285,16 @@ assert.doesNotMatch(dogfood, /Dogfood Run 054 worktree retained/);
 assert.match(dogfood, /## Dogfood Run 055/);
 assert.match(dogfood, /Dogfood Run 055 retained-evidence commit `699e3ac` preserved docs and smoke guards before destructive cleanup/);
 assert.match(dogfood, /Dogfood Run 055 worktree removed/);
-assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 055 cleanup before any next approved execute-mode pass/);
+assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 055 cleanup before Dogfood Run 056 execute/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-052/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-052/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 055 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 055 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 056/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 056 execute approval/);
+assert.match(dogfood, /Dogfood Run 056 worktree retained/);
+assert.match(dogfood, /worktree\/v1-dogfood-runner-053/);
+assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-053/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-036/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-037/);
@@ -405,6 +412,7 @@ console.log(
           'dogfood-run-053',
           'dogfood-run-054',
           'dogfood-run-055',
+          'dogfood-run-056',
         ],
       },
     },
