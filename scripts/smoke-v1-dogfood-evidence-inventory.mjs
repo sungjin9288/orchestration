@@ -123,6 +123,8 @@ assert.match(inventory, /dogfood-run-055/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-052/);
 assert.match(inventory, /dogfood-run-056/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-053/);
+assert.match(inventory, /dogfood-run-057/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-054/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -293,11 +295,17 @@ assert.doesNotMatch(dogfood, /Dogfood Run 055 worktree retained/);
 assert.match(dogfood, /## Dogfood Run 056/);
 assert.match(dogfood, /Dogfood Run 056 retained-evidence commit `c8a7f51` preserved docs and smoke guards before destructive cleanup/);
 assert.match(dogfood, /Dogfood Run 056 worktree removed/);
-assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 056 cleanup before any next approved execute-mode pass/);
+assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 056 cleanup before Dogfood Run 057 execute/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 056 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 056 worktree retained/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-053/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-053/);
+assert.match(dogfood, /## Dogfood Run 057/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 057 execute approval/);
+assert.match(dogfood, /Dogfood Run 057 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054`; branch retained: `worktree\/v1-dogfood-runner-054`/);
+assert.match(dogfood, /Dogfood Run 057 cleanup is blocked until retained-evidence is committed and destructive cleanup is explicitly approved/);
+assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
+assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-036/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-037/);
@@ -416,6 +424,7 @@ console.log(
           'dogfood-run-054',
           'dogfood-run-055',
           'dogfood-run-056',
+          'dogfood-run-057',
         ],
       },
     },
