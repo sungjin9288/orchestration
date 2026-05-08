@@ -3555,9 +3555,10 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Retained cleanup pending after explicit Dogfood Run 054 execute approval.
-- Dogfood Run 054 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-051`; branch retained: `worktree/v1-dogfood-runner-051`; dirty marker is limited to `prompts/builder.md`.
-- Cleanup is blocked until retained-evidence docs and smoke guards are committed, then destructive cleanup is explicitly approved.
+- Dogfood Run 054 retained linked worktree cleanup has completed after explicit operator approval.
+- Dogfood Run 054 retained-evidence commit `94fdfd7` preserved docs and smoke guards before destructive cleanup.
+- Dogfood Run 054 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-051`; branch deleted: `worktree/v1-dogfood-runner-051`.
+- No retained dogfood linked worktree remained after Dogfood Run 054 cleanup before any next approved execute-mode pass.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
@@ -3741,7 +3742,7 @@ Cleanup completed after explicit operator approval:
 
 No retained dogfood linked worktree remained after Dogfood Run 053 cleanup before the next approved execute-mode pass.
 
-Retained cleanup pending after explicit operator approval:
-- Dogfood Run 054 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-051`; branch retained: `worktree/v1-dogfood-runner-051`; expected dirty file: `prompts/builder.md`; runtime evidence root: `var/runtime-v1-dogfood-runner-v1-dogfood-runner-051`.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 054 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-051`; branch deleted: `worktree/v1-dogfood-runner-051`; retained-evidence commit `94fdfd7` was preserved before cleanup.
 
-Cleanup is blocked until retained-evidence docs and smoke guards are committed, then destructive cleanup is explicitly approved.
+No retained dogfood linked worktree remained after Dogfood Run 054 cleanup before any next approved execute-mode pass.
