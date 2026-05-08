@@ -812,10 +812,22 @@ assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-051`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-051`/);
 assert.match(dogfood, /Dogfood Run 054 retained-evidence commit `94fdfd7` preserved docs and smoke guards before destructive cleanup/);
 assert.match(dogfood, /Dogfood Run 054 worktree removed/);
-assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 054 cleanup before any next approved execute-mode pass/);
+assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 054 cleanup before the next approved execute-mode pass/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 054 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 054 worktree retained/);
-assert.doesNotMatch(dogfood, /Cleanup is blocked until retained-evidence docs and smoke guards are committed/);
+assert.match(dogfood, /## Dogfood Run 055/);
+assert.match(dogfood, /Recorded at `2026-05-08 13:07:32 \+0900` on published `main`/);
+assert.match(dogfood, /e2fccfe989cadead04884759af19bd994ede5026/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-052/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-052`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-052`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-052`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-052` or `57489` listener remained/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-052`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-052`/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 055 execute approval/);
+assert.match(dogfood, /Dogfood Run 055 worktree retained/);
+assert.match(dogfood, /Cleanup is blocked until retained-evidence docs and smoke guards are committed/);
 
 console.log(
   JSON.stringify(
@@ -823,9 +835,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 054',
+        run: 'Dogfood Run 055',
         result: 'pass',
-        nextAction: 'Dogfood Run 054 cleanup-completed evidence ready for publish settlement',
+        nextAction: 'Dogfood Run 055 retained-evidence pending before commit and cleanup approval',
       },
     },
     null,
