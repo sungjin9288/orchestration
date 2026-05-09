@@ -125,6 +125,8 @@ assert.match(inventory, /dogfood-run-056/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-053/);
 assert.match(inventory, /dogfood-run-057/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-054/);
+assert.match(inventory, /dogfood-run-058/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-055/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -189,6 +191,7 @@ assert.match(dogfood, /Dogfood Run 048/);
 assert.match(dogfood, /Dogfood Run 049/);
 assert.match(dogfood, /Dogfood Run 050/);
 assert.match(dogfood, /Dogfood Run 055/);
+assert.match(dogfood, /Dogfood Run 058/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
@@ -306,6 +309,10 @@ assert.match(dogfood, /Dogfood Run 057 worktree removed/);
 assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 057 cleanup before any next approved execute-mode pass/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 057 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 057 worktree retained/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 058 execute approval/);
+assert.match(dogfood, /Dogfood Run 058 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-055`/);
+assert.match(dogfood, /branch retained: `worktree\/v1-dogfood-runner-055`/);
+assert.match(dogfood, /runtime-v1-dogfood-runner-v1-dogfood-runner-055/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
@@ -427,6 +434,7 @@ console.log(
           'dogfood-run-055',
           'dogfood-run-056',
           'dogfood-run-057',
+          'dogfood-run-058',
         ],
       },
     },
