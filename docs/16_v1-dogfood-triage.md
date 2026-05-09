@@ -3831,10 +3831,9 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Retained cleanup pending after explicit Dogfood Run 058 execute approval.
-- Dogfood Run 058 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-055`; branch retained: `worktree/v1-dogfood-runner-055`.
-- Preserve this retained-evidence docs and smoke guard update in a local commit before destructive cleanup.
-- Clean up the retained linked worktree and branch only after explicit destructive cleanup approval.
+- Dogfood Run 058 retained-evidence commit `8c06978` preserved docs and smoke guards before destructive cleanup.
+- Dogfood Run 058 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-055`; branch deleted: `worktree/v1-dogfood-runner-055`.
+- No retained dogfood linked worktree remained after Dogfood Run 058 cleanup before final publish.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
@@ -4038,6 +4037,7 @@ Cleanup completed after explicit operator approval:
 
 No retained dogfood linked worktree remained after Dogfood Run 057 cleanup before any next approved execute-mode pass.
 
-Retained cleanup pending after explicit Dogfood Run 058 execute approval:
-- Dogfood Run 058 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-055`; branch retained: `worktree/v1-dogfood-runner-055`; expected dirty file `prompts/builder.md` carries marker `builder-live-mutation approval-0001 prompts/builder.md`.
-- Destructive cleanup requires explicit operator approval and must use `git worktree remove "/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-055"` plus `git branch -D "worktree/v1-dogfood-runner-055"` only after retained-evidence is committed.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 058 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-055`; branch deleted: `worktree/v1-dogfood-runner-055`; retained-evidence commit `8c06978` was preserved before cleanup.
+
+No retained dogfood linked worktree remained after Dogfood Run 058 cleanup before final publish.

@@ -332,13 +332,15 @@ Current local completion snapshot:
 - Dogfood Run 055 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-052` and branch `worktree/v1-dogfood-runner-052` have been removed after retained-evidence commit `699e3ac` was preserved
 - Dogfood Run 056 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-053` and branch `worktree/v1-dogfood-runner-053` have been removed after retained-evidence commit `c8a7f51` was preserved
 - Dogfood Run 057 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-054` and branch `worktree/v1-dogfood-runner-054` have been removed after retained-evidence commit `a19615f` was preserved
-- Dogfood Run 058 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-055` and branch `worktree/v1-dogfood-runner-055` remain intentionally retained as dirty-by-design evidence until explicit destructive cleanup approval
+- Dogfood Run 058 retained-evidence was committed locally as `8c06978` before destructive cleanup
+- Dogfood Run 058 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-055` and branch `worktree/v1-dogfood-runner-055` have been removed after retained-evidence commit `8c06978` was preserved
+- Dogfood Run 058 cleanup-completed evidence is published on current `main`
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- approve the local retained-evidence commit for Dogfood Run 058 after verification
-- approve destructive cleanup for the Dogfood Run 058 retained linked worktree and branch only after retained-evidence is preserved
-- do not run another intentional `--execute --slug <slug>` dogfood run until Run 058 retained-evidence is committed and the cleanup decision is settled
+- inspect `node scripts/v1-kickoff-evidence-triage.mjs` before opening new implementation work
+- open a new implementation slice only for a concrete regression or usability issue
+- run another intentional `--execute --slug <slug>` dogfood pass only after the cleanup-completed evidence is published and a fresh execute approval is given
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
 
