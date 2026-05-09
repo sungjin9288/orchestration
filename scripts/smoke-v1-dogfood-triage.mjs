@@ -885,9 +885,13 @@ assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestrat
 assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-056` or `54478` listener remained/);
 assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-056`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-056`/);
-assert.match(dogfood, /Dogfood Run 059 retained-evidence is being recorded on source `main`/);
-assert.match(dogfood, /Dogfood Run 059 worktree retained/);
-assert.match(dogfood, /Destructive cleanup requires explicit operator approval after retained-evidence is committed/);
+assert.match(dogfood, /Dogfood Run 059 retained-evidence commit `b4833d0` preserved docs and smoke guards before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 059 worktree removed: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-056`/);
+assert.match(dogfood, /branch deleted: `worktree\/v1-dogfood-runner-056`/);
+assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 059 cleanup before any next approved execute-mode pass/);
+assert.doesNotMatch(dogfood, /Dogfood Run 059 retained-evidence is being recorded on source `main`/);
+assert.doesNotMatch(dogfood, /Dogfood Run 059 worktree retained/);
+assert.doesNotMatch(dogfood, /Destructive cleanup requires explicit operator approval after retained-evidence is committed/);
 
 console.log(
   JSON.stringify(
@@ -897,7 +901,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 059',
         result: 'pass',
-        nextAction: 'Dogfood Run 059 retained-evidence commit pending before cleanup approval',
+        nextAction: 'Dogfood Run 059 cleanup-completed evidence ready for commit/push approval',
       },
     },
     null,

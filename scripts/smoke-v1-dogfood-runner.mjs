@@ -327,8 +327,12 @@ assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-056`
 assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-056`/);
 assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-056`/);
 assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-056` or `54478` listener remained/);
-assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 059 execute approval/);
-assert.match(dogfood, /Dogfood Run 059 worktree retained/);
+assert.match(dogfood, /Dogfood Run 059 retained-evidence commit `b4833d0` preserved docs and smoke guards before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 059 worktree removed: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-056`/);
+assert.match(dogfood, /branch deleted: `worktree\/v1-dogfood-runner-056`/);
+assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 059 cleanup before any next approved execute-mode pass/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 059 execute approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 059 worktree retained/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
 assert.match(verificationStatus, /v1-dogfood-runner/);
