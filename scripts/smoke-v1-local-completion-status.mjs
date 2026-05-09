@@ -141,11 +141,12 @@ assert.match(runbook, /Dogfood Run 056 retained-evidence docs were committed loc
 assert.match(runbook, /Dogfood Run 056 retained dogfood linked worktree cleanup is complete/);
 assert.match(runbook, /Dogfood Run 056 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-053` and branch `worktree\/v1-dogfood-runner-053` have been removed after retained-evidence commit `c8a7f51` was preserved/);
 assert.match(runbook, /Dogfood Run 057 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out/);
-assert.match(runbook, /Dogfood Run 057 retained-evidence docs are recorded and pending explicit commit approval before destructive cleanup/);
-assert.match(runbook, /Dogfood Run 057 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054` and branch `worktree\/v1-dogfood-runner-054` remain dirty by design until retained-evidence is committed and explicit destructive cleanup approval is given/);
+assert.match(runbook, /Dogfood Run 057 retained-evidence docs were committed locally before destructive cleanup/);
+assert.match(runbook, /Dogfood Run 057 retained dogfood linked worktree cleanup is complete/);
+assert.match(runbook, /Dogfood Run 057 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054` and branch `worktree\/v1-dogfood-runner-054` have been removed after retained-evidence commit `a19615f` was preserved/);
 assert.match(handoff, /last clean\/published v1 development baseline is `main` at `88170ef2ed76e1c4d3e4ec43fdce73893442657c`/);
 assert.match(handoff, /Dogfood Run 057 executed from that clean\/published baseline with slug `v1-dogfood-runner-054`/);
-assert.match(handoff, /retained-evidence docs and smoke guards are now recorded locally/);
+assert.match(handoff, /retained-evidence commit `a19615f` preserved the docs and smoke guards/);
 assert.match(handoff, /Dogfood Run 049 retained-evidence was committed locally as `18f7340` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 039 retained-evidence was committed locally as `e2c2ff3` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 040 retained-evidence was committed locally as `07b4a16` before destructive cleanup/);
@@ -192,8 +193,8 @@ assert.match(handoff, /Dogfood Run 056 executed from clean\/published `main` wit
 assert.match(handoff, /Dogfood Run 056 retained-evidence was committed locally as `c8a7f51` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 056 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-053` and branch `worktree\/v1-dogfood-runner-053` have been removed after retained-evidence commit `c8a7f51` was preserved/);
 assert.match(handoff, /Dogfood Run 057 executed from clean\/published `main` with slug `v1-dogfood-runner-054` and stopped before commit-package, local commit, push, merge, release-package, or close-out/);
-assert.match(handoff, /Dogfood Run 057 retained-evidence is recorded locally and pending explicit commit approval before destructive cleanup/);
-assert.match(handoff, /Dogfood Run 057 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054` and branch `worktree\/v1-dogfood-runner-054` remain dirty by design until retained-evidence is committed and explicit destructive cleanup approval is given/);
+assert.match(handoff, /Dogfood Run 057 retained-evidence was committed locally as `a19615f` before destructive cleanup/);
+assert.match(handoff, /Dogfood Run 057 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054` and branch `worktree\/v1-dogfood-runner-054` have been removed after retained-evidence commit `a19615f` was preserved/);
 assert.match(handoff, /Dogfood Run 001 through Dogfood Run 057 evidence is recorded/);
 assert.match(handoff, /local completion state, including whether any future local commit has reopened the push approval gate/);
 assert.match(handoff, /The next action is no longer an implementation backlog item by default/);
