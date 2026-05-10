@@ -3967,9 +3967,9 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Dogfood Run 060 retained-evidence is being recorded on source `main`; the retained-evidence commit remains approval-gated.
-- Dogfood Run 060 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-057`; branch retained: `worktree/v1-dogfood-runner-057`; expected dirty file `prompts/builder.md` carries marker `builder-live-mutation approval-0001 prompts/builder.md`.
-- Destructive cleanup requires explicit operator approval after retained-evidence is committed.
+- Dogfood Run 060 retained-evidence commit `58d6fea` preserved docs and smoke guards before destructive cleanup.
+- Dogfood Run 060 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-057`; branch deleted: `worktree/v1-dogfood-runner-057`.
+- No retained dogfood linked worktree remained after Dogfood Run 060 cleanup before any next approved execute-mode pass.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
@@ -4184,7 +4184,8 @@ Cleanup completed after explicit operator approval:
 
 No retained dogfood linked worktree remained after Dogfood Run 059 cleanup before any next approved execute-mode pass.
 
-Retained cleanup pending after explicit Dogfood Run 060 execute approval:
-- Dogfood Run 060 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-057`; branch retained: `worktree/v1-dogfood-runner-057`; expected dirty file `prompts/builder.md` carries marker `builder-live-mutation approval-0001 prompts/builder.md`.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 060 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-057`; branch deleted: `worktree/v1-dogfood-runner-057`; retained-evidence commit `58d6fea` was preserved before cleanup.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-057`.
-- Destructive cleanup requires explicit operator approval and must use `git worktree remove "/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-057"` plus `git branch -D "worktree/v1-dogfood-runner-057"` only after retained-evidence is committed.
+
+No retained dogfood linked worktree remained after Dogfood Run 060 cleanup before any next approved execute-mode pass.
