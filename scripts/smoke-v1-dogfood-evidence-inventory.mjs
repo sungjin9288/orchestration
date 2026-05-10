@@ -129,6 +129,8 @@ assert.match(inventory, /dogfood-run-058/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-055/);
 assert.match(inventory, /dogfood-run-059/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-056/);
+assert.match(inventory, /dogfood-run-060/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-057/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -149,6 +151,11 @@ assert.match(dogfood, /branch deleted: `worktree\/v1-dogfood-runner-056`/);
 assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 059 cleanup before any next approved execute-mode pass/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 059 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 059 worktree retained/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 060 execute approval/);
+assert.match(dogfood, /Dogfood Run 060 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-057`/);
+assert.match(dogfood, /branch retained: `worktree\/v1-dogfood-runner-057`/);
+assert.match(dogfood, /Runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-057`/);
+assert.match(dogfood, /Destructive cleanup requires explicit operator approval and must use `git worktree remove "\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-057"` plus `git branch -D "worktree\/v1-dogfood-runner-057"` only after retained-evidence is committed/);
 assert.match(dogfood, /does not remove worktrees, delete branches, reset files, commit, push, merge, release, or close out/);
 assert.match(dogfood, /Dogfood Run 002/);
 assert.match(dogfood, /Dogfood Run 004/);
@@ -201,6 +208,7 @@ assert.match(dogfood, /Dogfood Run 050/);
 assert.match(dogfood, /Dogfood Run 055/);
 assert.match(dogfood, /Dogfood Run 058/);
 assert.match(dogfood, /Dogfood Run 059/);
+assert.match(dogfood, /Dogfood Run 060/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
@@ -333,6 +341,12 @@ assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfoo
 assert.match(dogfood, /runtime-v1-dogfood-runner-v1-dogfood-runner-056/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 059 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 059 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 060/);
+assert.match(dogfood, /Dogfood Run 060 retained-evidence is being recorded on source `main`/);
+assert.match(dogfood, /Dogfood Run 060 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-057`/);
+assert.match(dogfood, /branch retained: `worktree\/v1-dogfood-runner-057`/);
+assert.match(dogfood, /runtime-v1-dogfood-runner-v1-dogfood-runner-057/);
+assert.match(dogfood, /Destructive cleanup requires explicit operator approval after retained-evidence is committed/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
@@ -456,6 +470,7 @@ console.log(
           'dogfood-run-057',
           'dogfood-run-058',
           'dogfood-run-059',
+          'dogfood-run-060',
         ],
       },
     },
