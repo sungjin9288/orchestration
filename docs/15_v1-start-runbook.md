@@ -682,6 +682,31 @@ Evidence-sync result:
 - no concrete regression or usability issue was detected by this proof
 - do not open a new implementation slice without a concrete regression or usability issue
 
+## Current Head Kickoff Proof Before Dogfood Run 061
+Recorded at `2026-05-11 00:03:03 +0900` on published `main` before Dogfood Run 061 execute.
+
+Repository state:
+- head: `ecae2ee222b80c21b7a3808b6b306a041b8cf643`
+- repo status: clean tree with `main...origin/main`
+- `node scripts/v1-kickoff-status.mjs`: pass, `kickoffReady=true`, `mainPublished=true`, `verificationOk=true`, `cleanupSettled=true`
+
+Runtime/browser proof:
+- command: `node scripts/smoke-v1-user-flow-kickoff.mjs`
+- result: pass without `V1_KICKOFF_ALLOW_DIRTY`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-v1-user-flow-kickoff`
+- outputRoot: `/Users/sungjin/dev/personal/orchestration/output/playwright/v1-user-flow-kickoff`
+- scenario: `task-0001`, approval `approval-0001`, builder `run-0005`, reviewer `run-0006`
+- artifacts: `artifact-0005` change summary, `artifact-0006` patch, `artifact-0007` diff, `artifact-0008` review
+- selected surface: `artifacts`
+- surfaces verified: `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, `Decision Inbox`
+- listener cleanup: no `runtime-v1-user-flow-kickoff` or `62540` listener remained
+- safety boundary: no commit, push, merge, release, or external release was executed
+
+Result:
+- current published head has a fresh kickoff user-flow proof before the intentionally retained Dogfood Run 061 evidence gate
+- after Dogfood Run 061 execute, `v1-kickoff-status` can be blocked by retained cleanup approval until the Dogfood Run 061 lifecycle is settled
+- the proof did not expose a concrete regression or usability issue
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
@@ -776,20 +801,20 @@ Do not start v1 dogfooding if any of these are true:
 - the user-facing flow does not explain current action, result location, or next destination
 
 ## Next Development Priority
-V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 060.
+V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 061.
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- inspect the Dogfood Run 060 cleanup-completed evidence and kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
+- inspect the Dogfood Run 061 retained-evidence update and kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
 - run `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- commit Dogfood Run 060 cleanup-completed evidence locally only after verification and explicit commit approval
-- publish the Run 060 evidence commits to `origin/main` only after cleanup-completed evidence is committed locally and explicit push approval is given
-- run another intentional `--execute --slug <slug>` dogfood pass only after the cleanup-completed evidence is published and a fresh execute approval is given
+- commit Dogfood Run 061 retained-evidence docs locally only after verification and explicit commit approval
+- clean up the Dogfood Run 061 retained linked worktree and branch only after retained-evidence is preserved and explicit destructive cleanup approval is given
+- do not run another intentional `--execute --slug <slug>` dogfood run until Run 061 retained-evidence is committed and the cleanup decision is settled
 - if a future local commit reopens the push gate, publish only after explicit push approval
 
 Completed approval-gated actions:
@@ -928,6 +953,9 @@ Completed approval-gated actions:
 - Dogfood Run 060 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 060 retained-evidence docs were committed locally before destructive cleanup
 - Dogfood Run 060 retained dogfood linked worktree cleanup is complete
+- Dogfood Run 060 cleanup-completed evidence is published on current `main`
+- current-head V1 kickoff user-flow smoke passed on clean/published `main` before Dogfood Run 061 execute
+- Dogfood Run 061 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 
 Current retained evidence status:
 - No retained dogfood linked worktree remained after Dogfood Run 048 cleanup before the next approved execute-mode pass.
@@ -958,6 +986,7 @@ Current retained evidence status:
 - No retained dogfood linked worktree remained after Dogfood Run 059 cleanup before any next approved execute-mode pass.
 - Dogfood Run 060 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-057` and branch `worktree/v1-dogfood-runner-057` have been removed after retained-evidence commit `58d6fea` was preserved.
 - No retained dogfood linked worktree remained after Dogfood Run 060 cleanup before any next approved execute-mode pass.
+- Dogfood Run 061 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-058` and branch `worktree/v1-dogfood-runner-058` remain intentionally dirty by design until retained-evidence is committed and explicit destructive cleanup approval is given.
 - Dogfood Run 030 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-027`.
 - Dogfood Run 031 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-028`.
 - Dogfood Run 032 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-029`.
@@ -989,5 +1018,6 @@ Current retained evidence status:
 - Dogfood Run 058 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-055`.
 - Dogfood Run 059 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-056`.
 - Dogfood Run 060 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-057`.
+- Dogfood Run 061 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-058`.
 
 Do not reopen the already-completed preview-only artifact redaction policy unless dogfood exposes a concrete redaction regression.

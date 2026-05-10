@@ -907,6 +907,19 @@ assert.match(dogfood, /branch deleted: `worktree\/v1-dogfood-runner-057`/);
 assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 060 cleanup before any next approved execute-mode pass/);
 assert.doesNotMatch(dogfood, /Dogfood Run 060 retained-evidence is being recorded on source `main`/);
 assert.doesNotMatch(dogfood, /Dogfood Run 060 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 061/);
+assert.match(dogfood, /Recorded at `2026-05-11 00:04:33 \+0900` on published `main`/);
+assert.match(dogfood, /ecae2ee222b80c21b7a3808b6b306a041b8cf643/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-058/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-058`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-058`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-058`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-058` or `62810` listener remained/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-058`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-058`/);
+assert.match(dogfood, /Dogfood Run 061 retained-evidence is being recorded on source `main` before commit\/cleanup/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 061 execute approval/);
+assert.match(dogfood, /Dogfood Run 061 worktree retained/);
 
 console.log(
   JSON.stringify(
@@ -914,9 +927,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 060',
+        run: 'Dogfood Run 061',
         result: 'pass',
-        nextAction: 'Dogfood Run 060 cleanup-completed evidence ready for commit/push approval',
+        nextAction: 'Dogfood Run 061 retained-evidence commit and cleanup approval pending',
       },
     },
     null,
