@@ -137,6 +137,8 @@ assert.match(inventory, /dogfood-run-062/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-059/);
 assert.match(inventory, /dogfood-run-063/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-060/);
+assert.match(inventory, /dogfood-run-064/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-061/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -381,10 +383,16 @@ assert.match(dogfood, /Dogfood Run 063 retained-evidence commit `3fed66c` was pu
 assert.match(dogfood, /Dogfood Run 063 worktree removed: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-060`/);
 assert.match(dogfood, /branch deleted: `worktree\/v1-dogfood-runner-060`/);
 assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 063 cleanup before any next approved execute-mode pass/);
-assert.match(dogfood, /Dogfood Run 063 cleanup-completed evidence is being recorded on source `main` before commit\/push/);
+assert.match(dogfood, /Dogfood Run 063 cleanup-completed evidence was committed and published as `cbf431c` before Dogfood Run 064 execute/);
 assert.match(dogfood, /runtime-v1-dogfood-runner-v1-dogfood-runner-060/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 063 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 063 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 064/);
+assert.match(dogfood, /Dogfood Run 064 retained-evidence is being recorded on source `main` before commit\/cleanup/);
+assert.match(dogfood, /Dogfood Run 064 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-061`/);
+assert.match(dogfood, /branch retained: `worktree\/v1-dogfood-runner-061`/);
+assert.match(dogfood, /runtime-v1-dogfood-runner-v1-dogfood-runner-061/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 064 execute approval/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
@@ -512,6 +520,7 @@ console.log(
           'dogfood-run-061',
           'dogfood-run-062',
           'dogfood-run-063',
+          'dogfood-run-064',
         ],
       },
     },
