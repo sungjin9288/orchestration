@@ -404,11 +404,14 @@ assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-062`
 assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-062`/);
 assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-062`/);
 assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-062` or `56660` listener remained/);
-assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 065 execute approval/);
-assert.match(dogfood, /Dogfood Run 065 retained-evidence is being recorded on source `main` before commit\/cleanup/);
-assert.match(dogfood, /Dogfood Run 065 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-062`/);
-assert.match(dogfood, /Dogfood Run 065 branch retained: `worktree\/v1-dogfood-runner-062`/);
+assert.match(dogfood, /Dogfood Run 065 retained-evidence commit `5469094` was published before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 065 worktree removed: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-062`/);
+assert.match(dogfood, /branch deleted: `worktree\/v1-dogfood-runner-062`/);
+assert.match(dogfood, /Dogfood Run 065 cleanup-completed evidence is being recorded on source `main` before commit\/push/);
+assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 065 cleanup before any next approved execute-mode pass/);
 assert.match(dogfood, /runtime-v1-dogfood-runner-v1-dogfood-runner-062/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 065 execute approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 065 worktree retained/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
