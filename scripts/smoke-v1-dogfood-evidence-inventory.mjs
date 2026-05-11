@@ -133,6 +133,8 @@ assert.match(inventory, /dogfood-run-060/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-057/);
 assert.match(inventory, /dogfood-run-061/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-058/);
+assert.match(inventory, /dogfood-run-062/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-059/);
 assert.match(inventory, /cleanupApprovalRequired: exists \|\| branchExists/);
 assert.match(inventory, /cleanupCompleted/);
 assert.match(inventory, /retainedEvidenceAvailable/);
@@ -214,6 +216,7 @@ assert.match(dogfood, /Dogfood Run 058/);
 assert.match(dogfood, /Dogfood Run 059/);
 assert.match(dogfood, /Dogfood Run 060/);
 assert.match(dogfood, /Dogfood Run 061/);
+assert.match(dogfood, /Dogfood Run 062/);
 assert.match(dogfood, /Mixed lifecycle state is valid/);
 assert.match(dogfood, /Dogfood Run 005 worktree removed/);
 assert.match(dogfood, /Dogfood Run 006 worktree removed/);
@@ -362,6 +365,12 @@ assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfoo
 assert.match(dogfood, /runtime-v1-dogfood-runner-v1-dogfood-runner-058/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 061 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 061 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 062/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 062 execute approval/);
+assert.match(dogfood, /Dogfood Run 062 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-059`/);
+assert.match(dogfood, /branch retained: `worktree\/v1-dogfood-runner-059`/);
+assert.match(dogfood, /Dogfood Run 062 retained-evidence is being recorded on source `main` before commit\/cleanup/);
+assert.match(dogfood, /runtime-v1-dogfood-runner-v1-dogfood-runner-059/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
@@ -487,6 +496,7 @@ console.log(
           'dogfood-run-059',
           'dogfood-run-060',
           'dogfood-run-061',
+          'dogfood-run-062',
         ],
       },
     },
