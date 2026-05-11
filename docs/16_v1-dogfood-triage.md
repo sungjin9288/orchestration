@@ -4172,11 +4172,10 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Retained cleanup pending after explicit Dogfood Run 063 execute approval.
-- Dogfood Run 063 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-060`; branch retained: `worktree/v1-dogfood-runner-060`.
-- Dogfood Run 063 retained-evidence is being recorded on source `main` before commit/cleanup.
-- Commit this retained-evidence update only after verification and explicit commit approval.
-- Clean up the retained linked worktree and branch only after retained-evidence is preserved and explicit destructive cleanup approval is given.
+- Dogfood Run 063 retained-evidence commit `3fed66c` was published before destructive cleanup.
+- Dogfood Run 063 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-060`; branch deleted: `worktree/v1-dogfood-runner-060`.
+- No retained dogfood linked worktree remained after Dogfood Run 063 cleanup before any next approved execute-mode pass.
+- Dogfood Run 063 cleanup-completed evidence is being recorded on source `main` before commit/push.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
@@ -4408,3 +4407,9 @@ Cleanup completed after explicit operator approval:
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-059`.
 
 No retained dogfood linked worktree remained after Dogfood Run 062 cleanup before Dogfood Run 063 execute.
+
+Cleanup completed after explicit operator approval:
+- Dogfood Run 063 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-060`; branch deleted: `worktree/v1-dogfood-runner-060`; retained-evidence commit `3fed66c` was preserved before cleanup.
+- Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-060`.
+
+No retained dogfood linked worktree remained after Dogfood Run 063 cleanup before any next approved execute-mode pass.
