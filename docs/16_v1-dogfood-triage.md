@@ -4035,11 +4035,9 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Retained cleanup pending after explicit Dogfood Run 061 execute approval.
-- Dogfood Run 061 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-058`; branch retained: `worktree/v1-dogfood-runner-058`.
-- Dogfood Run 061 retained-evidence is being recorded on source `main` before commit/cleanup.
-- Commit this retained-evidence update only after verification and explicit commit approval.
-- Clean up the retained linked worktree and branch only after retained-evidence is preserved and explicit destructive cleanup approval is given.
+- Dogfood Run 061 retained-evidence commit `2bc905b` preserved docs and smoke guards before destructive cleanup.
+- Dogfood Run 061 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-058`; branch deleted: `worktree/v1-dogfood-runner-058`.
+- No retained dogfood linked worktree remained after Dogfood Run 061 cleanup before any next approved execute-mode pass.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
@@ -4259,3 +4257,9 @@ Cleanup completed after explicit operator approval:
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-057`.
 
 No retained dogfood linked worktree remained after Dogfood Run 060 cleanup before any next approved execute-mode pass.
+
+Cleanup completed after explicit operator approval:
+- Dogfood Run 061 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-058`; branch deleted: `worktree/v1-dogfood-runner-058`; retained-evidence commit `2bc905b` was preserved before cleanup.
+- Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-058`.
+
+No retained dogfood linked worktree remained after Dogfood Run 061 cleanup before any next approved execute-mode pass.
