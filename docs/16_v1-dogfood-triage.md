@@ -4242,10 +4242,10 @@ Triage finding:
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
 Next action:
-- Retained cleanup pending after explicit Dogfood Run 064 execute approval.
-- Dogfood Run 064 retained-evidence is being recorded on source `main` before commit/cleanup.
-- Dogfood Run 064 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-061`; branch retained: `worktree/v1-dogfood-runner-061`.
-- Do not remove the Dogfood Run 064 retained linked worktree until retained-evidence is committed/published and explicit destructive cleanup approval is given.
+- Dogfood Run 064 retained-evidence commit `6d3a5e4` was published before destructive cleanup.
+- Dogfood Run 064 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-061`; branch deleted: `worktree/v1-dogfood-runner-061`.
+- No retained dogfood linked worktree remained after Dogfood Run 064 cleanup before any next approved execute-mode pass.
+- Dogfood Run 064 cleanup-completed evidence is being recorded on source `main` before commit/push.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Evidence Inventory
@@ -4484,7 +4484,8 @@ Cleanup completed after explicit operator approval:
 
 No retained dogfood linked worktree remained after Dogfood Run 063 cleanup before any next approved execute-mode pass.
 
-Retained cleanup pending after explicit Dogfood Run 064 execute approval:
-- Dogfood Run 064 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-061`; branch retained: `worktree/v1-dogfood-runner-061`.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 064 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-061`; branch deleted: `worktree/v1-dogfood-runner-061`; retained-evidence commit `6d3a5e4` was preserved before cleanup.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-061`.
-- Retained evidence must be committed/published before destructive cleanup is approved.
+
+No retained dogfood linked worktree remained after Dogfood Run 064 cleanup before any next approved execute-mode pass.
