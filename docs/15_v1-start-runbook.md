@@ -801,20 +801,21 @@ Do not start v1 dogfooding if any of these are true:
 - the user-facing flow does not explain current action, result location, or next destination
 
 ## Next Development Priority
-V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 066.
+V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 067.
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- inspect the Dogfood Run 066 cleanup-completed evidence update and kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
+- inspect the Dogfood Run 067 retained-evidence update and kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
 - run `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- commit Dogfood Run 066 cleanup-completed evidence locally only after verification and explicit commit approval
-- publish the Run 066 cleanup-completed evidence commit to `origin/main` only after commit approval and explicit push approval are both given
-- do not run another intentional `--execute --slug <slug>` dogfood run until Run 066 cleanup-completed evidence is committed/published and fresh execute approval is given
+- commit Dogfood Run 067 retained-evidence locally only after verification and explicit commit approval
+- publish the Run 067 retained-evidence commit to `origin/main` only after commit approval and explicit push approval are both given
+- clean up the Dogfood Run 067 retained linked worktree and branch only after retained-evidence is committed/published or explicitly deferred and destructive cleanup approval is given
+- do not run another intentional `--execute --slug <slug>` dogfood run until Run 067 retained-evidence is committed and the cleanup decision is settled
 
 Completed approval-gated actions:
 - previous baseline push was complete before Dogfood Run 024 execute
@@ -974,6 +975,8 @@ Completed approval-gated actions:
 - Dogfood Run 066 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 066 retained-evidence docs were committed locally and published to `origin/main` before destructive cleanup
 - Dogfood Run 066 retained dogfood linked worktree cleanup is complete
+- Dogfood Run 066 cleanup-completed evidence is published on current `main`
+- Dogfood Run 067 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 
 Current retained evidence status:
 - No retained dogfood linked worktree remained after Dogfood Run 048 cleanup before the next approved execute-mode pass.
@@ -1017,6 +1020,8 @@ Current retained evidence status:
 - Dogfood Run 066 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-063` and branch `worktree/v1-dogfood-runner-063` have been removed after retained-evidence commit `af125b6` was preserved and published.
 - No retained dogfood linked worktree remained after Dogfood Run 066 cleanup before any next approved execute-mode pass.
 - Dogfood Run 066 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-063`.
+- Dogfood Run 067 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-064` and branch `worktree/v1-dogfood-runner-064` remain intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup approval.
+- Dogfood Run 067 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-064`.
 - Dogfood Run 030 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-027`.
 - Dogfood Run 031 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-028`.
 - Dogfood Run 032 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-029`.
