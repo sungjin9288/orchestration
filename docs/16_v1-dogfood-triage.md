@@ -4355,13 +4355,12 @@ Outcome:
 - No concrete regression or usability issue was detected in this API-level dogfood pass.
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
-Retained cleanup pending after explicit Dogfood Run 066 execute approval:
-- Dogfood Run 066 retained-evidence is being recorded on source `main` before commit/cleanup/push.
-- Dogfood Run 066 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-063`; branch retained: `worktree/v1-dogfood-runner-063`.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 066 retained-evidence commit `af125b6` was published before destructive cleanup.
+- Dogfood Run 066 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-063`; branch deleted: `worktree/v1-dogfood-runner-063`.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-063`.
-- The linked worktree mutation is intentionally retained dirty by design with `prompts/builder.md` modified.
-- Cleanup remains destructive and requires explicit operator approval after retained-evidence is committed and published or explicitly deferred.
-- The linked worktree mutation must not be committed, pushed, merged, released, or closed out.
+- Dogfood Run 066 cleanup-completed evidence is being recorded on source `main` before commit/push.
+- No retained dogfood linked worktree remained after Dogfood Run 066 cleanup before any next approved execute-mode pass.
 
 ## Dogfood Evidence Inventory
 The retained dirty linked worktree lifecycle is now checked by `scripts/v1-dogfood-evidence-inventory.mjs`.
@@ -4611,8 +4610,8 @@ Cleanup completed after explicit operator approval:
 
 No retained dogfood linked worktree remained after Dogfood Run 065 cleanup before any next approved execute-mode pass.
 
-Retained cleanup pending after explicit Dogfood Run 066 execute approval:
-- Dogfood Run 066 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-063`; branch retained: `worktree/v1-dogfood-runner-063`.
-- Expected dirty marker remains `prompts/builder.md`.
+Cleanup completed after explicit operator approval:
+- Dogfood Run 066 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-063`; branch deleted: `worktree/v1-dogfood-runner-063`; retained-evidence commit `af125b6` was preserved and published before cleanup.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-063`.
-- Destructive cleanup remains approval-gated after retained-evidence commit/publish or explicit defer.
+
+No retained dogfood linked worktree remained after Dogfood Run 066 cleanup before any next approved execute-mode pass.
