@@ -1021,9 +1021,12 @@ assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:57581`/);
 assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-064` or `57581` listener remained/);
 assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-064`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-064`/);
-assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 067 execute approval/);
-assert.match(dogfood, /Dogfood Run 067 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-064` and branch `worktree\/v1-dogfood-runner-064` remain intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
-assert.doesNotMatch(dogfood, /Dogfood Run 067 worktree removed/);
+assert.match(dogfood, /Dogfood Run 067 retained-evidence commit `4a0420f` preserved docs and smoke guards locally before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 067 worktree removed: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-064`/);
+assert.match(dogfood, /branch deleted: `worktree\/v1-dogfood-runner-064`/);
+assert.match(dogfood, /No retained dogfood linked worktree remained after Dogfood Run 067 cleanup before any next approved execute-mode pass/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 067 execute approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 067 worktree retained/);
 
 console.log(
   JSON.stringify(
@@ -1033,7 +1036,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 067',
         result: 'pass',
-        nextAction: 'Dogfood Run 067 retained-evidence commit/publish then cleanup approval pending',
+        nextAction: 'Dogfood Run 067 cleanup-completed evidence commit/push approval pending',
       },
     },
     null,
