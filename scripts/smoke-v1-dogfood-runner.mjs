@@ -470,6 +470,21 @@ assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood
 assert.match(dogfood, /Cleanup-completed docs and smoke guards are being recorded on source `main` before cleanup-completed evidence commit\/push/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 069 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 069 worktree retained/);
+assert.match(dogfood, /## Dogfood Run 070/);
+assert.match(dogfood, /v1-dogfood-runner-067/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-067/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-067`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-067`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-067`/);
+assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:54277`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-067` or `54277` listener remained/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-067`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-067`/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 070 execute approval/);
+assert.match(dogfood, /Dogfood Run 070 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-067`/);
+assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-067`/);
+assert.match(dogfood, /Expected retained dirty marker: `prompts\/builder\.md`/);
+assert.match(dogfood, /Retained-evidence docs and smoke guards are being recorded on source `main` before retained-evidence commit\/push\/cleanup/);
 assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
