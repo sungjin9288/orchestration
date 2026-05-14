@@ -707,6 +707,31 @@ Result:
 - after Dogfood Run 061 execute, `v1-kickoff-status` can be blocked by retained cleanup approval until the Dogfood Run 061 lifecycle is settled
 - the proof did not expose a concrete regression or usability issue
 
+## Current Published Head Kickoff Proof After Dogfood Run 070 Cleanup
+Recorded at `2026-05-14 14:14:16 +0900` on published `main` after Dogfood Run 070 cleanup-completed evidence was committed and pushed.
+
+Repository state:
+- head: `0fe6f1d4bbca8a58a7454ed0e5966cff6d7d9e0c`
+- repo status: clean tree with `main...origin/main`
+- `node scripts/v1-kickoff-status.mjs`: pass, `kickoffReady=true`, `mainPublished=true`, `verificationOk=true`, `cleanupSettled=true`
+- `node scripts/v1-kickoff-evidence-triage.mjs`: pass, `readyForIssueDrivenSlice=true`, recommendation `do-not-open-new-implementation-without-a-concrete-regression-or-usability-issue`
+
+Runtime/browser proof:
+- command: `node scripts/smoke-v1-user-flow-kickoff.mjs`
+- result: pass without `V1_KICKOFF_ALLOW_DIRTY`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-v1-user-flow-kickoff`
+- outputRoot: `/Users/sungjin/dev/personal/orchestration/output/playwright/v1-user-flow-kickoff`
+- scenario: `task-0001`, approval `approval-0001`, builder `run-0005`, reviewer `run-0006`
+- artifacts: `artifact-0005` change summary, `artifact-0006` patch, `artifact-0007` diff, `artifact-0008` review
+- selected surface: `artifacts`
+- surfaces verified: `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, `Decision Inbox`
+- safety boundary: no commit, push, merge, release, or external release was executed
+
+Result:
+- current published head has a fresh kickoff user-flow proof after all Dogfood Run 070 retained-worktree cleanup and evidence publish gates were settled
+- no concrete regression or usability issue was detected by this proof or by the kickoff evidence triage
+- do not open a new implementation slice without a concrete regression or usability issue
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
@@ -807,16 +832,17 @@ Current local completion is now represented by `node scripts/v1-local-completion
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- inspect the Dogfood Run 070 cleanup-completed evidence update, evidence inventory, and kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
+- inspect the current clean/published V1 kickoff proof, evidence inventory, and kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
 - run `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- commit Dogfood Run 070 cleanup-completed evidence locally only after verification and explicit commit approval
-- publish Dogfood Run 070 cleanup-completed evidence only after explicit `git push origin main` approval
-- do not run another intentional `--execute --slug <slug>` dogfood run until Run 070 cleanup-completed evidence is committed/published and fresh execute approval is given
+- run another intentional `--execute --slug <slug>` dogfood pass only after fresh explicit execute approval
+- publish any future local evidence commit only after explicit `git push origin main` approval
 
 Completed approval-gated actions:
+- Dogfood Run 070 cleanup-completed evidence was committed and published as `0fe6f1d`.
+- Current published head `0fe6f1d` has a fresh V1 kickoff user-flow proof after Dogfood Run 070 cleanup-completed evidence was published.
 - previous baseline push was complete before Dogfood Run 024 execute
 - Dogfood Run 024 retained-evidence docs were committed locally
 - Dogfood Run 024 cleanup-completed evidence and the V1 kickoff browser polling hardening fix are published on current `main`
