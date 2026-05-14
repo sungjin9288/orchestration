@@ -495,10 +495,14 @@ assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/o
 assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-067`/);
 assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:54277`/);
 assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-067` or `54277` listener remained/);
-assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 070 execute approval/);
-assert.match(dogfood, /Dogfood Run 070 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-067`/);
-assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-067`/);
-assert.match(dogfood, /Expected retained dirty marker: `prompts\/builder\.md`/);
+assert.match(dogfood, /Cleanup completed after explicit Dogfood Run 070 cleanup approval/);
+assert.match(dogfood, /Dogfood Run 070 retained-evidence commit `e4552fc` was published before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 070 worktree removed: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-067`/);
+assert.match(dogfood, /Branch deleted: `worktree\/v1-dogfood-runner-067`/);
+assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 070 cleanup/);
+assert.match(dogfood, /Cleanup-completed docs and smoke guards are being recorded on source `main` before cleanup-completed evidence commit\/push/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 070 execute approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 070 worktree retained/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
