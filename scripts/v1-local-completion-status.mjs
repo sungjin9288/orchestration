@@ -11,6 +11,7 @@ function runNodeJson(relativeScriptPath) {
   const result = spawnSync(process.execPath, [absoluteScriptPath], {
     cwd: repoRoot,
     encoding: 'utf8',
+    maxBuffer: 10 * 1024 * 1024,
   });
   const stdout = result.stdout?.trim() || '';
   let parsed = null;

@@ -526,6 +526,13 @@ const retainedDogfoodWorktrees = [
     path: '/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-073',
     runtimeRoot: path.join(repoRoot, 'var', 'runtime-v1-dogfood-runner-v1-dogfood-runner-073'),
   },
+  {
+    branch: 'worktree/v1-dogfood-runner-074',
+    expectedDirtyFile: 'prompts/builder.md',
+    id: 'dogfood-run-077',
+    path: '/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-074',
+    runtimeRoot: path.join(repoRoot, 'var', 'runtime-v1-dogfood-runner-v1-dogfood-runner-074'),
+  },
 ];
 
 function runGit(cwd, args) {
@@ -571,14 +578,18 @@ function inspectDogfoodWorktree(entry) {
     .some((line) => line.trim() === `M ${entry.expectedDirtyFile}`);
   const runtimeRootIgnored = pathExists(entry.runtimeRoot);
 
+  const cleanupApprovalRequired = exists || branchExists;
+
   return {
     ...entry,
     branchExists,
-    cleanupApprovalRequired: exists || branchExists,
-    cleanupCommandsPreview: [
-      `git worktree remove ${JSON.stringify(entry.path)}`,
-      `git branch -D ${JSON.stringify(entry.branch)}`,
-    ],
+    cleanupApprovalRequired,
+    cleanupCommandsPreview: cleanupApprovalRequired
+      ? [
+          `git worktree remove ${JSON.stringify(entry.path)}`,
+          `git branch -D ${JSON.stringify(entry.branch)}`,
+        ]
+      : [],
     currentBranch,
     dirtyByDesign: hasExpectedDirtyFile && hasExpectedMarker,
     exists,
