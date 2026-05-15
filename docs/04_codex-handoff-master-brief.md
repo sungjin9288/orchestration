@@ -252,15 +252,15 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current source `main` baseline is `eaa9a284e712217e2532cd0704482e2ebd92b5ea` after Dogfood Run 075 retained-evidence was committed and pushed. Dogfood Run 075 cleanup has completed after explicit destructive approval; linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-072` and branch `worktree/v1-dogfood-runner-072` are removed, while runtime evidence remains under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-072`.
+The current source `main` baseline is `f87d5accc98831098d3c16e76310a1daaf060320` after Dogfood Run 075 cleanup-completed evidence was committed and pushed. Dogfood Run 076 has executed after explicit approval; linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-073` and branch `worktree/v1-dogfood-runner-073` are retained dirty by design, while runtime evidence remains under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-073`.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 075 retained-evidence is published, and Dogfood Run 075 cleanup-completed evidence is local until commit/push approval
+- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 075 cleanup-completed evidence is published, and Dogfood Run 076 retained-evidence is local until commit/push/cleanup approval
 - `node scripts/verification_status.mjs` must remain green after any future evidence update
-- Dogfood Run 001 through Dogfood Run 075 evidence is recorded
-- Current published-head V1 kickoff proof passed at head `292e9abe07a3093073fa992377dddb30b3086eed` before Dogfood Run 075 execute
+- Dogfood Run 001 through Dogfood Run 076 evidence is recorded
+- Current published-head V1 kickoff proof passed at head `f87d5accc98831098d3c16e76310a1daaf060320` before Dogfood Run 076 execute
 - Dogfood Run 038 retained-evidence was committed locally as `5cafefb` before destructive cleanup
 - Dogfood Run 039 retained-evidence was committed locally as `e2c2ff3` before destructive cleanup
 - Dogfood Run 040 retained-evidence was committed locally as `07b4a16` before destructive cleanup
@@ -421,15 +421,20 @@ Current local completion snapshot:
 - Dogfood Run 075 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-072` and branch `worktree/v1-dogfood-runner-072` have been removed after retained-evidence commit `eaa9a28` was preserved and published
 - No retained dogfood linked worktree remains after Dogfood Run 075 cleanup
 - Dogfood Run 075 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-072`
-- Dogfood Run 075 cleanup-completed evidence is being recorded locally before commit/push
+- Dogfood Run 075 cleanup-completed evidence was committed and published as `f87d5ac` before Dogfood Run 076 execute
+- Dogfood Run 076 executed from clean/published `main` with slug `v1-dogfood-runner-073` and stopped before commit-package, local commit, push, merge, release-package, or close-out
+- Dogfood Run 076 retained-evidence is being recorded locally before commit/push/cleanup
+- Dogfood Run 076 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-073` and branch `worktree/v1-dogfood-runner-073` remain intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup approval
+- Dogfood Run 076 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-073`
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
 - inspect `node scripts/v1-kickoff-evidence-triage.mjs` before opening new implementation work
 - open a new implementation slice only for a concrete regression or usability issue
-- approve the local cleanup-completed evidence commit for Dogfood Run 075 after verification
-- approve publishing the Run 075 cleanup-completed evidence commit to `origin/main` after it is committed locally
-- do not run another intentional `--execute --slug <slug>` dogfood run until Run 075 cleanup-completed evidence is committed/published and fresh execute approval is given
+- approve the local retained-evidence commit for Dogfood Run 076 after verification
+- approve publishing the Run 076 retained-evidence commit to `origin/main` after it is committed locally
+- approve destructive cleanup for the Dogfood Run 076 retained linked worktree and branch only after retained-evidence is preserved
+- do not run another intentional `--execute --slug <slug>` dogfood run until Run 076 retained-evidence is committed/published and the cleanup decision is settled
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
 
