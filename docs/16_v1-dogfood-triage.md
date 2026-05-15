@@ -4995,16 +4995,14 @@ Outcome:
 - No concrete regression or usability issue was detected in this API-level dogfood pass.
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
-Retained cleanup pending after explicit Dogfood Run 077 execute approval:
-- Dogfood Run 077 retained-evidence is being recorded locally before commit/push/cleanup.
-- Dogfood Run 077 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-074`.
-- Branch retained: `worktree/v1-dogfood-runner-074`.
-- Expected dirty marker: `prompts/builder.md`.
+Cleanup completed after explicit Dogfood Run 077 cleanup approval:
+- Dogfood Run 077 retained-evidence commit `4052c8f` was published before destructive cleanup.
+- Dogfood Run 077 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-074`.
+- Branch deleted: `worktree/v1-dogfood-runner-074`.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-074`.
-- Destructive cleanup requires explicit approval after retained-evidence is preserved.
-- Cleanup commands preview: `git worktree remove --force /Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-074` and `git branch -D worktree/v1-dogfood-runner-074`.
+- Cleanup-completed evidence is being recorded locally before commit/push.
 
-Dogfood Run 077 worktree retained until retained-evidence commit/publish and explicit cleanup approval.
+No retained dogfood linked worktree remains after Dogfood Run 077 cleanup.
 
 ## Dogfood Evidence Inventory
 The retained dirty linked worktree lifecycle is now checked by `scripts/v1-dogfood-evidence-inventory.mjs`.
