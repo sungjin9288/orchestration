@@ -1227,11 +1227,14 @@ assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:63873`/);
 assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-075` or `63873` listener remained/);
 assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-075`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-075`/);
-assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 078 execute approval/);
-assert.match(dogfood, /Dogfood Run 078 retained-evidence is being recorded locally before commit\/push\/cleanup/);
-assert.match(dogfood, /Dogfood Run 078 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-075`/);
-assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-075`/);
-assert.match(dogfood, /Dogfood Run 078 worktree retained until retained-evidence commit\/publish and explicit cleanup approval/);
+assert.match(dogfood, /Cleanup completed after explicit Dogfood Run 078 cleanup approval/);
+assert.match(dogfood, /Dogfood Run 078 retained-evidence commit `1acae98` was published before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 078 worktree removed: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-075`/);
+assert.match(dogfood, /Branch deleted: `worktree\/v1-dogfood-runner-075`/);
+assert.match(dogfood, /Cleanup-completed evidence is being recorded locally before commit\/push/);
+assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 078 cleanup/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 078 execute approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 078 worktree retained:/);
 
 console.log(
   JSON.stringify(
@@ -1241,7 +1244,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 078',
         result: 'pass',
-        nextAction: 'Dogfood Run 078 retained-evidence commit approval pending before destructive cleanup',
+        nextAction: 'Dogfood Run 078 cleanup-completed evidence commit approval pending before publish',
       },
     },
     null,
