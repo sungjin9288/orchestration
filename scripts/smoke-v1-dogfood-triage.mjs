@@ -1310,6 +1310,20 @@ assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 082 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 082 worktree retained:/);
 assert.doesNotMatch(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-079`/);
+assert.match(dogfood, /## Dogfood Run 083/);
+assert.match(dogfood, /Recorded at `2026-05-18 15:13:10 \+0900` on published `main`/);
+assert.match(dogfood, /d278ba7bbd9857ac3d287d2c86a9802013072228/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-080/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-080`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-080`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-080`/);
+assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:64094`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-080` or `64094` listener remained/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-080`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-080`/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 083 execute approval/);
+assert.match(dogfood, /Dogfood Run 083 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-080`/);
+assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-080`/);
 
 console.log(
   JSON.stringify(
@@ -1317,9 +1331,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 082',
+        run: 'Dogfood Run 083',
         result: 'pass',
-        nextAction: 'Dogfood Run 082 cleanup-completed evidence commit approval pending before push',
+        nextAction: 'Dogfood Run 083 retained-evidence commit approval pending before cleanup',
       },
     },
     null,
