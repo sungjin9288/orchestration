@@ -851,18 +851,20 @@ Do not start v1 dogfooding if any of these are true:
 - the user-facing flow does not explain current action, result location, or next destination
 
 ## Next Development Priority
-V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 079.
+V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 080.
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- inspect the current published-head kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
+- inspect the Dogfood Run 080 retained-evidence update, evidence inventory, and current published-head kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
 - run `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- run another intentional `--execute --slug <slug>` dogfood pass only after explicit `run-another-dogfood-execute` approval and a clean/published recheck
+- commit Dogfood Run 080 retained-evidence docs locally only after verification and explicit commit approval
+- clean up the Dogfood Run 080 retained linked worktree and branch only after retained-evidence is preserved and explicit destructive cleanup approval is given
+- do not run another intentional `--execute --slug <slug>` dogfood pass until Run 080 retained-evidence is committed and the cleanup decision is settled
 - publish any future local evidence commit only after explicit `git push origin main` approval
 
 Completed approval-gated actions:
@@ -937,6 +939,10 @@ Completed approval-gated actions:
 - Dogfood Run 079 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-076`.
 - Dogfood Run 079 cleanup-completed evidence was committed and published as `aae311f`.
 - Current published head `aae311f` has a fresh V1 kickoff user-flow proof after Dogfood Run 079 cleanup-completed evidence was published.
+- Dogfood Run 080 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
+- Dogfood Run 080 retained-evidence is being recorded locally before commit/push/cleanup.
+- Dogfood Run 080 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-077` and branch `worktree/v1-dogfood-runner-077` remain intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup approval.
+- Dogfood Run 080 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-077`.
 - previous baseline push was complete before Dogfood Run 024 execute
 - Dogfood Run 024 retained-evidence docs were committed locally
 - Dogfood Run 024 cleanup-completed evidence and the V1 kickoff browser polling hardening fix are published on current `main`
@@ -1108,6 +1114,9 @@ Completed approval-gated actions:
 - Dogfood Run 069 retained dogfood linked worktree cleanup is complete
 
 Current cleanup evidence status:
+- Dogfood Run 080 retained-evidence is being recorded locally before commit/push/cleanup.
+- Dogfood Run 080 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-077` and branch `worktree/v1-dogfood-runner-077` remain intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup approval.
+- Dogfood Run 080 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-077`.
 - Dogfood Run 079 cleanup-completed evidence was committed and published as `aae311f`.
 - Dogfood Run 079 retained linked worktree cleanup is complete after retained-evidence commit `8463c46` was preserved and published.
 - Dogfood Run 079 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-076` and branch `worktree/v1-dogfood-runner-076` have been removed.
