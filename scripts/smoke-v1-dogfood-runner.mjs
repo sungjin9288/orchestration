@@ -674,10 +674,13 @@ assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:64807`/);
 assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-078` or `64807` listener remained/);
 assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-078`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-078`/);
-assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 081 execute approval/);
-assert.match(dogfood, /Dogfood Run 081 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-078`/);
-assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-078`/);
-assert.doesNotMatch(dogfood, /Cleanup completed after explicit Dogfood Run 081 cleanup approval/);
+assert.match(dogfood, /Cleanup completed after explicit Dogfood Run 081 cleanup approval/);
+assert.match(dogfood, /Dogfood Run 081 retained-evidence commit `158edd0` was published before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 081 worktree removed: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-078`/);
+assert.match(dogfood, /Branch deleted: `worktree\/v1-dogfood-runner-078`/);
+assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 081 cleanup/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 081 execute approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 081 worktree retained:/);
 assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
