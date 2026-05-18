@@ -252,15 +252,15 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current source `main` baseline is `8463c46` after Dogfood Run 079 retained-evidence was committed and pushed. Dogfood Run 079 cleanup has completed after explicit approval; linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-076` and branch `worktree/v1-dogfood-runner-076` are removed, while runtime evidence remains under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-076`.
+The current source `main` baseline is `aae311f` after Dogfood Run 079 cleanup-completed evidence was committed and pushed. Dogfood Run 079 cleanup has completed after explicit approval; linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-076` and branch `worktree/v1-dogfood-runner-076` are removed, while runtime evidence remains under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-076`.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 079 retained-evidence is published, and Dogfood Run 079 cleanup-completed evidence is local until commit/push approval
+- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 079 retained-evidence and cleanup-completed evidence are both published on current `main`
 - `node scripts/verification_status.mjs` must remain green after any future evidence update
 - Dogfood Run 001 through Dogfood Run 079 evidence is recorded
-- Current published-head V1 kickoff proof passed at head `0ca8a02579ce0b6ac0cf1bb5ea3148eef14fbe98` before Dogfood Run 079 execute
+- Current published-head V1 kickoff proof passed at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523` after Dogfood Run 079 cleanup-completed evidence was published
 - Dogfood Run 038 retained-evidence was committed locally as `5cafefb` before destructive cleanup
 - Dogfood Run 039 retained-evidence was committed locally as `e2c2ff3` before destructive cleanup
 - Dogfood Run 040 retained-evidence was committed locally as `07b4a16` before destructive cleanup
@@ -449,14 +449,14 @@ Current local completion snapshot:
 - Dogfood Run 079 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-076` and branch `worktree/v1-dogfood-runner-076` have been removed after retained-evidence commit `8463c46` was preserved and published
 - No retained dogfood linked worktree remains after Dogfood Run 079 cleanup
 - Dogfood Run 079 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-076`
+- Dogfood Run 079 cleanup-completed evidence was committed and published as `aae311f`
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
 - inspect `node scripts/v1-kickoff-evidence-triage.mjs` before opening new implementation work
 - open a new implementation slice only for a concrete regression or usability issue
-- approve the local cleanup-completed evidence commit for Dogfood Run 079 after verification
-- approve publishing the Run 079 cleanup-completed evidence commit to `origin/main` after it is committed locally
-- do not run another intentional `--execute --slug <slug>` dogfood run until Run 079 cleanup-completed evidence is committed/published and the push decision is settled
+- optionally approve another intentional `--execute --slug <slug>` dogfood run only after current clean/published status is rechecked
+- publish any future local evidence commit to `origin/main` only after explicit push approval
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
 
@@ -470,8 +470,8 @@ The runtime/browser proof command for that first slice is:
 
 Latest clean proof:
 
-- recorded on `2026-05-14 14:14:16 +0900`
-- head `0fe6f1d4bbca8a58a7454ed0e5966cff6d7d9e0c`
+- recorded on `2026-05-18 09:41:40 +0900`
+- head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
 - `node scripts/smoke-v1-user-flow-kickoff.mjs` passed without `V1_KICKOFF_ALLOW_DIRTY`
 - scenario covered `task-0001`, `approval-0001`, builder `run-0005`, reviewer `run-0006`, and artifacts `artifact-0005` through `artifact-0008`
 - verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`
