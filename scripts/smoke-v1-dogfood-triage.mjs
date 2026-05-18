@@ -1301,9 +1301,15 @@ assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:54409`/);
 assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-079` or `54409` listener remained/);
 assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-079`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-079`/);
-assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 082 execute approval/);
-assert.match(dogfood, /Dogfood Run 082 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-079`/);
-assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-079`/);
+assert.match(dogfood, /Cleanup completed after explicit Dogfood Run 082 cleanup approval/);
+assert.match(dogfood, /Dogfood Run 082 retained-evidence commit `90a304c` was published before destructive cleanup/);
+assert.match(dogfood, /Dogfood Run 082 worktree removed: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-079`/);
+assert.match(dogfood, /Branch deleted: `worktree\/v1-dogfood-runner-079`/);
+assert.match(dogfood, /Inventory check after cleanup reported `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`/);
+assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 082 cleanup/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 082 execute approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 082 worktree retained:/);
+assert.doesNotMatch(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-079`/);
 
 console.log(
   JSON.stringify(
@@ -1313,7 +1319,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 082',
         result: 'pass',
-        nextAction: 'Dogfood Run 082 retained-evidence commit approval pending before cleanup',
+        nextAction: 'Dogfood Run 082 cleanup-completed evidence commit approval pending before push',
       },
     },
     null,
