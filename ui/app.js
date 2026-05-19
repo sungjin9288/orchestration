@@ -11306,6 +11306,113 @@ function renderControlOverviewSignalStrip(items) {
   `;
 }
 
+function renderOperatorRunway(data, context, activeGroupId, focus, check) {
+  const activeProject = data.activeProject;
+  const activeMissionTitle = context.selectedMission?.title || '등록된 active mission 없음';
+  const activeTaskTitle = context.activeTask?.title || '실행 셀 대기';
+  const resultSurface = SURFACE_LOCATION_GUIDANCE[state.surface]?.resultSurface || 'deliverables';
+  const resultSurfaceLabel = getSurfaceDisplayName(resultSurface);
+  const activeSurfaceLabel = getSurfaceDisplayName(state.surface);
+  const blockerLabel = state.error
+    ? '런타임 오류'
+    : context.pendingGateCount > 0
+      ? `사람 게이트 ${context.pendingGateCount}건`
+      : context.activeTask?.flags?.blocked
+        ? '차단 상태'
+        : '막힘 없음';
+  const nextActionLabel = check.action?.label
+    ? `${check.action.label} 열기`
+    : check.next || focus.next || '상세 확인';
+  const nextTargetSurface = check.action?.targetSurface || resultSurface;
+  const evidenceLabel =
+    context.selectedArtifact?.id ||
+    context.selectedRun?.id ||
+    context.activeTask?.id ||
+    context.selectedMission?.id ||
+    '근거 대기';
+
+  return `
+    <section class="operator-runway" data-operator-runway="true" data-nav-group="${escapeHtml(activeGroupId)}" aria-label="operator home: 현재 안건, 담당, 막힘, 다음 이동, 결과 확인 위치">
+      <div class="operator-runway-head">
+        <div>
+          <p class="control-overview-label">Operator home</p>
+          <h3 class="operator-runway-title">지금 할 일</h3>
+          <p class="operator-runway-copy">첫 화면에서 active mission, owner, gate, next action, 결과 위치를 바로 확인합니다.</p>
+        </div>
+        <div class="operator-runway-surface">
+          <span class="operator-runway-surface-label">현재 desk</span>
+          <strong class="operator-runway-surface-value">${escapeHtml(activeSurfaceLabel)}</strong>
+        </div>
+      </div>
+      <div class="operator-runway-grid" role="list" aria-label="현재 운영 상태 요약">
+        <article class="operator-runway-cell operator-runway-cell-mission" role="listitem">
+          <span class="operator-runway-cell-label">Active mission</span>
+          <strong class="operator-runway-cell-value">${escapeHtml(activeMissionTitle)}</strong>
+          <span class="operator-runway-cell-note">${escapeHtml(activeProject?.name || '프로젝트 미지정')}</span>
+        </article>
+        <article class="operator-runway-cell" role="listitem">
+          <span class="operator-runway-cell-label">Owner</span>
+          <strong class="operator-runway-cell-value">${escapeHtml(focus.owner)}</strong>
+          <span class="operator-runway-cell-note">${escapeHtml(activeTaskTitle)}</span>
+        </article>
+        <article class="operator-runway-cell" role="listitem">
+          <span class="operator-runway-cell-label">Gate / blocker</span>
+          <strong class="operator-runway-cell-value">${escapeHtml(blockerLabel)}</strong>
+          <span class="operator-runway-cell-note">${escapeHtml(check.current || focus.status)}</span>
+        </article>
+        <article class="operator-runway-cell operator-runway-cell-next" role="listitem">
+          <span class="operator-runway-cell-label">Next action</span>
+          <strong class="operator-runway-cell-value">${escapeHtml(nextActionLabel)}</strong>
+          <span class="operator-runway-cell-note">결과 위치: ${escapeHtml(resultSurfaceLabel)}</span>
+        </article>
+      </div>
+      <div class="operator-runway-actions" aria-label="operator home shortcuts">
+        <button
+          class="operator-runway-action operator-runway-action-primary"
+          type="button"
+          data-action="open-surface"
+          data-target-surface="${escapeHtml(nextTargetSurface)}"
+          aria-controls="surface-${escapeHtml(nextTargetSurface)}"
+          ${state.loading || state.mutating ? 'disabled' : ''}
+        >
+          ${escapeHtml(nextActionLabel)}
+        </button>
+        <button
+          class="operator-runway-action"
+          type="button"
+          data-action="open-surface"
+          data-target-surface="${escapeHtml(resultSurface)}"
+          aria-controls="surface-${escapeHtml(resultSurface)}"
+          ${state.loading || state.mutating ? 'disabled' : ''}
+        >
+          ${escapeHtml(resultSurfaceLabel)}에서 결과 보기
+        </button>
+        <button
+          class="operator-runway-action"
+          type="button"
+          data-action="open-surface"
+          data-target-surface="artifacts"
+          aria-controls="surface-artifacts"
+          ${state.loading || state.mutating ? 'disabled' : ''}
+        >
+          아티팩트에서 근거 보기
+        </button>
+        <button
+          class="operator-runway-action"
+          type="button"
+          data-action="open-surface"
+          data-target-surface="logs"
+          aria-controls="surface-logs"
+          ${state.loading || state.mutating ? 'disabled' : ''}
+        >
+          로그에서 실행 흐름 보기
+        </button>
+        <span class="operator-runway-evidence">현재 근거: ${escapeHtml(evidenceLabel)}</span>
+      </div>
+    </section>
+  `;
+}
+
 function renderWorkspacePlaybookShortcutButtons(
   card,
   activeGroupId,
@@ -11659,6 +11766,7 @@ function renderWorkflowsOverview(data, context, activeGroupId) {
 
   return `
     <div class="control-overview-stack control-overview-stack-workflows">
+      ${renderOperatorRunway(data, context, activeGroupId, focus, check)}
       ${renderControlOverviewSignalStrip([
         { label: '현재 데스크', value: activeDeskLabel },
         { label: '담당', value: selectedOrderOwner },
@@ -11791,6 +11899,7 @@ function renderReviewOverview(data, context, activeGroupId) {
 
   return `
     <div class="control-overview-stack control-overview-stack-review">
+      ${renderOperatorRunway(data, context, activeGroupId, focus, check)}
       ${renderControlOverviewSignalStrip([
         { label: '현재 패킷', value: selectedPacket },
         { label: '담당', value: focus.owner },
@@ -12042,6 +12151,8 @@ function renderOpsCreatePreview() {
 function renderOpsOverview(data, context, activeGroupId) {
   const counts = getCompanyDirectorySummary();
   const activeProject = data.activeProject;
+  const focus = getControlOverviewFocus(context);
+  const check = getControlOverviewCheck(state.surface, context, data);
   const harnessBrief = getHarnessConsumerBrief(data);
   const editorGroupId = state.opsEditorGroup || 'all';
   const editorGroupLabel = getOpsEditorGroupLabel(editorGroupId);
@@ -12056,6 +12167,7 @@ function renderOpsOverview(data, context, activeGroupId) {
 
   return `
     <div class="control-overview-stack control-overview-stack-ops">
+      ${renderOperatorRunway(data, context, activeGroupId, focus, check)}
       ${renderControlOverviewSignalStrip([
         { label: '현재 프로젝트', value: activeProject?.name || '선택 없음' },
         { label: '편집 범위', value: editorGroupLabel },
