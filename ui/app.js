@@ -1499,11 +1499,11 @@ function renderDeliverablesReportDeck(options = {}) {
     ? `${currentArtifact.id} 패킷이 ${formatDate(currentArtifact.createdAt)} 기준 현재 전달 선반의 맨 위에 있습니다.`
     : '회의와 실행에서 올라온 결과 패킷이 아직 없습니다.';
   const reviewTitle =
-    latestReviewStatus === 'approved'
+    latestReviewStatus === 'passed'
       ? '승인 완료 · 리뷰 라인'
       : `리뷰 ${getReviewStatusDisplay(latestReviewStatus)}`;
   const reviewCopy =
-    latestReviewStatus === 'approved'
+    latestReviewStatus === 'passed'
       ? '현재 결과 패킷은 리뷰 라인을 통과했고, 다음 승인 라인 또는 종료 보고를 기다립니다.'
       : `현재 결과 패킷은 리뷰 라인에서 ${getReviewStatusDisplay(latestReviewStatus)} 상태입니다.`;
   const approvalTitle = latestApproval
@@ -10919,7 +10919,7 @@ function getExecutionDeskNext(task) {
     return '결정함 처리';
   }
 
-  if (task.review?.status === 'approved') {
+  if (task.review?.status === 'passed') {
     return '결과 패킷 전달';
   }
 
@@ -10947,7 +10947,7 @@ function getDeliverablesDeskNext(task, artifact, pendingGateCount) {
     return '승인선 확인';
   }
 
-  if (task?.review?.status === 'approved' || artifact) {
+  if (task?.review?.status === 'passed' || artifact) {
     return '종료 보고 확인';
   }
 
