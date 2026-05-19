@@ -19,7 +19,7 @@ assert.match(appJs, /check:\s*'run 기록·오류 흐름'/);
 assert.match(appJs, /check:\s*'승인·보류·해결 대기'/);
 assert.match(appJs, /surfaces:\s*\['mission'\]/);
 assert.match(appJs, /surfaces:\s*\['council', 'execution'\]/);
-assert.match(appJs, /surfaces:\s*\['deliverables'\]/);
+assert.match(appJs, /surfaces:\s*\['deliverables', 'artifacts', 'logs'\]/);
 assert.match(appJs, /surfaces:\s*\['artifacts'\]/);
 assert.match(appJs, /surfaces:\s*\['logs'\]/);
 assert.match(appJs, /surfaces:\s*\['decision-inbox'\]/);

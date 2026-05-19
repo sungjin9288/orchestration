@@ -199,9 +199,9 @@ const GROUP_PLAYBOOK_META = {
       {
         step: '03',
         title: '실행 인계',
-        note: '완료 결과와 근거를 순서대로 확인',
-        surfaces: ['deliverables'],
-        where: '확인: 산출물 → 아티팩트',
+        note: '결과·근거·실행 흐름을 같은 자리에서 추적',
+        surfaces: ['deliverables', 'artifacts', 'logs'],
+        where: '확인: 산출물 → 아티팩트 → 로그',
       },
     ],
   },
