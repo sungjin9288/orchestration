@@ -844,8 +844,21 @@ assert.match(dogfood, /Cleanup completed after explicit Dogfood Run 092 destruct
 assert.match(dogfood, /Dogfood Run 092 retained-evidence commit `5b0f64c` was published before destructive cleanup/);
 assert.match(dogfood, /Removed worktree: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-089`/);
 assert.match(dogfood, /Deleted branch: `worktree\/v1-dogfood-runner-089`/);
+assert.match(dogfood, /Cleanup-completed docs and smoke guards were committed and published as `44550a6` before Dogfood Run 093 execute/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 092 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 092 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
+assert.match(dogfood, /## Dogfood Run 093/);
+assert.match(dogfood, /v1-dogfood-runner-090/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-090/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-090`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-090`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-090`/);
+assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:58521`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-090` or `58521` listener remained/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-090`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-090`/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 093 execute approval/);
+assert.match(dogfood, /Dogfood Run 093 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
 assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
