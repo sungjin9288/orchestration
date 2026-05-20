@@ -5836,16 +5836,77 @@ Cleanup completed after explicit Dogfood Run 091 cleanup approval:
 - Branch deleted: `worktree/v1-dogfood-runner-088`.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-088`.
 - Inventory check after cleanup reported `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`.
-- Cleanup-completed docs and smoke guards are being recorded on source `main` before cleanup-completed evidence commit/push.
+- Cleanup-completed docs and smoke guards were committed and published as `a75fe0c` before Dogfood Run 092 execute.
 
 No retained dogfood linked worktree remains after Dogfood Run 091 cleanup.
+
+## Dogfood Run 092
+Recorded at `2026-05-20 14:28:33 +0900` on published `main`.
+
+- head: `a75fe0c14419c637789d583b8871de74fb74df47`
+- concrete user-flow slice: `v1-user-flow-kickoff-slice`
+- concrete usability issue under watch: confirm Mission-first operators can still locate the current result packet, evidence/artifact trail, run logs, and next approval or cleanup action after the flow completes
+- command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-089`
+- source project_path: `/Users/sungjin/dev/personal/orchestration`
+- linked worktree branch: `worktree/v1-dogfood-runner-089`
+- linked worktree path: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-089`
+- provider mode: `local-stub`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-v1-dogfood-runner-v1-dogfood-runner-089`
+- baseUrl: `http://127.0.0.1:64561`
+- result: pass
+- listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-089` or `64561` listener remained
+- source git status after run: clean tree with `main...origin/main`
+- linked worktree status after run: dirty by design, `prompts/builder.md` modified
+- push state: no push was performed
+- commit state: no linked worktree commit was performed
+
+Scenario executed:
+1. Ran the repo-native dogfood runner in explicit execute mode with operator-approved slug `v1-dogfood-runner-089`.
+2. Registered source repo as `project-0001`.
+3. Created linked worktree project `project-0002` at `worktree/v1-dogfood-runner-089`.
+4. Created mission `mission-0001` and council session `councilSession-0001`.
+5. Approved council recommendation and builder live-mutation approval `approval-0001`.
+6. Ran builder live mutation `run-0005`, then reviewer `run-0006`.
+7. Confirmed no commit-package, local commit, push, merge, release-package, or close-out ran.
+
+Evidence:
+- task: `task-0001`
+- task lifecycle after run: `Review`
+- task review status after run: `passed`
+- approval: `approval-0001`, status `approved`, consumed by `run-0005`
+- builder live mutation run: `run-0005`
+- builder live mutation artifacts: `artifact-0005` change-summary, `artifact-0006` patch, `artifact-0007` diff
+- reviewer run: `run-0006`
+- reviewer artifact: `artifact-0008`
+- reviewer source run: `run-0005`
+- reviewer raw verdict: `pass`
+- reviewer mapped status: `passed`
+- runtime artifacts: `artifact-0001.md`, `artifact-0002.md`, `artifact-0003.md`, `artifact-0004.md`, `artifact-0005.md`, `artifact-0006.patch`, `artifact-0007.diff`, `artifact-0008.md`
+- changed files: `prompts/builder.md`
+- never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`
+
+Outcome:
+- The repo-native runner repeated isolated local-stub linked worktree proof on clean, published `main` after Dogfood Run 091 cleanup-completed evidence was committed and published.
+- The execute pass covered the `v1-user-flow-kickoff-slice` API-level path: source project registration, linked worktree project creation, mission/council setup, approval, bounded builder mutation, reviewer pass, artifact capture, and explicit downstream non-execution.
+- Current `main` stayed clean during execution; mutation was isolated to the new linked worktree.
+- No runtime listener remained after the run.
+- No concrete runtime/API regression was detected in this API-level dogfood pass.
+- The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
+
+Retained cleanup pending after explicit Dogfood Run 092 execute approval:
+- Dogfood Run 092 retained evidence is being recorded locally before retained-evidence commit/push/cleanup.
+- Dogfood Run 092 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-089`.
+- Branch retained: `worktree/v1-dogfood-runner-089`.
+- Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-089`.
+- Inventory check before cleanup should report `cleanupCompleted=false`, `retainedEvidenceAvailable=true`, `cleanupBlockedUntilApproval=true`, and `validEvidenceLifecycle=true`.
+- Dogfood Run 092 retained evidence remains intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup approval.
 
 ## Dogfood Evidence Inventory
 The retained dirty linked worktree lifecycle is now checked by `scripts/v1-dogfood-evidence-inventory.mjs`.
 
 Inventory behavior:
 - The inventory is read-only and exists to record the destructive cleanup approval gate and the completed cleanup state.
-- It checks Dogfood Run 002, Dogfood Run 004, Dogfood Run 005, Dogfood Run 006, Dogfood Run 007, Dogfood Run 008, Dogfood Run 009, Dogfood Run 010, Dogfood Run 011, Dogfood Run 012, Dogfood Run 013, Dogfood Run 014, Dogfood Run 015, Dogfood Run 016, Dogfood Run 017, Dogfood Run 018, Dogfood Run 019, Dogfood Run 020, Dogfood Run 021, Dogfood Run 022, Dogfood Run 023, Dogfood Run 024, Dogfood Run 025, Dogfood Run 026, Dogfood Run 027, Dogfood Run 028, Dogfood Run 029, Dogfood Run 030, Dogfood Run 031, Dogfood Run 032, Dogfood Run 033, Dogfood Run 034, Dogfood Run 035, Dogfood Run 036, Dogfood Run 037, Dogfood Run 038, Dogfood Run 039, Dogfood Run 040, Dogfood Run 041, Dogfood Run 042, Dogfood Run 043, Dogfood Run 044, Dogfood Run 045, Dogfood Run 046, Dogfood Run 047, Dogfood Run 048, Dogfood Run 049, Dogfood Run 050, Dogfood Run 051, Dogfood Run 052, Dogfood Run 053, Dogfood Run 054, Dogfood Run 055, Dogfood Run 056, Dogfood Run 057, Dogfood Run 058, Dogfood Run 059, Dogfood Run 060, Dogfood Run 061, Dogfood Run 062, Dogfood Run 063, Dogfood Run 064, Dogfood Run 065, Dogfood Run 066, Dogfood Run 067, Dogfood Run 068, Dogfood Run 069, Dogfood Run 070, Dogfood Run 071, Dogfood Run 072, Dogfood Run 073, Dogfood Run 074, Dogfood Run 075, Dogfood Run 076, Dogfood Run 077, Dogfood Run 078, Dogfood Run 079, Dogfood Run 080, Dogfood Run 081, Dogfood Run 082, Dogfood Run 083, Dogfood Run 084, Dogfood Run 085, Dogfood Run 086, Dogfood Run 087, Dogfood Run 088, Dogfood Run 089, Dogfood Run 090, and Dogfood Run 091 linked worktree paths, branch names, dirty marker files, runtime roots, and current source repo status.
+- It checks Dogfood Run 002, Dogfood Run 004, Dogfood Run 005, Dogfood Run 006, Dogfood Run 007, Dogfood Run 008, Dogfood Run 009, Dogfood Run 010, Dogfood Run 011, Dogfood Run 012, Dogfood Run 013, Dogfood Run 014, Dogfood Run 015, Dogfood Run 016, Dogfood Run 017, Dogfood Run 018, Dogfood Run 019, Dogfood Run 020, Dogfood Run 021, Dogfood Run 022, Dogfood Run 023, Dogfood Run 024, Dogfood Run 025, Dogfood Run 026, Dogfood Run 027, Dogfood Run 028, Dogfood Run 029, Dogfood Run 030, Dogfood Run 031, Dogfood Run 032, Dogfood Run 033, Dogfood Run 034, Dogfood Run 035, Dogfood Run 036, Dogfood Run 037, Dogfood Run 038, Dogfood Run 039, Dogfood Run 040, Dogfood Run 041, Dogfood Run 042, Dogfood Run 043, Dogfood Run 044, Dogfood Run 045, Dogfood Run 046, Dogfood Run 047, Dogfood Run 048, Dogfood Run 049, Dogfood Run 050, Dogfood Run 051, Dogfood Run 052, Dogfood Run 053, Dogfood Run 054, Dogfood Run 055, Dogfood Run 056, Dogfood Run 057, Dogfood Run 058, Dogfood Run 059, Dogfood Run 060, Dogfood Run 061, Dogfood Run 062, Dogfood Run 063, Dogfood Run 064, Dogfood Run 065, Dogfood Run 066, Dogfood Run 067, Dogfood Run 068, Dogfood Run 069, Dogfood Run 070, Dogfood Run 071, Dogfood Run 072, Dogfood Run 073, Dogfood Run 074, Dogfood Run 075, Dogfood Run 076, Dogfood Run 077, Dogfood Run 078, Dogfood Run 079, Dogfood Run 080, Dogfood Run 081, Dogfood Run 082, Dogfood Run 083, Dogfood Run 084, Dogfood Run 085, Dogfood Run 086, Dogfood Run 087, Dogfood Run 088, Dogfood Run 089, Dogfood Run 090, Dogfood Run 091, and Dogfood Run 092 linked worktree paths, branch names, dirty marker files, runtime roots, and current source repo status.
 - It reports cleanup command previews only; it does not remove worktrees, delete branches, reset files, commit, push, merge, release, or close out.
 - Before cleanup, retained dirty worktrees are valid only when the expected marker mutation is present.
 - After cleanup, the expected valid state for a specific dogfood run is that both its retained worktree path is absent and its `worktree/*` branch is deleted.
