@@ -1446,7 +1446,7 @@ assert.match(dogfood, /Dogfood Run 089 worktree removed: `\/Users\/sungjin\/dev\
 assert.match(dogfood, /Branch deleted: `worktree\/v1-dogfood-runner-086`/);
 assert.match(dogfood, /Runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-086`/);
 assert.match(dogfood, /Inventory check after cleanup reported `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`/);
-assert.match(dogfood, /Cleanup-completed docs and smoke guards are being recorded on source `main` before cleanup-completed evidence commit\/push/);
+assert.match(dogfood, /Cleanup-completed docs and smoke guards were committed and published as `60c27a0`/);
 assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 089 cleanup/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 089 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 089 worktree retained:/);
@@ -1461,7 +1461,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 089',
         result: 'pass',
-        nextAction: 'Dogfood Run 089 cleanup-completed evidence commit approval pending before publish',
+        nextAction: 'issue-driven slice or explicitly approved additional dogfood',
       },
     },
     null,

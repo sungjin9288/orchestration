@@ -5714,7 +5714,7 @@ Cleanup completed after explicit Dogfood Run 089 cleanup approval:
 - Branch deleted: `worktree/v1-dogfood-runner-086`.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-086`.
 - Inventory check after cleanup reported `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`.
-- Cleanup-completed docs and smoke guards are being recorded on source `main` before cleanup-completed evidence commit/push.
+- Cleanup-completed docs and smoke guards were committed and published as `60c27a0`.
 
 No retained dogfood linked worktree remains after Dogfood Run 089 cleanup.
 
