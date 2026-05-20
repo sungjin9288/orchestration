@@ -1,4 +1,6 @@
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,12 +26,28 @@ function runGitOrNull(args) {
 
 function runNodeJson(relativeScriptPath) {
   const absoluteScriptPath = path.join(repoRoot, relativeScriptPath);
-  const result = spawnSync(process.execPath, [absoluteScriptPath], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 10 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-operator-status-'));
+  const stdoutPath = path.join(tempDir, 'stdout.json');
+  const stdoutFd = fs.openSync(stdoutPath, 'w');
+  let status = 0;
+  let stderr = '';
+  let stdout = '';
+
+  try {
+    execFileSync(process.execPath, [absoluteScriptPath], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 10 * 1024 * 1024,
+      stdio: ['ignore', stdoutFd, 'pipe'],
+    });
+  } catch (error) {
+    status = typeof error.status === 'number' ? error.status : 1;
+    stderr = error.stderr?.toString().trim() || error.message;
+  } finally {
+    fs.closeSync(stdoutFd);
+    stdout = fs.readFileSync(stdoutPath, 'utf8').trim();
+    fs.rmSync(tempDir, { force: true, recursive: true });
+  }
 
   let parsed = null;
   try {
@@ -39,11 +57,11 @@ function runNodeJson(relativeScriptPath) {
   }
 
   return {
-    ok: result.status === 0 && parsed?.ok === true,
+    ok: status === 0 && parsed?.ok === true,
     parsed,
     script: relativeScriptPath,
-    status: result.status,
-    stderr: result.stderr?.trim() || '',
+    status,
+    stderr,
     stdout,
   };
 }
