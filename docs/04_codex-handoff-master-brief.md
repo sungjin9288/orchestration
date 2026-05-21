@@ -252,16 +252,17 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current source `main` published evidence baseline is `220fa75` after Dogfood Run 095 cleanup-completed evidence and the operator status large-inventory fix were committed and pushed. Dogfood Run 096 execute has now completed from that clean/published baseline; retained-evidence is being recorded locally before retained-evidence commit/push and before any destructive cleanup.
+The current source `main` published evidence baseline is `91a623c` after Dogfood Run 096 retained-evidence was committed and pushed. Dogfood Run 096 destructive cleanup has now completed after explicit approval; cleanup-completed evidence is being recorded locally before commit/push.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 096 retained-evidence is being recorded locally before commit/push/cleanup
+- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 096 cleanup-completed evidence is being recorded locally before commit/push
 - `node scripts/verification_status.mjs` must remain green after any future evidence update
 - Dogfood Run 001 through Dogfood Run 096 evidence is recorded
 - Dogfood Run 096 executed from published head `220fa75991d0dc17791a58e80e0fd2a61119b3e6`; latest V1 kickoff runtime/browser proof remains recorded at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
-- Dogfood Run 096 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-093` and branch `worktree/v1-dogfood-runner-093` remain intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup approval
+- Dogfood Run 096 retained-evidence was committed and published as `91a623c` before destructive cleanup
+- Dogfood Run 096 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-093` and branch `worktree/v1-dogfood-runner-093` have been removed after retained-evidence commit `91a623c` was preserved and published
 - Dogfood Run 096 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-093`
 - Dogfood Run 095 cleanup-completed evidence was committed and published as `41c0780` before the operator status large-inventory fix
 - The operator status large-inventory fix was committed and published as `220fa75` before Dogfood Run 096 execute
@@ -582,12 +583,11 @@ Current local completion snapshot:
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- commit Dogfood Run 096 retained-evidence docs locally only after verification and explicit commit approval
-- publish the Dogfood Run 096 retained-evidence commit only after explicit `git push origin main` approval
-- approve destructive cleanup for the Dogfood Run 096 retained linked worktree and branch only after retained-evidence is preserved
+- commit Dogfood Run 096 cleanup-completed evidence docs locally only after verification and explicit commit approval
+- publish the Dogfood Run 096 cleanup-completed evidence commit only after explicit `git push origin main` approval
 - inspect `node scripts/v1-kickoff-evidence-triage.mjs` before opening new implementation work
 - open a new implementation slice only for a concrete regression or usability issue
-- do not run another intentional `--execute --slug <slug>` dogfood pass until Run 096 retained-evidence is committed/published and the cleanup decision is settled
+- do not run another intentional `--execute --slug <slug>` dogfood pass until Run 096 cleanup-completed evidence is committed/published and the push decision is settled
 - publish any future local evidence commit to `origin/main` only after explicit push approval
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
