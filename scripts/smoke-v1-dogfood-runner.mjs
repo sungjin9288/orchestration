@@ -1049,10 +1049,14 @@ assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:58972`/);
 assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-100` or `58972` listener remained/);
 assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-100`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-100`/);
-assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 103 execute approval/);
-assert.match(dogfood, /Dogfood Run 103 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-100`/);
-assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-100`/);
-assert.match(dogfood, /Dogfood Run 103 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
+assert.match(dogfood, /Cleanup completed after explicit Dogfood Run 103 destructive cleanup approval/);
+assert.match(dogfood, /Dogfood Run 103 retained-evidence commit `3bbdc84` was published before destructive cleanup/);
+assert.match(dogfood, /Removed worktree: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-100`/);
+assert.match(dogfood, /Deleted branch: `worktree\/v1-dogfood-runner-100`/);
+assert.match(dogfood, /Inventory check after cleanup reports `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`/);
+assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 103 cleanup/);
+assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 103 execute approval/);
+assert.doesNotMatch(dogfood, /Dogfood Run 103 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
 assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
