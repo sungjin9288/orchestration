@@ -97,6 +97,12 @@ const smokeChecks = [
     script: 'scripts/smoke-ui-slice-638.mjs',
     purpose: 'Review-passed result bundles route operators to Deliverables and use runtime review status correctly',
   },
+  {
+    id: 'operator-home-runway',
+    script: 'scripts/smoke-ui-slice-640.mjs',
+    purpose:
+      'Operator home runway keeps active mission, owner, gate, next action, result, evidence, and log shortcuts visible above the fold',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

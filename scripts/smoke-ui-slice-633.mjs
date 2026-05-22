@@ -16,9 +16,9 @@ const smokeCheckEntries = [...uiQaStatus.matchAll(/id:\s*'([^']+)',\s*\n\s*scrip
   }),
 );
 
-assert.equal(smokeCheckEntries.length, 17);
+assert.equal(smokeCheckEntries.length, 19);
 assert.deepEqual(
-  smokeCheckEntries.slice(-8),
+  smokeCheckEntries.slice(-10),
   [
     {
       id: 'harness-brief-mode-labels',
@@ -52,6 +52,14 @@ assert.deepEqual(
       id: 'workspace-click-outcome-guidance',
       script: 'scripts/smoke-ui-slice-637.mjs',
     },
+    {
+      id: 'deliverables-review-passed-result-routing',
+      script: 'scripts/smoke-ui-slice-638.mjs',
+    },
+    {
+      id: 'operator-home-runway',
+      script: 'scripts/smoke-ui-slice-640.mjs',
+    },
   ],
 );
 assert.match(uiQaStatus, /browserAutomation:\s*'manual-required'/);
@@ -63,7 +71,7 @@ console.log(
       ok: true,
       uiQaStatusRepresentativeCoverage: {
         requiredChecks: smokeCheckEntries.length,
-        representativeChecks: smokeCheckEntries.slice(-8),
+        representativeChecks: smokeCheckEntries.slice(-10),
         informationalSnapshotReachability: true,
       },
     },

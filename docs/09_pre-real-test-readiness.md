@@ -62,6 +62,8 @@ current frozen baseline을 흔들지 않는 대표 synthetic bundle은 아래로
 
 `ui_qa_status` 는 source-only UI contract checks를 required lane으로 실행하고, local
 `/api/snapshot` reachability는 UI server가 켜져 있을 때만 informational lane으로 기록한다.
+현재 representative bundle에는 `operator-home-runway` check도 포함되어 첫 화면이
+`active mission / owner / gate / next action / result location`을 계속 보여 주는지 함께 고정한다.
 
 필요하면 touched surface에 맞는 narrow smoke를 추가로 실행하되, required freeze gate 자체를 재정의하지 않는다.
 
