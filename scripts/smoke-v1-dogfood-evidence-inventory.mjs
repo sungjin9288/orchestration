@@ -293,6 +293,10 @@ assert.match(inventory, /dogfood-run-103/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-100/);
 assert.match(inventory, /orchestration--v1-dogfood-runner-100/);
 assert.match(inventory, /runtime-v1-dogfood-runner-v1-dogfood-runner-100/);
+assert.match(inventory, /dogfood-run-104/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-101/);
+assert.match(inventory, /orchestration--v1-dogfood-runner-101/);
+assert.match(inventory, /runtime-v1-dogfood-runner-v1-dogfood-runner-101/);
 assert.match(inventory, /const cleanupApprovalRequired = exists \|\| branchExists/);
 assert.match(inventory, /cleanupApprovalRequired,/);
 assert.match(inventory, /cleanupCommandsPreview: cleanupApprovalRequired/);
@@ -323,6 +327,14 @@ assert.match(dogfood, /Runtime evidence remains available under `var\/runtime-v1
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 060 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 060 worktree retained/);
 assert.match(dogfood, /does not remove worktrees, delete branches, reset files, commit, push, merge, release, or close out/);
+assert.match(dogfood, /## Dogfood Run 104/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-101/);
+assert.match(dogfood, /Dogfood Run 104 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-101`/);
+assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-101`/);
+assert.match(dogfood, /Runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-101`/);
+assert.match(dogfood, /Dogfood Run 104 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
+assert.match(dogfood, /Inventory check should report `cleanupCompleted=false`, `retainedEvidenceAvailable=true`, `cleanupBlockedUntilApproval=true`, and `validEvidenceLifecycle=true` while this evidence is retained/);
+assert.match(dogfood, /It now also checks Dogfood Run 104 retained linked worktree dirty marker, branch presence, runtime root, and current source repo status until retained-evidence commit\/publish and explicit destructive cleanup approval are complete/);
 assert.match(dogfood, /Dogfood Run 002/);
 assert.match(dogfood, /Dogfood Run 004/);
 assert.match(dogfood, /Dogfood Run 005/);
@@ -1476,6 +1488,7 @@ console.log(
           'dogfood-run-101',
           'dogfood-run-102',
           'dogfood-run-103',
+          'dogfood-run-104',
         ],
       },
     },
