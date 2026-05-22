@@ -252,15 +252,19 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current source `main` published evidence baseline is `521540d` after Dogfood Run 099 retained-evidence was committed and pushed. Dogfood Run 099 retained linked worktree cleanup has now completed after that preserved evidence baseline; cleanup-completed evidence is being recorded locally before cleanup-completed evidence commit/push.
+The current source `main` published evidence baseline is `b6d7bd5` after Dogfood Run 099 cleanup-completed evidence was committed and pushed. Dogfood Run 100 execute has now completed from that clean/published baseline; retained-evidence is being recorded locally before retained-evidence commit/push and before any destructive cleanup.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 099 cleanup-completed evidence is being recorded locally before commit/push
+- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 100 retained-evidence is being recorded locally before commit/push/cleanup
 - `node scripts/verification_status.mjs` must remain green after any future evidence update
-- Dogfood Run 001 through Dogfood Run 099 evidence is recorded
-- Dogfood Run 099 executed from published head `4bef8e19acaf76ce4798858b8b9957dd610792ed`; latest V1 kickoff runtime/browser proof remains recorded at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
+- Dogfood Run 001 through Dogfood Run 100 evidence is recorded
+- Dogfood Run 100 executed from published head `b6d7bd53573c7695e7473f15e60cc65670a7afa9`; latest V1 kickoff runtime/browser proof was rerun on the same published head and passed without a concrete regression or usability issue
+- Dogfood Run 100 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-097` and branch `worktree/v1-dogfood-runner-097` remain intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup approval
+- Dogfood Run 100 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-097`
+- Dogfood Run 099 cleanup-completed evidence was committed and published as `b6d7bd5` before Dogfood Run 100 execute
+- Dogfood Run 099 executed from published head `4bef8e19acaf76ce4798858b8b9957dd610792ed`; latest V1 kickoff runtime/browser proof was rerun on published head `b6d7bd53573c7695e7473f15e60cc65670a7afa9`
 - Dogfood Run 099 retained-evidence was committed and published as `521540d` before destructive cleanup
 - Dogfood Run 099 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-096` and branch `worktree/v1-dogfood-runner-096` have been removed after retained-evidence commit `521540d` was preserved and published
 - Dogfood Run 099 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-096`
@@ -598,11 +602,12 @@ Current local completion snapshot:
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- commit Dogfood Run 099 cleanup-completed evidence docs locally only after verification and explicit commit approval
-- publish the Dogfood Run 099 cleanup-completed evidence commit only after explicit `git push origin main` approval
+- commit Dogfood Run 100 retained-evidence docs locally only after verification and explicit commit approval
+- publish the Dogfood Run 100 retained-evidence commit only after explicit `git push origin main` approval
+- clean up the Dogfood Run 100 retained linked worktree and branch only after retained-evidence is preserved and explicit destructive cleanup approval is given
 - inspect `node scripts/v1-kickoff-evidence-triage.mjs` before opening new implementation work
 - open a new implementation slice only for a concrete regression or usability issue
-- do not run another intentional `--execute --slug <slug>` dogfood pass until Run 099 cleanup-completed evidence is committed/published and the push decision is settled
+- do not run another intentional `--execute --slug <slug>` dogfood pass until Run 100 retained-evidence is committed/published and the cleanup decision is settled
 - publish any future local evidence commit to `origin/main` only after explicit push approval
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
@@ -617,8 +622,8 @@ The runtime/browser proof command for that first slice is:
 
 Latest clean proof:
 
-- recorded on `2026-05-18 09:41:40 +0900`
-- head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
+- recorded on `2026-05-22 11:03:56 +0900`
+- head `b6d7bd53573c7695e7473f15e60cc65670a7afa9`
 - `node scripts/smoke-v1-user-flow-kickoff.mjs` passed without `V1_KICKOFF_ALLOW_DIRTY`
 - scenario covered `task-0001`, `approval-0001`, builder `run-0005`, reviewer `run-0006`, and artifacts `artifact-0005` through `artifact-0008`
 - verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`
