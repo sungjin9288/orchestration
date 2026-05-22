@@ -1039,6 +1039,20 @@ assert.match(dogfood, /Inventory check after cleanup reports `cleanupCompleted=t
 assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 102 cleanup/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 102 execute approval/);
 assert.doesNotMatch(dogfood, /Dogfood Run 102 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
+assert.match(dogfood, /## Dogfood Run 103/);
+assert.match(dogfood, /v1-dogfood-runner-100/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-100/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-100`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-100`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-100`/);
+assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:58972`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-100` or `58972` listener remained/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-100`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-100`/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 103 execute approval/);
+assert.match(dogfood, /Dogfood Run 103 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-100`/);
+assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-100`/);
+assert.match(dogfood, /Dogfood Run 103 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
 assert.match(dogfood, /never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`/);
 assert.match(dogfood, /Use `--dry-run` for routine runner safety checks/);
 
