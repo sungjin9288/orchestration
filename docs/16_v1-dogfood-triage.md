@@ -6389,13 +6389,14 @@ Outcome:
 - No concrete runtime/API regression or user-flow usability issue was detected in this API-level dogfood pass or the preceding `node scripts/smoke-v1-user-flow-kickoff.mjs` proof on the same published head.
 - The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
 
-Retained cleanup pending after explicit Dogfood Run 101 execute approval:
-- Dogfood Run 101 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-098`.
-- Branch retained: `worktree/v1-dogfood-runner-098`.
-- Expected dirty marker: `prompts/builder.md` contains `builder-live-mutation approval-0001 prompts/builder.md`.
+Cleanup completed after explicit Dogfood Run 101 destructive cleanup approval:
+- Dogfood Run 101 retained-evidence commit `cd6a506` was published before destructive cleanup.
+- Removed worktree: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-098`.
+- Deleted branch: `worktree/v1-dogfood-runner-098`.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-098`.
-- Dogfood Run 101 retained evidence remains intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup approval.
-- Do not remove the linked worktree or branch until the retained-evidence commit is preserved and cleanup is explicitly approved.
+- Inventory check after cleanup reports `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`.
+- Cleanup-completed docs and smoke guards are being recorded on source `main` before cleanup-completed evidence commit/push.
+- No retained dogfood linked worktree remains after Dogfood Run 101 cleanup.
 
 ## Dogfood Evidence Inventory
 The retained dirty linked worktree lifecycle is now checked by `scripts/v1-dogfood-evidence-inventory.mjs`.
@@ -6406,7 +6407,7 @@ Inventory behavior:
 - It now also checks Dogfood Run 098 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status.
 - It now also checks Dogfood Run 099 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status.
 - It now also checks Dogfood Run 100 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status.
-- It now also checks Dogfood Run 101 retained linked worktree path presence, branch presence, dirty marker, runtime root, and current source repo status.
+- It now also checks Dogfood Run 101 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status.
 - It reports cleanup command previews only; it does not remove worktrees, delete branches, reset files, commit, push, merge, release, or close out.
 - Before cleanup, retained dirty worktrees are valid only when the expected marker mutation is present.
 - After cleanup, the expected valid state for a specific dogfood run is that both its retained worktree path is absent and its `worktree/*` branch is deleted.
