@@ -281,6 +281,10 @@ assert.match(inventory, /dogfood-run-100/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-097/);
 assert.match(inventory, /orchestration--v1-dogfood-runner-097/);
 assert.match(inventory, /runtime-v1-dogfood-runner-v1-dogfood-runner-097/);
+assert.match(inventory, /dogfood-run-101/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-098/);
+assert.match(inventory, /orchestration--v1-dogfood-runner-098/);
+assert.match(inventory, /runtime-v1-dogfood-runner-v1-dogfood-runner-098/);
 assert.match(inventory, /const cleanupApprovalRequired = exists \|\| branchExists/);
 assert.match(inventory, /cleanupApprovalRequired,/);
 assert.match(inventory, /cleanupCommandsPreview: cleanupApprovalRequired/);
@@ -1233,6 +1237,21 @@ assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Ru
 assert.doesNotMatch(dogfood, /Dogfood Run 100 worktree retained:/);
 assert.doesNotMatch(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-097`/);
 assert.doesNotMatch(dogfood, /Dogfood Run 100 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
+assert.match(dogfood, /## Dogfood Run 101/);
+assert.match(dogfood, /Recorded at `2026-05-22 13:41:05 \+0900` on published `main` head `7b1ef6a7f8fd4117b6dfa39f5622f373a8b7ca40`/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-098/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-098`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-098`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-098`/);
+assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:61617`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-098` or `61617` listener remained/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-098`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-098`/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 101 execute approval/);
+assert.match(dogfood, /Dogfood Run 101 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-098`/);
+assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-098`/);
+assert.match(dogfood, /Expected dirty marker: `prompts\/builder\.md` contains `builder-live-mutation approval-0001 prompts\/builder\.md`/);
+assert.match(dogfood, /Dogfood Run 101 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
@@ -1397,6 +1416,7 @@ console.log(
           'dogfood-run-098',
           'dogfood-run-099',
           'dogfood-run-100',
+          'dogfood-run-101',
         ],
       },
     },
