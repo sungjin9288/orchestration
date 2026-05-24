@@ -1781,6 +1781,29 @@ assert.doesNotMatch(dogfood, /Dogfood Run 104 worktree retained:/);
 assert.doesNotMatch(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-101`/);
 assert.doesNotMatch(dogfood, /Dogfood Run 104 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
 assert.match(dogfood, /It now also checks Dogfood Run 104 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status/);
+assert.match(dogfood, /## Dogfood Run 105/);
+assert.match(dogfood, /Recorded at `2026-05-24 11:38:26 \+0900` on published `main` head `4a1998113387ce11e81179fccbd71c5442c74981`/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --dry-run --slug v1-dogfood-runner-102/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-102/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-102`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-102`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-102`/);
+assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:56906`/);
+assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-102` or `56906` listener remained/);
+assert.match(dogfood, /source `main` was clean\/published before execute and dry-run reported no branch, path, or runtimeRoot collision for slug `v1-dogfood-runner-102`/);
+assert.match(dogfood, /operator-approved slug `v1-dogfood-runner-102`/);
+assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-102`/);
+assert.match(dogfood, /Source `main` remained clean at `## main\.\.\.origin\/main`/);
+assert.match(dogfood, /No concrete runtime\/API regression was detected in this API-level dogfood pass/);
+assert.match(dogfood, /Retained cleanup pending after explicit Dogfood Run 105 execute approval/);
+assert.match(dogfood, /Dogfood Run 105 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-102`/);
+assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-102`/);
+assert.match(dogfood, /Runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-102`/);
+assert.match(dogfood, /Dogfood Run 105 retained evidence remains intentionally dirty by design until retained-evidence commit\/publish and explicit destructive cleanup approval/);
+assert.match(dogfood, /Inventory check before cleanup reports `cleanupCompleted=false`, `retainedEvidenceAvailable=true`, `cleanupBlockedUntilApproval=true`, and `validEvidenceLifecycle=true`/);
+assert.match(dogfood, /Retained-evidence docs and smoke guards are being recorded on source `main` before retained-evidence commit\/push\/cleanup/);
+assert.match(dogfood, /It now also checks Dogfood Run 105 retained linked worktree path presence, branch presence, dirty marker file, runtime root, and current source repo status/);
+assert.doesNotMatch(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 105 cleanup/);
 
 console.log(
   JSON.stringify(
@@ -1788,9 +1811,9 @@ console.log(
       ok: true,
       v1DogfoodTriage: {
         document: 'docs/16_v1-dogfood-triage.md',
-        run: 'Dogfood Run 104',
+        run: 'Dogfood Run 105',
         result: 'pass',
-        nextAction: 'Dogfood Run 104 cleanup-completed evidence commit approval pending before push',
+        nextAction: 'Dogfood Run 105 retained-evidence commit/push and cleanup approval pending',
       },
     },
     null,
