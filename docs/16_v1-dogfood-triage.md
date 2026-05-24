@@ -6619,6 +6619,49 @@ Cleanup completed after planned Dogfood Run 106 destructive cleanup authorizatio
 - Cleanup-completed docs and smoke guards are being recorded on source `main` before cleanup-completed evidence commit/push.
 - No retained dogfood linked worktree remains after Dogfood Run 106 cleanup.
 
+## Dogfood Run 107
+Recorded at `2026-05-24 13:44:42 +0900` on published `main` head `86b1555d9db674efd759d18f200eba82413a5501`.
+
+Execution:
+- dry-run command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --dry-run --slug v1-dogfood-runner-104`
+- execute command: `node scripts/v1-dogfood-linked-worktree-runner.mjs --execute --slug v1-dogfood-runner-104`
+- linked worktree branch: `worktree/v1-dogfood-runner-104`
+- linked worktree path: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-104`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-v1-dogfood-runner-v1-dogfood-runner-104`
+- baseUrl: `http://127.0.0.1:50416`
+- source project: `project-0001`
+- linked worktree project: `project-0002`
+- listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfood-runner-104` or `50416` listener remained
+
+What ran:
+1. Confirmed source `main` was clean/published before execute and dry-run reported no branch, path, or runtimeRoot collision for slug `v1-dogfood-runner-104`.
+2. Ran the repo-native dogfood runner in explicit execute mode with operator-approved slug `v1-dogfood-runner-104`.
+3. Registered source project `project-0001` for `/Users/sungjin/dev/personal/orchestration`.
+4. Created linked worktree project `project-0002` at `worktree/v1-dogfood-runner-104`.
+5. Created mission `mission-0001`, council session `councilSession-0001`, and task `task-0001`.
+6. Consumed approval `approval-0001` for builder live mutation run `run-0005`.
+7. Builder live mutation changed only `prompts/builder.md` and emitted artifacts `artifact-0005` change-summary, `artifact-0006` patch, and `artifact-0007` diff.
+8. Reviewer run `run-0006` mapped verdict `pass` to review status `passed` with review artifact `artifact-0008`.
+
+Never-run downstream actions:
+- never ran: `commit-package`, `local commit`, `push`, `merge`, `release-package`, `close-out`
+
+Outcome:
+- Source `main` remained clean at `## main...origin/main`.
+- Task `task-0001` ended in lifecycle state `Review` with `reviewStatus=passed`.
+- Linked worktree retained dirty status is exactly `M prompts/builder.md`.
+- Builder dirty marker is `builder-live-mutation approval-0001 prompts/builder.md`.
+- No runtime listener remained after the run.
+- No concrete runtime/API regression was detected in this API-level dogfood pass.
+- The generated marker mutation remains low-signal harness proof and is not implementation output to promote.
+
+Retained cleanup pending after planned Dogfood Run 107 execute authorization:
+- Dogfood Run 107 worktree retained: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-104`.
+- Branch retained: `worktree/v1-dogfood-runner-104`.
+- Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-104`.
+- Dogfood Run 107 retained evidence remains intentionally dirty by design until retained-evidence commit/publish and planned destructive cleanup authorization.
+- Cleanup commands remain approval-gated and are not executed by `scripts/v1-dogfood-evidence-inventory.mjs`.
+
 ## Dogfood Evidence Inventory
 The retained dirty linked worktree lifecycle is now checked by `scripts/v1-dogfood-evidence-inventory.mjs`.
 
@@ -6634,6 +6677,7 @@ Inventory behavior:
 - It now also checks Dogfood Run 104 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status.
 - It now also checks Dogfood Run 105 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status.
 - It now also checks Dogfood Run 106 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status.
+- It now also checks Dogfood Run 107 retained linked worktree path presence, branch presence, expected dirty marker, runtime root, and current source repo status until approved cleanup.
 - It reports cleanup command previews only; it does not remove worktrees, delete branches, reset files, commit, push, merge, release, or close out.
 - Before cleanup, retained dirty worktrees are valid only when the expected marker mutation is present.
 - After cleanup, the expected valid state for a specific dogfood run is that both its retained worktree path is absent and its `worktree/*` branch is deleted.
