@@ -782,6 +782,31 @@ Result:
 - no concrete regression or usability issue was detected by this proof or by the kickoff evidence triage
 - do not open a new implementation slice without a concrete regression or usability issue
 
+## Current Published Head Kickoff Proof After Browser QA Smoke Publish
+Recorded at `2026-05-25 00:45:18 +0900` on published `main` after the browser QA smoke stabilization commit was pushed.
+
+Repository state:
+- head: `edd1a744c8c67612639165f3c4c70db7b2bc49eb`
+- repo status: clean tree with `main...origin/main`
+- `node scripts/v1-kickoff-status.mjs`: pass, `kickoffReady=true`, `mainPublished=true`, `verificationOk=true`, `cleanupSettled=true`
+- `node scripts/v1-kickoff-evidence-triage.mjs`: pass, `readyForIssueDrivenSlice=true`, recommendation `do-not-open-new-implementation-without-a-concrete-regression-or-usability-issue`
+
+Runtime/browser proof:
+- command: `node scripts/smoke-v1-user-flow-kickoff.mjs`
+- result: pass without `V1_KICKOFF_ALLOW_DIRTY`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-v1-user-flow-kickoff`
+- outputRoot: `/Users/sungjin/dev/personal/orchestration/output/playwright/v1-user-flow-kickoff`
+- scenario: `task-0001`, approval `approval-0001`, builder `run-0005`, reviewer `run-0006`
+- artifacts: `artifact-0005` change summary, `artifact-0006` patch, `artifact-0007` diff, `artifact-0008` review
+- selected surface: `artifacts`
+- surfaces verified: `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, `Decision Inbox`
+- safety boundary: no commit, push, merge, release, or external release was executed by the proof command
+
+Result:
+- current published head has a fresh kickoff user-flow proof after browser QA smoke stabilization was published
+- no concrete regression or usability issue was detected by this proof or by the kickoff evidence triage
+- do not open a new implementation slice without a concrete regression or usability issue
+
 ## Optional Live Rehearsal
 Optional live checks remain non-blocking for v1 start unless the task explicitly targets live-provider readiness.
 
@@ -882,14 +907,12 @@ Current local completion is now represented by `node scripts/v1-local-completion
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- inspect the Dogfood Run 108 cleanup-completed evidence update, evidence inventory, and current published-head kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
+- inspect the current published-head kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
 - run `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- commit Dogfood Run 108 cleanup-completed evidence docs locally only after verification and explicit commit approval
-- publish the Dogfood Run 108 cleanup-completed evidence commit only after explicit `git push origin main` approval
-- do not run another intentional `--execute --slug <slug>` dogfood pass until Run 108 cleanup-completed evidence is committed/published and the push decision is settled
+- run another intentional `--execute --slug <slug>` dogfood pass only after explicit execute approval
 - publish any future local evidence commit only after explicit `git push origin main` approval
 
 Completed approval-gated actions:
@@ -1316,7 +1339,7 @@ Completed approval-gated actions:
 - Dogfood Run 069 retained dogfood linked worktree cleanup is complete
 
 Current evidence lifecycle status:
-- Dogfood Run 108 cleanup-completed evidence is being recorded locally before cleanup-completed evidence commit/push.
+- Dogfood Run 108 cleanup-completed evidence has been committed and published; no retained dogfood linked worktree remains.
 - Dogfood Run 108 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 108 retained-evidence docs were committed locally and published to `origin/main` as `b55f4d0` before destructive cleanup.
 - Dogfood Run 108 retained dogfood linked worktree cleanup is complete after retained-evidence commit `b55f4d0` was preserved and published.

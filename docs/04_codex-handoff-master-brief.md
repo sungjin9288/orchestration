@@ -252,12 +252,12 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current source `main` published evidence baseline is `b55f4d0` after Dogfood Run 108 retained-evidence was committed and pushed. Dogfood Run 108 cleanup has completed after retained-evidence commit `b55f4d0` was preserved and published; cleanup-completed evidence is being recorded locally before cleanup-completed evidence commit/push.
+The current source `main` published evidence baseline is `edd1a74` after the browser QA smoke stabilization commit was published and the V1 kickoff user-flow proof was rerun. Dogfood Run 108 cleanup has completed after retained-evidence commit `b55f4d0` was preserved and published; no retained dogfood linked worktree remains.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 108 cleanup-completed evidence is being recorded locally before commit/push
+- current `main` publish state is reported by `git status --short --branch`; latest published kickoff proof head is `edd1a744c8c67612639165f3c4c70db7b2bc49eb`
 - `node scripts/verification_status.mjs` must remain green after any future evidence update
 - Dogfood Run 001 through Dogfood Run 108 evidence is recorded
 - Dogfood Run 108 executed from published head `3dc47bcb4dad59daac9b992fdc7d3b643001d715` with slug `v1-dogfood-runner-105` and stopped before commit-package, local commit, push, merge, release-package, or close-out
@@ -647,11 +647,9 @@ Current local completion snapshot:
 
 The next action is no longer an implementation backlog item by default. It is an explicit operator choice:
 
-- commit Dogfood Run 108 cleanup-completed evidence docs locally only after verification and explicit commit approval
-- publish the Dogfood Run 108 cleanup-completed evidence commit only after explicit `git push origin main` approval
 - inspect `node scripts/v1-kickoff-evidence-triage.mjs` before opening new implementation work
 - open a new implementation slice only for a concrete regression or usability issue
-- do not run another intentional `--execute --slug <slug>` dogfood pass until Run 108 cleanup-completed evidence is committed/published and the push decision is settled
+- run another intentional `--execute --slug <slug>` dogfood pass only after explicit execute approval
 - publish any future local evidence commit to `origin/main` only after explicit push approval
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
@@ -666,8 +664,8 @@ The runtime/browser proof command for that first slice is:
 
 Latest clean proof:
 
-- recorded on `2026-05-22 11:03:56 +0900`
-- head `b6d7bd53573c7695e7473f15e60cc65670a7afa9`
+- recorded on `2026-05-25 00:45:18 +0900`
+- head `edd1a744c8c67612639165f3c4c70db7b2bc49eb`
 - `node scripts/smoke-v1-user-flow-kickoff.mjs` passed without `V1_KICKOFF_ALLOW_DIRTY`
 - scenario covered `task-0001`, `approval-0001`, builder `run-0005`, reviewer `run-0006`, and artifacts `artifact-0005` through `artifact-0008`
 - verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`
