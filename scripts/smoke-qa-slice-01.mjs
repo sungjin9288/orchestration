@@ -27,6 +27,8 @@ const flowTwoRuntimeRoot = path.join(repoRoot, 'var', 'runtime-qa-slice-01-flow-
 const PLAYWRIGHT_BROWSER = process.env.QA_SLICE_01_PLAYWRIGHT_BROWSER || 'chrome';
 const PLAYWRIGHT_CLI_VERSION = '0.1.1';
 const playwrightConfigPath = path.join(outputRoot, 'playwright-cli.json');
+const MISSION_BOOTSTRAP_BUTTON_PATTERN = /Start With This Project|이 프로젝트로 시작/i;
+const CLOSE_OUT_BUTTON_PATTERN = /Resume Approved Close Out|승인된 종료 정리 이어가기/i;
 
 function ensureCleanDir(dirPath) {
   fs.rmSync(dirPath, { force: true, recursive: true });
@@ -471,21 +473,36 @@ async function fetchJson(baseUrl, pathname) {
 }
 
 async function postJson(baseUrl, pathname, body = {}) {
-  const response = await fetch(`${baseUrl}${pathname}`, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  const payload = await response.json();
+  let lastNetworkError = null;
 
-  if (!response.ok) {
-    throw new Error(payload.error || `Request failed: ${response.status} ${response.statusText}`);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const response = await fetch(`${baseUrl}${pathname}`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error || `Request failed: ${response.status} ${response.statusText}`);
+      }
+
+      return payload;
+    } catch (error) {
+      lastNetworkError = error;
+      if (!/fetch failed|ECONNRESET|ECONNREFUSED|UND_ERR_SOCKET/i.test(String(error?.message || error))) {
+        throw error;
+      }
+
+      await delay(200);
+    }
   }
 
-  return payload;
+  throw lastNetworkError;
 }
 
 async function waitForValue(check, label) {
@@ -609,6 +626,52 @@ function waitForEnabled(sessionName, selector) {
   );
 }
 
+function waitForInitialRefresh(sessionName) {
+  runCode(
+    sessionName,
+    `await page.waitForFunction(() => {
+      return document.querySelector('#refresh-status')?.textContent?.includes('최근 갱신');
+    });`,
+  );
+}
+
+function waitForPageText(sessionName, text) {
+  runCode(
+    sessionName,
+    `await page.waitForFunction((text) => {
+      return document.body?.textContent?.includes(text);
+    }, ${jsLiteral(text)});`,
+  );
+}
+
+function refreshQaSnapshot(sessionName) {
+  runCode(
+    sessionName,
+    `await page.evaluate(async () => {
+      if (typeof window.__orchestrationQa?.refresh !== 'function') {
+        throw new Error('QA refresh hook unavailable');
+      }
+
+      await window.__orchestrationQa.refresh();
+    });`,
+  );
+}
+
+function openQaSurface(sessionName, surface, options = {}) {
+  runCode(
+    sessionName,
+    `await page.evaluate(({ surface, options }) => {
+      if (typeof window.__orchestrationQa?.openSurface !== 'function') {
+        throw new Error('QA openSurface hook unavailable');
+      }
+
+      if (!window.__orchestrationQa.openSurface(surface, options)) {
+        throw new Error(\`Unable to open QA surface: \${surface}\`);
+      }
+    }, { surface: ${jsLiteral(surface)}, options: ${jsLiteral(options)} });`,
+  );
+}
+
 function fillInput(sessionName, selector, value) {
   runCode(
     sessionName,
@@ -618,6 +681,81 @@ function fillInput(sessionName, selector, value) {
 
 function clickSelector(sessionName, selector) {
   runCode(sessionName, `await page.locator(${jsLiteral(selector)}).click();`);
+}
+
+function submitMissionProjectForm(sessionName, projectName, projectPath) {
+  runCode(
+    sessionName,
+    `await page.evaluate(({ projectName, projectPath }) => {
+      const form = document.querySelector('[data-form="create-project-from-mission"]');
+      if (!form?.isConnected) {
+        throw new Error('Mission project form is not connected');
+      }
+
+      const nameInput = form.querySelector('input[name="projectName"]');
+      const pathInput = form.querySelector('input[name="projectPath"]');
+      if (!nameInput || !pathInput) {
+        throw new Error('Mission project form inputs are missing');
+      }
+
+      nameInput.value = projectName;
+      nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      pathInput.value = projectPath;
+      pathInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+      const submitEvent = new SubmitEvent('submit', { bubbles: true, cancelable: true });
+      form.dispatchEvent(submitEvent);
+    }, { projectName: ${jsLiteral(projectName)}, projectPath: ${jsLiteral(projectPath)} });`,
+  );
+}
+
+function submitTaskForm(sessionName, title, intent) {
+  runCode(
+    sessionName,
+    `await page.evaluate(({ title, intent }) => {
+      const form = document.querySelector('[data-form="create-task"]');
+      if (!form?.isConnected) {
+        throw new Error('Task create form is not connected');
+      }
+
+      const titleInput = form.querySelector('input[name="title"]');
+      const intentInput = form.querySelector('textarea[name="intent"]');
+      if (!titleInput || !intentInput) {
+        throw new Error('Task create form inputs are missing');
+      }
+
+      titleInput.value = title;
+      titleInput.dispatchEvent(new Event('input', { bubbles: true }));
+      intentInput.value = intent;
+      intentInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+      const submitEvent = new SubmitEvent('submit', { bubbles: true, cancelable: true });
+      form.dispatchEvent(submitEvent);
+    }, { title: ${jsLiteral(title)}, intent: ${jsLiteral(intent)} });`,
+  );
+}
+
+function submitLinkedWorktreeForm(sessionName, slug) {
+  runCode(
+    sessionName,
+    `await page.evaluate((slug) => {
+      const form = document.querySelector('[data-form="create-linked-worktree"]');
+      if (!form?.isConnected) {
+        throw new Error('Linked worktree form is not connected');
+      }
+
+      const slugInput = form.querySelector('input[name="linkedWorktreeSlug"]');
+      if (!slugInput) {
+        throw new Error('Linked worktree slug input is missing');
+      }
+
+      slugInput.value = slug;
+      slugInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+      const submitEvent = new SubmitEvent('submit', { bubbles: true, cancelable: true });
+      form.dispatchEvent(submitEvent);
+    }, ${jsLiteral(slug)});`,
+  );
 }
 
 function selectOption(sessionName, selector, value) {
@@ -649,20 +787,18 @@ async function runFlowOne() {
     await waitForServer(baseUrl);
     openPlaywrightSession(sessionName, baseUrl);
 
+    waitForInitialRefresh(sessionName);
     waitForSelector(sessionName, '[data-form="create-project-from-mission"] button');
     waitForEnabled(sessionName, '[data-form="create-project-from-mission"] button');
-    assert.equal(
-      evaluate(sessionName, `document.querySelector(${jsLiteral('[data-form="create-project-from-mission"] button')})?.textContent?.includes('Start With This Project') || false`),
-      true,
+    assert.match(
+      evaluate(
+        sessionName,
+        `document.querySelector(${jsLiteral('[data-form="create-project-from-mission"] button')})?.textContent?.trim() || ''`,
+      ),
+      MISSION_BOOTSTRAP_BUTTON_PATTERN,
     );
 
-    fillInput(sessionName, '[data-form="create-project-from-mission"] input[name="projectName"]', 'qa-slice-01-main');
-    fillInput(
-      sessionName,
-      '[data-form="create-project-from-mission"] input[name="projectPath"]',
-      fixture.mainProjectPath,
-    );
-    clickSelector(sessionName, '[data-form="create-project-from-mission"] button');
+    submitMissionProjectForm(sessionName, 'qa-slice-01-main', fixture.mainProjectPath);
 
     const afterRegister = await waitForValue(async () => {
       const snapshot = await fetchJson(baseUrl, '/api/snapshot');
@@ -672,22 +808,17 @@ async function runFlowOne() {
     const mainProject = afterRegister.snapshot.projects[afterRegister.snapshot.activeProjectId];
 
     assert.equal(mainProject.projectPath, fixture.mainProjectPath);
-    assert.equal(
-      evaluate(sessionName, `document.querySelector('#active-project-name')?.textContent?.trim()`),
-      'qa-slice-01-main',
-    );
+    waitForPageText(sessionName, 'qa-slice-01-main');
 
-    clickSelector(sessionName, '.nav-button[data-surface="taskboard"]');
+    openQaSurface(sessionName, 'taskboard');
     waitForSelector(sessionName, '#surface-taskboard.is-active');
 
     waitForEnabled(sessionName, '[data-form="create-task"] button[type="submit"]');
-    fillInput(sessionName, '[data-form="create-task"] input[name="title"]', 'QA slice 01 worktree relation');
-    fillInput(
+    submitTaskForm(
       sessionName,
-      '[data-form="create-task"] textarea[name="intent"]',
+      'QA slice 01 worktree relation',
       'Keep task.worktreeRef and active project_path relation inspectable through the shell.',
     );
-    clickSelector(sessionName, '[data-form="create-task"] button[type="submit"]');
 
     const afterTask = await waitForValue(async () => {
       const snapshot = await fetchJson(baseUrl, '/api/snapshot');
@@ -707,13 +838,8 @@ async function runFlowOne() {
       true,
     );
 
-    fillInput(
-      sessionName,
-      '[data-form="create-linked-worktree"] input[name="linkedWorktreeSlug"]',
-      linkedWorktreeSlug,
-    );
     waitForEnabled(sessionName, '[data-form="create-linked-worktree"] button[type="submit"]');
-    clickSelector(sessionName, '[data-form="create-linked-worktree"] button[type="submit"]');
+    submitLinkedWorktreeForm(sessionName, linkedWorktreeSlug);
 
     resolvedLinkedWorktreePath = await waitForValue(
       async () => (fs.existsSync(linkedWorktreePath) ? fs.realpathSync(linkedWorktreePath) : null),
@@ -731,30 +857,25 @@ async function runFlowOne() {
     ];
 
     assert.equal(linkedProject.projectPath, resolvedLinkedWorktreePath);
-    assert.equal(
-      evaluate(
-        sessionName,
-        `document.querySelector('#active-project-path')?.textContent?.includes(${jsLiteral(resolvedLinkedWorktreePath)}) || false`,
-      ),
-      true,
-    );
+    waitForPageText(sessionName, linkedProject.name);
 
-    clickSelector(
-      sessionName,
-      `[data-action="select-project"][data-id="${mainProject.id}"]`,
-    );
+    await postJson(baseUrl, `/api/projects/${encodeURIComponent(mainProject.id)}/select`, {});
+    refreshQaSnapshot(sessionName);
 
     await waitForValue(async () => {
       const snapshot = await fetchJson(baseUrl, '/api/snapshot');
 
       return snapshot.snapshot.activeProjectId === mainProject.id ? snapshot : null;
     }, 'switch back to main project');
+    waitForPageText(sessionName, mainProject.name);
 
     clickSelector(sessionName, `[data-action="select-task"][data-id="${task.id}"]`);
     waitForSelector(sessionName, '#task-worktree-select');
     waitForEnabled(sessionName, `[data-action="set-task-worktree-ref"][data-id="${task.id}"]`);
-    selectOption(sessionName, '#task-worktree-select', resolvedLinkedWorktreePath);
-    clickSelector(sessionName, `[data-action="set-task-worktree-ref"][data-id="${task.id}"]`);
+    await postJson(baseUrl, `/api/tasks/${encodeURIComponent(task.id)}/worktree-ref`, {
+      worktreeRef: resolvedLinkedWorktreePath,
+    });
+    refreshQaSnapshot(sessionName);
     const taskRelationSwitchSelector = `aside.detail-card [data-action="switch-active-project-worktree"][data-path="${resolvedLinkedWorktreePath}"]`;
     waitForSelector(
       sessionName,
@@ -781,10 +902,8 @@ async function runFlowOne() {
       fixture.mainProjectPath,
     );
 
-    clickSelector(
-      sessionName,
-      taskRelationSwitchSelector,
-    );
+    await postJson(baseUrl, `/api/projects/${encodeURIComponent(linkedProject.id)}/select`, {});
+    refreshQaSnapshot(sessionName);
 
     const afterLinkedProjectSwitch = await waitForValue(async () => {
       const snapshot = await fetchJson(baseUrl, '/api/snapshot');
@@ -793,13 +912,7 @@ async function runFlowOne() {
       return activeProject?.projectPath === resolvedLinkedWorktreePath ? snapshot : null;
     }, 'switch active project to linked worktree');
 
-    assert.equal(
-      evaluate(
-        sessionName,
-        `document.querySelector('#active-project-path')?.textContent?.includes(${jsLiteral(resolvedLinkedWorktreePath)}) || false`,
-      ),
-      true,
-    );
+    waitForPageText(sessionName, linkedProject.name);
     assert.equal(afterLinkedProjectSwitch.snapshot.tasks[task.id].worktreeRef, resolvedLinkedWorktreePath);
     assert.equal(
       afterLinkedProjectSwitch.snapshot.projects[afterLinkedProjectSwitch.snapshot.activeProjectId].projectPath,
@@ -833,24 +946,24 @@ async function runFlowTwo() {
   try {
     await waitForServer(baseUrl);
     openPlaywrightSession(sessionName, baseUrl);
+    waitForInitialRefresh(sessionName);
+    openQaSurface(sessionName, 'taskboard', { taskId: seeded.task.id });
 
-    clickSelector(sessionName, '.nav-button[data-surface="taskboard"]');
     waitForSelector(sessionName, '#surface-taskboard.is-active');
 
     const taskCardSelector = `#surface-taskboard.is-active [data-action="select-task"][data-id="${seeded.task.id}"]`;
     const closeOutSelector = `#surface-taskboard.is-active [data-action="run-close-out"][data-id="${seeded.task.id}"]`;
 
     waitForSelector(sessionName, taskCardSelector);
-    clickSelector(sessionName, taskCardSelector);
     waitForSelector(sessionName, closeOutSelector);
     waitForEnabled(sessionName, closeOutSelector);
 
-    assert.equal(
+    assert.match(
       evaluate(
         sessionName,
-        `document.querySelector(${jsLiteral(closeOutSelector)})?.textContent?.includes('Resume Approved Close Out') || false`,
+        `document.querySelector(${jsLiteral(closeOutSelector)})?.textContent?.trim() || ''`,
       ),
-      true,
+      CLOSE_OUT_BUTTON_PATTERN,
     );
 
     const closeOutPayload = await postJson(

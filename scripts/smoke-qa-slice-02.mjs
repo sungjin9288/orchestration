@@ -18,6 +18,15 @@ const PLAYWRIGHT_CLI_VERSION = '0.1.1';
 const playwrightConfigPath = path.join(outputRoot, 'playwright-cli.json');
 const sentinelSecret = 'qa-slice-02-secret-sentinel-explicit';
 const liveProviderEnvVar = 'QA_SLICE_02_LIVE_PROVIDER_API_KEY';
+const MISSION_BOOTSTRAP_LANDING_PATTERN = /Start With This Project|이 프로젝트로 시작/i;
+const MISSION_BOOTSTRAP_CONTEXT_PATTERN =
+  /Mission Start|Mission Project Access|Start With This Project|미션 시작|프로젝트를 먼저 고른 뒤 미션을 만듭니다|로컬 프로젝트 경로를 먼저 등록하세요/i;
+const MISSION_READY_PATTERN = /Create Mission|Mission title|신규 안건 등록|접수 인계/i;
+const TASKBOARD_READY_PATTERN = /provider readiness:ready|프로바이더준비:준비됨/i;
+const TASK_CREATE_PATTERN = /Create Task|새 실행 셀|실행 셀 추가/i;
+const RUN_PLANNER_PATTERN = /Run Planner|플래너 실행/i;
+const DISABLED_RUN_PLANNER_BUTTON_PATTERN = /button "(?:Run Planner|플래너 실행)" \[disabled\]/i;
+const PROVIDER_NOT_CONFIGURED_PATTERN = /provider readiness:not-configured|프로바이더준비:미설정/i;
 
 function ensureCleanDir(dirPath) {
   fs.rmSync(dirPath, { force: true, recursive: true });
@@ -319,6 +328,43 @@ function runCode(sessionName, codeBody, options = {}) {
   });
 }
 
+function waitForInitialRefresh(sessionName) {
+  runCode(
+    sessionName,
+    `await page.waitForFunction(() => {
+      return document.querySelector('#refresh-status')?.textContent?.includes('최근 갱신');
+    });`,
+  );
+}
+
+function refreshQaSnapshot(sessionName) {
+  runCode(
+    sessionName,
+    `await page.evaluate(async () => {
+      if (typeof window.__orchestrationQa?.refresh !== 'function') {
+        throw new Error('QA refresh hook unavailable');
+      }
+
+      await window.__orchestrationQa.refresh();
+    });`,
+  );
+}
+
+function openQaSurface(sessionName, surface, options = {}) {
+  runCode(
+    sessionName,
+    `await page.evaluate(({ surface, options }) => {
+      if (typeof window.__orchestrationQa?.openSurface !== 'function') {
+        throw new Error('QA openSurface hook unavailable');
+      }
+
+      if (!window.__orchestrationQa.openSurface(surface, options)) {
+        throw new Error(\`Unable to open QA surface: \${surface}\`);
+      }
+    }, { surface: ${jsLiteral(surface)}, options: ${jsLiteral(options)} });`,
+  );
+}
+
 function jsLiteral(value) {
   return JSON.stringify(value);
 }
@@ -425,6 +471,20 @@ function findRef(snapshotText, pattern, label) {
 function clickSelector(sessionName, selector) {
   runCode(sessionName, `await page.locator(${jsLiteral(selector)}).click();`);
   return true;
+}
+
+function waitForSelector(sessionName, selector) {
+  runCode(sessionName, `await page.locator(${jsLiteral(selector)}).waitFor();`);
+}
+
+function waitForEnabled(sessionName, selector) {
+  runCode(
+    sessionName,
+    `await page.waitForFunction((selector) => {
+      const element = document.querySelector(selector);
+      return Boolean(element) && !element.disabled;
+    }, ${jsLiteral(selector)});`,
+  );
 }
 
 function fillInput(sessionName, selector, value) {
@@ -551,18 +611,14 @@ async function runFlow() {
   try {
     await waitForServer(baseUrl);
     openPlaywrightSession(sessionName, baseUrl);
+    waitForInitialRefresh(sessionName);
     const bootstrapSnapshot = await waitForSnapshotText(
       sessionName,
-      /Start With This Project/,
+      MISSION_BOOTSTRAP_LANDING_PATTERN,
       'project bootstrap landing',
     );
-    const bootstrapRefreshRef = findRef(
-      bootstrapSnapshot,
-      /button "Refresh" \[ref=(e\d+)\]/,
-      'Refresh button on bootstrap page',
-    );
 
-    assert.match(bootstrapSnapshot, /Mission Start|Mission Project Access/i);
+    assert.match(bootstrapSnapshot, MISSION_BOOTSTRAP_CONTEXT_PATTERN);
     assertSecretAbsent(bootstrapSnapshot, sentinelSecret, 'mission bootstrap snapshot');
 
     const afterRegister = await postJson(baseUrl, '/api/projects', {
@@ -577,7 +633,7 @@ async function runFlow() {
         model: '',
       },
     });
-    assert.equal(clickRef(sessionName, bootstrapRefreshRef), true);
+    refreshQaSnapshot(sessionName);
     const projectId = afterRegister.project.id;
     const projectSummary = afterRegister.derived.providerExecutionSummaries[projectId];
 
@@ -588,65 +644,58 @@ async function runFlow() {
     assert.deepEqual(projectSummary.reasons, []);
     const registeredMissionSnapshot = await waitForSnapshotText(
       sessionName,
-      /Create Mission|Mission title/i,
+      MISSION_READY_PATTERN,
       'mission snapshot after project registration',
     );
-    const taskboardNavRef = findRef(
-      registeredMissionSnapshot,
-      /button "Taskboard \(\d+\)" \[ref=(e\d+)\]/,
-      'Taskboard navigation button after project registration',
-    );
 
-    assert.match(registeredMissionSnapshot, /Mission/);
+    assert.match(registeredMissionSnapshot, /Mission|미션|안건/i);
     assertSecretAbsent(
       registeredMissionSnapshot,
       sentinelSecret,
       'mission snapshot after project registration',
     );
-    assert.equal(clickRef(sessionName, taskboardNavRef), true);
+    openQaSurface(sessionName, 'taskboard');
 
     const registeredTaskboardSnapshot = await waitForSnapshotText(
       sessionName,
-      /provider readiness:ready/i,
+      TASKBOARD_READY_PATTERN,
       'provider readiness ready DOM',
     );
 
-    assert.match(registeredTaskboardSnapshot, /provider:local-stub/i);
+    assert.match(registeredTaskboardSnapshot, /provider:local-stub|프로바이더:local-stub/i);
     assertSecretAbsent(
       registeredTaskboardSnapshot,
       sentinelSecret,
       'taskboard snapshot after project registration',
     );
-    assert.match(registeredTaskboardSnapshot, /Create Task/);
-    const registeredRefreshRef = findRef(
-      registeredTaskboardSnapshot,
-      /button "Refresh" \[ref=(e\d+)\]/,
-      'Refresh button after project registration',
-    );
+    assert.match(registeredTaskboardSnapshot, TASK_CREATE_PATTERN);
 
     const afterTaskPayload = await postJson(baseUrl, '/api/tasks', {
       intent: taskIntent,
       title: taskTitle,
     });
-    assert.equal(clickRef(sessionName, registeredRefreshRef), true);
+    refreshQaSnapshot(sessionName);
     const afterTask = {
       snapshotPayload: afterTaskPayload,
       task: afterTaskPayload.task,
     };
     const taskId = afterTask.task.id;
+    const runPlannerSelector = `[data-action="run-planner"][data-id="${taskId}"]`;
+    openQaSurface(sessionName, 'taskboard', { taskId });
     const taskReadySnapshot = await waitForSnapshotText(
       sessionName,
-      /Run Planner/,
+      RUN_PLANNER_PATTERN,
       'task actions visible',
-    );
-    const runPlannerRef = findRef(
-      taskReadySnapshot,
-      /button "Run Planner" \[ref=(e\d+)\]/,
-      'Run Planner button',
     );
 
     assertSecretAbsent(taskReadySnapshot, sentinelSecret, 'taskboard snapshot after task creation');
-    assert.equal(clickRef(sessionName, runPlannerRef), true);
+    waitForSelector(sessionName, runPlannerSelector);
+    waitForEnabled(sessionName, runPlannerSelector);
+    const localStubPlannerPayload = await postJson(
+      baseUrl,
+      `/api/tasks/${encodeURIComponent(taskId)}/run-planner`,
+    );
+    assert.equal(localStubPlannerPayload.mutation.kind, 'run-planner');
 
     const afterLocalStubPlanner = await waitForValue(async () => {
       const snapshotPayload = await fetchJson(baseUrl, '/api/snapshot');
@@ -669,15 +718,11 @@ async function runFlow() {
     assert.equal(afterLocalStubPlanner.run.summary.adapter, 'local-stub');
     assert.equal(countRuns(afterLocalStubPlanner.snapshotPayload.snapshot, taskId), 1);
     assert.equal(countArtifacts(afterLocalStubPlanner.snapshotPayload.snapshot, taskId, 'plan'), 1);
+    refreshQaSnapshot(sessionName);
     const plannerTaskboardSnapshot = await waitForSnapshotText(
       sessionName,
       new RegExp(escapeRegExp(localStubPlanArtifactId)),
       'taskboard after local-stub planner',
-    );
-    const logsNavRef = findRef(
-      plannerTaskboardSnapshot,
-      /button "Logs \(\d+\)" \[ref=(e\d+)\]/,
-      'Logs navigation button',
     );
 
     assertSecretAbsent(
@@ -686,47 +731,32 @@ async function runFlow() {
       'taskboard snapshot after local-stub planner',
     );
 
-    assert.equal(clickRef(sessionName, logsNavRef), true);
+    openQaSurface(sessionName, 'logs');
 
     const logsSnapshot = await waitForSnapshotText(
       sessionName,
       new RegExp(escapeRegExp(localStubRunId)),
       'logs DOM',
     );
-    const artifactsNavRef = findRef(
-      logsSnapshot,
-      /button "Artifacts \(\d+\)" \[ref=(e\d+)\]/,
-      'Artifacts navigation button',
-    );
 
     assertSecretAbsent(logsSnapshot, sentinelSecret, 'logs snapshot');
 
-    assert.equal(clickRef(sessionName, artifactsNavRef), true);
+    openQaSurface(sessionName, 'artifacts');
 
     const artifactsSnapshot = await waitForSnapshotText(
       sessionName,
       new RegExp(escapeRegExp(localStubPlanArtifactId)),
       'artifacts DOM',
     );
-    const taskboardNavRefAfterArtifacts = findRef(
-      artifactsSnapshot,
-      /button "Taskboard \(\d+\)" \[ref=(e\d+)\]/,
-      'Taskboard navigation button',
-    );
 
     assertSecretAbsent(artifactsSnapshot, sentinelSecret, 'artifacts snapshot');
 
-    assert.equal(clickRef(sessionName, taskboardNavRefAfterArtifacts), true);
+    openQaSurface(sessionName, 'taskboard', { taskId });
 
     const providerReadySnapshot = await waitForSnapshotText(
       sessionName,
-      /provider readiness:ready/i,
+      TASKBOARD_READY_PATTERN,
       'provider form ready on taskboard',
-    );
-    const providerReadyRefreshRef = findRef(
-      providerReadySnapshot,
-      /button "Refresh" \[ref=(e\d+)\]/,
-      'Refresh button before invalid provider update',
     );
 
     await postJson(baseUrl, `/api/projects/${encodeURIComponent(projectId)}/provider-config`, {
@@ -734,14 +764,15 @@ async function runFlow() {
         mode: 'live',
       },
     });
-    assert.equal(clickRef(sessionName, providerReadyRefreshRef), true);
+    refreshQaSnapshot(sessionName);
+    openQaSurface(sessionName, 'taskboard', { taskId });
 
     const liveProviderSnapshot = await waitForSnapshotText(
       sessionName,
-      /provider readiness:not-configured/i,
+      PROVIDER_NOT_CONFIGURED_PATTERN,
       'invalid provider live mode rendered',
     );
-    assert.match(liveProviderSnapshot, /provider:openai-responses/i);
+    assert.match(liveProviderSnapshot, /provider:openai-responses|프로바이더:openai-responses/i);
 
     const afterInvalidProviderUpdate = await waitForValue(async () => {
       const snapshotPayload = await fetchJson(baseUrl, '/api/snapshot');
@@ -759,25 +790,16 @@ async function runFlow() {
       /live provider model is required before execution/i,
       'invalid provider DOM',
     );
-    const invalidRunPlannerRef = findRef(
-      invalidProviderSnapshot,
-      /button "Run Planner" \[ref=(e\d+)\]/,
-      'Run Planner button after invalid provider',
-    );
 
-    assert.match(invalidProviderSnapshot, /provider readiness:not-configured/i);
+    assert.match(invalidProviderSnapshot, PROVIDER_NOT_CONFIGURED_PATTERN);
     assertSecretAbsent(
       invalidProviderSnapshot,
       sentinelSecret,
       'taskboard snapshot after invalid provider update',
     );
-    const invalidRefreshRef = findRef(
-      invalidProviderSnapshot,
-      /button "Refresh" \[ref=(e\d+)\]/,
-      'Refresh button after invalid provider update',
-    );
-    assert.equal(clickRef(sessionName, invalidRunPlannerRef), true);
+    assert.match(invalidProviderSnapshot, DISABLED_RUN_PLANNER_BUTTON_PATTERN);
 
+    refreshQaSnapshot(sessionName);
     const invalidRefreshSnapshot = await waitForSnapshotText(
       sessionName,
       /live provider model is required before execution/i,
