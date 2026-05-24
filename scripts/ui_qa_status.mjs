@@ -109,6 +109,12 @@ const smokeChecks = [
     purpose:
       'Operator home keeps no-mission first users on Mission/new-agenda registration instead of routing them to Council prematurely',
   },
+  {
+    id: 'operator-home-no-mission-handoff-label',
+    script: 'scripts/smoke-ui-slice-642.mjs',
+    purpose:
+      'Operator home labels the no-mission handoff panel as Mission intake instead of implying Execution is already active',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

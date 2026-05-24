@@ -11765,6 +11765,10 @@ function renderWorkflowsOverview(data, context, activeGroupId) {
       : selectedMission
         ? '회의 초안 작성'
         : '신규 안건 등록';
+  const workflowStartEmpty = !selectedMission && !selectedTask;
+  const handoffPanelLabel = workflowStartEmpty ? 'Mission intake' : 'Execution handoff';
+  const handoffPanelTitle = workflowStartEmpty ? '접수 인계' : '실행 인계';
+  const handoffRosterLabel = workflowStartEmpty ? '접수 라인업' : '실행 라인업';
 
   return `
     <div class="control-overview-stack control-overview-stack-workflows">
@@ -11835,8 +11839,8 @@ function renderWorkflowsOverview(data, context, activeGroupId) {
 
       <aside class="control-overview-panel workflow-overview-handoff workflow-overview-transfer">
         ${renderOverviewPanelHead({
-          label: 'Execution handoff',
-          title: '실행 인계',
+          label: handoffPanelLabel,
+          title: handoffPanelTitle,
         })}
         <div class="control-overview-register workflow-handoff-register">
           <div class="control-overview-register-row">
@@ -11857,7 +11861,7 @@ function renderWorkflowsOverview(data, context, activeGroupId) {
           </div>
         </div>
         <div class="workflow-roster-card workflow-handoff-card">
-          <p class="control-overview-label">실행 라인업</p>
+          <p class="control-overview-label">${escapeHtml(handoffRosterLabel)}</p>
           ${renderCompanyRosterList(workflowMembers, '업무 라인에 배정된 인력이 아직 없습니다.')}
         </div>
         ${
