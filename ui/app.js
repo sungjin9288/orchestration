@@ -11475,7 +11475,7 @@ function renderWorkspacePlaybookShortcutButtons(
   `;
 }
 
-function renderWorkspacePlaybook(activeGroupId) {
+function renderWorkspacePlaybook(activeGroupId, context = {}) {
   const meta = GROUP_PLAYBOOK_META[activeGroupId] || GROUP_PLAYBOOK_META.workflows;
   const playbookTitleId = `workspace-playbook-title-${activeGroupId}`;
   const playbookSummaryId = `workspace-playbook-summary-${activeGroupId}`;
@@ -11484,12 +11484,21 @@ function renderWorkspacePlaybook(activeGroupId) {
   );
   const currentPlaybookStep = currentPlaybookCard ? currentPlaybookCard.step : '';
   const activeSurfaceLabel = getSurfaceDisplayName(state.surface);
-  const location = SURFACE_LOCATION_GUIDANCE[state.surface] || {
+  const baseLocation = SURFACE_LOCATION_GUIDANCE[state.surface] || {
     check: '현재 desk 상태',
     next: '다음 액션',
     nextHint: '다음으로 처리할 desk가 열립니다.',
     resultHint: '작업 결과는 산출물에서 확인합니다.',
   };
+  const location =
+    state.surface === 'mission' && !context.selectedMission
+      ? {
+          ...baseLocation,
+          next: '신규 안건 등록',
+          nextHint: '먼저 미션에서 제목, 목표, 경계를 등록해 첫 안건을 만듭니다.',
+          targetSurface: 'mission',
+        }
+      : baseLocation;
   const resultSurface = location.resultSurface || 'deliverables';
   const resultSurfaceLabel = getSurfaceDisplayName(resultSurface);
   const targetSurfaceLabel = location.targetSurface
@@ -11778,7 +11787,7 @@ function renderWorkflowsOverview(data, context, activeGroupId) {
         { label: '담당', value: selectedOrderOwner },
         { label: '다음', value: selectedOrderNext },
       ])}
-      ${renderWorkspacePlaybook(activeGroupId)}
+      ${renderWorkspacePlaybook(activeGroupId, context)}
       <div class="control-overview-grid control-overview-grid-workflows workflow-overview-shell" data-surface="${escapeHtml(state.surface)}" data-nav-group="${escapeHtml(activeGroupId)}">
       <aside class="control-overview-panel workflow-overview-rail">
         ${renderOverviewPanelHead({
@@ -11911,7 +11920,7 @@ function renderReviewOverview(data, context, activeGroupId) {
         { label: '담당', value: focus.owner },
         { label: '다음', value: check.next },
       ])}
-      ${renderWorkspacePlaybook(activeGroupId)}
+      ${renderWorkspacePlaybook(activeGroupId, context)}
       <div class="control-overview-grid control-overview-grid-review review-overview-shell" data-surface="${escapeHtml(state.surface)}" data-nav-group="${escapeHtml(activeGroupId)}">
       <aside class="control-overview-panel review-overview-lanes">
         ${renderOverviewPanelHead({
@@ -12180,7 +12189,7 @@ function renderOpsOverview(data, context, activeGroupId) {
         { label: '다음', value: 'agent 배정' },
         { label: '하네스', value: getHarnessBriefSignalValue(harnessBrief) },
       ])}
-      ${renderWorkspacePlaybook(activeGroupId)}
+      ${renderWorkspacePlaybook(activeGroupId, context)}
       <div class="control-overview-grid control-overview-grid-ops ops-overview-shell" data-surface="${escapeHtml(state.surface)}" data-nav-group="${escapeHtml(activeGroupId)}">
       <section class="control-overview-panel ops-overview-org">
         ${renderOverviewPanelHead({

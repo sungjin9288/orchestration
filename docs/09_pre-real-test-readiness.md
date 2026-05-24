@@ -68,6 +68,8 @@ current frozen baseline을 흔들지 않는 대표 synthetic bundle은 아래로
 `협의회`로 건너뛰지 않고 `미션 / 신규 안건 등록`에 머무르는지 고정한다.
 `operator-home-no-mission-handoff-label` check는 같은 empty-state에서 오른쪽 인계 패널이
 `Execution handoff / 실행 인계`가 아니라 `Mission intake / 접수 인계`로 시작점을 설명하는지 고정한다.
+`workspace-playbook-no-mission-next-location` check는 같은 empty-state에서 `업무 사용 순서`의
+`다음 이동` strip도 `협의회`가 아니라 `미션 / 신규 안건 등록` 시작점으로 정렬되는지 고정한다.
 
 필요하면 touched surface에 맞는 narrow smoke를 추가로 실행하되, required freeze gate 자체를 재정의하지 않는다.
 

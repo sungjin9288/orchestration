@@ -115,6 +115,12 @@ const smokeChecks = [
     purpose:
       'Operator home labels the no-mission handoff panel as Mission intake instead of implying Execution is already active',
   },
+  {
+    id: 'workspace-playbook-no-mission-next-location',
+    script: 'scripts/smoke-ui-slice-643.mjs',
+    purpose:
+      'Workspace playbook keeps the no-mission next-location strip on Mission/new-agenda registration instead of routing to Council',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

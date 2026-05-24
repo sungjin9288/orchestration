@@ -24,6 +24,9 @@ assert.match(readinessDoc, /`operator-home-no-mission-start-gate` check/);
 assert.match(readinessDoc, /`미션 \/ 신규 안건 등록`/);
 assert.match(readinessDoc, /`operator-home-no-mission-handoff-label` check/);
 assert.match(readinessDoc, /`Mission intake \/ 접수 인계`/);
+assert.match(readinessDoc, /`workspace-playbook-no-mission-next-location` check/);
+assert.match(readinessDoc, /`업무 사용 순서`/);
+assert.match(readinessDoc, /`다음 이동` strip도 `협의회`가 아니라 `미션 \/ 신규 안건 등록`/);
 
 console.log(
   JSON.stringify(
