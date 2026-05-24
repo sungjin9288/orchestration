@@ -11762,7 +11762,9 @@ function renderWorkflowsOverview(data, context, activeGroupId) {
     ? getExecutionDeskNext(selectedTask)
     : selectedMission?.councilSessionId
       ? '회의 정렬 이어가기'
-      : '회의 초안 작성';
+      : selectedMission
+        ? '회의 초안 작성'
+        : '신규 안건 등록';
 
   return `
     <div class="control-overview-stack control-overview-stack-workflows">
@@ -12497,6 +12499,8 @@ function getControlOverviewFocus(context) {
   } = context;
 
   if (surface === 'mission') {
+    const hasMission = Boolean(selectedMission);
+
     return {
       title: selectedMission?.title || '열린 안건 없음',
       copy: selectedMission
@@ -12504,7 +12508,11 @@ function getControlOverviewFocus(context) {
         : '새 안건을 기다립니다.',
       owner: '운영자 · 안건 흐름',
       status: selectedMission ? getMissionStatusDisplay(selectedMission.status) : '안건 대기',
-      next: selectedMission?.councilSessionId ? '협의회 정렬 계속' : '회의 초안 작성',
+      next: hasMission
+        ? selectedMission.councilSessionId
+          ? '협의회 정렬 계속'
+          : '회의 초안 작성'
+        : '신규 안건 등록',
       evidence: selectedMission?.id || '미지정',
     };
   }
@@ -12633,12 +12641,23 @@ function getControlOverviewCheck(surface, context, data) {
   }
 
   if (surface === 'mission') {
+    if (!selectedMission) {
+      return {
+        title: '신규 안건 등록',
+        copy: '첫 안건을 먼저 등록합니다.',
+        current: '안건 대기',
+        next: '신규 안건 등록',
+        evidence: 'mission pending',
+        action: { label: '신규 안건 등록', targetSurface: 'mission' },
+      };
+    }
+
     return {
       title: '협의회 이동',
       copy: '안건 정리 후 회의로 넘깁니다.',
-      current: selectedMission ? getMissionStatusDisplay(selectedMission.status) : '안건 대기',
+      current: getMissionStatusDisplay(selectedMission.status),
       next: '협의회 정렬',
-      evidence: selectedMission?.id || 'mission pending',
+      evidence: selectedMission.id,
       action: { label: '협의회', targetSurface: 'council' },
     };
   }

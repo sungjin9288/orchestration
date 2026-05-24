@@ -64,6 +64,8 @@ current frozen baseline을 흔들지 않는 대표 synthetic bundle은 아래로
 `/api/snapshot` reachability는 UI server가 켜져 있을 때만 informational lane으로 기록한다.
 현재 representative bundle에는 `operator-home-runway` check도 포함되어 첫 화면이
 `active mission / owner / gate / next action / result location`을 계속 보여 주는지 함께 고정한다.
+`operator-home-no-mission-start-gate` check는 등록된 안건이 없는 첫 사용자에게 primary next action이
+`협의회`로 건너뛰지 않고 `미션 / 신규 안건 등록`에 머무르는지 고정한다.
 
 필요하면 touched surface에 맞는 narrow smoke를 추가로 실행하되, required freeze gate 자체를 재정의하지 않는다.
 

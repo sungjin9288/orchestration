@@ -103,6 +103,12 @@ const smokeChecks = [
     purpose:
       'Operator home runway keeps active mission, owner, gate, next action, result, evidence, and log shortcuts visible above the fold',
   },
+  {
+    id: 'operator-home-no-mission-start-gate',
+    script: 'scripts/smoke-ui-slice-641.mjs',
+    purpose:
+      'Operator home keeps no-mission first users on Mission/new-agenda registration instead of routing them to Council prematurely',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

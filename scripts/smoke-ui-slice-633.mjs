@@ -16,9 +16,9 @@ const smokeCheckEntries = [...uiQaStatus.matchAll(/id:\s*'([^']+)',\s*\n\s*scrip
   }),
 );
 
-assert.equal(smokeCheckEntries.length, 19);
+assert.equal(smokeCheckEntries.length, 20);
 assert.deepEqual(
-  smokeCheckEntries.slice(-10),
+  smokeCheckEntries.slice(-11),
   [
     {
       id: 'harness-brief-mode-labels',
@@ -60,6 +60,10 @@ assert.deepEqual(
       id: 'operator-home-runway',
       script: 'scripts/smoke-ui-slice-640.mjs',
     },
+    {
+      id: 'operator-home-no-mission-start-gate',
+      script: 'scripts/smoke-ui-slice-641.mjs',
+    },
   ],
 );
 assert.match(uiQaStatus, /browserAutomation:\s*'manual-required'/);
@@ -71,7 +75,7 @@ console.log(
       ok: true,
       uiQaStatusRepresentativeCoverage: {
         requiredChecks: smokeCheckEntries.length,
-        representativeChecks: smokeCheckEntries.slice(-10),
+        representativeChecks: smokeCheckEntries.slice(-11),
         informationalSnapshotReachability: true,
       },
     },
