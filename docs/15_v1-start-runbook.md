@@ -882,21 +882,21 @@ Current local completion is now represented by `node scripts/v1-local-completion
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 
 Default next action without approval:
-- inspect the Dogfood Run 108 retained-evidence update, evidence inventory, and current published-head kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
+- inspect the Dogfood Run 108 cleanup-completed evidence update, evidence inventory, and current published-head kickoff evidence triage; only open a new implementation slice for a concrete regression or usability issue
 - run `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear
 - keep `node scripts/smoke-v1-user-flow-kickoff.mjs` as the representative clean user-flow proof command
 
 Explicit approval-gated next actions:
-- commit Dogfood Run 108 retained-evidence docs locally only after verification and explicit commit approval
-- publish the Dogfood Run 108 retained-evidence commit only after explicit `git push origin main` approval
-- clean up the Dogfood Run 108 retained linked worktree and branch only after retained-evidence is preserved and planned destructive cleanup authorization is settled
-- do not run another intentional `--execute --slug <slug>` dogfood pass until Run 108 retained-evidence is committed/published and the cleanup decision is settled
+- commit Dogfood Run 108 cleanup-completed evidence docs locally only after verification and explicit commit approval
+- publish the Dogfood Run 108 cleanup-completed evidence commit only after explicit `git push origin main` approval
+- do not run another intentional `--execute --slug <slug>` dogfood pass until Run 108 cleanup-completed evidence is committed/published and the push decision is settled
 - publish any future local evidence commit only after explicit `git push origin main` approval
 
 Completed approval-gated actions:
 - Dogfood Run 108 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
-- Dogfood Run 108 retained-evidence docs are being recorded locally before retained-evidence commit/push/cleanup.
-- Dogfood Run 108 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-105` and branch `worktree/v1-dogfood-runner-105` remain intentionally dirty by design until retained-evidence commit/publish and planned destructive cleanup authorization.
+- Dogfood Run 108 retained-evidence docs were committed locally and published to `origin/main` as `b55f4d0` before destructive cleanup.
+- Dogfood Run 108 retained dogfood linked worktree cleanup is complete after retained-evidence commit `b55f4d0` was preserved and published.
+- Dogfood Run 108 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-105` and branch `worktree/v1-dogfood-runner-105` have been removed after retained-evidence commit `b55f4d0` was preserved and published.
 - Dogfood Run 108 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-105`.
 - Dogfood Run 107 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 107 retained-evidence docs were committed locally and published to `origin/main` as `11920bb` before destructive cleanup.
@@ -1316,9 +1316,11 @@ Completed approval-gated actions:
 - Dogfood Run 069 retained dogfood linked worktree cleanup is complete
 
 Current evidence lifecycle status:
-- Dogfood Run 108 retained-evidence is being recorded locally before retained-evidence commit/push/cleanup.
+- Dogfood Run 108 cleanup-completed evidence is being recorded locally before cleanup-completed evidence commit/push.
 - Dogfood Run 108 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
-- Dogfood Run 108 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-105` and branch `worktree/v1-dogfood-runner-105` remain intentionally dirty by design until retained-evidence commit/publish and planned destructive cleanup authorization.
+- Dogfood Run 108 retained-evidence docs were committed locally and published to `origin/main` as `b55f4d0` before destructive cleanup.
+- Dogfood Run 108 retained dogfood linked worktree cleanup is complete after retained-evidence commit `b55f4d0` was preserved and published.
+- Dogfood Run 108 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-105` and branch `worktree/v1-dogfood-runner-105` have been removed after retained-evidence commit `b55f4d0` was preserved and published.
 - Dogfood Run 108 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-105`.
 - Dogfood Run 107 cleanup-completed evidence was committed and published as `3dc47bc` before Dogfood Run 108 execute.
 - Dogfood Run 107 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
