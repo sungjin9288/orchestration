@@ -252,16 +252,18 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current source `main` published evidence baseline is `79c40af` after Dogfood Run 111 cleanup-completed evidence was committed and pushed. Dogfood Run 112 executed from that clean/published baseline with slug `v1-dogfood-runner-109`; retained-evidence is being recorded locally before retained-evidence commit/push and destructive cleanup sequencing.
+The current source `main` published evidence baseline is `23b48bf` after Dogfood Run 112 retained-evidence was committed and pushed. Dogfood Run 112 cleanup has completed after retained-evidence commit `23b48bf` was preserved and published; cleanup-completed evidence is being recorded locally before cleanup-completed evidence commit/push.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 112 retained-evidence is being recorded locally before commit/push/cleanup
+- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 112 cleanup-completed evidence is being recorded locally before commit/push
 - `node scripts/verification_status.mjs` must remain green after any future evidence update
 - Dogfood Run 001 through Dogfood Run 112 evidence is recorded
 - Dogfood Run 112 executed from published head `79c40afb79f85520959501b00494d343544c6ab6` with slug `v1-dogfood-runner-109` and stopped before commit-package, local commit, push, merge, release-package, or close-out
-- Dogfood Run 112 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-109` and branch `worktree/v1-dogfood-runner-109` remain intentionally dirty by design until retained-evidence commit/publish and destructive cleanup sequencing
+- Dogfood Run 112 retained-evidence was committed and published as `23b48bf` before destructive cleanup
+- Dogfood Run 112 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-109` and branch `worktree/v1-dogfood-runner-109` have been removed after retained-evidence commit `23b48bf` was preserved and published
+- No retained dogfood linked worktree remains after Dogfood Run 112 cleanup
 - Dogfood Run 112 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-109`
 - Dogfood Run 111 executed from published head `4d9cb3d9a5d08be69f89b313c47690ea565a9258` with slug `v1-dogfood-runner-108` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 111 retained-evidence was committed and published as `bfb3c92` before destructive cleanup
@@ -663,11 +665,11 @@ Current local completion snapshot:
 - Dogfood Run 093 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-090` and branch `worktree/v1-dogfood-runner-090` have been removed after retained-evidence commit `4866231` was preserved and published
 - Dogfood Run 093 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-090`
 
-The next action is no longer an implementation backlog item by default. Dogfood Run 112 retained-evidence is the active lifecycle gate:
+The next action is no longer an implementation backlog item by default. Dogfood Run 112 cleanup-completed evidence is the active lifecycle gate:
 
-- inspect Dogfood Run 112 retained evidence, linked worktree dirty marker, branch presence, runtime evidence root, and `node scripts/v1-dogfood-evidence-inventory.mjs`
-- commit/publish Dogfood Run 112 retained-evidence only after verification and the required commit/push gates are settled
-- do not run another dogfood execute pass until Dogfood Run 112 retained-evidence is committed/published and cleanup sequencing is settled
+- inspect Dogfood Run 112 cleanup-completed evidence, linked worktree path absence, branch absence, runtime evidence root, and `node scripts/v1-dogfood-evidence-inventory.mjs`
+- commit/publish Dogfood Run 112 cleanup-completed evidence only after verification and the required commit/push gates are settled
+- do not run another dogfood execute pass until Dogfood Run 112 cleanup-completed evidence is committed/published and the push decision is settled
 - open a new implementation slice only for a concrete regression or usability issue surfaced by retained evidence or kickoff triage
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
