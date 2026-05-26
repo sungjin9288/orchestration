@@ -938,24 +938,29 @@ Do not start v1 dogfooding if any of these are true:
 - the user-facing flow does not explain current action, result location, or next destination
 
 ## Next Development Priority
-V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 113.
+V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 114.
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
 Planned feature completion readiness is now summarized in `docs/17_v1-completion-readiness.md`.
 
 Default next action without approval:
+- inspect the Dogfood Run 114 retained-evidence update, evidence inventory, retained path presence, branch presence, runtime evidence root, and current source repo status
+- keep source `main` clean while Dogfood Run 114 retained evidence is recorded; do not remove the retained linked worktree or branch without explicit destructive cleanup approval
 - treat the current planned V1 and post-v1 company shell feature set as complete while the completion readiness criteria remain green
-- keep the clean/published baseline stable and use completion, kickoff, dogfood inventory, Harness/Hermes, and aggregate status scripts as the next proof loop
-- treat any future local docs/evidence commit as approval-gated publish work, not as an automatic next step
 - do not open a new implementation slice unless the retained evidence or kickoff triage identifies a concrete regression or usability issue
 
 Explicit approval-gated next actions:
-- run another intentional `--execute --slug <slug>` dogfood pass only after explicit execute approval and with retained-evidence plus cleanup lifecycle closed in the same loop
-- commit and publish any future local evidence or docs update only after verification, commit approval, and explicit `git push origin main` approval
-- perform destructive cleanup only after retained evidence is preserved and cleanup is explicitly approved
+- commit Dogfood Run 114 retained-evidence docs locally only after verification and commit approval
+- publish the Dogfood Run 114 retained-evidence commit only after explicit `git push origin main` approval
+- clean up the Dogfood Run 114 retained linked worktree and branch only after retained-evidence is preserved and explicit destructive cleanup approval is given
+- do not run another intentional `--execute --slug <slug>` dogfood pass until Dogfood Run 114 retained-evidence is committed/published and the cleanup decision is settled
 
 Completed approval-gated actions:
+- Dogfood Run 114 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
+- Dogfood Run 114 retained-evidence is being recorded locally before retained-evidence commit/push/cleanup.
+- Dogfood Run 114 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-111` and branch `worktree/v1-dogfood-runner-111` remain intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup approval.
+- Dogfood Run 114 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-111`.
 - Current planned feature completion evidence was captured at baseline head `833d2735534609d91546f5fb9a3a7420b33e9f9d` before the additive readiness documentation commit; after this documentation commit, rerun the completion readiness scripts before claiming the new head remains complete.
 - The readiness documentation commit was published and rechecked at recorded proof head `9f216e6ef4c35fcad60008c1d833877435c4e13a`; this is a recorded proof point only, so the current repository head still must be validated with the completion/status/triage/inventory/aggregate scripts before close-out.
 - Current Harness/Hermes proof was rechecked before this runbook update on clean/published `main@08456dbd268269e9d2f87b4ade742349c170b99f`: `node scripts/harness_verification_status.mjs` passed `45/45` synthetic harness checks, `node scripts/hermes-agent-internal-harness-status.mjs` returned `ok=true`, and `node scripts/v1-local-completion-status.mjs` reported `localDevelopmentComplete=true`.
@@ -1408,6 +1413,11 @@ Completed approval-gated actions:
 - Dogfood Run 069 retained dogfood linked worktree cleanup is complete
 
 Current evidence lifecycle status:
+- Dogfood Run 114 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
+- Dogfood Run 114 retained-evidence is being recorded locally before retained-evidence commit/push/cleanup.
+- Dogfood Run 114 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-111` and branch `worktree/v1-dogfood-runner-111` remain intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup approval.
+- Dogfood Run 114 inventory reports `cleanupCompleted=false`, `retainedEvidenceAvailable=true`, `cleanupBlockedUntilApproval=true`, and `validEvidenceLifecycle=true`.
+- Dogfood Run 114 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-111`.
 - Dogfood Run 113 cleanup-completed evidence was committed and published as `833d273`.
 - Dogfood Run 113 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 113 retained-evidence docs were committed locally and published to `origin/main` as `2a2e3c6` before destructive cleanup.

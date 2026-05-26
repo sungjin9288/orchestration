@@ -1548,6 +1548,19 @@ assert.match(dogfood, /It now also checks Dogfood Run 113 cleanup-completed link
 assert.doesNotMatch(dogfood, /Retained cleanup pending after Dogfood Run 113 execute/);
 assert.doesNotMatch(dogfood, /Dogfood Run 113 worktree retained:/);
 assert.doesNotMatch(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-110`/);
+assert.match(dogfood, /## Dogfood Run 114/);
+assert.match(dogfood, /Recorded at `2026-05-26 23:42:27 \+0900` on published `main` head `10647369bec7cfc7e2658818483195d086bfe40f`/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --dry-run --slug v1-dogfood-runner-111/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-111/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-111`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-111`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-111`/);
+assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:53246`/);
+assert.match(dogfood, /Retained cleanup pending after Dogfood Run 114 execute/);
+assert.match(dogfood, /Dogfood Run 114 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-111`/);
+assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-111`/);
+assert.match(dogfood, /Inventory check before cleanup reports `cleanupCompleted=false`, `retainedEvidenceAvailable=true`, `cleanupBlockedUntilApproval=true`, and `validEvidenceLifecycle=true`/);
+assert.match(dogfood, /It now also checks Dogfood Run 114 retained linked worktree path presence, branch presence, dirty marker, runtime root, and current source repo status before cleanup/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
@@ -1725,6 +1738,7 @@ console.log(
           'dogfood-run-111',
           'dogfood-run-112',
           'dogfood-run-113',
+          'dogfood-run-114',
         ],
       },
     },
