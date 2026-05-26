@@ -920,6 +920,7 @@ Explicit approval-gated next actions:
 
 Completed approval-gated actions:
 - Current planned feature completion evidence was captured at baseline head `833d2735534609d91546f5fb9a3a7420b33e9f9d` before the additive readiness documentation commit; after this documentation commit, rerun the completion readiness scripts before claiming the new head remains complete.
+- The readiness documentation commit was published and rechecked at recorded proof head `9f216e6ef4c35fcad60008c1d833877435c4e13a`; this is a recorded proof point only, so the current repository head still must be validated with the completion/status/triage/inventory/aggregate scripts before close-out.
 - Dogfood Run 113 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 113 retained-evidence docs were committed locally and published to `origin/main` as `2a2e3c6` before destructive cleanup.
 - Dogfood Run 113 retained dogfood linked worktree cleanup is complete after retained-evidence commit `2a2e3c6` was preserved and published.

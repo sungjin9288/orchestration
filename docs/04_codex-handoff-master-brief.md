@@ -701,7 +701,7 @@ The planned feature completion baseline is now recorded in:
 
 - `docs/17_v1-completion-readiness.md`
 
-That document is the current handoff point for deciding whether the planned V1 and post-v1 company shell feature set is complete. It records baseline head `833d2735534609d91546f5fb9a3a7420b33e9f9d`, `localDevelopmentComplete=true`, `kickoffReady=true`, completed dogfood cleanup, the planned feature matrix, and the issue-driven implementation entry gate. Do not treat optional dogfood repetition, optional real-live reruns, or future vNext expansion as blockers for this completion baseline.
+That document is the current handoff point for deciding whether the planned V1 and post-v1 company shell feature set is complete. It records baseline head `833d2735534609d91546f5fb9a3a7420b33e9f9d`, recorded published proof head `9f216e6ef4c35fcad60008c1d833877435c4e13a`, `localDevelopmentComplete=true`, `kickoffReady=true`, completed dogfood cleanup, the planned feature matrix, and the issue-driven implementation entry gate. Treat recorded proof heads as evidence points, not self-referential current-head claims; always rerun the completion/status/triage/inventory/aggregate scripts on the current head before close-out. Do not treat optional dogfood repetition, optional real-live reruns, or future vNext expansion as blockers for this completion baseline.
 
 The preview-only artifact redaction policy is already implemented for `change-summary` structured preview and should not be reopened unless dogfood exposes a concrete redaction regression.
 

@@ -64,8 +64,13 @@ assert.match(readiness, /Do not open a new implementation slice/);
 
 assert.match(runbook, /docs\/17_v1-completion-readiness\.md/);
 assert.match(handoff, /docs\/17_v1-completion-readiness\.md/);
+assert.match(runbook, /recorded proof head `9f216e6ef4c35fcad60008c1d833877435c4e13a`/);
+assert.match(runbook, /current repository head still must be validated/);
+assert.match(handoff, /recorded published proof head `9f216e6ef4c35fcad60008c1d833877435c4e13a`/);
+assert.match(handoff, /not self-referential current-head claims/);
 assert.match(todo, /v1-planned-feature-completion-readiness-post-m7-736/);
 assert.match(todo, /v1-completion-published-head-proof-post-m7-737/);
+assert.match(todo, /v1-completion-handoff-proof-language-post-m7-738/);
 assert.match(verificationStatus, /v1-completion-readiness/);
 assert.match(verificationStatus, /scripts\/smoke-v1-completion-readiness\.mjs/);
 
