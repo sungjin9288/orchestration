@@ -637,6 +637,30 @@ Default post-proof rule:
 - keep optional execute-mode dogfood separate and approval-gated
 - treat missing runtime/output evidence as an evidence-recording issue, not as permission to widen runtime behavior
 
+## Current Published-Head Kickoff Proof
+Recorded at `2026-05-26 20:45:22 +0900` on clean/published `main@12fc5a2`.
+
+Repository state:
+- `git status --short --branch`: `## main...origin/main`
+- `node scripts/v1-kickoff-evidence-triage.mjs`: pass, no concrete regression or usability issue
+- `node scripts/ui_qa_status.mjs`: pass, `22/22` required checks; `/api/snapshot` reachability remained informational `skipped` because no local UI server was running
+
+Runtime/browser proof:
+- command: `node scripts/smoke-v1-user-flow-kickoff.mjs`
+- result: pass without `V1_KICKOFF_ALLOW_DIRTY`
+- runtimeRoot: `/Users/sungjin/dev/personal/orchestration/var/runtime-v1-user-flow-kickoff`
+- outputRoot: `/Users/sungjin/dev/personal/orchestration/output/playwright/v1-user-flow-kickoff`
+- scenario: `task-0001`, approval `approval-0001`, builder `run-0005`, reviewer `run-0006`
+- artifacts: `artifact-0005` change summary, `artifact-0006` patch, `artifact-0007` diff, `artifact-0008` review
+- selected surface: `artifacts`
+- surfaces verified: `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, `Decision Inbox`
+- safety boundary: local fixture only; no commit, push, merge, release, or external release was executed
+
+Resulting default posture:
+- no implementation slice is open from this proof
+- do not rerun execute-mode dogfood by default
+- continue to require a concrete regression, usability issue, or explicit vNext decision before opening new implementation
+
 ## Current Head Kickoff Rerun Evidence
 Recorded at `2026-04-30 22:09:09 +0900` on published `main` before this evidence-sync update.
 

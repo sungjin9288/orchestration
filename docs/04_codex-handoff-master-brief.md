@@ -689,11 +689,13 @@ The runtime/browser proof command for that first slice is:
 
 Latest clean proof:
 
-- recorded on `2026-05-25 00:45:18 +0900`
-- head `edd1a744c8c67612639165f3c4c70db7b2bc49eb`
+- recorded on `2026-05-26 20:45:22 +0900`
+- head `12fc5a28c824027d1417cffb6c6fc0b7a82cd0f1`
 - `node scripts/smoke-v1-user-flow-kickoff.mjs` passed without `V1_KICKOFF_ALLOW_DIRTY`
 - scenario covered `task-0001`, `approval-0001`, builder `run-0005`, reviewer `run-0006`, and artifacts `artifact-0005` through `artifact-0008`
 - verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`
+- `node scripts/ui_qa_status.mjs` passed `22/22` required checks; `/api/snapshot` reachability remained informational `skipped`
+- `node scripts/v1-kickoff-evidence-triage.mjs` reported no concrete regression or usability issue
 
 Use `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear. It is read-only, checks the clean proof plus retained runtime/output evidence, and should keep implementation closed unless there is a concrete regression or usability issue.
 

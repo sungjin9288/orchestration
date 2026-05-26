@@ -1020,6 +1020,11 @@ assert.match(runbook, /## Current Published Head Kickoff Proof After Browser QA 
 assert.match(runbook, /Recorded at `2026-05-25 00:45:18 \+0900` on published `main` after the browser QA smoke stabilization commit was pushed/);
 assert.match(runbook, /edd1a744c8c67612639165f3c4c70db7b2bc49eb/);
 assert.match(runbook, /current published head has a fresh kickoff user-flow proof after browser QA smoke stabilization was published/);
+assert.match(runbook, /## Current Published-Head Kickoff Proof/);
+assert.match(runbook, /Recorded at `2026-05-26 20:45:22 \+0900` on clean\/published `main@12fc5a2`/);
+assert.match(runbook, /`node scripts\/ui_qa_status\.mjs`: pass, `22\/22` required checks/);
+assert.match(runbook, /selected surface: `artifacts`/);
+assert.match(runbook, /continue to require a concrete regression, usability issue, or explicit vNext decision before opening new implementation/);
 assert.match(runbook, /Do not reopen the already-completed preview-only artifact redaction policy/);
 assert.match(handoff, /current source `main` published evidence baseline is `2a2e3c6` after Dogfood Run 113 retained-evidence was committed and pushed/);
 assert.match(handoff, /Dogfood Run 113 cleanup has completed after retained-evidence commit `2a2e3c6` was preserved and published; cleanup-completed evidence is being recorded locally before cleanup-completed evidence commit\/push/);
@@ -1502,11 +1507,13 @@ assert.match(handoff, /Dogfood Run 111 executed from published head `4d9cb3d9a5d
 assert.match(handoff, /Dogfood Run 111 retained linked worktree `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-108` and branch `worktree\/v1-dogfood-runner-108` have been removed after retained-evidence commit `bfb3c92` was preserved and published/);
 assert.match(handoff, /Dogfood Run 111 runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-108`/);
 assert.match(handoff, /current source `main` published evidence baseline is `2a2e3c6` after Dogfood Run 113 retained-evidence was committed and pushed/);
-assert.match(handoff, /recorded on `2026-05-25 00:45:18 \+0900`/);
-assert.match(handoff, /head `edd1a744c8c67612639165f3c4c70db7b2bc49eb`/);
+assert.match(handoff, /recorded on `2026-05-26 20:45:22 \+0900`/);
+assert.match(handoff, /head `12fc5a28c824027d1417cffb6c6fc0b7a82cd0f1`/);
 assert.match(handoff, /passed without `V1_KICKOFF_ALLOW_DIRTY`/);
 assert.match(handoff, /scenario covered `task-0001`, `approval-0001`, builder `run-0005`, reviewer `run-0006`/);
 assert.match(handoff, /verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`/);
+assert.match(handoff, /`node scripts\/ui_qa_status\.mjs` passed `22\/22` required checks/);
+assert.match(handoff, /reported no concrete regression or usability issue/);
 assert.match(handoff, /node scripts\/v1-kickoff-evidence-triage\.mjs/);
 assert.match(handoff, /checks the clean proof plus retained runtime\/output evidence/);
 assert.match(handoff, /preview-only artifact redaction policy is already implemented/);
