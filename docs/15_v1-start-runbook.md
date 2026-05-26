@@ -855,6 +855,19 @@ Recorded at `2026-05-07 09:30:12 +0900` on clean/published `main`.
 - live browser stage highlights: `run-builder-live-mutation-api` pass in `102443ms`, `run-reviewer-api` pass in `19432ms`, duplicate guards and secret scan passed
 - classification: local-stub and live representative readiness both pass; no repo-side regression detected
 
+### Current Optional Live Visibility Snapshot
+Recorded at `2026-05-26 18:04:13 +0900` on clean/published `main@3954dd2`.
+
+- process env visibility: `OPENAI_API_KEY=false`, `OPENAI_RESPONSES_MODEL=false`
+- `launchctl` env visibility: `OPENAI_API_KEY=false`, `OPENAI_RESPONSES_MODEL=false`
+- command: `node scripts/smoke-provider-live-slice-05.mjs`
+- result: `skipped`
+- reason: `OPENAI_API_KEY and OPENAI_RESPONSES_MODEL are required for the optional real live smoke.`
+- command: `node scripts/smoke-qa-live-slice-07.mjs`
+- result: `skipped`
+- reason: `OPENAI_API_KEY and OPENAI_RESPONSES_MODEL are required for the optional real live smoke.`
+- classification: non-blocking environment visibility evidence only; no repo-side regression detected
+
 ## OpenSpace Boundary
 OpenSpace is v1-supporting infrastructure, not a v1 start blocker by itself.
 
