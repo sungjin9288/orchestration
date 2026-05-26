@@ -252,16 +252,19 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current source `main` published evidence baseline is `2a2e3c6` after Dogfood Run 113 retained-evidence was committed and pushed. Dogfood Run 113 cleanup has completed after retained-evidence commit `2a2e3c6` was preserved and published; cleanup-completed evidence is being recorded locally before cleanup-completed evidence commit/push.
+The current source `main` published evidence baseline is `08456dbd268269e9d2f87b4ade742349c170b99f` after the current published-head kickoff proof and start-runbook smoke alignment were committed and published. Dogfood Run 113 cleanup-completed evidence was already committed and published as `833d273` before the planned feature completion readiness proof, so no retained dogfood cleanup or publish gate is currently open before this documentation update.
 
 Current local completion snapshot:
 
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
-- current `main` publish state is reported by `git status --short --branch`; Dogfood Run 113 cleanup-completed evidence is being recorded locally before commit/push
+- current `main` publish state is reported by `git status --short --branch`; the current pre-update snapshot was clean/published as `## main...origin/main`
 - `node scripts/verification_status.mjs` must remain green after any future evidence update
+- `node scripts/harness_verification_status.mjs` passed `45/45` synthetic harness checks on the same clean/published baseline
+- `node scripts/hermes-agent-internal-harness-status.mjs` reported `ok=true`, `externalRunnerAdopted=false`, and `executableThroughExternalHermes=false` for the internal repo-native Hermes-style harness
 - Dogfood Run 001 through Dogfood Run 113 evidence is recorded
 - Dogfood Run 113 executed from published head `45f461197c034e5e63a32a1cfab565e72a3a45bb` with slug `v1-dogfood-runner-110` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 113 retained-evidence was committed and published as `2a2e3c6` before destructive cleanup
+- Dogfood Run 113 cleanup-completed evidence was committed and published as `833d273`
 - Dogfood Run 113 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-110` and branch `worktree/v1-dogfood-runner-110` have been removed after retained-evidence commit `2a2e3c6` was preserved and published
 - No retained dogfood linked worktree remains after Dogfood Run 113 cleanup
 - Dogfood Run 113 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-110`
@@ -670,11 +673,12 @@ Current local completion snapshot:
 - Dogfood Run 093 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-090` and branch `worktree/v1-dogfood-runner-090` have been removed after retained-evidence commit `4866231` was preserved and published
 - Dogfood Run 093 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-090`
 
-The next action is no longer an implementation backlog item by default. Dogfood Run 113 cleanup-completed evidence is the active lifecycle gate:
+The next action is no longer an implementation backlog item or a dogfood lifecycle gate by default. The active handoff gate is current-head status proof:
 
-- inspect Dogfood Run 113 cleanup-completed evidence, linked worktree path absence, branch absence, runtime evidence root, and `node scripts/v1-dogfood-evidence-inventory.mjs`
-- commit/publish Dogfood Run 113 cleanup-completed evidence only after verification and the required commit/push gates are settled
-- do not run another dogfood execute pass until Dogfood Run 113 cleanup-completed evidence is committed/published and the push decision is settled
+- confirm `node scripts/v1-local-completion-status.mjs` remains `localDevelopmentComplete=true` on the current head
+- confirm `node scripts/v1-kickoff-status.mjs` remains `kickoffReady=true` before treating the planned feature baseline as start-ready
+- confirm `node scripts/harness_verification_status.mjs` and `node scripts/hermes-agent-internal-harness-status.mjs` remain green before changing Harness/Hermes claims
+- do not run another dogfood execute pass by default; it remains an explicit approval-gated optional revalidation loop
 - open a new implementation slice only for a concrete regression or usability issue surfaced by retained evidence or kickoff triage
 
 The first v1 user-flow kickoff slice has now been verified on clean/published `main`. Before opening another implementation slice, run:
