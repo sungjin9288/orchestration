@@ -21,10 +21,14 @@ const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 assert.match(readiness, /^# V1 Planned Feature Completion Readiness/m);
 assert.match(readiness, /not a new feature plan/);
 assert.match(readiness, /833d2735534609d91546f5fb9a3a7420b33e9f9d/);
+assert.match(readiness, /Published Head Verification Snapshot/);
+assert.match(readiness, /9f216e6ef4c35fcad60008c1d833877435c4e13a/);
+assert.match(readiness, /verified at: `2026-05-26 15:09:48 \+0900`/);
 assert.match(readiness, /git status: `## main\.\.\.origin\/main`/);
 assert.match(readiness, /localDevelopmentComplete=true/);
 assert.match(readiness, /kickoffReady=true/);
 assert.match(readiness, /cleanupCompleted=true/);
+assert.match(readiness, /aggregate verification: `node scripts\/verification_status\.mjs` passed `12\/12` checks/);
 assert.match(
   readiness,
   /do-not-open-new-implementation-without-a-concrete-regression-or-usability-issue/,
@@ -61,6 +65,7 @@ assert.match(readiness, /Do not open a new implementation slice/);
 assert.match(runbook, /docs\/17_v1-completion-readiness\.md/);
 assert.match(handoff, /docs\/17_v1-completion-readiness\.md/);
 assert.match(todo, /v1-planned-feature-completion-readiness-post-m7-736/);
+assert.match(todo, /v1-completion-published-head-proof-post-m7-737/);
 assert.match(verificationStatus, /v1-completion-readiness/);
 assert.match(verificationStatus, /scripts\/smoke-v1-completion-readiness\.mjs/);
 
@@ -71,6 +76,7 @@ console.log(
       v1CompletionReadiness: {
         document: 'docs/17_v1-completion-readiness.md',
         baselineHead: '833d273',
+        publishedHead: '9f216e6',
         implementationGate:
           'do-not-open-new-implementation-without-a-concrete-regression-or-usability-issue',
       },
