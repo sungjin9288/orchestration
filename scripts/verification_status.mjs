@@ -71,6 +71,11 @@ const informationalChecks = [
     script: 'scripts/smoke-v1-kickoff-evidence-triage.mjs',
     purpose: 'V1 kickoff evidence triage keeps post-proof implementation entry gated on concrete regressions or usability issues',
   },
+  {
+    id: 'v1-completion-readiness',
+    script: 'scripts/smoke-v1-completion-readiness.mjs',
+    purpose: 'V1 planned feature completion readiness stays pinned to the clean published baseline and issue-driven entry gate',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

@@ -905,8 +905,10 @@ V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfo
 
 Current local completion is now represented by `node scripts/v1-local-completion-status.mjs`.
 First v1 kickoff readiness is represented by `node scripts/v1-kickoff-status.mjs`.
+Planned feature completion readiness is now summarized in `docs/17_v1-completion-readiness.md`.
 
 Default next action without approval:
+- treat the current planned V1 and post-v1 company shell feature set as complete while the completion readiness criteria remain green
 - inspect the Dogfood Run 113 cleanup-completed evidence update, evidence inventory, path absence, branch absence, runtime evidence root, and current published-head kickoff evidence triage
 - keep source changes local until cleanup-completed evidence commit/push sequencing is intentionally settled
 - do not open a new implementation slice unless the retained evidence or kickoff triage identifies a concrete regression or usability issue
@@ -917,6 +919,7 @@ Explicit approval-gated next actions:
 - do not run another intentional `--execute --slug <slug>` dogfood pass until Dogfood Run 113 cleanup-completed evidence is committed/published and the push decision is settled
 
 Completed approval-gated actions:
+- Current planned feature completion evidence was captured at baseline head `833d2735534609d91546f5fb9a3a7420b33e9f9d` before the additive readiness documentation commit; after this documentation commit, rerun the completion readiness scripts before claiming the new head remains complete.
 - Dogfood Run 113 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 113 retained-evidence docs were committed locally and published to `origin/main` as `2a2e3c6` before destructive cleanup.
 - Dogfood Run 113 retained dogfood linked worktree cleanup is complete after retained-evidence commit `2a2e3c6` was preserved and published.
