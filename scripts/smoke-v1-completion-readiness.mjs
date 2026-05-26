@@ -21,7 +21,7 @@ const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 assert.match(readiness, /^# V1 Planned Feature Completion Readiness/m);
 assert.match(readiness, /not a new feature plan/);
 assert.match(readiness, /833d2735534609d91546f5fb9a3a7420b33e9f9d/);
-assert.match(readiness, /Published Head Verification Snapshot/);
+assert.match(readiness, /Recorded Published Proof Snapshot/);
 assert.match(readiness, /9f216e6ef4c35fcad60008c1d833877435c4e13a/);
 assert.match(readiness, /verified at: `2026-05-26 15:09:48 \+0900`/);
 assert.match(readiness, /git status: `## main\.\.\.origin\/main`/);
@@ -76,7 +76,7 @@ console.log(
       v1CompletionReadiness: {
         document: 'docs/17_v1-completion-readiness.md',
         baselineHead: '833d273',
-        publishedHead: '9f216e6',
+        recordedProofHead: '9f216e6',
         implementationGate:
           'do-not-open-new-implementation-without-a-concrete-regression-or-usability-issue',
       },
