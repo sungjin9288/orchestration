@@ -1578,6 +1578,19 @@ assert.match(dogfood, /Removed linked worktree path `\/Users\/sungjin\/dev\/pers
 assert.match(dogfood, /Deleted branch `worktree\/v1-dogfood-runner-112` with `git branch -D`/);
 assert.match(dogfood, /Inventory check after cleanup reports `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`/);
 assert.match(dogfood, /It now also checks Dogfood Run 115 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status/);
+assert.match(dogfood, /## Dogfood Run 116/);
+assert.match(dogfood, /Recorded at `2026-05-27 14:21:00 \+0900` on published `main` head `cb6d4bdc93c0492e245cceb3d0deb94454127601`/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --dry-run --slug v1-dogfood-runner-113/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-113/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-113`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-113`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-113`/);
+assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:51917`/);
+assert.match(dogfood, /Retained cleanup pending after Dogfood Run 116 execute/);
+assert.match(dogfood, /Dogfood Run 116 worktree retained: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-113`/);
+assert.match(dogfood, /Branch retained: `worktree\/v1-dogfood-runner-113`/);
+assert.match(dogfood, /Inventory check before cleanup reports `cleanupCompleted=false`, `retainedEvidenceAvailable=true`, `cleanupBlockedUntilApproval=true`, and `validEvidenceLifecycle=true`/);
+assert.match(dogfood, /It now also checks Dogfood Run 116 retained linked worktree path presence, branch presence, dirty marker, runtime root, and current source repo status before cleanup/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
@@ -1757,6 +1770,7 @@ console.log(
           'dogfood-run-113',
           'dogfood-run-114',
           'dogfood-run-115',
+          'dogfood-run-116',
         ],
       },
     },
