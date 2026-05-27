@@ -51,6 +51,7 @@ completion/status/triage/inventory/aggregate checks pass again on the new head.
 | `Mission / Council / Execution / Deliverables` primary shell | `docs/06_ai-orchestration-pivot.md`, `DESIGN.md` | Complete on current `main` as the post-v1 shell baseline | `node scripts/v1-kickoff-evidence-triage.mjs` |
 | Development pack stage loop through reviewer | `packs/development/pack.md`, `docs/03_architecture-roadmap-v1.md` | Complete for `planner -> architect -> task-breaker -> builder-preflight -> builder-live-mutation -> reviewer` | `node scripts/verification_status.mjs` |
 | Review before done and approval before commit | `AGENTS.md`, `packs/development/pack.md`, `docs/01_decision-log.md` | Complete and still non-negotiable | `node scripts/smoke-v1-user-flow-kickoff.mjs` |
+| Review-passed Deliverables routing | `tasks/lessons.md`, `ui/app.js` | Complete; `review.status=passed` routes the result packet to `Deliverables` and must not be confused with `approval.status=approved` | `node scripts/smoke-ui-slice-638.mjs` inside `node scripts/verification_status.mjs` |
 | Downstream local follow-up boundary | `docs/03_architecture-roadmap-v1.md`, `packs/development/pack.md` | Complete as explicit local follow-up only | Current docs and status scripts |
 | Live provider boundary | `docs/01_decision-log.md`, `docs/03_architecture-roadmap-v1.md` | Complete at `openai-responses` planner-through-reviewer opt-in | Provider synthetic checks inside `node scripts/verification_status.mjs` |
 | Harness-first posture and Hermes internal composition | `docs/13_harness-baseline.md` | Complete for repo-native harness governance and internal Hermes-style loop mapping | `node scripts/harness_verification_status.mjs` and `node scripts/hermes-agent-internal-harness-status.mjs` |
@@ -68,6 +69,8 @@ The planned feature baseline is complete only while all of these are true:
 5. `node scripts/v1-dogfood-evidence-inventory.mjs` reports `cleanupCompleted=true` and
    `cleanupBlockedUntilApproval=false`.
 6. `node scripts/verification_status.mjs` passes required checks and informational completion gates.
+7. `node scripts/smoke-ui-slice-638.mjs` remains part of the aggregate verification chain so
+   review-passed results continue to route to `Deliverables` instead of falling back to `Execution`.
 
 ## Non-Blocking Follow-Up
 The following remain valid follow-up lanes, but they do not block the planned feature completion

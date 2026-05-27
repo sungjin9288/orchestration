@@ -46,6 +46,8 @@ assert.match(handoff, /do not run another dogfood pass by default/);
 
 assert.match(verificationStatus, /v1-kickoff-status/);
 assert.match(verificationStatus, /scripts\/smoke-v1-kickoff-status\.mjs/);
+assert.match(verificationStatus, /v1-review-passed-deliverables-routing/);
+assert.match(verificationStatus, /scripts\/smoke-ui-slice-638\.mjs/);
 
 console.log(
   JSON.stringify(

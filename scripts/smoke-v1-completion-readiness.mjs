@@ -73,6 +73,11 @@ assert.match(todo, /v1-completion-published-head-proof-post-m7-737/);
 assert.match(todo, /v1-completion-handoff-proof-language-post-m7-738/);
 assert.match(verificationStatus, /v1-completion-readiness/);
 assert.match(verificationStatus, /scripts\/smoke-v1-completion-readiness\.mjs/);
+assert.match(verificationStatus, /v1-review-passed-deliverables-routing/);
+assert.match(verificationStatus, /scripts\/smoke-ui-slice-638\.mjs/);
+assert.match(readiness, /review\.status=passed/);
+assert.match(readiness, /approval\.status=approved/);
+assert.match(readiness, /scripts\/smoke-ui-slice-638\.mjs/);
 
 console.log(
   JSON.stringify(

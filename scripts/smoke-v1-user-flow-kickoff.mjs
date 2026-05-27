@@ -36,8 +36,14 @@ function runNodeJson(relativeScriptPath) {
 
 const kickoffStatusResult = runNodeJson('scripts/v1-kickoff-status.mjs');
 const kickoffStatus = kickoffStatusResult.parsed || {};
+const reviewPassedRoutingResult = runNodeJson('scripts/smoke-ui-slice-638.mjs');
 
 assert.equal(kickoffStatusResult.ok, true, 'v1-kickoff-status must collect successfully');
+assert.equal(
+  reviewPassedRoutingResult.ok,
+  true,
+  'review.status=passed result routing must stay pinned to Deliverables before v1 user-flow kickoff smoke',
+);
 assert.equal(
   kickoffStatus.readinessCriteria?.verificationOk,
   true,
@@ -89,6 +95,8 @@ console.log(
       allowDirtySource,
       outputRoot: result.outputRoot,
       runtimeRoot: result.runtimeRoot,
+      reviewPassedDeliverablesRouting:
+        reviewPassedRoutingResult.parsed?.deliverablesReviewPassedResultRouting || null,
       scenario: result.scenario,
       surfacesVerified: [
         'Mission',

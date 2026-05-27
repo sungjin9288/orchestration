@@ -72,6 +72,11 @@ const informationalChecks = [
     purpose: 'V1 kickoff evidence triage keeps post-proof implementation entry gated on concrete regressions or usability issues',
   },
   {
+    id: 'v1-review-passed-deliverables-routing',
+    script: 'scripts/smoke-ui-slice-638.mjs',
+    purpose: 'V1 review-passed result routing keeps review.status=passed tied to Deliverables without confusing it with approval.status=approved',
+  },
+  {
     id: 'v1-completion-readiness',
     script: 'scripts/smoke-v1-completion-readiness.mjs',
     purpose: 'V1 planned feature completion readiness stays pinned to the clean published baseline and issue-driven entry gate',
