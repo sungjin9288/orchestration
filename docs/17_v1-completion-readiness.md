@@ -36,6 +36,9 @@ runtime, API, UI, provider, dogfood, cleanup, or release behavior.
 - dogfood cleanup: `cleanupCompleted=true`
 - implementation triage: no concrete regression or usability issue reported
 - aggregate verification: `node scripts/verification_status.mjs` passed `12/12` checks
+- aggregate count note: `12/12` is the historical count for this recorded proof snapshot; the
+  current aggregate count must be read from `node scripts/verification_status.mjs` on the current
+  repository head.
 
 This snapshot is a recorded proof point, not a self-referential claim about the commit that edits
 this file. The current repository head must still be validated by the status scripts before

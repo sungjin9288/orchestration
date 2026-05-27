@@ -29,6 +29,8 @@ assert.match(readiness, /localDevelopmentComplete=true/);
 assert.match(readiness, /kickoffReady=true/);
 assert.match(readiness, /cleanupCompleted=true/);
 assert.match(readiness, /aggregate verification: `node scripts\/verification_status\.mjs` passed `12\/12` checks/);
+assert.match(readiness, /`12\/12` is the historical count for this recorded proof snapshot/);
+assert.match(readiness, /current aggregate count must be read from `node scripts\/verification_status\.mjs` on the current\s+repository head/);
 assert.match(
   readiness,
   /do-not-open-new-implementation-without-a-concrete-regression-or-usability-issue/,
