@@ -2166,7 +2166,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 121',
         result: 'pass',
-        nextAction: 'Dogfood Run 121 cleanup-completed evidence commit/push pending',
+        nextAction: 'current-head status proof; optional dogfood repetition only from clean/published baseline',
       },
     },
     null,
