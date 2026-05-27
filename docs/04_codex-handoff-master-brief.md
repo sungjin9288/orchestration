@@ -252,7 +252,7 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current source `main` published evidence baseline is `e34a998cc10c2683c7d67e7da22da98768db73c9` after Dogfood Run 117 cleanup-completed evidence was committed and published. Dogfood Run 118 has now executed from that clean/published baseline; retained-evidence docs, inventory proof, smoke guards, and task ledger are being recorded locally before retained-evidence commit/push and destructive cleanup.
+The current source `main` published evidence baseline is `83ee060810071890f899479b384aa61b41d9e068` after Dogfood Run 118 retained-evidence was committed and published. Dogfood Run 118 cleanup has now completed; cleanup-completed docs, inventory proof, smoke guards, and task ledger are being recorded locally before cleanup-completed evidence commit/push.
 
 Current local completion snapshot:
 
@@ -263,10 +263,12 @@ Current local completion snapshot:
 - `node scripts/hermes-agent-internal-harness-status.mjs` reported `ok=true`, `externalRunnerAdopted=false`, and `executableThroughExternalHermes=false` for the internal repo-native Hermes-style harness
 - Dogfood Run 001 through Dogfood Run 118 evidence is recorded
 - Dogfood Run 118 executed from published head `e34a998cc10c2683c7d67e7da22da98768db73c9` with slug `v1-dogfood-runner-115` and stopped before commit-package, local commit, push, merge, release-package, or close-out
-- Dogfood Run 118 retained-evidence is being recorded locally before commit/push/cleanup
-- Dogfood Run 118 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-115` and branch `worktree/v1-dogfood-runner-115` remain intentionally dirty by design until retained-evidence commit/publish and explicit destructive cleanup authorization
+- Dogfood Run 118 retained-evidence was committed and published as `83ee060` before destructive cleanup
+- Dogfood Run 118 cleanup-completed evidence is being recorded locally before commit/push
+- Dogfood Run 118 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-115` and branch `worktree/v1-dogfood-runner-115` have been removed after retained-evidence commit `83ee060` was preserved and published
 - Dogfood Run 118 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-115`
-- Dogfood Run 118 inventory is expected to report `cleanupCompleted=false`, `retainedEvidenceAvailable=true`, `cleanupBlockedUntilApproval=true`, and `validEvidenceLifecycle=true` while retained cleanup is pending
+- Dogfood Run 118 inventory reports `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true` after cleanup
+- No retained dogfood linked worktree remains after Dogfood Run 118 cleanup
 - Dogfood Run 117 executed from published head `6913a6591f8872cb3e573721d11d00cec418149f` with slug `v1-dogfood-runner-114` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 117 retained-evidence was committed and published as `4846e3d` before destructive cleanup
 - Dogfood Run 117 cleanup-completed evidence was committed and published as `e34a998`
