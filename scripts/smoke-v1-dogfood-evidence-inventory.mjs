@@ -1592,6 +1592,17 @@ assert.match(dogfood, /Removed linked worktree path `\/Users\/sungjin\/dev\/pers
 assert.match(dogfood, /Deleted branch `worktree\/v1-dogfood-runner-113` with `git branch -D`/);
 assert.match(dogfood, /Inventory check after cleanup reports `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`/);
 assert.match(dogfood, /It now also checks Dogfood Run 116 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status/);
+assert.match(dogfood, /## Dogfood Run 117/);
+assert.match(dogfood, /Recorded at `2026-05-27 15:29:42 \+0900` on published `main` head `6913a6591f8872cb3e573721d11d00cec418149f`/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --dry-run --slug v1-dogfood-runner-114/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-114/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-114`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-114`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-114`/);
+assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:57733`/);
+assert.match(dogfood, /Retained cleanup pending after Dogfood Run 117 execute/);
+assert.match(dogfood, /Inventory currently reports `cleanupCompleted=false`, `retainedEvidenceAvailable=true`, `cleanupBlockedUntilApproval=true`, and `validEvidenceLifecycle=true`/);
+assert.match(dogfood, /It now also checks Dogfood Run 117 retained linked worktree path presence, branch presence, dirty marker, runtime root, and current source repo status until cleanup is completed/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
@@ -1772,6 +1783,7 @@ console.log(
           'dogfood-run-114',
           'dogfood-run-115',
           'dogfood-run-116',
+          'dogfood-run-117',
         ],
       },
     },
