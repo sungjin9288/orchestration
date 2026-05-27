@@ -52,8 +52,11 @@ const retainedCleanupBlocked =
   operatorStatus.dogfoodEvidence?.cleanupBlockedUntilApproval === true &&
   approvalGatedChoices.some((choice) => choice.action === 'cleanup-retained-dogfood-worktrees');
 const retainedCleanupCompleted = operatorStatus.dogfoodEvidence?.cleanupCompleted === true;
-const pushApprovalPending = approvalGatedChoices.some((choice) => choice.action === 'push-main');
-const pushSettled = operatorStatus.main?.aheadCount === 0 || pushApprovalPending;
+const pushPending = (operatorStatus.main?.aheadCount ?? 0) > 0;
+const pushApprovalAvailable = approvalGatedChoices.some(
+  (choice) => choice.action === 'push-main' && choice.available === true,
+);
+const pushSettled = !pushPending || pushApprovalAvailable;
 const cleanupSettled = retainedCleanupCompleted || retainedCleanupBlocked;
 
 const statusCollectionOk = operatorStatusResult.ok && verificationOk && dogfoodInventoryOk;
@@ -69,7 +72,8 @@ const report = {
     mainClean,
     cleanupSettled,
     operatorStatusOk: operatorStatusResult.ok,
-    pushApprovalPending,
+    pushApprovalAvailable,
+    pushPending,
     pushSettled,
     retainedCleanupBlocked,
     retainedCleanupCompleted,
