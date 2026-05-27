@@ -417,7 +417,10 @@ assert.match(runbook, /Dogfood Run 070 retained dogfood linked worktree cleanup 
 assert.match(runbook, /Dogfood Run 070 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-067` and branch `worktree\/v1-dogfood-runner-067` have been removed after retained-evidence commit `e4552fc` was preserved and published/);
 assert.match(runbook, /No retained dogfood linked worktree remains after Dogfood Run 070 cleanup/);
 assert.match(runbook, /Dogfood Run 070 runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-067`/);
-assert.match(handoff, /current source `main` published evidence baseline is `68b692b3534d96202a3a049080073d32e38395b4` after Dogfood Run 121 cleanup-completed evidence was committed and published/);
+assert.match(handoff, /latest Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`/);
+assert.match(handoff, /historical dogfood evidence, not the moving current source head/);
+assert.match(handoff, /Current `main` publish state must be read from `git status --short --branch` and `node scripts\/v1-local-completion-status\.mjs`/);
+assert.doesNotMatch(handoff, /current source `main` published evidence baseline is `68b692b3534d96202a3a049080073d32e38395b4`/);
 assert.match(handoff, /Dogfood Run 121 retained-evidence remains preserved as `489b3ca`, and no Run 121 cleanup commit\/push action is pending/);
 assert.doesNotMatch(handoff, /Dogfood Run 121 cleanup has now completed; cleanup-completed docs, inventory proof, smoke guards, and task ledger are being recorded locally before cleanup-completed evidence commit\/push/);
 assert.match(handoff, /Dogfood Run 097 cleanup-completed evidence was committed and published as `dbb3278` before Dogfood Run 098 execute/);

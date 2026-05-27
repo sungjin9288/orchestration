@@ -252,7 +252,7 @@ Codex executors must not break the following:
 - Avoid broad refactors. Prefer the smallest change that preserves the frozen baseline and improves evidence quality.
 
 ## Immediate Priority
-The current source `main` published evidence baseline is `68b692b3534d96202a3a049080073d32e38395b4` after Dogfood Run 121 cleanup-completed evidence was committed and published. Dogfood Run 121 retained-evidence remains preserved as `489b3ca`, and no Run 121 cleanup commit/push action is pending.
+The latest Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`; it is historical dogfood evidence, not the moving current source head. Current `main` publish state must be read from `git status --short --branch` and `node scripts/v1-local-completion-status.mjs`. Dogfood Run 121 retained-evidence remains preserved as `489b3ca`, and no Run 121 cleanup commit/push action is pending.
 
 Current local completion snapshot:
 

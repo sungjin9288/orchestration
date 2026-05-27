@@ -1090,7 +1090,10 @@ assert.match(runbook, /`node scripts\/ui_qa_status\.mjs`: pass, `22\/22` require
 assert.match(runbook, /selected surface: `artifacts`/);
 assert.match(runbook, /continue to require a concrete regression, usability issue, or explicit vNext decision before opening new implementation/);
 assert.match(runbook, /Do not reopen the already-completed preview-only artifact redaction policy/);
-assert.match(handoff, /current source `main` published evidence baseline is `68b692b3534d96202a3a049080073d32e38395b4` after Dogfood Run 121 cleanup-completed evidence was committed and published/);
+assert.match(handoff, /latest Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`/);
+assert.match(handoff, /historical dogfood evidence, not the moving current source head/);
+assert.match(handoff, /Current `main` publish state must be read from `git status --short --branch` and `node scripts\/v1-local-completion-status\.mjs`/);
+assert.doesNotMatch(handoff, /current source `main` published evidence baseline is `68b692b3534d96202a3a049080073d32e38395b4`/);
 assert.match(handoff, /Dogfood Run 121 retained-evidence remains preserved as `489b3ca`, and no Run 121 cleanup commit\/push action is pending/);
 assert.doesNotMatch(handoff, /Dogfood Run 121 cleanup has now completed; cleanup-completed docs, inventory proof, smoke guards, and task ledger are being recorded locally before cleanup-completed evidence commit\/push/);
 assert.match(handoff, /Dogfood Run 097 cleanup-completed evidence was committed and published as `dbb3278` before Dogfood Run 098 execute/);
@@ -1615,7 +1618,10 @@ assert.match(handoff, /Dogfood Run 112 runtime evidence remains available under 
 assert.match(handoff, /Dogfood Run 111 executed from published head `4d9cb3d9a5d08be69f89b313c47690ea565a9258` with slug `v1-dogfood-runner-108` and stopped before commit-package, local commit, push, merge, release-package, or close-out/);
 assert.match(handoff, /Dogfood Run 111 retained linked worktree `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-108` and branch `worktree\/v1-dogfood-runner-108` have been removed after retained-evidence commit `bfb3c92` was preserved and published/);
 assert.match(handoff, /Dogfood Run 111 runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-108`/);
-assert.match(handoff, /current source `main` published evidence baseline is `68b692b3534d96202a3a049080073d32e38395b4` after Dogfood Run 121 cleanup-completed evidence was committed and published/);
+assert.match(handoff, /latest Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`/);
+assert.match(handoff, /historical dogfood evidence, not the moving current source head/);
+assert.match(handoff, /Current `main` publish state must be read from `git status --short --branch` and `node scripts\/v1-local-completion-status\.mjs`/);
+assert.doesNotMatch(handoff, /current source `main` published evidence baseline is `68b692b3534d96202a3a049080073d32e38395b4`/);
 assert.match(handoff, /Dogfood Run 121 retained-evidence remains preserved as `489b3ca`, and no Run 121 cleanup commit\/push action is pending/);
 assert.match(handoff, /`node scripts\/harness_verification_status\.mjs` passed `45\/45` synthetic harness checks on the same clean\/published baseline/);
 assert.match(handoff, /`node scripts\/hermes-agent-internal-harness-status\.mjs` reported `ok=true`, `externalRunnerAdopted=false`, and `executableThroughExternalHermes=false`/);
