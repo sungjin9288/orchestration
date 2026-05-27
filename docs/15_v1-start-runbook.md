@@ -228,7 +228,7 @@ It reports the first v1 kickoff slice as ready only when:
 - no approval-gated blocker remains except optional additional execute-mode dogfood
 
 First v1 kickoff slice:
-- Register or select a local project.
+- Start in `Mission`, then register or select a local project from the Mission-first entry flow.
 - Create one small development task with a concrete operator-facing outcome.
 - Run the work through `Mission / Council / Execution / Deliverables`.
 - Confirm `Taskboard / Logs / Artifacts / Decision Inbox` still show where the result, evidence, approval, and next action live.

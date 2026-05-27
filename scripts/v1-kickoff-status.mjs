@@ -63,7 +63,7 @@ const report = {
   nextRecommendedSlice: kickoffReady
     ? {
         id: 'v1-user-flow-kickoff-slice',
-        summary: 'Register/select a local project, create one task, run Mission/Council/Execution, and confirm where results and next actions appear.',
+        summary: 'Start in Mission, register or select a local project, create one task, run Council/Execution/Deliverables, and confirm where results and next actions appear.',
         surfaces: ['Mission', 'Council', 'Execution', 'Deliverables', 'Taskboard', 'Logs', 'Artifacts', 'Decision Inbox'],
         constraints: [
           'development pack only',
