@@ -61,6 +61,7 @@ assert.match(inventory, /dogfood-run-046/);
 assert.match(inventory, /dogfood-run-111/);
 assert.match(inventory, /dogfood-run-112/);
 assert.match(inventory, /dogfood-run-113/);
+assert.match(inventory, /dogfood-run-120/);
 assert.match(inventory, /worktree\/v1-dogfood-run-002/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-001/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-002/);
@@ -109,6 +110,7 @@ assert.match(inventory, /worktree\/v1-dogfood-runner-043/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-108/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-109/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-110/);
+assert.match(inventory, /worktree\/v1-dogfood-runner-117/);
 assert.match(inventory, /dogfood-run-047/);
 assert.match(inventory, /worktree\/v1-dogfood-runner-044/);
 assert.match(inventory, /dogfood-run-048/);
@@ -1633,6 +1635,15 @@ assert.match(dogfood, /Removed linked worktree path `\/Users\/sungjin\/dev\/pers
 assert.match(dogfood, /Deleted branch `worktree\/v1-dogfood-runner-116` with `git branch -D`/);
 assert.match(dogfood, /Inventory check after cleanup reports `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`/);
 assert.match(dogfood, /It now also checks Dogfood Run 119 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status/);
+assert.match(dogfood, /## Dogfood Run 120/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --dry-run --slug v1-dogfood-runner-117/);
+assert.match(dogfood, /node scripts\/v1-dogfood-linked-worktree-runner\.mjs --execute --slug v1-dogfood-runner-117/);
+assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-117`/);
+assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-117`/);
+assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-117`/);
+assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:65473`/);
+assert.match(dogfood, /Retained cleanup is intentionally blocked until the retained-evidence commit is preserved and destructive cleanup is executed in the same lifecycle/);
+assert.match(dogfood, /It now also checks Dogfood Run 120 retained linked worktree dirty marker, branch, path, runtime root, cleanup approval gate, and current source repo status/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
@@ -1816,6 +1827,7 @@ console.log(
           'dogfood-run-117',
           'dogfood-run-118',
           'dogfood-run-119',
+          'dogfood-run-120',
         ],
       },
     },
