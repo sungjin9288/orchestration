@@ -2112,11 +2112,13 @@ assert.match(dogfood, /listener cleanup: no `serve-ui-slice-01` process or TCP l
 assert.match(dogfood, /source `main` was clean\/published before execute and dry-run reported no branch, path, or runtimeRoot collision for slug `v1-dogfood-runner-116`/);
 assert.match(dogfood, /operator-directed slug `v1-dogfood-runner-116`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-116`/);
-assert.match(dogfood, /Retained cleanup pending after Dogfood Run 119 execute/);
-assert.match(dogfood, /Retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-116` remains intentionally dirty by design/);
-assert.match(dogfood, /Retained branch `worktree\/v1-dogfood-runner-116` remains present until cleanup/);
-assert.match(dogfood, /Inventory check while retained reports `cleanupCompleted=false`, `retainedEvidenceAvailable=true`, `cleanupBlockedUntilApproval=true`, and `validEvidenceLifecycle=true`/);
-assert.match(dogfood, /It now also checks Dogfood Run 119 retained linked worktree path presence, branch presence, dirty marker, runtime root, and current source repo status/);
+assert.match(dogfood, /Cleanup completed after Dogfood Run 119 destructive cleanup authorization/);
+assert.match(dogfood, /Dogfood Run 119 retained-evidence was committed and published as `7add094` before destructive cleanup/);
+assert.match(dogfood, /Removed linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-116` with `git worktree remove --force`/);
+assert.match(dogfood, /Deleted branch `worktree\/v1-dogfood-runner-116` with `git branch -D`/);
+assert.match(dogfood, /Inventory check after cleanup reports `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`/);
+assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 119 cleanup/);
+assert.match(dogfood, /It now also checks Dogfood Run 119 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status/);
 
 console.log(
   JSON.stringify(
@@ -2126,7 +2128,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 119',
         result: 'pass',
-        nextAction: 'Dogfood Run 119 retained-evidence commit/push/cleanup pending',
+        nextAction: 'Dogfood Run 119 cleanup-completed evidence commit/push pending',
       },
     },
     null,

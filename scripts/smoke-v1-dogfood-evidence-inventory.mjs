@@ -1627,9 +1627,12 @@ assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-116`
 assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-116`/);
 assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-116`/);
 assert.match(dogfood, /baseUrl: not recorded because the execute stdout session handle was lost after compaction/);
-assert.match(dogfood, /Retained cleanup pending after Dogfood Run 119 execute/);
-assert.match(dogfood, /Inventory check while retained reports `cleanupCompleted=false`, `retainedEvidenceAvailable=true`, `cleanupBlockedUntilApproval=true`, and `validEvidenceLifecycle=true`/);
-assert.match(dogfood, /It now also checks Dogfood Run 119 retained linked worktree path presence, branch presence, dirty marker, runtime root, and current source repo status/);
+assert.match(dogfood, /Cleanup completed after Dogfood Run 119 destructive cleanup authorization/);
+assert.match(dogfood, /Dogfood Run 119 retained-evidence was committed and published as `7add094` before destructive cleanup/);
+assert.match(dogfood, /Removed linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-116` with `git worktree remove --force`/);
+assert.match(dogfood, /Deleted branch `worktree\/v1-dogfood-runner-116` with `git branch -D`/);
+assert.match(dogfood, /Inventory check after cleanup reports `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`/);
+assert.match(dogfood, /It now also checks Dogfood Run 119 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
