@@ -2150,8 +2150,13 @@ assert.match(dogfood, /listener cleanup: no `runtime-v1-dogfood-runner-v1-dogfoo
 assert.match(dogfood, /source `main` was clean\/published before execute and dry-run reported no branch, path, or runtimeRoot collision for slug `v1-dogfood-runner-118`/);
 assert.match(dogfood, /operator-directed slug `v1-dogfood-runner-118`/);
 assert.match(dogfood, /project-0002` at `worktree\/v1-dogfood-runner-118`/);
-assert.match(dogfood, /Retained cleanup is intentionally blocked until the retained-evidence commit is preserved and destructive cleanup is executed in the same lifecycle/);
-assert.match(dogfood, /It now also checks Dogfood Run 121 retained linked worktree dirty marker, branch, path, runtime root, cleanup approval gate, and current source repo status/);
+assert.match(dogfood, /Cleanup completed after Dogfood Run 121 destructive cleanup authorization/);
+assert.match(dogfood, /Dogfood Run 121 retained-evidence was committed and published as `489b3ca` before destructive cleanup/);
+assert.match(dogfood, /Removed linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-118` with `git worktree remove --force`/);
+assert.match(dogfood, /Deleted branch `worktree\/v1-dogfood-runner-118` with `git branch -D`/);
+assert.match(dogfood, /Inventory check after cleanup reports `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`/);
+assert.match(dogfood, /No retained dogfood linked worktree remains after Dogfood Run 121 cleanup/);
+assert.match(dogfood, /It now also checks Dogfood Run 121 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status/);
 
 console.log(
   JSON.stringify(
@@ -2161,7 +2166,7 @@ console.log(
         document: 'docs/16_v1-dogfood-triage.md',
         run: 'Dogfood Run 121',
         result: 'pass',
-        nextAction: 'Dogfood Run 121 retained-evidence commit/push pending',
+        nextAction: 'Dogfood Run 121 cleanup-completed evidence commit/push pending',
       },
     },
     null,

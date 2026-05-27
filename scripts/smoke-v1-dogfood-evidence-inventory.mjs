@@ -1657,8 +1657,12 @@ assert.match(dogfood, /linked worktree branch: `worktree\/v1-dogfood-runner-118`
 assert.match(dogfood, /linked worktree path: `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-118`/);
 assert.match(dogfood, /runtimeRoot: `\/Users\/sungjin\/dev\/personal\/orchestration\/var\/runtime-v1-dogfood-runner-v1-dogfood-runner-118`/);
 assert.match(dogfood, /baseUrl: `http:\/\/127\.0\.0\.1:52011`/);
-assert.match(dogfood, /Retained cleanup is intentionally blocked until the retained-evidence commit is preserved and destructive cleanup is executed in the same lifecycle/);
-assert.match(dogfood, /It now also checks Dogfood Run 121 retained linked worktree dirty marker, branch, path, runtime root, cleanup approval gate, and current source repo status/);
+assert.match(dogfood, /Cleanup completed after Dogfood Run 121 destructive cleanup authorization/);
+assert.match(dogfood, /Dogfood Run 121 retained-evidence was committed and published as `489b3ca` before destructive cleanup/);
+assert.match(dogfood, /Removed linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-118` with `git worktree remove --force`/);
+assert.match(dogfood, /Deleted branch `worktree\/v1-dogfood-runner-118` with `git branch -D`/);
+assert.match(dogfood, /Inventory check after cleanup reports `cleanupCompleted=true`, `retainedEvidenceAvailable=false`, `cleanupBlockedUntilApproval=false`, and `validEvidenceLifecycle=true`/);
+assert.match(dogfood, /It now also checks Dogfood Run 121 cleanup-completed linked worktree path absence, branch absence, runtime root, and current source repo status/);
 assert.match(dogfood, /worktree\/v1-dogfood-runner-054/);
 assert.match(dogfood, /\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-054/);
 assert.doesNotMatch(dogfood, /Retained cleanup pending after explicit Dogfood Run 045 execute approval/);
