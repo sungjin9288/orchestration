@@ -55,7 +55,7 @@ completion/status/triage/inventory/aggregate checks pass again on the new head.
 | Downstream local follow-up boundary | `docs/03_architecture-roadmap-v1.md`, `packs/development/pack.md` | Complete as explicit local follow-up only | Current docs and status scripts |
 | Live provider boundary | `docs/01_decision-log.md`, `docs/03_architecture-roadmap-v1.md` | Complete at `openai-responses` planner-through-reviewer opt-in | Provider synthetic checks inside `node scripts/verification_status.mjs` |
 | Harness-first posture and Hermes internal composition | `docs/13_harness-baseline.md` | Complete for repo-native harness governance and internal Hermes-style loop mapping | `node scripts/harness_verification_status.mjs` and `node scripts/hermes-agent-internal-harness-status.mjs` |
-| Dogfood lifecycle and cleanup evidence | `docs/16_v1-dogfood-triage.md`, `docs/15_v1-start-runbook.md` | Complete through Dogfood Run 113 cleanup | `node scripts/v1-dogfood-evidence-inventory.mjs` |
+| Dogfood lifecycle and cleanup evidence | `docs/16_v1-dogfood-triage.md`, `docs/15_v1-start-runbook.md` | Complete through Dogfood Run 121 cleanup | `node scripts/v1-dogfood-evidence-inventory.mjs` |
 | Issue-driven implementation entry gate | `docs/15_v1-start-runbook.md`, `docs/04_codex-handoff-master-brief.md` | Complete; no new slice opens without a concrete issue | `node scripts/v1-kickoff-evidence-triage.mjs` |
 
 ## Current Completion Criteria

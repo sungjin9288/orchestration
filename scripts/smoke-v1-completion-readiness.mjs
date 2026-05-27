@@ -41,11 +41,16 @@ for (const anchor of [
   'planner -> architect -> task-breaker -> builder-preflight -> builder-live-mutation -> reviewer',
   'openai-responses',
   'Harness-first posture and Hermes internal composition',
-  'Dogfood Run 113 cleanup',
+  'Dogfood Run 121 cleanup',
   'Issue-driven implementation entry gate',
 ]) {
   assert.match(readiness, new RegExp(anchor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 }
+
+assert.doesNotMatch(
+  readiness,
+  /Dogfood lifecycle and cleanup evidence[^\n]*Complete through Dogfood Run 113 cleanup/,
+);
 
 for (const command of [
   'node scripts/v1-local-completion-status.mjs',
@@ -71,6 +76,7 @@ assert.match(handoff, /not self-referential current-head claims/);
 assert.match(todo, /v1-planned-feature-completion-readiness-post-m7-736/);
 assert.match(todo, /v1-completion-published-head-proof-post-m7-737/);
 assert.match(todo, /v1-completion-handoff-proof-language-post-m7-738/);
+assert.match(todo, /v1-completion-dogfood-lifecycle-anchor-post-m7-760/);
 assert.match(verificationStatus, /v1-completion-readiness/);
 assert.match(verificationStatus, /scripts\/smoke-v1-completion-readiness\.mjs/);
 assert.match(verificationStatus, /v1-review-passed-deliverables-routing/);
