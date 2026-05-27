@@ -82,7 +82,9 @@ const report = {
     shortHead: operatorStatus.main?.shortHead ?? null,
   },
   approvalGatedChoices,
-  nextAllowedWithoutApproval: ['defer-push'],
+  nextAllowedWithoutApproval: (operatorStatus.operatorChoices || [])
+    .filter((choice) => choice.available && !choice.requiresExplicitApproval)
+    .map((choice) => choice.action),
   blockedUntilExplicitApproval: approvalGatedChoices
     .filter((choice) => choice.available)
     .map((choice) => choice.action),

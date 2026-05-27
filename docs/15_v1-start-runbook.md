@@ -185,13 +185,15 @@ The command produces a read-only status summary for:
 - current `main` clean/dirty state, head, and ahead count
 - `node scripts/verification_status.mjs` aggregate status
 - retained dogfood evidence inventory and cleanup completion state
-- operator choices for deferring push or running another execute-mode dogfood slug
+- operator choices for holding the complete baseline, deferring an available push, or running another execute-mode dogfood slug
 
 Safety boundary:
 - the script does not push, remove worktrees, delete branches, execute dogfood, commit, merge, release, or close out
 - retained dogfood cleanup can be either completed or currently blocked behind explicit cleanup approval; `run-another-dogfood-execute` remains a separate explicit operator approval decision
 - `verification_status` is serialized through `var/locks/verification_status.lock`, so nested status checks do not run shared smoke runtime roots concurrently
-- default safe action remains to defer new execution unless the operator explicitly chooses another execute dogfood slug
+- `hold-complete-baseline` is available when `main` is clean/published and no retained dogfood cleanup is pending
+- `defer-push` is available only when local `main` is ahead of `origin/main`
+- default safe action remains to hold the complete baseline and defer new execution unless the operator explicitly chooses another execute dogfood slug
 
 Manual concurrency regression check:
 - run `node scripts/smoke-verification-status-lock-concurrency.mjs` when changing `verification_status` locking or `v1-operator-status` nested verification behavior
@@ -210,7 +212,8 @@ The command reports `localDevelopmentComplete=true` only when:
 Safety boundary:
 - the script is read-only
 - it does not push, clean worktrees, execute dogfood, commit, merge, release, or close out
-- `defer-push` remains the no-op next action listed as allowed without approval
+- `hold-complete-baseline` is the no-op next action when `main` is clean/published and no retained dogfood cleanup is pending
+- `defer-push` is only listed when local `main` is ahead of `origin/main` and the operator has not approved publish yet
 
 ## V1 Kickoff Status
 Use `node scripts/v1-kickoff-status.mjs` after local completion is green and dogfood cleanup is complete.

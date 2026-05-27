@@ -24,6 +24,7 @@ assert.match(status, /scripts\/v1-dogfood-evidence-inventory\.mjs/);
 assert.match(status, /execFileSync\(process\.execPath/);
 assert.match(status, /maxBuffer: 10 \* 1024 \* 1024/);
 assert.doesNotMatch(status, /spawnSync/);
+assert.match(status, /action: 'hold-complete-baseline'/);
 assert.match(status, /action: 'defer-push'/);
 assert.match(status, /action: 'push-main'/);
 assert.match(status, /action: 'cleanup-retained-dogfood-worktrees'/);
@@ -37,6 +38,9 @@ assert.match(status, /doesNotRemoveWorktrees: true/);
 assert.match(status, /doesNotDeleteBranches: true/);
 assert.match(status, /doesNotCommit: true/);
 assert.match(status, /doesNotRunDogfoodExecute: true/);
+assert.match(status, /completeBaselineAvailable/);
+assert.match(status, /available: main\.aheadCount > 0 && main\.clean/);
+assert.match(status, /hold the clean published completion baseline unless a concrete issue or explicit dogfood repetition is chosen/);
 
 assert.match(runbook, /## Operator Decision Status/);
 assert.match(runbook, /node scripts\/v1-operator-status\.mjs/);
@@ -44,6 +48,8 @@ assert.match(runbook, /read-only status summary/);
 assert.match(runbook, /retained dogfood evidence inventory and cleanup completion state/);
 assert.match(runbook, /does not push, remove worktrees, delete branches, execute dogfood, commit, merge, release, or close out/);
 assert.match(runbook, /retained dogfood cleanup can be either completed or currently blocked behind explicit cleanup approval/);
+assert.match(runbook, /`hold-complete-baseline` is available when `main` is clean\/published and no retained dogfood cleanup is pending/);
+assert.match(runbook, /`defer-push` is available only when local `main` is ahead of `origin\/main`/);
 
 assert.match(verificationStatus, /v1-operator-status/);
 assert.match(verificationStatus, /scripts\/smoke-v1-operator-status\.mjs/);
@@ -58,10 +64,11 @@ assert.match(lockConcurrencySmoke, /childTimeoutMs = 180_000/);
 assert.match(runbook, /node scripts\/smoke-verification-status-lock-concurrency\.mjs/);
 assert.match(runbook, /keep this smoke standalone/);
 assert.match(completionStatus, /mode: 'v1-local-completion-status'/);
-assert.match(completionStatus, /nextAllowedWithoutApproval: \['defer-push'\]/);
+assert.doesNotMatch(completionStatus, /nextAllowedWithoutApproval: \['defer-push'\]/);
 assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
 assert.match(runbook, /whether push approval is currently available because local `main` is ahead of `origin\/main`/);
 assert.match(runbook, /retained cleanup is either complete or approval-blocked/);
+assert.match(completionStatus, /nextAllowedWithoutApproval: \(operatorStatus\.operatorChoices \|\| \[\]\)/);
 
 console.log(
   JSON.stringify(
@@ -73,6 +80,7 @@ console.log(
           'push-main',
           'run-another-dogfood-execute',
         ],
+        noApprovalChoices: ['hold-complete-baseline', 'defer-push'],
         document: 'docs/15_v1-start-runbook.md',
         readOnlyStatus: 'scripts/v1-operator-status.mjs',
       },

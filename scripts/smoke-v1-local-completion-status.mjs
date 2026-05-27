@@ -23,7 +23,8 @@ assert.match(completionStatus, /retainedCleanupBlocked/);
 assert.match(completionStatus, /retainedCleanupCompleted/);
 assert.match(completionStatus, /pushSettled/);
 assert.match(completionStatus, /cleanupSettled/);
-assert.match(completionStatus, /nextAllowedWithoutApproval: \['defer-push'\]/);
+assert.match(completionStatus, /nextAllowedWithoutApproval: \(operatorStatus\.operatorChoices \|\| \[\]\)/);
+assert.match(completionStatus, /choice\.available && !choice\.requiresExplicitApproval/);
 assert.match(completionStatus, /doesNotPush: true/);
 assert.match(completionStatus, /doesNotCleanWorktrees: true/);
 assert.match(completionStatus, /doesNotExecuteDogfood: true/);
@@ -40,6 +41,8 @@ assert.match(runbook, /inspect current-head completion, kickoff, dogfood invento
 assert.match(runbook, /keep source `main` clean\/published; Dogfood Run 121 cleanup-completed evidence is already committed\/published and no retained dogfood cleanup blocker remains/);
 assert.match(runbook, /no Run 121 cleanup commit or push action is pending on the current clean\/published baseline/);
 assert.match(runbook, /run another intentional `--execute --slug <slug>` dogfood pass only when the operator deliberately chooses optional dogfood repetition from a clean\/published baseline/);
+assert.match(runbook, /`hold-complete-baseline` is the no-op next action when `main` is clean\/published and no retained dogfood cleanup is pending/);
+assert.match(runbook, /`defer-push` is only listed when local `main` is ahead of `origin\/main` and the operator has not approved publish yet/);
 assert.doesNotMatch(runbook, /commit Dogfood Run 121 cleanup-completed evidence docs locally only after verification and commit approval/);
 assert.doesNotMatch(runbook, /publish the Dogfood Run 121 cleanup-completed evidence commit only after explicit `git push origin main` approval/);
 assert.doesNotMatch(runbook, /do not run another intentional `--execute --slug <slug>` dogfood pass until Dogfood Run 121 cleanup-completed evidence is committed\/published and final status is clean\/published/);

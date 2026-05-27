@@ -133,13 +133,22 @@ function getOperatorChoices(main, dogfoodEvidence) {
   const hasRetainedEvidence = dogfoodEvidence.retainedEvidenceWorktrees.some(
     (entry) => entry.exists || entry.branchExists,
   );
+  const completeBaselineAvailable = main.clean && main.aheadCount === 0 && !hasRetainedEvidence;
 
   return [
     {
-      action: 'defer-push',
-      available: true,
+      action: 'hold-complete-baseline',
+      available: completeBaselineAvailable,
       destructive: false,
-      reason: 'Local development can continue without publishing origin/main.',
+      reason:
+        'No local publish or retained dogfood cleanup action is pending; keep the completion baseline clean unless a concrete issue or explicit dogfood repetition is chosen.',
+      requiresExplicitApproval: false,
+    },
+    {
+      action: 'defer-push',
+      available: main.aheadCount > 0 && main.clean,
+      destructive: false,
+      reason: 'Local development can continue without publishing origin/main while local main is ahead.',
       requiresExplicitApproval: false,
     },
     {
@@ -177,11 +186,13 @@ const report = {
   mode: 'v1-operator-status',
   dogfoodEvidence,
   main,
-  nextRecommendedAction: main.clean
-    ? dogfoodEvidence.cleanupBlockedUntilApproval
-      ? 'await explicit operator approval for retained dogfood cleanup or another execute dogfood slug, or continue with no-op defer state'
-      : 'await explicit operator approval for another execute dogfood slug or continue with no-op defer state'
-    : 'finish or commit the current local changes before push or another execute dogfood run',
+  nextRecommendedAction: !main.clean
+    ? 'finish or commit the current local changes before push or another execute dogfood run'
+    : main.aheadCount > 0
+      ? 'defer push, request explicit push approval, or continue only with a concrete issue-driven slice'
+      : dogfoodEvidence.cleanupBlockedUntilApproval
+        ? 'await explicit operator approval for retained dogfood cleanup, or keep the current baseline unchanged'
+        : 'hold the clean published completion baseline unless a concrete issue or explicit dogfood repetition is chosen',
   operatorChoices: getOperatorChoices(main, dogfoodEvidence),
   safetyBoundary: {
     readOnly: true,
