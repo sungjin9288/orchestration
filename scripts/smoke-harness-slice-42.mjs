@@ -32,6 +32,10 @@ assert.equal(payload.posture, 'explicit-local-output-brief');
 assert.equal(payload.dependencyRequired, false);
 assert.equal(payload.installsShellHooks, false);
 assert.equal(payload.rewritesCommands, false);
+assert.equal(payload.limits.maxLines, 4);
+assert.equal(payload.limits.maxLinesSource, '--max-lines');
+assert.equal(payload.limits.maxChars, 4000);
+assert.equal(payload.limits.maxCharsSource, 'default');
 assert.equal(payload.input.source, 'stdin');
 assert.equal(payload.countsByType.fail, 1);
 assert.equal(payload.countsByType.warn, 1);
@@ -43,6 +47,45 @@ assert.deepEqual(
   ['fail', 'warn', 'pass', 'command'],
 );
 
+const charLimitResult = spawnSync(
+  process.execPath,
+  [briefScript, '--max-lines', '1', '--max-chars', '12'],
+  {
+    cwd: repoRoot,
+    input: 'Error: this failure line should be truncated for operator preview checks\n',
+    encoding: 'utf8',
+  },
+);
+
+assert.equal(
+  charLimitResult.status,
+  0,
+  `verification output brief char limit failed: ${charLimitResult.stderr}`,
+);
+
+const charLimitPayload = JSON.parse(charLimitResult.stdout);
+
+assert.equal(charLimitPayload.limits.maxLines, 1);
+assert.equal(charLimitPayload.limits.maxChars, 12);
+assert.equal(charLimitPayload.limits.maxCharsSource, '--max-chars');
+assert.equal(charLimitPayload.briefLines.length, 1);
+assert.equal(charLimitPayload.briefLines[0].text, 'Error: this ...');
+
+const invalidLimitResult = spawnSync(process.execPath, [briefScript, '--max-lines', 'nope'], {
+  cwd: repoRoot,
+  input: sampleOutput,
+  encoding: 'utf8',
+});
+
+assert.equal(invalidLimitResult.status, 1);
+
+const invalidLimitPayload = JSON.parse(invalidLimitResult.stderr);
+
+assert.equal(invalidLimitPayload.ok, false);
+assert.equal(invalidLimitPayload.mode, 'verification-output-brief');
+assert.equal(invalidLimitPayload.error, 'invalid-arguments');
+assert.match(invalidLimitPayload.message, /--max-lines must be an integer/);
+
 console.log(
   JSON.stringify(
     {
@@ -51,6 +94,7 @@ console.log(
         mode: payload.mode,
         referenceSignal: payload.referenceSignal,
         briefLineCount: payload.briefLines.length,
+        charLimit: charLimitPayload.limits.maxChars,
       },
     },
     null,

@@ -154,6 +154,9 @@ Local source-only quality guard inspired by the `andrej-karpathy-skills` referen
 ### `scripts/verification-output-brief.mjs`
 Local explicit output brief inspired by the `rtk` reference signal:
 - accepts stdin or a local `--file` input and emits a compact JSON brief of command/test output
+- supports bounded preview options `--max-lines` and `--max-chars`, emits the applied `limits`
+  object, and treats invalid limit values as structured argument errors instead of silently
+  falling back to defaults
 - classifies failure, warning, pass, command, and context lines without executing commands itself
 - installs no shell hooks, rewrites no commands, and requires no external dependency
 - keeps output compaction as an operator-invoked helper instead of an automatic CLI proxy

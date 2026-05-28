@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const args = process.argv.slice(2);
+const DEFAULT_MAX_LINES = 12;
+const DEFAULT_MAX_CHARS = 4000;
+const MAX_LINES_LIMIT = 200;
+const MAX_CHARS_LIMIT = 20000;
 
 function readArgValue(name) {
   const index = args.indexOf(name);
@@ -30,17 +34,59 @@ function readInput() {
   };
 }
 
-function parsePositiveInteger(value, fallback) {
-  if (!value) {
-    return fallback;
+function parsePositiveIntegerOption(name, fallback, upperBound) {
+  const rawValue = readArgValue(name);
+
+  if (rawValue === null) {
+    return {
+      source: 'default',
+      value: fallback,
+    };
   }
 
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+  const parsed = Number(rawValue);
+
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > upperBound) {
+    throw new Error(`${name} must be an integer from 1 to ${upperBound}`);
+  }
+
+  return {
+    source: name,
+    value: parsed,
+  };
 }
 
-const maxLines = parsePositiveInteger(readArgValue('--max-lines'), 12);
-const maxChars = parsePositiveInteger(readArgValue('--max-chars'), 4000);
+let maxLinesOption = null;
+let maxCharsOption = null;
+
+try {
+  maxLinesOption = parsePositiveIntegerOption('--max-lines', DEFAULT_MAX_LINES, MAX_LINES_LIMIT);
+  maxCharsOption = parsePositiveIntegerOption('--max-chars', DEFAULT_MAX_CHARS, MAX_CHARS_LIMIT);
+} catch (error) {
+  console.error(
+    JSON.stringify(
+      {
+        ok: false,
+        mode: 'verification-output-brief',
+        error: 'invalid-arguments',
+        message: error.message,
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(1);
+}
+
+const limits = {
+  maxLines: maxLinesOption.value,
+  maxLinesSource: maxLinesOption.source,
+  maxChars: maxCharsOption.value,
+  maxCharsSource: maxCharsOption.source,
+};
+
+const maxLines = limits.maxLines;
+const maxChars = limits.maxChars;
 const input = readInput();
 
 if (input.text.trim().length === 0) {
@@ -97,6 +143,7 @@ const payload = {
   dependencyRequired: false,
   installsShellHooks: false,
   rewritesCommands: false,
+  limits,
   input: {
     source: input.source,
     sourcePath: input.sourcePath,
