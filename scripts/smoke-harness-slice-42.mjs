@@ -85,6 +85,39 @@ assert.equal(invalidLimitPayload.ok, false);
 assert.equal(invalidLimitPayload.mode, 'verification-output-brief');
 assert.equal(invalidLimitPayload.error, 'invalid-arguments');
 assert.match(invalidLimitPayload.message, /--max-lines must be an integer/);
+assert.deepEqual(invalidLimitPayload.allowedFlags, ['--file', '--max-lines', '--max-chars']);
+
+const unknownFlagResult = spawnSync(process.execPath, [briefScript, '--max-liness', '1'], {
+  cwd: repoRoot,
+  input: sampleOutput,
+  encoding: 'utf8',
+});
+
+assert.equal(unknownFlagResult.status, 1);
+
+const unknownFlagPayload = JSON.parse(unknownFlagResult.stderr);
+
+assert.equal(unknownFlagPayload.ok, false);
+assert.equal(unknownFlagPayload.mode, 'verification-output-brief');
+assert.equal(unknownFlagPayload.error, 'invalid-arguments');
+assert.match(unknownFlagPayload.message, /Unknown argument: --max-liness/);
+assert.deepEqual(unknownFlagPayload.allowedFlags, ['--file', '--max-lines', '--max-chars']);
+
+const missingValueResult = spawnSync(process.execPath, [briefScript, '--file', '--max-lines', '1'], {
+  cwd: repoRoot,
+  input: sampleOutput,
+  encoding: 'utf8',
+});
+
+assert.equal(missingValueResult.status, 1);
+
+const missingValuePayload = JSON.parse(missingValueResult.stderr);
+
+assert.equal(missingValuePayload.ok, false);
+assert.equal(missingValuePayload.mode, 'verification-output-brief');
+assert.equal(missingValuePayload.error, 'invalid-arguments');
+assert.match(missingValuePayload.message, /--file requires a value/);
+assert.deepEqual(missingValuePayload.allowedFlags, ['--file', '--max-lines', '--max-chars']);
 
 console.log(
   JSON.stringify(
@@ -95,6 +128,8 @@ console.log(
         referenceSignal: payload.referenceSignal,
         briefLineCount: payload.briefLines.length,
         charLimit: charLimitPayload.limits.maxChars,
+        unknownFlagRejected: true,
+        missingValueRejected: true,
       },
     },
     null,

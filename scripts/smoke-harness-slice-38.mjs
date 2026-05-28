@@ -71,6 +71,40 @@ assert.equal(limitedSearchPayload.limits.source, '--max-items');
 assert.equal(limitedSearchPayload.search.query, 'markitdown');
 assert.equal(limitedSearchPayload.search.hits.length, 3);
 
+const unknownFlagResult = spawnSync(
+  process.execPath,
+  [memoryBriefScript, '--qeury', 'markitdown', '--max-items', '1'],
+  {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  },
+);
+
+assert.equal(unknownFlagResult.status, 1);
+
+const unknownFlagPayload = JSON.parse(unknownFlagResult.stderr);
+
+assert.equal(unknownFlagPayload.ok, false);
+assert.equal(unknownFlagPayload.mode, 'memory-brief');
+assert.equal(unknownFlagPayload.error, 'invalid-arguments');
+assert.match(unknownFlagPayload.message, /Unknown argument: --qeury/);
+assert.deepEqual(unknownFlagPayload.allowedFlags, ['--query', '-q', '--max-items', '--limit']);
+
+const missingValueResult = spawnSync(process.execPath, [memoryBriefScript, '--query', '--max-items', '1'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+
+assert.equal(missingValueResult.status, 1);
+
+const missingValuePayload = JSON.parse(missingValueResult.stderr);
+
+assert.equal(missingValuePayload.ok, false);
+assert.equal(missingValuePayload.mode, 'memory-brief');
+assert.equal(missingValuePayload.error, 'invalid-arguments');
+assert.match(missingValuePayload.message, /--query requires a value/);
+assert.deepEqual(missingValuePayload.allowedFlags, ['--query', '-q', '--max-items', '--limit']);
+
 console.log(
   JSON.stringify(
     {
@@ -83,6 +117,8 @@ console.log(
         searchQuery: searchPayload.search.query,
         searchHitCount: searchPayload.search.hits.length,
         limitedSearchHitCount: limitedSearchPayload.search.hits.length,
+        unknownFlagRejected: true,
+        missingValueRejected: true,
       },
     },
     null,

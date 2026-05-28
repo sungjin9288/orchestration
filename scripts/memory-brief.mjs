@@ -5,11 +5,11 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const args = process.argv.slice(2);
-const queryIndex = args.findIndex((arg) => arg === '--query' || arg === '-q');
-const query = queryIndex >= 0 ? String(args[queryIndex + 1] || '').trim() : '';
 const DEFAULT_OPEN_TASK_PREVIEW_LIMIT = 10;
 const DEFAULT_SEARCH_HIT_LIMIT = 20;
 const MAX_ITEM_LIMIT = 100;
+const ALLOWED_FLAGS = ['--query', '-q', '--max-items', '--limit'];
+const ALLOWED_FLAG_SET = new Set(ALLOWED_FLAGS);
 
 const SOURCE_FILES = [
   'AGENTS.md',
@@ -47,15 +47,7 @@ function extractOpenTaskLines(content) {
     .filter((line) => line.startsWith('- [ ]'));
 }
 
-function parseMaxItemsOption(rawArgs) {
-  const optionIndex = rawArgs.findIndex((arg) => arg === '--max-items' || arg === '--limit');
-
-  if (optionIndex < 0) {
-    return null;
-  }
-
-  const optionName = rawArgs[optionIndex];
-  const rawValue = String(rawArgs[optionIndex + 1] || '').trim();
+function parseMaxItemsValue(optionName, rawValue) {
   const parsedValue = Number(rawValue);
 
   if (!Number.isInteger(parsedValue) || parsedValue < 1 || parsedValue > MAX_ITEM_LIMIT) {
@@ -65,6 +57,48 @@ function parseMaxItemsOption(rawArgs) {
   return {
     source: optionName,
     value: parsedValue,
+  };
+}
+
+function readRequiredOptionValue(rawArgs, index, optionName) {
+  const rawValue = rawArgs[index + 1];
+
+  if (!rawValue || rawValue.startsWith('--') || ALLOWED_FLAG_SET.has(rawValue)) {
+    throw new Error(`${optionName} requires a value`);
+  }
+
+  return String(rawValue).trim();
+}
+
+function parseCliOptions(rawArgs) {
+  let query = '';
+  let maxItemsOption = null;
+
+  for (let index = 0; index < rawArgs.length; index += 1) {
+    const optionName = rawArgs[index];
+
+    if (!optionName.startsWith('-')) {
+      throw new Error(`Unexpected positional argument: ${optionName}`);
+    }
+
+    if (!ALLOWED_FLAG_SET.has(optionName)) {
+      throw new Error(`Unknown argument: ${optionName}`);
+    }
+
+    const rawValue = readRequiredOptionValue(rawArgs, index, optionName);
+
+    if (optionName === '--query' || optionName === '-q') {
+      query = rawValue;
+    } else {
+      maxItemsOption = parseMaxItemsValue(optionName, rawValue);
+    }
+
+    index += 1;
+  }
+
+  return {
+    query,
+    maxItemsOption,
   };
 }
 
@@ -98,10 +132,10 @@ function extractSearchHits(sources, searchTerm, limit) {
   return hits.slice(0, limit);
 }
 
-let maxItemsOption = null;
+let cliOptions = null;
 
 try {
-  maxItemsOption = parseMaxItemsOption(args);
+  cliOptions = parseCliOptions(args);
 } catch (error) {
   console.error(
     JSON.stringify(
@@ -110,6 +144,7 @@ try {
         mode: 'memory-brief',
         error: 'invalid-arguments',
         message: error.message,
+        allowedFlags: ALLOWED_FLAGS,
       },
       null,
       2,
@@ -117,6 +152,8 @@ try {
   );
   process.exit(1);
 }
+
+const { query, maxItemsOption } = cliOptions;
 
 const limits = {
   openTaskPreview: maxItemsOption?.value || DEFAULT_OPEN_TASK_PREVIEW_LIMIT,

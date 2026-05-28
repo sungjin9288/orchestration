@@ -9,6 +9,30 @@ const DEFAULT_MAX_LINES = 12;
 const DEFAULT_MAX_CHARS = 4000;
 const MAX_LINES_LIMIT = 200;
 const MAX_CHARS_LIMIT = 20000;
+const ALLOWED_FLAGS = ['--file', '--max-lines', '--max-chars'];
+const ALLOWED_FLAG_SET = new Set(ALLOWED_FLAGS);
+
+function validateArgs() {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (!arg.startsWith('--')) {
+      throw new Error(`Unexpected positional argument: ${arg}`);
+    }
+
+    if (!ALLOWED_FLAG_SET.has(arg)) {
+      throw new Error(`Unknown argument: ${arg}`);
+    }
+
+    const value = args[index + 1];
+
+    if (!value || value.startsWith('--')) {
+      throw new Error(`${arg} requires a value`);
+    }
+
+    index += 1;
+  }
+}
 
 function readArgValue(name) {
   const index = args.indexOf(name);
@@ -60,6 +84,7 @@ let maxLinesOption = null;
 let maxCharsOption = null;
 
 try {
+  validateArgs();
   maxLinesOption = parsePositiveIntegerOption('--max-lines', DEFAULT_MAX_LINES, MAX_LINES_LIMIT);
   maxCharsOption = parsePositiveIntegerOption('--max-chars', DEFAULT_MAX_CHARS, MAX_CHARS_LIMIT);
 } catch (error) {
@@ -70,6 +95,7 @@ try {
         mode: 'verification-output-brief',
         error: 'invalid-arguments',
         message: error.message,
+        allowedFlags: ALLOWED_FLAGS,
       },
       null,
       2,
