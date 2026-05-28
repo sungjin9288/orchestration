@@ -2,8 +2,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const repoRoot = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
+
+requireNoCliArgs(process.argv.slice(2), { mode: 'prompt-provenance-guard' });
 
 const EXPECTED_PROMPT_FILES = [
   'prompts/architect.md',

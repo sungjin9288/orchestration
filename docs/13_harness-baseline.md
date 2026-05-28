@@ -106,6 +106,10 @@ Harnesses must:
 - `signal-only`: useful reference signal only; do not normalize into repo defaults
 
 ## Concrete Local Tooling (Now)
+Read-only harness evidence entrypoints that do not accept options reject unexpected CLI arguments
+with `error=invalid-arguments`, empty `allowedFlags`, received argument evidence, and exit 2 before
+collecting source, registry, doctor, or prompt evidence.
+
 ### `scripts/markitdown-convert.mjs`
 Wrapper for optional local `markitdown` CLI usage:
 - converts a document into markdown for later inspection

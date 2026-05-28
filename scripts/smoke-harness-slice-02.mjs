@@ -29,6 +29,21 @@ const payload = JSON.parse(result.stdout);
 assert.equal(payload.mode, 'harness-status');
 assert.equal(payload.ok, true);
 
+const typoResult = spawnSync(process.execPath, [scriptPath, '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+
+assert.equal(typoResult.status, 2);
+assert.equal(typoResult.stdout, '');
+
+const typoPayload = JSON.parse(typoResult.stderr);
+assert.equal(typoPayload.ok, false);
+assert.equal(typoPayload.mode, 'harness-status');
+assert.equal(typoPayload.error, 'invalid-arguments');
+assert.deepEqual(typoPayload.allowedFlags, []);
+assert.deepEqual(typoPayload.receivedArgs, ['--typo']);
+
 const ids = payload.harnesses.map((harness) => harness.id);
 assert.deepEqual(ids, [
   'markitdown',
@@ -60,6 +75,7 @@ console.log(
       docPath,
       scriptPath,
       harnessCount: payload.harnesses.length,
+      typoRejected: true,
     },
     null,
     2,

@@ -2,6 +2,9 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+
+requireNoCliArgs(process.argv.slice(2), { mode: 'harness-consumer-brief' });
 
 const repoRoot = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const consumerStatusScript = path.join(repoRoot, 'scripts', 'harness-consumer-status.mjs');

@@ -22,6 +22,22 @@ assert.equal(payload.referenceSignal, 'andrej-karpathy-skills');
 assert.equal(payload.posture, 'repo-native-guideline-guard');
 assert.equal(payload.dependencyRequired, false);
 assert.equal(payload.runtimeMutation, false);
+
+const typoResult = spawnSync(process.execPath, [guardScript, '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+
+assert.equal(typoResult.status, 2);
+assert.equal(typoResult.stdout, '');
+
+const typoPayload = JSON.parse(typoResult.stderr);
+assert.equal(typoPayload.ok, false);
+assert.equal(typoPayload.mode, 'work-quality-guard');
+assert.equal(typoPayload.error, 'invalid-arguments');
+assert.deepEqual(typoPayload.allowedFlags, []);
+assert.deepEqual(typoPayload.receivedArgs, ['--typo']);
+
 assert.equal(payload.failures.missingFiles.length, 0);
 assert.equal(payload.failures.missingAnchors.length, 0);
 
@@ -48,6 +64,7 @@ console.log(
         mode: payload.mode,
         referenceSignal: payload.referenceSignal,
         checkCount: payload.checks.length,
+        typoRejected: true,
       },
     },
     null,

@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+
+requireNoCliArgs(process.argv.slice(2), { mode: 'hermes-agent-internal-harness-status' });
 
 const hermesReference = {
   sourceId: 'hermes-agent',

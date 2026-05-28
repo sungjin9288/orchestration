@@ -20,6 +20,21 @@ assert.equal(payload.ok, true);
 assert.equal(payload.sourceMode, 'harness-consumer-status');
 assert.ok(payload.brief, 'consumer brief missing');
 
+const typoResult = spawnSync(process.execPath, [briefScript, '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+
+assert.equal(typoResult.status, 2);
+assert.equal(typoResult.stdout, '');
+
+const typoPayload = JSON.parse(typoResult.stderr);
+assert.equal(typoPayload.ok, false);
+assert.equal(typoPayload.mode, 'harness-consumer-brief');
+assert.equal(typoPayload.error, 'invalid-arguments');
+assert.deepEqual(typoPayload.allowedFlags, []);
+assert.deepEqual(typoPayload.receivedArgs, ['--typo']);
+
 const expectedBriefKeys = [
   'currentHostState',
   'primaryHarnessId',
@@ -49,6 +64,7 @@ console.log(
       ok: true,
       briefScript,
       brief: payload.brief,
+      typoRejected: true,
     },
     null,
     2,

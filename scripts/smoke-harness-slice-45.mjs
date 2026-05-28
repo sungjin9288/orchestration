@@ -25,6 +25,21 @@ assert.equal(payload.hermesReference.externalRunnerAdopted, false);
 assert.equal(payload.hermesReference.externalDependencyRequired, false);
 assert.equal(payload.hermesReference.externalInstallAllowedByDefault, false);
 
+const typoResult = spawnSync(process.execPath, [statusScript, '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+
+assert.equal(typoResult.status, 2);
+assert.equal(typoResult.stdout, '');
+
+const typoPayload = JSON.parse(typoResult.stderr);
+assert.equal(typoPayload.ok, false);
+assert.equal(typoPayload.mode, 'hermes-agent-internal-harness-status');
+assert.equal(typoPayload.error, 'invalid-arguments');
+assert.deepEqual(typoPayload.allowedFlags, []);
+assert.deepEqual(typoPayload.receivedArgs, ['--typo']);
+
 const harness = payload.internalHermesAgentHarness;
 assert.equal(harness.id, 'orchestration-hermes-agent-internal');
 assert.equal(harness.scope, 'v1-development-pack');
@@ -82,6 +97,7 @@ console.log(
         loopConcepts,
         safetyControlIds,
         verificationEntrypoints: harness.verificationEntrypoints,
+        typoRejected: true,
       },
     },
     null,

@@ -20,6 +20,21 @@ assert.equal(payload.ok, true);
 assert.equal(payload.sourceMode, 'harness-run-doctor');
 assert.ok(payload.statusCard, 'consumer statusCard missing');
 
+const typoResult = spawnSync(process.execPath, [consumerScript, '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+
+assert.equal(typoResult.status, 2);
+assert.equal(typoResult.stdout, '');
+
+const typoPayload = JSON.parse(typoResult.stderr);
+assert.equal(typoPayload.ok, false);
+assert.equal(typoPayload.mode, 'harness-consumer-status');
+assert.equal(typoPayload.error, 'invalid-arguments');
+assert.deepEqual(typoPayload.allowedFlags, []);
+assert.deepEqual(typoPayload.receivedArgs, ['--typo']);
+
 const expectedStatusCardKeys = [
   'currentHostState',
   'primaryHarnessId',
@@ -58,6 +73,7 @@ console.log(
       ok: true,
       consumerScript,
       statusCard: payload.statusCard,
+      typoRejected: true,
     },
     null,
     2,

@@ -24,6 +24,22 @@ assert.equal(payload.upstreamContentImported, false);
 assert.equal(payload.runtimeMutation, false);
 assert.equal(payload.dependencyRequired, false);
 assert.equal(payload.promptCount, 6);
+
+const typoResult = spawnSync(process.execPath, [promptGuardScript, '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+
+assert.equal(typoResult.status, 2);
+assert.equal(typoResult.stdout, '');
+
+const typoPayload = JSON.parse(typoResult.stderr);
+assert.equal(typoPayload.ok, false);
+assert.equal(typoPayload.mode, 'prompt-provenance-guard');
+assert.equal(typoPayload.error, 'invalid-arguments');
+assert.deepEqual(typoPayload.allowedFlags, []);
+assert.deepEqual(typoPayload.receivedArgs, ['--typo']);
+
 assert.equal(payload.failures.missingPrompts.length, 0);
 assert.equal(payload.failures.blockedMarkerFindings.length, 0);
 assert.equal(payload.failures.contractFindings.length, 0);
@@ -53,6 +69,7 @@ console.log(
         posture: payload.posture,
         promptCount: payload.promptCount,
         blockedPromptMarkerCount: payload.blockedPromptMarkers.length,
+        typoRejected: true,
       },
     },
     null,

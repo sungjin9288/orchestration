@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import { harnesses } from './harness-registry.mjs';
 import { getHarnessState } from './harness-probe.mjs';
+import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+
+requireNoCliArgs(process.argv.slice(2), { mode: 'harness-status' });
 
 const checks = harnesses.map((harness) => getHarnessState(harness));
 
