@@ -25,6 +25,12 @@ assert.equal(payload.sources.some((source) => source.path === 'tasks/todo.md' &&
 assert.equal(payload.sources.some((source) => source.path === 'tasks/lessons.md' && source.exists), true);
 assert.ok(payload.acceptedDecisionCount > 0);
 assert.ok(payload.lessonCount > 0);
+assert.equal(payload.openTaskCount, 0);
+assert.equal(payload.openTaskPreview.length, 0);
+assert.equal(
+  payload.openTaskPreview.some((line) => /^#{1,6}\s+.*\[OPEN\]/.test(line)),
+  false,
+);
 
 const searchResult = spawnSync(process.execPath, [memoryBriefScript, '--query', 'markitdown'], {
   cwd: repoRoot,
@@ -49,6 +55,7 @@ console.log(
       memoryBrief: {
         mode: payload.mode,
         posture: payload.posture,
+        openTaskCount: payload.openTaskCount,
         sourceCount: payload.sourceCount,
         searchQuery: searchPayload.search.query,
         searchHitCount: searchPayload.search.hits.length,

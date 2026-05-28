@@ -127,7 +127,8 @@ Local harness inventory and posture report:
 ### `scripts/memory-brief.mjs`
 Local read-only memory brief inspired by the `mempalace` reference signal:
 - scans only repo source-of-truth docs and task ledgers
-- emits a JSON summary of accepted decisions, open task lines, lessons, and optional search hits
+- emits a JSON summary of accepted decisions, unchecked open task lines, lessons, and optional
+  search hits; historical `remaining [OPEN]` section headings are not counted as open tasks
 - persists nothing, mutates no runtime state, and requires no external memory dependency
 - keeps the future memory-store decision separate from the current executable harness path
 

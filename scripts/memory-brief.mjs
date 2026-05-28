@@ -41,7 +41,7 @@ function extractOpenTaskLines(content) {
   return String(content || '')
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.startsWith('- [ ]') || /^#{1,6}\s+.*\[OPEN\]/.test(line));
+    .filter((line) => line.startsWith('- [ ]'));
 }
 
 function extractSearchHits(sources, searchTerm) {
