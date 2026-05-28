@@ -177,11 +177,13 @@ The repeated temporary API runner has been converted into `scripts/v1-dogfood-li
 
 Default behavior is safe preview:
 - The runner defaults to non-mutating `--dry-run`.
-- `--dry-run` reports source `project_path`, target branch, target linked worktree path, runtime root, source git status, existing-path checks, and the no-commit/no-push boundary.
+- `--dry-run` reports source `project_path`, target branch, target linked worktree path, runtime root, explicit port when supplied, source git status, existing-path checks, and the no-commit/no-push boundary.
 - `--dry-run` does not start the UI server, create runtime state, create a branch, create a linked worktree, request approval, mutate files, commit, push, merge, release, or close out.
 
 Mutation behavior is explicit:
 - `--execute --slug <slug>` is required before the runner starts `scripts/serve-ui-slice-01.mjs` and calls the product API flow.
+- Invalid runner arguments return structured JSON with `error=invalid-arguments` and exit 2 instead of raw stack traces.
+- Preflight refusals return structured JSON with `error=preflight-refused` and exit 2 before creating branches, linked worktrees, runtime state, or approvals.
 - Execute mode refuses an existing linked worktree path, an existing `worktree/<slug>` branch, a dirty source repo, or an existing runtime root.
 - Execute mode registers the source project, creates the linked worktree through `/api/projects/:id/linked-worktrees`, creates a mission/council flow, approves the council recommendation, approves the pending builder live-mutation approval, runs builder live mutation, and runs reviewer unless `--skip-reviewer` is supplied.
 - Execute mode never runs `commit-package`, `local commit`, `push`, `merge`, `release-package`, or `close-out`.

@@ -10,6 +10,60 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const defaultProjectPath = repoRoot;
 const defaultSlug = 'v1-dogfood-safe-preview';
+const MODE = 'v1-dogfood-linked-worktree-runner';
+const ALLOWED_FLAGS = Object.freeze([
+  '--dry-run',
+  '--execute',
+  '--slug',
+  '--project-path',
+  '--runtime-root',
+  '--port',
+  '--skip-reviewer',
+  '--help',
+  '-h',
+]);
+
+class DogfoodRunnerError extends Error {
+  constructor(message, { error = 'invalid-arguments', exitCode = 2, details = {} } = {}) {
+    super(message);
+    this.name = 'DogfoodRunnerError';
+    this.error = error;
+    this.exitCode = exitCode;
+    this.details = details;
+  }
+}
+
+function invalidArgument(message, details = {}) {
+  return new DogfoodRunnerError(message, {
+    error: 'invalid-arguments',
+    exitCode: 2,
+    details,
+  });
+}
+
+function preflightRefused(message, details = {}) {
+  return new DogfoodRunnerError(message, {
+    error: 'preflight-refused',
+    exitCode: 2,
+    details,
+  });
+}
+
+function printDogfoodRunnerError(error) {
+  console.error(
+    JSON.stringify(
+      {
+        ok: false,
+        mode: MODE,
+        error: error.error,
+        message: error.message,
+        ...error.details,
+      },
+      null,
+      2,
+    ),
+  );
+}
 
 function printHelp() {
   console.log(`V1 linked worktree dogfood runner
@@ -87,15 +141,17 @@ function parseArgs(argv) {
     }
 
     if (arg === '--port') {
-      options.port = Number.parseInt(requireValue(argv, (index += 1), arg), 10);
+      options.port = requireValue(argv, (index += 1), arg);
       continue;
     }
 
-    throw new Error(`Unknown argument: ${arg}`);
+    throw invalidArgument(`Unknown argument: ${arg}`, {
+      allowedFlags: ALLOWED_FLAGS,
+    });
   }
 
   if (options.execute && options.dryRun) {
-    throw new Error('--execute and --dry-run cannot be used together');
+    throw invalidArgument('--execute and --dry-run cannot be used together');
   }
 
   if (!options.execute) {
@@ -109,7 +165,7 @@ function requireValue(argv, index, flag) {
   const value = argv[index];
 
   if (!value || value.startsWith('--')) {
-    throw new Error(`${flag} requires a value`);
+    throw invalidArgument(`${flag} requires a value`);
   }
 
   return value;
@@ -124,7 +180,7 @@ function normalizeSlug(value) {
     .replace(/-{2,}/g, '-');
 
   if (!slug) {
-    throw new Error('linked worktree slug is required');
+    throw invalidArgument('linked worktree slug is required');
   }
 
   return slug;
@@ -151,10 +207,32 @@ function realpathExisting(inputPath, label) {
   const resolved = path.resolve(inputPath);
 
   if (!fs.existsSync(resolved)) {
-    throw new Error(`${label} does not exist: ${resolved}`);
+    throw invalidArgument(`${label} does not exist: ${resolved}`, {
+      path: resolved,
+    });
   }
 
   return fs.realpathSync(resolved);
+}
+
+function normalizePort(value) {
+  if (value === null) {
+    return null;
+  }
+
+  const rawValue = String(value).trim();
+
+  if (!/^\d+$/.test(rawValue)) {
+    throw invalidArgument('--port must be an integer');
+  }
+
+  const port = Number(rawValue);
+
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw invalidArgument('--port must be an integer between 1 and 65535');
+  }
+
+  return port;
 }
 
 function buildPlan(options) {
@@ -165,16 +243,13 @@ function buildPlan(options) {
   const runtimeRoot = path.resolve(
     options.runtimeRoot || path.join(repoRoot, 'var', `runtime-v1-dogfood-runner-${slug}`),
   );
-
-  if (!Number.isInteger(options.port) && options.port !== null) {
-    throw new Error('--port must be an integer');
-  }
+  const port = normalizePort(options.port);
 
   return {
     branch,
     execute: options.execute,
     linkedWorktreePath,
-    port: options.port,
+    port,
     projectPath,
     runtimeRoot,
     skipReviewer: options.skipReviewer,
@@ -195,13 +270,14 @@ function preflightPlan(plan, options) {
 
   const report = {
     ok: true,
-    mode: 'v1-dogfood-linked-worktree-runner',
+    mode: MODE,
     execute: plan.execute,
     willMutate: plan.execute,
     neverRuns: ['commit-package', 'local commit', 'push', 'merge', 'release-package', 'close-out'],
     plan: {
       branch: plan.branch,
       linkedWorktreePath: plan.linkedWorktreePath,
+      port: plan.port,
       projectPath: plan.projectPath,
       runtimeRoot: plan.runtimeRoot,
       skipReviewer: plan.skipReviewer,
@@ -226,27 +302,37 @@ function preflightPlan(plan, options) {
   }
 
   if (!options.explicitSlug) {
-    throw new Error('--execute requires an explicit --slug so the linked worktree name is operator chosen');
+    throw invalidArgument('--execute requires an explicit --slug so the linked worktree name is operator chosen');
   }
 
   if (!sourceIsGitWorktree) {
-    throw new Error(report.error);
+    throw preflightRefused(report.error, {
+      projectPath: plan.projectPath,
+    });
   }
 
   if (sourceStatus) {
-    throw new Error(`--execute requires a clean source repo before creating a linked worktree: ${sourceStatus}`);
+    throw preflightRefused(`--execute requires a clean source repo before creating a linked worktree: ${sourceStatus}`, {
+      sourceStatus,
+    });
   }
 
   if (branchExists) {
-    throw new Error(`--execute refused existing linked worktree branch: ${plan.branch}`);
+    throw preflightRefused(`--execute refused existing linked worktree branch: ${plan.branch}`, {
+      branch: plan.branch,
+    });
   }
 
   if (linkedWorktreePathExists) {
-    throw new Error(`--execute refused existing linked worktree path: ${plan.linkedWorktreePath}`);
+    throw preflightRefused(`--execute refused existing linked worktree path: ${plan.linkedWorktreePath}`, {
+      linkedWorktreePath: plan.linkedWorktreePath,
+    });
   }
 
   if (runtimeRootExists) {
-    throw new Error(`--execute refused existing runtime root: ${plan.runtimeRoot}`);
+    throw preflightRefused(`--execute refused existing runtime root: ${plan.runtimeRoot}`, {
+      runtimeRoot: plan.runtimeRoot,
+    });
   }
 
   return report;
@@ -453,7 +539,7 @@ async function executeDogfood(plan) {
 
     return {
       ok: true,
-      mode: 'v1-dogfood-linked-worktree-runner',
+      mode: MODE,
       execute: true,
       baseUrl,
       project: {
@@ -526,6 +612,11 @@ async function main() {
 }
 
 main().catch((error) => {
+  if (error instanceof DogfoodRunnerError) {
+    printDogfoodRunnerError(error);
+    process.exit(error.exitCode);
+  }
+
   console.error(error.stack || error.message || String(error));
   process.exit(1);
 });

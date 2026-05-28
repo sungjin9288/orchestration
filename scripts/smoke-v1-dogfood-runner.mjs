@@ -1,5 +1,7 @@
+import { spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,6 +11,27 @@ const repoRoot = path.resolve(__dirname, '..');
 const runnerPath = path.join(repoRoot, 'scripts', 'v1-dogfood-linked-worktree-runner.mjs');
 const dogfoodPath = path.join(repoRoot, 'docs', '16_v1-dogfood-triage.md');
 const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_status.mjs');
+
+function runRunner(args) {
+  return spawnSync(process.execPath, [runnerPath, ...args], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  });
+}
+
+function parseRunnerFailure(result) {
+  assert.equal(result.status, 2);
+  assert.equal(result.stdout, '');
+  assert.doesNotMatch(result.stderr, /DogfoodRunnerError/);
+  assert.doesNotMatch(result.stderr, /\n\s+at\s/);
+
+  const payload = JSON.parse(result.stderr);
+
+  assert.equal(payload.ok, false);
+  assert.equal(payload.mode, 'v1-dogfood-linked-worktree-runner');
+
+  return payload;
+}
 
 const runner = fs.readFileSync(runnerPath, 'utf8');
 const dogfood = fs.readFileSync(dogfoodPath, 'utf8');
@@ -39,11 +62,57 @@ assert.match(runner, /requires a clean source repo/);
 assert.match(runner, /refused existing runtime root/);
 assert.match(runner, /server\.kill\('SIGTERM'\)/);
 assert.match(runner, /server\.kill\('SIGKILL'\)/);
+assert.match(runner, /class DogfoodRunnerError/);
+assert.match(runner, /invalid-arguments/);
+assert.match(runner, /preflight-refused/);
+assert.match(runner, /allowedFlags: ALLOWED_FLAGS/);
+
+const unknownFlagPayload = parseRunnerFailure(runRunner(['--dry-runn', '--slug', 'typo-check']));
+assert.equal(unknownFlagPayload.error, 'invalid-arguments');
+assert.match(unknownFlagPayload.message, /Unknown argument: --dry-runn/);
+assert.ok(unknownFlagPayload.allowedFlags.includes('--dry-run'));
+assert.ok(unknownFlagPayload.allowedFlags.includes('--execute'));
+
+const missingExecuteSlugPayload = parseRunnerFailure(runRunner(['--execute']));
+assert.equal(missingExecuteSlugPayload.error, 'invalid-arguments');
+assert.match(missingExecuteSlugPayload.message, /--execute requires an explicit --slug/);
+
+const invalidPortPayload = parseRunnerFailure(runRunner(['--dry-run', '--port', 'nope']));
+assert.equal(invalidPortPayload.error, 'invalid-arguments');
+assert.match(invalidPortPayload.message, /--port must be an integer/);
+
+const partialPortPayload = parseRunnerFailure(runRunner(['--dry-run', '--port', '123abc']));
+assert.equal(partialPortPayload.error, 'invalid-arguments');
+assert.match(partialPortPayload.message, /--port must be an integer/);
+
+const validPortResult = runRunner(['--dry-run', '--slug', 'valid-port-check', '--port', '49152']);
+assert.equal(validPortResult.status, 0);
+assert.equal(validPortResult.stderr, '');
+const validPortPayload = JSON.parse(validPortResult.stdout);
+assert.equal(validPortPayload.ok, true);
+assert.equal(validPortPayload.execute, false);
+assert.equal(validPortPayload.plan.port, 49152);
+
+const nonGitProjectPath = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-dogfood-runner-non-git-'));
+
+try {
+  const preflightRefusalPayload = parseRunnerFailure(
+    runRunner(['--execute', '--slug', 'preflight-refusal-check', '--project-path', nonGitProjectPath]),
+  );
+  assert.equal(preflightRefusalPayload.error, 'preflight-refused');
+  assert.match(preflightRefusalPayload.message, /project_path is not a git worktree/);
+  assert.equal(preflightRefusalPayload.projectPath, fs.realpathSync(nonGitProjectPath));
+} finally {
+  fs.rmSync(nonGitProjectPath, { force: true, recursive: true });
+}
 
 assert.match(dogfood, /## Repo-native Dogfood Runner/);
 assert.match(dogfood, /scripts\/v1-dogfood-linked-worktree-runner\.mjs/);
 assert.match(dogfood, /defaults to non-mutating `--dry-run`/);
+assert.match(dogfood, /explicit port when supplied/);
 assert.match(dogfood, /`--execute --slug <slug>`/);
+assert.match(dogfood, /Invalid runner arguments return structured JSON with `error=invalid-arguments` and exit 2/);
+assert.match(dogfood, /Preflight refusals return structured JSON with `error=preflight-refused` and exit 2/);
 assert.match(dogfood, /refuses an existing linked worktree path/);
 assert.match(dogfood, /never runs `commit-package`, `local commit`, `push`, `merge`, `release-package`, or `close-out`/);
 assert.match(dogfood, /Dogfood Run 002 linked worktree was retained dirty by design/);
