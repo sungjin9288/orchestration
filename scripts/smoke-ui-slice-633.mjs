@@ -16,9 +16,9 @@ const smokeCheckEntries = [...uiQaStatus.matchAll(/id:\s*'([^']+)',\s*\n\s*scrip
   }),
 );
 
-assert.equal(smokeCheckEntries.length, 22);
+assert.equal(smokeCheckEntries.length, 23);
 assert.deepEqual(
-  smokeCheckEntries.slice(-13),
+  smokeCheckEntries.slice(-14),
   [
     {
       id: 'harness-brief-mode-labels',
@@ -72,6 +72,10 @@ assert.deepEqual(
       id: 'workspace-playbook-no-mission-next-location',
       script: 'scripts/smoke-ui-slice-643.mjs',
     },
+    {
+      id: 'serve-ui-argument-guard',
+      script: 'scripts/smoke-ui-slice-644.mjs',
+    },
   ],
 );
 assert.match(uiQaStatus, /browserAutomation:\s*'manual-required'/);
@@ -83,7 +87,7 @@ console.log(
       ok: true,
       uiQaStatusRepresentativeCoverage: {
         requiredChecks: smokeCheckEntries.length,
-        representativeChecks: smokeCheckEntries.slice(-13),
+        representativeChecks: smokeCheckEntries.slice(-14),
         informationalSnapshotReachability: true,
       },
     },

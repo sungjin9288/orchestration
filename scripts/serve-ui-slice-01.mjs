@@ -38,17 +38,20 @@ function parseArgs(argv) {
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    const next = argv[index + 1];
 
-    if (arg === '--host' && next) {
-      options.host = next;
+    if (arg === '--host') {
+      options.host = requireOptionValue(argv, index, arg);
       index += 1;
-    } else if (arg === '--port' && next) {
-      options.port = Number(next);
+    } else if (arg === '--port') {
+      options.port = Number(requireOptionValue(argv, index, arg));
       index += 1;
-    } else if (arg === '--runtime-root' && next) {
-      options.runtimeRoot = path.resolve(repoRoot, next);
+    } else if (arg === '--runtime-root') {
+      options.runtimeRoot = path.resolve(repoRoot, requireOptionValue(argv, index, arg));
       index += 1;
+    } else if (arg.startsWith('--')) {
+      throw new Error(`Unknown argument: ${arg}`);
+    } else {
+      throw new Error(`Unexpected positional argument: ${arg}`);
     }
   }
 
@@ -59,7 +62,37 @@ function parseArgs(argv) {
   return options;
 }
 
-const options = parseArgs(process.argv.slice(2));
+function requireOptionValue(argv, index, flag) {
+  const value = argv[index + 1];
+
+  if (!value || value.startsWith('--')) {
+    throw new Error(`${flag} requires a value`);
+  }
+
+  return value;
+}
+
+let options;
+
+try {
+  options = parseArgs(process.argv.slice(2));
+} catch (error) {
+  console.error(
+    JSON.stringify(
+      {
+        ok: false,
+        mode: 'serve-ui-argument-error',
+        error: 'invalid-arguments',
+        message: error.message,
+        allowedFlags: ['--host', '--port', '--runtime-root'],
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(2);
+}
+
 const store = createFileStore({ runtimeRoot: options.runtimeRoot });
 const runtime = createRuntimeService({ runtimeRoot: options.runtimeRoot });
 const executionCoordinator = createExecutionCoordinator({

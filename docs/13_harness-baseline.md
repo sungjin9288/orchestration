@@ -225,6 +225,9 @@ Shell-friendly post-freeze brief surface:
 ### UI snapshot bridge for harness consumers
 Post-freeze UI follow-up surface:
 - `scripts/serve-ui-slice-01.mjs` reads `node scripts/harness-consumer-status.mjs` and `node scripts/harness-consumer-brief.mjs` and exposes the results as `derived.harnessConsumerStatus` plus `derived.harnessConsumerBrief`
+- the local UI server CLI accepts only `--host`, `--port`, and `--runtime-root`; unknown flags,
+  missing option values, or positional arguments fail before server start so a runtime-root typo
+  cannot silently fall back to the default `var/runtime`
 - `ui/app.js` consumes only those snapshot-derived payloads: the frozen brief drives the `Ops overview` signal strip plus read-only `하네스 실행 안내` registers inside the `Ops overview` org panel, `Execution`, `Taskboard`, `Logs`, `Artifacts`, `Deliverables`, and `Decision Inbox`, while the frozen consumer status drives one dedicated `하네스 실행 액션` shelf inside `Execution`
 - keeps the layering explicit: `doctor.summary -> consumer status -> consumer brief -> snapshot derived -> ops overview signal + brief registers -> execution operator-action shelf`
 - this is a UI consumer integration track, not a producer-contract change

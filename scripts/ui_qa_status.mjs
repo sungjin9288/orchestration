@@ -121,6 +121,12 @@ const smokeChecks = [
     purpose:
       'Workspace playbook keeps the no-mission next-location strip on Mission/new-agenda registration instead of routing to Council',
   },
+  {
+    id: 'serve-ui-argument-guard',
+    script: 'scripts/smoke-ui-slice-644.mjs',
+    purpose:
+      'Local UI server CLI rejects unknown flags and missing option values before falling back to the default runtime root',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {
