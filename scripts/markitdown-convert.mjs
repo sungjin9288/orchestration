@@ -4,11 +4,31 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const args = process.argv.slice(2);
+const allowedFlags = new Set(['--policy-report', '--dry-run']);
 const flags = new Set(args.filter((arg) => arg.startsWith('--')));
+const unknownFlags = [...flags].filter((flag) => !allowedFlags.has(flag));
 const positionalArgs = args.filter((arg) => !arg.startsWith('--'));
 const inputPath = positionalArgs[0];
 const outputPath = positionalArgs[1];
 const policyReportMode = flags.has('--policy-report') || flags.has('--dry-run');
+
+if (unknownFlags.length > 0) {
+  console.error(
+    JSON.stringify(
+      {
+        ok: false,
+        error: 'unknown_flag',
+        unknownFlags,
+        allowedFlags: [...allowedFlags],
+        guidance:
+          'Unknown flags are rejected before input reads or conversion so no-write option typos cannot execute markitdown.',
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(2);
+}
 
 if (!inputPath) {
   console.error('Usage: markitdown-convert.mjs [--policy-report|--dry-run] <input-file> [output-file]');

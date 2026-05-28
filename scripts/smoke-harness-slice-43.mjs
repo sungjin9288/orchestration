@@ -37,9 +37,30 @@ assert.equal(payload.pathPolicy.shellHooksInstalled, false);
 assert.equal(payload.pathPolicy.runtimeMutation, false);
 assert.match(payload.pathPolicy.guidance, /current process privileges/i);
 
+const unknownFlagOutputPath = path.join(tempDir, 'unknown-flag-output.md');
+const unknownFlagResult = spawnSync(
+  process.execPath,
+  [wrapperScript, '--policy-reprot', inputPath, unknownFlagOutputPath],
+  {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  },
+);
+
+assert.equal(unknownFlagResult.status, 2, 'unknown flags must fail closed before conversion');
+assert.equal(fs.existsSync(unknownFlagOutputPath), false, 'unknown flag failure must not write output');
+
+const unknownFlagPayload = JSON.parse(unknownFlagResult.stderr);
+assert.equal(unknownFlagPayload.ok, false);
+assert.equal(unknownFlagPayload.error, 'unknown_flag');
+assert.deepEqual(unknownFlagPayload.unknownFlags, ['--policy-reprot']);
+assert.deepEqual(unknownFlagPayload.allowedFlags, ['--policy-report', '--dry-run']);
+assert.match(unknownFlagPayload.guidance, /no-write option typos cannot execute markitdown/i);
+
 const doc = fs.readFileSync(baselineDoc, 'utf8');
 assert.match(doc, /--policy-report/);
 assert.match(doc, /current process privileges/);
+assert.match(doc, /unknown flags/);
 
 console.log(
   JSON.stringify(
@@ -49,6 +70,7 @@ console.log(
         mode: payload.mode,
         executesConversion: payload.pathPolicy.executesConversion,
         wouldWrite: payload.output.wouldWrite,
+        unknownFlagRejected: unknownFlagPayload.unknownFlags[0],
       },
     },
     null,
