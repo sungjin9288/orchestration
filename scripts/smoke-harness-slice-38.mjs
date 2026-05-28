@@ -48,6 +48,29 @@ assert.equal(
   true,
 );
 
+const limitedSearchResult = spawnSync(
+  process.execPath,
+  [memoryBriefScript, '--query', 'markitdown', '--max-items', '3'],
+  {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  },
+);
+
+assert.equal(
+  limitedSearchResult.status,
+  0,
+  `memory brief limited search failed: ${limitedSearchResult.stderr}`,
+);
+
+const limitedSearchPayload = JSON.parse(limitedSearchResult.stdout);
+
+assert.equal(limitedSearchPayload.limits.searchHits, 3);
+assert.equal(limitedSearchPayload.limits.openTaskPreview, 3);
+assert.equal(limitedSearchPayload.limits.source, '--max-items');
+assert.equal(limitedSearchPayload.search.query, 'markitdown');
+assert.equal(limitedSearchPayload.search.hits.length, 3);
+
 console.log(
   JSON.stringify(
     {
@@ -59,6 +82,7 @@ console.log(
         sourceCount: payload.sourceCount,
         searchQuery: searchPayload.search.query,
         searchHitCount: searchPayload.search.hits.length,
+        limitedSearchHitCount: limitedSearchPayload.search.hits.length,
       },
     },
     null,

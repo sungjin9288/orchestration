@@ -129,6 +129,8 @@ Local read-only memory brief inspired by the `mempalace` reference signal:
 - scans only repo source-of-truth docs and task ledgers
 - emits a JSON summary of accepted decisions, unchecked open task lines, lessons, and optional
   search hits; historical `remaining [OPEN]` section headings are not counted as open tasks
+- supports `--query` / `-q` plus optional `--max-items` / `--limit` so search hits and open-task
+  previews can be bounded explicitly instead of relying on a silent fixed output window
 - persists nothing, mutates no runtime state, and requires no external memory dependency
 - keeps the future memory-store decision separate from the current executable harness path
 
