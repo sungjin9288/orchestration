@@ -77,7 +77,7 @@ const invalidLimitResult = spawnSync(process.execPath, [briefScript, '--max-line
   encoding: 'utf8',
 });
 
-assert.equal(invalidLimitResult.status, 1);
+assert.equal(invalidLimitResult.status, 2);
 
 const invalidLimitPayload = JSON.parse(invalidLimitResult.stderr);
 
@@ -93,7 +93,7 @@ const unknownFlagResult = spawnSync(process.execPath, [briefScript, '--max-lines
   encoding: 'utf8',
 });
 
-assert.equal(unknownFlagResult.status, 1);
+assert.equal(unknownFlagResult.status, 2);
 
 const unknownFlagPayload = JSON.parse(unknownFlagResult.stderr);
 
@@ -109,7 +109,7 @@ const missingValueResult = spawnSync(process.execPath, [briefScript, '--file', '
   encoding: 'utf8',
 });
 
-assert.equal(missingValueResult.status, 1);
+assert.equal(missingValueResult.status, 2);
 
 const missingValuePayload = JSON.parse(missingValueResult.stderr);
 

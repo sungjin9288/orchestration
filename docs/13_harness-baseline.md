@@ -134,7 +134,7 @@ Local read-only memory brief inspired by the `mempalace` reference signal:
 - supports `--query` / `-q` plus optional `--max-items` / `--limit` so search hits and open-task
   previews can be bounded explicitly instead of relying on a silent fixed output window
 - rejects unknown flags, typoed flags, positional arguments, and missing option values with a
-  structured argument error before emitting a successful read-only evidence brief
+  structured argument error and exit 2 before emitting a successful read-only evidence brief
 - persists nothing, mutates no runtime state, and requires no external memory dependency
 - keeps the future memory-store decision separate from the current executable harness path
 
@@ -162,7 +162,7 @@ Local explicit output brief inspired by the `rtk` reference signal:
   object, and treats invalid limit values as structured argument errors instead of silently
   falling back to defaults
 - rejects unknown flags, typoed flags, positional arguments, and missing option values with a
-  structured argument error before reading stdin or local file input
+  structured argument error and exit 2 before reading stdin or local file input
 - classifies failure, warning, pass, command, and context lines without executing commands itself
 - installs no shell hooks, rewrites no commands, and requires no external dependency
 - keeps output compaction as an operator-invoked helper instead of an automatic CLI proxy

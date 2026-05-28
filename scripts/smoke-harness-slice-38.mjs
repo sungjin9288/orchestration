@@ -80,7 +80,7 @@ const unknownFlagResult = spawnSync(
   },
 );
 
-assert.equal(unknownFlagResult.status, 1);
+assert.equal(unknownFlagResult.status, 2);
 
 const unknownFlagPayload = JSON.parse(unknownFlagResult.stderr);
 
@@ -95,7 +95,7 @@ const missingValueResult = spawnSync(process.execPath, [memoryBriefScript, '--qu
   encoding: 'utf8',
 });
 
-assert.equal(missingValueResult.status, 1);
+assert.equal(missingValueResult.status, 2);
 
 const missingValuePayload = JSON.parse(missingValueResult.stderr);
 

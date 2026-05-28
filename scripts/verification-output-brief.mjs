@@ -101,7 +101,7 @@ try {
       2,
     ),
   );
-  process.exit(1);
+  process.exit(2);
 }
 
 const limits = {
