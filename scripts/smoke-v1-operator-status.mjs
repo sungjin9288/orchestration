@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,14 +12,42 @@ const runbookPath = path.join(repoRoot, 'docs', '15_v1-start-runbook.md');
 const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_status.mjs');
 const lockConcurrencySmokePath = path.join(repoRoot, 'scripts', 'smoke-verification-status-lock-concurrency.mjs');
 const completionStatusPath = path.join(repoRoot, 'scripts', 'v1-local-completion-status.mjs');
+const dogfoodInventoryPath = path.join(repoRoot, 'scripts', 'v1-dogfood-evidence-inventory.mjs');
+const kickoffStatusPath = path.join(repoRoot, 'scripts', 'v1-kickoff-status.mjs');
+const kickoffEvidenceTriagePath = path.join(repoRoot, 'scripts', 'v1-kickoff-evidence-triage.mjs');
+const readOnlyCliGuardPath = path.join(repoRoot, 'scripts', 'v1-readonly-cli-guard.mjs');
+
+function assertReadOnlyArgGuard(scriptPath, mode) {
+  const result = spawnSync(process.execPath, [scriptPath, '--typo'], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  });
+
+  assert.equal(result.status, 2);
+  assert.equal(result.stdout, '');
+
+  const payload = JSON.parse(result.stderr);
+
+  assert.equal(payload.ok, false);
+  assert.equal(payload.mode, mode);
+  assert.equal(payload.error, 'invalid-arguments');
+  assert.deepEqual(payload.allowedFlags, []);
+  assert.deepEqual(payload.receivedArgs, ['--typo']);
+  assert.match(payload.message, new RegExp(`${mode} does not accept CLI arguments`));
+}
 
 const status = fs.readFileSync(statusPath, 'utf8');
 const runbook = fs.readFileSync(runbookPath, 'utf8');
 const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 const lockConcurrencySmoke = fs.readFileSync(lockConcurrencySmokePath, 'utf8');
 const completionStatus = fs.readFileSync(completionStatusPath, 'utf8');
+const dogfoodInventory = fs.readFileSync(dogfoodInventoryPath, 'utf8');
+const kickoffStatus = fs.readFileSync(kickoffStatusPath, 'utf8');
+const kickoffEvidenceTriage = fs.readFileSync(kickoffEvidenceTriagePath, 'utf8');
+const readOnlyCliGuard = fs.readFileSync(readOnlyCliGuardPath, 'utf8');
 
 assert.match(status, /mode: 'v1-operator-status'/);
+assert.match(status, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mode: 'v1-operator-status' \}\)/);
 assert.match(status, /scripts\/verification_status\.mjs/);
 assert.match(status, /scripts\/v1-dogfood-evidence-inventory\.mjs/);
 assert.match(status, /execFileSync\(process\.execPath/);
@@ -64,11 +93,23 @@ assert.match(lockConcurrencySmoke, /childTimeoutMs = 180_000/);
 assert.match(runbook, /node scripts\/smoke-verification-status-lock-concurrency\.mjs/);
 assert.match(runbook, /keep this smoke standalone/);
 assert.match(completionStatus, /mode: 'v1-local-completion-status'/);
+assert.match(completionStatus, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mode: 'v1-local-completion-status' \}\)/);
 assert.doesNotMatch(completionStatus, /nextAllowedWithoutApproval: \['defer-push'\]/);
 assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
 assert.match(runbook, /whether push approval is currently available because local `main` is ahead of `origin\/main`/);
 assert.match(runbook, /retained cleanup is either complete or approval-blocked/);
 assert.match(completionStatus, /nextAllowedWithoutApproval: \(operatorStatus\.operatorChoices \|\| \[\]\)/);
+assert.match(dogfoodInventory, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mode: 'v1-dogfood-evidence-inventory' \}\)/);
+assert.match(kickoffStatus, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mode: 'v1-kickoff-status' \}\)/);
+assert.match(kickoffEvidenceTriage, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mode: 'v1-kickoff-evidence-triage' \}\)/);
+assert.match(readOnlyCliGuard, /allowedFlags: \[\]/);
+assert.match(runbook, /reject unexpected CLI arguments with `error=invalid-arguments` and exit 2/);
+
+assertReadOnlyArgGuard(statusPath, 'v1-operator-status');
+assertReadOnlyArgGuard(completionStatusPath, 'v1-local-completion-status');
+assertReadOnlyArgGuard(dogfoodInventoryPath, 'v1-dogfood-evidence-inventory');
+assertReadOnlyArgGuard(kickoffStatusPath, 'v1-kickoff-status');
+assertReadOnlyArgGuard(kickoffEvidenceTriagePath, 'v1-kickoff-evidence-triage');
 
 console.log(
   JSON.stringify(

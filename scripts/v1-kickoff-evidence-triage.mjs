@@ -2,10 +2,13 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { requireNoCliArgs } from './v1-readonly-cli-guard.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
+
+requireNoCliArgs(process.argv.slice(2), { mode: 'v1-kickoff-evidence-triage' });
 const runbookPath = path.join(repoRoot, 'docs', '15_v1-start-runbook.md');
 const handoffPath = path.join(repoRoot, 'docs', '04_codex-handoff-master-brief.md');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-v1-user-flow-kickoff');

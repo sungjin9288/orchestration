@@ -1,10 +1,13 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { requireNoCliArgs } from './v1-readonly-cli-guard.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
+
+requireNoCliArgs(process.argv.slice(2), { mode: 'v1-local-completion-status' });
 
 function runNodeJson(relativeScriptPath) {
   const absoluteScriptPath = path.join(repoRoot, relativeScriptPath);

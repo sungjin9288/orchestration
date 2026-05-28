@@ -15,6 +15,8 @@ const dogfood = fs.readFileSync(dogfoodPath, 'utf8');
 const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 
 assert.match(inventory, /mode: 'v1-dogfood-evidence-inventory'/);
+assert.match(inventory, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mode: 'v1-dogfood-evidence-inventory' \}\)/);
+assert.match(dogfood, /The inventory rejects unexpected CLI arguments with `error=invalid-arguments` and exit 2/);
 assert.match(inventory, /dogfood-run-002/);
 assert.match(inventory, /dogfood-run-004/);
 assert.match(inventory, /dogfood-run-005/);

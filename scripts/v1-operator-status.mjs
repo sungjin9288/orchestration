@@ -3,10 +3,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { requireNoCliArgs } from './v1-readonly-cli-guard.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
+
+requireNoCliArgs(process.argv.slice(2), { mode: 'v1-operator-status' });
 
 function runGit(args) {
   return execFileSync('git', args, {
