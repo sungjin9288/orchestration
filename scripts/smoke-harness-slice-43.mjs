@@ -52,15 +52,40 @@ assert.equal(fs.existsSync(unknownFlagOutputPath), false, 'unknown flag failure 
 
 const unknownFlagPayload = JSON.parse(unknownFlagResult.stderr);
 assert.equal(unknownFlagPayload.ok, false);
-assert.equal(unknownFlagPayload.error, 'unknown_flag');
+assert.equal(unknownFlagPayload.mode, 'markitdown-convert');
+assert.equal(unknownFlagPayload.error, 'invalid-arguments');
+assert.match(unknownFlagPayload.message, /Unknown flag: --policy-reprot/);
 assert.deepEqual(unknownFlagPayload.unknownFlags, ['--policy-reprot']);
 assert.deepEqual(unknownFlagPayload.allowedFlags, ['--policy-report', '--dry-run']);
-assert.match(unknownFlagPayload.guidance, /no-write option typos cannot execute markitdown/i);
+assert.match(unknownFlagPayload.guidance, /before input reads/i);
+
+const extraOutputPath = path.join(tempDir, 'extra-output.md');
+const extraArgResult = spawnSync(
+  process.execPath,
+  [wrapperScript, '--policy-report', inputPath, extraOutputPath, 'unexpected-extra-path'],
+  {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  },
+);
+
+assert.equal(extraArgResult.status, 2, 'extra positional args must fail closed before conversion');
+assert.equal(fs.existsSync(extraOutputPath), false, 'extra positional failure must not write output');
+
+const extraArgPayload = JSON.parse(extraArgResult.stderr);
+assert.equal(extraArgPayload.ok, false);
+assert.equal(extraArgPayload.mode, 'markitdown-convert');
+assert.equal(extraArgPayload.error, 'invalid-arguments');
+assert.match(extraArgPayload.message, /Expected at most one input path/);
+assert.deepEqual(extraArgPayload.unexpectedArgs, ['unexpected-extra-path']);
+assert.equal(extraArgPayload.positionalArgumentLimit, 2);
+assert.match(extraArgPayload.guidance, /before input reads/i);
 
 const doc = fs.readFileSync(baselineDoc, 'utf8');
 assert.match(doc, /--policy-report/);
 assert.match(doc, /current process privileges/);
 assert.match(doc, /unknown flags/);
+assert.match(doc, /extra positional arguments/);
 
 console.log(
   JSON.stringify(
@@ -71,6 +96,7 @@ console.log(
         executesConversion: payload.pathPolicy.executesConversion,
         wouldWrite: payload.output.wouldWrite,
         unknownFlagRejected: unknownFlagPayload.unknownFlags[0],
+        extraArgRejected: extraArgPayload.unexpectedArgs[0],
       },
     },
     null,

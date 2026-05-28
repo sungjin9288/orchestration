@@ -113,8 +113,10 @@ Wrapper for optional local `markitdown` CLI usage:
 - does not change runtime behavior or UI
 - supports `--policy-report` / `--dry-run` to emit a JSON preflight without running conversion or
   writing output
-- rejects unknown flags before input reads, CLI availability checks, conversion, or output writes so
-  no-write option typos fail closed instead of falling through to document conversion
+- rejects unknown flags, extra positional arguments, and missing required input with a structured
+  argument error and exit 2 before input reads, CLI availability checks, conversion, or output
+  writes so no-write option typos and extra path arguments fail closed instead of falling through to
+  document conversion
 - records that markitdown reads input with current process privileges, so untrusted files require
   operator review before conversion
 

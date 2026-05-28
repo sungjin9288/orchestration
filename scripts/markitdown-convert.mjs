@@ -5,23 +5,28 @@ import path from 'node:path';
 
 const args = process.argv.slice(2);
 const allowedFlags = new Set(['--policy-report', '--dry-run']);
+const usage = 'Usage: markitdown-convert.mjs [--policy-report|--dry-run] <input-file> [output-file]';
 const flags = new Set(args.filter((arg) => arg.startsWith('--')));
 const unknownFlags = [...flags].filter((flag) => !allowedFlags.has(flag));
 const positionalArgs = args.filter((arg) => !arg.startsWith('--'));
 const inputPath = positionalArgs[0];
 const outputPath = positionalArgs[1];
+const unexpectedPositionalArgs = positionalArgs.slice(2);
 const policyReportMode = flags.has('--policy-report') || flags.has('--dry-run');
 
-if (unknownFlags.length > 0) {
+function exitInvalidArguments(message, details = {}) {
   console.error(
     JSON.stringify(
       {
         ok: false,
-        error: 'unknown_flag',
-        unknownFlags,
+        mode: 'markitdown-convert',
+        error: 'invalid-arguments',
+        message,
+        usage,
         allowedFlags: [...allowedFlags],
+        ...details,
         guidance:
-          'Unknown flags are rejected before input reads or conversion so no-write option typos cannot execute markitdown.',
+          'Invalid arguments are rejected before input reads, CLI availability checks, conversion, or output writes.',
       },
       null,
       2,
@@ -30,9 +35,21 @@ if (unknownFlags.length > 0) {
   process.exit(2);
 }
 
+if (unknownFlags.length > 0) {
+  exitInvalidArguments(`Unknown flag: ${unknownFlags.join(', ')}`, {
+    unknownFlags,
+  });
+}
+
+if (unexpectedPositionalArgs.length > 0) {
+  exitInvalidArguments('Expected at most one input path and one optional output path.', {
+    unexpectedArgs: unexpectedPositionalArgs,
+    positionalArgumentLimit: 2,
+  });
+}
+
 if (!inputPath) {
-  console.error('Usage: markitdown-convert.mjs [--policy-report|--dry-run] <input-file> [output-file]');
-  process.exit(2);
+  exitInvalidArguments('Missing required input path.');
 }
 
 const resolvedInput = path.resolve(process.cwd(), inputPath);
