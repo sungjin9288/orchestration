@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +16,11 @@ const smokeCheckEntries = [...uiQaStatus.matchAll(/id:\s*'([^']+)',\s*\n\s*scrip
     script: match[2],
   }),
 );
+const unknownArgResult = spawnSync(process.execPath, [uiQaStatusPath, '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+const unknownArgPayload = JSON.parse(unknownArgResult.stderr);
 
 assert.equal(smokeCheckEntries.length, 23);
 assert.deepEqual(
@@ -78,8 +84,16 @@ assert.deepEqual(
     },
   ],
 );
+assert.match(uiQaStatus, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mode: 'synthetic-ui-qa' \}\)/);
 assert.match(uiQaStatus, /browserAutomation:\s*'manual-required'/);
 assert.match(uiQaStatus, /snapshot-reachability/);
+assert.equal(unknownArgResult.status, 2);
+assert.equal(unknownArgResult.stdout, '');
+assert.equal(unknownArgPayload.ok, false);
+assert.equal(unknownArgPayload.mode, 'synthetic-ui-qa');
+assert.equal(unknownArgPayload.error, 'invalid-arguments');
+assert.deepEqual(unknownArgPayload.allowedFlags, []);
+assert.deepEqual(unknownArgPayload.receivedArgs, ['--typo']);
 
 console.log(
   JSON.stringify(

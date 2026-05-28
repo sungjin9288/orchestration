@@ -17,6 +17,7 @@ assert.match(
   /`scripts\/smoke-harness-slice-05\.mjs` as the out-of-bundle aggregate self-check that pins the current 45-check id order/,
 );
 assert.match(baselineDoc, /45 required checks/);
+assert.match(baselineDoc, /rejects unexpected CLI arguments with `error=invalid-arguments` and exit 2/);
 assert.match(baselineDoc, /`node scripts\/smoke-harness-slice-43\.mjs`/);
 assert.match(baselineDoc, /`node scripts\/smoke-harness-slice-44\.mjs`/);
 assert.match(baselineDoc, /`node scripts\/smoke-harness-slice-45\.mjs`/);

@@ -20,6 +20,20 @@ assert.equal(payload.ok, true);
 assert.equal(payload.counts.totalChecks, 45);
 assert.equal(payload.counts.failedChecks, 0);
 
+const unknownArgResult = spawnSync(process.execPath, [statusScript, '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+const unknownArgPayload = JSON.parse(unknownArgResult.stderr);
+
+assert.equal(unknownArgResult.status, 2);
+assert.equal(unknownArgResult.stdout, '');
+assert.equal(unknownArgPayload.ok, false);
+assert.equal(unknownArgPayload.mode, 'synthetic-harness-verification');
+assert.equal(unknownArgPayload.error, 'invalid-arguments');
+assert.deepEqual(unknownArgPayload.allowedFlags, []);
+assert.deepEqual(unknownArgPayload.receivedArgs, ['--typo']);
+
 const checkIds = payload.checks.map((check) => check.id);
 assert.deepEqual(checkIds, [
   'harness-inventory-status',

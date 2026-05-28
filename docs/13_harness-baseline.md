@@ -1567,6 +1567,7 @@ Repo-native harness verification bundle:
 - runs harness inventory status plus smoke slices `01` through `04` and `06` through `45`
 - treats `scripts/smoke-harness-slice-05.mjs` as the out-of-bundle aggregate self-check that pins the current 45-check id order
 - reports one synthetic harness status payload for the current repo posture with 45 required checks
+- rejects unexpected CLI arguments with `error=invalid-arguments` and exit 2 before running harness inventory or smoke checks
 - keeps harness verification separate from broader runtime or UI verification bundles
 
 ## Verification

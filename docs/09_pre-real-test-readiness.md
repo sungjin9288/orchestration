@@ -62,6 +62,8 @@ current frozen baseline을 흔들지 않는 대표 synthetic bundle은 아래로
 
 `ui_qa_status` 는 source-only UI contract checks를 required lane으로 실행하고, local
 `/api/snapshot` reachability는 UI server가 켜져 있을 때만 informational lane으로 기록한다.
+Unexpected CLI arguments are rejected with `error=invalid-arguments` and exit 2 before
+source-only UI checks or snapshot reachability are collected.
 현재 representative bundle에는 `operator-home-runway` check도 포함되어 첫 화면이
 `active mission / owner / gate / next action / result location`을 계속 보여 주는지 함께 고정한다.
 `operator-home-no-mission-start-gate` check는 등록된 안건이 없는 첫 사용자에게 primary next action이

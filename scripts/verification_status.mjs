@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,6 +12,8 @@ const lockRoot = path.join(repoRoot, 'var', 'locks');
 const lockPath = path.join(lockRoot, 'verification_status.lock');
 const lockWaitMs = 120_000;
 const staleLockMs = 10 * 60_000;
+
+requireNoCliArgs(process.argv.slice(2), { mode: 'synthetic-verification-status' });
 
 const requiredChecks = [
   {

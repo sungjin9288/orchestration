@@ -190,6 +190,7 @@ The command produces a read-only status summary for:
 Safety boundary:
 - the script does not push, remove worktrees, delete branches, execute dogfood, commit, merge, release, or close out
 - the read-only status entrypoints reject unexpected CLI arguments with `error=invalid-arguments` and exit 2 before collecting nested evidence
+- the top-level aggregate gates `verification_status`, `harness_verification_status`, and `ui_qa_status` use the same no-argument guard before running smoke bundles
 - retained dogfood cleanup can be either completed or currently blocked behind explicit cleanup approval; `run-another-dogfood-execute` remains a separate explicit operator approval decision
 - `verification_status` is serialized through `var/locks/verification_status.lock`, so nested status checks do not run shared smoke runtime roots concurrently
 - `hold-complete-baseline` is available when `main` is clean/published and no retained dogfood cleanup is pending

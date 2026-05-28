@@ -15,7 +15,7 @@ const completionStatusPath = path.join(repoRoot, 'scripts', 'v1-local-completion
 const dogfoodInventoryPath = path.join(repoRoot, 'scripts', 'v1-dogfood-evidence-inventory.mjs');
 const kickoffStatusPath = path.join(repoRoot, 'scripts', 'v1-kickoff-status.mjs');
 const kickoffEvidenceTriagePath = path.join(repoRoot, 'scripts', 'v1-kickoff-evidence-triage.mjs');
-const readOnlyCliGuardPath = path.join(repoRoot, 'scripts', 'v1-readonly-cli-guard.mjs');
+const readOnlyCliGuardPath = path.join(repoRoot, 'scripts', 'read-only-cli-guard.mjs');
 
 function assertReadOnlyArgGuard(scriptPath, mode) {
   const result = spawnSync(process.execPath, [scriptPath, '--typo'], {
@@ -82,6 +82,7 @@ assert.match(runbook, /`defer-push` is available only when local `main` is ahead
 
 assert.match(verificationStatus, /v1-operator-status/);
 assert.match(verificationStatus, /scripts\/smoke-v1-operator-status\.mjs/);
+assert.match(verificationStatus, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mode: 'synthetic-verification-status' \}\)/);
 assert.match(verificationStatus, /acquireVerificationLock/);
 assert.match(verificationStatus, /verification_status\.lock/);
 assert.match(verificationStatus, /serialized: true/);
@@ -104,12 +105,14 @@ assert.match(kickoffStatus, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mod
 assert.match(kickoffEvidenceTriage, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mode: 'v1-kickoff-evidence-triage' \}\)/);
 assert.match(readOnlyCliGuard, /allowedFlags: \[\]/);
 assert.match(runbook, /reject unexpected CLI arguments with `error=invalid-arguments` and exit 2/);
+assert.match(runbook, /top-level aggregate gates `verification_status`, `harness_verification_status`, and `ui_qa_status` use the same no-argument guard/);
 
 assertReadOnlyArgGuard(statusPath, 'v1-operator-status');
 assertReadOnlyArgGuard(completionStatusPath, 'v1-local-completion-status');
 assertReadOnlyArgGuard(dogfoodInventoryPath, 'v1-dogfood-evidence-inventory');
 assertReadOnlyArgGuard(kickoffStatusPath, 'v1-kickoff-status');
 assertReadOnlyArgGuard(kickoffEvidenceTriagePath, 'v1-kickoff-evidence-triage');
+assertReadOnlyArgGuard(verificationStatusPath, 'synthetic-verification-status');
 
 console.log(
   JSON.stringify(
