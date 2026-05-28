@@ -48,7 +48,27 @@ const missingInfoResult = spawnSync(process.execPath, [runScript, 'info'], {
   encoding: 'utf8',
 });
 assert.equal(missingInfoResult.status, 2, 'missing info target should fail');
-assert.match(missingInfoResult.stderr, /Usage: harness-run\.mjs info <harness-id>/);
+
+const missingInfoPayload = JSON.parse(missingInfoResult.stderr);
+assert.equal(missingInfoPayload.ok, false);
+assert.equal(missingInfoPayload.mode, 'harness-run');
+assert.equal(missingInfoPayload.error, 'invalid-arguments');
+assert.match(missingInfoPayload.message, /info requires a harness id/);
+assert.equal(missingInfoPayload.usage, 'harness-run.mjs info <harness-id>');
+
+const extraInfoResult = spawnSync(process.execPath, [runScript, 'info', 'markitdown', '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+assert.equal(extraInfoResult.status, 2, 'info should reject extra args');
+
+const extraInfoPayload = JSON.parse(extraInfoResult.stderr);
+assert.equal(extraInfoPayload.ok, false);
+assert.equal(extraInfoPayload.mode, 'harness-run');
+assert.equal(extraInfoPayload.error, 'invalid-arguments');
+assert.match(extraInfoPayload.message, /info accepts exactly one harness id/);
+assert.deepEqual(extraInfoPayload.unexpectedArgs, ['--typo']);
+assert.equal(extraInfoPayload.usage, 'harness-run.mjs info <harness-id>');
 
 console.log(
   JSON.stringify(
@@ -56,6 +76,7 @@ console.log(
       ok: true,
       runScript,
       checkedHarnesses: ['markitdown', 'mempalace', 'CL4R1T4S'],
+      extraInfoArgRejected: true,
     },
     null,
     2,

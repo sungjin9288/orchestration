@@ -20,6 +20,20 @@ assert.deepEqual(
   ['markitdown'],
 );
 
+const listExtraArgResult = spawnSync(process.execPath, [runScript, 'list', '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+assert.equal(listExtraArgResult.status, 2, 'list must reject extra args');
+
+const listExtraArgPayload = JSON.parse(listExtraArgResult.stderr);
+assert.equal(listExtraArgPayload.ok, false);
+assert.equal(listExtraArgPayload.mode, 'harness-run');
+assert.equal(listExtraArgPayload.error, 'invalid-arguments');
+assert.match(listExtraArgPayload.message, /list does not accept extra arguments/);
+assert.deepEqual(listExtraArgPayload.unexpectedArgs, ['--typo']);
+assert.equal(listExtraArgPayload.usage, 'harness-run.mjs list');
+
 const approvedDispatchResult = spawnSync(process.execPath, [runScript, 'markitdown'], {
   cwd: repoRoot,
   encoding: 'utf8',
@@ -36,6 +50,7 @@ console.log(
       ok: true,
       runScript,
       executableHarnesses: listPayload.executableHarnesses.map((harness) => harness.id),
+      listExtraArgRejected: true,
     },
     null,
     2,

@@ -178,6 +178,8 @@ Repo-native execution gate for approved harnesses:
   plus an ordered `actionQueue`, top-level `nextAction`, `readyHarnessIds`, `installRequiredHarnessIds`, `deferredHarnessIds`, and `policyBlockedHarnessIds`
   plus a compact `summary` object, including `currentHostState`, `primaryHarnessId`, `primaryHarnessState`, `primaryRecommendedAction`, `primaryInstallReview`, `primaryInstallReviewRequired`, `primaryNote`, `primaryPosture`, `primaryKind`, `primaryCommand`, `primaryRunner`, `primaryExecutable`, `primaryAvailable`, `primaryReady`, `primaryActionShort`, and `primaryActionMessage`,
   so the operator or consumer can read the current host posture and its representative harness without recomputing counts, booleans, or priority from the full payload
+- `list`, `info`, and `doctor` reject unexpected extra arguments with a structured argument error so
+  command typos do not silently produce successful harness-gate evidence
 - `actionQueue` and `nextAction` prioritize `install-required`, then `ready` approved harnesses, then `deferred`, then `policy-blocked`, so a runnable approved harness stays the primary operator surface once the current host becomes ready
 
 #### Frozen `doctor.summary` contract for this milestone

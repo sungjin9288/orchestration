@@ -45,12 +45,29 @@ assert.equal(andrej.state, 'policy-blocked');
 assert.equal(openscreen.state, 'deferred');
 assert.equal(rtk.state, 'policy-blocked');
 
+const doctorExtraArgResult = spawnSync(process.execPath, [runScript, 'doctor', '--typo'], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+
+assert.equal(doctorExtraArgResult.status, 2, 'doctor must reject extra args');
+
+const doctorExtraArgPayload = JSON.parse(doctorExtraArgResult.stderr);
+
+assert.equal(doctorExtraArgPayload.ok, false);
+assert.equal(doctorExtraArgPayload.mode, 'harness-run');
+assert.equal(doctorExtraArgPayload.error, 'invalid-arguments');
+assert.match(doctorExtraArgPayload.message, /doctor does not accept extra arguments/);
+assert.deepEqual(doctorExtraArgPayload.unexpectedArgs, ['--typo']);
+assert.equal(doctorExtraArgPayload.usage, 'harness-run.mjs doctor');
+
 console.log(
   JSON.stringify(
     {
       ok: true,
       runScript,
       checkedHarnesses: ['markitdown', 'mempalace', 'hermes-agent', 'CL4R1T4S', 'andrej-karpathy-skills', 'openscreen', 'rtk'],
+      doctorExtraArgRejected: true,
     },
     null,
     2,

@@ -9,6 +9,34 @@ const args = process.argv.slice(2);
 const harnessId = args[0];
 const harnessArgs = args.slice(1);
 
+function exitInvalidArguments(message, details = {}) {
+  console.error(
+    JSON.stringify(
+      {
+        ok: false,
+        mode: 'harness-run',
+        error: 'invalid-arguments',
+        message,
+        ...details,
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(2);
+}
+
+function rejectUnexpectedArgs(command, commandArgs, usage) {
+  if (commandArgs.length === 0) {
+    return;
+  }
+
+  exitInvalidArguments(`${command} does not accept extra arguments`, {
+    usage,
+    unexpectedArgs: commandArgs,
+  });
+}
+
 function getExecutableHarnesses() {
   return harnesses.filter((harness) => isExecutableHarness(harness));
 }
@@ -172,6 +200,8 @@ if (!harnessId) {
 }
 
 if (harnessId === 'list' || harnessId === '--list') {
+  rejectUnexpectedArgs('list', harnessArgs, 'harness-run.mjs list');
+
   const executableHarnesses = getExecutableHarnesses().map((harness) => ({
     id: harness.id,
     posture: harness.posture,
@@ -195,8 +225,16 @@ if (harnessId === 'list' || harnessId === '--list') {
 if (harnessId === 'info' || harnessId === '--info') {
   const infoHarnessId = harnessArgs[0];
   if (!infoHarnessId) {
-    console.error('Usage: harness-run.mjs info <harness-id>');
-    process.exit(2);
+    exitInvalidArguments('info requires a harness id', {
+      usage: 'harness-run.mjs info <harness-id>',
+    });
+  }
+
+  if (harnessArgs.length > 1) {
+    exitInvalidArguments('info accepts exactly one harness id', {
+      usage: 'harness-run.mjs info <harness-id>',
+      unexpectedArgs: harnessArgs.slice(1),
+    });
   }
 
   const harness = getHarness(infoHarnessId);
@@ -220,6 +258,8 @@ if (harnessId === 'info' || harnessId === '--info') {
 }
 
 if (harnessId === 'doctor' || harnessId === '--doctor') {
+  rejectUnexpectedArgs('doctor', harnessArgs, 'harness-run.mjs doctor');
+
   const harnessStates = harnesses.map((harness) => getHarnessState(harness));
   const actionQueue = buildDoctorActionQueue(harnessStates);
   const nextAction = buildDoctorNextAction(actionQueue);
