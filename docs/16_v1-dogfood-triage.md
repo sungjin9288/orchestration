@@ -3081,7 +3081,7 @@ Triage finding:
 Next action:
 - Dogfood Run 047 retained-evidence commit `2c11d66` preserved docs and smoke guards before destructive cleanup.
 - Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-044` and `worktree/v1-dogfood-runner-044` completed after explicit destructive cleanup approval.
-- Dogfood Run 047 cleanup-completed docs and smoke guards are being recorded locally before the cleanup-completed evidence commit and approved push.
+- Dogfood Run 047 cleanup-completed evidence was committed and published as `5f5966f`.
 - The linked worktree mutation must not be committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 048
@@ -3421,7 +3421,7 @@ Triage finding:
 Next action:
 - Dogfood Run 052 retained-evidence commit `5bcd9e7` preserved docs and smoke guards before destructive cleanup.
 - Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-049` and `worktree/v1-dogfood-runner-049` completed after explicit destructive cleanup approval.
-- Dogfood Run 052 cleanup-completed docs and smoke guards are being recorded locally before commit or push.
+- Dogfood Run 052 cleanup-completed evidence was committed and published as `797d162`.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 053
@@ -4106,7 +4106,7 @@ Next action:
 - Dogfood Run 062 retained-evidence commit `dd7567d` was published before destructive cleanup.
 - Dogfood Run 062 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-059`; branch deleted: `worktree/v1-dogfood-runner-059`.
 - No retained dogfood linked worktree remained after Dogfood Run 062 cleanup before Dogfood Run 063 execute.
-- Dogfood Run 062 cleanup-completed evidence is being recorded on source `main` before commit/push.
+- Dogfood Run 062 cleanup-completed evidence was committed and published as `3fed66c` before Dogfood Run 063 execute.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 063
