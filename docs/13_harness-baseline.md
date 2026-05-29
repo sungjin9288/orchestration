@@ -172,6 +172,9 @@ Local explicit output brief inspired by the `rtk` reference signal:
   falling back to defaults
 - rejects unknown flags, typoed flags, positional arguments, and missing option values with a
   structured argument error and exit 2 before reading stdin or local file input
+- rejects empty stdin or empty `--file` content with `error=input-empty`, and missing `--file`
+  paths with `error=input-not-found`, so output evidence failures remain machine-readable instead
+  of raw stderr or Node stack traces
 - classifies failure, warning, pass, command, and context lines without executing commands itself
 - installs no shell hooks, rewrites no commands, and requires no external dependency
 - keeps output compaction as an operator-invoked helper instead of an automatic CLI proxy

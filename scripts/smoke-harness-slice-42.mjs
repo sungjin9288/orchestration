@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const briefScript = path.join(repoRoot, 'scripts', 'verification-output-brief.mjs');
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'verification-output-brief-'));
 
 const sampleOutput = [
   'node scripts/smoke-harness-slice-41.mjs',
@@ -119,6 +122,45 @@ assert.equal(missingValuePayload.error, 'invalid-arguments');
 assert.match(missingValuePayload.message, /--file requires a value/);
 assert.deepEqual(missingValuePayload.allowedFlags, ['--file', '--max-lines', '--max-chars']);
 
+const emptyInputResult = spawnSync(process.execPath, [briefScript], {
+  cwd: repoRoot,
+  input: '',
+  encoding: 'utf8',
+});
+
+assert.equal(emptyInputResult.status, 2);
+assert.equal(emptyInputResult.stdout, '');
+
+const emptyInputPayload = JSON.parse(emptyInputResult.stderr);
+
+assert.equal(emptyInputPayload.ok, false);
+assert.equal(emptyInputPayload.mode, 'verification-output-brief');
+assert.equal(emptyInputPayload.error, 'input-empty');
+assert.match(emptyInputPayload.message, /requires non-empty stdin/);
+assert.equal(emptyInputPayload.input.source, 'stdin');
+assert.equal(emptyInputPayload.input.sourcePath, null);
+assert.equal(emptyInputPayload.input.charCount, 0);
+assert.match(emptyInputPayload.guidance, /before emitting a successful output brief/);
+
+const missingFilePath = path.join(tempDir, 'missing-output.txt');
+const missingFileResult = spawnSync(process.execPath, [briefScript, '--file', missingFilePath], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+
+assert.equal(missingFileResult.status, 2);
+assert.equal(missingFileResult.stdout, '');
+
+const missingFilePayload = JSON.parse(missingFileResult.stderr);
+
+assert.equal(missingFilePayload.ok, false);
+assert.equal(missingFilePayload.mode, 'verification-output-brief');
+assert.equal(missingFilePayload.error, 'input-not-found');
+assert.match(missingFilePayload.message, /Input file not found/);
+assert.equal(missingFilePayload.providedPath, missingFilePath);
+assert.equal(missingFilePayload.resolvedPath, missingFilePath);
+assert.match(missingFilePayload.guidance, /before reading or emitting a successful output brief/);
+
 console.log(
   JSON.stringify(
     {
@@ -130,6 +172,8 @@ console.log(
         charLimit: charLimitPayload.limits.maxChars,
         unknownFlagRejected: true,
         missingValueRejected: true,
+        emptyInputRejected: true,
+        missingFileRejected: true,
       },
     },
     null,

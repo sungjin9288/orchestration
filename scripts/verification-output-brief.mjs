@@ -12,6 +12,24 @@ const MAX_CHARS_LIMIT = 20000;
 const ALLOWED_FLAGS = ['--file', '--max-lines', '--max-chars'];
 const ALLOWED_FLAG_SET = new Set(ALLOWED_FLAGS);
 
+function exitVerificationBriefFailure(error, message, details = {}) {
+  console.error(
+    JSON.stringify(
+      {
+        ok: false,
+        mode: 'verification-output-brief',
+        error,
+        message,
+        allowedFlags: ALLOWED_FLAGS,
+        ...details,
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(2);
+}
+
 function validateArgs() {
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -43,6 +61,14 @@ function readInput() {
   const fileArg = readArgValue('--file');
   if (fileArg) {
     const absolutePath = path.isAbsolute(fileArg) ? fileArg : path.resolve(repoRoot, fileArg);
+    if (!fs.existsSync(absolutePath)) {
+      exitVerificationBriefFailure('input-not-found', `Input file not found: ${absolutePath}`, {
+        providedPath: fileArg,
+        resolvedPath: absolutePath,
+        guidance: 'Missing input files are rejected before reading or emitting a successful output brief.',
+      });
+    }
+
     return {
       source: 'file',
       sourcePath: absolutePath,
@@ -88,20 +114,7 @@ try {
   maxLinesOption = parsePositiveIntegerOption('--max-lines', DEFAULT_MAX_LINES, MAX_LINES_LIMIT);
   maxCharsOption = parsePositiveIntegerOption('--max-chars', DEFAULT_MAX_CHARS, MAX_CHARS_LIMIT);
 } catch (error) {
-  console.error(
-    JSON.stringify(
-      {
-        ok: false,
-        mode: 'verification-output-brief',
-        error: 'invalid-arguments',
-        message: error.message,
-        allowedFlags: ALLOWED_FLAGS,
-      },
-      null,
-      2,
-    ),
-  );
-  process.exit(2);
+  exitVerificationBriefFailure('invalid-arguments', error.message);
 }
 
 const limits = {
@@ -116,8 +129,14 @@ const maxChars = limits.maxChars;
 const input = readInput();
 
 if (input.text.trim().length === 0) {
-  console.error('verification-output-brief requires non-empty stdin or --file input.');
-  process.exit(2);
+  exitVerificationBriefFailure('input-empty', 'verification-output-brief requires non-empty stdin or --file input.', {
+    input: {
+      source: input.source,
+      sourcePath: input.sourcePath,
+      charCount: input.text.length,
+    },
+    guidance: 'Empty input is rejected before emitting a successful output brief.',
+  });
 }
 
 const lines = input.text.replace(/\r\n/g, '\n').split('\n');
