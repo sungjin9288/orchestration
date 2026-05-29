@@ -193,13 +193,15 @@ Safety boundary:
 - the top-level aggregate gates `verification_status`, `harness_verification_status`, and `ui_qa_status` use the same no-argument guard before running smoke bundles
 - retained dogfood cleanup can be either completed or currently blocked behind explicit cleanup approval; `run-another-dogfood-execute` remains a separate explicit operator approval decision
 - `verification_status` is serialized through `var/locks/verification_status.lock`, so nested status checks do not run shared smoke runtime roots concurrently
+- `verification_status` lock wait exhaustion returns structured JSON with `error=lock-timeout` and exit 2 instead of a raw stack trace
 - `hold-complete-baseline` is available when `main` is clean/published and no retained dogfood cleanup is pending
 - `defer-push` is available only when local `main` is ahead of `origin/main`
 - default safe action remains to hold the complete baseline and defer new execution unless the operator explicitly chooses another execute dogfood slug
 
 Manual concurrency regression check:
 - run `node scripts/smoke-verification-status-lock-concurrency.mjs` when changing `verification_status` locking or `v1-operator-status` nested verification behavior
-- keep this smoke standalone; do not add it to `scripts/verification_status.mjs`, because it intentionally spawns concurrent `verification_status` children to prove lock serialization
+- run `node scripts/smoke-verification-status-lock-timeout.mjs` when changing the `verification_status` lock timeout failure contract
+- keep these smokes standalone; do not add them to `scripts/verification_status.mjs`, because they intentionally spawn concurrent or locked `verification_status` children to prove lock serialization and timeout behavior
 
 ## Local Completion Status
 Use `node scripts/v1-local-completion-status.mjs` to summarize whether current local development is complete, whether push approval is currently available because local `main` is ahead of `origin/main`, and whether retained cleanup is either complete or approval-blocked.

@@ -10,10 +10,52 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const lockRoot = path.join(repoRoot, 'var', 'locks');
 const lockPath = path.join(lockRoot, 'verification_status.lock');
-const lockWaitMs = 120_000;
+const DEFAULT_LOCK_WAIT_MS = 120_000;
+const lockWaitMs = readPositiveIntegerEnv(
+  'ORCHESTRATION_VERIFICATION_LOCK_WAIT_MS',
+  DEFAULT_LOCK_WAIT_MS,
+);
 const staleLockMs = 10 * 60_000;
 
 requireNoCliArgs(process.argv.slice(2), { mode: 'synthetic-verification-status' });
+
+class VerificationLockTimeoutError extends Error {
+  constructor(message, details = {}) {
+    super(message);
+    this.name = 'VerificationLockTimeoutError';
+    this.details = details;
+  }
+}
+
+function readPositiveIntegerEnv(name, fallback) {
+  const rawValue = process.env[name];
+  if (rawValue == null || rawValue === '') {
+    return fallback;
+  }
+
+  const parsed = Number(rawValue);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+function writeFailure(error, message, details = {}) {
+  console.error(
+    JSON.stringify(
+      {
+        ok: false,
+        mode: 'synthetic-verification-status',
+        error,
+        message,
+        ...details,
+      },
+      null,
+      2,
+    ),
+  );
+}
 
 const requiredChecks = [
   {
@@ -167,7 +209,13 @@ function acquireVerificationLock() {
     }
   }
 
-  throw new Error(`Timed out waiting for verification_status lock: ${lockPath}`);
+  throw new VerificationLockTimeoutError(`Timed out waiting for verification_status lock: ${lockPath}`, {
+    lockPath: path.relative(repoRoot, lockPath),
+    waitedMs: lockWaitMs,
+    staleLockMs,
+    guidance:
+      'Another verification_status process may be active. Wait for it to finish, or remove the stale lock only after confirming no process owns it.',
+  });
 }
 
 function releaseVerificationLock(lock) {
@@ -231,13 +279,21 @@ function buildReport() {
   };
 }
 
-const lock = acquireVerificationLock();
+let lock = null;
 let exitCode = 1;
 
 try {
+  lock = acquireVerificationLock();
   const report = buildReport();
   exitCode = report.ok ? 0 : 1;
   console.log(JSON.stringify(report, null, 2));
+} catch (error) {
+  if (error instanceof VerificationLockTimeoutError) {
+    writeFailure('lock-timeout', error.message, error.details);
+    exitCode = 2;
+  } else {
+    throw error;
+  }
 } finally {
   releaseVerificationLock(lock);
 }
