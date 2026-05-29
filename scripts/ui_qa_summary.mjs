@@ -1,3 +1,7 @@
+import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+
+requireNoCliArgs(process.argv.slice(2), { mode: 'manual-ui-qa-checklist' });
+
 const manualChecklist = [
   {
     id: 'mission-blocked-gate',

@@ -22,9 +22,9 @@ const unknownArgResult = spawnSync(process.execPath, [uiQaStatusPath, '--typo'],
 });
 const unknownArgPayload = JSON.parse(unknownArgResult.stderr);
 
-assert.equal(smokeCheckEntries.length, 23);
+assert.equal(smokeCheckEntries.length, 24);
 assert.deepEqual(
-  smokeCheckEntries.slice(-14),
+  smokeCheckEntries.slice(-15),
   [
     {
       id: 'harness-brief-mode-labels',
@@ -82,6 +82,10 @@ assert.deepEqual(
       id: 'serve-ui-argument-guard',
       script: 'scripts/smoke-ui-slice-644.mjs',
     },
+    {
+      id: 'manual-ui-qa-summary-argument-guard',
+      script: 'scripts/smoke-ui-slice-645.mjs',
+    },
   ],
 );
 assert.match(uiQaStatus, /requireNoCliArgs\(process\.argv\.slice\(2\), \{ mode: 'synthetic-ui-qa' \}\)/);
@@ -101,7 +105,7 @@ console.log(
       ok: true,
       uiQaStatusRepresentativeCoverage: {
         requiredChecks: smokeCheckEntries.length,
-        representativeChecks: smokeCheckEntries.slice(-14),
+        representativeChecks: smokeCheckEntries.slice(-15),
         informationalSnapshotReachability: true,
       },
     },

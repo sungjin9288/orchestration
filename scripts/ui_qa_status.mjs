@@ -130,6 +130,12 @@ const smokeChecks = [
     purpose:
       'Local UI server CLI rejects unknown flags and missing option values before falling back to the default runtime root',
   },
+  {
+    id: 'manual-ui-qa-summary-argument-guard',
+    script: 'scripts/smoke-ui-slice-645.mjs',
+    purpose:
+      'Manual UI QA checklist rejects unexpected CLI arguments before emitting operator evidence',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

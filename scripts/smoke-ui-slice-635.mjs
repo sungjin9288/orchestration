@@ -21,6 +21,8 @@ assert.match(
   /`\/api\/snapshot` reachability는 UI server가 켜져 있을 때만 informational lane으로 기록/,
 );
 assert.match(readinessDoc, /Unexpected CLI arguments are rejected with `error=invalid-arguments` and exit 2/);
+assert.match(readinessDoc, /`ui_qa_summary` is a manual-readiness checklist only/);
+assert.match(readinessDoc, /before emitting manual operator evidence/);
 assert.match(readinessDoc, /`operator-home-no-mission-start-gate` check/);
 assert.match(readinessDoc, /`미션 \/ 신규 안건 등록`/);
 assert.match(readinessDoc, /`operator-home-no-mission-handoff-label` check/);
