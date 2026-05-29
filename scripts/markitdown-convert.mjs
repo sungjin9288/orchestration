@@ -14,25 +14,31 @@ const outputPath = positionalArgs[1];
 const unexpectedPositionalArgs = positionalArgs.slice(2);
 const policyReportMode = flags.has('--policy-report') || flags.has('--dry-run');
 
-function exitInvalidArguments(message, details = {}) {
+function exitMarkitdownFailure(error, message, details = {}) {
   console.error(
     JSON.stringify(
       {
         ok: false,
         mode: 'markitdown-convert',
-        error: 'invalid-arguments',
+        error,
         message,
         usage,
         allowedFlags: [...allowedFlags],
         ...details,
-        guidance:
-          'Invalid arguments are rejected before input reads, CLI availability checks, conversion, or output writes.',
       },
       null,
       2,
     ),
   );
   process.exit(2);
+}
+
+function exitInvalidArguments(message, details = {}) {
+  exitMarkitdownFailure('invalid-arguments', message, {
+    ...details,
+    guidance:
+      'Invalid arguments are rejected before input reads, CLI availability checks, conversion, or output writes.',
+  });
 }
 
 if (unknownFlags.length > 0) {
@@ -54,8 +60,12 @@ if (!inputPath) {
 
 const resolvedInput = path.resolve(process.cwd(), inputPath);
 if (!fs.existsSync(resolvedInput)) {
-  console.error(`Input not found: ${resolvedInput}`);
-  process.exit(2);
+  exitMarkitdownFailure('input-not-found', `Input not found: ${resolvedInput}`, {
+    providedPath: inputPath,
+    resolvedPath: resolvedInput,
+    guidance:
+      'Missing input paths are rejected before CLI availability checks, conversion, or output writes.',
+  });
 }
 
 const versionCheck = spawnSync('markitdown', ['--version'], {
@@ -106,9 +116,14 @@ if (policyReportMode) {
 }
 
 if (!markitdownAvailable) {
-  console.error('markitdown CLI is not available in PATH.');
-  console.error('Install: pipx install markitdown (or pip install markitdown) and retry.');
-  process.exit(2);
+  exitMarkitdownFailure('dependency-unavailable', 'markitdown CLI is not available in PATH.', {
+    command: 'markitdown',
+    installHint: 'pipx install markitdown (or pip install markitdown) and retry.',
+    status: versionCheck.status,
+    signal: versionCheck.signal ?? null,
+    guidance:
+      'CLI dependency failures are reported before conversion or output writes; --policy-report remains available without executing conversion.',
+  });
 }
 
 const outputArgs = [resolvedInput];

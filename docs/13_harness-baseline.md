@@ -121,6 +121,9 @@ Wrapper for optional local `markitdown` CLI usage:
   argument error and exit 2 before input reads, CLI availability checks, conversion, or output
   writes so no-write option typos and extra path arguments fail closed instead of falling through to
   document conversion
+- rejects missing input paths with `error=input-not-found` before CLI availability checks,
+  conversion, or output writes, and reports missing local `markitdown` CLI dependencies with
+  `error=dependency-unavailable` before conversion or output writes
 - records that markitdown reads input with current process privileges, so untrusted files require
   operator review before conversion
 

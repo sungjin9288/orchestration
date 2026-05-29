@@ -81,11 +81,56 @@ assert.deepEqual(extraArgPayload.unexpectedArgs, ['unexpected-extra-path']);
 assert.equal(extraArgPayload.positionalArgumentLimit, 2);
 assert.match(extraArgPayload.guidance, /before input reads/i);
 
+const missingInputOutputPath = path.join(tempDir, 'missing-input-output.md');
+const missingInputResult = spawnSync(
+  process.execPath,
+  [wrapperScript, path.join(tempDir, 'missing-input.txt'), missingInputOutputPath],
+  {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  },
+);
+
+assert.equal(missingInputResult.status, 2, 'missing input must fail closed before conversion');
+assert.equal(fs.existsSync(missingInputOutputPath), false, 'missing input failure must not write output');
+
+const missingInputPayload = JSON.parse(missingInputResult.stderr);
+assert.equal(missingInputPayload.ok, false);
+assert.equal(missingInputPayload.mode, 'markitdown-convert');
+assert.equal(missingInputPayload.error, 'input-not-found');
+assert.match(missingInputPayload.message, /Input not found/);
+assert.equal(missingInputPayload.providedPath, path.join(tempDir, 'missing-input.txt'));
+assert.equal(missingInputPayload.resolvedPath, path.join(tempDir, 'missing-input.txt'));
+assert.match(missingInputPayload.guidance, /before CLI availability checks/i);
+
+const unavailableCliOutputPath = path.join(tempDir, 'unavailable-cli-output.md');
+const unavailableCliResult = spawnSync(process.execPath, [wrapperScript, inputPath, unavailableCliOutputPath], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+  env: {
+    ...process.env,
+    PATH: '',
+  },
+});
+
+assert.equal(unavailableCliResult.status, 2, 'missing markitdown CLI must fail closed');
+assert.equal(fs.existsSync(unavailableCliOutputPath), false, 'missing CLI failure must not write output');
+
+const unavailableCliPayload = JSON.parse(unavailableCliResult.stderr);
+assert.equal(unavailableCliPayload.ok, false);
+assert.equal(unavailableCliPayload.mode, 'markitdown-convert');
+assert.equal(unavailableCliPayload.error, 'dependency-unavailable');
+assert.equal(unavailableCliPayload.command, 'markitdown');
+assert.match(unavailableCliPayload.installHint, /pipx install markitdown/);
+assert.match(unavailableCliPayload.guidance, /before conversion or output writes/i);
+
 const doc = fs.readFileSync(baselineDoc, 'utf8');
 assert.match(doc, /--policy-report/);
 assert.match(doc, /current process privileges/);
 assert.match(doc, /unknown flags/);
 assert.match(doc, /extra positional arguments/);
+assert.match(doc, /missing input paths/);
+assert.match(doc, /dependency-unavailable/);
 
 console.log(
   JSON.stringify(
@@ -97,6 +142,8 @@ console.log(
         wouldWrite: payload.output.wouldWrite,
         unknownFlagRejected: unknownFlagPayload.unknownFlags[0],
         extraArgRejected: extraArgPayload.unexpectedArgs[0],
+        missingInputRejected: true,
+        missingCliRejected: true,
       },
     },
     null,
