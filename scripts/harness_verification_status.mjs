@@ -236,6 +236,11 @@ const requiredChecks = [
     script: 'scripts/smoke-harness-slice-45.mjs',
     purpose: 'Hermes-style function-calling loop is adopted as an internal repo-native agent harness without importing the upstream runtime or widening v1 scope.',
   },
+  {
+    id: 'harness-run-target-failure-contract',
+    script: 'scripts/smoke-harness-slice-46.mjs',
+    purpose: 'Harness-run target failures stay structured for missing ids, unknown ids, unknown info targets, and non-executable harness references.',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

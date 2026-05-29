@@ -17,7 +17,7 @@ assert.equal(result.status, 0, `harness_verification_status failed: ${result.std
 const payload = JSON.parse(result.stdout);
 assert.equal(payload.mode, 'synthetic-harness-verification');
 assert.equal(payload.ok, true);
-assert.equal(payload.counts.totalChecks, 45);
+assert.equal(payload.counts.totalChecks, 46);
 assert.equal(payload.counts.failedChecks, 0);
 
 const unknownArgResult = spawnSync(process.execPath, [statusScript, '--typo'], {
@@ -81,6 +81,7 @@ assert.deepEqual(checkIds, [
   'harness-markitdown-policy-report',
   'harness-hermes-agent-acp-bridge-boundary',
   'harness-hermes-agent-internal-composition',
+  'harness-run-target-failure-contract',
 ]);
 
 console.log(

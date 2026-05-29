@@ -186,6 +186,9 @@ Repo-native execution gate for approved harnesses:
   so the operator or consumer can read the current host posture and its representative harness without recomputing counts, booleans, or priority from the full payload
 - `list`, `info`, and `doctor` reject unexpected extra arguments with a structured argument error so
   command typos do not silently produce successful harness-gate evidence
+- missing harness ids, unknown harness ids, unknown `info` targets, and non-executable harness ids now emit
+  structured JSON failures with exit 2 so operator-correctable input mistakes and policy-blocked target
+  selections remain machine-readable instead of raw stderr text
 - `actionQueue` and `nextAction` prioritize `install-required`, then `ready` approved harnesses, then `deferred`, then `policy-blocked`, so a runnable approved harness stays the primary operator surface once the current host becomes ready
 
 #### Frozen `doctor.summary` contract for this milestone
@@ -1570,9 +1573,9 @@ Post-freeze execution visible-result output-file token wording follow-up:
 
 ### `scripts/harness_verification_status.mjs`
 Repo-native harness verification bundle:
-- runs harness inventory status plus smoke slices `01` through `04` and `06` through `45`
-- treats `scripts/smoke-harness-slice-05.mjs` as the out-of-bundle aggregate self-check that pins the current 45-check id order
-- reports one synthetic harness status payload for the current repo posture with 45 required checks
+- runs harness inventory status plus smoke slices `01` through `04` and `06` through `46`
+- treats `scripts/smoke-harness-slice-05.mjs` as the out-of-bundle aggregate self-check that pins the current 46-check id order
+- reports one synthetic harness status payload for the current repo posture with 46 required checks
 - rejects unexpected CLI arguments with `error=invalid-arguments` and exit 2 before running harness inventory or smoke checks
 - keeps harness verification separate from broader runtime or UI verification bundles
 

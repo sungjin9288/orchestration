@@ -8,14 +8,16 @@ import { getHarnessState, isExecutableHarness } from './harness-probe.mjs';
 const args = process.argv.slice(2);
 const harnessId = args[0];
 const harnessArgs = args.slice(1);
+const usage = 'harness-run.mjs <harness-id> [args...]';
+const hint = 'harness-run.mjs list | harness-run.mjs info <harness-id> | harness-run.mjs doctor';
 
-function exitInvalidArguments(message, details = {}) {
+function exitHarnessRunFailure(error, message, details = {}) {
   console.error(
     JSON.stringify(
       {
         ok: false,
         mode: 'harness-run',
-        error: 'invalid-arguments',
+        error,
         message,
         ...details,
       },
@@ -24,6 +26,10 @@ function exitInvalidArguments(message, details = {}) {
     ),
   );
   process.exit(2);
+}
+
+function exitInvalidArguments(message, details = {}) {
+  exitHarnessRunFailure('invalid-arguments', message, details);
 }
 
 function rejectUnexpectedArgs(command, commandArgs, usage) {
@@ -194,9 +200,11 @@ function buildDoctorSummary({
 }
 
 if (!harnessId) {
-  console.error('Usage: harness-run.mjs <harness-id> [args...]');
-  console.error('Hint: harness-run.mjs list | harness-run.mjs info <harness-id>');
-  process.exit(2);
+  exitInvalidArguments('Missing required harness id.', {
+    usage,
+    hint,
+    allowedSubcommands: ['list', 'info', 'doctor'],
+  });
 }
 
 if (harnessId === 'list' || harnessId === '--list') {
@@ -239,8 +247,10 @@ if (harnessId === 'info' || harnessId === '--info') {
 
   const harness = getHarness(infoHarnessId);
   if (!harness) {
-    console.error(`Unknown harness: ${infoHarnessId}`);
-    process.exit(2);
+    exitInvalidArguments(`Unknown harness: ${infoHarnessId}`, {
+      usage: 'harness-run.mjs info <harness-id>',
+      harnessId: infoHarnessId,
+    });
   }
 
   console.log(
@@ -312,15 +322,27 @@ if (harnessId === 'doctor' || harnessId === '--doctor') {
 
 const harness = getHarness(harnessId);
 if (!harness) {
-  console.error(`Unknown harness: ${harnessId}`);
-  process.exit(2);
+  exitInvalidArguments(`Unknown harness: ${harnessId}`, {
+    usage,
+    hint,
+    harnessId,
+  });
 }
 
 if (!isExecutableHarness(harness)) {
-  console.error(`Harness ${harnessId} is not executable in the current repo posture.`);
-  console.error(`Posture: ${harness.posture}`);
-  console.error(`Guidance: ${harness.note}`);
-  process.exit(2);
+  const harnessState = getHarnessState(harness);
+  exitHarnessRunFailure(
+    'harness-not-executable',
+    `Harness ${harnessId} is not executable in the current repo posture.`,
+    {
+      harnessId,
+      posture: harness.posture,
+      state: harnessState.state,
+      executable: harnessState.executable,
+      runner: harnessState.runner,
+      guidance: harness.note,
+    },
+  );
 }
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
