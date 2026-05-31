@@ -675,8 +675,13 @@ Resulting default posture:
 - do not rerun execute-mode dogfood by default
 - continue to require a concrete regression, usability issue, or explicit vNext decision before opening new implementation
 
-## Current Head Kickoff Rerun Evidence
+## Recorded Head Kickoff Rerun Evidence Snapshot
 Recorded at `2026-04-30 22:09:09 +0900` on published `main` before this evidence-sync update.
+
+This and the following archived kickoff proof sections are historical snapshots, not moving
+current-head claims. Rerun `node scripts/v1-kickoff-status.mjs`,
+`node scripts/v1-kickoff-evidence-triage.mjs`, and `node scripts/smoke-v1-user-flow-kickoff.mjs`
+on the current head before treating a fresh head as kickoff-proven.
 
 Repository state:
 - head: `37a82e5e54db0733512eb26429f25ca1abdc2b50`
@@ -716,11 +721,11 @@ Runtime/browser proof:
 - safety boundary: no commit, push, merge, release, or external release was executed
 
 Evidence-sync result:
-- current published head now has the same clean kickoff runtime/browser proof as the earlier current-head rerun
+- the recorded published head had the same clean kickoff runtime/browser proof as the earlier recorded rerun
 - no concrete regression or usability issue was detected by this proof
 - do not open a new implementation slice without a concrete regression or usability issue
 
-## Current Head Kickoff Proof Before Dogfood Run 061
+## Recorded Head Kickoff Proof Before Dogfood Run 061
 Recorded at `2026-05-11 00:03:03 +0900` on published `main` before Dogfood Run 061 execute.
 
 Repository state:
@@ -741,11 +746,11 @@ Runtime/browser proof:
 - safety boundary: no commit, push, merge, release, or external release was executed
 
 Result:
-- current published head has a fresh kickoff user-flow proof before the intentionally retained Dogfood Run 061 evidence gate
+- the recorded published head had a fresh kickoff user-flow proof before the intentionally retained Dogfood Run 061 evidence gate
 - after Dogfood Run 061 execute, `v1-kickoff-status` can be blocked by retained cleanup approval until the Dogfood Run 061 lifecycle is settled
 - the proof did not expose a concrete regression or usability issue
 
-## Current Published Head Kickoff Proof After Dogfood Run 070 Cleanup
+## Recorded Published-Head Kickoff Proof After Dogfood Run 070 Cleanup
 Recorded at `2026-05-14 14:14:16 +0900` on published `main` after Dogfood Run 070 cleanup-completed evidence was committed and pushed.
 
 Repository state:
@@ -766,11 +771,11 @@ Runtime/browser proof:
 - safety boundary: no commit, push, merge, release, or external release was executed
 
 Result:
-- current published head has a fresh kickoff user-flow proof after all Dogfood Run 070 retained-worktree cleanup and evidence publish gates were settled
+- the recorded published head had a fresh kickoff user-flow proof after all Dogfood Run 070 retained-worktree cleanup and evidence publish gates were settled
 - no concrete regression or usability issue was detected by this proof or by the kickoff evidence triage
 - do not open a new implementation slice without a concrete regression or usability issue
 
-## Current Published Head Kickoff Proof After Dogfood Run 079 Cleanup
+## Recorded Published-Head Kickoff Proof After Dogfood Run 079 Cleanup
 Recorded at `2026-05-18 09:41:40 +0900` on published `main` after Dogfood Run 079 cleanup-completed evidence was committed and pushed.
 
 Repository state:
@@ -791,11 +796,11 @@ Runtime/browser proof:
 - safety boundary: no commit, push, merge, release, or external release was executed
 
 Result:
-- current published head has a fresh kickoff user-flow proof after all Dogfood Run 079 retained-worktree cleanup and evidence publish gates were settled
+- the recorded published head had a fresh kickoff user-flow proof after all Dogfood Run 079 retained-worktree cleanup and evidence publish gates were settled
 - no concrete regression or usability issue was detected by this proof or by the kickoff evidence triage
 - do not open a new implementation slice without a concrete regression or usability issue
 
-## Current Published Head Kickoff Proof After Dogfood Run 099 Cleanup
+## Recorded Published-Head Kickoff Proof After Dogfood Run 099 Cleanup
 Recorded at `2026-05-22 11:03:56 +0900` on published `main` after Dogfood Run 099 cleanup-completed evidence was committed and pushed.
 
 Repository state:
@@ -816,11 +821,11 @@ Runtime/browser proof:
 - safety boundary: no commit, push, merge, release, or external release was executed
 
 Result:
-- current published head has a fresh kickoff user-flow proof after all Dogfood Run 099 retained-worktree cleanup and evidence publish gates were settled
+- the recorded published head had a fresh kickoff user-flow proof after all Dogfood Run 099 retained-worktree cleanup and evidence publish gates were settled
 - no concrete regression or usability issue was detected by this proof or by the kickoff evidence triage
 - do not open a new implementation slice without a concrete regression or usability issue
 
-## Current Published Head Kickoff Proof After Browser QA Smoke Publish
+## Recorded Published-Head Kickoff Proof After Browser QA Smoke Publish
 Recorded at `2026-05-25 00:45:18 +0900` on published `main` after the browser QA smoke stabilization commit was pushed.
 
 Repository state:
@@ -841,7 +846,7 @@ Runtime/browser proof:
 - safety boundary: no commit, push, merge, release, or external release was executed by the proof command
 
 Result:
-- current published head has a fresh kickoff user-flow proof after browser QA smoke stabilization was published
+- the recorded published head had a fresh kickoff user-flow proof after browser QA smoke stabilization was published
 - no concrete regression or usability issue was detected by this proof or by the kickoff evidence triage
 - do not open a new implementation slice without a concrete regression or usability issue
 
@@ -864,8 +869,13 @@ node scripts/smoke-qa-live-slice-07.mjs
 
 If env values are missing or provider auth/quota fails, record the exact blocker and keep it separate from repo readiness.
 
-### Latest Pre-Real Rehearsal Evidence
+### Recorded Pre-Real Rehearsal Evidence Snapshot
 Recorded at `2026-05-07 09:30:12 +0900` on clean/published `main`.
+
+This is historical optional live evidence, not a current live-provider readiness claim. Rerun the
+host env visibility checks plus `node scripts/smoke-provider-live-slice-05.mjs` and
+`node scripts/smoke-qa-live-slice-07.mjs` on the current head before treating optional live
+readiness as fresh.
 
 - branch: `main`
 - repo status: clean tree with `main...origin/main`
@@ -893,8 +903,11 @@ Recorded at `2026-05-07 09:30:12 +0900` on clean/published `main`.
 - live browser stage highlights: `run-builder-live-mutation-api` pass in `102443ms`, `run-reviewer-api` pass in `19432ms`, duplicate guards and secret scan passed
 - classification: local-stub and live representative readiness both pass; no repo-side regression detected
 
-### Current Optional Live Visibility Snapshot
+### Recorded Optional Live Visibility Snapshot
 Recorded at `2026-05-26 18:04:13 +0900` on clean/published `main@3954dd2`.
+
+This is a historical env visibility snapshot. Current optional live visibility must be read from a
+fresh `launchctl getenv` check and the optional live smoke outputs on the current head.
 
 - process env visibility: `OPENAI_API_KEY=false`, `OPENAI_RESPONSES_MODEL=false`
 - `launchctl` env visibility: `OPENAI_API_KEY=false`, `OPENAI_RESPONSES_MODEL=false`
