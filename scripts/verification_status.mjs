@@ -107,6 +107,11 @@ const informationalChecks = [
     purpose: 'V1 local operator status keeps publish, cleanup, and execute-dogfood states explicit and approval-aware',
   },
   {
+    id: 'v1-local-completion-status',
+    script: 'scripts/smoke-v1-local-completion-status.mjs',
+    purpose: 'V1 local completion focused smoke keeps clean/published, dogfood cleanup, and historical handoff wording guards aligned',
+  },
+  {
     id: 'v1-kickoff-status',
     script: 'scripts/smoke-v1-kickoff-status.mjs',
     purpose: 'V1 kickoff status moves the post-dogfood baseline into the first user-flow slice without executing dogfood or mutating runtime state',
