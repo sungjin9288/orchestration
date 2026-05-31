@@ -259,7 +259,7 @@ Current local completion snapshot:
 - `node scripts/v1-local-completion-status.mjs` reports the current local completion state, including whether any future local commit has reopened the push approval gate
 - current `main` publish state is reported by `git status --short --branch`; the current pre-update snapshot was clean/published as `## main...origin/main`
 - `node scripts/verification_status.mjs` must remain green after any future evidence update
-- `node scripts/harness_verification_status.mjs` passed `45/45` synthetic harness checks on the same clean/published baseline
+- current Harness aggregate count and pass/fail state must be read from `node scripts/harness_verification_status.mjs`; do not reuse historical `45/45` proof snapshots as current-head evidence
 - `node scripts/hermes-agent-internal-harness-status.mjs` reported `ok=true`, `externalRunnerAdopted=false`, and `executableThroughExternalHermes=false` for the internal repo-native Hermes-style harness
 - Dogfood Run 001 through Dogfood Run 121 evidence is recorded
 - Dogfood Run 121 executed from published head `af20dc6dfe868fcf9fd8031b862b961c9980be49` with slug `v1-dogfood-runner-118` and stopped before commit-package, local commit, push, merge, release-package, or close-out

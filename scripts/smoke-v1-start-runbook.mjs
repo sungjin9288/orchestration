@@ -462,8 +462,9 @@ assert.match(runbook, /Dogfood Run 111 retained dogfood linked worktree cleanup 
 assert.match(runbook, /Dogfood Run 111 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-108` and branch `worktree\/v1-dogfood-runner-108` have been removed after retained-evidence commit `bfb3c92` was preserved and published/);
 assert.match(runbook, /Dogfood Run 110 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out/);
 assert.doesNotMatch(runbook, /Dogfood Run 113 cleanup-completed evidence is being recorded locally before cleanup-completed evidence commit\/push/);
-assert.match(runbook, /Current Harness\/Hermes proof was rechecked before this runbook update on clean\/published `main@08456dbd268269e9d2f87b4ade742349c170b99f`/);
+assert.match(runbook, /Recorded Harness\/Hermes proof snapshot was captured before this runbook update on clean\/published `main@08456dbd268269e9d2f87b4ade742349c170b99f`/);
 assert.match(runbook, /`node scripts\/harness_verification_status\.mjs` passed `45\/45` synthetic harness checks/);
+assert.match(runbook, /Treat this as historical proof only; rerun `node scripts\/harness_verification_status\.mjs` and `node scripts\/hermes-agent-internal-harness-status\.mjs` on the current head before close-out/);
 assert.match(runbook, /Dogfood Run 121 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out/);
 assert.match(runbook, /Dogfood Run 121 retained-evidence docs were committed locally and published to `origin\/main` as `489b3ca` before destructive cleanup/);
 assert.match(runbook, /Dogfood Run 121 cleanup-completed evidence was committed and published as `68b692b`/);
@@ -1624,7 +1625,8 @@ assert.match(handoff, /historical dogfood evidence, not the moving current sourc
 assert.match(handoff, /Current `main` publish state must be read from `git status --short --branch` and `node scripts\/v1-local-completion-status\.mjs`/);
 assert.doesNotMatch(handoff, /current source `main` published evidence baseline is `68b692b3534d96202a3a049080073d32e38395b4`/);
 assert.match(handoff, /Dogfood Run 121 retained-evidence remains preserved as `489b3ca`, and no Run 121 cleanup commit\/push action is pending/);
-assert.match(handoff, /`node scripts\/harness_verification_status\.mjs` passed `45\/45` synthetic harness checks on the same clean\/published baseline/);
+assert.match(handoff, /current Harness aggregate count and pass\/fail state must be read from `node scripts\/harness_verification_status\.mjs`; do not reuse historical `45\/45` proof snapshots as current-head evidence/);
+assert.doesNotMatch(handoff, /`node scripts\/harness_verification_status\.mjs` passed `45\/45` synthetic harness checks on the same clean\/published baseline/);
 assert.match(handoff, /`node scripts\/hermes-agent-internal-harness-status\.mjs` reported `ok=true`, `externalRunnerAdopted=false`, and `executableThroughExternalHermes=false`/);
 assert.match(handoff, /recorded on `2026-05-26 20:45:22 \+0900`/);
 assert.match(handoff, /head `12fc5a28c824027d1417cffb6c6fc0b7a82cd0f1`/);
