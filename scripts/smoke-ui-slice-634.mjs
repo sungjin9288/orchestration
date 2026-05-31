@@ -11,16 +11,17 @@ const docPath = path.join(repoRoot, 'docs', '13_harness-baseline.md');
 const baselineDoc = fs.readFileSync(docPath, 'utf8');
 
 assert.match(baselineDoc, /### `scripts\/harness_verification_status\.mjs`/);
-assert.match(baselineDoc, /smoke slices `01` through `04` and `06` through `45`/);
+assert.match(baselineDoc, /smoke slices `01` through `04` and `06` through `46`/);
 assert.match(
   baselineDoc,
-  /`scripts\/smoke-harness-slice-05\.mjs` as the out-of-bundle aggregate self-check that pins the current 45-check id order/,
+  /`scripts\/smoke-harness-slice-05\.mjs` as the out-of-bundle aggregate self-check that pins the current 46-check id order/,
 );
-assert.match(baselineDoc, /45 required checks/);
+assert.match(baselineDoc, /46 required checks/);
 assert.match(baselineDoc, /rejects unexpected CLI arguments with `error=invalid-arguments` and exit 2/);
 assert.match(baselineDoc, /`node scripts\/smoke-harness-slice-43\.mjs`/);
 assert.match(baselineDoc, /`node scripts\/smoke-harness-slice-44\.mjs`/);
 assert.match(baselineDoc, /`node scripts\/smoke-harness-slice-45\.mjs`/);
+assert.match(baselineDoc, /`node scripts\/smoke-harness-slice-46\.mjs`/);
 assert.match(baselineDoc, /`node scripts\/ui_qa_status\.mjs`/);
 assert.match(baselineDoc, /`node scripts\/smoke-ui-slice-633\.mjs`/);
 assert.match(baselineDoc, /`node scripts\/smoke-ui-slice-634\.mjs`/);
@@ -35,7 +36,7 @@ console.log(
       ok: true,
       harnessBaselineVerificationDoc: {
         document: 'docs/13_harness-baseline.md',
-        harnessAggregateChecks: 45,
+        harnessAggregateChecks: 46,
         aggregateSelfCheck: 'scripts/smoke-harness-slice-05.mjs',
         uiQaAggregateSelfCheck: 'scripts/smoke-ui-slice-633.mjs',
         verificationDocSelfCheck: 'scripts/smoke-ui-slice-634.mjs',

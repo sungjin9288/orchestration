@@ -1645,6 +1645,7 @@ Use:
 - `node scripts/smoke-harness-slice-43.mjs`
 - `node scripts/smoke-harness-slice-44.mjs`
 - `node scripts/smoke-harness-slice-45.mjs`
+- `node scripts/smoke-harness-slice-46.mjs`
 - `node scripts/ui_qa_status.mjs`
 - `node scripts/smoke-ui-slice-295.mjs`
 - `node scripts/smoke-ui-slice-296.mjs`
