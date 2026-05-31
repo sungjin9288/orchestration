@@ -1448,8 +1448,8 @@ Completed approval-gated actions:
 - Dogfood Run 060 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 060 retained-evidence docs were committed locally before destructive cleanup
 - Dogfood Run 060 retained dogfood linked worktree cleanup is complete
-- Dogfood Run 060 cleanup-completed evidence is published on current `main`
-- current-head V1 kickoff user-flow smoke passed on clean/published `main` before Dogfood Run 061 execute
+- Dogfood Run 060 cleanup-completed evidence was published on the then-current `main`
+- recorded V1 kickoff user-flow smoke passed on the then-clean/published `main` before Dogfood Run 061 execute
 - Dogfood Run 061 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 061 retained-evidence docs were committed locally before destructive cleanup
 - Dogfood Run 061 retained dogfood linked worktree cleanup is complete
