@@ -10,6 +10,21 @@ const docPath = path.join(repoRoot, 'docs', '13_harness-baseline.md');
 
 const baselineDoc = fs.readFileSync(docPath, 'utf8');
 
+assert.match(baselineDoc, /### Recorded host-ready proof snapshot/);
+assert.match(
+  baselineDoc,
+  /Recorded before this documentation update on clean\/published `main@79890bc36838613520b8dace0d4d6ab0d68ae7f9`/,
+);
+assert.match(baselineDoc, /This is historical host-ready evidence, not a moving current-host claim/);
+assert.match(
+  baselineDoc,
+  /Current host readiness must\s+be read by rerunning `markitdown --version`, `node scripts\/harness-run\.mjs doctor`, and\s+`node scripts\/harness_verification_status\.mjs` on the current head/,
+);
+assert.match(baselineDoc, /`markitdown --version`: `markitdown 0\.1\.5`/);
+assert.match(baselineDoc, /`node scripts\/harness-run\.mjs doctor` reported `currentHostState: runnable`/);
+assert.match(baselineDoc, /`node scripts\/harness_verification_status\.mjs` passed `46\/46` synthetic harness checks/);
+assert.doesNotMatch(baselineDoc, /### Current host-ready proof\n/);
+
 assert.match(baselineDoc, /### `scripts\/harness_verification_status\.mjs`/);
 assert.match(baselineDoc, /smoke slices `01` through `04` and `06` through `46`/);
 assert.match(

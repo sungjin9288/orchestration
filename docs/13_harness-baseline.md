@@ -1570,11 +1570,18 @@ Post-freeze execution visible-result output-file token wording follow-up:
 - this change does not introduce a new route, snapshot key, or visibility state; it stays entirely inside local-only visible-result presentation semantics
 - this keeps the layering explicit: `execution result register -> visible output-file token wording -> token label`
 
-### Current host-ready proof
-- the current maintainer host now has `markitdown` available in `PATH`
-- `node scripts/harness-run.mjs doctor` reports `currentHostState: runnable`
-- the representative harness is `markitdown` with `primaryHarnessState: ready`
-- the current repo-native command template is `node scripts/harness-run.mjs markitdown <input-file> [output-file]`; bare zero-arg dispatch remains intentionally self-describing and surfaces wrapper usage
+### Recorded host-ready proof snapshot
+Recorded before this documentation update on clean/published `main@79890bc36838613520b8dace0d4d6ab0d68ae7f9`.
+
+This is historical host-ready evidence, not a moving current-host claim. Current host readiness must
+be read by rerunning `markitdown --version`, `node scripts/harness-run.mjs doctor`, and
+`node scripts/harness_verification_status.mjs` on the current head.
+
+- `markitdown --version`: `markitdown 0.1.5`
+- `node scripts/harness-run.mjs doctor` reported `currentHostState: runnable`
+- the representative harness was `markitdown` with `primaryHarnessState: ready`
+- `node scripts/harness_verification_status.mjs` passed `46/46` synthetic harness checks
+- the recorded repo-native command template was `node scripts/harness-run.mjs markitdown <input-file> [output-file]`; bare zero-arg dispatch remains intentionally self-describing and surfaces wrapper usage
 - repo-native execution proof runs through `scripts/smoke-harness-slice-34.mjs`, which now generates its own ASCII-only temp fixture so host-ready verification does not drift with localized repo docs
 
 ### `scripts/harness_verification_status.mjs`
