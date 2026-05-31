@@ -46,11 +46,16 @@ Expected result:
 - `smoke-qa-slice-07` passes project registration, mission/task setup, builder approval/run, artifacts/logs, reviewer run, duplicate guards, and secret scan.
 - listener check returns no relevant runtime listener.
 
-## Latest Local Readiness Evidence
+## Recorded Local Readiness Evidence Snapshot
 Recorded at `2026-04-29 01:21:17 +0900` on local `main`.
 
 This evidence was collected before this readiness-record documentation update. The gate head was
 `88819f9a859f97624f0f64569b05b9a7742682ec`.
+
+This is a historical readiness snapshot, not current-head proof. Do not reuse this snapshot's
+`16/16` UI QA count, `44/44` harness count, or older verification aggregate composition as current
+status evidence; rerun `node scripts/ui_qa_status.mjs`, `node scripts/harness_verification_status.mjs`,
+and `node scripts/verification_status.mjs` on the current head for current readiness truth.
 
 - branch: `main`
 - repo status: clean tree with `main...origin/main [ahead 7]`

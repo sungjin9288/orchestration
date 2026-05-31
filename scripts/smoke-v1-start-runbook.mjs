@@ -34,10 +34,14 @@ for (const command of [
   assert.match(runbook, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 }
 
-assert.match(runbook, /## Latest Local Readiness Evidence/);
+assert.match(runbook, /## Recorded Local Readiness Evidence Snapshot/);
 assert.match(runbook, /Recorded at `2026-04-29 01:21:17 \+0900` on local `main`/);
 assert.match(runbook, /This evidence was collected before this readiness-record documentation update/);
 assert.match(runbook, /88819f9a859f97624f0f64569b05b9a7742682ec/);
+assert.match(runbook, /This is a historical readiness snapshot, not current-head proof/);
+assert.match(runbook, /Do not reuse this snapshot's\s+`16\/16` UI QA count, `44\/44` harness count, or older verification aggregate composition as current\s+status evidence/);
+assert.match(runbook, /rerun `node scripts\/ui_qa_status\.mjs`, `node scripts\/harness_verification_status\.mjs`,\s+and `node scripts\/verification_status\.mjs` on the current head for current readiness truth/);
+assert.doesNotMatch(runbook, /## Latest Local Readiness Evidence\n/);
 assert.match(runbook, /repo status: clean tree with `main\.\.\.origin\/main \[ahead 7\]`/);
 assert.match(runbook, /`node scripts\/ui_qa_status\.mjs`: pass, `16\/16` required checks/);
 assert.match(runbook, /`node scripts\/harness_verification_status\.mjs`: pass, `44\/44` checks/);
