@@ -126,6 +126,11 @@ const informationalChecks = [
     script: 'scripts/smoke-v1-completion-readiness.mjs',
     purpose: 'V1 planned feature completion readiness stays pinned to the clean published baseline and issue-driven entry gate',
   },
+  {
+    id: 'reference-claw-empire-audit',
+    script: 'scripts/smoke-reference-claw-empire-audit.mjs',
+    purpose: 'Historical claw-empire audit questions stay preserved as reference evidence without reopening current V1 implementation backlog',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

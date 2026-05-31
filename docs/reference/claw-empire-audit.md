@@ -1,4 +1,19 @@
-# claw-empire Audit Draft
+# claw-empire Historical Audit Draft
+
+## Current Status
+This document is a historical reference-audit snapshot. It is not the current source of truth for
+Orchestration 1.0 scope, open work, or implementation backlog.
+
+Use the current source-of-truth files for active policy and completion decisions:
+- `docs/00_master-brief.md`
+- `docs/01_decision-log.md`
+- `docs/02_ia-v1.md`
+- `docs/03_architecture-roadmap-v1.md`
+- `packs/development/pack.md`
+- `docs/17_v1-completion-readiness.md`
+
+The historical open questions below have been reconciled into the current V1 and post-v1 baseline.
+Do not treat this reference document's historical `[OPEN]` content as active implementation work.
 
 ## 목적
 이 문서는 `claw-empire`를 오케스트레이션 1.0의 참고 레포로 검토한 결과를 정리한다. 목표는 그대로 복제하는 것이 아니라, 오케스트레이션의 v1 기준인 `local-first / single-user-first / ops-first / development pack only`에 맞는 패턴만 선별적으로 채택하는 것이다.
@@ -10,7 +25,7 @@
 - development pack only: v1은 `development` pack 하나만 실제 운영 가능 상태로 만든다.
 
 ## 분석 근거
-- 현재 저장소의 필수 문서 파일은 모두 존재하지만 비어 있었다. 따라서 이 문서는 현재 저장소의 의도 초안과 `claw-empire` 공개 문서를 대조한 제안 초안이다.
+- 이 문서는 초기 audit 당시의 historical snapshot이다. 현재 저장소의 필수 문서와 completion baseline은 위 Current Status의 source-of-truth 파일로 이동했다.
 - `claw-empire`는 로컬 클론이 아닌 공개 문서 기준으로 검토했다.
 - 참고한 공개 문서:
   - `README.md`
@@ -152,31 +167,21 @@
   - role은 `router/planner/architect/task-breaker/builder/reviewer` 같은 실행 역할로만 유지
   - 문법 설탕이 필요해도 운영 객체보다 위에 두지 않는다
 
-## [OPEN]
+## Historical Open Questions And Current Disposition
 
-### 1. 초기 provider 실명
-- `single-provider-first`는 고정하되, 어떤 provider를 첫 adapter로 둘지는 아직 열어둔다.
+These items were open in the original audit snapshot. They are preserved for provenance only and
+must not be counted as current open implementation items.
 
-### 2. task 상태 머신
-- `Inbox / Planned / In Progress / Review / Done` 수준으로 시작할지, `Blocked / Waiting Approval / Waiting Decision`을 별도 컬럼으로 둘지 결정이 필요하다.
-
-### 3. report taxonomy
-- completion report, review evidence, runbook, deployment guide를 하나의 artifact tree로 묶을지 분리 타입으로 둘지 확정이 필요하다.
-
-### 4. AGENTS 입력 문법
-- `#task`, `$directive` 같은 문법 설탕을 도입할지, 일반 텍스트 입력만 받을지 결정이 필요하다.
-
-### 5. bootstrap 범위
-- bootstrap이 runtime scaffold까지만 다룰지, provider setup과 example project seed까지 포함할지 정해야 한다.
-
-### 6. Office View 시점
-- `pixel office` 자체는 기각이지만, read-only 보조 시각화로서 `Office View / Radar`를 언제 도입할지는 열어둔다.
-
-### 7. messenger/OAuth의 후속 위치
-- 둘 다 v1 core에서는 제외하지만, post-v1에 inbox adapter 또는 provider-specific adapter로 한정 복귀할지는 열어둔다.
-
-### 8. 공개 문서 기준 분석 한계
-- 이번 초안은 `claw-empire` 전체 코드가 아니라 공개 문서 기준이다. 실제 구현 세부를 추가 검토하면 일부 우선순위가 바뀔 수 있다.
+| Historical question | Current disposition |
+| --- | --- |
+| 초기 provider 실명 | Resolved by the current local-stub default plus narrow `openai-responses` opt-in boundary behind the existing adapter. |
+| task 상태 머신 | Resolved by the implemented `Inbox -> In Progress -> Review -> Done` lifecycle plus blocker, approval, and decision flags. |
+| report taxonomy | Resolved by the current artifact taxonomy, completion readiness evidence, review evidence, runbook, and delivery artifacts. |
+| AGENTS 입력 문법 | Resolved as repo-file source-of-truth plus normal operator text; no new syntax sugar is active in V1. |
+| bootstrap 범위 | Resolved as local-first project registration and runtime bootstrap; provider setup and example seeding are not hidden V1 requirements. |
+| Office View 시점 | Reframed into the implemented Mission / Council / Execution / Deliverables shell and advanced ops surfaces; no pixel-office gameplay baseline is active. |
+| messenger/OAuth 후속 위치 | Still excluded from V1 core; any future adapter work must preserve local-first, single-user-first, and ops-first boundaries. |
+| 공개 문서 기준 분석 한계 | Preserved as provenance only; current decisions come from repo source-of-truth docs and executable smoke gates. |
 
 ## 구현 우선순위
 
