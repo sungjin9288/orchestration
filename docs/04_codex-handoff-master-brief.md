@@ -743,7 +743,7 @@ The runtime/browser proof command for that first slice is:
 
 - `node scripts/smoke-v1-user-flow-kickoff.mjs`
 
-Latest clean proof:
+Recorded clean kickoff proof snapshot:
 
 - recorded on `2026-05-26 20:45:22 +0900`
 - head `12fc5a28c824027d1417cffb6c6fc0b7a82cd0f1`
@@ -752,6 +752,8 @@ Latest clean proof:
 - verified `Mission`, `Council`, `Execution`, `Deliverables`, `Taskboard`, `Logs`, `Artifacts`, and `Decision Inbox`
 - `node scripts/ui_qa_status.mjs` passed `22/22` required checks; `/api/snapshot` reachability remained informational `skipped`
 - `node scripts/v1-kickoff-evidence-triage.mjs` reported no concrete regression or usability issue
+
+This is a historical proof snapshot, not a moving current-head UI QA claim. Current UI QA truth must be read by rerunning `node scripts/ui_qa_status.mjs` on the current head.
 
 Use `node scripts/v1-kickoff-evidence-triage.mjs` when the next action is unclear. It is read-only, checks the clean proof plus retained runtime/output evidence, and should keep implementation closed unless there is a concrete regression or usability issue.
 

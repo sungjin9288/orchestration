@@ -644,8 +644,10 @@ Default post-proof rule:
 - keep optional execute-mode dogfood separate and approval-gated
 - treat missing runtime/output evidence as an evidence-recording issue, not as permission to widen runtime behavior
 
-## Current Published-Head Kickoff Proof
+## Recorded Published-Head Kickoff Proof Snapshot
 Recorded at `2026-05-26 20:45:22 +0900` on clean/published `main@12fc5a2`.
+
+This is a historical proof snapshot. Do not reuse this snapshot's `22/22` UI QA count as current-head evidence; rerun `node scripts/ui_qa_status.mjs` on the current head for current UI QA truth.
 
 Repository state:
 - `git status --short --branch`: `## main...origin/main`

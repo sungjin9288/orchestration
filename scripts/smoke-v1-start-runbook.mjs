@@ -1085,11 +1085,17 @@ assert.match(runbook, /## Current Published Head Kickoff Proof After Browser QA 
 assert.match(runbook, /Recorded at `2026-05-25 00:45:18 \+0900` on published `main` after the browser QA smoke stabilization commit was pushed/);
 assert.match(runbook, /edd1a744c8c67612639165f3c4c70db7b2bc49eb/);
 assert.match(runbook, /current published head has a fresh kickoff user-flow proof after browser QA smoke stabilization was published/);
-assert.match(runbook, /## Current Published-Head Kickoff Proof/);
+assert.match(runbook, /## Recorded Published-Head Kickoff Proof Snapshot/);
 assert.match(runbook, /Recorded at `2026-05-26 20:45:22 \+0900` on clean\/published `main@12fc5a2`/);
+assert.match(runbook, /This is a historical proof snapshot/);
+assert.match(runbook, /rerun `node scripts\/ui_qa_status\.mjs` on the current head for current UI QA truth/);
 assert.match(runbook, /`node scripts\/ui_qa_status\.mjs`: pass, `22\/22` required checks/);
 assert.match(runbook, /selected surface: `artifacts`/);
 assert.match(runbook, /continue to require a concrete regression, usability issue, or explicit vNext decision before opening new implementation/);
+assert.doesNotMatch(runbook, /## Current Published-Head Kickoff Proof\n/);
+assert.match(handoff, /Recorded clean kickoff proof snapshot/);
+assert.match(handoff, /Current UI QA truth must be read by rerunning `node scripts\/ui_qa_status\.mjs` on the current head/);
+assert.doesNotMatch(handoff, /Latest clean proof:/);
 assert.match(runbook, /Do not reopen the already-completed preview-only artifact redaction policy/);
 assert.match(handoff, /latest Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`/);
 assert.match(handoff, /historical dogfood evidence, not the moving current source head/);
