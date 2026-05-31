@@ -769,7 +769,7 @@ Optional real-live reruns remain non-blocking operational housekeeping when conf
 
 - `docs/05_execution-spec-ops-verification-m5-02.md`
 
-Current optional live visibility snapshot: on `2026-05-26 18:04:13 +0900`, current Codex process env and `launchctl` both reported `OPENAI_API_KEY=false` and `OPENAI_RESPONSES_MODEL=false`; `node scripts/smoke-provider-live-slice-05.mjs` and `node scripts/smoke-qa-live-slice-07.mjs` both returned `ok=true, skipped=true`. Treat this as non-blocking environment visibility evidence only, not a repo-side regression.
+Recorded optional live visibility snapshot: on `2026-05-26 18:04:13 +0900`, the recorded Codex process env and `launchctl` both reported `OPENAI_API_KEY=false` and `OPENAI_RESPONSES_MODEL=false`; `node scripts/smoke-provider-live-slice-05.mjs` and `node scripts/smoke-qa-live-slice-07.mjs` both returned `ok=true, skipped=true`. Treat this as non-blocking historical environment visibility evidence only, not a repo-side regression. Current optional live visibility must be read from fresh `launchctl getenv` checks and optional live smoke outputs on the current head.
 
 ## Final Direction
 The target product is not “AI that silently finishes everything for the user.”
