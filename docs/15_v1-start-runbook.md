@@ -218,6 +218,11 @@ The command reports `localDevelopmentComplete=true` only when:
 - push is complete or, before publish, available but still pending explicit approval
 - retained dogfood cleanup is complete or currently blocked behind explicit approval
 
+This status command intentionally stays lightweight and does not execute the heavier UI/user-flow
+or Harness/Hermes proof anchors on every run. Its `additionalCloseOutProofAnchors` list names the
+explicit follow-up commands that must be rerun before reusing UI shell, advanced-ops, first
+user-flow, Harness, or Hermes completion proof as current close-out evidence.
+
 Safety boundary:
 - the script is read-only
 - it does not push, clean worktrees, execute dogfood, commit, merge, release, or close out

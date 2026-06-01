@@ -61,6 +61,28 @@ const pushApprovalAvailable = approvalGatedChoices.some(
 );
 const pushSettled = !pushPending || pushApprovalAvailable;
 const cleanupSettled = retainedCleanupCompleted || retainedCleanupBlocked;
+const additionalCloseOutProofAnchors = [
+  {
+    command: 'node scripts/ui_qa_status.mjs',
+    executedByThisStatus: false,
+    requiredBeforeReusing: 'UI shell or advanced-ops completion proof',
+  },
+  {
+    command: 'node scripts/smoke-v1-user-flow-kickoff.mjs',
+    executedByThisStatus: false,
+    requiredBeforeReusing: 'first user-flow completion proof',
+  },
+  {
+    command: 'node scripts/harness_verification_status.mjs',
+    executedByThisStatus: false,
+    requiredBeforeReusing: 'Harness completion proof',
+  },
+  {
+    command: 'node scripts/hermes-agent-internal-harness-status.mjs',
+    executedByThisStatus: false,
+    requiredBeforeReusing: 'Hermes internal composition proof',
+  },
+];
 
 const statusCollectionOk = operatorStatusResult.ok && verificationOk && dogfoodInventoryOk;
 const localDevelopmentComplete =
@@ -89,6 +111,7 @@ const report = {
     shortHead: operatorStatus.main?.shortHead ?? null,
   },
   approvalGatedChoices,
+  additionalCloseOutProofAnchors,
   nextAllowedWithoutApproval: (operatorStatus.operatorChoices || [])
     .filter((choice) => choice.available && !choice.requiresExplicitApproval)
     .map((choice) => choice.action),

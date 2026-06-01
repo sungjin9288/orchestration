@@ -57,6 +57,7 @@ const report = {
   readinessCriteria: {
     blockingApprovalActions,
     cleanupSettled: completionStatus.completionCriteria?.cleanupSettled === true,
+    additionalCloseOutProofAnchors: completionStatus.additionalCloseOutProofAnchors || [],
     localDevelopmentComplete: completionStatus.localDevelopmentComplete === true,
     mainPublished: completionStatus.currentHead?.aheadCount === 0,
     verificationOk: completionStatus.completionCriteria?.verificationOk === true,

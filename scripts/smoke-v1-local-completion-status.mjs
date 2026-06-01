@@ -33,10 +33,18 @@ assert.match(completionStatus, /doesNotPush: true/);
 assert.match(completionStatus, /doesNotCleanWorktrees: true/);
 assert.match(completionStatus, /doesNotExecuteDogfood: true/);
 assert.match(completionStatus, /doesNotCommit: true/);
+assert.match(completionStatus, /additionalCloseOutProofAnchors/);
+assert.match(completionStatus, /node scripts\/ui_qa_status\.mjs/);
+assert.match(completionStatus, /node scripts\/smoke-v1-user-flow-kickoff\.mjs/);
+assert.match(completionStatus, /node scripts\/harness_verification_status\.mjs/);
+assert.match(completionStatus, /node scripts\/hermes-agent-internal-harness-status\.mjs/);
+assert.match(completionStatus, /executedByThisStatus: false/);
 
 assert.match(runbook, /## Local Completion Status/);
 assert.match(runbook, /node scripts\/v1-local-completion-status\.mjs/);
 assert.match(runbook, /current local development is complete/);
+assert.match(runbook, /does not execute the heavier UI\/user-flow\s+or Harness\/Hermes proof anchors/);
+assert.match(runbook, /`additionalCloseOutProofAnchors` list names the\s+explicit follow-up commands/);
 assert.match(runbook, /whether push approval is currently available because local `main` is ahead of `origin\/main`/);
 assert.match(runbook, /retained cleanup is either complete or approval-blocked/);
 assert.match(runbook, /V1 dogfood result triage has been recorded through Dogfood Run 001 through Dogfood Run 121/);
