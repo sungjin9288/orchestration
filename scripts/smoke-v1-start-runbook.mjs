@@ -1133,7 +1133,8 @@ assert.match(handoff, /Treat this as non-blocking historical environment visibil
 assert.match(handoff, /Current optional live visibility must be read from fresh `launchctl getenv` checks and optional live smoke outputs on the current head/);
 assert.doesNotMatch(handoff, /Current optional live visibility snapshot:/);
 assert.match(runbook, /Do not reopen the already-completed preview-only artifact redaction policy/);
-assert.match(handoff, /latest Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`/);
+assert.doesNotMatch(handoff, /latest Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`/i);
+assert.match(handoff, /Recorded Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`/);
 assert.match(handoff, /historical dogfood evidence, not the moving current source head/);
 assert.match(handoff, /Current `main` publish state must be read from `git status --short --branch` and `node scripts\/v1-local-completion-status\.mjs`/);
 assert.doesNotMatch(handoff, /current source `main` published evidence baseline is `68b692b3534d96202a3a049080073d32e38395b4`/);
@@ -1664,7 +1665,8 @@ assert.match(handoff, /Dogfood Run 112 runtime evidence remains available under 
 assert.match(handoff, /Dogfood Run 111 executed from published head `4d9cb3d9a5d08be69f89b313c47690ea565a9258` with slug `v1-dogfood-runner-108` and stopped before commit-package, local commit, push, merge, release-package, or close-out/);
 assert.match(handoff, /Dogfood Run 111 retained linked worktree `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-108` and branch `worktree\/v1-dogfood-runner-108` have been removed after retained-evidence commit `bfb3c92` was preserved and published/);
 assert.match(handoff, /Dogfood Run 111 runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-108`/);
-assert.match(handoff, /latest Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`/);
+assert.doesNotMatch(handoff, /latest Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`/i);
+assert.match(handoff, /Recorded Dogfood Run 121 cleanup-completed evidence baseline remains `68b692b3534d96202a3a049080073d32e38395b4`/);
 assert.match(handoff, /historical dogfood evidence, not the moving current source head/);
 assert.match(handoff, /Current `main` publish state must be read from `git status --short --branch` and `node scripts\/v1-local-completion-status\.mjs`/);
 assert.doesNotMatch(handoff, /current source `main` published evidence baseline is `68b692b3534d96202a3a049080073d32e38395b4`/);
