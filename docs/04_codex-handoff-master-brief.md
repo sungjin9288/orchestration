@@ -366,68 +366,68 @@ Current local completion snapshot:
 - No retained dogfood linked worktree remains after Dogfood Run 104 cleanup
 - Dogfood Run 104 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-101`
 - Dogfood Run 103 cleanup-completed evidence was committed and published as `d5c9395` before the operator home QA aggregate commit `b2d19c4`
-- Dogfood Run 103 executed from published head `4df8ff7923de14f52c5fac3daf95852eaf76e1b9`; latest V1 kickoff runtime/browser proof was rerun on the same published head and passed without a concrete regression or usability issue
+- Dogfood Run 103 executed from published head `4df8ff7923de14f52c5fac3daf95852eaf76e1b9`; recorded V1 kickoff runtime/browser proof was rerun on the same published head and passed without a concrete regression or usability issue
 - Dogfood Run 103 retained-evidence was committed and published as `3bbdc84` before destructive cleanup
 - Dogfood Run 103 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-100` and branch `worktree/v1-dogfood-runner-100` have been removed after retained-evidence commit `3bbdc84` was preserved and published
 - No retained dogfood linked worktree remains after Dogfood Run 103 cleanup
 - Dogfood Run 103 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-100`
 - Dogfood Run 102 cleanup-completed evidence was committed and published as `4df8ff7` before Dogfood Run 103 execute
-- Dogfood Run 102 executed from published head `f9e7be6f6ebb20c8bd96140ec0b01eb76b47f03f`; latest V1 kickoff runtime/browser proof was rerun on the same published head and passed without a concrete regression or usability issue
+- Dogfood Run 102 executed from published head `f9e7be6f6ebb20c8bd96140ec0b01eb76b47f03f`; recorded V1 kickoff runtime/browser proof was rerun on the same published head and passed without a concrete regression or usability issue
 - Dogfood Run 102 retained-evidence was committed and published as `2f33b53` before destructive cleanup
 - Dogfood Run 102 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-099` and branch `worktree/v1-dogfood-runner-099` have been removed after retained-evidence commit `2f33b53` was preserved and published
 - No retained dogfood linked worktree remains after Dogfood Run 102 cleanup
 - Dogfood Run 102 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-099`
 - Dogfood Run 101 cleanup-completed evidence was committed and published as `f9e7be6` before Dogfood Run 102 execute
-- Dogfood Run 101 executed from published head `7b1ef6a7f8fd4117b6dfa39f5622f373a8b7ca40`; latest V1 kickoff runtime/browser proof was rerun on the same published head and passed without a concrete regression or usability issue
+- Dogfood Run 101 executed from published head `7b1ef6a7f8fd4117b6dfa39f5622f373a8b7ca40`; recorded V1 kickoff runtime/browser proof was rerun on the same published head and passed without a concrete regression or usability issue
 - Dogfood Run 101 retained-evidence was committed and published as `cd6a506` before destructive cleanup
 - Dogfood Run 101 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-098` and branch `worktree/v1-dogfood-runner-098` have been removed after retained-evidence commit `cd6a506` was preserved and published
 - No retained dogfood linked worktree remains after Dogfood Run 101 cleanup
 - Dogfood Run 101 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-098`
 - Dogfood Run 100 cleanup-completed evidence was committed and published as `7b1ef6a` before Dogfood Run 101 execute
-- Dogfood Run 100 executed from published head `b6d7bd53573c7695e7473f15e60cc65670a7afa9`; latest V1 kickoff runtime/browser proof was rerun on the same published head and passed without a concrete regression or usability issue
+- Dogfood Run 100 executed from published head `b6d7bd53573c7695e7473f15e60cc65670a7afa9`; recorded V1 kickoff runtime/browser proof was rerun on the same published head and passed without a concrete regression or usability issue
 - Dogfood Run 100 retained-evidence was committed and published as `1e47c97` before destructive cleanup
 - Dogfood Run 100 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-097` and branch `worktree/v1-dogfood-runner-097` have been removed after retained-evidence commit `1e47c97` was preserved and published
 - Dogfood Run 100 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-097`
 - Dogfood Run 099 cleanup-completed evidence was committed and published as `b6d7bd5` before Dogfood Run 100 execute
-- Dogfood Run 099 executed from published head `4bef8e19acaf76ce4798858b8b9957dd610792ed`; latest V1 kickoff runtime/browser proof was rerun on published head `b6d7bd53573c7695e7473f15e60cc65670a7afa9`
+- Dogfood Run 099 executed from published head `4bef8e19acaf76ce4798858b8b9957dd610792ed`; recorded V1 kickoff runtime/browser proof was rerun on published head `b6d7bd53573c7695e7473f15e60cc65670a7afa9`
 - Dogfood Run 099 retained-evidence was committed and published as `521540d` before destructive cleanup
 - Dogfood Run 099 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-096` and branch `worktree/v1-dogfood-runner-096` have been removed after retained-evidence commit `521540d` was preserved and published
 - Dogfood Run 099 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-096`
 - Dogfood Run 098 cleanup-completed evidence was committed and published as `4bef8e1` before Dogfood Run 099 execute
-- Dogfood Run 098 executed from published head `dbb3278ebef1c52411fbd49fb501837045c4e161`; latest V1 kickoff runtime/browser proof remains recorded at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
+- Dogfood Run 098 executed from published head `dbb3278ebef1c52411fbd49fb501837045c4e161`; recorded V1 kickoff runtime/browser proof remains historical at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
 - Dogfood Run 098 retained-evidence was committed and published as `0554203` before destructive cleanup
 - Dogfood Run 098 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-095` and branch `worktree/v1-dogfood-runner-095` have been removed after retained-evidence commit `0554203` was preserved and published
 - Dogfood Run 098 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-095`
 - Dogfood Run 097 cleanup-completed evidence was committed and published as `dbb3278` before Dogfood Run 098 execute
-- Dogfood Run 097 executed from published head `2d9a9d84c0578e99089fe19603f889eec2b843f0`; latest V1 kickoff runtime/browser proof remains recorded at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
+- Dogfood Run 097 executed from published head `2d9a9d84c0578e99089fe19603f889eec2b843f0`; recorded V1 kickoff runtime/browser proof remains historical at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
 - Dogfood Run 097 retained-evidence was committed and published as `cb77927` before destructive cleanup
 - Dogfood Run 097 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-094` and branch `worktree/v1-dogfood-runner-094` have been removed after retained-evidence commit `cb77927` was preserved and published
 - Dogfood Run 097 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-094`
 - Dogfood Run 096 cleanup-completed evidence was committed and published as `2d9a9d8` before Dogfood Run 097 execute
-- Dogfood Run 096 executed from published head `220fa75991d0dc17791a58e80e0fd2a61119b3e6`; latest V1 kickoff runtime/browser proof remains recorded at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
+- Dogfood Run 096 executed from published head `220fa75991d0dc17791a58e80e0fd2a61119b3e6`; recorded V1 kickoff runtime/browser proof remains historical at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
 - Dogfood Run 096 retained-evidence was committed and published as `91a623c` before destructive cleanup
 - Dogfood Run 096 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-093` and branch `worktree/v1-dogfood-runner-093` have been removed after retained-evidence commit `91a623c` was preserved and published
 - Dogfood Run 096 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-093`
 - Dogfood Run 095 cleanup-completed evidence was committed and published as `41c0780` before the operator status large-inventory fix
 - The operator status large-inventory fix was committed and published as `220fa75` before Dogfood Run 096 execute
-- Dogfood Run 095 executed from published head `da89d2b248b7bd0f5f6575ae0b2c9167b5b3803a`; latest V1 kickoff runtime/browser proof remains recorded at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
+- Dogfood Run 095 executed from published head `da89d2b248b7bd0f5f6575ae0b2c9167b5b3803a`; recorded V1 kickoff runtime/browser proof remains historical at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
 - Dogfood Run 095 retained-evidence was committed and published as `696f384` before destructive cleanup
 - Dogfood Run 095 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-092` and branch `worktree/v1-dogfood-runner-092` have been removed after retained-evidence commit `696f384` was preserved and published
 - Dogfood Run 095 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-092`
 - Dogfood Run 094 cleanup-completed evidence was committed and published as `da89d2b` before Dogfood Run 095 execute
-- Dogfood Run 094 executed from published head `3ce74dae64470ca7a67542babac4112b7f7854d4`; latest V1 kickoff runtime/browser proof remains recorded at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
+- Dogfood Run 094 executed from published head `3ce74dae64470ca7a67542babac4112b7f7854d4`; recorded V1 kickoff runtime/browser proof remains historical at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
 - Dogfood Run 094 retained-evidence was committed and published as `3a789c0` before destructive cleanup
 - Dogfood Run 094 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-091` and branch `worktree/v1-dogfood-runner-091` have been removed after retained-evidence commit `3a789c0` was preserved and published
 - Dogfood Run 094 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-091`
 - Dogfood Run 093 cleanup-completed evidence was committed and published as `3ce74da` before Dogfood Run 094 execute
-- Dogfood Run 093 executed from published head `44550a6229511da745437d77b4ed24e51bec7d5b`; latest V1 kickoff runtime/browser proof remains recorded at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
+- Dogfood Run 093 executed from published head `44550a6229511da745437d77b4ed24e51bec7d5b`; recorded V1 kickoff runtime/browser proof remains historical at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
 - Dogfood Run 093 retained-evidence was committed and published as `4866231` before destructive cleanup
 - Dogfood Run 093 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-090` and branch `worktree/v1-dogfood-runner-090` have been removed after retained-evidence commit `4866231` was preserved and published
 - Dogfood Run 092 cleanup-completed evidence was committed and published as `44550a6` before Dogfood Run 093 execute
-- Dogfood Run 092 executed from published head `a75fe0c14419c637789d583b8871de74fb74df47`; latest V1 kickoff runtime/browser proof remains recorded at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
+- Dogfood Run 092 executed from published head `a75fe0c14419c637789d583b8871de74fb74df47`; recorded V1 kickoff runtime/browser proof remains historical at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
 - Dogfood Run 092 retained-evidence was committed and published as `5b0f64c` before destructive cleanup
 - Dogfood Run 092 retained linked worktree `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-089` and branch `worktree/v1-dogfood-runner-089` have been removed after retained-evidence commit `5b0f64c` was preserved and published
-- Dogfood Run 091 executed from published head `ffbb7b399deacbe468a462ae5bbdbd3be2c46d50`; latest V1 kickoff runtime/browser proof remains recorded at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
+- Dogfood Run 091 executed from published head `ffbb7b399deacbe468a462ae5bbdbd3be2c46d50`; recorded V1 kickoff runtime/browser proof remains historical at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`
 - Dogfood Run 091 cleanup-completed evidence was committed and published as `a75fe0c` before Dogfood Run 092 execute
 - Dogfood Run 091 retained-evidence was committed and published as `d27defd` before destructive cleanup
 - Dogfood Run 090 retained-evidence was committed and published as `ad3fe52` before destructive cleanup

@@ -24,6 +24,9 @@ assert.match(runbook, /push remains a separate approval-sensitive action/);
 assert.match(runbook, /blocked_missing_host_llm_credentials/);
 assert.doesNotMatch(runbook, /Current published[- ]head `[a-f0-9]{7}`/i);
 assert.doesNotMatch(handoff, /Current published[- ]head `[a-f0-9]{7}`/i);
+assert.doesNotMatch(handoff, /latest V1 kickoff runtime\/browser proof/i);
+assert.match(handoff, /recorded V1 kickoff runtime\/browser proof was rerun on the same published head and passed without a concrete regression or usability issue/);
+assert.match(handoff, /recorded V1 kickoff runtime\/browser proof remains historical at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`/);
 
 for (const command of [
   'git status --short --branch',

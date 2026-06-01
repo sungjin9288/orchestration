@@ -932,3 +932,4 @@
 - dogfood cleanup proof의 `published on current main` 표현은 run 번호별로 조금씩 흩어져 있어 한두 개만 고치면 다시 drift가 남는다. positive assertions 전체를 then-current로 바꾸되, intentionally stale phrase를 막는 `doesNotMatch` guard는 그대로 남겨야 검증 의도가 뒤집히지 않는다.
 - fixed SHA가 붙은 kickoff/readiness proof는 `Current published head`라고 쓰면 현재 `origin/main`처럼 보인다. 과거 dogfood bridge proof는 `Recorded published head`로 남기고, 현재 published truth는 `git status`, kickoff status, triage, aggregate verification 재실행으로만 판단해야 한다.
 - fixed-SHA published-head 문구를 historical snapshot으로 바꿀 때는 positive assertion만 바꾸면 부족하다. start runbook과 local completion smoke에 stale current-label negative guard를 같이 추가해야 이후 handoff/runbook 문서가 같은 오해를 다시 들여와도 current truth와 recorded proof 경계가 유지된다.
+- dogfood run별 fixed-head proof가 같은 문단에서 old browser proof를 설명할 때도 `latest`라는 말은 피해야 한다. recorded/historical proof로 표현하고 focused smoke가 stale latest-label을 막아야 current kickoff truth가 항상 fresh status, triage, user-flow, aggregate 재실행에서만 나오게 된다.

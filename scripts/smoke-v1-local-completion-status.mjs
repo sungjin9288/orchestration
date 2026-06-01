@@ -49,6 +49,9 @@ assert.match(runbook, /`hold-complete-baseline` is the no-op next action when `m
 assert.match(runbook, /`defer-push` is only listed when local `main` is ahead of `origin\/main` and the operator has not approved publish yet/);
 assert.doesNotMatch(runbook, /Current published[- ]head `[a-f0-9]{7}`/i);
 assert.doesNotMatch(handoff, /Current published[- ]head `[a-f0-9]{7}`/i);
+assert.doesNotMatch(handoff, /latest V1 kickoff runtime\/browser proof/i);
+assert.match(handoff, /recorded V1 kickoff runtime\/browser proof was rerun on the same published head and passed without a concrete regression or usability issue/);
+assert.match(handoff, /recorded V1 kickoff runtime\/browser proof remains historical at head `aae311fa16dafdc8ca1bc3054148eb0df26b4523`/);
 assert.doesNotMatch(runbook, /commit Dogfood Run 121 cleanup-completed evidence docs locally only after verification and commit approval/);
 assert.doesNotMatch(runbook, /publish the Dogfood Run 121 cleanup-completed evidence commit only after explicit `git push origin main` approval/);
 assert.doesNotMatch(runbook, /do not run another intentional `--execute --slug <slug>` dogfood pass until Dogfood Run 121 cleanup-completed evidence is committed\/published and final status is clean\/published/);
