@@ -1462,19 +1462,19 @@ Completed approval-gated actions:
 - Dogfood Run 064 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 064 retained-evidence docs were committed locally and published to `origin/main` before destructive cleanup
 - Dogfood Run 064 retained dogfood linked worktree cleanup is complete
-- Dogfood Run 064 cleanup-completed evidence is published on current `main`
+- Dogfood Run 064 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 065 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 065 retained-evidence docs were committed locally and published to `origin/main` before destructive cleanup
 - Dogfood Run 065 retained dogfood linked worktree cleanup is complete
-- Dogfood Run 065 cleanup-completed evidence is published on current `main`
+- Dogfood Run 065 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 066 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 066 retained-evidence docs were committed locally and published to `origin/main` before destructive cleanup
 - Dogfood Run 066 retained dogfood linked worktree cleanup is complete
-- Dogfood Run 066 cleanup-completed evidence is published on current `main`
+- Dogfood Run 066 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 067 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 067 retained-evidence docs were committed locally as `4a0420f` before destructive cleanup
 - Dogfood Run 067 retained dogfood linked worktree cleanup is complete
-- Dogfood Run 067 cleanup-completed evidence is published on current `main`
+- Dogfood Run 067 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 068 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 068 retained-evidence docs were committed locally and published to `origin/main` before destructive cleanup
 - Dogfood Run 068 retained dogfood linked worktree cleanup is complete

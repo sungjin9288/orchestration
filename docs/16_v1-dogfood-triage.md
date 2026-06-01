@@ -4247,7 +4247,7 @@ Next action:
 - Dogfood Run 064 retained-evidence commit `6d3a5e4` was published before destructive cleanup.
 - Dogfood Run 064 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-061`; branch deleted: `worktree/v1-dogfood-runner-061`.
 - No retained dogfood linked worktree remained after Dogfood Run 064 cleanup before any next approved execute-mode pass.
-- Dogfood Run 064 cleanup-completed evidence was published on current `main` before Dogfood Run 065 execute.
+- Dogfood Run 064 cleanup-completed evidence was published on the then-current `main` before Dogfood Run 065 execute.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 065
@@ -4304,7 +4304,7 @@ Cleanup completed after explicit operator approval:
 - Dogfood Run 065 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-062`; branch deleted: `worktree/v1-dogfood-runner-062`.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-062`.
 - No retained dogfood linked worktree remained after Dogfood Run 065 cleanup before any next approved execute-mode pass.
-- Dogfood Run 065 cleanup-completed evidence was published on current `main` before Dogfood Run 066 execute.
+- Dogfood Run 065 cleanup-completed evidence was published on the then-current `main` before Dogfood Run 066 execute.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 066
@@ -4361,7 +4361,7 @@ Cleanup completed after explicit operator approval:
 - Dogfood Run 066 retained-evidence commit `af125b6` was published before destructive cleanup.
 - Dogfood Run 066 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-063`; branch deleted: `worktree/v1-dogfood-runner-063`.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-063`.
-- Dogfood Run 066 cleanup-completed evidence was published on current `main` before Dogfood Run 067 execute.
+- Dogfood Run 066 cleanup-completed evidence was published on the then-current `main` before Dogfood Run 067 execute.
 - No retained dogfood linked worktree remained after Dogfood Run 066 cleanup before any next approved execute-mode pass.
 
 ## Dogfood Run 067
@@ -4419,7 +4419,7 @@ Cleanup completed after explicit operator approval:
 - Dogfood Run 067 worktree removed: `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-064`; branch deleted: `worktree/v1-dogfood-runner-064`.
 - Runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-064`.
 - No commit-package, linked worktree commit, push, merge, release-package, or close-out ran for Dogfood Run 067.
-- Dogfood Run 067 cleanup-completed evidence was published on current `main` before Dogfood Run 068 execute.
+- Dogfood Run 067 cleanup-completed evidence was published on the then-current `main` before Dogfood Run 068 execute.
 
 ## Dogfood Run 068
 Recorded at `2026-05-13 18:00:02 +0900` on published `main`.
