@@ -935,3 +935,4 @@
 - dogfood run별 fixed-head proof가 같은 문단에서 old browser proof를 설명할 때도 `latest`라는 말은 피해야 한다. recorded/historical proof로 표현하고 focused smoke가 stale latest-label을 막아야 current kickoff truth가 항상 fresh status, triage, user-flow, aggregate 재실행에서만 나오게 된다.
 - completion readiness도 fixed baseline head를 설명할 때 `Current ... evidence`라고 쓰면 현재 head proof처럼 읽힌다. baseline proof는 recorded evidence로 남기고, current completion truth는 status, triage, inventory, aggregate 재실행에서만 얻도록 smoke guard를 같이 두는 편이 안전하다.
 - dogfood cleanup baseline이 최신 run의 마지막 cleanup proof여도 fixed SHA를 붙이면 `latest`보다는 recorded evidence로 표현하는 편이 안전하다. 최신성은 현재 source head가 아니라 run lifecycle 안의 역사적 위치일 뿐이므로, current source truth는 git status/local completion script에서만 읽게 해야 한다.
+- completion readiness 문서를 가리킬 때도 같은 문장에 fixed baseline/proof heads가 있으면 `current handoff point`보다 `active handoff reference`가 안전하다. 이렇게 하면 현재 문서 역할과 historical proof evidence가 분리되어 current-head truth는 재검증 스크립트에서만 나오게 된다.
