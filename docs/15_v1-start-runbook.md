@@ -1171,7 +1171,7 @@ Completed approval-gated actions:
 - Dogfood Run 090 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-087`.
 - Dogfood Run 089 cleanup-completed evidence was committed and published as `60c27a0`.
 - Dogfood Run 070 cleanup-completed evidence was committed and published as `0fe6f1d`.
-- Current published head `0fe6f1d` has a fresh V1 kickoff user-flow proof after Dogfood Run 070 cleanup-completed evidence was published.
+- Recorded published head `0fe6f1d` has a fresh V1 kickoff user-flow proof after Dogfood Run 070 cleanup-completed evidence was published.
 - Dogfood Run 071 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 071 retained-evidence docs were committed locally and published to `origin/main` as `5acd2ab` before destructive cleanup.
 - Dogfood Run 071 retained dogfood linked worktree cleanup is complete.
@@ -1179,7 +1179,7 @@ Completed approval-gated actions:
 - No retained dogfood linked worktree remains after Dogfood Run 071 cleanup.
 - Dogfood Run 071 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-068`.
 - Dogfood Run 071 cleanup-completed evidence was committed and published as `0c2da90`.
-- Current published head `0c2da90` passed representative V1 kickoff/user-flow proof before Dogfood Run 072 execute.
+- Recorded published head `0c2da90` passed representative V1 kickoff/user-flow proof before Dogfood Run 072 execute.
 - Dogfood Run 072 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 072 retained-evidence docs were committed locally and published to `origin/main` as `fda0af2` before destructive cleanup.
 - Dogfood Run 072 retained dogfood linked worktree cleanup is complete.
@@ -1187,7 +1187,7 @@ Completed approval-gated actions:
 - No retained dogfood linked worktree remains after Dogfood Run 072 cleanup.
 - Dogfood Run 072 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-069`.
 - Dogfood Run 072 cleanup-completed evidence was committed and published as `3d58767`.
-- Current published head `3d58767` passed representative V1 kickoff/user-flow proof before Dogfood Run 073 execute.
+- Recorded published head `3d58767` passed representative V1 kickoff/user-flow proof before Dogfood Run 073 execute.
 - Dogfood Run 073 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 073 retained-evidence docs were committed locally and published to `origin/main` as `5b7bf54` before destructive cleanup.
 - Dogfood Run 073 retained dogfood linked worktree cleanup is complete.
@@ -1195,7 +1195,7 @@ Completed approval-gated actions:
 - No retained dogfood linked worktree remains after Dogfood Run 073 cleanup.
 - Dogfood Run 073 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-070`.
 - Dogfood Run 073 cleanup-completed evidence was committed and published as `13d600b`.
-- Current published head `13d600b` passed local completion and kickoff readiness before Dogfood Run 074 execute.
+- Recorded published head `13d600b` passed local completion and kickoff readiness before Dogfood Run 074 execute.
 - Dogfood Run 074 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 074 retained-evidence docs were committed locally and published to `origin/main` as `baf749b` before destructive cleanup.
 - Dogfood Run 074 retained dogfood linked worktree cleanup is complete.
@@ -1203,7 +1203,7 @@ Completed approval-gated actions:
 - No retained dogfood linked worktree remains after Dogfood Run 074 cleanup.
 - Dogfood Run 074 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-071`.
 - Dogfood Run 074 cleanup-completed evidence was committed and published as `292e9ab`.
-- Current published head `292e9ab` passed local completion and kickoff readiness before Dogfood Run 075 execute.
+- Recorded published head `292e9ab` passed local completion and kickoff readiness before Dogfood Run 075 execute.
 - Dogfood Run 075 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 075 retained-evidence docs were committed locally and published to `origin/main` as `eaa9a28` before destructive cleanup.
 - Dogfood Run 075 retained dogfood linked worktree cleanup is complete.
@@ -1211,7 +1211,7 @@ Completed approval-gated actions:
 - No retained dogfood linked worktree remains after Dogfood Run 075 cleanup.
 - Dogfood Run 075 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-072`.
 - Dogfood Run 075 cleanup-completed evidence was committed and published as `f87d5ac`.
-- Current published head `f87d5ac` passed local completion and kickoff readiness before Dogfood Run 076 execute.
+- Recorded published head `f87d5ac` passed local completion and kickoff readiness before Dogfood Run 076 execute.
 - Dogfood Run 076 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 076 retained-evidence docs were committed locally and published to `origin/main` as `86124a3` before destructive cleanup.
 - Dogfood Run 076 retained dogfood linked worktree cleanup is complete.
@@ -1240,7 +1240,7 @@ Completed approval-gated actions:
 - No retained dogfood linked worktree remains after Dogfood Run 079 cleanup.
 - Dogfood Run 079 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-076`.
 - Dogfood Run 079 cleanup-completed evidence was committed and published as `aae311f`.
-- Current published head `aae311f` has a fresh V1 kickoff user-flow proof after Dogfood Run 079 cleanup-completed evidence was published.
+- Recorded published head `aae311f` has a fresh V1 kickoff user-flow proof after Dogfood Run 079 cleanup-completed evidence was published.
 - Dogfood Run 080 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 080 retained-evidence was committed locally and published to `origin/main` as `22941f0` before destructive cleanup.
 - Dogfood Run 080 retained dogfood linked worktree cleanup is complete.
@@ -1290,7 +1290,7 @@ Completed approval-gated actions:
 - No retained dogfood linked worktree remains after Dogfood Run 086 cleanup.
 - Dogfood Run 086 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-083`.
 - Dogfood Run 086 cleanup-completed evidence was committed and published as `efbd1c1` before the user-flow evidence shortcut and review-passed routing fixes.
-- Current published head `a3cfc4d` includes the workflow handoff clarity and review-passed routing fixes before Dogfood Run 087 execute.
+- Recorded published head `a3cfc4d` includes the workflow handoff clarity and review-passed routing fixes before Dogfood Run 087 execute.
 - Dogfood Run 087 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 087 retained-evidence was committed locally and published to `origin/main` as `919d2f3` before destructive cleanup.
 - Dogfood Run 087 retained dogfood linked worktree cleanup is complete.
@@ -1298,7 +1298,7 @@ Completed approval-gated actions:
 - No retained dogfood linked worktree remains after Dogfood Run 087 cleanup.
 - Dogfood Run 087 runtime evidence remains available under `var/runtime-v1-dogfood-runner-v1-dogfood-runner-084`.
 - Dogfood Run 087 cleanup-completed evidence was committed and published as `06c988c` before the operator home runway slice.
-- Current published head `5ed1c3f` includes the operator home runway slice before Dogfood Run 088 execute.
+- Recorded published head `5ed1c3f` includes the operator home runway slice before Dogfood Run 088 execute.
 - Dogfood Run 088 execute was approved and completed without commit-package, local commit, push, merge, release-package, or close-out.
 - Dogfood Run 088 retained-evidence was committed locally and published to `origin/main` as `991a055` before destructive cleanup.
 - Dogfood Run 088 retained dogfood linked worktree cleanup is complete after retained-evidence commit `991a055` was preserved and published.

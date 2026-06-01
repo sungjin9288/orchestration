@@ -446,7 +446,7 @@ assert.match(handoff, /Dogfood Run 070 executed from clean\/published `main` wit
 assert.match(handoff, /Dogfood Run 070 retained-evidence was committed locally and published as `e4552fc` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 070 retained linked worktree path `\/Users\/sungjin\/dev\/personal\/orchestration--v1-dogfood-runner-067` and branch `worktree\/v1-dogfood-runner-067` have been removed after retained-evidence commit `e4552fc` was preserved and published/);
 assert.match(handoff, /Dogfood Run 070 cleanup-completed evidence was committed and published as `0fe6f1d`/);
-assert.match(handoff, /Current published head `0fe6f1d` passed `node scripts\/smoke-v1-user-flow-kickoff\.mjs` without `V1_KICKOFF_ALLOW_DIRTY`/);
+assert.match(handoff, /Recorded published head `0fe6f1d` passed `node scripts\/smoke-v1-user-flow-kickoff\.mjs` without `V1_KICKOFF_ALLOW_DIRTY`/);
 assert.match(handoff, /Dogfood Run 064 cleanup-completed evidence was published on the then-current `main` before Dogfood Run 065 execute/);
 assert.match(handoff, /Dogfood Run 058 retained-evidence was committed locally as `8c06978` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 058 cleanup-completed evidence was published on the then-current `main`/);
@@ -815,7 +815,7 @@ assert.match(handoff, /Dogfood Run 087 retained linked worktree path `\/Users\/s
 assert.match(handoff, /No retained dogfood linked worktree remains after Dogfood Run 087 cleanup/);
 assert.match(handoff, /Dogfood Run 087 runtime evidence remains available under `var\/runtime-v1-dogfood-runner-v1-dogfood-runner-084`/);
 assert.match(handoff, /Dogfood Run 087 cleanup-completed evidence was committed and published as `06c988c` before the operator home runway slice/);
-assert.match(handoff, /Current published head `5ed1c3f` includes the operator home runway slice before Dogfood Run 088 execute/);
+assert.match(handoff, /Recorded published head `5ed1c3f` includes the operator home runway slice before Dogfood Run 088 execute/);
 assert.match(handoff, /Dogfood Run 088 executed from clean\/published `main` with slug `v1-dogfood-runner-085` and stopped before commit-package, local commit, push, merge, release-package, or close-out/);
 assert.match(handoff, /Dogfood Run 088 retained-evidence was committed locally and published as `991a055` before destructive cleanup/);
 assert.match(handoff, /Dogfood Run 088 retained dogfood linked worktree cleanup is complete/);
