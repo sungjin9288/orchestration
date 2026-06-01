@@ -47,6 +47,8 @@ assert.match(runbook, /no Run 121 cleanup commit or push action is pending on th
 assert.match(runbook, /run another intentional `--execute --slug <slug>` dogfood pass only when the operator deliberately chooses optional dogfood repetition from a clean\/published baseline/);
 assert.match(runbook, /`hold-complete-baseline` is the no-op next action when `main` is clean\/published and no retained dogfood cleanup is pending/);
 assert.match(runbook, /`defer-push` is only listed when local `main` is ahead of `origin\/main` and the operator has not approved publish yet/);
+assert.doesNotMatch(runbook, /Current published[- ]head `[a-f0-9]{7}`/i);
+assert.doesNotMatch(handoff, /Current published[- ]head `[a-f0-9]{7}`/i);
 assert.doesNotMatch(runbook, /commit Dogfood Run 121 cleanup-completed evidence docs locally only after verification and commit approval/);
 assert.doesNotMatch(runbook, /publish the Dogfood Run 121 cleanup-completed evidence commit only after explicit `git push origin main` approval/);
 assert.doesNotMatch(runbook, /do not run another intentional `--execute --slug <slug>` dogfood pass until Dogfood Run 121 cleanup-completed evidence is committed\/published and final status is clean\/published/);

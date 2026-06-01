@@ -22,6 +22,8 @@ assert.match(runbook, /Preview-only repo-content redaction/);
 assert.match(runbook, /Taskboard \/ Logs \/ Artifacts \/ Decision Inbox/);
 assert.match(runbook, /push remains a separate approval-sensitive action/);
 assert.match(runbook, /blocked_missing_host_llm_credentials/);
+assert.doesNotMatch(runbook, /Current published[- ]head `[a-f0-9]{7}`/i);
+assert.doesNotMatch(handoff, /Current published[- ]head `[a-f0-9]{7}`/i);
 
 for (const command of [
   'git status --short --branch',
