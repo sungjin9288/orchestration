@@ -3015,7 +3015,7 @@ Triage finding:
 Next action:
 - Dogfood Run 046 retained-evidence commit `ed6752a` preserved docs and smoke guards before destructive cleanup.
 - Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-043` and `worktree/v1-dogfood-runner-043` completed after explicit destructive cleanup approval.
-- Dogfood Run 046 cleanup-completed docs and smoke guards were published on current `main` before the next approved Dogfood Run 047 execute.
+- Dogfood Run 046 cleanup-completed docs and smoke guards were published on the then-current `main` before the next approved Dogfood Run 047 execute.
 - The linked worktree mutation must not be committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 047
@@ -3151,7 +3151,7 @@ Triage finding:
 Next action:
 - Dogfood Run 048 retained-evidence commit `598bd6a` preserved docs and smoke guards before destructive cleanup.
 - Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-045` and `worktree/v1-dogfood-runner-045` completed after explicit destructive cleanup approval.
-- Dogfood Run 048 cleanup-completed docs and smoke guards are published on current `main`.
+- Dogfood Run 048 cleanup-completed docs and smoke guards were published on the then-current `main`.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 049
@@ -3219,7 +3219,7 @@ Triage finding:
 Next action:
 - Dogfood Run 049 retained-evidence commit `18f7340` preserved docs and smoke guards before destructive cleanup.
 - Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-046` and `worktree/v1-dogfood-runner-046` completed after explicit destructive cleanup approval.
-- Dogfood Run 049 cleanup-completed docs and smoke guards are published on current `main`.
+- Dogfood Run 049 cleanup-completed docs and smoke guards were published on the then-current `main`.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 050
@@ -3287,7 +3287,7 @@ Triage finding:
 Next action:
 - Dogfood Run 050 retained-evidence commit `dd41a03` preserved docs and smoke guards before destructive cleanup.
 - Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-047` and `worktree/v1-dogfood-runner-047` completed after explicit destructive cleanup approval.
-- Dogfood Run 050 cleanup-completed docs and smoke guards are published on current `main`.
+- Dogfood Run 050 cleanup-completed docs and smoke guards were published on the then-current `main`.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 051
@@ -3355,7 +3355,7 @@ Triage finding:
 Next action:
 - Dogfood Run 051 retained-evidence commit `fb7db42` preserved docs and smoke guards before destructive cleanup.
 - Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-048` and `worktree/v1-dogfood-runner-048` completed after explicit destructive cleanup approval.
-- Dogfood Run 051 cleanup-completed docs and smoke guards are published on current `main`.
+- Dogfood Run 051 cleanup-completed docs and smoke guards were published on the then-current `main`.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 052
@@ -3491,7 +3491,7 @@ Triage finding:
 Next action:
 - Dogfood Run 053 retained-evidence commit `d2a45b0` preserved docs and smoke guards before destructive cleanup.
 - Cleanup of `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-050` and `worktree/v1-dogfood-runner-050` completed after explicit destructive cleanup approval.
-- Dogfood Run 053 cleanup-completed docs and smoke guards are published on current `main`.
+- Dogfood Run 053 cleanup-completed docs and smoke guards were published on the then-current `main`.
 - The linked worktree mutation was not committed, pushed, merged, released, or closed out.
 
 ## Dogfood Run 054

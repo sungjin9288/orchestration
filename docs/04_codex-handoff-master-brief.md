@@ -443,30 +443,30 @@ Current local completion snapshot:
 - Dogfood Run 047 retained-evidence was committed locally as `2c11d66` before destructive cleanup
 - Dogfood Run 048 retained-evidence was committed locally as `598bd6a` before destructive cleanup
 - Dogfood Run 049 retained-evidence was committed locally as `18f7340` before destructive cleanup
-- Dogfood Run 049 cleanup-completed evidence is published on current `main`
+- Dogfood Run 049 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 050 executed from clean/published `main` with slug `v1-dogfood-runner-047` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 050 retained-evidence was committed locally as `dd41a03` before destructive cleanup
-- Dogfood Run 050 cleanup-completed evidence is published on current `main`
+- Dogfood Run 050 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 051 executed from clean/published `main` with slug `v1-dogfood-runner-048` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 051 retained-evidence was committed locally as `fb7db42` before destructive cleanup
-- Dogfood Run 051 cleanup-completed evidence is published on current `main`
+- Dogfood Run 051 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 052 executed from clean/published `main` with slug `v1-dogfood-runner-049` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 052 retained-evidence was committed locally as `5bcd9e7` before destructive cleanup
-- Dogfood Run 052 cleanup-completed evidence is published on current `main`
+- Dogfood Run 052 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 053 executed from clean/published `main` with slug `v1-dogfood-runner-050` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 053 retained-evidence was committed locally as `d2a45b0` before destructive cleanup
-- Dogfood Run 053 cleanup-completed evidence is published on current `main`
+- Dogfood Run 053 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 054 executed from clean/published `main` with slug `v1-dogfood-runner-051` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 054 retained-evidence was committed locally as `94fdfd7` before destructive cleanup
-- Dogfood Run 054 cleanup-completed evidence is published on current `main`
+- Dogfood Run 054 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 055 executed from clean/published `main` with slug `v1-dogfood-runner-052` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 055 retained-evidence was committed locally as `699e3ac` before destructive cleanup
 - Dogfood Run 056 executed from clean/published `main` with slug `v1-dogfood-runner-053` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 056 retained-evidence was committed locally as `c8a7f51` before destructive cleanup
-- Dogfood Run 056 cleanup-completed evidence is published on current `main`
+- Dogfood Run 056 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 057 executed from clean/published `main` with slug `v1-dogfood-runner-054` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 057 retained-evidence was committed locally as `a19615f` before destructive cleanup
-- Dogfood Run 057 cleanup-completed evidence is published on current `main`
+- Dogfood Run 057 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 058 executed from clean/published `main` with slug `v1-dogfood-runner-055` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 002, Run 004, Run 005, Run 006, Run 007, Run 008, Run 009, Run 010, Run 011, Run 012, Run 013, Run 014, Run 015, Run 016, Run 017, Run 018, Run 019, Run 020, Run 021, Run 022, Run 023, and Run 024 retained dogfood linked worktree cleanup has completed after explicit operator approval
 - Dogfood Run 024 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-021` and branch `worktree/v1-dogfood-runner-021` have been removed
@@ -505,11 +505,11 @@ Current local completion snapshot:
 - Dogfood Run 057 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-054` and branch `worktree/v1-dogfood-runner-054` have been removed after retained-evidence commit `a19615f` was preserved
 - Dogfood Run 058 retained-evidence was committed locally as `8c06978` before destructive cleanup
 - Dogfood Run 058 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-055` and branch `worktree/v1-dogfood-runner-055` have been removed after retained-evidence commit `8c06978` was preserved
-- Dogfood Run 058 cleanup-completed evidence is published on current `main`
+- Dogfood Run 058 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 059 executed from clean/published `main` with slug `v1-dogfood-runner-056` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 059 retained-evidence was committed locally as `b4833d0` before destructive cleanup
 - Dogfood Run 059 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-056` and branch `worktree/v1-dogfood-runner-056` have been removed after retained-evidence commit `b4833d0` was preserved
-- Dogfood Run 059 cleanup-completed evidence is published on current `main`
+- Dogfood Run 059 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 060 executed from clean/published `main` with slug `v1-dogfood-runner-057` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 060 retained-evidence was committed locally as `58d6fea` before destructive cleanup
 - Dogfood Run 060 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-057` and branch `worktree/v1-dogfood-runner-057` have been removed after retained-evidence commit `58d6fea` was preserved
@@ -517,7 +517,7 @@ Current local completion snapshot:
 - Dogfood Run 061 executed from the then-clean/published `main` with slug `v1-dogfood-runner-058` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 061 retained-evidence was committed locally as `2bc905b` before destructive cleanup
 - Dogfood Run 061 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-058` and branch `worktree/v1-dogfood-runner-058` have been removed after retained-evidence commit `2bc905b` was preserved
-- Dogfood Run 061 cleanup-completed evidence is published on current `main`
+- Dogfood Run 061 cleanup-completed evidence was published on the then-current `main`
 - Dogfood Run 062 executed from clean/published `main` with slug `v1-dogfood-runner-059` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 062 retained-evidence was committed locally and published as `dd7567d` before destructive cleanup
 - Dogfood Run 062 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-059` and branch `worktree/v1-dogfood-runner-059` have been removed after retained-evidence commit `dd7567d` was preserved and published
@@ -549,7 +549,7 @@ Current local completion snapshot:
 - Dogfood Run 069 executed from clean/published `main` with slug `v1-dogfood-runner-066` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 069 retained-evidence was committed locally and published as `a15bd7c` before destructive cleanup
 - Dogfood Run 069 retained linked worktree path `/Users/sungjin/dev/personal/orchestration--v1-dogfood-runner-066` and branch `worktree/v1-dogfood-runner-066` have been removed after retained-evidence commit `a15bd7c` was preserved and published
-- Dogfood Run 069 cleanup-completed evidence is published on current `main` before Dogfood Run 070 execute
+- Dogfood Run 069 cleanup-completed evidence was published on the then-current `main` before Dogfood Run 070 execute
 - Dogfood Run 070 executed from clean/published `main` with slug `v1-dogfood-runner-067` and stopped before commit-package, local commit, push, merge, release-package, or close-out
 - Dogfood Run 070 retained-evidence was committed locally and published as `e4552fc` before destructive cleanup
 - Dogfood Run 070 retained dogfood linked worktree cleanup is complete

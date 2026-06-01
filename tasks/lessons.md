@@ -929,3 +929,4 @@
 - dogfood 전후 요약에 끼어 있는 kickoff proof도 `current-head`라고 남기면 현재 head proof처럼 재해석된다. Dogfood Run 061 전처럼 fixed historical proof는 `recorded` 또는 `then-current`로 표현하고, 현재 kickoff truth는 별도 status/triage/user-flow smoke 재실행으로만 판단하게 해야 한다.
 - handoff wording을 historical snapshot으로 바꿀 때는 start-runbook smoke만 갱신하면 부족하다. local completion focused smoke도 같은 handoff 문구를 검증하므로 `smoke-v1-start-runbook`과 `smoke-v1-local-completion-status`의 positive/negative assertions를 함께 맞춰야 한다.
 - 반복 dogfood cleanup proof도 과거 run 사이의 publish state를 설명할 때는 then-current로 고정해야 한다. 특히 Run 064-067처럼 triage, handoff, start runbook, inventory smoke가 동시에 같은 문구를 검증하는 구간은 문서와 모든 focused smoke를 한 slice에서 맞춰야 한다.
+- dogfood cleanup proof의 `published on current main` 표현은 run 번호별로 조금씩 흩어져 있어 한두 개만 고치면 다시 drift가 남는다. positive assertions 전체를 then-current로 바꾸되, intentionally stale phrase를 막는 `doesNotMatch` guard는 그대로 남겨야 검증 의도가 뒤집히지 않는다.
