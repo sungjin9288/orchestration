@@ -72,9 +72,11 @@ The planned feature baseline is complete only while all of these are true:
 5. `node scripts/v1-dogfood-evidence-inventory.mjs` reports `cleanupCompleted=true` and
    `cleanupBlockedUntilApproval=false`.
 6. `node scripts/verification_status.mjs` passes required checks and informational completion gates.
-7. `node scripts/smoke-ui-slice-638.mjs` remains part of the aggregate verification chain so
+7. `node scripts/ui_qa_status.mjs` and `node scripts/smoke-v1-user-flow-kickoff.mjs` pass on the
+   current head before UI shell, advanced-ops, or first user-flow completion proof is reused.
+8. `node scripts/smoke-ui-slice-638.mjs` remains part of the aggregate verification chain so
    review-passed results continue to route to `Deliverables` instead of falling back to `Execution`.
-8. `node scripts/harness_verification_status.mjs` and
+9. `node scripts/harness_verification_status.mjs` and
    `node scripts/hermes-agent-internal-harness-status.mjs` remain green before any current
    Harness/Hermes completion claim is reused as close-out evidence.
 

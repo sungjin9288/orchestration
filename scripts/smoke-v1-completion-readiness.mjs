@@ -60,6 +60,8 @@ for (const command of [
   'node scripts/v1-kickoff-evidence-triage.mjs',
   'node scripts/v1-dogfood-evidence-inventory.mjs',
   'node scripts/verification_status.mjs',
+  'node scripts/ui_qa_status.mjs',
+  'node scripts/smoke-v1-user-flow-kickoff.mjs',
   'node scripts/harness_verification_status.mjs',
   'node scripts/hermes-agent-internal-harness-status.mjs',
 ]) {
@@ -92,6 +94,8 @@ assert.match(verificationStatus, /scripts\/smoke-ui-slice-638\.mjs/);
 assert.match(readiness, /review\.status=passed/);
 assert.match(readiness, /approval\.status=approved/);
 assert.match(readiness, /scripts\/smoke-ui-slice-638\.mjs/);
+assert.match(readiness, /UI shell, advanced-ops, or first user-flow completion proof/);
+assert.match(readiness, /current head before UI shell/);
 assert.match(readiness, /Harness\/Hermes completion claim/);
 assert.match(readiness, /close-out evidence/);
 
