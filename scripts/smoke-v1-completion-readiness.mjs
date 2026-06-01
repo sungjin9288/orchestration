@@ -71,6 +71,8 @@ assert.match(readiness, /Do not open a new implementation slice/);
 
 assert.match(runbook, /docs\/17_v1-completion-readiness\.md/);
 assert.match(handoff, /docs\/17_v1-completion-readiness\.md/);
+assert.doesNotMatch(runbook, /Current planned feature completion evidence was captured at baseline head/);
+assert.match(runbook, /Recorded planned feature completion evidence was captured at baseline head `833d2735534609d91546f5fb9a3a7420b33e9f9d`/);
 assert.match(runbook, /recorded proof head `9f216e6ef4c35fcad60008c1d833877435c4e13a`/);
 assert.match(runbook, /current repository head still must be validated/);
 assert.match(handoff, /recorded published proof head `9f216e6ef4c35fcad60008c1d833877435c4e13a`/);
