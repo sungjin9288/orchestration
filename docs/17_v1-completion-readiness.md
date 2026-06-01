@@ -74,6 +74,9 @@ The planned feature baseline is complete only while all of these are true:
 6. `node scripts/verification_status.mjs` passes required checks and informational completion gates.
 7. `node scripts/smoke-ui-slice-638.mjs` remains part of the aggregate verification chain so
    review-passed results continue to route to `Deliverables` instead of falling back to `Execution`.
+8. `node scripts/harness_verification_status.mjs` and
+   `node scripts/hermes-agent-internal-harness-status.mjs` remain green before any current
+   Harness/Hermes completion claim is reused as close-out evidence.
 
 ## Non-Blocking Follow-Up
 The following remain valid follow-up lanes, but they do not block the planned feature completion
