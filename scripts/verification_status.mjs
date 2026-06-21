@@ -136,6 +136,387 @@ const informationalChecks = [
     script: 'scripts/smoke-reference-claw-empire-audit.mjs',
     purpose: 'Historical claw-empire audit questions stay preserved as reference evidence without reopening current V1 implementation backlog',
   },
+  {
+    id: 'vnext-growth-gateway-plan',
+    script: 'scripts/smoke-vnext-growth-gateway-plan.mjs',
+    purpose: 'OpenClaw-style local gateway reach and Hermes-style self-improvement loop stay separated, local-first, and approval-gated for vNext planning',
+  },
+  {
+    id: 'growth-engine-status',
+    script: 'scripts/smoke-growth-engine-status.mjs',
+    purpose: 'Growth engine status reads local evidence and recommends the next self-improvement slice without mutating runtime, providers, channels, commits, or pushes',
+  },
+  {
+    id: 'growth-reflection-evaluator',
+    script: 'scripts/smoke-growth-reflection-evaluator.mjs',
+    purpose: 'Growth reflection evaluator scores local evidence with typed claims and negative evidence while staying read-only and approval-gated',
+  },
+  {
+    id: 'growth-worker-event-schema',
+    script: 'scripts/smoke-growth-worker-event-schema.mjs',
+    purpose: 'Growth worker event schema fixes read-only lifecycle/report/status-check vocabulary before worker automation or proposal queues can act',
+  },
+  {
+    id: 'growth-proposal-queue-status',
+    script: 'scripts/smoke-growth-proposal-queue-status.mjs',
+    purpose: 'Growth proposal queue status fixes read-only proposal readiness, approval, and verification vocabulary before proposal generation or application can act',
+  },
+  {
+    id: 'growth-skill-memory-registry-status',
+    script: 'scripts/smoke-growth-skill-memory-registry-status.mjs',
+    purpose: 'Growth skill memory registry status fixes read-only redaction, applicability, expiry, and verification vocabulary before memory persistence or skill promotion can act',
+  },
+  {
+    id: 'growth-gateway-surface-router-status',
+    script: 'scripts/smoke-growth-gateway-surface-router-status.mjs',
+    purpose: 'Growth gateway surface router status fixes read-only routing for growth state across owned surfaces before external channels or execution authority can act',
+  },
+  {
+    id: 'growth-continuous-development-loop-status',
+    script: 'scripts/smoke-growth-continuous-development-loop-status.mjs',
+    purpose: 'Growth continuous development loop status fixes the read-only evidence, reflection, proposal, approval, verification, lesson, and gateway exposure loop before improvement acceptance can act',
+  },
+  {
+    id: 'growth-improvement-acceptance-status',
+    script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
+    purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',
+  },
+  {
+    id: 'growth-accepted-improvement-registry-status',
+    script: 'scripts/smoke-growth-accepted-improvement-registry-status.mjs',
+    purpose: 'Growth accepted improvement registry status fixes read-only accepted/rejected/deferred/rollback records before post-acceptance regression watch can act',
+  },
+  {
+    id: 'growth-regression-watch-status',
+    script: 'scripts/smoke-growth-regression-watch-status.mjs',
+    purpose: 'Growth regression watch status fixes read-only post-acceptance regression signals before rollback review or remediation can act',
+  },
+  {
+    id: 'growth-rollback-review-status',
+    script: 'scripts/smoke-growth-rollback-review-status.mjs',
+    purpose: 'Growth rollback review status fixes read-only rollback review states before remediation planning or rollback execution can act',
+  },
+  {
+    id: 'growth-remediation-plan-status',
+    script: 'scripts/smoke-growth-remediation-plan-status.mjs',
+    purpose: 'Growth remediation plan status fixes read-only remediation plan fields before remediation approval, implementation proposals, or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-approval-status',
+    script: 'scripts/smoke-growth-remediation-approval-status.mjs',
+    purpose: 'Growth remediation approval status fixes read-only approval gate fields before implementation proposals or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-implementation-proposal-status',
+    script: 'scripts/smoke-growth-remediation-implementation-proposal-status.mjs',
+    purpose: 'Growth remediation implementation proposal status fixes read-only proposal fields before implementation review, source mutation, or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-implementation-review-status',
+    script: 'scripts/smoke-growth-remediation-implementation-review-status.mjs',
+    purpose: 'Growth remediation implementation review status fixes read-only review gates before thin-slice readiness, source mutation, or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-thin-slice-status',
+    script: 'scripts/smoke-growth-remediation-thin-slice-status.mjs',
+    purpose: 'Growth remediation thin-slice status fixes read-only target and authority readiness before source mutation or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-execution-authority-status',
+    script: 'scripts/smoke-growth-remediation-execution-authority-status.mjs',
+    purpose: 'Growth remediation execution authority status fixes read-only approval, target-lock, and baseline gates before mutation preflight or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-mutation-preflight-status',
+    script: 'scripts/smoke-growth-remediation-mutation-preflight-status.mjs',
+    purpose: 'Growth remediation mutation preflight status fixes read-only baseline digest, target-lock, restore, verification, and rollback gates before source mutation request or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-request-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-request-status.mjs',
+    purpose: 'Growth remediation source mutation request status fixes read-only preflight, operator intent, target-lock, expected change-set, verification command, and rollback gates before source mutation authorization or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-authorization-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-authorization-status.mjs',
+    purpose: 'Growth remediation source mutation authorization status fixes read-only request, operator approval, target-lock, expected change-set, verification command, restore, and rollback gates before source mutation application preflight or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-application-preflight-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-application-preflight-status.mjs',
+    purpose: 'Growth remediation source mutation application preflight status fixes read-only authorization, approved-request, target-lock, expected change-set, verification command, restore, rollback, and dry-run gates before source mutation draft or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-draft-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-draft-status.mjs',
+    purpose: 'Growth remediation source mutation draft status fixes read-only application-preflight, file-update plan, patch draft, diff preview, verification command, dry-run proof, restore, and rollback gates before draft review or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-draft-review-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-draft-review-status.mjs',
+    purpose: 'Growth remediation source mutation draft review status fixes read-only draft, patch/diff, verification output, rollback proof, reviewer note, and negative-evidence gates before apply authorization or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-apply-authorization-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-apply-authorization-status.mjs',
+    purpose: 'Growth remediation source mutation apply authorization status fixes read-only passed draft review, operator intent, exact scope, verification output, rollback proof, and negative-evidence gates before apply preflight or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-apply-preflight-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-apply-preflight-status.mjs',
+    purpose: 'Growth remediation source mutation apply preflight status fixes read-only current apply authorization, clean baseline, patch/diff proof, verification output, rollback proof, and negative-evidence gates before final apply execution readiness or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-apply-execution-readiness-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-apply-execution-readiness-status.mjs',
+    purpose: 'Growth remediation source mutation apply execution readiness status fixes read-only current apply preflight, clean baseline, operator dispatch intent, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before apply dispatch or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-apply-dispatch-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-apply-dispatch-status.mjs',
+    purpose: 'Growth remediation source mutation apply dispatch status fixes read-only current apply execution readiness, operator dispatch intent, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before apply execution or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-apply-execution-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-apply-execution-status.mjs',
+    purpose: 'Growth remediation source mutation apply execution status fixes read-only current apply dispatch, operator dispatch intent, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before apply result or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-apply-result-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-apply-result-status.mjs',
+    purpose: 'Growth remediation source mutation apply result status fixes read-only current apply execution, dispatch, operator intent, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before apply result review or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-apply-result-review-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-apply-result-review-status.mjs',
+    purpose: 'Growth remediation source mutation apply result review status fixes read-only current apply result, reviewer note, acceptance criteria, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before apply result acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-apply-result-acceptance-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-apply-result-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation apply result acceptance status fixes read-only current apply result review, acceptance decision notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before apply closure or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-apply-closure-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-apply-closure-status.mjs',
+    purpose: 'Growth remediation source mutation apply closure status fixes read-only current apply result acceptance, closure decision notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before apply finalization or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-apply-finalization-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-apply-finalization-status.mjs',
+    purpose: 'Growth remediation source mutation apply finalization status fixes read-only current apply closure, finalization decision notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before post-apply audit or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-post-apply-audit-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-post-apply-audit-status.mjs',
+    purpose: 'Growth remediation source mutation post-apply audit status fixes read-only current post-apply audit, apply finalization, audit notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before post-apply audit review or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-post-apply-audit-review-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-post-apply-audit-review-status.mjs',
+    purpose: 'Growth remediation source mutation post-apply audit review status fixes read-only current review, audit evidence, reviewer notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before review acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-post-apply-audit-review-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-post-apply-audit-review-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation post-apply audit review acceptance status fixes read-only current review acceptance, audit review evidence, acceptance notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before source mutation completion or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-completion-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-completion-status.mjs',
+    purpose: 'Growth remediation source mutation completion status fixes read-only current completion, review-acceptance evidence, completion decision notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before completion review or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-completion-review-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-completion-review-status.mjs',
+    purpose: 'Growth remediation source mutation completion review status fixes read-only current completion review, reviewer notes, review decision notes, current completion evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before completion review acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-completion-review-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-completion-review-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation completion review acceptance status fixes read-only current completion review acceptance, acceptance criteria, acceptance decision notes, current review evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-status',
+    script: 'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout status fixes read-only current lifecycle closeout, accepted review evidence, closeout criteria, closeout decision notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout review or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-review-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-review-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout review status fixes read-only current lifecycle closeout review, reviewer notes, review decision notes, current closeout evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout review acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-review-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-review-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout review acceptance status fixes read-only current lifecycle closeout review acceptance, acceptance criteria, acceptance decision notes, current review evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure readiness or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-readiness-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-readiness-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure readiness status fixes read-only current lifecycle closeout closure readiness, closure readiness criteria, closure readiness decision notes, current review acceptance evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure authorization or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-authorization-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-authorization-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure authorization status fixes read-only current lifecycle closeout closure authorization, closure authorization criteria, closure authorization decision notes, current closure readiness evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure execution readiness or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure execution readiness status fixes read-only current lifecycle closeout closure execution readiness, closure execution readiness criteria, closure execution readiness decision notes, current closure authorization evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure dispatch or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure dispatch status fixes read-only current lifecycle closeout closure dispatch, closure dispatch criteria, closure dispatch decision notes, current closure execution readiness evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure execution or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-execution-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure execution status fixes read-only current lifecycle closeout closure execution, closure execution criteria, closure execution decision notes, current closure dispatch evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure result or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-result-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure result status fixes read-only current lifecycle closeout closure result, closure result criteria, closure result decision notes, current closure execution evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure result review or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure result review status fixes read-only current lifecycle closeout closure result review, closure result review criteria, closure result review decision notes, reviewer notes, current closure result evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure result review acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure result review acceptance status fixes read-only current lifecycle closeout closure result review acceptance, closure result review acceptance criteria, closure result review acceptance decision notes, reviewer notes, current closure result review evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure result acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure result acceptance status fixes read-only current lifecycle closeout closure result acceptance, closure result acceptance criteria, closure result acceptance decision notes, current closure result review acceptance evidence, reviewer notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure status or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure status fixes read-only current lifecycle closeout closure, closure criteria, closure decision notes, current closure result acceptance evidence, reviewer notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure review or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-review-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-review-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure review status fixes read-only current lifecycle closeout closure review, closure review criteria, closure review decision notes, current closure evidence, current closure result acceptance evidence, reviewer notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure review acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure review acceptance status fixes read-only current lifecycle closeout closure review acceptance, closure review acceptance criteria, closure review acceptance decision notes, current closure review evidence, current closure evidence, reviewer notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure acceptance status fixes read-only current lifecycle closeout closure acceptance, closure acceptance criteria, closure acceptance decision notes, current closure review acceptance evidence, current closure evidence, reviewer notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure finalization or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure finalization status fixes read-only current lifecycle closeout closure finalization, closure finalization criteria, closure finalization decision notes, current closure acceptance evidence, current closure review acceptance evidence, current closure evidence, reviewer notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure finalization review or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure finalization review status fixes read-only current lifecycle closeout closure finalization review, closure finalization review criteria, closure finalization review decision notes, current closure finalization evidence, current closure acceptance evidence, reviewer notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure finalization review acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure finalization review acceptance status fixes read-only current lifecycle closeout closure finalization review acceptance, closure finalization review acceptance criteria, closure finalization review acceptance decision notes, current closure finalization review evidence, current closure finalization evidence, reviewer notes, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure finalization acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure finalization acceptance status fixes read-only current lifecycle closeout closure finalization acceptance, closure finalization acceptance criteria, closure finalization acceptance decision notes, current closure finalization review acceptance evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure final close or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-final-close-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-final-close-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure final close status fixes read-only current final close, final close criteria, final close decision notes, current finalization acceptance evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure lifecycle close or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure lifecycle close status fixes read-only current lifecycle close, lifecycle close criteria, lifecycle close decision notes, current final close evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure lifecycle close review or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure lifecycle close review status fixes read-only current lifecycle close review, lifecycle close review criteria, lifecycle close review decision notes, current lifecycle close evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle closeout closure lifecycle close review acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure lifecycle close review acceptance status fixes read-only current lifecycle close review acceptance, review acceptance criteria, review acceptance decision notes, current lifecycle close review evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle close acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure lifecycle close acceptance status fixes read-only current lifecycle close acceptance, lifecycle close acceptance criteria, lifecycle close acceptance decision notes, current lifecycle close review acceptance evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle close finalization or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure lifecycle close finalization status fixes read-only current lifecycle close finalization, lifecycle close finalization criteria, lifecycle close finalization decision notes, current lifecycle close acceptance evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle close finalization review or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure lifecycle close finalization review status fixes read-only current lifecycle close finalization review, lifecycle close finalization review criteria, lifecycle close finalization review decision notes, current lifecycle close finalization evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle close finalization review acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure lifecycle close finalization review acceptance status fixes read-only current lifecycle close finalization review acceptance, lifecycle close finalization review acceptance criteria, lifecycle close finalization review acceptance decision notes, current lifecycle close finalization review evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle close finalization acceptance or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure lifecycle close finalization acceptance status fixes read-only current lifecycle close finalization acceptance, lifecycle close finalization acceptance criteria, lifecycle close finalization acceptance decision notes, current lifecycle close finalization review acceptance evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle close final close or remediation execution can act',
+  },
+  {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+    script:
+      'scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
+    purpose: 'Growth remediation source mutation lifecycle closeout closure lifecycle close final-close status fixes read-only current lifecycle close final-close, lifecycle close final-close criteria, lifecycle close final-close decision notes, current lifecycle close finalization acceptance evidence, clean baseline, patch/diff proof, verification output, dry-run proof, rollback proof, and negative-evidence gates before lifecycle close status can be re-checked',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

@@ -1,0 +1,620 @@
+{
+  "artifactCatalog": {
+    "plan": {
+      "latestCenteredBrowse": true,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "architecture": {
+      "latestCenteredBrowse": true,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "breakdown": {
+      "latestCenteredBrowse": true,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "preflight": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "change-summary": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "patch": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "diff": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "review": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "commit-package": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "commit-result": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "release-package": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "close-out": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "output": {
+      "latestCenteredBrowse": false,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-c-generic-fallback"
+    }
+  },
+  "generatedAt": "2026-06-09T05:13:51.477Z",
+  "runtimeRoot": "/tmp/orchestration-evidence-runtime",
+  "snapshot": {
+    "schemaVersion": 4,
+    "activeProjectId": "project-0001",
+    "selectedMissionId": null,
+    "sequences": {
+      "mission": 0,
+      "councilSession": 0,
+      "project": 1,
+      "task": 1,
+      "run": 1,
+      "artifact": 1,
+      "decisionInboxItem": 0,
+      "approval": 0
+    },
+    "missions": {},
+    "councilSessions": {},
+    "projects": {
+      "project-0001": {
+        "id": "project-0001",
+        "name": "Evidence Fixture",
+        "projectPath": "/tmp/orchestration-evidence-project",
+        "pack": "development",
+        "provider": {
+          "mode": "local-stub",
+          "adapter": "local-stub",
+          "model": null,
+          "env": {
+            "apiKeyVar": null
+          }
+        },
+        "readiness": "ready",
+        "createdAt": "2026-06-09T05:13:27.258Z",
+        "updatedAt": "2026-06-09T05:13:27.258Z"
+      }
+    },
+    "tasks": {
+      "task-0001": {
+        "id": "task-0001",
+        "projectId": "project-0001",
+        "missionId": null,
+        "deliverableType": null,
+        "title": "Collect implementation evidence",
+        "intent": "Record portfolio implementation evidence without changing app source.",
+        "lifecycleState": "In Progress",
+        "flags": {
+          "blocked": false,
+          "waitingApproval": false,
+          "waitingDecision": false
+        },
+        "review": {
+          "required": true,
+          "status": "pending",
+          "inboxItemId": null,
+          "resolution": null,
+          "verificationArtifactIds": []
+        },
+        "latestRunId": "run-0001",
+        "artifactIds": [
+          "artifact-0001"
+        ],
+        "worktreeRef": null,
+        "createdAt": "2026-06-09T05:13:28.453Z",
+        "updatedAt": "2026-06-09T05:13:51.477Z"
+      }
+    },
+    "runs": {
+      "run-0001": {
+        "id": "run-0001",
+        "taskId": "task-0001",
+        "kind": "role",
+        "role": "planner",
+        "status": "completed",
+        "metadata": {
+          "promptPath": "prompts/planner.md",
+          "routingClassification": "new task",
+          "sourceOfTruthPaths": [
+            "AGENTS.md",
+            "docs/00_master-brief.md",
+            "docs/01_decision-log.md",
+            "docs/02_ia-v1.md",
+            "docs/03_architecture-roadmap-v1.md",
+            "packs/development/pack.md"
+          ]
+        },
+        "summary": {
+          "adapter": "local-stub",
+          "model": "local-stub-planner-v1",
+          "blockers": 0,
+          "needsDecision": false,
+          "nextStage": "architect",
+          "providerRunId": "local-stub-planner-task-0001"
+        },
+        "startedAt": "2026-06-09T05:13:51.475Z",
+        "finishedAt": "2026-06-09T05:13:51.477Z",
+        "logPath": "/tmp/orchestration-evidence-runtime/logs/run-0001.jsonl"
+      }
+    },
+    "artifacts": {
+      "artifact-0001": {
+        "id": "artifact-0001",
+        "taskId": "task-0001",
+        "runId": "run-0001",
+        "type": "plan",
+        "path": "/tmp/orchestration-evidence-runtime/artifacts/artifact-0001.md",
+        "createdAt": "2026-06-09T05:13:51.476Z",
+        "retention": {
+          "actionLog": [],
+          "lastAction": null,
+          "lastActionAt": null,
+          "status": "active"
+        }
+      }
+    },
+    "decisionInboxItems": {},
+    "approvals": {}
+  },
+  "derived": {
+    "activeProjectLinkedWorktrees": {
+      "error": null,
+      "notice": null,
+      "options": [],
+      "projectId": "project-0001",
+      "projectPath": "/tmp/orchestration-evidence-project",
+      "resolvedProjectPath": "/private/tmp/orchestration-evidence-project"
+    },
+    "closeOutReadinessSummaries": {
+      "task-0001": {
+        "allowed": false,
+        "approvalStale": false,
+        "commitPackageArtifactId": null,
+        "commitResultArtifactId": null,
+        "commitSha": null,
+        "conflict": false,
+        "currentReleasePackageArtifactId": null,
+        "deliveryStance": "local-demo-only",
+        "existingCloseOutArtifactId": null,
+        "existingCloseOutRunId": null,
+        "latestApprovedReleaseApprovalId": null,
+        "latestApprovedReleaseApprovalStatus": null,
+        "latestCloseOutArtifactId": null,
+        "latestReleasePackageArtifactId": null,
+        "reasons": [
+          "Task task-0001 must be in Review before close-out",
+          "Task task-0001 review must be passed before close-out",
+          "main worktree is blocked before close-out; use a dedicated linked worktree root: /tmp/orchestration-evidence-project",
+          "Latest valid commit-package artifact is required before close-out for task task-0001",
+          "Latest successful local commit bundle is required before close-out for task task-0001",
+          "Latest release-package artifact is required before close-out for task task-0001",
+          "Latest approved release-ready approval is required before close-out for task task-0001"
+        ],
+        "repoClean": false,
+        "repoDirtyFileCount": null,
+        "repoStagedFileCount": null,
+        "repoUntrackedFileCount": null,
+        "sourceBuilderApprovalId": null,
+        "sourceBuilderRunId": null,
+        "sourceReviewArtifactId": null,
+        "sourceReviewerRunId": null,
+        "targetPreflightArtifactId": null,
+        "targetPreflightRunId": null
+      }
+    },
+    "commitExecutionReadinessSummaries": {
+      "task-0001": {
+        "allowed": false,
+        "approvalStale": false,
+        "changedFileCount": 0,
+        "commitMessagePresent": false,
+        "commitPackageArtifactId": null,
+        "conflict": false,
+        "existingCommitResultArtifactId": null,
+        "existingLocalCommitRunId": null,
+        "latestApprovalDisplayStatus": "none",
+        "latestApprovalId": null,
+        "latestApprovalStatus": null,
+        "reasons": [
+          "Latest valid commit-package artifact is required before local commit for task task-0001",
+          "Task task-0001 cannot transition to commit-intent without an approved commit approval record"
+        ],
+        "repoChangeCountBeforeCommit": null,
+        "sourceBuilderRunId": null,
+        "sourceReviewArtifactId": null,
+        "sourceReviewerRunId": null,
+        "targetPreflightArtifactId": null,
+        "targetPreflightRunId": null
+      }
+    },
+    "commitPackageReadinessSummaries": {
+      "task-0001": {
+        "allowed": false,
+        "approvalStale": false,
+        "conflict": false,
+        "currentCommitPackageArtifactId": null,
+        "latestApprovalId": null,
+        "latestApprovalStatus": null,
+        "latestCommitPackageArtifactId": null,
+        "packageStale": false,
+        "reasons": [
+          "Latest successful builder live mutation bundle is required before reviewer run for task task-0001"
+        ],
+        "sourceBuilderRunId": null,
+        "sourceReviewArtifactId": null,
+        "sourceReviewerRunId": null,
+        "targetPreflightArtifactId": null,
+        "targetPreflightRunId": null
+      }
+    },
+    "executionEntrySummaries": {
+      "task-0001": {
+        "architect": {
+          "allowed": true,
+          "projectId": "project-0001",
+          "providerSummary": {
+            "adapter": "local-stub",
+            "allowed": true,
+            "mode": "local-stub",
+            "projectId": "project-0001",
+            "readiness": "ready",
+            "reasons": []
+          },
+          "reasons": [],
+          "stage": "architect",
+          "taskId": "task-0001"
+        },
+        "builderPreflight": {
+          "allowed": false,
+          "projectId": "project-0001",
+          "providerSummary": {
+            "adapter": "local-stub",
+            "allowed": true,
+            "mode": "local-stub",
+            "projectId": "project-0001",
+            "readiness": "ready",
+            "reasons": []
+          },
+          "reasons": [
+            "latest architecture artifact required",
+            "latest breakdown artifact required"
+          ],
+          "stage": "builderPreflight",
+          "taskId": "task-0001"
+        },
+        "planner": {
+          "allowed": true,
+          "projectId": "project-0001",
+          "providerSummary": {
+            "adapter": "local-stub",
+            "allowed": true,
+            "mode": "local-stub",
+            "projectId": "project-0001",
+            "readiness": "ready",
+            "reasons": []
+          },
+          "reasons": [],
+          "stage": "planner",
+          "taskId": "task-0001"
+        },
+        "taskBreaker": {
+          "allowed": false,
+          "projectId": "project-0001",
+          "providerSummary": {
+            "adapter": "local-stub",
+            "allowed": true,
+            "mode": "local-stub",
+            "projectId": "project-0001",
+            "readiness": "ready",
+            "reasons": []
+          },
+          "reasons": [
+            "latest architecture artifact required"
+          ],
+          "stage": "taskBreaker",
+          "taskId": "task-0001"
+        }
+      }
+    },
+    "providerExecutionSummaries": {
+      "project-0001": {
+        "adapter": "local-stub",
+        "allowed": true,
+        "mode": "local-stub",
+        "projectId": "project-0001",
+        "readiness": "ready",
+        "reasons": []
+      }
+    },
+    "releasePackageReadinessSummaries": {
+      "task-0001": {
+        "allowed": false,
+        "approvalStale": false,
+        "commitPackageArtifactId": null,
+        "commitResultArtifactId": null,
+        "commitSha": null,
+        "conflict": false,
+        "currentReleasePackageArtifactId": null,
+        "deliveryStance": "local-demo-only",
+        "latestApprovalDisplayStatus": "none",
+        "latestApprovalId": null,
+        "latestApprovalStatus": null,
+        "latestReleasePackageArtifactId": null,
+        "packageStale": false,
+        "reasons": [
+          "Latest successful builder live mutation bundle is required before reviewer run for task task-0001",
+          "main worktree is blocked before release-package; use a dedicated linked worktree root: /tmp/orchestration-evidence-project",
+          "Latest valid commit-package artifact is required before release package for task task-0001",
+          "Latest successful local commit bundle is required before release package for task task-0001"
+        ],
+        "sourceBuilderRunId": null,
+        "sourceReviewArtifactId": null,
+        "sourceReviewerRunId": null,
+        "targetPreflightArtifactId": null,
+        "targetPreflightRunId": null
+      }
+    },
+    "reviewerReadinessSummaries": {
+      "task-0001": {
+        "allowed": false,
+        "approvalId": null,
+        "changeSummaryArtifactId": null,
+        "changedFileCount": 0,
+        "diffArtifactId": null,
+        "existingReviewArtifactId": null,
+        "existingReviewerRunId": null,
+        "patchArtifactId": null,
+        "preflightArtifactId": null,
+        "reasons": [
+          "Latest successful builder live mutation bundle is required before reviewer run for task task-0001"
+        ],
+        "sourceBuilderRunId": null
+      }
+    },
+    "taskGuardSummaries": {
+      "task-0001": {
+        "builderLiveMutationApprovalRequest": {
+          "allowed": false,
+          "approvalStale": false,
+          "conflict": false,
+          "currentPreflightArtifactId": null,
+          "currentPreflightRunId": null,
+          "existingSuccessfulBuilderRunId": null,
+          "latestApprovalDisplayStatus": "none",
+          "latestApprovalId": null,
+          "latestApprovalStatus": null,
+          "pendingBlockingDecisionItemIds": [],
+          "reasons": [
+            "latest preflight artifact required"
+          ],
+          "targetPreflightArtifactId": null,
+          "targetPreflightRunId": null
+        },
+        "builderLiveMutation": {
+          "allowed": false,
+          "approvalStale": false,
+          "currentPreflightArtifactId": null,
+          "currentPreflightRunId": null,
+          "existingSuccessfulBuilderRunId": null,
+          "latestApprovalDisplayStatus": "none",
+          "latestApprovalId": null,
+          "latestApprovalStatus": null,
+          "pendingApprovalIds": [],
+          "pendingBlockingDecisionItemIds": [],
+          "targetFileCount": 0,
+          "reasons": [
+            "latest preflight artifact required",
+            "latest approval for builder-live-mutation is missing"
+          ],
+          "targetPreflightArtifactId": null,
+          "targetPreflightRunId": null
+        },
+        "builderPreflight": {
+          "allowed": false,
+          "latestArchitectureArtifactId": null,
+          "latestBreakdownArtifactId": null,
+          "latestBreakdownRunId": null,
+          "latestPlanArtifactId": "artifact-0001",
+          "latestPlanRunId": "run-0001",
+          "latestPreflightArtifactId": null,
+          "matchingBreakdownProvenance": false,
+          "matchingPlanArchitectureProvenance": false,
+          "pendingApprovalIds": [],
+          "pendingBlockingDecisionItemIds": [],
+          "reasons": [
+            "latest architecture artifact required",
+            "latest breakdown artifact required"
+          ]
+        },
+        "taskBreaker": {
+          "allowed": false,
+          "latestArchitectureArtifactId": null,
+          "latestArchitectureRunId": null,
+          "latestPlanRunId": "run-0001",
+          "latestPlanArtifactId": "artifact-0001",
+          "matchingPlanArchitectureProvenance": false,
+          "pendingApprovalIds": [],
+          "pendingBlockingDecisionItemIds": [],
+          "reasons": [
+            "latest architecture artifact required"
+          ]
+        }
+      }
+    },
+    "harnessConsumerStatus": {
+      "ok": true,
+      "mode": "harness-consumer-status",
+      "sourceMode": "harness-run-doctor",
+      "guidance": "Consume the frozen harness doctor.summary contract here; do not recompute host posture from raw harness arrays in downstream operator surfaces.",
+      "operatorAction": {
+        "kind": "repo-native-run",
+        "harnessId": "markitdown",
+        "repoNativeCommand": "node scripts/harness-run.mjs markitdown <input-file> [output-file]",
+        "message": "Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file]."
+      },
+      "statusCard": {
+        "currentHostState": "runnable",
+        "primaryHarnessId": "markitdown",
+        "primaryPosture": "approved-now",
+        "primaryKind": "local-cli-wrapper",
+        "primaryHarnessState": "ready",
+        "primaryCommand": "markitdown",
+        "primaryRunner": "scripts/markitdown-convert.mjs",
+        "primaryExecutable": true,
+        "primaryAvailable": true,
+        "primaryReady": true,
+        "primaryActionShort": "run-now",
+        "primaryActionMessage": "Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file]."
+      }
+    },
+    "harnessConsumerBrief": {
+      "ok": true,
+      "mode": "harness-consumer-brief",
+      "sourceMode": "harness-consumer-status",
+      "guidance": "Use this brief for shell-friendly operator or automation surfaces; it stays derived from the frozen consumer payload and does not widen the doctor producer contract.",
+      "brief": {
+        "currentHostState": "runnable",
+        "primaryHarnessId": "markitdown",
+        "headline": "markitdown is ready on this host.",
+        "actionLabel": "Run approved harness",
+        "actionCommand": "node scripts/harness-run.mjs markitdown <input-file> [output-file]",
+        "actionMessage": "Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file]."
+      }
+    },
+    "latestHarnessExecution": null,
+    "recentHarnessExecutions": []
+  },
+  "artifactDetail": {
+    "id": "artifact-0001",
+    "taskId": "task-0001",
+    "runId": "run-0001",
+    "type": "plan",
+    "path": "/tmp/orchestration-evidence-runtime/artifacts/artifact-0001.md",
+    "createdAt": "2026-06-09T05:13:51.476Z",
+    "retention": {
+      "actionLog": [],
+      "lastAction": null,
+      "lastActionAt": null,
+      "status": "active"
+    },
+    "content": "# Plan: Collect implementation evidence\n\n## Slice Goal\nRecord portfolio implementation evidence without changing app source.\n\n## Intended Outcome\nConnect the planner role to a real run path that reads the planner prompt contract, builds an execution request, calls a single adapter, and stores run, log, and plan artifacts in runtime state.\n\n## Acceptance Target\n- planner role runs through the execution coordinator\n- runtime stores planner logs and a plan artifact\n- planner output is ready for architect handoff\n- no downstream roles execute in this slice\n\n## Verification Approach\n- run a local smoke script that executes the planner happy path\n- inspect runtime snapshot, run logs, and stored artifact content\n- confirm that only one planner run is created\n\n## Dependencies and Blockers\n- initial live provider choice remains open; local stub adapter is in use\n\n## Expected Artifacts\n- plan\n- execution-log\n\n## Worktree Need\nNo. This slice only plans work and stores runtime evidence.\n\n## Non-Goals\n- builder execution\n- reviewer execution\n- six-role orchestration\n- UI refactor\n- multi-provider support\n",
+    "contentAvailable": true,
+    "contentUnavailableReason": null
+  },
+  "mutation": {
+    "artifactId": "artifact-0001",
+    "inboxItemId": null,
+    "kind": "run-planner",
+    "normalizedResult": {
+      "blockers": [],
+      "needsDecision": false,
+      "nextStage": "architect",
+      "summary": "Planner output is ready for architect handoff.",
+      "decisionTitle": "Planner follow-up: Collect implementation evidence",
+      "decisionPrompt": "- Planner output is ready for architect handoff."
+    },
+    "runId": "run-0001",
+    "taskId": "task-0001"
+  },
+  "runLogs": {
+    "runtimeRoot": "/tmp/orchestration-evidence-runtime",
+    "run": {
+      "id": "run-0001",
+      "taskId": "task-0001",
+      "kind": "role",
+      "role": "planner",
+      "status": "completed",
+      "metadata": {
+        "promptPath": "prompts/planner.md",
+        "routingClassification": "new task",
+        "sourceOfTruthPaths": [
+          "AGENTS.md",
+          "docs/00_master-brief.md",
+          "docs/01_decision-log.md",
+          "docs/02_ia-v1.md",
+          "docs/03_architecture-roadmap-v1.md",
+          "packs/development/pack.md"
+        ]
+      },
+      "summary": {
+        "adapter": "local-stub",
+        "model": "local-stub-planner-v1",
+        "blockers": 0,
+        "needsDecision": false,
+        "nextStage": "architect",
+        "providerRunId": "local-stub-planner-task-0001"
+      },
+      "startedAt": "2026-06-09T05:13:51.475Z",
+      "finishedAt": "2026-06-09T05:13:51.477Z",
+      "logPath": "/tmp/orchestration-evidence-runtime/logs/run-0001.jsonl"
+    },
+    "logs": [
+      {
+        "ts": "2026-06-09T05:13:51.476Z",
+        "level": "info",
+        "message": "planner run started for task task-0001"
+      },
+      {
+        "ts": "2026-06-09T05:13:51.476Z",
+        "level": "info",
+        "message": "loaded planner prompt contract from prompts/planner.md"
+      },
+      {
+        "ts": "2026-06-09T05:13:51.476Z",
+        "level": "info",
+        "message": "built planner execution request with 6 source-of-truth files"
+      },
+      {
+        "ts": "2026-06-09T05:13:51.476Z",
+        "level": "info",
+        "message": "invoking provider adapter local-stub"
+      },
+      {
+        "ts": "2026-06-09T05:13:51.476Z",
+        "level": "info",
+        "message": "saved planner output artifact artifact-0001"
+      }
+    ]
+  }
+}

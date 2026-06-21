@@ -1,0 +1,7 @@
+### Error
+Error: locator.click: Error: strict mode violation: locator('[data-surface=taskboard]') resolved to 2 elements:
+    1) <button type="button" class="nav-button" data-surface="taskboard" aria-controls="surface-taskboard" aria-label="작업판 1건. 작업 셀 상태와 담당 desk 배정을 관제">…</button> aka getByLabel('작업판 1건. 작업 셀 상태와 담당 desk')
+    2) <section tabindex="-1" class="surface" aria-label="작업판" aria-hidden="true" id="surface-taskboard" data-surface="taskboard">…</section> aka getByLabel('작업판', { exact: true })
+
+Call log:
+[2m  - waiting for locator('[data-surface=taskboard]')[22m

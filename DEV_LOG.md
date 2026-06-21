@@ -1,0 +1,127 @@
+# Development Log
+
+## Portfolio Package Export - 2026-06-09
+
+- 프로젝트 현재 상태: local-first, single-user-first, ops-first development control plane의 v1 baseline은 repo docs 기준 완료로 기록되어 있고, 현재는 growth gateway/self-improvement read-only status contract와 포트폴리오 정리 단계로 고도화 중이다.
+- 구현 완료 기능:
+  - `createRuntimeService` 기반 project/mission/task/run/artifact/decision/approval state 관리
+  - `createFileStore` 기반 file-based JSON state, JSONL log, artifact persistence
+  - `createExecutionCoordinator` 기반 planner-through-reviewer execution loop와 local follow-up boundary
+  - `local-stub` 기본 adapter 및 `openai-responses` opt-in adapter
+  - `scripts/serve-ui-slice-01.mjs` local UI/API server
+  - `ui/index.html`, `ui/app.js`, `ui/styles.css` 기반 shell UI
+- 개발 중 기능:
+  - growth gateway와 self-improvement read-only status scripts
+  - README/demo/screenshot 포트폴리오 evidence 정리
+  - optional real-live provider smoke 재검증
+- 미구현 기능:
+  - public hosted deployment
+  - multi-user auth/workspace
+  - external push/publish/release automation
+  - quantified user outcome tracking
+- 검증 필요 기능:
+  - current dirty worktree 기준 aggregate smoke 재실행
+  - configured OpenAI environment에서 optional live-provider smoke 확인
+  - end-to-end demo screenshot 또는 screencast 확보
+- 이력서 반영 가능 내용:
+  - local-first AI-assisted development control plane
+  - review before done, approval before commit gate
+  - file-based artifact/log provenance
+  - OpenAI Responses API opt-in provider adapter boundary
+  - Mission/Council/Execution/Deliverables shell and advanced ops surfaces
+- README 보완 필요:
+  - 현재 `README.md`는 작성되어 있으며 프로젝트 개요, 기술스택, 구조, 실행 방법, 검증 카운트, Scope & Limitations를 포함한다.
+  - public demo/screencast, screenshot 연결, optional live-provider 검증 note는 추가 보강이 필요하다.
+- 면접 대비 필요 사항:
+  - `createRuntimeService`, `createExecutionCoordinator`, `executeWithAdapter`, `createOpenAIResponsesProviderAdapter` 코드 설명
+  - `project_path`, approval, review, artifact provenance 설계 이유 설명
+  - 구현자 범위와 repo 전체 기능 구분
+- 다음 작업:
+  - README의 demo/screenshot/optional live-provider note 보강
+  - local demo screenshot 또는 screencast 준비
+  - representative smoke 재실행
+  - optional live-provider verification note 작성
+- 분석 기준 파일:
+  - `AGENTS.md`
+  - `docs/00_master-brief.md`
+  - `docs/01_decision-log.md`
+  - `docs/02_ia-v1.md`
+  - `docs/03_architecture-roadmap-v1.md`
+  - `docs/06_ai-orchestration-pivot.md`
+  - `docs/17_v1-completion-readiness.md`
+  - `packs/development/pack.md`
+  - `packs/knowledge-work/pack.md`
+  - `src/runtime/*`
+  - `src/execution/*`
+  - `scripts/serve-ui-slice-01.mjs`
+  - `ui/*`
+- 생성한 포트폴리오 문서:
+  - `docs/project-card.md`
+  - `docs/case-study.md`
+  - `docs/resume-bullets.md`
+  - `docs/interview-story.md`
+  - `docs/roadmap.md`
+  - `docs/readme-improvement.md`
+  - `links.md`
+  - `portfolio_manifest.md`
+- 생성한 압축 파일:
+  - `_portfolio_export/orchestration_portfolio_pack.zip`
+
+## Portfolio Analysis - 2026-06-09
+
+- 프로젝트 현재 상태: `docs/17_v1-completion-readiness.md` 기준 v1 control-plane baseline과 post-v1 shell baseline은 완료로 기록되어 있으며, 현재 저장소는 growth gateway와 self-improvement read-only status contract 방향으로 고도화 중이다.
+- 구현 완료 기능:
+  - local project/task/run/artifact runtime: `src/runtime/runtime-service.js`, `src/runtime/file-store.js`
+  - execution coordinator: `src/execution/execution-coordinator.js`
+  - workflow pack contracts: `packs/development/pack.md`, `packs/knowledge-work/pack.md`
+  - provider adapter boundary: `src/execution/provider-adapter.js`, `src/execution/providers/local-stub-adapter.js`, `src/execution/providers/openai-responses-adapter.js`
+  - local UI/API server: `scripts/serve-ui-slice-01.mjs`
+  - static shell UI: `ui/index.html`, `ui/app.js`, `ui/styles.css`
+- 개발 중 기능:
+  - growth gateway and self-improvement read-only status contracts: `docs/18_growth-gateway-vnext.md`, `scripts/growth-*status.mjs`
+  - portfolio documentation and README improvement plan
+- 미구현 기능:
+  - public deployment
+  - hosted demo
+  - multi-user auth/workspace
+  - external push/publish/release automation
+  - quantified usage results
+- 검증 필요 기능:
+  - current-head aggregate verification on a dirty worktree
+  - optional real-live OpenAI provider smoke with configured `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL`
+  - end-to-end user demo capture
+- 이력서 반영 가능 내용:
+  - local-first AI-assisted development control plane
+  - file-based runtime and artifact/log provenance
+  - review before done and approval before commit gates
+  - OpenAI Responses opt-in adapter boundary
+  - Mission/Council/Execution/Deliverables shell and advanced ops surfaces
+- README 보완 필요:
+  - 현재 `README.md`는 작성되어 있으며 목적, 실행 방법, 기술스택, 구현 범위, smoke script 카운트, 제한 사항을 포함한다.
+  - screenshot/demo 연결과 optional live-provider 검증 note는 아직 보강 대상이다.
+- 면접 대비 필요 사항:
+  - `createRuntimeService`, `createExecutionCoordinator`, `executeWithAdapter`, `createOpenAIResponsesProviderAdapter` 코드 설명
+  - `project_path`, approval, review, artifact provenance 설계 이유 설명
+  - 구현자 범위와 저장소 전체 기능 구분
+- 다음 작업:
+  - README demo/screenshot/optional live-provider note 보강
+  - local demo screenshot 또는 screencast 준비
+  - representative smoke 재실행
+  - optional live-provider verification note 작성
+- 분석 기준 파일:
+  - `AGENTS.md`
+  - `docs/00_master-brief.md`
+  - `docs/01_decision-log.md`
+  - `docs/02_ia-v1.md`
+  - `docs/03_architecture-roadmap-v1.md`
+  - `docs/06_ai-orchestration-pivot.md`
+  - `docs/13_harness-baseline.md`
+  - `docs/17_v1-completion-readiness.md`
+  - `packs/development/pack.md`
+  - `packs/knowledge-work/pack.md`
+  - `tasks/todo.md`
+  - `tasks/lessons.md`
+  - `src/runtime/*`
+  - `src/execution/*`
+  - `scripts/serve-ui-slice-01.mjs`
+  - `ui/*`

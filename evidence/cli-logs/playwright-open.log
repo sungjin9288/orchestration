@@ -1,0 +1,14 @@
+### Browser `evidence-ui` opened with pid 65181.
+### Ran Playwright code
+```js
+await page.goto('http://127.0.0.1:4317');
+```
+### Page
+- Page URL: http://127.0.0.1:4317/
+- Page Title: Orchestration 1.0 Workflow Control
+### Snapshot
+- [Snapshot](.playwright-cli/page-2026-06-09T05-14-33-117Z.yml)
+### Ran Playwright code
+```js
+await page.setViewportSize({ width: 1440, height: 1000 });
+```

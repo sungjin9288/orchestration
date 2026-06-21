@@ -1,0 +1,5 @@
+Initialized empty Git repository in /private/tmp/orchestration-workflow-evidence-project/.git/
+[main (root-commit) 455cbbb] chore: initialize workflow evidence fixture
+ 2 files changed, 2 insertions(+)
+ create mode 100644 README.md
+ create mode 100644 prompts/builder.md

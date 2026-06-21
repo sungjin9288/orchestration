@@ -1,0 +1,100 @@
+{
+  "artifactCatalog": {
+    "plan": {
+      "latestCenteredBrowse": true,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "architecture": {
+      "latestCenteredBrowse": true,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "breakdown": {
+      "latestCenteredBrowse": true,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "preflight": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "change-summary": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "patch": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "diff": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "review": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "commit-package": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "commit-result": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "release-package": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "close-out": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "output": {
+      "latestCenteredBrowse": false,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-c-generic-fallback"
+    }
+  },
+  "runtimeRoot": "/tmp/orchestration-evidence-runtime",
+  "artifact": {
+    "id": "artifact-0001",
+    "taskId": "task-0001",
+    "runId": "run-0001",
+    "type": "plan",
+    "path": "/tmp/orchestration-evidence-runtime/artifacts/artifact-0001.md",
+    "createdAt": "2026-06-09T05:13:51.476Z",
+    "retention": {
+      "actionLog": [],
+      "lastAction": null,
+      "lastActionAt": null,
+      "status": "active"
+    },
+    "content": "# Plan: Collect implementation evidence\n\n## Slice Goal\nRecord portfolio implementation evidence without changing app source.\n\n## Intended Outcome\nConnect the planner role to a real run path that reads the planner prompt contract, builds an execution request, calls a single adapter, and stores run, log, and plan artifacts in runtime state.\n\n## Acceptance Target\n- planner role runs through the execution coordinator\n- runtime stores planner logs and a plan artifact\n- planner output is ready for architect handoff\n- no downstream roles execute in this slice\n\n## Verification Approach\n- run a local smoke script that executes the planner happy path\n- inspect runtime snapshot, run logs, and stored artifact content\n- confirm that only one planner run is created\n\n## Dependencies and Blockers\n- initial live provider choice remains open; local stub adapter is in use\n\n## Expected Artifacts\n- plan\n- execution-log\n\n## Worktree Need\nNo. This slice only plans work and stores runtime evidence.\n\n## Non-Goals\n- builder execution\n- reviewer execution\n- six-role orchestration\n- UI refactor\n- multi-provider support\n",
+    "contentAvailable": true,
+    "contentUnavailableReason": null
+  }
+}

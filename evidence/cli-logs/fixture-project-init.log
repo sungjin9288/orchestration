@@ -1,0 +1,4 @@
+Initialized empty Git repository in /private/tmp/orchestration-evidence-project/.git/
+[main (root-commit) 612ab05] chore: initialize evidence fixture
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md

@@ -1,0 +1,5 @@
+Command: node --check src/runtime/runtime-service.js
+
+Command: node --check src/execution/execution-coordinator.js
+
+Command: node --check scripts/serve-ui-slice-01.mjs

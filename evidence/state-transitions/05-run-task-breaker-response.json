@@ -1,0 +1,763 @@
+{
+  "artifactCatalog": {
+    "plan": {
+      "latestCenteredBrowse": true,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "architecture": {
+      "latestCenteredBrowse": true,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "breakdown": {
+      "latestCenteredBrowse": true,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "preflight": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "change-summary": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "patch": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "diff": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "review": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "commit-package": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "commit-result": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "release-package": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "close-out": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "output": {
+      "latestCenteredBrowse": false,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-c-generic-fallback"
+    }
+  },
+  "generatedAt": "2026-06-09T06:00:58.498Z",
+  "runtimeRoot": "/tmp/orchestration-workflow-evidence-runtime",
+  "snapshot": {
+    "schemaVersion": 4,
+    "activeProjectId": "project-0001",
+    "selectedMissionId": null,
+    "sequences": {
+      "mission": 0,
+      "councilSession": 0,
+      "project": 1,
+      "task": 1,
+      "run": 3,
+      "artifact": 3,
+      "decisionInboxItem": 0,
+      "approval": 0
+    },
+    "missions": {},
+    "councilSessions": {},
+    "projects": {
+      "project-0001": {
+        "id": "project-0001",
+        "name": "Workflow Evidence Fixture",
+        "projectPath": "/tmp/orchestration-workflow-evidence-project",
+        "pack": "development",
+        "provider": {
+          "mode": "local-stub",
+          "adapter": "local-stub",
+          "model": null,
+          "env": {
+            "apiKeyVar": null
+          }
+        },
+        "readiness": "ready",
+        "createdAt": "2026-06-09T06:00:53.739Z",
+        "updatedAt": "2026-06-09T06:00:53.739Z"
+      }
+    },
+    "tasks": {
+      "task-0001": {
+        "id": "task-0001",
+        "projectId": "project-0001",
+        "missionId": null,
+        "deliverableType": null,
+        "title": "Workflow transition evidence",
+        "intent": "Collect workflow execution evidence for portfolio review.",
+        "lifecycleState": "In Progress",
+        "flags": {
+          "blocked": false,
+          "waitingApproval": false,
+          "waitingDecision": false
+        },
+        "review": {
+          "required": true,
+          "status": "pending",
+          "inboxItemId": null,
+          "resolution": null,
+          "verificationArtifactIds": []
+        },
+        "latestRunId": "run-0003",
+        "artifactIds": [
+          "artifact-0001",
+          "artifact-0002",
+          "artifact-0003"
+        ],
+        "worktreeRef": null,
+        "createdAt": "2026-06-09T06:00:54.868Z",
+        "updatedAt": "2026-06-09T06:00:58.497Z"
+      }
+    },
+    "runs": {
+      "run-0001": {
+        "id": "run-0001",
+        "taskId": "task-0001",
+        "kind": "role",
+        "role": "planner",
+        "status": "completed",
+        "metadata": {
+          "promptPath": "prompts/planner.md",
+          "routingClassification": "new task",
+          "sourceOfTruthPaths": [
+            "AGENTS.md",
+            "docs/00_master-brief.md",
+            "docs/01_decision-log.md",
+            "docs/02_ia-v1.md",
+            "docs/03_architecture-roadmap-v1.md",
+            "packs/development/pack.md"
+          ]
+        },
+        "summary": {
+          "adapter": "local-stub",
+          "model": "local-stub-planner-v1",
+          "blockers": 0,
+          "needsDecision": false,
+          "nextStage": "architect",
+          "providerRunId": "local-stub-planner-task-0001"
+        },
+        "startedAt": "2026-06-09T06:00:56.105Z",
+        "finishedAt": "2026-06-09T06:00:56.106Z",
+        "logPath": "/tmp/orchestration-workflow-evidence-runtime/logs/run-0001.jsonl"
+      },
+      "run-0002": {
+        "id": "run-0002",
+        "taskId": "task-0001",
+        "kind": "role",
+        "role": "architect",
+        "status": "completed",
+        "metadata": {
+          "codeContextPaths": [
+            "src/runtime/contracts.js",
+            "src/runtime/file-store.js",
+            "src/runtime/runtime-service.js",
+            "src/execution/execution-coordinator.js",
+            "ui/app.js"
+          ],
+          "inputArtifactId": "artifact-0001",
+          "inputRunId": "run-0001",
+          "promptPath": "prompts/architect.md",
+          "sourceOfTruthPaths": [
+            "AGENTS.md",
+            "docs/00_master-brief.md",
+            "docs/01_decision-log.md",
+            "docs/02_ia-v1.md",
+            "docs/03_architecture-roadmap-v1.md",
+            "packs/development/pack.md"
+          ]
+        },
+        "summary": {
+          "adapter": "local-stub",
+          "decisionCreated": false,
+          "inputArtifactId": "artifact-0001",
+          "inputRunId": "run-0001",
+          "model": "local-stub-architect-v1",
+          "blockers": 0,
+          "needsDecision": false,
+          "nextStage": "task-breaker",
+          "providerRunId": "local-stub-architect-task-0001"
+        },
+        "startedAt": "2026-06-09T06:00:57.306Z",
+        "finishedAt": "2026-06-09T06:00:57.307Z",
+        "logPath": "/tmp/orchestration-workflow-evidence-runtime/logs/run-0002.jsonl"
+      },
+      "run-0003": {
+        "id": "run-0003",
+        "taskId": "task-0001",
+        "kind": "role",
+        "role": "task-breaker",
+        "status": "completed",
+        "metadata": {
+          "architectureArtifactId": "artifact-0002",
+          "inputArtifactIds": [
+            "artifact-0001",
+            "artifact-0002"
+          ],
+          "inputRunIds": [
+            "run-0001",
+            "run-0002"
+          ],
+          "promptPath": "prompts/task-breaker.md",
+          "sourceOfTruthPaths": [
+            "AGENTS.md",
+            "docs/00_master-brief.md",
+            "docs/01_decision-log.md",
+            "docs/02_ia-v1.md",
+            "docs/03_architecture-roadmap-v1.md",
+            "packs/development/pack.md"
+          ]
+        },
+        "summary": {
+          "adapter": "local-stub",
+          "architectureArtifactId": "artifact-0002",
+          "architectureRunId": "run-0002",
+          "decisionCreated": false,
+          "inputArtifactIds": [
+            "artifact-0001",
+            "artifact-0002"
+          ],
+          "inputRunIds": [
+            "run-0001",
+            "run-0002"
+          ],
+          "model": "local-stub-task-breaker-v1",
+          "blockers": 0,
+          "needsDecision": false,
+          "nextStage": "builder",
+          "providerRunId": "local-stub-task-breaker-task-0001"
+        },
+        "startedAt": "2026-06-09T06:00:58.496Z",
+        "finishedAt": "2026-06-09T06:00:58.497Z",
+        "logPath": "/tmp/orchestration-workflow-evidence-runtime/logs/run-0003.jsonl"
+      }
+    },
+    "artifacts": {
+      "artifact-0001": {
+        "id": "artifact-0001",
+        "taskId": "task-0001",
+        "runId": "run-0001",
+        "type": "plan",
+        "path": "/tmp/orchestration-workflow-evidence-runtime/artifacts/artifact-0001.md",
+        "createdAt": "2026-06-09T06:00:56.106Z",
+        "retention": {
+          "actionLog": [],
+          "lastAction": null,
+          "lastActionAt": null,
+          "status": "active"
+        }
+      },
+      "artifact-0002": {
+        "id": "artifact-0002",
+        "taskId": "task-0001",
+        "runId": "run-0002",
+        "type": "architecture",
+        "path": "/tmp/orchestration-workflow-evidence-runtime/artifacts/artifact-0002.md",
+        "createdAt": "2026-06-09T06:00:57.307Z",
+        "retention": {
+          "actionLog": [],
+          "lastAction": null,
+          "lastActionAt": null,
+          "status": "active"
+        }
+      },
+      "artifact-0003": {
+        "id": "artifact-0003",
+        "taskId": "task-0001",
+        "runId": "run-0003",
+        "type": "breakdown",
+        "path": "/tmp/orchestration-workflow-evidence-runtime/artifacts/artifact-0003.md",
+        "createdAt": "2026-06-09T06:00:58.497Z",
+        "retention": {
+          "actionLog": [],
+          "lastAction": null,
+          "lastActionAt": null,
+          "status": "active"
+        }
+      }
+    },
+    "decisionInboxItems": {},
+    "approvals": {}
+  },
+  "derived": {
+    "activeProjectLinkedWorktrees": {
+      "error": null,
+      "notice": null,
+      "options": [],
+      "projectId": "project-0001",
+      "projectPath": "/tmp/orchestration-workflow-evidence-project",
+      "resolvedProjectPath": "/private/tmp/orchestration-workflow-evidence-project"
+    },
+    "closeOutReadinessSummaries": {
+      "task-0001": {
+        "allowed": false,
+        "approvalStale": false,
+        "commitPackageArtifactId": null,
+        "commitResultArtifactId": null,
+        "commitSha": null,
+        "conflict": false,
+        "currentReleasePackageArtifactId": null,
+        "deliveryStance": "local-demo-only",
+        "existingCloseOutArtifactId": null,
+        "existingCloseOutRunId": null,
+        "latestApprovedReleaseApprovalId": null,
+        "latestApprovedReleaseApprovalStatus": null,
+        "latestCloseOutArtifactId": null,
+        "latestReleasePackageArtifactId": null,
+        "reasons": [
+          "Task task-0001 must be in Review before close-out",
+          "Task task-0001 review must be passed before close-out",
+          "main worktree is blocked before close-out; use a dedicated linked worktree root: /tmp/orchestration-workflow-evidence-project",
+          "Latest valid commit-package artifact is required before close-out for task task-0001",
+          "Latest successful local commit bundle is required before close-out for task task-0001",
+          "Latest release-package artifact is required before close-out for task task-0001",
+          "Latest approved release-ready approval is required before close-out for task task-0001"
+        ],
+        "repoClean": false,
+        "repoDirtyFileCount": null,
+        "repoStagedFileCount": null,
+        "repoUntrackedFileCount": null,
+        "sourceBuilderApprovalId": null,
+        "sourceBuilderRunId": null,
+        "sourceReviewArtifactId": null,
+        "sourceReviewerRunId": null,
+        "targetPreflightArtifactId": null,
+        "targetPreflightRunId": null
+      }
+    },
+    "commitExecutionReadinessSummaries": {
+      "task-0001": {
+        "allowed": false,
+        "approvalStale": false,
+        "changedFileCount": 0,
+        "commitMessagePresent": false,
+        "commitPackageArtifactId": null,
+        "conflict": false,
+        "existingCommitResultArtifactId": null,
+        "existingLocalCommitRunId": null,
+        "latestApprovalDisplayStatus": "none",
+        "latestApprovalId": null,
+        "latestApprovalStatus": null,
+        "reasons": [
+          "Latest valid commit-package artifact is required before local commit for task task-0001",
+          "Task task-0001 cannot transition to commit-intent without an approved commit approval record"
+        ],
+        "repoChangeCountBeforeCommit": null,
+        "sourceBuilderRunId": null,
+        "sourceReviewArtifactId": null,
+        "sourceReviewerRunId": null,
+        "targetPreflightArtifactId": null,
+        "targetPreflightRunId": null
+      }
+    },
+    "commitPackageReadinessSummaries": {
+      "task-0001": {
+        "allowed": false,
+        "approvalStale": false,
+        "conflict": false,
+        "currentCommitPackageArtifactId": null,
+        "latestApprovalId": null,
+        "latestApprovalStatus": null,
+        "latestCommitPackageArtifactId": null,
+        "packageStale": false,
+        "reasons": [
+          "Latest successful builder live mutation bundle is required before reviewer run for task task-0001"
+        ],
+        "sourceBuilderRunId": null,
+        "sourceReviewArtifactId": null,
+        "sourceReviewerRunId": null,
+        "targetPreflightArtifactId": null,
+        "targetPreflightRunId": null
+      }
+    },
+    "executionEntrySummaries": {
+      "task-0001": {
+        "architect": {
+          "allowed": true,
+          "projectId": "project-0001",
+          "providerSummary": {
+            "adapter": "local-stub",
+            "allowed": true,
+            "mode": "local-stub",
+            "projectId": "project-0001",
+            "readiness": "ready",
+            "reasons": []
+          },
+          "reasons": [],
+          "stage": "architect",
+          "taskId": "task-0001"
+        },
+        "builderPreflight": {
+          "allowed": true,
+          "projectId": "project-0001",
+          "providerSummary": {
+            "adapter": "local-stub",
+            "allowed": true,
+            "mode": "local-stub",
+            "projectId": "project-0001",
+            "readiness": "ready",
+            "reasons": []
+          },
+          "reasons": [],
+          "stage": "builderPreflight",
+          "taskId": "task-0001"
+        },
+        "planner": {
+          "allowed": true,
+          "projectId": "project-0001",
+          "providerSummary": {
+            "adapter": "local-stub",
+            "allowed": true,
+            "mode": "local-stub",
+            "projectId": "project-0001",
+            "readiness": "ready",
+            "reasons": []
+          },
+          "reasons": [],
+          "stage": "planner",
+          "taskId": "task-0001"
+        },
+        "taskBreaker": {
+          "allowed": true,
+          "projectId": "project-0001",
+          "providerSummary": {
+            "adapter": "local-stub",
+            "allowed": true,
+            "mode": "local-stub",
+            "projectId": "project-0001",
+            "readiness": "ready",
+            "reasons": []
+          },
+          "reasons": [],
+          "stage": "taskBreaker",
+          "taskId": "task-0001"
+        }
+      }
+    },
+    "providerExecutionSummaries": {
+      "project-0001": {
+        "adapter": "local-stub",
+        "allowed": true,
+        "mode": "local-stub",
+        "projectId": "project-0001",
+        "readiness": "ready",
+        "reasons": []
+      }
+    },
+    "releasePackageReadinessSummaries": {
+      "task-0001": {
+        "allowed": false,
+        "approvalStale": false,
+        "commitPackageArtifactId": null,
+        "commitResultArtifactId": null,
+        "commitSha": null,
+        "conflict": false,
+        "currentReleasePackageArtifactId": null,
+        "deliveryStance": "local-demo-only",
+        "latestApprovalDisplayStatus": "none",
+        "latestApprovalId": null,
+        "latestApprovalStatus": null,
+        "latestReleasePackageArtifactId": null,
+        "packageStale": false,
+        "reasons": [
+          "Latest successful builder live mutation bundle is required before reviewer run for task task-0001",
+          "main worktree is blocked before release-package; use a dedicated linked worktree root: /tmp/orchestration-workflow-evidence-project",
+          "Latest valid commit-package artifact is required before release package for task task-0001",
+          "Latest successful local commit bundle is required before release package for task task-0001"
+        ],
+        "sourceBuilderRunId": null,
+        "sourceReviewArtifactId": null,
+        "sourceReviewerRunId": null,
+        "targetPreflightArtifactId": null,
+        "targetPreflightRunId": null
+      }
+    },
+    "reviewerReadinessSummaries": {
+      "task-0001": {
+        "allowed": false,
+        "approvalId": null,
+        "changeSummaryArtifactId": null,
+        "changedFileCount": 0,
+        "diffArtifactId": null,
+        "existingReviewArtifactId": null,
+        "existingReviewerRunId": null,
+        "patchArtifactId": null,
+        "preflightArtifactId": null,
+        "reasons": [
+          "Latest successful builder live mutation bundle is required before reviewer run for task task-0001"
+        ],
+        "sourceBuilderRunId": null
+      }
+    },
+    "taskGuardSummaries": {
+      "task-0001": {
+        "builderLiveMutationApprovalRequest": {
+          "allowed": false,
+          "approvalStale": false,
+          "conflict": false,
+          "currentPreflightArtifactId": null,
+          "currentPreflightRunId": null,
+          "existingSuccessfulBuilderRunId": null,
+          "latestApprovalDisplayStatus": "none",
+          "latestApprovalId": null,
+          "latestApprovalStatus": null,
+          "pendingBlockingDecisionItemIds": [],
+          "reasons": [
+            "latest preflight artifact required"
+          ],
+          "targetPreflightArtifactId": null,
+          "targetPreflightRunId": null
+        },
+        "builderLiveMutation": {
+          "allowed": false,
+          "approvalStale": false,
+          "currentPreflightArtifactId": null,
+          "currentPreflightRunId": null,
+          "existingSuccessfulBuilderRunId": null,
+          "latestApprovalDisplayStatus": "none",
+          "latestApprovalId": null,
+          "latestApprovalStatus": null,
+          "pendingApprovalIds": [],
+          "pendingBlockingDecisionItemIds": [],
+          "targetFileCount": 0,
+          "reasons": [
+            "latest preflight artifact required",
+            "latest approval for builder-live-mutation is missing"
+          ],
+          "targetPreflightArtifactId": null,
+          "targetPreflightRunId": null
+        },
+        "builderPreflight": {
+          "allowed": true,
+          "latestArchitectureArtifactId": "artifact-0002",
+          "latestBreakdownArtifactId": "artifact-0003",
+          "latestBreakdownRunId": "run-0003",
+          "latestPlanArtifactId": "artifact-0001",
+          "latestPlanRunId": "run-0001",
+          "latestPreflightArtifactId": null,
+          "matchingBreakdownProvenance": true,
+          "matchingPlanArchitectureProvenance": true,
+          "pendingApprovalIds": [],
+          "pendingBlockingDecisionItemIds": [],
+          "reasons": []
+        },
+        "taskBreaker": {
+          "allowed": true,
+          "latestArchitectureArtifactId": "artifact-0002",
+          "latestArchitectureRunId": "run-0002",
+          "latestPlanRunId": "run-0001",
+          "latestPlanArtifactId": "artifact-0001",
+          "matchingPlanArchitectureProvenance": true,
+          "pendingApprovalIds": [],
+          "pendingBlockingDecisionItemIds": [],
+          "reasons": []
+        }
+      }
+    },
+    "harnessConsumerStatus": {
+      "ok": true,
+      "mode": "harness-consumer-status",
+      "sourceMode": "harness-run-doctor",
+      "guidance": "Consume the frozen harness doctor.summary contract here; do not recompute host posture from raw harness arrays in downstream operator surfaces.",
+      "operatorAction": {
+        "kind": "repo-native-run",
+        "harnessId": "markitdown",
+        "repoNativeCommand": "node scripts/harness-run.mjs markitdown <input-file> [output-file]",
+        "message": "Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file]."
+      },
+      "statusCard": {
+        "currentHostState": "runnable",
+        "primaryHarnessId": "markitdown",
+        "primaryPosture": "approved-now",
+        "primaryKind": "local-cli-wrapper",
+        "primaryHarnessState": "ready",
+        "primaryCommand": "markitdown",
+        "primaryRunner": "scripts/markitdown-convert.mjs",
+        "primaryExecutable": true,
+        "primaryAvailable": true,
+        "primaryReady": true,
+        "primaryActionShort": "run-now",
+        "primaryActionMessage": "Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file]."
+      }
+    },
+    "harnessConsumerBrief": {
+      "ok": true,
+      "mode": "harness-consumer-brief",
+      "sourceMode": "harness-consumer-status",
+      "guidance": "Use this brief for shell-friendly operator or automation surfaces; it stays derived from the frozen consumer payload and does not widen the doctor producer contract.",
+      "brief": {
+        "currentHostState": "runnable",
+        "primaryHarnessId": "markitdown",
+        "headline": "markitdown is ready on this host.",
+        "actionLabel": "Run approved harness",
+        "actionCommand": "node scripts/harness-run.mjs markitdown <input-file> [output-file]",
+        "actionMessage": "Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file]."
+      }
+    },
+    "latestHarnessExecution": null,
+    "recentHarnessExecutions": []
+  },
+  "artifactDetail": {
+    "id": "artifact-0003",
+    "taskId": "task-0001",
+    "runId": "run-0003",
+    "type": "breakdown",
+    "path": "/tmp/orchestration-workflow-evidence-runtime/artifacts/artifact-0003.md",
+    "createdAt": "2026-06-09T06:00:58.497Z",
+    "retention": {
+      "actionLog": [],
+      "lastAction": null,
+      "lastActionAt": null,
+      "status": "active"
+    },
+    "content": "# Task Breakdown: Workflow transition evidence\n\n## Ordered Sub-Tasks\n- Validate the approved slice boundary from artifact-0001 and artifact-0002.\n- Prepare the minimum implementation sequence for the slice without widening scope.\n- Stop after the bounded implementation slice is ready for builder handoff.\n\n## Checkpoints\n- checkpoint 1: confirm the implementation boundary and non-goals remain unchanged\n- checkpoint 2: make the smallest end-to-end change required by the approved slice\n- checkpoint 3: collect verification evidence before review handoff\n\n## Expected Artifacts Per Checkpoint\n- checkpoint 1: breakdown\n- checkpoint 2: diff, execution-log\n- checkpoint 3: verification, review\n\n## Verification Checkpoints\n- run a local smoke script that executes the planner happy path\n- inspect runtime snapshot, run logs, and stored artifact content\n- confirm that only one planner run is created\n\n## Review Trigger Point\n- Trigger review after the bounded implementation sequence is complete and verification evidence is attached.\n\n## Stop-And-Escalate Conditions\n- Stop if implementation would require an architecture change outside the approved note.\n- Stop if execution requires a new lifecycle status, provider redesign, or unapproved scope expansion.\n\n## Execution Boundary Summary\n- next stage: builder\n- planner artifact: artifact-0001\n- architecture artifact: artifact-0002\n- slice goal: Collect workflow execution evidence for portfolio review.\n- approved assumptions: present\n",
+    "contentAvailable": true,
+    "contentUnavailableReason": null
+  },
+  "mutation": {
+    "artifactId": "artifact-0003",
+    "inboxItemId": null,
+    "inputArtifactIds": [
+      "artifact-0001",
+      "artifact-0002"
+    ],
+    "kind": "run-task-breaker",
+    "normalizedResult": {
+      "blockers": [],
+      "needsDecision": false,
+      "nextStage": "builder",
+      "summary": "Task-breaker output is ready for builder handoff.",
+      "decisionTitle": "Breakdown decision: Workflow transition evidence",
+      "decisionPrompt": "- Task-breaker output is ready for builder handoff."
+    },
+    "runId": "run-0003",
+    "taskId": "task-0001"
+  },
+  "runLogs": {
+    "runtimeRoot": "/tmp/orchestration-workflow-evidence-runtime",
+    "run": {
+      "id": "run-0003",
+      "taskId": "task-0001",
+      "kind": "role",
+      "role": "task-breaker",
+      "status": "completed",
+      "metadata": {
+        "architectureArtifactId": "artifact-0002",
+        "inputArtifactIds": [
+          "artifact-0001",
+          "artifact-0002"
+        ],
+        "inputRunIds": [
+          "run-0001",
+          "run-0002"
+        ],
+        "promptPath": "prompts/task-breaker.md",
+        "sourceOfTruthPaths": [
+          "AGENTS.md",
+          "docs/00_master-brief.md",
+          "docs/01_decision-log.md",
+          "docs/02_ia-v1.md",
+          "docs/03_architecture-roadmap-v1.md",
+          "packs/development/pack.md"
+        ]
+      },
+      "summary": {
+        "adapter": "local-stub",
+        "architectureArtifactId": "artifact-0002",
+        "architectureRunId": "run-0002",
+        "decisionCreated": false,
+        "inputArtifactIds": [
+          "artifact-0001",
+          "artifact-0002"
+        ],
+        "inputRunIds": [
+          "run-0001",
+          "run-0002"
+        ],
+        "model": "local-stub-task-breaker-v1",
+        "blockers": 0,
+        "needsDecision": false,
+        "nextStage": "builder",
+        "providerRunId": "local-stub-task-breaker-task-0001"
+      },
+      "startedAt": "2026-06-09T06:00:58.496Z",
+      "finishedAt": "2026-06-09T06:00:58.497Z",
+      "logPath": "/tmp/orchestration-workflow-evidence-runtime/logs/run-0003.jsonl"
+    },
+    "logs": [
+      {
+        "ts": "2026-06-09T06:00:58.496Z",
+        "level": "info",
+        "message": "task-breaker run started for task task-0001"
+      },
+      {
+        "ts": "2026-06-09T06:00:58.496Z",
+        "level": "info",
+        "message": "loaded task-breaker prompt contract from prompts/task-breaker.md"
+      },
+      {
+        "ts": "2026-06-09T06:00:58.496Z",
+        "level": "info",
+        "message": "loaded planner artifact artifact-0001 as task-breaker input"
+      },
+      {
+        "ts": "2026-06-09T06:00:58.497Z",
+        "level": "info",
+        "message": "loaded architecture artifact artifact-0002 as task-breaker input"
+      },
+      {
+        "ts": "2026-06-09T06:00:58.497Z",
+        "level": "info",
+        "message": "built task-breaker execution request with 6 source-of-truth files"
+      },
+      {
+        "ts": "2026-06-09T06:00:58.497Z",
+        "level": "info",
+        "message": "invoking provider adapter local-stub"
+      },
+      {
+        "ts": "2026-06-09T06:00:58.497Z",
+        "level": "info",
+        "message": "saved breakdown artifact artifact-0003"
+      }
+    ]
+  }
+}

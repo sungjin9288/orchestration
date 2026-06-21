@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "runtimeRoot": "<repo-root>/var/runtime-dev-loop-m2",
+  "taskId": "task-0001",
+  "projectPath": "/var/folders/n7/g1vxvrg97t11t_nxzvdk0dpr0000gn/T/orchestration-dev-loop-m2-6liKl2",
+  "plannerRunId": "run-0001",
+  "architectRunId": "run-0002",
+  "taskBreakerRunId": "run-0003",
+  "preflightArtifactId": "artifact-0004",
+  "liveMutationRunId": "run-0005",
+  "reviewerRunId": "run-0006",
+  "commitPackageArtifactId": "artifact-0009",
+  "commitResultArtifactId": "artifact-0010",
+  "commitSha": "c84432c83f8634a5ed056283d3903353a87e20d3",
+  "committedFiles": [
+    "prompts/builder.md"
+  ]
+}

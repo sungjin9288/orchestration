@@ -1,0 +1,167 @@
+{
+  "artifactCatalog": {
+    "plan": {
+      "latestCenteredBrowse": true,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "architecture": {
+      "latestCenteredBrowse": true,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "breakdown": {
+      "latestCenteredBrowse": true,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": false,
+      "retentionTier": "tier-b-latest-centered-history-retained"
+    },
+    "preflight": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "change-summary": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "patch": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "diff": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "review": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "commit-package": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "commit-result": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "release-package": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "close-out": {
+      "latestCenteredBrowse": false,
+      "previewMode": "structured-with-raw-fallback",
+      "provenanceCritical": true,
+      "retentionTier": "tier-a-provenance-critical"
+    },
+    "output": {
+      "latestCenteredBrowse": false,
+      "previewMode": "raw-only",
+      "provenanceCritical": false,
+      "retentionTier": "tier-c-generic-fallback"
+    }
+  },
+  "generatedAt": "2026-06-09T06:00:53.021Z",
+  "runtimeRoot": "/tmp/orchestration-workflow-evidence-runtime",
+  "snapshot": {
+    "schemaVersion": 4,
+    "activeProjectId": null,
+    "selectedMissionId": null,
+    "sequences": {
+      "mission": 0,
+      "councilSession": 0,
+      "project": 0,
+      "task": 0,
+      "run": 0,
+      "artifact": 0,
+      "decisionInboxItem": 0,
+      "approval": 0
+    },
+    "missions": {},
+    "councilSessions": {},
+    "projects": {},
+    "tasks": {},
+    "runs": {},
+    "artifacts": {},
+    "decisionInboxItems": {},
+    "approvals": {}
+  },
+  "derived": {
+    "activeProjectLinkedWorktrees": {
+      "error": null,
+      "notice": null,
+      "options": [],
+      "projectId": null,
+      "projectPath": null,
+      "resolvedProjectPath": null
+    },
+    "closeOutReadinessSummaries": {},
+    "commitExecutionReadinessSummaries": {},
+    "commitPackageReadinessSummaries": {},
+    "executionEntrySummaries": {},
+    "providerExecutionSummaries": {},
+    "releasePackageReadinessSummaries": {},
+    "reviewerReadinessSummaries": {},
+    "taskGuardSummaries": {},
+    "harnessConsumerStatus": {
+      "ok": true,
+      "mode": "harness-consumer-status",
+      "sourceMode": "harness-run-doctor",
+      "guidance": "Consume the frozen harness doctor.summary contract here; do not recompute host posture from raw harness arrays in downstream operator surfaces.",
+      "operatorAction": {
+        "kind": "repo-native-run",
+        "harnessId": "markitdown",
+        "repoNativeCommand": "node scripts/harness-run.mjs markitdown <input-file> [output-file]",
+        "message": "Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file]."
+      },
+      "statusCard": {
+        "currentHostState": "runnable",
+        "primaryHarnessId": "markitdown",
+        "primaryPosture": "approved-now",
+        "primaryKind": "local-cli-wrapper",
+        "primaryHarnessState": "ready",
+        "primaryCommand": "markitdown",
+        "primaryRunner": "scripts/markitdown-convert.mjs",
+        "primaryExecutable": true,
+        "primaryAvailable": true,
+        "primaryReady": true,
+        "primaryActionShort": "run-now",
+        "primaryActionMessage": "Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file]."
+      }
+    },
+    "harnessConsumerBrief": {
+      "ok": true,
+      "mode": "harness-consumer-brief",
+      "sourceMode": "harness-consumer-status",
+      "guidance": "Use this brief for shell-friendly operator or automation surfaces; it stays derived from the frozen consumer payload and does not widen the doctor producer contract.",
+      "brief": {
+        "currentHostState": "runnable",
+        "primaryHarnessId": "markitdown",
+        "headline": "markitdown is ready on this host.",
+        "actionLabel": "Run approved harness",
+        "actionCommand": "node scripts/harness-run.mjs markitdown <input-file> [output-file]",
+        "actionMessage": "Run markitdown now through node scripts/harness-run.mjs markitdown <input-file> [output-file]."
+      }
+    },
+    "latestHarnessExecution": null,
+    "recentHarnessExecutions": []
+  }
+}

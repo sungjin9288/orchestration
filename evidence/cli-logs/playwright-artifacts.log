@@ -1,0 +1,7 @@
+### Error
+Error: locator.click: Error: strict mode violation: locator('[data-surface=artifacts]') resolved to 2 elements:
+    1) <button type="button" class="nav-button" data-surface="artifacts" aria-controls="surface-artifacts" aria-label="아티팩트 1건. 작업 증적, 파일, 패킷 근거를 확인">…</button> aka getByLabel('아티팩트 1건. 작업 증적, 파일, 패킷 근거를 확인')
+    2) <section tabindex="-1" class="surface" aria-label="아티팩트" aria-hidden="true" id="surface-artifacts" data-surface="artifacts">…</section> aka getByRole('main', { name: '업무' }).getByLabel('아티팩트')
+
+Call log:
+[2m  - waiting for locator('[data-surface=artifacts]')[22m

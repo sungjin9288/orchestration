@@ -1,2 +1,4 @@
 var/
 output/
+.DS_Store
+_portfolio_export/
