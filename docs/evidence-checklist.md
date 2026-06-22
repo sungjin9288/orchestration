@@ -20,6 +20,7 @@
 | Evidence manifest | 완료 | `evidence/evidence_manifest.md` |
 | Local screencast artifact | 로컬 생성 완료 / git 제외 | `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm` |
 | Portfolio package with screencast | 로컬 생성 완료 / git 제외 | `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip` |
+| Portfolio share handoff | 완료 | `docs/portfolio-share-handoff.md` |
 
 ## Exclusion Checklist
 

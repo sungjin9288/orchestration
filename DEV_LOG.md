@@ -31,7 +31,7 @@
   - Mission/Council/Execution/Deliverables shell and advanced ops surfaces
 - README 보완 필요:
   - 현재 `README.md`는 작성되어 있으며 프로젝트 개요, 기술스택, 구조, 실행 방법, 검증 카운트, Scope & Limitations를 포함한다.
-  - README는 screenshot/evidence manifest와 optional live-provider note를 연결했다. hosted public demo는 미공개이고 local screencast artifact는 생성됐으며 shareable attachment가 남아 있다.
+  - README는 screenshot/evidence manifest와 optional live-provider note를 연결했다. hosted public demo는 미공개이고 local screencast artifact와 screencast 포함 local package는 생성됐으며 external share handoff가 남아 있다.
   - 대표 local user-flow smoke는 `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`로 `cdd8cfd` 실행 결과를 고정했다.
   - hosted public demo는 아직 미공개이며, recorded screencast 우선 계획과 로컬 생성 파일 경계는 `docs/public-demo-screencast-plan.md`에 정리했다.
 - 면접 대비 필요 사항:
@@ -39,7 +39,7 @@
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 repo 전체 기능 구분
 - 다음 작업:
-  - screencast 포함 local portfolio package를 외부 공유 대상으로 publish할지 결정
+  - `docs/portfolio-share-handoff.md` 기준으로 external share target 선택, 업로드, reviewer access 검증
   - optional live-provider verification note 작성
 - 분석 기준 파일:
   - `AGENTS.md`

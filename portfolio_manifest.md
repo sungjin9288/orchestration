@@ -80,3 +80,4 @@
 - screencast artifact 상태: `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm` 로컬 생성 확인, `.gitignore` 기준 repository commit 제외
 - screencast 포함 최신 local package: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - 최신 local package 검증: `unzip -l`로 screencast, README, case study, screenshots, evidence manifest 포함 확인; `ls -lh` 기준 zip 크기 `3.7M`; `.gitignore` 기준 repository commit 제외
+- external share handoff: `docs/portfolio-share-handoff.md`에 package checksum, 포함 evidence, candidate share target, pre-publish checklist를 repository-side gate로 기록했다. 이 handoff 문서는 checksum self-reference를 피하기 위해 zip payload에는 포함하지 않는다.
