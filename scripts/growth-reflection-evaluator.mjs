@@ -12876,5 +12876,33 @@ if (
   );
 }
 
+if (
+  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
+) {
+  payload.aggregate.status =
+    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
+  payload.nextRecommendedSlice = {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+    commandToAdd:
+      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+    reason:
+      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
+    mustRemainReadOnly: true,
+  };
+  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
+    finding.id ===
+    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
+      ? {
+          ...finding,
+          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
+          claim:
+            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+          allowedNextAction:
+            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
+        }
+      : finding,
+  );
+}
+
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 process.exitCode = ok ? 0 : 1;
