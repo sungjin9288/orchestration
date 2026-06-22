@@ -12,6 +12,7 @@ const repoRoot = path.resolve(__dirname, '..');
 
 const mode = 'portfolio-share-status';
 const linksRelativePath = 'links.md';
+const handoffRelativePath = 'docs/portfolio-share-handoff.md';
 const liveNoteRelativePath = 'docs/live-provider-verification-note.md';
 const localSharePageEnvVar = 'PORTFOLIO_LOCAL_SHARE_PAGE_DIR';
 const localSharePageBundleManifestRelativePath =
@@ -140,6 +141,12 @@ function liveEvidenceState() {
   };
 }
 
+function expectedLocalSharePageBundleChecksumFromHandoff() {
+  const handoff = readText(handoffRelativePath);
+  const match = handoff.match(/generated static-site zip SHA-256 was `([a-f0-9]{64})`/);
+  return match?.[1] ?? null;
+}
+
 function gitStateForPath(directory) {
   const gitRoot = runCommand('git', ['rev-parse', '--show-toplevel'], { cwd: directory });
 
@@ -165,7 +172,7 @@ function gitStateForPath(directory) {
   };
 }
 
-function localSharePageBundleState(localSharePagePath, expectedPackageChecksum) {
+function localSharePageBundleState(localSharePagePath, expectedPackageChecksum, expectedBundleChecksum) {
   const manifestPath = path.join(localSharePagePath, localSharePageBundleManifestRelativePath);
   const manifestResult = readOptionalJson(manifestPath);
   const manifest = manifestResult.value;
@@ -180,6 +187,10 @@ function localSharePageBundleState(localSharePagePath, expectedPackageChecksum) 
     Boolean(manifest?.zipSha256) &&
     Boolean(zipChecksum) &&
     manifest.zipSha256 === zipChecksum;
+  const zipChecksumMatchesHandoff =
+    Boolean(expectedBundleChecksum) &&
+    Boolean(zipChecksum) &&
+    zipChecksum === expectedBundleChecksum;
   const evidencePackageChecksumMatches =
     manifest?.evidencePackage?.sha256 === expectedPackageChecksum &&
     manifest?.evidencePackage?.checksumMatchesHandoff === true;
@@ -201,6 +212,7 @@ function localSharePageBundleState(localSharePagePath, expectedPackageChecksum) 
     !manifestResult.error &&
     zipExists &&
     zipChecksumMatchesManifest &&
+    zipChecksumMatchesHandoff &&
     evidencePackageChecksumMatches &&
     deterministicPackagingOk &&
     missingManifestRequiredFiles.length === 0;
@@ -219,6 +231,8 @@ function localSharePageBundleState(localSharePagePath, expectedPackageChecksum) 
       exists: zipExists,
       sha256: zipChecksum,
       checksumMatchesManifest: zipChecksumMatchesManifest,
+      checksumMatchesHandoff: zipChecksumMatchesHandoff,
+      expectedHandoffSha256: expectedBundleChecksum,
     },
     evidencePackage: {
       checksumMatchesHandoff: evidencePackageChecksumMatches,
@@ -238,7 +252,7 @@ function localSharePageBundleState(localSharePagePath, expectedPackageChecksum) 
   };
 }
 
-function localSharePageState(expectedPackageChecksum) {
+function localSharePageState(expectedPackageChecksum, expectedBundleChecksum) {
   const configuredPath = process.env[localSharePageEnvVar];
 
   if (!configuredPath) {
@@ -282,7 +296,7 @@ function localSharePageState(expectedPackageChecksum) {
     : [];
   const git = directoryExists ? gitStateForPath(resolvedPath) : null;
   const bundle = directoryExists
-    ? localSharePageBundleState(resolvedPath, expectedPackageChecksum)
+    ? localSharePageBundleState(resolvedPath, expectedPackageChecksum, expectedBundleChecksum)
     : {
         state: 'local-share-page-bundle-not-checkable',
         ok: false,
@@ -319,10 +333,14 @@ function localSharePageState(expectedPackageChecksum) {
 
 try {
   const prepublish = runJsonCommand('node', ['scripts/portfolio-prepublish-check.mjs']);
+  const expectedLocalSharePageBundleChecksum = expectedLocalSharePageBundleChecksumFromHandoff();
   const env = envVisibility();
   const links = linkState();
   const liveEvidence = liveEvidenceState();
-  const localSharePage = localSharePageState(prepublish.package?.checksum ?? null);
+  const localSharePage = localSharePageState(
+    prepublish.package?.checksum ?? null,
+    expectedLocalSharePageBundleChecksum,
+  );
   const hasConfiguredEnv =
     env.processEnv.OPENAI_API_KEY &&
     env.processEnv.OPENAI_RESPONSES_MODEL;

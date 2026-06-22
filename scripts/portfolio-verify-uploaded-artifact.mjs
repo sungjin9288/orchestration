@@ -188,6 +188,21 @@ function expectedCandidates(requestedArtifact) {
   return candidates.filter((candidate) => candidate.artifact === requestedArtifact);
 }
 
+function conflictingCandidatesForArtifact(candidates, artifact) {
+  const artifactCandidates = candidates.filter((candidate) => candidate.artifact === artifact);
+  const uniqueChecksums = new Set(artifactCandidates.map((candidate) => candidate.sha256));
+
+  if (uniqueChecksums.size <= 1) {
+    return null;
+  }
+
+  return {
+    artifact,
+    checksums: Array.from(uniqueChecksums),
+    candidates: artifactCandidates,
+  };
+}
+
 const args = parseArgs(process.argv.slice(2));
 const filePath = path.resolve(repoRoot, args.file);
 
@@ -197,6 +212,19 @@ if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
 
 const actualSha256 = sha256File(filePath);
 const candidates = expectedCandidates(args.artifact);
+const localStaticSiteConflict = conflictingCandidatesForArtifact(candidates, 'local-static-site-bundle');
+
+if (args.artifact === 'local-static-site-bundle' && localStaticSiteConflict) {
+  fail('expected-checksum-source-mismatch', {
+    requestedArtifact: args.artifact,
+    file: filePath,
+    actualSha256,
+    conflict: localStaticSiteConflict,
+    nextAction:
+      'Regenerate the local static-site bundle or update docs/portfolio-share-handoff.md so the generated manifest checksum and handoff checksum match before verifying an uploaded static-site zip.',
+  });
+}
+
 const matches = candidates.filter((candidate) => candidate.sha256 === actualSha256);
 
 if (candidates.length === 0) {

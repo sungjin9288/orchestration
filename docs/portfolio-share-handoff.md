@@ -18,9 +18,9 @@
 
 - A local static share page can be prepared outside this repository as a pre-upload staging surface.
 - It is still local-only evidence until a reviewer-facing URL is uploaded, opened from a reviewer-equivalent context, downloaded, and checksum-verified.
-- Current pre-upload staging evidence: `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs` reported `localSharePageReady=true` and `localSharePageBundleReady=true`; the local share page repo head was `5c0d06d`, and the generated static-site zip SHA-256 was `d0ab3debc9b99f470b14ea4079a782cc477fddeb2d35d4af828d885110eba9aa`.
+- Current pre-upload staging evidence: `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs` reported `localSharePageReady=true` and `localSharePageBundleReady=true`; the local share page repo head was `370e800`, and the generated static-site zip SHA-256 was `e91c158ca7964ce2efaeb5601b000a0d10f0397790c43ff3fed3fe30cd03fe0b`.
 - Use `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page>` with `node scripts/portfolio-share-status.mjs` to check that the page has `index.html`, `README.md`, `styles.css`, expected screenshot and screencast assets, and a package zip whose SHA-256 matches this handoff.
-- When the local page has generated `dist/orchestration-portfolio-share-page-2026-06-22.manifest.json`, the same status command also checks that the generated site zip exists, its SHA-256 matches the manifest, the manifest points back to this evidence package checksum, and deterministic packaging metadata is present.
+- When the local page has generated `dist/orchestration-portfolio-share-page-2026-06-22.manifest.json`, the same status command also checks that the generated site zip exists, its SHA-256 matches the manifest and this handoff, the manifest points back to this evidence package checksum, and deterministic packaging metadata is present.
 - The local page repo may have its own git commit, but that commit is not a public share target unless a remote URL is verified separately.
 - Do not record the local page path in `links.md`; only record verified external URLs.
 
