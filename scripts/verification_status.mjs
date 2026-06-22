@@ -177,6 +177,11 @@ const informationalChecks = [
     purpose: 'Growth continuous development loop status fixes the read-only evidence, reflection, proposal, approval, verification, lesson, and gateway exposure loop before improvement acceptance can act',
   },
   {
+    id: 'loop-readiness-status',
+    script: 'scripts/smoke-loop-readiness-status.mjs',
+    purpose: 'Loop Engineering readiness status checks goal, boundary, verification gate, stop condition, human return point, source-of-truth refs, and local evidence posture before loop automation can act',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',

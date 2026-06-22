@@ -141,12 +141,28 @@ Deliverables should summarize:
 ## Next Safe Build Candidates
 These are candidates, not approvals:
 
-1. A read-only loop-readiness status command that checks whether a proposed work item has a goal,
-   boundary, verification gate, stop condition, and human return point.
-2. A Mission/Council copy polish slice that names loop stage and stop condition without changing
+1. A Mission/Council copy polish slice that names loop stage and stop condition without changing
    runtime semantics.
-3. A growth reflection rule that flags any proposal that claims "loop automation" while omitting
+2. A growth reflection rule that flags any proposal that claims "loop automation" while omitting
    budget, retry, rollback, and approval boundaries.
+
+## Implemented Read-Only Slice: `loop-readiness-status`
+
+`node scripts/loop-readiness-status.mjs` implements the first safe build candidate as a read-only
+status command. It checks the current source-of-truth docs for the required loop readiness shape:
+
+- goal
+- boundary
+- verification gate
+- stop condition
+- human return point
+- source-of-truth refs
+- local evidence posture
+
+The command does not accept arguments and does not execute work, call providers, persist memory,
+schedule jobs, create commits, push, or open external connectors. Its focused smoke is
+`node scripts/smoke-loop-readiness-status.mjs`, and aggregate coverage is registered in
+`node scripts/verification_status.mjs`.
 
 ## Not Authorized By This Note
 This review does not authorize:
