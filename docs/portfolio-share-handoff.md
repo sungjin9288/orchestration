@@ -10,7 +10,7 @@
 
 - Path: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Size: `3.7M` from `ls -lh`
-- SHA-256: `4a82d472ebb66d25a3fc595c67e27a598982391ad44293d5e57519691e2714da`
+- SHA-256: `458b3a9739c4cbfddd78eeb383989e3a5a4ca2b237a87b9c3747d99d435262e7`
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
@@ -23,6 +23,7 @@ The package was checked with `unzip -l` and includes:
 - `docs/contribution-scope-note.md`
 - `docs/external-share-verification-plan.md`
 - `docs/portfolio-open-items-handoff.md`
+- `docs/portfolio-share-copy-template.md`
 - `docs/project-card.md`
 - `docs/resume-bullets.md`
 - `docs/interview-story.md`
@@ -40,6 +41,7 @@ The package was checked with `unzip -l` and includes:
 - Do not include `.env`, API keys, tokens, passwords, personal data, customer/internal materials, `.git/`, `node_modules/`, virtualenv folders, or build output.
 - Do not present the package as a hosted demo, public deployment, production system, or measured user outcome.
 - Do not add a Demo URL to `README.md` or `links.md` until the uploaded link is accessible from a reviewer context.
+- Use `docs/portfolio-share-copy-template.md` for release notes, attachment notes, portfolio-site snippets, and reviewer messages.
 - Keep source code excluded from the portfolio zip unless a future package explicitly changes that review boundary.
 
 ## Candidate Share Targets
@@ -69,6 +71,7 @@ Expected handling:
 - Secret-pattern grep should return no matches.
 - README honesty grep should return no unsupported claim matches.
 - If the package is uploaded, verify the reviewer-facing link before adding it to `links.md`.
+- Destination copy should follow `docs/portfolio-share-copy-template.md` or equivalent claim-safe wording.
 
 ## Remaining Open
 

@@ -3,7 +3,7 @@
 ## Status
 
 - Date: 2026-06-22
-- Current repo head: `main@2ede420`
+- Current repo head: `main@25e0a2d`
 - Purpose: keep the remaining portfolio handoff work executable without widening product, provider, deployment, or release scope.
 - Boundary: this is an operator checklist. It does not upload files, create public URLs, run configured OpenAI calls, or change runtime behavior.
 
@@ -11,7 +11,7 @@
 
 | Item | Current evidence | Blocker | Completion evidence |
 |---|---|---|---|
-| External share target | `docs/external-share-verification-plan.md` defines target options and reviewer-equivalent access checks | A human must choose and upload to a target | Verified reviewer-facing URL plus downloaded checksum match recorded in `links.md` |
+| External share target | `docs/external-share-verification-plan.md` defines target options and reviewer-equivalent access checks; `docs/portfolio-share-copy-template.md` defines claim-safe release and reviewer copy | A human must choose and upload to a target | Verified reviewer-facing URL plus downloaded checksum match recorded in `links.md` |
 | Configured-env optional live smoke | `docs/live-provider-verification-note.md` records `skipped_missing_env` for `main@4aeee74` because required OpenAI env values were not visible | Required OpenAI env values must be visible in the current execution context | Pass/fail/skipped output from the full optional live smoke set, recorded without secret values |
 
 ## External Share Checklist
@@ -23,8 +23,9 @@ Use this only after selecting a target such as GitHub Release asset, private att
 3. Open the uploaded artifact from a reviewer-equivalent session.
 4. Download the uploaded artifact into a temporary location.
 5. Compare its SHA-256 with `docs/portfolio-share-handoff.md`.
-6. Confirm the destination copy does not imply a running hosted product or measured user outcome.
-7. Update `links.md` only after the access and checksum checks pass.
+6. Use `docs/portfolio-share-copy-template.md` for release notes, attachment notes, portfolio-site snippets, or reviewer messages.
+7. Confirm the destination copy does not imply a running hosted product or measured user outcome.
+8. Update `links.md` only after the access and checksum checks pass.
 
 Do not put an unverified URL into `links.md`.
 

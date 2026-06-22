@@ -6,6 +6,7 @@
 - Current state: no external share target has been selected, uploaded, or verified.
 - Package to share: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Package checksum source: `docs/portfolio-share-handoff.md`
+- Claim-safe share copy source: `docs/portfolio-share-copy-template.md`
 - Boundary: this plan is for portfolio artifact sharing only. It does not create a hosted app, public demo server, or external release workflow.
 
 ## Target Decision Matrix
@@ -33,8 +34,9 @@ Keep local-only handoff when no external upload target has been explicitly selec
 3. Open the uploaded link from a reviewer-equivalent context, not only the owner session.
 4. Download the uploaded file into a temporary location.
 5. Run `shasum -a 256 <downloaded-file>` and compare it with the checksum in `docs/portfolio-share-handoff.md`.
-6. Confirm the destination page or attachment text does not describe the package as a hosted app or measured user outcome.
-7. Only after those checks pass, update `links.md` with the verified URL and note the access check date.
+6. Use `docs/portfolio-share-copy-template.md` for the destination page, release body, or reviewer message.
+7. Confirm the destination page or attachment text does not describe the package as a hosted app or measured user outcome.
+8. Only after those checks pass, update `links.md` with the verified URL and note the access check date.
 
 ## Link Recording Template
 
@@ -54,6 +56,7 @@ If the uploaded artifact is a downloadable package rather than a running app, ke
 - Links that require an unknown login state.
 - URLs that only open from the uploader's browser session.
 - Pages that imply a running hosted app when only a downloadable local package exists.
+- Copy that does not follow `docs/portfolio-share-copy-template.md` or an equivalent claim-safe wording.
 - Files whose downloaded checksum does not match `docs/portfolio-share-handoff.md`.
 
 ## Next Action
