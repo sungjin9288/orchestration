@@ -11,7 +11,7 @@
 - Demo 링크: 추가 필요
 - 핵심 기술스택: JavaScript, Node.js, Vanilla HTML/CSS/JS, Node.js `http` local server, file-based JSON/JSONL storage, Git CLI, OpenAI Responses API opt-in adapter, local smoke scripts
 - 이력서 반영 가능 여부: 조건부 가능
-- 판단 이유: `src/runtime/*`, `src/execution/*`, `scripts/serve-ui-slice-01.mjs`, `ui/*`, `packs/development/pack.md` 기준으로 local-first 실행 제어, artifact/log persistence, review/approval gate, provider adapter, UI shell이 구현되어 있다. 현재 `README.md`는 screenshot/evidence manifest를 연결했지만 public demo, 사용자 검증, 성과 수치는 아직 없다.
+- 판단 이유: `src/runtime/*`, `src/execution/*`, `scripts/serve-ui-slice-01.mjs`, `ui/*`, `packs/development/pack.md` 기준으로 local-first 실행 제어, artifact/log persistence, review/approval gate, provider adapter, UI shell이 구현되어 있다. 현재 `README.md`는 screenshot/evidence manifest를 연결했고 local screencast artifact도 생성됐지만 hosted public demo, 사용자 검증, 성과 수치는 아직 없다.
 
 ## 2. One-liner
 
@@ -40,7 +40,7 @@
   - artifact/log persistence: `createFileStore`, `recordArtifact`, `appendLogRecord`
   - review/approval/decision inbox: `resolveReview`, `requestBuilderLiveMutationApproval`, `resolveDecisionInboxItem`
   - static web UI/API server: `scripts/serve-ui-slice-01.mjs`
-- 개발 중인 기능: growth gateway와 self-improvement read-only status contracts, optional real-live provider 재검증, 포트폴리오 demo evidence 정리
+- 개발 중인 기능: growth gateway와 self-improvement read-only status contracts, optional real-live provider 재검증, 포트폴리오 screencast attachment/shareable evidence 정리
 - 아직 할 수 없는 기능: public hosted deployment, multi-user workspace, generalized OAuth, external push/publish/release automation, quantified user outcome reporting
 - 사용자 흐름: Project 등록 -> Mission/Task 생성 -> planner/architect/task-breaker -> builder preflight -> approval -> live mutation -> reviewer -> commit/release local follow-up -> close-out
 - AI/IT 기술을 적용한 방식: 기본 실행은 `local-stub` adapter이며, 명시적 opt-in 시 `openai-responses` adapter가 planner-through-reviewer 역할 실행에 사용된다.
@@ -81,7 +81,7 @@ User
 -> Local execution runtime
 -> Explicit provider adapter
 -> Review / approval / artifact provenance gates
--> Optional demo or packaged local review environment
+-> Local screencast artifact or packaged local review environment
 ```
 
 ### 설명
@@ -125,7 +125,7 @@ User
 - 테스트 파일: `scripts/smoke-*.mjs`, `scripts/smoke-dev-loop-m2.mjs`, `scripts/smoke-qa-slice-07.mjs`
 - README 또는 문서 근거: `README.md`는 프로젝트 개요, 기술스택, 구조, 실행 방법, verification, screenshot/evidence link, Scope & Limitations를 포함하며, 상세 근거는 `docs/*`, `packs/development/pack.md`, `AGENTS.md`
 - 실행 방법이 명확한지: README가 harness 실행, 정적 UI 확인, local UI/API server demo flow를 안내한다. 세부 checklist는 `docs/local-demo-checklist.md`에 분리했다.
-- 스크린샷/데모가 필요한 부분: main shell, task execution, artifact preview, decision inbox, local close-out flow
+- 스크린샷/데모 근거: screenshot evidence는 `evidence/screenshots/*.png`에 있고, local screencast artifact는 `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm`에 있다. hosted/shareable demo artifact는 아직 없다.
 
 ## 10. Consulting Angle
 
@@ -147,9 +147,9 @@ User
 
 ### 조건부로 가능한 표현
 
-- 실사용 가능한 도구: local demo와 실행 가이드 보강 후 사용
+- 실사용 가능한 도구: local demo guide와 screencast evidence를 함께 제시할 때 사용
 - OpenAI 기반 role execution 검증: 실제 env로 optional live smoke 통과 후 사용
-- 포트폴리오 대표 프로젝트: public demo 또는 screencast와 사용자 검증 범위를 분리해 설명할 때 사용
+- 포트폴리오 대표 프로젝트: local screencast와 hosted/shareable demo 미구현 범위를 분리해 설명할 때 사용
 
 ### 쓰면 위험한 표현
 

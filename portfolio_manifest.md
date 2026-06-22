@@ -4,7 +4,8 @@
 
 - 프로젝트명: Orchestration 1.0
 - 생성일: 2026-06-09
-- 현재 상태: 고도화 중
+- 최신 갱신: 2026-06-22
+- 현재 상태: local-first portfolio evidence 정리 중
 - 핵심 기술스택: JavaScript, Node.js, Vanilla HTML/CSS/JS, file-based JSON/JSONL storage, Node.js local HTTP server, OpenAI Responses API opt-in adapter, local smoke scripts
 - 이력서 반영 가능 여부: 조건부 가능
 
@@ -37,6 +38,7 @@
 - evidence/output-artifacts/*.json
 - evidence/screenshots/*.png
 - evidence/architecture/*.md
+- output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm (로컬 생성 artifact, repository commit 제외)
 - screenshots 폴더가 있으면 이미지 파일만 포함
 
 ## 제외한 파일/폴더
@@ -56,6 +58,7 @@
 - 개인정보가 들어간 데이터
 - 고객사/기관 내부자료
 - 기타 민감정보
+- output/ (repository commit과 기존 zip export에서는 제외)
 - src/
 - app/
 - backend/
@@ -73,3 +76,4 @@
 - 압축 파일 경로: `_portfolio_export/orchestration_portfolio_pack.zip`
 - 압축 파일명: `orchestration_portfolio_pack.zip`
 - 압축 파일 내용 확인 여부: 생성 후 `unzip -l`로 확인
+- screencast artifact 상태: `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm` 로컬 생성 확인, `.gitignore` 기준 repository commit 제외

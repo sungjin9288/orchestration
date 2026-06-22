@@ -23,9 +23,9 @@
 
 ## 4. 구현 후 넣을 수 있는 bullet
 
-- 구현 후 사용 가능: public demo와 실행 가이드를 정리한 뒤, 로컬 실행부터 task close-out까지의 end-to-end 사용자 시나리오를 포트폴리오 case study로 제시
+- 구현 후 사용 가능: shareable demo artifact를 정리한 뒤, 로컬 실행부터 task close-out까지의 end-to-end 사용자 시나리오를 포트폴리오 case study로 제시
 - 구현 후 사용 가능: configured OpenAI environment에서 live provider smoke를 통과시킨 뒤, OpenAI Responses API 기반 role execution을 실사용 검증 사례로 설명
-- 구현 후 사용 가능: 배포 또는 screencast를 준비한 뒤, UI shell과 advanced ops mode의 사용자 흐름을 demo evidence로 제시
+- 현재 사용 가능: local screencast artifact와 screenshot evidence를 근거로 UI shell과 advanced ops mode의 사용자 흐름을 demo evidence로 제시
 
 ## 5. 기술스택 한 줄
 
@@ -61,12 +61,12 @@
 ## 8. 보완 후 쓸 수 있는 표현
 
 - live provider 실행 검증 후: OpenAI Responses API 기반 역할 실행을 configured environment에서 검증
-- README와 demo 보강 후: 로컬 실행 가능한 AI-assisted development workflow control plane
-- end-to-end screencast 후: 프로젝트 등록부터 close-out까지의 작업 흐름을 시연 가능한 포트폴리오 프로젝트
+- README와 local demo guide 기준: 로컬 실행 가능한 AI-assisted development workflow control plane
+- local screencast 기준: 프로젝트 등록부터 실행 evidence 확인까지의 작업 흐름을 시연 가능한 포트폴리오 프로젝트
 
 ## 9. 최종 판단
 
 - 현재 이력서 반영 가능 여부: 조건부 가능
-- 이유: 핵심 runtime, UI, adapter, smoke evidence는 코드 근거가 있으나 README, demo, 배포, 성과 지표가 부족하다.
-- 이력서에 넣기 전 반드시 보완할 것: 실행 방법, 화면 캡처, 핵심 flow demo, 내가 직접 구현한 범위 명시
-- 가장 먼저 개선해야 할 것: README demo/screenshot 연결과 optional live-provider 검증 note 보강
+- 이유: 핵심 runtime, UI, adapter, smoke evidence, screenshot, local screencast 근거는 있으나 hosted/shareable demo, 사용자 검증, 성과 지표는 아직 없다.
+- 이력서에 넣기 전 반드시 보완할 것: 내가 직접 구현한 범위 명시, hosted/shareable demo 필요 여부 판단, optional live-provider 검증 note 보강
+- 가장 먼저 개선해야 할 것: generated screencast의 portfolio attachment/shareable artifact 정리와 optional live-provider 검증 note 보강

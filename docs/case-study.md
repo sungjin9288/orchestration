@@ -5,7 +5,7 @@
 - 이 프로젝트를 시작한 배경: 로컬 개발 프로젝트에서 AI-assisted 실행을 사용하더라도 실행 단위, 로그, 산출물, 리뷰, 승인 근거가 분산되면 작업 완료를 신뢰하기 어렵다.
 - 해결하려는 사용자 문제: 단일 사용자가 로컬 repo에서 개발 작업을 실행할 때 현재 project, task, run, artifact, review, approval 상태를 한 흐름으로 확인하고 통제해야 한다.
 - 이 문제가 중요한 이유: AI 또는 자동화가 파일을 변경하는 경우 실행 근거와 승인 경계가 불명확하면 회귀, 무단 변경, 완료 착각이 발생한다.
-- 현재 개발 진행 상태: repo docs 기준 v1 control-plane baseline과 post-v1 shell baseline은 완료로 기록되어 있으며, 현재는 growth gateway와 self-improvement status contract가 read-only 형태로 고도화 중이다.
+- 현재 개발 진행 상태: repo docs 기준 v1 control-plane baseline과 post-v1 shell baseline은 완료로 기록되어 있으며, 현재는 growth gateway/self-improvement read-only status contract와 portfolio evidence 정리 단계로 고도화 중이다.
 
 ## 2. 문제 정의
 
@@ -69,7 +69,7 @@
 
 - read-only growth gateway와 self-improvement contract scripts
 - optional live-provider real smoke 재검증
-- README, demo, portfolio artifact 정리
+- README, local screencast, portfolio artifact 정리
 
 ### 미구현 / 예정
 
@@ -92,7 +92,7 @@
 - AI/LLM 처리 흐름: `executeWithAdapter`가 project provider config에 따라 `local-stub` 또는 `openai-responses` adapter를 호출한다.
 - 예외 처리: coordinator readiness와 fail-closed guard로 missing context, stale provenance, invalid approval을 차단한다.
 - 보안/환경변수 처리: secret 값은 repo/runtime state에 저장하지 않고 env var name만 provider config에 둔다.
-- 배포 계획: 현재 미구현. local server 또는 recorded demo 우선 보강 필요
+- 배포 계획: 현재 미구현. local server 실행 경로와 local screencast artifact를 우선 evidence로 사용한다.
 
 ## 7. 나의 역할
 
@@ -108,12 +108,12 @@
 ## 8. 결과
 
 - 구현 완료 기능: local-first runtime, execution coordinator, provider adapter, UI shell, artifact/log persistence, review/approval gates
-- 로컬 실행 가능 여부: `scripts/serve-ui-slice-01.mjs` 기준 가능. README 실행 가이드는 보완 필요
-- 테스트 여부: 다수의 `scripts/smoke-*.mjs` 존재. 이번 문서 작업에서는 zip 검증 중심으로 수행
+- 로컬 실행 가능 여부: `scripts/serve-ui-slice-01.mjs` 기준 가능하며, README와 `docs/local-demo-checklist.md`가 local UI/API 확인 경로를 안내한다.
+- 테스트 여부: 다수의 `scripts/smoke-*.mjs`와 `node scripts/verification_status.mjs` aggregate gate가 존재한다. 대표 local user-flow evidence는 `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`에 기록되어 있다.
 - 배포 여부: 미구현
 - 사용자 피드백: 현재 없음. 임의 생성 금지
 - 수치 성과: 현재 없음. 임의 생성 금지
-- 공개 데모 상태: hosted public demo는 미공개이며, 현재는 `docs/public-demo-screencast-plan.md` 기준 recorded local-first walkthrough를 우선한다.
+- 공개 데모 상태: hosted public demo는 미공개이며, `docs/public-demo-screencast-plan.md` 기준 local-first walkthrough screencast를 생성했다. 영상 파일은 `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm`에 있으며 `output/` ignore 규칙 때문에 repository commit에는 포함하지 않는다.
 - 대표 검증 근거: `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`
 
 ## 9. 배운 점
