@@ -10,7 +10,7 @@
 
 - Path: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Size: `3.7M` from `ls -lh`
-- SHA-256: `3b52040914ebf7f491f5c791485eab7c0a0ed7054d423b56c50db774aeaffc7f`
+- SHA-256: `a29f15619ee6912a6b60c6b587d02353605abc150e8a52ab4d387d6f4b1c071b`
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
@@ -21,6 +21,7 @@ The package was checked with `unzip -l` and includes:
 - `README.md`
 - `docs/case-study.md`
 - `docs/contribution-scope-note.md`
+- `docs/external-share-verification-plan.md`
 - `docs/project-card.md`
 - `docs/resume-bullets.md`
 - `docs/interview-story.md`
@@ -41,6 +42,8 @@ The package was checked with `unzip -l` and includes:
 - Keep source code excluded from the portfolio zip unless a future package explicitly changes that review boundary.
 
 ## Candidate Share Targets
+
+Detailed selection and reviewer-access checks are in `docs/external-share-verification-plan.md`.
 
 | Target | Use when | Required check before recording as a link |
 |---|---|---|

@@ -8,4 +8,4 @@
 - 영상 시연: 추가 필요
 - 블로그: 없음
 - 기타 참고 링크: 없음
-- 비고: 현재 repo에는 public URL, hosted demo, 발표자료 링크가 확인되지 않음. local screencast artifact는 `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm`에 있고, screencast 포함 local package는 `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`에 생성되어 있으나 둘 다 외부 공유 URL은 아니다. 외부 공유 전 handoff 기준은 `docs/portfolio-share-handoff.md`에 기록했다.
+- 비고: 현재 repo에는 public URL, hosted demo, 발표자료 링크가 확인되지 않음. local screencast artifact는 `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm`에 있고, screencast 포함 local package는 `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`에 생성되어 있으나 둘 다 외부 공유 URL은 아니다. 외부 공유 전 handoff 기준은 `docs/portfolio-share-handoff.md`, target 선택 및 접근 검증 절차는 `docs/external-share-verification-plan.md`에 기록했다.

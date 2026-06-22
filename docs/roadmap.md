@@ -76,6 +76,6 @@
 
 | 우선순위 | 작업 | 이유 | 예상 산출물 |
 |---|---|---|---|
-| 1 | external share target 선택 및 접근 검증 | local screencast 포함 portfolio package와 share handoff는 준비됐지만 외부 리뷰어가 접근할 URL은 아직 없음 | verified shareable URL or hosted walkthrough decision |
+| 1 | external share target 선택 및 접근 검증 | local screencast 포함 portfolio package, share handoff, target decision plan은 준비됐지만 외부 리뷰어가 접근할 URL은 아직 없음 | verified shareable URL or hosted walkthrough decision |
 | 2 | configured-env optional OpenAI live smoke 재실행 | 현재 세션은 `skipped_missing_env`로 기록됐으므로 env가 보이는 상태에서 pass/fail evidence가 필요함 | pass/fail evidence or refreshed skipped evidence |
 | 3 | portfolio case study 유지 관리 | case study는 screenshot, screencast, smoke evidence, local package, contribution note를 연결했으므로 외부 URL 검증 후 링크만 갱신하면 됨 | updated case study after verified share URL |
