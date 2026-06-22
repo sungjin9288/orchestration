@@ -175,6 +175,6 @@ ls scripts/ | grep -c "qa-slice"  # → 10   (QA slice 러너)
 ## Links
 
 - GitHub: https://github.com/sungjin9288/orchestration
-- Demo: (공개 시나리오 정리 후 추가)
+- Demo: hosted public demo 미공개. Recorded demo plan: [`docs/public-demo-screencast-plan.md`](./docs/public-demo-screencast-plan.md)
 - Screenshots / evidence: [`evidence/screenshots/`](./evidence/screenshots/), [`evidence/evidence_manifest.md`](./evidence/evidence_manifest.md)
 - 운영 규칙 / 설계: [`AGENTS.md`](./AGENTS.md), [`DESIGN.md`](./DESIGN.md), [`docs/`](./docs/)

@@ -5,7 +5,7 @@
 - 현재 구현 완료: local-first runtime, development pack execution loop, opt-in knowledge-work pack, review/approval gates, static UI shell, file-based artifacts/logs, local-stub and OpenAI Responses adapter boundary
 - 개발 중: growth gateway and self-improvement read-only status contracts, portfolio documentation, demo/screencast planning
 - 미구현: public deployment, hosted demo, multi-user auth, external release automation, quantitative usage metrics
-- 검증 필요: optional real-live OpenAI smoke in a visible configured environment, end-to-end local demo capture
+- 검증 필요: optional real-live OpenAI smoke in a visible configured environment, screencast recording
 
 ## 2. Phase 1 - MVP 완성
 
@@ -14,7 +14,7 @@
   - README 실행 방법 작성
   - `node scripts/serve-ui-slice-01.mjs` 실행 예시 추가
   - project registration -> task execution -> artifact 확인 demo path 정리
-  - 핵심 screenshot 또는 screencast 준비
+  - screencast recording 준비
 - 완료 기준:
   - 새 사용자가 local server를 실행하고 `/api/snapshot`과 UI를 확인
   - README에 구현 완료, 개발 중, 미구현 범위가 분리됨
@@ -51,7 +51,7 @@
   - 외부 리뷰어가 실행 화면과 핵심 흐름을 확인
   - secret value와 local absolute path 노출 리스크가 관리됨
 - 산출물:
-  - demo link 또는 screencast
+  - screencast 또는 hosted demo decision
   - setup guide
   - security checklist
 
@@ -75,7 +75,7 @@
 
 | 우선순위 | 작업 | 이유 | 예상 산출물 |
 |---|---|---|---|
-| 1 | public demo 또는 screencast | README와 local demo checklist는 준비됐지만 외부 리뷰어용 영상/hosted demo는 아직 없음 | screencast 또는 hosted demo decision |
-| 2 | portfolio case study 보강 | README screenshot과 2026-06-22 user-flow smoke evidence를 case study에서 연결해야 함 | screenshot-backed case study |
+| 1 | screencast recording | recorded demo path는 정리됐지만 실제 영상 파일은 아직 없음 | screencast |
+| 2 | portfolio case study 보강 | README screenshot, screencast plan, 2026-06-22 user-flow smoke evidence를 case study에서 연결해야 함 | screenshot-backed case study |
 | 3 | optional OpenAI live smoke | live adapter 설명을 검증 근거와 함께 제시해야 함 | skipped/pass/fail evidence |
 | 4 | 구현자 범위 확정 | 면접에서 직접 구현 범위와 repo 전체 기능을 구분해야 함 | contribution note |

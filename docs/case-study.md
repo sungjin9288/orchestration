@@ -113,6 +113,8 @@
 - 배포 여부: 미구현
 - 사용자 피드백: 현재 없음. 임의 생성 금지
 - 수치 성과: 현재 없음. 임의 생성 금지
+- 공개 데모 상태: hosted public demo는 미공개이며, 현재는 `docs/public-demo-screencast-plan.md` 기준 recorded local-first walkthrough를 우선한다.
+- 대표 검증 근거: `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`
 
 ## 9. 배운 점
 

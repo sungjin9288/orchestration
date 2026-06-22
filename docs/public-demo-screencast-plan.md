@@ -1,0 +1,96 @@
+# Public Demo / Screencast Plan
+
+## Decision
+
+현재 public portfolio evidence는 hosted demo보다 recorded screencast를 우선한다.
+
+## Why Recorded Screencast First
+
+- 현재 제품은 local-first PoC이며, `project_path`가 실제 로컬 git worktree를 가리켜야 한다.
+- hosted public demo는 runtime state, local path, artifact/log persistence, secret exposure boundary를 별도로 설계해야 한다.
+- README와 `docs/local-demo-checklist.md`는 이미 local UI/API 확인 경로를 제공한다.
+- 2026-06-22 기준 대표 local user-flow smoke가 pass evidence로 고정되어 있다.
+
+Hosted demo는 아직 공개 URL이 없으므로 README에 demo URL로 연결하지 않는다.
+
+## Source Evidence
+
+| Evidence | File |
+|---|---|
+| Local demo checklist | `docs/local-demo-checklist.md` |
+| Representative user-flow smoke | `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status` |
+| UI screenshots | `evidence/screenshots/mission-surface.png`, `taskboard-surface.png`, `artifacts-surface.png` |
+| Evidence manifest | `evidence/evidence_manifest.md` |
+
+## Screencast Storyboard
+
+1. Open README and show project scope.
+   - Point out `PoC / local-first / single-user / ops-first`.
+   - Point out Scope & Limitations before showing features.
+
+2. Start the local UI/API server.
+
+```bash
+node scripts/serve-ui-slice-01.mjs --runtime-root /tmp/orchestration-demo-runtime
+```
+
+3. Confirm runtime state through the API.
+
+```bash
+curl http://127.0.0.1:4310/api/snapshot
+```
+
+4. Open the local shell.
+
+```text
+http://127.0.0.1:4310/
+```
+
+5. Show the primary surfaces.
+   - Mission
+   - Council
+   - Execution
+   - Deliverables
+   - Taskboard
+   - Logs
+   - Artifacts
+   - Decision Inbox
+
+6. Show the local-stub demo path.
+   - Register project with a real local `project_path`.
+   - Create a task.
+   - Run planner.
+   - Confirm snapshot contains project, task, run, and artifact records.
+
+7. Show evidence and limitations.
+   - Open `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`.
+   - Open `evidence/evidence_manifest.md`.
+   - State that hosted public demo and optional live-provider rerun are not included yet.
+
+## Capture Rules
+
+- Do not display API keys, tokens, `.env` values, personal data, or unrelated local paths.
+- Use `/tmp/orchestration-demo-runtime` for demo runtime state.
+- Use a temporary or clearly non-sensitive local repo path when recording.
+- Do not claim user metrics, automation percentages, performance improvements, or production readiness.
+- Show missing hosted demo and optional live-provider status as limitations, not completed features.
+
+## Verification Before Recording
+
+Run these checks before recording the final screencast:
+
+```bash
+node scripts/smoke-v1-user-flow-kickoff.mjs
+node scripts/verification_status.mjs
+```
+
+Expected current evidence:
+
+- `smoke-v1-user-flow-kickoff`: pass
+- `verification_status`: required `1/1`, informational `84/84`, failures `[]`
+
+## Remaining Open Items
+
+- Record screencast.
+- Decide whether to publish a hosted static walkthrough or keep the portfolio demo as a recorded local-first walkthrough.
+- Rerun optional OpenAI live-provider smoke only when configured env is visible.

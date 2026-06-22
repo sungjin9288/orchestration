@@ -8,6 +8,7 @@
 | development loop smoke 로그 | 완료 | `evidence/cli-logs/smoke-dev-loop-m2.log` |
 | UI smoke 로그 | 완료 | `evidence/cli-logs/smoke-ui-slice-63.log` |
 | 대표 user-flow smoke 상태 | 완료 | `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status` |
+| Public demo / screencast plan | 완료 | `docs/public-demo-screencast-plan.md` |
 | QA smoke 로그 | 타임아웃 기록 | `evidence/cli-logs/smoke-qa-slice-07.log` |
 | API snapshot 응답 | 완료 | `evidence/api-responses/01-snapshot-initial.json`, `07-snapshot-after-planner.json` |
 | Project 생성 API 응답 | 완료 | `evidence/api-responses/02-create-project.json` |
