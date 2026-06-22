@@ -33,7 +33,7 @@
   - 현재 `README.md`는 작성되어 있으며 프로젝트 개요, 기술스택, 구조, 실행 방법, 검증 카운트, Scope & Limitations를 포함한다.
   - README는 screenshot/evidence manifest와 optional live-provider note를 연결했다. hosted public demo는 미공개이고 local screencast artifact와 screencast 포함 local package는 생성됐으며 external share handoff가 남아 있다.
   - `docs/case-study.md`는 screenshot, screencast, representative user-flow smoke, evidence manifest, local package, share handoff를 하나의 Portfolio Evidence Map으로 연결했다.
-  - `docs/live-provider-verification-note.md`는 현재 Codex process와 `launchctl` 모두 `OPENAI_API_KEY` visible false, `OPENAI_RESPONSES_MODEL` visible false라서 `main@95b4835` 기준 full optional live smoke set이 `skipped_missing_env`로 종료된 non-blocking evidence를 기록한다.
+  - `docs/live-provider-verification-note.md`는 현재 Codex process와 `launchctl` 모두 `OPENAI_API_KEY` visible false, `OPENAI_RESPONSES_MODEL` visible false라서 `main@967d39b` 기준 full optional live smoke set이 `skipped_missing_env`로 종료된 non-blocking evidence를 기록한다.
   - `docs/contribution-scope-note.md`는 이력서/면접에서 직접 설명 가능한 repo-backed contribution scope와 caveat가 필요한 claim boundary를 정리한다.
   - `docs/external-share-verification-plan.md`는 GitHub Release, private attachment, Notion attachment, portfolio site download, local-only handoff 중 external share target을 고르는 기준과 reviewer-equivalent access 검증 절차를 정리한다.
   - `docs/portfolio-open-items-handoff.md`는 external share target과 configured-env optional live smoke를 하나의 operator checklist로 묶어, 필요한 human decision과 completion evidence를 분리한다.
