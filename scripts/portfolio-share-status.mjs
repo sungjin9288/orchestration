@@ -14,6 +14,10 @@ const mode = 'portfolio-share-status';
 const linksRelativePath = 'links.md';
 const liveNoteRelativePath = 'docs/live-provider-verification-note.md';
 const localSharePageEnvVar = 'PORTFOLIO_LOCAL_SHARE_PAGE_DIR';
+const localSharePageBundleManifestRelativePath =
+  'dist/orchestration-portfolio-share-page-2026-06-22.manifest.json';
+const localSharePageBundleZipFallbackRelativePath =
+  'dist/orchestration-portfolio-share-page-2026-06-22.zip';
 const localSharePageRequiredFiles = [
   'index.html',
   'README.md',
@@ -60,6 +64,26 @@ function sha256File(filePath) {
   const hash = createHash('sha256');
   hash.update(fs.readFileSync(filePath));
   return hash.digest('hex');
+}
+
+function readOptionalJson(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return { exists: false, value: null, error: null };
+  }
+
+  try {
+    return {
+      exists: true,
+      value: JSON.parse(fs.readFileSync(filePath, 'utf8')),
+      error: null,
+    };
+  } catch (error) {
+    return {
+      exists: true,
+      value: null,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 function envVisibility() {
@@ -141,6 +165,79 @@ function gitStateForPath(directory) {
   };
 }
 
+function localSharePageBundleState(localSharePagePath, expectedPackageChecksum) {
+  const manifestPath = path.join(localSharePagePath, localSharePageBundleManifestRelativePath);
+  const manifestResult = readOptionalJson(manifestPath);
+  const manifest = manifestResult.value;
+  const manifestZipRelativePath =
+    typeof manifest?.zip === 'string' && manifest.zip.length > 0
+      ? manifest.zip
+      : localSharePageBundleZipFallbackRelativePath;
+  const zipPath = path.join(localSharePagePath, manifestZipRelativePath);
+  const zipExists = fs.existsSync(zipPath) && fs.statSync(zipPath).isFile();
+  const zipChecksum = zipExists ? sha256File(zipPath) : null;
+  const zipChecksumMatchesManifest =
+    Boolean(manifest?.zipSha256) &&
+    Boolean(zipChecksum) &&
+    manifest.zipSha256 === zipChecksum;
+  const evidencePackageChecksumMatches =
+    manifest?.evidencePackage?.sha256 === expectedPackageChecksum &&
+    manifest?.evidencePackage?.checksumMatchesHandoff === true;
+  const deterministicPackaging = manifest?.deterministicPackaging ?? null;
+  const deterministicPackagingOk =
+    deterministicPackaging?.timestamp === '2026-06-22T00:00:00.000Z' &&
+    Array.isArray(deterministicPackaging?.zipOptions) &&
+    deterministicPackaging.zipOptions.includes('-X') &&
+    Array.isArray(deterministicPackaging?.entryOrder) &&
+    localSharePageRequiredFiles.every((relativePath) =>
+      deterministicPackaging.entryOrder.includes(relativePath),
+    );
+  const manifestRequiredFiles = Array.isArray(manifest?.requiredFiles) ? manifest.requiredFiles : [];
+  const missingManifestRequiredFiles = localSharePageRequiredFiles.filter(
+    (relativePath) => !manifestRequiredFiles.includes(relativePath),
+  );
+  const ok =
+    manifestResult.exists &&
+    !manifestResult.error &&
+    zipExists &&
+    zipChecksumMatchesManifest &&
+    evidencePackageChecksumMatches &&
+    deterministicPackagingOk &&
+    missingManifestRequiredFiles.length === 0;
+
+  return {
+    state: ok ? 'local-share-page-bundle-ready' : 'local-share-page-bundle-needs-attention',
+    ok,
+    manifest: {
+      path: localSharePageBundleManifestRelativePath,
+      exists: manifestResult.exists,
+      parseError: manifestResult.error,
+      zipSha256: manifest?.zipSha256 ?? null,
+    },
+    zip: {
+      path: manifestZipRelativePath,
+      exists: zipExists,
+      sha256: zipChecksum,
+      checksumMatchesManifest: zipChecksumMatchesManifest,
+    },
+    evidencePackage: {
+      checksumMatchesHandoff: evidencePackageChecksumMatches,
+      sha256: manifest?.evidencePackage?.sha256 ?? null,
+    },
+    deterministicPackaging: {
+      ok: deterministicPackagingOk,
+      timestamp: deterministicPackaging?.timestamp ?? null,
+      zipOptions: deterministicPackaging?.zipOptions ?? [],
+      missingEntryOrderFiles: localSharePageRequiredFiles.filter(
+        (relativePath) => !deterministicPackaging?.entryOrder?.includes(relativePath),
+      ),
+    },
+    requiredFiles: {
+      missingFromManifest: missingManifestRequiredFiles,
+    },
+  };
+}
+
 function localSharePageState(expectedPackageChecksum) {
   const configuredPath = process.env[localSharePageEnvVar];
 
@@ -184,6 +281,12 @@ function localSharePageState(expectedPackageChecksum) {
       })
     : [];
   const git = directoryExists ? gitStateForPath(resolvedPath) : null;
+  const bundle = directoryExists
+    ? localSharePageBundleState(resolvedPath, expectedPackageChecksum)
+    : {
+        state: 'local-share-page-bundle-not-checkable',
+        ok: false,
+      };
   const ok =
     directoryExists &&
     missingFiles.length === 0 &&
@@ -209,6 +312,7 @@ function localSharePageState(expectedPackageChecksum) {
       ok: unsupportedClaimMatches.length === 0,
       matches: unsupportedClaimMatches,
     },
+    bundle,
     git,
   };
 }
@@ -252,6 +356,15 @@ try {
     });
   }
 
+  if (localSharePage.configured && localSharePage.ok && !localSharePage.bundle?.ok) {
+    blockers.push({
+      id: 'local-share-page-bundle-needs-attention',
+      owner: 'local-artifact',
+      reason: 'The local static share page is source-ready, but its generated dist manifest or zip is missing, stale, or not checksum-aligned.',
+      nextAction: 'Run the local share page build script, then rerun portfolio-share-status with PORTFOLIO_LOCAL_SHARE_PAGE_DIR.',
+    });
+  }
+
   const result = {
     ok: true,
     mode,
@@ -274,6 +387,7 @@ try {
       packagePrepublishReady: Boolean(prepublish.ok),
       externalShareReady: links.hasVerifiedUrl,
       localSharePageReady: Boolean(localSharePage.configured && localSharePage.ok),
+      localSharePageBundleReady: Boolean(localSharePage.configured && localSharePage.bundle?.ok),
       configuredEnvLiveReady: hasConfiguredEnv && liveEvidence.currentResult === 'pass',
       openBlockers: blockers,
     },

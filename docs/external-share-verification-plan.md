@@ -31,7 +31,9 @@ Expected result:
 
 - `localSharePage.configured=true`
 - `readiness.localSharePageReady=true`
+- `readiness.localSharePageBundleReady=true` when the local static-site zip is the upload artifact
 - the local page package checksum matches `docs/portfolio-share-handoff.md`
+- the generated static-site zip checksum matches its manifest
 - the page has no unsupported public claim matches
 - any local git repo state is treated as local staging evidence only, not as reviewer access proof
 
@@ -50,7 +52,7 @@ Keep local-only handoff when no external upload target has been explicitly selec
 1. Run `node scripts/portfolio-rebuild-package.mjs`.
 2. Run `node scripts/portfolio-prepublish-check.mjs` and the remaining pre-publish checks in `docs/portfolio-share-handoff.md`.
 3. If a local static page is the upload source, run `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs`.
-4. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
+4. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`, or upload the generated local static-site zip only when `localSharePageBundleReady=true`.
 5. Open the uploaded link from a reviewer-equivalent context, not only the owner session.
 6. Download the uploaded file into a temporary location.
 7. Run `shasum -a 256 <downloaded-file>` and compare it with the checksum in `docs/portfolio-share-handoff.md`.
