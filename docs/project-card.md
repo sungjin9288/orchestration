@@ -6,7 +6,7 @@
 - 프로젝트 유형: 개인 / PoC
 - 기간: 확인 필요
 - 현재 상태: 고도화 중
-- 내 역할: 확인 필요. 저장소 기준으로 기획, 개발, 문서화, 검증 흐름을 단일 프로젝트 안에서 관리한 개인 개발 프로젝트로 판단
+- 내 역할: 저장소 근거 기준으로 설명 가능한 범위는 `docs/contribution-scope-note.md`에 고정. local runtime, execution coordinator, provider boundary, local UI/API server, shell UI, 문서화/검증 흐름을 개인 PoC 범위에서 설명 가능
 - GitHub 링크: 추가 필요
 - Demo 링크: 추가 필요
 - 핵심 기술스택: JavaScript, Node.js, Vanilla HTML/CSS/JS, Node.js `http` local server, file-based JSON/JSONL storage, Git CLI, OpenAI Responses API opt-in adapter, local smoke scripts
@@ -96,7 +96,7 @@ User
 
 ## 7. My Contribution
 
-- 직접 구현했다고 설명 가능한 기능: 확인 필요. 저장소 기준으로는 runtime service, execution coordinator, provider adapter, local UI/API server, UI shell 구현을 코드 근거로 설명 가능
+- 직접 설명 가능한 기능: `docs/contribution-scope-note.md` 기준으로 runtime service, execution coordinator, provider adapter boundary, local UI/API server, shell UI 구현을 코드 근거로 설명 가능
 - 설계했다고 설명 가능한 구조: local-first, single-user-first, ops-first execution model, artifact taxonomy, review/approval gate, provider adapter boundary
 - 문서화 또는 기획 측면 기여: master brief, decision log, architecture roadmap, development pack, portfolio docs
 - 문제 해결 또는 디버깅 사례: 승인 전 mutation 차단, reviewer provenance 고정, local-only release boundary 설계
@@ -120,6 +120,7 @@ User
 - 주요 코드 파일: `src/runtime/runtime-service.js`, `src/runtime/file-store.js`, `src/runtime/contracts.js`, `src/execution/execution-coordinator.js`
 - 주요 함수/클래스: `createRuntimeService`, `createFileStore`, `createExecutionCoordinator`, `executeWithAdapter`, `createLocalStubProviderAdapter`, `createOpenAIResponsesProviderAdapter`
 - 주요 API 엔드포인트: `/api/snapshot`, `/api/projects`, `/api/missions`, `/api/tasks`, `/api/tasks/:id/run-planner`, `/api/tasks/:id/run-builder-live-mutation`, `/api/tasks/:id/run-reviewer`, `/api/decision-inbox/:id/actions`
+- contribution scope 기준: `docs/contribution-scope-note.md`
 - 설정 파일: 별도 `package.json`, `requirements.txt`, `pyproject.toml`, Dockerfile 없음
 - 실행 파일: `scripts/serve-ui-slice-01.mjs`
 - 테스트 파일: `scripts/smoke-*.mjs`, `scripts/smoke-dev-loop-m2.mjs`, `scripts/smoke-qa-slice-07.mjs`

@@ -96,7 +96,7 @@
 
 ## 7. 나의 역할
 
-- 기획: 확인 필요. repo docs 기준 product boundary와 user flow 정의에 기여한 것으로 설명 가능
+- 기획: repo docs 기준 product boundary와 user flow 정의를 설명 가능. 직접 claim 범위는 `docs/contribution-scope-note.md` 기준으로 제한
 - 요구사항 정의: `AGENTS.md`, master brief, decision log, pack contract로 설명 가능
 - 프론트엔드: `ui/app.js`, `ui/index.html`, `ui/styles.css` 근거로 설명 가능
 - 백엔드: `scripts/serve-ui-slice-01.mjs`, `src/runtime/*`, `src/execution/*` 근거로 설명 가능
@@ -123,6 +123,7 @@
 1. Project scope
    - `README.md`: local-first PoC, 실행 방법, 구현 범위, Scope & Limitations
    - `docs/project-card.md`: 프로젝트 유형, 실제 제공 기능, 미구현 범위, 이력서 반영 가능성
+   - `docs/contribution-scope-note.md`: 직접 설명 가능한 코드 근거와 caveat가 필요한 claim boundary
 
 2. Visual walkthrough
    - `evidence/screenshots/mission-surface.png`: Mission 중심 첫 화면과 work intake framing

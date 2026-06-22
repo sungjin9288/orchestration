@@ -67,6 +67,6 @@
 ## 9. 최종 판단
 
 - 현재 이력서 반영 가능 여부: 조건부 가능
-- 이유: 핵심 runtime, UI, adapter, smoke evidence, screenshot, local screencast 근거는 있으나 hosted/shareable demo, 사용자 검증, 성과 지표는 아직 없다.
-- 이력서에 넣기 전 반드시 보완할 것: 내가 직접 구현한 범위 명시, hosted/shareable demo 필요 여부 판단, configured-env optional live-provider pass/fail evidence 확보
+- 이유: 핵심 runtime, UI, adapter, smoke evidence, screenshot, local screencast 근거는 있고, 직접 설명 가능한 범위는 `docs/contribution-scope-note.md`에 정리했다. 다만 hosted/shareable demo, 사용자 검증, 성과 지표는 아직 없다.
+- 이력서에 넣기 전 반드시 보완할 것: hosted/shareable demo 필요 여부 판단, configured-env optional live-provider pass/fail evidence 확보
 - 가장 먼저 개선해야 할 것: screencast 포함 local portfolio package의 외부 공유 여부 결정과 configured-env optional live-provider rerun

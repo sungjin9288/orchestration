@@ -16,6 +16,7 @@
 - links.md
 - portfolio_manifest.md
 - docs/project-card.md
+- docs/contribution-scope-note.md
 - docs/case-study.md
 - docs/resume-bullets.md
 - docs/interview-story.md

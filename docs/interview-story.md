@@ -3,7 +3,7 @@
 ## 1. 1분 프로젝트 소개
 
 이 프로젝트는 로컬 개발 작업에서 AI-assisted 실행의 범위, 로그, 산출물, 리뷰, 승인 근거가 분산되는 문제를 해결하기 위해 시작했습니다.
-저는 확인 필요인 역할 범위 안에서 local-first execution control plane의 현재 구현된 핵심 기능인 project/task/run/artifact runtime, execution coordinator, review/approval gate, local UI shell을 개발했습니다.
+저는 `docs/contribution-scope-note.md`에 정리한 repo evidence 범위 안에서 local-first execution control plane의 현재 구현된 핵심 기능인 project/task/run/artifact runtime, execution coordinator, review/approval gate, local UI shell을 설명할 수 있습니다.
 기술적으로는 Node.js, Vanilla JavaScript, file-based storage, local-stub adapter, OpenAI Responses API opt-in adapter를 사용했고, 현재는 v1 control-plane baseline과 post-v1 shell baseline까지 구현했습니다.
 개발 과정에서 실행 자동화가 무단 변경이나 완료 착각으로 이어질 수 있는 어려움이 있었고, 이를 `preflight`와 `live-mutation` 분리, review before done, approval before commit, artifact provenance로 해결했거나 해결 중입니다.
 이 프로젝트를 통해 로컬 실행 시스템에서는 UI보다 정책, 상태, 검증 경계를 먼저 고정해야 한다는 점을 배웠고, 향후에는 generated screencast의 portfolio attachment, live-provider evidence, public case study로 고도화할 계획입니다.
@@ -15,7 +15,7 @@
 - 기술 선택 이유: local-first 요구 때문에 Node.js local server와 file-based runtime이 적합했고, provider 종속성은 adapter boundary로 분리했다.
 - 핵심 구현: `createRuntimeService`, `createExecutionCoordinator`, provider adapters, `scripts/serve-ui-slice-01.mjs`, `ui/app.js`
 - 현재 상태: docs 기준 v1 baseline complete, post-v1 shell baseline complete, growth gateway는 read-only status contract 중심으로 고도화 중
-- 앞으로의 개선 방향: screencast 포함 local portfolio package의 외부 공유 여부 결정, configured-env optional real-live smoke, contribution scope note 보강
+- 앞으로의 개선 방향: screencast 포함 local portfolio package의 외부 공유 여부 결정, configured-env optional real-live smoke, reviewer-facing share link 검증
 - 컨설팅 경험과의 자연스러운 연결: 문제를 기능 단위가 아니라 업무 흐름, 승인선, 검토 증거, 기대효과로 구조화했다는 점을 강조
 
 ## 3. 기술 면접 예상 질문 10개
@@ -43,10 +43,10 @@
 | 왜 Mission/Council shell이 추가됐나요? | 운영 콘솔을 AI orchestration 경험으로 확장하기 위해 | `docs/06_ai-orchestration-pivot.md`, `ui/index.html` | UX rationale |
 | 어떤 기능은 아직 구현되지 않았나요? | deployment, public demo, multi-user auth, external release automation | file inventory, docs out-of-scope | roadmap |
 | README에서 아직 부족한 점은 무엇인가요? | 현재 README는 프로젝트 개요, 실행 방법, verification, Scope & Limitations, screenshot/evidence link를 포함하지만 hosted/shareable demo와 configured-env optional live-provider pass/fail evidence가 더 필요합니다. | `README.md`, `evidence/screenshots/*`, `docs/public-demo-screencast-plan.md`, `docs/live-provider-verification-note.md` | demo attachment |
-| 이력서에 넣어도 되나요? | 조건부 가능. 코드 근거가 있는 항목만 사용 | portfolio docs | 구현자 범위 확인 |
+| 이력서에 넣어도 되나요? | 조건부 가능. 코드 근거가 있는 항목만 사용하고 live/shareable demo claim은 caveat와 함께 사용 | `docs/contribution-scope-note.md`, portfolio docs | external URL, live pass/fail evidence |
 | 가장 어려웠던 점은 무엇인가요? | 자동화 편의와 승인/검토 통제의 균형 | `packs/development/pack.md` | 구체 사례 |
 | 성과 수치는 있나요? | 현재 없음. 임의 생성하지 않음 | analytics 없음 | 사용성 검증 |
-| 다음 개발 우선순위는 무엇인가요? | external share target decision, configured-env live provider verification, contribution scope note | `docs/roadmap.md` | 일정 |
+| 다음 개발 우선순위는 무엇인가요? | external share target decision, configured-env live provider verification, portfolio link update | `docs/roadmap.md` | 일정 |
 
 ## 5. 컨설팅 경험과의 연결 질문 5개
 

@@ -31,7 +31,7 @@
   - core runtime에 대한 focused unit/integration tests 추가 검토
   - live provider optional smoke 재실행
   - artifact preview와 decision inbox 대표 시나리오 정리
-  - 구현자 범위와 핵심 코드 설명 문서화
+  - 구현자 범위와 핵심 코드 설명 문서화 완료: `docs/contribution-scope-note.md`
 - 완료 기준:
   - local-stub smoke와 representative UI/QA smoke 통과
   - live provider는 env가 있으면 pass/fail/skipped 근거가 명확히 기록됨
@@ -78,5 +78,4 @@
 |---|---|---|---|
 | 1 | external share target 선택 및 접근 검증 | local screencast 포함 portfolio package와 share handoff는 준비됐지만 외부 리뷰어가 접근할 URL은 아직 없음 | verified shareable URL or hosted walkthrough decision |
 | 2 | configured-env optional OpenAI live smoke 재실행 | 현재 세션은 `skipped_missing_env`로 기록됐으므로 env가 보이는 상태에서 pass/fail evidence가 필요함 | pass/fail evidence or refreshed skipped evidence |
-| 3 | 구현자 범위 확정 | 면접에서 직접 구현 범위와 repo 전체 기능을 구분해야 함 | contribution note |
-| 4 | portfolio case study 유지 관리 | case study는 screenshot, screencast, smoke evidence, local package를 연결했으므로 외부 URL 검증 후 링크만 갱신하면 됨 | updated case study after verified share URL |
+| 3 | portfolio case study 유지 관리 | case study는 screenshot, screencast, smoke evidence, local package, contribution note를 연결했으므로 외부 URL 검증 후 링크만 갱신하면 됨 | updated case study after verified share URL |
