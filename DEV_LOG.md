@@ -32,6 +32,7 @@
 - README 보완 필요:
   - 현재 `README.md`는 작성되어 있으며 프로젝트 개요, 기술스택, 구조, 실행 방법, 검증 카운트, Scope & Limitations를 포함한다.
   - README는 screenshot/evidence manifest와 optional live-provider note를 연결했다. hosted public demo는 미공개이고 local screencast artifact와 screencast 포함 local package는 생성됐으며 external share handoff가 남아 있다.
+  - `docs/case-study.md`는 screenshot, screencast, representative user-flow smoke, evidence manifest, local package, share handoff를 하나의 Portfolio Evidence Map으로 연결했다.
   - 대표 local user-flow smoke는 `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`로 `cdd8cfd` 실행 결과를 고정했다.
   - hosted public demo는 아직 미공개이며, recorded screencast 우선 계획과 로컬 생성 파일 경계는 `docs/public-demo-screencast-plan.md`에 정리했다.
 - 면접 대비 필요 사항:

@@ -76,6 +76,6 @@
 | 우선순위 | 작업 | 이유 | 예상 산출물 |
 |---|---|---|---|
 | 1 | external share target 선택 및 접근 검증 | local screencast 포함 portfolio package와 share handoff는 준비됐지만 외부 리뷰어가 접근할 URL은 아직 없음 | verified shareable URL or hosted walkthrough decision |
-| 2 | portfolio case study 보강 | README screenshot, screencast artifact, 2026-06-22 user-flow smoke evidence를 case study에서 연결해야 함 | screenshot-backed case study |
-| 3 | optional OpenAI live smoke | live adapter 설명을 검증 근거와 함께 제시해야 함 | skipped/pass/fail evidence |
-| 4 | 구현자 범위 확정 | 면접에서 직접 구현 범위와 repo 전체 기능을 구분해야 함 | contribution note |
+| 2 | optional OpenAI live smoke | live adapter 설명을 검증 근거와 함께 제시해야 함 | skipped/pass/fail evidence |
+| 3 | 구현자 범위 확정 | 면접에서 직접 구현 범위와 repo 전체 기능을 구분해야 함 | contribution note |
+| 4 | portfolio case study 유지 관리 | case study는 screenshot, screencast, smoke evidence, local package를 연결했으므로 외부 URL 검증 후 링크만 갱신하면 됨 | updated case study after verified share URL |

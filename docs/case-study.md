@@ -116,14 +116,40 @@
 - 공개 데모 상태: hosted public demo는 미공개이며, `docs/public-demo-screencast-plan.md` 기준 local-first walkthrough screencast를 생성했다. 영상 파일은 `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm`에 있으며 `output/` ignore 규칙 때문에 repository commit에는 포함하지 않는다.
 - 대표 검증 근거: `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`
 
-## 9. 배운 점
+## 9. Portfolio Evidence Map
+
+외부 리뷰어가 구현 범위와 검증 근거를 빠르게 확인할 때는 아래 순서로 보면 된다.
+
+1. Project scope
+   - `README.md`: local-first PoC, 실행 방법, 구현 범위, Scope & Limitations
+   - `docs/project-card.md`: 프로젝트 유형, 실제 제공 기능, 미구현 범위, 이력서 반영 가능성
+
+2. Visual walkthrough
+   - `evidence/screenshots/mission-surface.png`: Mission 중심 첫 화면과 work intake framing
+   - `evidence/screenshots/taskboard-surface.png`: project/task/run state와 advanced ops surface
+   - `evidence/screenshots/artifacts-surface.png`: artifact provenance와 evidence inspection surface
+   - `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm`: local-first walkthrough screencast, repository commit 제외
+
+3. Execution evidence
+   - `docs/local-demo-checklist.md`: local UI/API demo path
+   - `evidence/evidence_manifest.md`: screenshots, API responses, cli logs, output artifacts index
+   - `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`: representative local user-flow smoke evidence
+   - `docs/public-demo-screencast-plan.md`: recorded screencast decision and capture boundary
+
+4. Share package
+   - `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`: README, case study, screenshots, evidence manifest, local screencast를 포함한 local package
+   - `docs/portfolio-share-handoff.md`: package checksum, exclusion guardrails, candidate share targets, pre-publish checklist
+
+이 evidence map은 hosted public demo나 사용자 성과 지표를 대체하지 않는다. 현재 설명 가능한 범위는 local execution, recorded walkthrough, static screenshots, stored smoke evidence, repository-side documentation이다.
+
+## 10. 배운 점
 
 - 기술적으로 배운 점: file-based runtime도 artifact provenance와 lifecycle guard가 있으면 작은 local control plane을 구성할 수 있다.
 - 설계에서 배운 점: AI execution은 provider 호출보다 project context, review, approval, rollback boundary가 먼저 고정되어야 한다.
 - 사용자 관점에서 배운 점: 작업자는 raw log보다 현재 상태, 막힌 이유, 다음 행동을 먼저 확인해야 한다.
 - 다음 프로젝트에 반영할 점: README, demo, screenshot, smoke evidence를 개발 중간부터 함께 관리한다.
 
-## 10. 이 프로젝트가 보여주는 역량
+## 11. 이 프로젝트가 보여주는 역량
 
 - 개발 역량: Node.js local server, runtime state management, provider adapter, UI rendering
 - 문제정의 역량: AI-assisted local execution의 추적성과 승인 통제 문제 정의
