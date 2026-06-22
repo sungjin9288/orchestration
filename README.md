@@ -141,6 +141,7 @@ ls scripts/ | grep -c "qa-slice"  # → 10   (QA slice 러너)
 - smoke 스크립트는 `node:assert/strict`로 런타임을 직접 import해 상태 전이·산출물 생성을 검증합니다.
 - 숫자(838 / 10)는 `scripts/` 디렉터리의 파일 수를 직접 카운트한 값이며, **단위 테스트 케이스 수가 아니라 개발 슬라이스별 smoke 스크립트 수**입니다.
 - 각 하니스의 현재 pass 여부는 `node scripts/harness-run.mjs doctor` / 개별 실행으로 재확인하세요.
+- 대표 local user-flow smoke 근거: [`evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`](./evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status)
 
 ---
 

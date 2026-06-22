@@ -21,6 +21,7 @@
 | Syntax check | pass | `evidence/cli-logs/syntax-check.log` |
 | Development loop smoke | pass | `evidence/cli-logs/smoke-dev-loop-m2.log` |
 | UI backlog smoke | pass | `evidence/cli-logs/smoke-ui-slice-63.log` |
+| Representative user-flow smoke | pass | `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status` |
 
 ## Failed Or Incomplete Evidence
 

@@ -27,6 +27,7 @@
 | `evidence/cli-logs/syntax-check.log` | pass |
 | `evidence/cli-logs/smoke-dev-loop-m2.log` | pass |
 | `evidence/cli-logs/smoke-ui-slice-63.log` | pass |
+| `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status` | pass |
 | `evidence/cli-logs/smoke-qa-slice-07.log` | timeout / manual stop |
 
 ## Architecture

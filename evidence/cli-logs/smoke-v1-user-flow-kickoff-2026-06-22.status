@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "date": "2026-06-22",
+  "sourceHead": "cdd8cfd",
+  "command": "node scripts/smoke-v1-user-flow-kickoff.mjs",
+  "mode": "v1-user-flow-kickoff-smoke",
+  "kickoffReady": true,
+  "allowDirtySource": false,
+  "outputRoot": "/Users/sungjin/dev/personal/orchestration/output/playwright/v1-user-flow-kickoff",
+  "runtimeRoot": "/Users/sungjin/dev/personal/orchestration/var/runtime-v1-user-flow-kickoff",
+  "scenario": {
+    "approvalId": "approval-0001",
+    "builderRunId": "run-0005",
+    "changeSummaryArtifactId": "artifact-0005",
+    "diffArtifactId": "artifact-0007",
+    "patchArtifactId": "artifact-0006",
+    "reviewArtifactId": "artifact-0008",
+    "reviewerRunId": "run-0006",
+    "selectedSurface": "artifacts",
+    "taskId": "task-0001"
+  },
+  "surfacesVerified": [
+    "Mission",
+    "Council",
+    "Execution",
+    "Deliverables",
+    "Taskboard",
+    "Logs",
+    "Artifacts",
+    "Decision Inbox"
+  ],
+  "safetyBoundary": {
+    "doesNotCommit": true,
+    "doesNotPush": true,
+    "doesNotMerge": true,
+    "doesNotRelease": true,
+    "localFixtureOnly": true
+  }
+}

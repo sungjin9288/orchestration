@@ -32,13 +32,13 @@
 - README 보완 필요:
   - 현재 `README.md`는 작성되어 있으며 프로젝트 개요, 기술스택, 구조, 실행 방법, 검증 카운트, Scope & Limitations를 포함한다.
   - README는 screenshot/evidence manifest와 optional live-provider note를 연결했다. public demo/screencast는 추가 보강이 필요하다.
+  - 대표 local user-flow smoke는 `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`로 `cdd8cfd` 실행 결과를 고정했다.
 - 면접 대비 필요 사항:
   - `createRuntimeService`, `createExecutionCoordinator`, `executeWithAdapter`, `createOpenAIResponsesProviderAdapter` 코드 설명
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 repo 전체 기능 구분
 - 다음 작업:
   - public demo 또는 screencast 준비
-  - representative smoke 재실행
   - optional live-provider verification note 작성
 - 분석 기준 파일:
   - `AGENTS.md`
@@ -98,13 +98,13 @@
 - README 보완 필요:
   - 현재 `README.md`는 작성되어 있으며 목적, 실행 방법, 기술스택, 구현 범위, smoke script 카운트, 제한 사항을 포함한다.
   - screenshot/evidence manifest 연결과 optional live-provider note는 README에 반영되었다. public demo/screencast는 아직 보강 대상이다.
+  - 대표 local user-flow smoke는 `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`로 `cdd8cfd` 실행 결과를 고정했다.
 - 면접 대비 필요 사항:
   - `createRuntimeService`, `createExecutionCoordinator`, `executeWithAdapter`, `createOpenAIResponsesProviderAdapter` 코드 설명
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 저장소 전체 기능 구분
 - 다음 작업:
   - public demo 또는 screencast 준비
-  - representative smoke 재실행
   - optional live-provider verification note 작성
 - 분석 기준 파일:
   - `AGENTS.md`
