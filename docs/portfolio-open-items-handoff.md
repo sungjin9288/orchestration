@@ -18,7 +18,7 @@
 
 Use this only after selecting a target such as GitHub Release asset, private attachment, Notion attachment, portfolio site download, or local-only handoff.
 
-1. Run the pre-publish checks in `docs/portfolio-share-handoff.md`.
+1. Run `node scripts/portfolio-prepublish-check.mjs` and the pre-publish checks in `docs/portfolio-share-handoff.md`.
 2. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
 3. Open the uploaded artifact from a reviewer-equivalent session.
 4. Download the uploaded artifact into a temporary location.

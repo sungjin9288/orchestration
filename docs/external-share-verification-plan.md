@@ -29,7 +29,7 @@ Keep local-only handoff when no external upload target has been explicitly selec
 
 ## Verification Protocol
 
-1. Run the pre-publish checks in `docs/portfolio-share-handoff.md`.
+1. Run `node scripts/portfolio-prepublish-check.mjs` and the pre-publish checks in `docs/portfolio-share-handoff.md`.
 2. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
 3. Open the uploaded link from a reviewer-equivalent context, not only the owner session.
 4. Download the uploaded file into a temporary location.

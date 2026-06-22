@@ -12,7 +12,7 @@
 
 Do not publish or paste the copy below until all checks pass:
 
-1. Run the pre-publish checks in `docs/portfolio-share-handoff.md`.
+1. Run `node scripts/portfolio-prepublish-check.mjs` and the pre-publish checks in `docs/portfolio-share-handoff.md`.
 2. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
 3. Open the uploaded link from a reviewer-equivalent browser or account.
 4. Download the uploaded artifact and compare its SHA-256 with `docs/portfolio-share-handoff.md`.

@@ -89,4 +89,5 @@
 - 최신 local package 검증: `unzip -l`로 screencast, README, case study, screenshots, evidence manifest 포함 확인; `ls -lh` 기준 zip 크기 `3.7M`; `.gitignore` 기준 repository commit 제외
 - external share handoff: `docs/portfolio-share-handoff.md`에 package checksum, 포함 evidence, candidate share target, pre-publish checklist를 repository-side gate로 기록했다. 이 handoff 문서는 checksum self-reference를 피하기 위해 zip payload에는 포함하지 않는다.
 - external share copy: `docs/portfolio-share-copy-template.md`에 GitHub Release body, private attachment note, portfolio site snippet, reviewer message, `links.md` update snippet을 claim-safe copy 기준으로 기록했다.
+- external share pre-publish gate: `scripts/portfolio-prepublish-check.mjs`는 current share package checksum, zip inclusion/exclusion, secret-pattern, public-claim pattern을 한 번에 확인하는 repository-side read-only checker다.
 - links state: `links.md`는 검증된 public URL이 없을 때 `Demo: 없음`과 URL 미검증 note를 유지하며, package download URL은 reviewer-equivalent access와 checksum match 이후에만 기록한다.

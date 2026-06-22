@@ -10,7 +10,7 @@
 
 - Path: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Size: `3.7M` from `ls -lh`
-- SHA-256: `c5f9a2a34cf852a93f8e3dc4277ac9443e67c36aff717be0d0de98acaff81286`
+- SHA-256: `063b8be584bec853b59c2e08ed6e60bb3243aa83b23e34cc638237749f0dfad0`
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
@@ -59,6 +59,7 @@ Detailed selection and reviewer-access checks are in `docs/external-share-verifi
 Run these checks immediately before uploading the package:
 
 ```bash
+node scripts/portfolio-prepublish-check.mjs
 ls -lh _portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip
 shasum -a 256 _portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip
 unzip -l _portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip
@@ -68,6 +69,7 @@ rg -n "production[-]ready|enterpris[e]|99[.]8|94[.]2|정확도[[:space:]]*95|요
 
 Expected handling:
 
+- `node scripts/portfolio-prepublish-check.mjs` should return `ok=true`.
 - Secret-pattern grep should return no matches.
 - README honesty grep should return no unsupported claim matches.
 - If the package is uploaded, verify the reviewer-facing link before adding it to `links.md`.
