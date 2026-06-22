@@ -21,6 +21,7 @@
 - docs/interview-story.md
 - docs/roadmap.md
 - docs/readme-improvement.md
+- docs/live-provider-verification-note.md
 - docs/implementation-evidence.md
 - docs/evidence-checklist.md
 - docs/evidence-gallery.md

@@ -135,6 +135,7 @@
    - `evidence/evidence_manifest.md`: screenshots, API responses, cli logs, output artifacts index
    - `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`: representative local user-flow smoke evidence
    - `docs/public-demo-screencast-plan.md`: recorded screencast decision and capture boundary
+   - `docs/live-provider-verification-note.md`: current optional live-provider env visibility and skipped evidence
 
 4. Share package
    - `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`: README, case study, screenshots, evidence manifest, local screencast를 포함한 local package

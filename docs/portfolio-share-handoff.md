@@ -10,7 +10,7 @@
 
 - Path: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Size: `3.7M` from `ls -lh`
-- SHA-256: `a090b865bdad57210956dfddb848aa563c3151c517feaa507c926cec5621a757`
+- SHA-256: `aa8f3ad936b0a0af847dced267d38fb354dc10e506308d9000154e1b942ca4cc`
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
@@ -24,6 +24,7 @@ The package was checked with `unzip -l` and includes:
 - `docs/resume-bullets.md`
 - `docs/interview-story.md`
 - `docs/local-demo-checklist.md`
+- `docs/live-provider-verification-note.md`
 - `docs/public-demo-screencast-plan.md`
 - `evidence/evidence_manifest.md`
 - `evidence/screenshots/artifacts-surface.png`

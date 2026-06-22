@@ -40,7 +40,7 @@
   - artifact/log persistence: `createFileStore`, `recordArtifact`, `appendLogRecord`
   - review/approval/decision inbox: `resolveReview`, `requestBuilderLiveMutationApproval`, `resolveDecisionInboxItem`
   - static web UI/API server: `scripts/serve-ui-slice-01.mjs`
-- 개발 중인 기능: growth gateway와 self-improvement read-only status contracts, optional real-live provider 재검증, 외부 공유 URL 또는 hosted walkthrough 결정
+- 개발 중인 기능: growth gateway와 self-improvement read-only status contracts, configured-env optional real-live provider 재검증, 외부 공유 URL 또는 hosted walkthrough 결정
 - 아직 할 수 없는 기능: public hosted deployment, multi-user workspace, generalized OAuth, external push/publish/release automation, quantified user outcome reporting
 - 사용자 흐름: Project 등록 -> Mission/Task 생성 -> planner/architect/task-breaker -> builder preflight -> approval -> live mutation -> reviewer -> commit/release local follow-up -> close-out
 - AI/IT 기술을 적용한 방식: 기본 실행은 `local-stub` adapter이며, 명시적 opt-in 시 `openai-responses` adapter가 planner-through-reviewer 역할 실행에 사용된다.
@@ -112,7 +112,7 @@ User
 | 구현 완료 | provider adapter boundary | 구현 완료 | `src/execution/provider-adapter.js`, `src/execution/providers/*` | 가능 |
 | 개발 중 | growth gateway/self-improvement status contracts | 개발 중 | `docs/18_growth-gateway-vnext.md`, `scripts/growth-*status.mjs` | 조건부 가능 |
 | 미구현 | hosted public demo | 미구현 | 배포 설정 파일 없음 | 보류 |
-| 검증 필요 | optional real-live OpenAI run | 검증 필요 | `src/execution/providers/openai-responses-adapter.js` | 조건부 가능 |
+| 검증 필요 | optional real-live OpenAI run | 현재 세션은 `skipped_missing_env` 기록, configured env rerun 필요 | `src/execution/providers/openai-responses-adapter.js`, `docs/live-provider-verification-note.md` | 조건부 가능 |
 | 문서상 존재, 코드 근거 없음 | 성과 수치, 사용자 피드백 | 코드 근거 없음 | analytics/user feedback 파일 없음 | 보류 |
 
 ## 9. Evidence
@@ -148,7 +148,7 @@ User
 ### 조건부로 가능한 표현
 
 - 실사용 가능한 도구: local demo guide와 screencast evidence를 함께 제시할 때 사용
-- OpenAI 기반 role execution 검증: 실제 env로 optional live smoke 통과 후 사용
+- OpenAI 기반 role execution 검증: `docs/live-provider-verification-note.md`는 현재 세션의 `skipped_missing_env`를 기록한다. 실제 env로 optional live smoke를 통과한 뒤 pass 사례로 사용
 - 포트폴리오 대표 프로젝트: local screencast와 hosted/shareable demo 미구현 범위를 분리해 설명할 때 사용
 
 ### 쓰면 위험한 표현
