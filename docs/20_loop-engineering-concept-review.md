@@ -138,12 +138,6 @@ Deliverables should summarize:
 - what remains open
 - whether the loop is complete, blocked, or waiting on approval
 
-## Next Safe Build Candidates
-These are candidates, not approvals:
-
-1. A growth reflection rule that flags any proposal that claims "loop automation" while omitting
-   budget, retry, rollback, and approval boundaries.
-
 ## Implemented Read-Only Slice: `loop-readiness-status`
 
 `node scripts/loop-readiness-status.mjs` implements the first safe build candidate as a read-only
@@ -171,6 +165,28 @@ Mission과 Council 표면은 현재 loop stage와 stop condition을 source-deriv
 
 Focused smoke는 `node scripts/smoke-ui-slice-646.mjs`이고 aggregate coverage는
 `node scripts/verification_status.mjs`에 등록되어 있다.
+
+## Implemented Growth Reflection Rule Slice: `growth-reflection-loop-automation-boundary-status`
+
+`node scripts/growth-reflection-loop-automation-boundary-status.mjs` implements the remaining
+safe build candidate as a read-only growth reflection boundary rule.
+
+The rule flags proposal text when both are true:
+
+1. It claims `loop automation`, `automated loop`, `unattended loop`, `autonomous loop`,
+   `background loop`, or `continuous development loop`.
+2. It omits any required boundary: `budget`, `retry`, `rollback`, or `approval`.
+
+The command emits a blocking read-only finding only. It does not generate proposals, apply
+proposals, schedule work, execute background workers, mutate runtime state, call providers, persist
+memory, open connectors, create commits, or push. Its focused smoke is
+`node scripts/smoke-growth-reflection-loop-automation-boundary-status.mjs`, and aggregate coverage
+is registered in `node scripts/verification_status.mjs`.
+
+## Next Safe Build Candidates
+There are no additional safe build candidates approved by this note. Further growth reflection
+integration remains candidate-only until a separate slice preserves the same read-only and
+approval-gated boundaries.
 
 ## Not Authorized By This Note
 This review does not authorize:
