@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +13,20 @@ const repoRoot = path.resolve(__dirname, '..');
 const mode = 'portfolio-share-status';
 const linksRelativePath = 'links.md';
 const liveNoteRelativePath = 'docs/live-provider-verification-note.md';
+const localSharePageEnvVar = 'PORTFOLIO_LOCAL_SHARE_PAGE_DIR';
+const localSharePageRequiredFiles = [
+  'index.html',
+  'README.md',
+  'styles.css',
+  'assets/orchestration_portfolio_pack_2026-06-22_screencast.zip',
+  'assets/orchestration-public-demo-2026-06-22.webm',
+  'assets/mission-surface.png',
+  'assets/taskboard-surface.png',
+  'assets/artifacts-surface.png',
+];
+const localSharePageTextFiles = ['index.html', 'README.md'];
+const unsupportedClaimPattern =
+  /production[-]ready|enterprise|상용[ \t]*운영|엔터프라이즈|99[.]8|94[.]2|정확도[ \t]*95|요청당|€0[.]0005/i;
 
 requireNoCliArgs(process.argv.slice(2), { mode });
 
@@ -35,6 +50,16 @@ function runJsonCommand(command, args) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+}
+
+function readAbsoluteText(filePath) {
+  return fs.readFileSync(filePath, 'utf8');
+}
+
+function sha256File(filePath) {
+  const hash = createHash('sha256');
+  hash.update(fs.readFileSync(filePath));
+  return hash.digest('hex');
 }
 
 function envVisibility() {
@@ -91,11 +116,109 @@ function liveEvidenceState() {
   };
 }
 
+function gitStateForPath(directory) {
+  const gitRoot = runCommand('git', ['rev-parse', '--show-toplevel'], { cwd: directory });
+
+  if (gitRoot.status !== 0) {
+    return {
+      isGitRepo: false,
+      head: null,
+      status: null,
+      remotes: [],
+    };
+  }
+
+  const head = runCommand('git', ['log', '-1', '--oneline'], { cwd: directory });
+  const status = runCommand('git', ['status', '--short', '--branch'], { cwd: directory });
+  const remotes = runCommand('git', ['remote', '-v'], { cwd: directory });
+
+  return {
+    isGitRepo: true,
+    root: gitRoot.stdout.trim(),
+    head: head.status === 0 ? head.stdout.trim() : null,
+    status: status.status === 0 ? status.stdout.trim().split('\n').filter(Boolean) : [],
+    remotes: remotes.status === 0 ? remotes.stdout.trim().split('\n').filter(Boolean) : [],
+  };
+}
+
+function localSharePageState(expectedPackageChecksum) {
+  const configuredPath = process.env[localSharePageEnvVar];
+
+  if (!configuredPath) {
+    return {
+      configured: false,
+      envVar: localSharePageEnvVar,
+      state: 'not-configured',
+    };
+  }
+
+  const resolvedPath = path.resolve(repoRoot, configuredPath);
+  const directoryExists = fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory();
+  const missingFiles = directoryExists
+    ? localSharePageRequiredFiles.filter((relativePath) => !fs.existsSync(path.join(resolvedPath, relativePath)))
+    : localSharePageRequiredFiles;
+  const packagePath = path.join(
+    resolvedPath,
+    'assets/orchestration_portfolio_pack_2026-06-22_screencast.zip',
+  );
+  const packageChecksum = fs.existsSync(packagePath) ? sha256File(packagePath) : null;
+  const checksumMatches =
+    Boolean(expectedPackageChecksum) &&
+    Boolean(packageChecksum) &&
+    packageChecksum === expectedPackageChecksum;
+  const unsupportedClaimMatches = directoryExists
+    ? localSharePageTextFiles.flatMap((relativePath) => {
+        const filePath = path.join(resolvedPath, relativePath);
+
+        if (!fs.existsSync(filePath)) {
+          return [];
+        }
+
+        return readAbsoluteText(filePath)
+          .split('\n')
+          .flatMap((line, index) =>
+            unsupportedClaimPattern.test(line)
+              ? [{ path: relativePath, line: index + 1, text: line.trim() }]
+              : [],
+          );
+      })
+    : [];
+  const git = directoryExists ? gitStateForPath(resolvedPath) : null;
+  const ok =
+    directoryExists &&
+    missingFiles.length === 0 &&
+    checksumMatches &&
+    unsupportedClaimMatches.length === 0;
+
+  return {
+    configured: true,
+    envVar: localSharePageEnvVar,
+    path: resolvedPath,
+    state: ok ? 'local-share-page-ready' : 'local-share-page-needs-attention',
+    ok,
+    directoryExists,
+    requiredFiles: {
+      total: localSharePageRequiredFiles.length,
+      missing: missingFiles,
+    },
+    package: {
+      checksum: packageChecksum,
+      checksumMatches,
+    },
+    unsupportedClaimCheck: {
+      ok: unsupportedClaimMatches.length === 0,
+      matches: unsupportedClaimMatches,
+    },
+    git,
+  };
+}
+
 try {
   const prepublish = runJsonCommand('node', ['scripts/portfolio-prepublish-check.mjs']);
   const env = envVisibility();
   const links = linkState();
   const liveEvidence = liveEvidenceState();
+  const localSharePage = localSharePageState(prepublish.package?.checksum ?? null);
   const hasConfiguredEnv =
     env.processEnv.OPENAI_API_KEY &&
     env.processEnv.OPENAI_RESPONSES_MODEL;
@@ -120,6 +243,15 @@ try {
     });
   }
 
+  if (localSharePage.configured && !localSharePage.ok) {
+    blockers.push({
+      id: 'local-share-page-needs-attention',
+      owner: 'local-artifact',
+      reason: 'PORTFOLIO_LOCAL_SHARE_PAGE_DIR is configured, but the local static share page is incomplete or does not match the current package checksum.',
+      nextAction: 'Regenerate or update the local share page assets, then rerun portfolio-share-status with the same env var.',
+    });
+  }
+
   const result = {
     ok: true,
     mode,
@@ -132,6 +264,7 @@ try {
       failedChecks: prepublish.failures ?? [],
     },
     externalShare: links,
+    localSharePage,
     optionalLiveProvider: {
       envVisibility: env,
       configuredEnvVisible: hasConfiguredEnv,
@@ -140,6 +273,7 @@ try {
     readiness: {
       packagePrepublishReady: Boolean(prepublish.ok),
       externalShareReady: links.hasVerifiedUrl,
+      localSharePageReady: Boolean(localSharePage.configured && localSharePage.ok),
       configuredEnvLiveReady: hasConfiguredEnv && liveEvidence.currentResult === 'pass',
       openBlockers: blockers,
     },

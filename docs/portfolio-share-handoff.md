@@ -14,6 +14,14 @@
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
+## Local Static Share Page Staging
+
+- A local static share page can be prepared outside this repository as a pre-upload staging surface.
+- It is still local-only evidence until a reviewer-facing URL is uploaded, opened from a reviewer-equivalent context, downloaded, and checksum-verified.
+- Use `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page>` with `node scripts/portfolio-share-status.mjs` to check that the page has `index.html`, `README.md`, `styles.css`, expected screenshot and screencast assets, and a package zip whose SHA-256 matches this handoff.
+- The local page repo may have its own git commit, but that commit is not a public share target unless a remote URL is verified separately.
+- Do not record the local page path in `links.md`; only record verified external URLs.
+
 ## Included Evidence
 
 The package was checked with `unzip -l` and includes:
@@ -69,11 +77,18 @@ rg -n "sk-[A-Za-z0-9]{20,}|OPENAI_API_KEY\\s*=|password\\s*=|token\\s*=|secret\\
 rg -n "production[-]ready|enterpris[e]|99[.]8|94[.]2|정확도[[:space:]]*95|요청[당]|상용[[:space:]]*운영|엔터프라이[즈]" README.md docs portfolio_manifest.md links.md
 ```
 
+If a local static page is the upload source, also run:
+
+```bash
+PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs
+```
+
 Expected handling:
 
 - `node scripts/portfolio-rebuild-package.mjs` should regenerate the ignored local package and update this handoff checksum.
 - `node scripts/portfolio-prepublish-check.mjs` should return `ok=true`.
 - `node scripts/portfolio-share-status.mjs` should report `packagePrepublishReady=true` and list any remaining human/env blockers.
+- With `PORTFOLIO_LOCAL_SHARE_PAGE_DIR` set, `node scripts/portfolio-share-status.mjs` should report `localSharePageReady=true` before using the local page as an upload source.
 - Secret-pattern grep should return no matches.
 - README honesty grep should return no unsupported claim matches.
 - If the package is uploaded, verify the reviewer-facing link before adding it to `links.md`.
@@ -83,6 +98,7 @@ Expected handling:
 
 - `node scripts/portfolio-prepublish-check.mjs` is a local artifact pre-upload gate for the ignored `_portfolio_export/` package and expanded package directory.
 - `node scripts/portfolio-share-status.mjs` is a read-only status aggregator; it does not upload files, create URLs, or run configured live-provider calls.
+- `PORTFOLIO_LOCAL_SHARE_PAGE_DIR` is optional and only checks a local static staging page; it does not make the page public or verify reviewer access.
 - It is intentionally separate from `node scripts/verification_status.mjs` because a fresh repository checkout can be valid while the ignored portfolio package is absent.
 - Run `node scripts/portfolio-rebuild-package.mjs` first, then run the checker immediately before upload or reviewer handoff.
 - If the checker fails because the zip or expanded package directory is missing, regenerate the package before treating the external share artifact as ready.

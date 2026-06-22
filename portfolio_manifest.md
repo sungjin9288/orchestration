@@ -91,6 +91,6 @@
 - external share copy: `docs/portfolio-share-copy-template.md`에 GitHub Release body, private attachment note, portfolio site snippet, reviewer message, `links.md` update snippet을 claim-safe copy 기준으로 기록했다.
 - external share package rebuild: `scripts/portfolio-rebuild-package.mjs`는 current share package source files를 `_portfolio_export/` expanded package로 복사하고 zip을 재생성한 뒤 `docs/portfolio-share-handoff.md`의 size/checksum을 갱신한다.
 - external share pre-publish gate: `scripts/portfolio-prepublish-check.mjs`는 current share package checksum, zip inclusion/exclusion, secret-pattern, public-claim pattern을 한 번에 확인하는 repository-side read-only checker다.
-- external share status: `scripts/portfolio-share-status.mjs`는 package readiness, verified-link state, optional live-provider env visibility, remaining blockers를 read-only JSON으로 요약한다.
+- external share status: `scripts/portfolio-share-status.mjs`는 package readiness, verified-link state, optional local static page readiness, optional live-provider env visibility, remaining blockers를 read-only JSON으로 요약한다. `PORTFOLIO_LOCAL_SHARE_PAGE_DIR`가 설정된 경우에만 local share page files, package checksum, claim-safe text, local git state를 읽는다.
 - external share verification boundary: rebuild script와 pre-publish checker는 `.gitignore` 처리된 `_portfolio_export/` local artifact에 의존하므로 `node scripts/verification_status.mjs` aggregate smoke와 분리해서 실행한다.
 - links state: `links.md`는 검증된 public URL이 없을 때 `Demo: 없음`과 URL 미검증 note를 유지하며, package download URL은 reviewer-equivalent access와 checksum match 이후에만 기록한다.

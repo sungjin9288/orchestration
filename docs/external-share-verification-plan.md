@@ -19,6 +19,24 @@
 | Portfolio site download | A portfolio site already exists and can host static downloads | Needs page copy that does not imply hosted product behavior | Verify page access, download, checksum, and copy boundary |
 | Local-only handoff | No external upload is approved yet | No reviewer-facing URL; user must send the file manually | Keep `links.md` with `Demo: 없음` and reference only local package path in repo notes |
 
+## Local Static Page Preflight
+
+If a local static page is used as the upload source for a portfolio-site download, verify it before upload:
+
+```bash
+PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs
+```
+
+Expected result:
+
+- `localSharePage.configured=true`
+- `readiness.localSharePageReady=true`
+- the local page package checksum matches `docs/portfolio-share-handoff.md`
+- the page has no unsupported public claim matches
+- any local git repo state is treated as local staging evidence only, not as reviewer access proof
+
+This preflight does not replace the reviewer-equivalent access check after upload.
+
 ## Recommended Default
 
 Use GitHub Release asset when the repository is public and a durable downloadable artifact is acceptable.
@@ -31,13 +49,14 @@ Keep local-only handoff when no external upload target has been explicitly selec
 
 1. Run `node scripts/portfolio-rebuild-package.mjs`.
 2. Run `node scripts/portfolio-prepublish-check.mjs` and the remaining pre-publish checks in `docs/portfolio-share-handoff.md`.
-3. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
-4. Open the uploaded link from a reviewer-equivalent context, not only the owner session.
-5. Download the uploaded file into a temporary location.
-6. Run `shasum -a 256 <downloaded-file>` and compare it with the checksum in `docs/portfolio-share-handoff.md`.
-7. Use `docs/portfolio-share-copy-template.md` for the destination page, release body, or reviewer message.
-8. Confirm the destination page or attachment text does not describe the package as a hosted app or measured user outcome.
-9. Only after those checks pass, update `links.md` with the verified URL and note the access check date.
+3. If a local static page is the upload source, run `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs`.
+4. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
+5. Open the uploaded link from a reviewer-equivalent context, not only the owner session.
+6. Download the uploaded file into a temporary location.
+7. Run `shasum -a 256 <downloaded-file>` and compare it with the checksum in `docs/portfolio-share-handoff.md`.
+8. Use `docs/portfolio-share-copy-template.md` for the destination page, release body, or reviewer message.
+9. Confirm the destination page or attachment text does not describe the package as a hosted app or measured user outcome.
+10. Only after those checks pass, update `links.md` with the verified URL and note the access check date.
 
 The rebuild script and pre-publish checker are repository-side artifact gates for the ignored local package. They prepare and confirm package contents before upload, but they do not replace reviewer-equivalent access verification and are not part of the aggregate repository smoke status.
 
