@@ -13456,5 +13456,33 @@ if (
   );
 }
 
+if (
+  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
+) {
+  payload.aggregate.status =
+    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
+  payload.nextRecommendedSlice = {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+    commandToAdd:
+      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+    reason:
+      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
+    mustRemainReadOnly: true,
+  };
+  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
+    finding.id ===
+    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
+      ? {
+          ...finding,
+          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
+          claim:
+            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+          allowedNextAction:
+            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
+        }
+      : finding,
+  );
+}
+
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 process.exitCode = ok ? 0 : 1;
