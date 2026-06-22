@@ -69,4 +69,4 @@
 - 현재 이력서 반영 가능 여부: 조건부 가능
 - 이유: 핵심 runtime, UI, adapter, smoke evidence, screenshot, local screencast 근거는 있으나 hosted/shareable demo, 사용자 검증, 성과 지표는 아직 없다.
 - 이력서에 넣기 전 반드시 보완할 것: 내가 직접 구현한 범위 명시, hosted/shareable demo 필요 여부 판단, optional live-provider 검증 note 보강
-- 가장 먼저 개선해야 할 것: generated screencast의 portfolio attachment/shareable artifact 정리와 optional live-provider 검증 note 보강
+- 가장 먼저 개선해야 할 것: screencast 포함 local portfolio package의 외부 공유 여부 결정과 optional live-provider 검증 note 보강

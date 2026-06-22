@@ -15,7 +15,7 @@
 - 기술 선택 이유: local-first 요구 때문에 Node.js local server와 file-based runtime이 적합했고, provider 종속성은 adapter boundary로 분리했다.
 - 핵심 구현: `createRuntimeService`, `createExecutionCoordinator`, provider adapters, `scripts/serve-ui-slice-01.mjs`, `ui/app.js`
 - 현재 상태: docs 기준 v1 baseline complete, post-v1 shell baseline complete, growth gateway는 read-only status contract 중심으로 고도화 중
-- 앞으로의 개선 방향: generated screencast의 portfolio attachment/shareable artifact 정리, optional real-live smoke, portfolio case study 보강
+- 앞으로의 개선 방향: screencast 포함 local portfolio package의 외부 공유 여부 결정, optional real-live smoke, portfolio case study 보강
 - 컨설팅 경험과의 자연스러운 연결: 문제를 기능 단위가 아니라 업무 흐름, 승인선, 검토 증거, 기대효과로 구조화했다는 점을 강조
 
 ## 3. 기술 면접 예상 질문 10개
@@ -46,7 +46,7 @@
 | 이력서에 넣어도 되나요? | 조건부 가능. 코드 근거가 있는 항목만 사용 | portfolio docs | 구현자 범위 확인 |
 | 가장 어려웠던 점은 무엇인가요? | 자동화 편의와 승인/검토 통제의 균형 | `packs/development/pack.md` | 구체 사례 |
 | 성과 수치는 있나요? | 현재 없음. 임의 생성하지 않음 | analytics 없음 | 사용성 검증 |
-| 다음 개발 우선순위는 무엇인가요? | screencast attachment/shareable artifact, live provider verification, portfolio evidence | `docs/roadmap.md` | 일정 |
+| 다음 개발 우선순위는 무엇인가요? | external share target decision, live provider verification, portfolio evidence | `docs/roadmap.md` | 일정 |
 
 ## 5. 컨설팅 경험과의 연결 질문 5개
 

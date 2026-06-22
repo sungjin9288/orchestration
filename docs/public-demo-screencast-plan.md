@@ -22,6 +22,7 @@ Hosted demo는 아직 공개 URL이 없으므로 README에 demo URL로 연결하
 | UI screenshots | `evidence/screenshots/mission-surface.png`, `taskboard-surface.png`, `artifacts-surface.png` |
 | Evidence manifest | `evidence/evidence_manifest.md` |
 | Local screencast artifact | `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm` |
+| Local portfolio package with screencast | `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip` |
 
 ## Recorded Local Artifact
 
@@ -32,7 +33,8 @@ Hosted demo는 아직 공개 URL이 없으므로 README에 demo URL로 연결하
 - 크기: `3.2M` (`ls -lh` 기준)
 - 저장 경계: `output/`는 `.gitignore`에 의해 제외되므로 영상 파일은 repository commit에 포함하지 않는다.
 - 녹화 범위: local UI/API server, real local `project_path`, project/task/planner run/artifact visibility, Mission/Council/Execution/Deliverables/Taskboard surfaces
-- 제한: hosted public URL 또는 portfolio attachment는 아직 생성하지 않았다.
+- package attachment: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`에 screencast 포함 local portfolio package를 생성했다.
+- 제한: hosted public URL 또는 외부 공유 URL은 아직 생성하지 않았다.
 
 ## Screencast Storyboard
 
@@ -103,6 +105,6 @@ Expected current evidence:
 
 ## Remaining Open Items
 
-- Publish or attach the recorded screencast to the portfolio package if external review needs a shareable artifact.
-- Decide whether to add a hosted static walkthrough later or keep the portfolio demo as a recorded local-first walkthrough.
+- Decide whether to publish the local portfolio package or screencast to an external share target if external review needs a URL.
+- Decide whether to add a hosted static walkthrough later or keep the portfolio demo as a recorded local-first walkthrough plus local package.
 - Rerun optional OpenAI live-provider smoke only when configured env is visible.

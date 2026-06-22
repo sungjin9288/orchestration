@@ -3,7 +3,7 @@
 ## 1. 현재 상태 요약
 
 - 현재 구현 완료: local-first runtime, development pack execution loop, opt-in knowledge-work pack, review/approval gates, static UI shell, file-based artifacts/logs, local-stub and OpenAI Responses adapter boundary
-- 개발 중: growth gateway and self-improvement read-only status contracts, portfolio documentation, screencast publish/attachment planning
+- 개발 중: growth gateway and self-improvement read-only status contracts, portfolio documentation, external demo/share target planning
 - 미구현: public deployment, hosted demo, multi-user auth, external release automation, quantitative usage metrics
 - 검증 필요: optional real-live OpenAI smoke in a visible configured environment, hosted/shareable demo access
 
@@ -75,7 +75,7 @@
 
 | 우선순위 | 작업 | 이유 | 예상 산출물 |
 |---|---|---|---|
-| 1 | screencast publish/attachment | local screencast 파일은 생성됐지만 외부 리뷰어가 접근할 공유 artifact는 아직 없음 | portfolio-attached screencast |
+| 1 | external share target 결정 | local screencast 포함 portfolio package는 생성됐지만 외부 리뷰어가 접근할 URL은 아직 없음 | shareable URL or hosted walkthrough decision |
 | 2 | portfolio case study 보강 | README screenshot, screencast artifact, 2026-06-22 user-flow smoke evidence를 case study에서 연결해야 함 | screenshot-backed case study |
 | 3 | optional OpenAI live smoke | live adapter 설명을 검증 근거와 함께 제시해야 함 | skipped/pass/fail evidence |
 | 4 | 구현자 범위 확정 | 면접에서 직접 구현 범위와 repo 전체 기능을 구분해야 함 | contribution note |

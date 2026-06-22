@@ -39,6 +39,7 @@
 - evidence/screenshots/*.png
 - evidence/architecture/*.md
 - output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm (로컬 생성 artifact, repository commit 제외)
+- _portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip (screencast 포함 local package, repository commit 제외)
 - screenshots 폴더가 있으면 이미지 파일만 포함
 
 ## 제외한 파일/폴더
@@ -77,3 +78,5 @@
 - 압축 파일명: `orchestration_portfolio_pack.zip`
 - 압축 파일 내용 확인 여부: 생성 후 `unzip -l`로 확인
 - screencast artifact 상태: `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm` 로컬 생성 확인, `.gitignore` 기준 repository commit 제외
+- screencast 포함 최신 local package: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
+- 최신 local package 검증: `unzip -l`로 screencast, README, case study, screenshots, evidence manifest 포함 확인; `ls -lh` 기준 zip 크기 `3.7M`; `.gitignore` 기준 repository commit 제외

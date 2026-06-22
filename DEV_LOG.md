@@ -39,7 +39,7 @@
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 repo 전체 기능 구분
 - 다음 작업:
-  - generated screencast를 portfolio package에 첨부하거나 shareable artifact로 publish
+  - screencast 포함 local portfolio package를 외부 공유 대상으로 publish할지 결정
   - optional live-provider verification note 작성
 - 분석 기준 파일:
   - `AGENTS.md`
@@ -106,7 +106,7 @@
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 저장소 전체 기능 구분
 - 다음 작업:
-  - generated screencast를 portfolio package에 첨부하거나 shareable artifact로 publish
+  - screencast 포함 local portfolio package를 외부 공유 대상으로 publish할지 결정
   - optional live-provider verification note 작성
 - 분석 기준 파일:
   - `AGENTS.md`

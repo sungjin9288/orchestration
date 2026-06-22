@@ -40,7 +40,7 @@
   - artifact/log persistence: `createFileStore`, `recordArtifact`, `appendLogRecord`
   - review/approval/decision inbox: `resolveReview`, `requestBuilderLiveMutationApproval`, `resolveDecisionInboxItem`
   - static web UI/API server: `scripts/serve-ui-slice-01.mjs`
-- 개발 중인 기능: growth gateway와 self-improvement read-only status contracts, optional real-live provider 재검증, 포트폴리오 screencast attachment/shareable evidence 정리
+- 개발 중인 기능: growth gateway와 self-improvement read-only status contracts, optional real-live provider 재검증, 외부 공유 URL 또는 hosted walkthrough 결정
 - 아직 할 수 없는 기능: public hosted deployment, multi-user workspace, generalized OAuth, external push/publish/release automation, quantified user outcome reporting
 - 사용자 흐름: Project 등록 -> Mission/Task 생성 -> planner/architect/task-breaker -> builder preflight -> approval -> live mutation -> reviewer -> commit/release local follow-up -> close-out
 - AI/IT 기술을 적용한 방식: 기본 실행은 `local-stub` adapter이며, 명시적 opt-in 시 `openai-responses` adapter가 planner-through-reviewer 역할 실행에 사용된다.
