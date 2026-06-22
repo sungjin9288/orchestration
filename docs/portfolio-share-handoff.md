@@ -10,7 +10,7 @@
 
 - Path: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Size: `3.7M` from `ls -lh`
-- SHA-256: `83321c47fcbcea7cd4388efee37f9effa474dab19dea0ea5a47775118aab310e`
+- SHA-256: `fba21354ffd0fe5a17fdab8b5eb3a57b8dce3f14f93a905769d6ca1ab4f5a158`
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
@@ -59,6 +59,7 @@ Detailed selection and reviewer-access checks are in `docs/external-share-verifi
 Run these checks immediately before uploading the package:
 
 ```bash
+node scripts/portfolio-rebuild-package.mjs
 node scripts/portfolio-prepublish-check.mjs
 ls -lh _portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip
 shasum -a 256 _portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip
@@ -69,6 +70,7 @@ rg -n "production[-]ready|enterpris[e]|99[.]8|94[.]2|정확도[[:space:]]*95|요
 
 Expected handling:
 
+- `node scripts/portfolio-rebuild-package.mjs` should regenerate the ignored local package and update this handoff checksum.
 - `node scripts/portfolio-prepublish-check.mjs` should return `ok=true`.
 - Secret-pattern grep should return no matches.
 - README honesty grep should return no unsupported claim matches.
@@ -79,7 +81,7 @@ Expected handling:
 
 - `node scripts/portfolio-prepublish-check.mjs` is a local artifact pre-upload gate for the ignored `_portfolio_export/` package and expanded package directory.
 - It is intentionally separate from `node scripts/verification_status.mjs` because a fresh repository checkout can be valid while the ignored portfolio package is absent.
-- Run the checker after regenerating the local package and immediately before upload or reviewer handoff.
+- Run `node scripts/portfolio-rebuild-package.mjs` first, then run the checker immediately before upload or reviewer handoff.
 - If the checker fails because the zip or expanded package directory is missing, regenerate the package before treating the external share artifact as ready.
 - Do not use a missing local portfolio package as evidence that the product runtime or aggregate repository verification failed.
 

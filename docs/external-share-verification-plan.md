@@ -29,16 +29,17 @@ Keep local-only handoff when no external upload target has been explicitly selec
 
 ## Verification Protocol
 
-1. Run `node scripts/portfolio-prepublish-check.mjs` and the pre-publish checks in `docs/portfolio-share-handoff.md`.
-2. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
-3. Open the uploaded link from a reviewer-equivalent context, not only the owner session.
-4. Download the uploaded file into a temporary location.
-5. Run `shasum -a 256 <downloaded-file>` and compare it with the checksum in `docs/portfolio-share-handoff.md`.
-6. Use `docs/portfolio-share-copy-template.md` for the destination page, release body, or reviewer message.
-7. Confirm the destination page or attachment text does not describe the package as a hosted app or measured user outcome.
-8. Only after those checks pass, update `links.md` with the verified URL and note the access check date.
+1. Run `node scripts/portfolio-rebuild-package.mjs`.
+2. Run `node scripts/portfolio-prepublish-check.mjs` and the remaining pre-publish checks in `docs/portfolio-share-handoff.md`.
+3. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
+4. Open the uploaded link from a reviewer-equivalent context, not only the owner session.
+5. Download the uploaded file into a temporary location.
+6. Run `shasum -a 256 <downloaded-file>` and compare it with the checksum in `docs/portfolio-share-handoff.md`.
+7. Use `docs/portfolio-share-copy-template.md` for the destination page, release body, or reviewer message.
+8. Confirm the destination page or attachment text does not describe the package as a hosted app or measured user outcome.
+9. Only after those checks pass, update `links.md` with the verified URL and note the access check date.
 
-The pre-publish checker is a repository-side artifact gate for the ignored local package. It confirms package contents before upload, but it does not replace reviewer-equivalent access verification and is not part of the aggregate repository smoke status.
+The rebuild script and pre-publish checker are repository-side artifact gates for the ignored local package. They prepare and confirm package contents before upload, but they do not replace reviewer-equivalent access verification and are not part of the aggregate repository smoke status.
 
 ## Link Recording Template
 

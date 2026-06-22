@@ -18,18 +18,19 @@
 
 Use this only after selecting a target such as GitHub Release asset, private attachment, Notion attachment, portfolio site download, or local-only handoff.
 
-1. Run `node scripts/portfolio-prepublish-check.mjs` and the pre-publish checks in `docs/portfolio-share-handoff.md`.
-2. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
-3. Open the uploaded artifact from a reviewer-equivalent session.
-4. Download the uploaded artifact into a temporary location.
-5. Compare its SHA-256 with `docs/portfolio-share-handoff.md`.
-6. Use `docs/portfolio-share-copy-template.md` for release notes, attachment notes, portfolio-site snippets, or reviewer messages.
-7. Confirm the destination copy does not imply a running hosted product or measured user outcome.
-8. Update `links.md` only after the access and checksum checks pass.
+1. Run `node scripts/portfolio-rebuild-package.mjs`.
+2. Run `node scripts/portfolio-prepublish-check.mjs` and the remaining pre-publish checks in `docs/portfolio-share-handoff.md`.
+3. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
+4. Open the uploaded artifact from a reviewer-equivalent session.
+5. Download the uploaded artifact into a temporary location.
+6. Compare its SHA-256 with `docs/portfolio-share-handoff.md`.
+7. Use `docs/portfolio-share-copy-template.md` for release notes, attachment notes, portfolio-site snippets, or reviewer messages.
+8. Confirm the destination copy does not imply a running hosted product or measured user outcome.
+9. Update `links.md` only after the access and checksum checks pass.
 
 Do not put an unverified URL into `links.md`.
 
-The pre-publish checker depends on the ignored local zip and expanded package directory under `_portfolio_export/`. If those files are missing, regenerate the package first; do not treat that missing local artifact as an aggregate runtime failure.
+The rebuild script and pre-publish checker depend on the ignored local zip and expanded package directory under `_portfolio_export/`. If those files are missing, regenerate the package first; do not treat that missing local artifact as an aggregate runtime failure.
 
 ## Configured-Env Live Smoke Checklist
 

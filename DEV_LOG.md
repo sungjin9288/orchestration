@@ -38,8 +38,9 @@
   - `docs/external-share-verification-plan.md`는 GitHub Release, private attachment, Notion attachment, portfolio site download, local-only handoff 중 external share target을 고르는 기준과 reviewer-equivalent access 검증 절차를 정리한다.
   - `docs/portfolio-open-items-handoff.md`는 external share target과 configured-env optional live smoke를 하나의 operator checklist로 묶어, 필요한 human decision과 completion evidence를 분리한다.
   - `docs/portfolio-share-copy-template.md`는 GitHub Release body, private attachment note, portfolio site snippet, reviewer message, `links.md` update snippet을 downloadable evidence package 기준으로 정리해 hosted app이나 measured outcome claim으로 오해되지 않게 한다.
+  - `scripts/portfolio-rebuild-package.mjs`는 current share package source files를 ignored `_portfolio_export/` expanded package로 동기화하고 zip 재생성 후 handoff size/checksum을 갱신한다.
   - `scripts/portfolio-prepublish-check.mjs`는 current share package checksum, zip inclusion/exclusion, secret-pattern, public-claim pattern을 upload 전 한 번에 확인하는 read-only pre-publish gate다.
-  - `docs/portfolio-share-handoff.md`는 pre-publish checker가 `.gitignore` 처리된 `_portfolio_export/` local artifact 전용 gate이며 aggregate smoke status와 분리된다는 verification boundary를 명시한다.
+  - `docs/portfolio-share-handoff.md`는 rebuild script와 pre-publish checker가 `.gitignore` 처리된 `_portfolio_export/` local artifact 전용 gate이며 aggregate smoke status와 분리된다는 verification boundary를 명시한다.
   - `links.md`는 검증된 public URL이 없는 현재 상태를 `Demo: 없음`, `영상 시연: 없음 (외부 공유 URL 미검증)`으로 기록해 hosted demo가 준비된 것처럼 보이지 않게 한다.
   - 대표 local user-flow smoke는 `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`로 `cdd8cfd` 실행 결과를 고정했다.
   - hosted public demo는 아직 미공개이며, recorded screencast 우선 계획과 로컬 생성 파일 경계는 `docs/public-demo-screencast-plan.md`에 정리했다.
