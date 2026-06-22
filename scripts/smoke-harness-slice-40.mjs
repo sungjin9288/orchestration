@@ -18,6 +18,7 @@ const expectedExternalReferenceIds = [
   'openscreen',
   'rtk',
   'free-claude-code',
+  'agentway-harness-books',
 ];
 const doc = fs.readFileSync(docPath, 'utf8');
 
@@ -38,7 +39,7 @@ assert.deepEqual(statusIds, expectedExternalReferenceIds);
 assert.equal(payload.counts.total, expectedExternalReferenceIds.length);
 assert.equal(payload.counts.byPosture['approved-now'], 1);
 assert.equal(payload.counts.byPosture['future-post-v1'], 3);
-assert.equal(payload.counts.byPosture['signal-only'], 5);
+assert.equal(payload.counts.byPosture['signal-only'], 6);
 
 const hermes = payload.harnesses.find((harness) => harness.id === 'hermes-agent');
 assert.ok(hermes, 'hermes-agent status entry missing');
@@ -62,6 +63,12 @@ assert.ok(rtk, 'rtk status entry missing');
 assert.equal(rtk.state, 'policy-blocked');
 assert.equal(rtk.executable, false);
 assert.match(rtk.note, /Do not install hooks/);
+
+const agentway = payload.harnesses.find((harness) => harness.id === 'agentway-harness-books');
+assert.ok(agentway, 'agentway-harness-books status entry missing');
+assert.equal(agentway.state, 'policy-blocked');
+assert.equal(agentway.executable, false);
+assert.match(agentway.note, /Do not import bulk PDF content/);
 
 console.log(
   JSON.stringify(

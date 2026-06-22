@@ -81,6 +81,15 @@ export const harnesses = [
     note: 'Reference only. Do not adopt multi-provider proxying, messaging bots, or free-provider routing into the current runtime.',
     installReview: 'do not install by default; inspect provider proxy and messaging behavior before any manual trial',
   },
+  {
+    id: 'agentway-harness-books',
+    posture: 'signal-only',
+    kind: 'local-pdf-concept-reference',
+    command: 'agentway-harness-books',
+    checkArgs: ['--help'],
+    note: 'Reference only. Use the local AgentWay PDFs as distilled concept signals. Do not import bulk PDF content into runtime prompt, context, memory, or smoke paths.',
+    installReview: 'do not install or execute by default; review extracted notes in docs/19_agentway-harness-concept-review.md',
+  },
 ];
 
 export function getHarness(harnessId) {

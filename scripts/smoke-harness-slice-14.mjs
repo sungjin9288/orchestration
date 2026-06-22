@@ -30,6 +30,7 @@ assert.deepEqual(payload.policyBlockedHarnessIds, [
   'andrej-karpathy-skills',
   'rtk',
   'free-claude-code',
+  'agentway-harness-books',
 ]);
 
 console.log(

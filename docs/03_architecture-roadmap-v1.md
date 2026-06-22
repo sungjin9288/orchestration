@@ -21,7 +21,7 @@ This document defines the current implemented baseline, architecture boundary, a
 - keep `v1 scope = development pack only`
 
 ## Reference Position
-`claw-empire` is a reference for runtime/control-plane patterns and selective product-shell cues. Reuse the useful ideas around `project`, `task`, `worktree`, `logs`, `reports`, `APIs`, `AGENTS`, bootstrap, command-center density, visible AI cast, and meeting-oriented flow. `OpenHarness` is a reference for harness robustness: explicit tool loops, retry/backoff, skill/plugin boundaries, memory/session handling, permission rules, approval dialogs, and delegation lifecycle. Do not fork pixel-office gameplay, budget/HR/company-management simulation, generic agent-platform breadth, messenger posture, or platform assumptions.
+`claw-empire` is a reference for runtime/control-plane patterns and selective product-shell cues. Reuse the useful ideas around `project`, `task`, `worktree`, `logs`, `reports`, `APIs`, `AGENTS`, bootstrap, command-center density, visible AI cast, and meeting-oriented flow. `OpenHarness` is a reference for harness robustness: explicit tool loops, retry/backoff, skill/plugin boundaries, memory/session handling, permission rules, approval dialogs, and delegation lifecycle. `docs/19_agentway-harness-concept-review.md` adds the local AgentWay PDF concept pass: keep Orchestration closer to explicit control-layer authority, avoid prompt-stacking as context governance, and treat verification, recovery, and tool permission boundaries as first-class harness contracts. Do not fork pixel-office gameplay, budget/HR/company-management simulation, generic agent-platform breadth, messenger posture, prompt-stacking context strategy, or platform assumptions.
 
 ## System Boundary
 

@@ -43,6 +43,11 @@ These projects are signals, not direct dependencies:
 - `free-claude-code` (Alishahryar1): multi-provider Claude Code proxy and messaging posture.
   Useful only as a rate-limit/request-optimization signal; do not adopt provider proxying,
   messaging bots, or free-provider routing.
+- `agentway-harness-books` (AgentWay local PDFs): source-only concept signals for control-plane placement,
+  context governance, permission boundaries, recovery, and independent verification. Useful for
+  checking that Orchestration keeps explicit repo/pack authority instead of drifting into
+  prompt-stacking or tacit runtime governance; do not import the books, prompts, diagrams, or
+  source claims into runtime context.
 
 ## Approved Harness Applications (Now)
 1. **Document-to-Markdown preprocessing** via `markitdown` CLI
@@ -158,6 +163,7 @@ These projects are signals, not direct dependencies:
 - "curl | bash" auto-installers or guardrail removal as default guidance.
 - No prompt leak, jailbreak, or upstream AGPL prompt corpora as default harness, prompt, or smoke
   content.
+- No bulk PDF/reference-book content as default prompt, context, memory, or smoke content.
 
 ## Minimal Integration Contract
 Harnesses must:
