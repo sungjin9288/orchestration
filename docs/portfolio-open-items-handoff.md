@@ -3,7 +3,7 @@
 ## Status
 
 - Date: 2026-06-22
-- Latest local evidence refresh head: `main@14936c5`
+- Latest local evidence refresh: run `node scripts/portfolio-share-status.mjs` on the current checkout for the exact head and blocker summary.
 - Purpose: keep the remaining portfolio handoff work executable without widening product, provider, deployment, or release scope.
 - Boundary: this is an operator checklist. It does not upload files, create public URLs, run configured OpenAI calls, or change runtime behavior.
 
@@ -15,7 +15,7 @@ Run `node scripts/portfolio-share-status.mjs` to summarize current package readi
 |---|---|---|---|
 | External share target | `docs/external-share-verification-plan.md` defines target options and reviewer-equivalent access checks; `docs/portfolio-share-copy-template.md` defines claim-safe release and reviewer copy | A human must choose and upload to a target | Verified reviewer-facing URL plus downloaded checksum match recorded in `links.md` |
 | Local static share page | Optional pre-upload staging is checked with `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs`; exact local staging proof is kept in `docs/portfolio-share-handoff.md` because the local page repo and generated site bundle are outside this evidence package | Local page or bundle readiness is not reviewer access proof and does not create a public URL | Pre-upload local staging is ready only when `readiness.localSharePageReady=true` and, for static-site upload, `readiness.localSharePageBundleReady=true`; reviewer-facing completion still requires upload, reviewer-equivalent access check, and checksum match recorded in `links.md` |
-| Configured-env optional live smoke | `docs/live-provider-verification-note.md` records `skipped_missing_env` for `main@967d39b` because required OpenAI env values were not visible | Required OpenAI env values must be visible in the current execution context | Pass/fail/skipped output from the full optional live smoke set, recorded without secret values |
+| Configured-env optional live smoke | `docs/live-provider-verification-note.md` records `skipped_missing_env` for the current checkout at command time because required OpenAI env values were not visible | Required OpenAI env values must be visible in the current execution context | Pass/fail/skipped output from the full optional live smoke set, recorded without secret values |
 
 ## External Share Checklist
 
