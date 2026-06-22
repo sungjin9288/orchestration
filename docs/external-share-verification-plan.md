@@ -17,7 +17,7 @@
 | Private Drive or iCloud link | Reviewer sharing should stay controlled | Permission settings can fail silently for reviewers | Open link outside the owner session, download the file, and confirm checksum |
 | Notion attachment | Portfolio context already lives in Notion | Attachment access depends on page/share permissions | Open the shared page and attachment from a reviewer-equivalent session, then confirm checksum |
 | Portfolio site download | A portfolio site already exists and can host static downloads | Needs page copy that does not imply hosted product behavior | Verify page access, download, checksum, and copy boundary |
-| Local-only handoff | No external upload is approved yet | No reviewer-facing URL; user must send the file manually | Keep `links.md` without Demo URL and reference only local package path in repo notes |
+| Local-only handoff | No external upload is approved yet | No reviewer-facing URL; user must send the file manually | Keep `links.md` with `Demo: 없음` and reference only local package path in repo notes |
 
 ## Recommended Default
 
@@ -49,6 +49,8 @@ Use this format only after reviewer-equivalent access is verified.
 ```
 
 If the uploaded artifact is a downloadable package rather than a running app, keep `Demo: 없음` and record the URL under `영상 시연` or `기타 참고 링크`.
+
+Until a URL passes reviewer-equivalent access and checksum verification, leave the corresponding `links.md` field as `없음` with a short 미검증 note instead of `추가 필요`.
 
 ## Do Not Record Yet
 

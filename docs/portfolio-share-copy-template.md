@@ -17,7 +17,7 @@ Do not publish or paste the copy below until all checks pass:
 3. Open the uploaded link from a reviewer-equivalent browser or account.
 4. Download the uploaded artifact and compare its SHA-256 with `docs/portfolio-share-handoff.md`.
 5. Confirm the destination page text says the artifact is downloadable evidence, not a running hosted app.
-6. Keep `links.md` unchanged until access and checksum verification pass.
+6. Keep `links.md` without verified external URLs until access and checksum verification pass.
 
 ## GitHub Release Body
 
@@ -90,12 +90,13 @@ Access verified: <YYYY-MM-DD>
 Use this only after reviewer-equivalent access and checksum verification pass.
 
 ```md
+- GitHub: <verified-repo-or-release-url> (access verified: <YYYY-MM-DD>)
 - Demo: 없음
 - 영상 시연: <verified-download-url> (access verified: <YYYY-MM-DD>, checksum matched)
 - 기타 참고 링크: <optional-release-or-page-url> (access verified: <YYYY-MM-DD>)
 ```
 
-If the destination is a package download rather than a running app, keep `Demo: 없음`.
+If the destination is a package download rather than a running app, keep `Demo: 없음`. Leave `GitHub`, `영상 시연`, and `기타 참고 링크` as `없음` until each URL has been opened from a reviewer-equivalent context.
 
 ## Copy Review Checklist
 
