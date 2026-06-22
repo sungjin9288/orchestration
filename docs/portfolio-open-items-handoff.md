@@ -3,7 +3,7 @@
 ## Status
 
 - Date: 2026-06-22
-- Current repo head: `main@25e0a2d`
+- Latest local evidence refresh head: `main@95b4835`
 - Purpose: keep the remaining portfolio handoff work executable without widening product, provider, deployment, or release scope.
 - Boundary: this is an operator checklist. It does not upload files, create public URLs, run configured OpenAI calls, or change runtime behavior.
 
@@ -12,7 +12,7 @@
 | Item | Current evidence | Blocker | Completion evidence |
 |---|---|---|---|
 | External share target | `docs/external-share-verification-plan.md` defines target options and reviewer-equivalent access checks; `docs/portfolio-share-copy-template.md` defines claim-safe release and reviewer copy | A human must choose and upload to a target | Verified reviewer-facing URL plus downloaded checksum match recorded in `links.md` |
-| Configured-env optional live smoke | `docs/live-provider-verification-note.md` records `skipped_missing_env` for `main@4aeee74` because required OpenAI env values were not visible | Required OpenAI env values must be visible in the current execution context | Pass/fail/skipped output from the full optional live smoke set, recorded without secret values |
+| Configured-env optional live smoke | `docs/live-provider-verification-note.md` records `skipped_missing_env` for `main@95b4835` because required OpenAI env values were not visible | Required OpenAI env values must be visible in the current execution context | Pass/fail/skipped output from the full optional live smoke set, recorded without secret values |
 
 ## External Share Checklist
 

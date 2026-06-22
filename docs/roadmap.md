@@ -6,7 +6,7 @@
 - 개발 중: growth gateway and self-improvement read-only status contracts, portfolio documentation, external demo/share target planning
 - 미구현: public deployment, hosted demo, multi-user auth, external release automation, quantitative usage metrics
 - 검증 필요: optional real-live OpenAI smoke in a visible configured environment, hosted/shareable demo access. Combined operator checklist: `docs/portfolio-open-items-handoff.md`; claim-safe external share copy: `docs/portfolio-share-copy-template.md`.
-- 현재 live-provider note: `docs/live-provider-verification-note.md` records full optional live smoke rerun `skipped_missing_env` for `main@4aeee74`; the current Codex process and `launchctl` environment did not expose the required OpenAI env values.
+- 현재 live-provider note: `docs/live-provider-verification-note.md` records full optional live smoke rerun `skipped_missing_env` for `main@95b4835`; the current Codex process and `launchctl` environment did not expose the required OpenAI env values.
 
 ## 2. Phase 1 - MVP 완성
 
@@ -77,6 +77,6 @@
 | 우선순위 | 작업 | 이유 | 예상 산출물 |
 |---|---|---|---|
 | 1 | external share target 선택 및 접근 검증 | local screencast 포함 portfolio package, share handoff, target decision plan, claim-safe share copy는 준비됐지만 외부 리뷰어가 접근할 URL은 아직 없음 | verified shareable URL or hosted walkthrough decision |
-| 2 | configured-env optional OpenAI live smoke 재실행 | `main@4aeee74`에서 full optional live set은 `skipped_missing_env`로 갱신됐으므로 env가 보이는 상태에서 pass/fail evidence가 필요함 | pass/fail evidence |
+| 2 | configured-env optional OpenAI live smoke 재실행 | `main@95b4835`에서 full optional live set은 `skipped_missing_env`로 갱신됐으므로 env가 보이는 상태에서 pass/fail evidence가 필요함 | pass/fail evidence |
 | 3 | portfolio open-item handoff 유지 관리 | share target과 configured-env live smoke가 모두 외부 조건을 필요로 하므로 operator checklist로 묶어야 함 | `docs/portfolio-open-items-handoff.md` |
 | 4 | portfolio case study 유지 관리 | case study는 screenshot, screencast, smoke evidence, local package, contribution note를 연결했으므로 외부 URL 검증 후 링크만 갱신하면 됨 | updated case study after verified share URL |

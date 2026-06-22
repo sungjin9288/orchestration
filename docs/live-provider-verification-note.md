@@ -5,7 +5,7 @@
 - Date: 2026-06-22
 - Scope: optional OpenAI Responses live-provider verification
 - Current result: `skipped_missing_env`
-- Latest rerun head: `main@4aeee74`
+- Latest rerun head: `main@95b4835`
 - Boundary: this note records environment visibility and optional smoke outputs only. It does not promote live-provider verification into the required freeze gate.
 
 ## Environment Visibility
@@ -52,7 +52,7 @@ All commands returned:
 
 - The current local-stub and synthetic verification paths remain the authoritative required baseline.
 - The OpenAI Responses adapter remains an implemented opt-in adapter boundary, but this session did not prove configured-env live execution.
-- The latest rerun refreshed the full optional planner-through-reviewer live smoke set listed in `docs/03_architecture-roadmap-v1.md`.
+- The latest rerun refreshed the full optional planner-through-reviewer live smoke set on `main@95b4835`.
 - The live provider path must be rerun only when `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL` are visible in the current execution context.
 - A skipped result is not a repo-side regression and does not change runtime, provider, UI, release, or close-out semantics.
 
