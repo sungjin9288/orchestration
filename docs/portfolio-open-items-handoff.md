@@ -9,6 +9,8 @@
 
 ## Current Open Items
 
+Run `node scripts/portfolio-share-status.mjs` to summarize current package readiness, verified-link state, optional live-provider env visibility, and remaining blockers without uploading files or running configured live calls.
+
 | Item | Current evidence | Blocker | Completion evidence |
 |---|---|---|---|
 | External share target | `docs/external-share-verification-plan.md` defines target options and reviewer-equivalent access checks; `docs/portfolio-share-copy-template.md` defines claim-safe release and reviewer copy | A human must choose and upload to a target | Verified reviewer-facing URL plus downloaded checksum match recorded in `links.md` |
@@ -20,13 +22,14 @@ Use this only after selecting a target such as GitHub Release asset, private att
 
 1. Run `node scripts/portfolio-rebuild-package.mjs`.
 2. Run `node scripts/portfolio-prepublish-check.mjs` and the remaining pre-publish checks in `docs/portfolio-share-handoff.md`.
-3. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
-4. Open the uploaded artifact from a reviewer-equivalent session.
-5. Download the uploaded artifact into a temporary location.
-6. Compare its SHA-256 with `docs/portfolio-share-handoff.md`.
-7. Use `docs/portfolio-share-copy-template.md` for release notes, attachment notes, portfolio-site snippets, or reviewer messages.
-8. Confirm the destination copy does not imply a running hosted product or measured user outcome.
-9. Update `links.md` only after the access and checksum checks pass.
+3. Run `node scripts/portfolio-share-status.mjs` to confirm package readiness and currently open human/env blockers.
+4. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
+5. Open the uploaded artifact from a reviewer-equivalent session.
+6. Download the uploaded artifact into a temporary location.
+7. Compare its SHA-256 with `docs/portfolio-share-handoff.md`.
+8. Use `docs/portfolio-share-copy-template.md` for release notes, attachment notes, portfolio-site snippets, or reviewer messages.
+9. Confirm the destination copy does not imply a running hosted product or measured user outcome.
+10. Update `links.md` only after the access and checksum checks pass.
 
 Do not put an unverified URL into `links.md`.
 

@@ -10,7 +10,7 @@
 
 - Path: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Size: `3.7M` from `ls -lh`
-- SHA-256: `64dd6a9d99a893a06eff27077e350dcb348b5c8e763be2b69e15a0ac655b16fb`
+- SHA-256: `032bb622d4435b8fa3e0b2a1046f7f65dff3919407b3f26dc9708933c035cb26`
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
@@ -61,6 +61,7 @@ Run these checks immediately before uploading the package:
 ```bash
 node scripts/portfolio-rebuild-package.mjs
 node scripts/portfolio-prepublish-check.mjs
+node scripts/portfolio-share-status.mjs
 ls -lh _portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip
 shasum -a 256 _portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip
 unzip -l _portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip
@@ -72,6 +73,7 @@ Expected handling:
 
 - `node scripts/portfolio-rebuild-package.mjs` should regenerate the ignored local package and update this handoff checksum.
 - `node scripts/portfolio-prepublish-check.mjs` should return `ok=true`.
+- `node scripts/portfolio-share-status.mjs` should report `packagePrepublishReady=true` and list any remaining human/env blockers.
 - Secret-pattern grep should return no matches.
 - README honesty grep should return no unsupported claim matches.
 - If the package is uploaded, verify the reviewer-facing link before adding it to `links.md`.
@@ -80,6 +82,7 @@ Expected handling:
 ## Verification Boundary
 
 - `node scripts/portfolio-prepublish-check.mjs` is a local artifact pre-upload gate for the ignored `_portfolio_export/` package and expanded package directory.
+- `node scripts/portfolio-share-status.mjs` is a read-only status aggregator; it does not upload files, create URLs, or run configured live-provider calls.
 - It is intentionally separate from `node scripts/verification_status.mjs` because a fresh repository checkout can be valid while the ignored portfolio package is absent.
 - Run `node scripts/portfolio-rebuild-package.mjs` first, then run the checker immediately before upload or reviewer handoff.
 - If the checker fails because the zip or expanded package directory is missing, regenerate the package before treating the external share artifact as ready.
