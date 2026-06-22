@@ -12,7 +12,7 @@
   - `ui/index.html`, `ui/app.js`, `ui/styles.css` 기반 shell UI
 - 개발 중 기능:
   - growth gateway와 self-improvement read-only status scripts
-  - demo/screencast 포트폴리오 evidence 정리
+  - local screencast artifact 생성 후 portfolio attachment/public sharing 경계 정리
   - optional real-live provider smoke 재검증
 - 미구현 기능:
   - public hosted deployment
@@ -22,7 +22,7 @@
 - 검증 필요 기능:
   - current dirty worktree 기준 aggregate smoke 재실행
   - configured OpenAI environment에서 optional live-provider smoke 확인
-  - end-to-end demo screenshot 또는 screencast 확보
+  - hosted/shareable demo access 확보
 - 이력서 반영 가능 내용:
   - local-first AI-assisted development control plane
   - review before done, approval before commit gate
@@ -31,15 +31,15 @@
   - Mission/Council/Execution/Deliverables shell and advanced ops surfaces
 - README 보완 필요:
   - 현재 `README.md`는 작성되어 있으며 프로젝트 개요, 기술스택, 구조, 실행 방법, 검증 카운트, Scope & Limitations를 포함한다.
-  - README는 screenshot/evidence manifest와 optional live-provider note를 연결했다. hosted public demo는 미공개이고 screencast recording이 남아 있다.
+  - README는 screenshot/evidence manifest와 optional live-provider note를 연결했다. hosted public demo는 미공개이고 local screencast artifact는 생성됐으며 shareable attachment가 남아 있다.
   - 대표 local user-flow smoke는 `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`로 `cdd8cfd` 실행 결과를 고정했다.
-  - hosted public demo는 아직 미공개이며, recorded screencast 우선 계획은 `docs/public-demo-screencast-plan.md`에 정리했다.
+  - hosted public demo는 아직 미공개이며, recorded screencast 우선 계획과 로컬 생성 파일 경계는 `docs/public-demo-screencast-plan.md`에 정리했다.
 - 면접 대비 필요 사항:
   - `createRuntimeService`, `createExecutionCoordinator`, `executeWithAdapter`, `createOpenAIResponsesProviderAdapter` 코드 설명
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 repo 전체 기능 구분
 - 다음 작업:
-  - screencast recording
+  - generated screencast를 portfolio package에 첨부하거나 shareable artifact로 publish
   - optional live-provider verification note 작성
 - 분석 기준 파일:
   - `AGENTS.md`
@@ -98,7 +98,7 @@
   - Mission/Council/Execution/Deliverables shell and advanced ops surfaces
 - README 보완 필요:
   - 현재 `README.md`는 작성되어 있으며 목적, 실행 방법, 기술스택, 구현 범위, smoke script 카운트, 제한 사항을 포함한다.
-  - screenshot/evidence manifest 연결과 optional live-provider note는 README에 반영되었다. hosted public demo는 미공개이고 screencast recording이 남아 있다.
+  - screenshot/evidence manifest 연결과 optional live-provider note는 README에 반영되었다. hosted public demo는 미공개이고 local screencast artifact는 생성됐으며 shareable attachment가 남아 있다.
   - 대표 local user-flow smoke는 `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`로 `cdd8cfd` 실행 결과를 고정했다.
   - hosted public demo는 아직 미공개이며, recorded screencast 우선 계획은 `docs/public-demo-screencast-plan.md`에 정리했다.
 - 면접 대비 필요 사항:
@@ -106,7 +106,7 @@
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 저장소 전체 기능 구분
 - 다음 작업:
-  - screencast recording
+  - generated screencast를 portfolio package에 첨부하거나 shareable artifact로 publish
   - optional live-provider verification note 작성
 - 분석 기준 파일:
   - `AGENTS.md`

@@ -18,6 +18,7 @@
 | 웹앱 스크린샷 | 완료 | `evidence/screenshots/*.png` |
 | Architecture Mermaid | 완료 | `evidence/architecture/orchestration-architecture.md` |
 | Evidence manifest | 완료 | `evidence/evidence_manifest.md` |
+| Local screencast artifact | 로컬 생성 완료 / git 제외 | `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm` |
 
 ## Exclusion Checklist
 
@@ -28,5 +29,6 @@
 | 개인정보 | 포함하지 않음 |
 | 고객사/기관 내부자료 | 포함하지 않음 |
 | `node_modules/`, `venv/`, `.git/`, build output | evidence 및 zip에서 제외 대상 |
+| `output/` screencast video | `.gitignore`로 repository commit에서 제외 |
 | 앱 소스코드 수정 | 수행하지 않음 |
 | 새 기능 개발 | 수행하지 않음 |
