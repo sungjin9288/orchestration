@@ -19,14 +19,17 @@ const SOURCE_FILES = [
   'docs/13_harness-baseline.md',
   'docs/17_v1-completion-readiness.md',
   'docs/18_growth-gateway-vnext.md',
+  'docs/20_loop-engineering-concept-review.md',
   'packs/development/pack.md',
   'tasks/todo.md',
   'tasks/lessons.md',
+  'scripts/verification_status.mjs',
   'scripts/growth-worker-event-schema.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-skill-memory-registry-status.mjs',
   'scripts/growth-gateway-surface-router-status.mjs',
   'scripts/growth-continuous-development-loop-status.mjs',
+  'scripts/growth-reflection-loop-automation-boundary-status.mjs',
   'scripts/growth-improvement-acceptance-status.mjs',
   'scripts/growth-accepted-improvement-registry-status.mjs',
   'scripts/growth-regression-watch-status.mjs',
@@ -533,7 +536,9 @@ function buildScorecard({ sources, runtimeTotals, gitStatusLines }) {
 
 function summarizeSources(sources) {
   const plan = sourceText(sources, 'docs/18_growth-gateway-vnext.md');
+  const loopConceptReview = sourceText(sources, 'docs/20_loop-engineering-concept-review.md');
   const decisionLog = sourceText(sources, 'docs/01_decision-log.md');
+  const verificationStatus = sourceText(sources, 'scripts/verification_status.mjs');
   const todo = sourceText(sources, 'tasks/todo.md');
   const lessons = sourceText(sources, 'tasks/lessons.md');
 
@@ -565,6 +570,19 @@ function summarizeSources(sources) {
     ),
     continuousDevelopmentLoopStatusDocumented:
       /Seventh Implemented Slice: `growth-continuous-development-loop-status`/.test(plan),
+    loopAutomationBoundaryStatusScriptPresent: fs.existsSync(
+      path.join(repoRoot, 'scripts', 'growth-reflection-loop-automation-boundary-status.mjs'),
+    ),
+    loopAutomationBoundaryStatusDocumented:
+      /Implemented Growth Reflection Rule Slice: `growth-reflection-loop-automation-boundary-status`/.test(
+        loopConceptReview,
+      ),
+    loopAutomationBoundaryStatusSmokeRegistered:
+      /smoke-growth-reflection-loop-automation-boundary-status\.mjs/.test(verificationStatus),
+    loopAutomationBoundaryEvaluatorIntegrationDocumented:
+      /Integrated Growth Reflection Evaluator Evidence: `loop-automation-boundary-gap`/.test(
+        loopConceptReview,
+      ),
     improvementAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-improvement-acceptance-status.mjs'),
     ),

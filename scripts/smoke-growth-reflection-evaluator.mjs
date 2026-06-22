@@ -62,6 +62,13 @@ assert.equal(payload.evaluationInput.sourceSummary.gatewaySurfaceRouterStatusScr
 assert.equal(payload.evaluationInput.sourceSummary.gatewaySurfaceRouterStatusDocumented, true);
 assert.equal(payload.evaluationInput.sourceSummary.continuousDevelopmentLoopStatusScriptPresent, true);
 assert.equal(payload.evaluationInput.sourceSummary.continuousDevelopmentLoopStatusDocumented, true);
+assert.equal(payload.evaluationInput.sourceSummary.loopAutomationBoundaryStatusScriptPresent, true);
+assert.equal(payload.evaluationInput.sourceSummary.loopAutomationBoundaryStatusDocumented, true);
+assert.equal(payload.evaluationInput.sourceSummary.loopAutomationBoundaryStatusSmokeRegistered, true);
+assert.equal(
+  payload.evaluationInput.sourceSummary.loopAutomationBoundaryEvaluatorIntegrationDocumented,
+  true,
+);
 assert.equal(payload.evaluationInput.sourceSummary.improvementAcceptanceStatusScriptPresent, true);
 assert.equal(payload.evaluationInput.sourceSummary.improvementAcceptanceStatusDocumented, true);
 assert.equal(payload.evaluationInput.sourceSummary.acceptedImprovementRegistryStatusScriptPresent, true);

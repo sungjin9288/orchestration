@@ -183,10 +183,20 @@ memory, open connectors, create commits, or push. Its focused smoke is
 `node scripts/smoke-growth-reflection-loop-automation-boundary-status.mjs`, and aggregate coverage
 is registered in `node scripts/verification_status.mjs`.
 
+## Integrated Growth Reflection Evaluator Evidence: `loop-automation-boundary-gap`
+
+`node scripts/growth-reflection-evaluator.mjs` now includes the loop automation boundary rule in its
+read-only source inventory. The evaluator checks that the boundary command exists, this concept
+review documents it, and `node scripts/verification_status.mjs` registers its focused smoke.
+
+This integration does not make the evaluator generate proposals, apply proposals, schedule work,
+execute workers, mutate runtime state, call providers, persist memory, open connectors, create
+commits, or push. It only makes the rule visible as evaluator input evidence.
+
 ## Next Safe Build Candidates
-There are no additional safe build candidates approved by this note. Further growth reflection
-integration remains candidate-only until a separate slice preserves the same read-only and
-approval-gated boundaries.
+There are no additional safe build candidates approved by this note. Any integration beyond the
+read-only evaluator evidence inventory remains candidate-only until a separate slice preserves the
+same read-only and approval-gated boundaries.
 
 ## Not Authorized By This Note
 This review does not authorize:
