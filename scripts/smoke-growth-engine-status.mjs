@@ -59,7 +59,7 @@ assert.equal(payload.hermesEngine.role, 'inner self-improvement engine');
 assert.match(payload.hermesEngine.currentLoop, /planner -> architect -> task-breaker/);
 assert.equal(
   payload.hermesEngine.nextEngineSlice,
-  'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
 );
 assert.equal(payload.referencePosture.reviewedAt, '2026-06-01');
 assert.equal(payload.referencePosture.sourceOnly, true);
@@ -1294,7 +1294,7 @@ assert.equal(
 );
 assert.equal(
   payload.nextRecommendedSlice.id,
-  'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
 );
 assert.equal(payload.safetyBoundary.readOnly, true);
 assert.equal(payload.safetyBoundary.doesNotWriteFiles, true);
