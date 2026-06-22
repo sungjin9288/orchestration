@@ -124,7 +124,7 @@ User
 - 실행 파일: `scripts/serve-ui-slice-01.mjs`
 - 테스트 파일: `scripts/smoke-*.mjs`, `scripts/smoke-dev-loop-m2.mjs`, `scripts/smoke-qa-slice-07.mjs`
 - README 또는 문서 근거: `README.md`는 프로젝트 개요, 기술스택, 구조, 실행 방법, verification, screenshot/evidence link, Scope & Limitations를 포함하며, 상세 근거는 `docs/*`, `packs/development/pack.md`, `AGENTS.md`
-- 실행 방법이 명확한지: README가 harness 실행과 정적 UI 확인 경로를 안내한다. local HTTP demo flow는 별도 checklist 보강 대상이다.
+- 실행 방법이 명확한지: README가 harness 실행, 정적 UI 확인, local UI/API server demo flow를 안내한다. 세부 checklist는 `docs/local-demo-checklist.md`에 분리했다.
 - 스크린샷/데모가 필요한 부분: main shell, task execution, artifact preview, decision inbox, local close-out flow
 
 ## 10. Consulting Angle

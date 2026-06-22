@@ -90,6 +90,34 @@ node scripts/smoke-bootstrap-slice-01.mjs
 #   ui/index.html  (런타임 파일 스토어 상태를 표시)
 ```
 
+Local UI/API server로 확인하는 경우:
+
+```bash
+# 기본값: 127.0.0.1:4310
+node scripts/serve-ui-slice-01.mjs --runtime-root /tmp/orchestration-demo-runtime
+
+# 다른 터미널에서 snapshot 확인
+curl http://127.0.0.1:4310/api/snapshot
+```
+
+최소 API demo flow:
+
+```bash
+curl -X POST http://127.0.0.1:4310/api/projects \
+  -H 'content-type: application/json' \
+  -d '{"name":"Local demo","projectPath":"/absolute/path/to/this/repo"}'
+
+curl -X POST http://127.0.0.1:4310/api/tasks \
+  -H 'content-type: application/json' \
+  -d '{"title":"Demo task","intent":"Verify local-stub planner flow."}'
+
+curl -X POST http://127.0.0.1:4310/api/tasks/task-0001/run-planner \
+  -H 'content-type: application/json' \
+  -d '{}'
+```
+
+상세 checklist는 [`docs/local-demo-checklist.md`](./docs/local-demo-checklist.md)에 정리했습니다.
+
 런타임을 코드에서 직접 쓰는 경우:
 
 ```js

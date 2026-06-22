@@ -4,7 +4,7 @@
 
 - `README.md`는 현재 작성되어 있으며 프로젝트 목적, 실행 방법, 기술스택, 구현 범위, verification, Scope & Limitations를 포함한다.
 - screenshot/evidence manifest 연결과 optional live-provider note는 README에 반영되었다. public demo 또는 screencast는 아직 별도 보강이 필요하다.
-- local-first 실행 조건과 smoke script 카운트는 들어갔지만, 대표 end-to-end demo path는 더 명확히 연결할 수 있다.
+- local-first 실행 조건, smoke script 카운트, local UI/API server demo path가 README에 들어갔다.
 - 포트폴리오 리뷰어가 볼 수 있는 screenshot, evidence manifest, architecture/CLI evidence 경로는 README에 연결되었다.
 
 ## 2. README에 추가해야 할 섹션
@@ -103,7 +103,7 @@ User
 
 ## 7. 실행 방법
 
-현재 README 기준 실행 가이드는 보완 필요입니다. 코드상 local server entrypoint는 아래 파일입니다.
+현재 README 기준 실행 가이드는 harness 실행, static UI 확인, local UI/API server 확인 경로를 포함한다. 코드상 local server entrypoint는 아래 파일입니다.
 
 ```bash
 node scripts/serve-ui-slice-01.mjs
@@ -142,7 +142,6 @@ node scripts/serve-ui-slice-01.mjs
 ## 12. 향후 개선 계획
 
 - public demo 또는 screencast 제작
-- 대표 end-to-end demo path 보강
 - optional live-provider smoke 재검증
 - public portfolio review package 정리
 ````

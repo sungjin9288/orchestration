@@ -37,7 +37,7 @@
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 repo 전체 기능 구분
 - 다음 작업:
-  - local demo screenshot 또는 screencast 준비
+  - public demo 또는 screencast 준비
   - representative smoke 재실행
   - optional live-provider verification note 작성
 - 분석 기준 파일:
@@ -103,7 +103,7 @@
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 저장소 전체 기능 구분
 - 다음 작업:
-  - local demo screenshot 또는 screencast 준비
+  - public demo 또는 screencast 준비
   - representative smoke 재실행
   - optional live-provider verification note 작성
 - 분석 기준 파일:

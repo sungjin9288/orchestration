@@ -13,7 +13,7 @@
 - 해야 할 작업:
   - README 실행 방법 작성
   - `node scripts/serve-ui-slice-01.mjs` 실행 예시 추가
-  - project registration -> task execution -> artifact/review 확인 demo path 정리
+  - project registration -> task execution -> artifact 확인 demo path 정리
   - 핵심 screenshot 또는 screencast 준비
 - 완료 기준:
   - 새 사용자가 local server를 실행하고 `/api/snapshot`과 UI를 확인
@@ -21,7 +21,7 @@
 - 산출물:
   - README
   - screenshots
-  - local demo checklist
+  - `docs/local-demo-checklist.md`
 
 ## 3. Phase 2 - 기능 고도화
 
@@ -75,7 +75,7 @@
 
 | 우선순위 | 작업 | 이유 | 예상 산출물 |
 |---|---|---|---|
-| 1 | local demo flow 캡처 | README는 screenshot/evidence manifest를 연결했지만 public demo나 screencast는 아직 없음 | screencast 또는 demo checklist |
+| 1 | public demo 또는 screencast | README와 local demo checklist는 준비됐지만 외부 리뷰어용 영상/hosted demo는 아직 없음 | screencast 또는 hosted demo decision |
 | 2 | representative smoke 재실행 | 현재 head 기준 최신 검증 근거를 README/portfolio note와 연결해야 함 | smoke result log |
 | 3 | portfolio case study 보강 | 코드 기능을 포트폴리오 evidence로 설명해야 함 | screenshot-backed case study |
 | 4 | optional OpenAI live smoke | live adapter 설명을 검증 근거와 함께 제시해야 함 | skipped/pass/fail evidence |
