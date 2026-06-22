@@ -13069,5 +13069,32 @@ if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleClos
   );
 }
 
+if (
+  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
+) {
+  payload.aggregate.status =
+    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
+  payload.nextRecommendedSlice = {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+    commandToAdd:
+      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
+    reason:
+      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
+    mustRemainReadOnly: true,
+  };
+  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
+    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
+      ? {
+          ...finding,
+          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
+          claim:
+            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+          allowedNextAction:
+            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
+        }
+      : finding,
+  );
+}
+
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 process.exitCode = ok ? 0 : 1;
