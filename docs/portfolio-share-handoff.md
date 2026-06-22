@@ -10,7 +10,7 @@
 
 - Path: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Size: `3.7M` from `ls -lh`
-- SHA-256: `b362674f1102e878c9cfebedad8d9933532dbd57f272ab9265d1e2cfffeb6ebd`
+- SHA-256: `4a82d472ebb66d25a3fc595c67e27a598982391ad44293d5e57519691e2714da`
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
@@ -22,6 +22,7 @@ The package was checked with `unzip -l` and includes:
 - `docs/case-study.md`
 - `docs/contribution-scope-note.md`
 - `docs/external-share-verification-plan.md`
+- `docs/portfolio-open-items-handoff.md`
 - `docs/project-card.md`
 - `docs/resume-bullets.md`
 - `docs/interview-story.md`
@@ -71,6 +72,7 @@ Expected handling:
 
 ## Remaining Open
 
+- See `docs/portfolio-open-items-handoff.md` for the combined operator checklist.
 - Select the external share target.
 - Upload the package only after the target is selected.
 - Verify reviewer access and checksum after upload.

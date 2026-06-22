@@ -18,6 +18,7 @@
 - docs/project-card.md
 - docs/contribution-scope-note.md
 - docs/external-share-verification-plan.md
+- docs/portfolio-open-items-handoff.md
 - docs/case-study.md
 - docs/resume-bullets.md
 - docs/interview-story.md

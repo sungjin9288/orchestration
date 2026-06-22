@@ -36,6 +36,7 @@
   - `docs/live-provider-verification-note.md`는 현재 Codex process와 `launchctl` 모두 `OPENAI_API_KEY` visible false, `OPENAI_RESPONSES_MODEL` visible false라서 `main@4aeee74` 기준 full optional live smoke set이 `skipped_missing_env`로 종료된 non-blocking evidence를 기록한다.
   - `docs/contribution-scope-note.md`는 이력서/면접에서 직접 설명 가능한 repo-backed contribution scope와 caveat가 필요한 claim boundary를 정리한다.
   - `docs/external-share-verification-plan.md`는 GitHub Release, private attachment, Notion attachment, portfolio site download, local-only handoff 중 external share target을 고르는 기준과 reviewer-equivalent access 검증 절차를 정리한다.
+  - `docs/portfolio-open-items-handoff.md`는 external share target과 configured-env optional live smoke를 하나의 operator checklist로 묶어, 필요한 human decision과 completion evidence를 분리한다.
   - 대표 local user-flow smoke는 `evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`로 `cdd8cfd` 실행 결과를 고정했다.
   - hosted public demo는 아직 미공개이며, recorded screencast 우선 계획과 로컬 생성 파일 경계는 `docs/public-demo-screencast-plan.md`에 정리했다.
 - 면접 대비 필요 사항:
@@ -68,6 +69,7 @@
   - `docs/readme-improvement.md`
   - `docs/contribution-scope-note.md`
   - `docs/external-share-verification-plan.md`
+  - `docs/portfolio-open-items-handoff.md`
   - `links.md`
   - `portfolio_manifest.md`
 - 생성한 압축 파일:
