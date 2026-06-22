@@ -1179,13 +1179,13 @@ assert.ok(
   payload.reflectionFindings.some(
     (finding) =>
       finding.id ===
-      'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
+      'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
   ),
 );
 assert.ok(payload.reflectionFindings.some((finding) => finding.id === 'proposal-generation-still-blocked'));
 assert.equal(
   payload.nextRecommendedSlice.id,
-  'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
 );
 assert.equal(payload.nextRecommendedSlice.mustRemainReadOnly, true);
 assert.equal(payload.safetyBoundary.readOnly, true);
