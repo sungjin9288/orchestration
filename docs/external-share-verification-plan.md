@@ -38,6 +38,8 @@ Keep local-only handoff when no external upload target has been explicitly selec
 7. Confirm the destination page or attachment text does not describe the package as a hosted app or measured user outcome.
 8. Only after those checks pass, update `links.md` with the verified URL and note the access check date.
 
+The pre-publish checker is a repository-side artifact gate for the ignored local package. It confirms package contents before upload, but it does not replace reviewer-equivalent access verification and is not part of the aggregate repository smoke status.
+
 ## Link Recording Template
 
 Use this format only after reviewer-equivalent access is verified.

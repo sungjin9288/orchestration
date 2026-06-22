@@ -10,7 +10,7 @@
 
 - Path: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Size: `3.7M` from `ls -lh`
-- SHA-256: `063b8be584bec853b59c2e08ed6e60bb3243aa83b23e34cc638237749f0dfad0`
+- SHA-256: `83321c47fcbcea7cd4388efee37f9effa474dab19dea0ea5a47775118aab310e`
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
@@ -74,6 +74,14 @@ Expected handling:
 - README honesty grep should return no unsupported claim matches.
 - If the package is uploaded, verify the reviewer-facing link before adding it to `links.md`.
 - Destination copy should follow `docs/portfolio-share-copy-template.md` or equivalent claim-safe wording.
+
+## Verification Boundary
+
+- `node scripts/portfolio-prepublish-check.mjs` is a local artifact pre-upload gate for the ignored `_portfolio_export/` package and expanded package directory.
+- It is intentionally separate from `node scripts/verification_status.mjs` because a fresh repository checkout can be valid while the ignored portfolio package is absent.
+- Run the checker after regenerating the local package and immediately before upload or reviewer handoff.
+- If the checker fails because the zip or expanded package directory is missing, regenerate the package before treating the external share artifact as ready.
+- Do not use a missing local portfolio package as evidence that the product runtime or aggregate repository verification failed.
 
 ## Remaining Open
 

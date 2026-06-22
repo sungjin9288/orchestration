@@ -29,6 +29,8 @@ Use this only after selecting a target such as GitHub Release asset, private att
 
 Do not put an unverified URL into `links.md`.
 
+The pre-publish checker depends on the ignored local zip and expanded package directory under `_portfolio_export/`. If those files are missing, regenerate the package first; do not treat that missing local artifact as an aggregate runtime failure.
+
 ## Configured-Env Live Smoke Checklist
 
 Use this only when both required OpenAI env values are visible to the current process or the process is relaunched into an environment that exposes them.

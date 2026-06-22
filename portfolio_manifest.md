@@ -90,4 +90,5 @@
 - external share handoff: `docs/portfolio-share-handoff.md`에 package checksum, 포함 evidence, candidate share target, pre-publish checklist를 repository-side gate로 기록했다. 이 handoff 문서는 checksum self-reference를 피하기 위해 zip payload에는 포함하지 않는다.
 - external share copy: `docs/portfolio-share-copy-template.md`에 GitHub Release body, private attachment note, portfolio site snippet, reviewer message, `links.md` update snippet을 claim-safe copy 기준으로 기록했다.
 - external share pre-publish gate: `scripts/portfolio-prepublish-check.mjs`는 current share package checksum, zip inclusion/exclusion, secret-pattern, public-claim pattern을 한 번에 확인하는 repository-side read-only checker다.
+- external share verification boundary: pre-publish checker는 `.gitignore` 처리된 `_portfolio_export/` local artifact에 의존하므로 `node scripts/verification_status.mjs` aggregate smoke와 분리해서 실행한다.
 - links state: `links.md`는 검증된 public URL이 없을 때 `Demo: 없음`과 URL 미검증 note를 유지하며, package download URL은 reviewer-equivalent access와 checksum match 이후에만 기록한다.
