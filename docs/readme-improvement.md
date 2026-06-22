@@ -3,9 +3,9 @@
 ## 1. 현재 README의 보강 지점
 
 - `README.md`는 현재 작성되어 있으며 프로젝트 목적, 실행 방법, 기술스택, 구현 범위, verification, Scope & Limitations를 포함한다.
-- screenshot/demo 연결과 optional live-provider 검증 note는 아직 보강이 필요하다.
+- screenshot/evidence manifest 연결과 optional live-provider note는 README에 반영되었다. public demo 또는 screencast는 아직 별도 보강이 필요하다.
 - local-first 실행 조건과 smoke script 카운트는 들어갔지만, 대표 end-to-end demo path는 더 명확히 연결할 수 있다.
-- 포트폴리오 리뷰어가 어떤 파일을 보면 되는지 안내가 없다.
+- 포트폴리오 리뷰어가 볼 수 있는 screenshot, evidence manifest, architecture/CLI evidence 경로는 README에 연결되었다.
 
 ## 2. README에 추가해야 할 섹션
 
@@ -119,7 +119,7 @@ node scripts/serve-ui-slice-01.mjs
 
 ## 9. 화면 예시
 
-현재 screenshot evidence는 `evidence/screenshots/`에 있으며 README에 직접 연결하는 보강이 필요하다:
+현재 screenshot evidence는 `evidence/screenshots/`에 있으며 README의 `Evidence & Screenshots` 섹션에 직접 연결되어 있다:
 
 - main shell
 - project registration
@@ -141,8 +141,8 @@ node scripts/serve-ui-slice-01.mjs
 
 ## 12. 향후 개선 계획
 
-  - README demo/screenshot/optional live-provider note 보강
-- local demo screenshot/screencast 제작
+- public demo 또는 screencast 제작
+- 대표 end-to-end demo path 보강
 - optional live-provider smoke 재검증
 - public portfolio review package 정리
 ````

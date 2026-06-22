@@ -12,7 +12,7 @@
   - `ui/index.html`, `ui/app.js`, `ui/styles.css` 기반 shell UI
 - 개발 중 기능:
   - growth gateway와 self-improvement read-only status scripts
-  - README/demo/screenshot 포트폴리오 evidence 정리
+  - demo/screencast 포트폴리오 evidence 정리
   - optional real-live provider smoke 재검증
 - 미구현 기능:
   - public hosted deployment
@@ -31,13 +31,12 @@
   - Mission/Council/Execution/Deliverables shell and advanced ops surfaces
 - README 보완 필요:
   - 현재 `README.md`는 작성되어 있으며 프로젝트 개요, 기술스택, 구조, 실행 방법, 검증 카운트, Scope & Limitations를 포함한다.
-  - public demo/screencast, screenshot 연결, optional live-provider 검증 note는 추가 보강이 필요하다.
+  - README는 screenshot/evidence manifest와 optional live-provider note를 연결했다. public demo/screencast는 추가 보강이 필요하다.
 - 면접 대비 필요 사항:
   - `createRuntimeService`, `createExecutionCoordinator`, `executeWithAdapter`, `createOpenAIResponsesProviderAdapter` 코드 설명
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 repo 전체 기능 구분
 - 다음 작업:
-  - README의 demo/screenshot/optional live-provider note 보강
   - local demo screenshot 또는 screencast 준비
   - representative smoke 재실행
   - optional live-provider verification note 작성
@@ -98,13 +97,12 @@
   - Mission/Council/Execution/Deliverables shell and advanced ops surfaces
 - README 보완 필요:
   - 현재 `README.md`는 작성되어 있으며 목적, 실행 방법, 기술스택, 구현 범위, smoke script 카운트, 제한 사항을 포함한다.
-  - screenshot/demo 연결과 optional live-provider 검증 note는 아직 보강 대상이다.
+  - screenshot/evidence manifest 연결과 optional live-provider note는 README에 반영되었다. public demo/screencast는 아직 보강 대상이다.
 - 면접 대비 필요 사항:
   - `createRuntimeService`, `createExecutionCoordinator`, `executeWithAdapter`, `createOpenAIResponsesProviderAdapter` 코드 설명
   - `project_path`, approval, review, artifact provenance 설계 이유 설명
   - 구현자 범위와 저장소 전체 기능 구분
 - 다음 작업:
-  - README demo/screenshot/optional live-provider note 보강
   - local demo screenshot 또는 screencast 준비
   - representative smoke 재실행
   - optional live-provider verification note 작성

@@ -116,12 +116,29 @@ ls scripts/ | grep -c "qa-slice"  # → 10   (QA slice 러너)
 
 ---
 
+## Evidence & Screenshots
+
+대표 UI evidence는 저장소의 정적 screenshot으로 확인할 수 있습니다. 아래 이미지는 hosted demo가 아니라 `evidence/screenshots/`에 보관된 로컬 캡처입니다.
+
+![Mission surface](./evidence/screenshots/mission-surface.png)
+
+![Taskboard surface](./evidence/screenshots/taskboard-surface.png)
+
+![Artifacts surface](./evidence/screenshots/artifacts-surface.png)
+
+- Evidence manifest: [`evidence/evidence_manifest.md`](./evidence/evidence_manifest.md)
+- Architecture diagram evidence: [`evidence/architecture/`](./evidence/architecture/)
+- CLI and smoke logs: [`evidence/cli-logs/`](./evidence/cli-logs/)
+
+---
+
 ## Scope & Limitations
 
 - 상용 orchestration platform이 아니라 **control plane 개념을 실험한 PoC**입니다.
 - **local-first · single-user**: 분산 실행, 멀티유저, OAuth, 메신저/랭킹/조직관리 의미는 의도적으로 범위에서 제외했습니다.
 - 운영 수준의 분산 실행 · 모니터링 · 권한 관리는 포함하지 않습니다.
 - LLM provider는 OpenAI Responses + local-stub만 지원하며, multi-provider-first 구조가 아닙니다.
+- 기본 검증 경로는 local-stub 중심입니다. OpenAI live provider 검증은 `OPENAI_API_KEY`와 `OPENAI_RESPONSES_MODEL`이 보이는 환경에서 별도 재실행해야 하는 optional path입니다.
 - 검증되지 않은 성능·자동화율 수치는 사용하지 않습니다.
 
 ---
@@ -130,4 +147,5 @@ ls scripts/ | grep -c "qa-slice"  # → 10   (QA slice 러너)
 
 - GitHub: https://github.com/sungjin9288/orchestration
 - Demo: (공개 시나리오 정리 후 추가)
+- Screenshots / evidence: [`evidence/screenshots/`](./evidence/screenshots/), [`evidence/evidence_manifest.md`](./evidence/evidence_manifest.md)
 - 운영 규칙 / 설계: [`AGENTS.md`](./AGENTS.md), [`DESIGN.md`](./DESIGN.md), [`docs/`](./docs/)

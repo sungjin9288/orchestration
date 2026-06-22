@@ -11,7 +11,7 @@
 - Demo 링크: 추가 필요
 - 핵심 기술스택: JavaScript, Node.js, Vanilla HTML/CSS/JS, Node.js `http` local server, file-based JSON/JSONL storage, Git CLI, OpenAI Responses API opt-in adapter, local smoke scripts
 - 이력서 반영 가능 여부: 조건부 가능
-- 판단 이유: `src/runtime/*`, `src/execution/*`, `scripts/serve-ui-slice-01.mjs`, `ui/*`, `packs/development/pack.md` 기준으로 local-first 실행 제어, artifact/log persistence, review/approval gate, provider adapter, UI shell이 구현되어 있다. 현재 `README.md`는 작성되어 있으나 public demo, README screenshot 연결, 사용자 검증, 성과 수치가 부족하다.
+- 판단 이유: `src/runtime/*`, `src/execution/*`, `scripts/serve-ui-slice-01.mjs`, `ui/*`, `packs/development/pack.md` 기준으로 local-first 실행 제어, artifact/log persistence, review/approval gate, provider adapter, UI shell이 구현되어 있다. 현재 `README.md`는 screenshot/evidence manifest를 연결했지만 public demo, 사용자 검증, 성과 수치는 아직 없다.
 
 ## 2. One-liner
 
@@ -123,8 +123,8 @@ User
 - 설정 파일: 별도 `package.json`, `requirements.txt`, `pyproject.toml`, Dockerfile 없음
 - 실행 파일: `scripts/serve-ui-slice-01.mjs`
 - 테스트 파일: `scripts/smoke-*.mjs`, `scripts/smoke-dev-loop-m2.mjs`, `scripts/smoke-qa-slice-07.mjs`
-- README 또는 문서 근거: `README.md`는 프로젝트 개요, 기술스택, 구조, 실행 방법, verification, Scope & Limitations를 포함하며, 상세 근거는 `docs/*`, `packs/development/pack.md`, `AGENTS.md`
-- 실행 방법이 명확한지: README 기준으로는 불명확. script 직접 실행 근거는 있음
+- README 또는 문서 근거: `README.md`는 프로젝트 개요, 기술스택, 구조, 실행 방법, verification, screenshot/evidence link, Scope & Limitations를 포함하며, 상세 근거는 `docs/*`, `packs/development/pack.md`, `AGENTS.md`
+- 실행 방법이 명확한지: README가 harness 실행과 정적 UI 확인 경로를 안내한다. local HTTP demo flow는 별도 checklist 보강 대상이다.
 - 스크린샷/데모가 필요한 부분: main shell, task execution, artifact preview, decision inbox, local close-out flow
 
 ## 10. Consulting Angle
@@ -149,7 +149,7 @@ User
 
 - 실사용 가능한 도구: local demo와 실행 가이드 보강 후 사용
 - OpenAI 기반 role execution 검증: 실제 env로 optional live smoke 통과 후 사용
-- 포트폴리오 대표 프로젝트: screenshot/demo/README 보강 후 사용
+- 포트폴리오 대표 프로젝트: public demo 또는 screencast와 사용자 검증 범위를 분리해 설명할 때 사용
 
 ### 쓰면 위험한 표현
 

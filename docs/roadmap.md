@@ -3,9 +3,9 @@
 ## 1. 현재 상태 요약
 
 - 현재 구현 완료: local-first runtime, development pack execution loop, opt-in knowledge-work pack, review/approval gates, static UI shell, file-based artifacts/logs, local-stub and OpenAI Responses adapter boundary
-- 개발 중: growth gateway and self-improvement read-only status contracts, portfolio documentation, README plan
+- 개발 중: growth gateway and self-improvement read-only status contracts, portfolio documentation, demo/screencast planning
 - 미구현: public deployment, hosted demo, multi-user auth, external release automation, quantitative usage metrics
-- 검증 필요: optional real-live OpenAI smoke, end-to-end local demo capture, current aggregate verification on dirty worktree
+- 검증 필요: optional real-live OpenAI smoke in a visible configured environment, end-to-end local demo capture
 
 ## 2. Phase 1 - MVP 완성
 
@@ -75,8 +75,8 @@
 
 | 우선순위 | 작업 | 이유 | 예상 산출물 |
 |---|---|---|---|
-| 1 | README 보강 | 현재 `README.md`는 작성되어 있으나 demo/screenshot 연결과 optional live-provider 검증 note가 부족함 | README evidence link 보강 |
-| 2 | local demo flow 캡처 | 코드 기능을 포트폴리오 evidence로 보여줘야 함 | screenshots 또는 screencast |
-| 3 | representative smoke 재실행 | 현재 dirty worktree에서 최신 검증 근거 필요 | smoke result log |
+| 1 | local demo flow 캡처 | README는 screenshot/evidence manifest를 연결했지만 public demo나 screencast는 아직 없음 | screencast 또는 demo checklist |
+| 2 | representative smoke 재실행 | 현재 head 기준 최신 검증 근거를 README/portfolio note와 연결해야 함 | smoke result log |
+| 3 | portfolio case study 보강 | 코드 기능을 포트폴리오 evidence로 설명해야 함 | screenshot-backed case study |
 | 4 | optional OpenAI live smoke | live adapter 설명을 검증 근거와 함께 제시해야 함 | skipped/pass/fail evidence |
 | 5 | 구현자 범위 확정 | 면접에서 직접 구현 범위와 repo 전체 기능을 구분해야 함 | contribution note |
