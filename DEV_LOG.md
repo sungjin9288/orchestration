@@ -76,7 +76,8 @@
   - `links.md`
   - `portfolio_manifest.md`
 - 생성한 압축 파일:
-  - `_portfolio_export/orchestration_portfolio_pack.zip`
+  - `_portfolio_export/orchestration_portfolio_pack.zip` (초기 legacy export)
+  - `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip` (현재 external share 대상 local package)
 
 ## Portfolio Analysis - 2026-06-09
 

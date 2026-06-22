@@ -79,11 +79,13 @@
 
 - 민감정보 포함 여부: 압축 전 파일명 및 secret pattern 검사 기준 미포함
 - 압축 파일 생성 여부: 생성 완료
-- 압축 파일 경로: `_portfolio_export/orchestration_portfolio_pack.zip`
-- 압축 파일명: `orchestration_portfolio_pack.zip`
+- 초기 legacy 압축 파일 경로: `_portfolio_export/orchestration_portfolio_pack.zip`
+- 초기 legacy 압축 파일명: `orchestration_portfolio_pack.zip`
+- 현재 external share 대상 압축 파일 경로: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - 압축 파일 내용 확인 여부: 생성 후 `unzip -l`로 확인
 - screencast artifact 상태: `output/playwright/public-demo-screencast-2026-06-22/orchestration-public-demo-2026-06-22.webm` 로컬 생성 확인, `.gitignore` 기준 repository commit 제외
-- screencast 포함 최신 local package: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
+- 초기 legacy local package: `_portfolio_export/orchestration_portfolio_pack.zip` (screencast 포함 전 export; current external share target 아님)
+- screencast 포함 최신 local share package: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - 최신 local package 검증: `unzip -l`로 screencast, README, case study, screenshots, evidence manifest 포함 확인; `ls -lh` 기준 zip 크기 `3.7M`; `.gitignore` 기준 repository commit 제외
 - external share handoff: `docs/portfolio-share-handoff.md`에 package checksum, 포함 evidence, candidate share target, pre-publish checklist를 repository-side gate로 기록했다. 이 handoff 문서는 checksum self-reference를 피하기 위해 zip payload에는 포함하지 않는다.
 - external share copy: `docs/portfolio-share-copy-template.md`에 GitHub Release body, private attachment note, portfolio site snippet, reviewer message, `links.md` update snippet을 claim-safe copy 기준으로 기록했다.
