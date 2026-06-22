@@ -5,6 +5,7 @@
 - Date: 2026-06-22
 - Scope: optional OpenAI Responses live-provider verification
 - Current result: `skipped_missing_env`
+- Latest rerun head: `main@4aeee74`
 - Boundary: this note records environment visibility and optional smoke outputs only. It does not promote live-provider verification into the required freeze gate.
 
 ## Environment Visibility
@@ -26,11 +27,18 @@ Secret values were not printed or copied.
 ## Commands Run
 
 ```bash
+node scripts/smoke-provider-live-slice-02.mjs
+node scripts/smoke-provider-live-slice-03.mjs
 node scripts/smoke-provider-live-slice-05.mjs
+node scripts/smoke-provider-live-slice-06.mjs
+node scripts/smoke-provider-live-slice-07.mjs
+node scripts/smoke-qa-live-slice-04.mjs
+node scripts/smoke-qa-live-slice-05.mjs
+node scripts/smoke-qa-live-slice-06.mjs
 node scripts/smoke-qa-live-slice-07.mjs
 ```
 
-Both commands returned:
+All commands returned:
 
 ```json
 {
@@ -44,6 +52,7 @@ Both commands returned:
 
 - The current local-stub and synthetic verification paths remain the authoritative required baseline.
 - The OpenAI Responses adapter remains an implemented opt-in adapter boundary, but this session did not prove configured-env live execution.
+- The latest rerun refreshed the full optional planner-through-reviewer live smoke set listed in `docs/03_architecture-roadmap-v1.md`.
 - The live provider path must be rerun only when `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL` are visible in the current execution context.
 - A skipped result is not a repo-side regression and does not change runtime, provider, UI, release, or close-out semantics.
 
@@ -52,7 +61,14 @@ Both commands returned:
 When configured env is visible, rerun:
 
 ```bash
+node scripts/smoke-provider-live-slice-02.mjs
+node scripts/smoke-provider-live-slice-03.mjs
 node scripts/smoke-provider-live-slice-05.mjs
+node scripts/smoke-provider-live-slice-06.mjs
+node scripts/smoke-provider-live-slice-07.mjs
+node scripts/smoke-qa-live-slice-04.mjs
+node scripts/smoke-qa-live-slice-05.mjs
+node scripts/smoke-qa-live-slice-06.mjs
 node scripts/smoke-qa-live-slice-07.mjs
 ```
 

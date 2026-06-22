@@ -10,7 +10,7 @@
 
 - Path: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Size: `3.7M` from `ls -lh`
-- SHA-256: `a29f15619ee6912a6b60c6b587d02353605abc150e8a52ab4d387d6f4b1c071b`
+- SHA-256: `b362674f1102e878c9cfebedad8d9933532dbd57f272ab9265d1e2cfffeb6ebd`
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
