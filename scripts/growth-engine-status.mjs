@@ -8123,5 +8123,19 @@ if (
   payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
 }
 
+if (
+  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
+) {
+  payload.nextRecommendedSlice = {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+    commandToAdd:
+      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+    reason:
+      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
+    mustRemainReadOnly: true,
+  };
+  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
+}
+
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 process.exitCode = ok ? 0 : 1;
