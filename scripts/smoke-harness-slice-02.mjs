@@ -56,6 +56,7 @@ assert.deepEqual(ids, [
   'rtk',
   'free-claude-code',
   'agentway-harness-books',
+  'loop-engineering-pytorchkr',
 ]);
 
 const postures = Object.fromEntries(payload.harnesses.map((harness) => [harness.id, harness.posture]));
@@ -69,6 +70,7 @@ assert.equal(postures.openscreen, 'future-post-v1');
 assert.equal(postures.rtk, 'signal-only');
 assert.equal(postures['free-claude-code'], 'signal-only');
 assert.equal(postures['agentway-harness-books'], 'signal-only');
+assert.equal(postures['loop-engineering-pytorchkr'], 'signal-only');
 
 console.log(
   JSON.stringify(

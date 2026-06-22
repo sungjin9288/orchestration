@@ -90,6 +90,15 @@ export const harnesses = [
     note: 'Reference only. Use the local AgentWay PDFs as distilled concept signals. Do not import bulk PDF content into runtime prompt, context, memory, or smoke paths.',
     installReview: 'do not install or execute by default; review extracted notes in docs/19_agentway-harness-concept-review.md',
   },
+  {
+    id: 'loop-engineering-pytorchkr',
+    posture: 'signal-only',
+    kind: 'loop-engineering-concept-reference',
+    command: 'loop-engineering-pytorchkr',
+    checkArgs: ['--help'],
+    note: 'Reference only. Use Loop Engineering as a closed-loop design concept. Do not enable open-loop autonomy, scheduled execution, provider expansion, or unattended mutation from this reference.',
+    installReview: 'do not install or execute by default; review docs/20_loop-engineering-concept-review.md and keep loops approval-gated',
+  },
 ];
 
 export function getHarness(harnessId) {

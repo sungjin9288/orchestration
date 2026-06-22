@@ -29,6 +29,7 @@ for (const blockedHarnessId of [
   'rtk',
   'free-claude-code',
   'agentway-harness-books',
+  'loop-engineering-pytorchkr',
 ]) {
   const blockedResult = spawnSync(process.execPath, [runScript, blockedHarnessId], {
     cwd: repoRoot,
@@ -60,6 +61,7 @@ console.log(
         'rtk',
         'free-claude-code',
         'agentway-harness-books',
+        'loop-engineering-pytorchkr',
       ],
     },
     null,

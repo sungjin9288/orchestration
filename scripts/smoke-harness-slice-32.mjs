@@ -47,7 +47,7 @@ const expectedSummaryKeys = [
 ];
 
 assert.deepEqual(Object.keys(payload.summary), expectedSummaryKeys);
-assert.equal(payload.summary.totalHarnesses, 10);
+assert.equal(payload.summary.totalHarnesses, 11);
 assert.equal(payload.summary.currentHostState, 'runnable');
 assert.equal(payload.summary.primaryHarnessId, 'markitdown');
 assert.equal(payload.summary.primaryHarnessState, 'ready');

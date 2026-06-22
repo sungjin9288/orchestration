@@ -31,6 +31,7 @@ assert.deepEqual(payload.policyBlockedHarnessIds, [
   'rtk',
   'free-claude-code',
   'agentway-harness-books',
+  'loop-engineering-pytorchkr',
 ]);
 
 console.log(

@@ -48,6 +48,11 @@ These projects are signals, not direct dependencies:
   checking that Orchestration keeps explicit repo/pack authority instead of drifting into
   prompt-stacking or tacit runtime governance; do not import the books, prompts, diagrams, or
   source claims into runtime context.
+- `loop-engineering-pytorchkr` (PyTorchKR discussion + local pasted text): source-only concept
+  signal for closed-loop `Discover -> Plan -> Execute -> Verify -> Iterate` design. Useful for
+  naming loop stages, stop conditions, verification gates, and human return points; do not treat it
+  as authorization for open-loop autonomy, scheduled execution, provider expansion, connector
+  breadth, or unattended mutation.
 
 ## Approved Harness Applications (Now)
 1. **Document-to-Markdown preprocessing** via `markitdown` CLI
@@ -164,6 +169,8 @@ These projects are signals, not direct dependencies:
 - No prompt leak, jailbreak, or upstream AGPL prompt corpora as default harness, prompt, or smoke
   content.
 - No bulk PDF/reference-book content as default prompt, context, memory, or smoke content.
+- No open-loop automation, scheduled execution, or loop-generated source mutation without explicit
+  local approval, stop conditions, rollback boundaries, and verification evidence.
 
 ## Minimal Integration Contract
 Harnesses must:

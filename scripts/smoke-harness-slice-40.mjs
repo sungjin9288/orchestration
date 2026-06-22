@@ -19,6 +19,7 @@ const expectedExternalReferenceIds = [
   'rtk',
   'free-claude-code',
   'agentway-harness-books',
+  'loop-engineering-pytorchkr',
 ];
 const doc = fs.readFileSync(docPath, 'utf8');
 
@@ -39,7 +40,7 @@ assert.deepEqual(statusIds, expectedExternalReferenceIds);
 assert.equal(payload.counts.total, expectedExternalReferenceIds.length);
 assert.equal(payload.counts.byPosture['approved-now'], 1);
 assert.equal(payload.counts.byPosture['future-post-v1'], 3);
-assert.equal(payload.counts.byPosture['signal-only'], 6);
+assert.equal(payload.counts.byPosture['signal-only'], 7);
 
 const hermes = payload.harnesses.find((harness) => harness.id === 'hermes-agent');
 assert.ok(hermes, 'hermes-agent status entry missing');
@@ -69,6 +70,12 @@ assert.ok(agentway, 'agentway-harness-books status entry missing');
 assert.equal(agentway.state, 'policy-blocked');
 assert.equal(agentway.executable, false);
 assert.match(agentway.note, /Do not import bulk PDF content/);
+
+const loopEngineering = payload.harnesses.find((harness) => harness.id === 'loop-engineering-pytorchkr');
+assert.ok(loopEngineering, 'loop-engineering-pytorchkr status entry missing');
+assert.equal(loopEngineering.state, 'policy-blocked');
+assert.equal(loopEngineering.executable, false);
+assert.match(loopEngineering.note, /Do not enable open-loop autonomy/);
 
 console.log(
   JSON.stringify(
