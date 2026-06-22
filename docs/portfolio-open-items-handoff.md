@@ -13,7 +13,7 @@ Run `node scripts/portfolio-share-status.mjs` to summarize current package readi
 
 | Item | Current evidence | Blocker | Completion evidence |
 |---|---|---|---|
-| External share target | `docs/external-share-verification-plan.md` defines target options and reviewer-equivalent access checks; `docs/portfolio-share-copy-template.md` defines claim-safe release and reviewer copy | A human must choose and upload to a target | Verified reviewer-facing URL plus downloaded checksum match recorded in `links.md` |
+| External share target | `docs/external-share-verification-plan.md` defines target options and reviewer-equivalent access checks; `docs/portfolio-share-copy-template.md` defines claim-safe release and reviewer copy; `node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file>` verifies a reviewer-downloaded file against current handoff checksums | A human must choose and upload to a target | Verified reviewer-facing URL plus downloaded checksum match recorded in `links.md` |
 | Local static share page | Optional pre-upload staging is checked with `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs`; exact local staging proof is kept in `docs/portfolio-share-handoff.md` because the local page repo and generated site bundle are outside this evidence package | Local page or bundle readiness is not reviewer access proof and does not create a public URL | Pre-upload local staging is ready only when `readiness.localSharePageReady=true` and, for static-site upload, `readiness.localSharePageBundleReady=true`; reviewer-facing completion still requires upload, reviewer-equivalent access check, and checksum match recorded in `links.md` |
 | Configured-env optional live smoke | `docs/live-provider-verification-note.md` records `skipped_missing_env` for the current checkout at command time because required OpenAI env values were not visible | Required OpenAI env values must be visible in the current execution context | Pass/fail/skipped output from the full optional live smoke set, recorded without secret values |
 
@@ -28,7 +28,7 @@ Use this only after selecting a target such as GitHub Release asset, private att
 5. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`, or upload the generated static-site zip only when `localSharePageBundleReady=true`.
 6. Open the uploaded artifact from a reviewer-equivalent session.
 7. Download the uploaded artifact into a temporary location.
-8. Compare its SHA-256 with `docs/portfolio-share-handoff.md`.
+8. Run `node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file>` for the evidence package. For the local static-site zip, run `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file> --artifact local-static-site-bundle`.
 9. Use `docs/portfolio-share-copy-template.md` for release notes, attachment notes, portfolio-site snippets, or reviewer messages.
 10. Confirm the destination copy does not imply a running hosted product or measured user outcome.
 11. Update `links.md` only after the access and checksum checks pass.
@@ -66,7 +66,7 @@ Stop and do not update public-facing links when:
 
 - the share target is not selected
 - reviewer-equivalent access cannot be verified
-- the downloaded checksum differs from `docs/portfolio-share-handoff.md`
+- the downloaded artifact fails `node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file>`
 - required OpenAI env values are not visible
 - a live smoke output includes sensitive material that needs redaction before documentation
 

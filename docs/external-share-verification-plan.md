@@ -55,12 +55,12 @@ Keep local-only handoff when no external upload target has been explicitly selec
 4. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`, or upload the generated local static-site zip only when `localSharePageBundleReady=true`.
 5. Open the uploaded link from a reviewer-equivalent context, not only the owner session.
 6. Download the uploaded file into a temporary location.
-7. Run `shasum -a 256 <downloaded-file>` and compare it with the checksum in `docs/portfolio-share-handoff.md`.
+7. Run `node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file>` for the evidence package, or add `--artifact local-static-site-bundle` when verifying the generated static-site zip. Keep `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page>` set for static-site bundle verification so the generated manifest checksum is used.
 8. Use `docs/portfolio-share-copy-template.md` for the destination page, release body, or reviewer message.
 9. Confirm the destination page or attachment text does not describe the package as a hosted app or measured user outcome.
 10. Only after those checks pass, update `links.md` with the verified URL and note the access check date.
 
-The rebuild script and pre-publish checker are repository-side artifact gates for the ignored local package. They prepare and confirm package contents before upload, but they do not replace reviewer-equivalent access verification and are not part of the aggregate repository smoke status.
+The rebuild script, pre-publish checker, and uploaded artifact verifier are repository-side artifact gates for the ignored local package and optional local static-site bundle. They prepare and confirm package contents before/after upload, but they do not replace reviewer-equivalent access verification and are not part of the aggregate repository smoke status.
 
 ## Link Recording Template
 
@@ -83,7 +83,7 @@ Until a URL passes reviewer-equivalent access and checksum verification, leave t
 - URLs that only open from the uploader's browser session.
 - Pages that imply a running hosted app when only a downloadable local package exists.
 - Copy that does not follow `docs/portfolio-share-copy-template.md` or an equivalent claim-safe wording.
-- Files whose downloaded checksum does not match `docs/portfolio-share-handoff.md`.
+- Files that fail `node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file>`.
 
 ## Next Action
 

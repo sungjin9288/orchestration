@@ -15,7 +15,7 @@ Do not publish or paste the copy below until all checks pass:
 1. Run `node scripts/portfolio-prepublish-check.mjs` and the pre-publish checks in `docs/portfolio-share-handoff.md`.
 2. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`.
 3. Open the uploaded link from a reviewer-equivalent browser or account.
-4. Download the uploaded artifact and compare its SHA-256 with `docs/portfolio-share-handoff.md`.
+4. Download the uploaded artifact and run `node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file>`.
 5. Confirm the destination page text says the artifact is downloadable evidence, not a running hosted app.
 6. Keep `links.md` without verified external URLs until access and checksum verification pass.
 
@@ -104,4 +104,4 @@ If the destination is a package download rather than a running app, keep `Demo: 
 - The copy does not imply a hosted app, public deployment, measured adoption, or measured business outcome.
 - The copy uses the current package checksum from `docs/portfolio-share-handoff.md`.
 - The copied URL was opened from a reviewer-equivalent context before updating `links.md`.
-- The downloaded file checksum matched the repository handoff.
+- The downloaded file passed `node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file>`.
