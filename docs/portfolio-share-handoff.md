@@ -10,7 +10,7 @@
 
 - Path: `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`
 - Size: `3.7M` from `ls -lh`
-- SHA-256: `032bb622d4435b8fa3e0b2a1046f7f65dff3919407b3f26dc9708933c035cb26`
+- SHA-256: `7b06052edb8b434fd9bd848074a622d2ef994ad21d2b767f9b1f77e2d640f78e`
 - Git state: excluded from repository commit by `.gitignore` rule `_portfolio_export/`
 - Handoff location: this repository file records the post-package checksum; it is not part of the zip payload.
 
@@ -18,6 +18,7 @@
 
 - A local static share page can be prepared outside this repository as a pre-upload staging surface.
 - It is still local-only evidence until a reviewer-facing URL is uploaded, opened from a reviewer-equivalent context, downloaded, and checksum-verified.
+- Current pre-upload staging evidence: `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs` reported `localSharePageReady=true` and `localSharePageBundleReady=true` on `main@14936c5`; the local share page repo head was `709eaee`, and the generated static-site zip SHA-256 was `9c2e1c363405b48c016fea1486e2aafa2c9cac8e39a0fa7ae7d9eb94cfc06304`.
 - Use `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page>` with `node scripts/portfolio-share-status.mjs` to check that the page has `index.html`, `README.md`, `styles.css`, expected screenshot and screencast assets, and a package zip whose SHA-256 matches this handoff.
 - When the local page has generated `dist/orchestration-portfolio-share-page-2026-06-22.manifest.json`, the same status command also checks that the generated site zip exists, its SHA-256 matches the manifest, the manifest points back to this evidence package checksum, and deterministic packaging metadata is present.
 - The local page repo may have its own git commit, but that commit is not a public share target unless a remote URL is verified separately.
