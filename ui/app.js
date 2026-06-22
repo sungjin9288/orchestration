@@ -4727,6 +4727,127 @@ function getMissionExecutionPreview(mission, data) {
   };
 }
 
+function getMissionLoopStatus(mission, previews = {}) {
+  const councilSession = previews.council?.councilSession || null;
+  const linkedTask = previews.execution?.linkedTask || previews.completion?.linkedTask || null;
+  const completionReady = Boolean(previews.completion?.completionReady);
+  const latestRun = previews.execution?.latestRun || null;
+  const latestReviewStatus = previews.deliverables?.latestReviewStatus || 'none';
+  const hasDeliverableArtifact = Boolean(previews.deliverables?.currentDeliverableArtifact);
+
+  if (!mission) {
+    return {
+      stage: 'discover',
+      stageLabel: 'Discover',
+      stopCondition: '안건 선택 전',
+      stopTone: 'warning',
+      controlCopy: '안건이 선택되기 전에는 루프가 열리지 않습니다.',
+      returnPoint: 'Mission에서 안건을 먼저 선택합니다.',
+    };
+  }
+
+  if (!councilSession) {
+    return {
+      stage: 'discover',
+      stageLabel: 'Discover',
+      stopCondition: '회의 초안 필요',
+      stopTone: 'warning',
+      controlCopy: '목표와 경계를 확인했지만 아직 Council 추천안이 없어 실행 루프로 넘기지 않습니다.',
+      returnPoint: 'Mission에서 회의 초안을 열어 사람에게 보이는 정렬 지점을 만듭니다.',
+    };
+  }
+
+  if (councilSession.alignment?.status !== 'approved') {
+    return {
+      stage: 'plan',
+      stageLabel: 'Plan',
+      stopCondition: '결론 승인 필요',
+      stopTone: 'accent',
+      controlCopy: 'Council이 추천안과 이견을 정리하는 단계이며, 승인 전에는 실행으로 넘어가지 않습니다.',
+      returnPoint: 'Council 승인 선반에서 결론을 승인하거나 안건을 다시 다듬습니다.',
+    };
+  }
+
+  if (!linkedTask) {
+    return {
+      stage: 'plan',
+      stageLabel: 'Plan',
+      stopCondition: '실행 셀 연결 필요',
+      stopTone: 'warning',
+      controlCopy: 'Council 결론은 승인됐지만 연결된 실행 셀이 없어 루프가 실행으로 전진하지 않습니다.',
+      returnPoint: 'Mission에서 실행 셀을 연결한 뒤 Execution으로 넘깁니다.',
+    };
+  }
+
+  if (completionReady) {
+    return {
+      stage: 'iterate',
+      stageLabel: 'Iterate',
+      stopCondition: '루프 종료됨',
+      stopTone: 'success',
+      controlCopy: '종료 정리 아티팩트가 저장되어 이 루프는 닫혔고, 다음 안건 준비만 남았습니다.',
+      returnPoint: 'Mission에서 다음 안건을 준비하거나 저장된 Deliverables를 확인합니다.',
+    };
+  }
+
+  if (linkedTask.flags?.waitingApproval) {
+    return {
+      stage: 'execute',
+      stageLabel: 'Execute',
+      stopCondition: '사람 승인 대기',
+      stopTone: 'accent',
+      controlCopy: '실행 루프는 현재 human approval gate에서 멈춰 있으며 승인 전 자동 전진하지 않습니다.',
+      returnPoint: 'Decision Inbox 또는 Execution 승인선에서 현재 승인 항목을 처리합니다.',
+    };
+  }
+
+  if (linkedTask.flags?.waitingDecision) {
+    return {
+      stage: 'plan',
+      stageLabel: 'Plan',
+      stopCondition: '사람 결정 대기',
+      stopTone: 'warning',
+      controlCopy: '미해결 결정이 남아 있어 계획 또는 범위를 다시 확인해야 합니다.',
+      returnPoint: 'Decision Inbox에서 결정 항목을 해결한 뒤 같은 단계로 돌아옵니다.',
+    };
+  }
+
+  if (linkedTask.flags?.blocked || previews.execution?.executionBlocked) {
+    return {
+      stage: 'execute',
+      stageLabel: 'Execute',
+      stopCondition: '차단 사유 확인',
+      stopTone: 'danger',
+      controlCopy: previews.execution?.blockedReason || '차단 사유가 남아 있어 루프가 멈춰 있습니다.',
+      returnPoint: 'Execution에서 차단 근거를 확인하고 필요한 경우 Council 또는 Mission으로 되돌립니다.',
+    };
+  }
+
+  if (latestReviewStatus === 'passed' && hasDeliverableArtifact) {
+    return {
+      stage: 'verify',
+      stageLabel: 'Verify',
+      stopCondition: '결과 검증 완료',
+      stopTone: 'success',
+      controlCopy: '리뷰와 결과 패킷이 준비되어 release/close-out follow-up 판단으로 넘어갈 수 있습니다.',
+      returnPoint: 'Deliverables에서 검증 증적과 후속 승인선을 확인합니다.',
+    };
+  }
+
+  return {
+    stage: latestRun ? 'execute' : 'plan',
+    stageLabel: latestRun ? 'Execute' : 'Plan',
+    stopCondition: latestRun ? '다음 게이트 확인' : '실행 시작 전',
+    stopTone: latestRun ? 'neutral' : 'warning',
+    controlCopy: latestRun
+      ? previews.execution?.stagePreview || '가장 최근 실행 기록을 기준으로 다음 게이트를 확인합니다.'
+      : 'Council 결론 뒤 실행을 시작하기 전 단계입니다.',
+    returnPoint: latestRun
+      ? 'Execution에서 최신 run과 현재 게이트를 확인합니다.'
+      : 'Execution에서 첫 실행 지시를 시작합니다.',
+  };
+}
+
 function getExecutionEvidenceRail(task, data) {
   const buildCheckpoint = (input) => ({
     artifactId: input.artifactId || null,
@@ -13198,6 +13319,12 @@ function renderMission(data) {
     deliverables: selectedMissionDeliverablesPreview,
     execution: selectedMissionExecutionPreview,
   });
+  const missionLoopStatus = getMissionLoopStatus(selectedMission, {
+    completion: selectedMissionCompletion,
+    council: selectedMissionCouncilPreview,
+    deliverables: selectedMissionDeliverablesPreview,
+    execution: selectedMissionExecutionPreview,
+  });
   const selectedMissionBriefControl = getMissionBriefControlSnapshot(selectedMission, {
     completion: selectedMissionCompletion,
     council: selectedMissionCouncilPreview,
@@ -13702,6 +13829,21 @@ function renderMission(data) {
                   </div>
                   <p class="detail-copy detail-copy-compact">${escapeHtml(selectedMission.goal || '기록된 미션 목표가 없습니다.')}</p>
                 </section>
+                <section class="relation-strip relation-strip-compact">
+                  <div class="card-title-row card-title-row-tight">
+                    <strong>루프 상태</strong>
+                    <div class="token-row token-row-compact">
+                      ${createToken(`Loop:${missionLoopStatus.stageLabel}`, missionLoopStatus.stopTone)}
+                      ${createToken(`Stop:${missionLoopStatus.stopCondition}`, missionLoopStatus.stopTone)}
+                    </div>
+                  </div>
+                  <p class="detail-copy detail-copy-compact">
+                    <strong>루프 스테이지</strong>: ${escapeHtml(missionLoopStatus.stageLabel)} · ${escapeHtml(missionLoopStatus.controlCopy)}
+                  </p>
+                  <p class="detail-copy detail-copy-compact">
+                    <strong>사람 복귀 지점</strong>: ${escapeHtml(missionLoopStatus.returnPoint)}
+                  </p>
+                </section>
                 ${missionEvidenceRail}
                 ${
                   selectedMission.deliverableType
@@ -14109,6 +14251,15 @@ function renderCouncil(data) {
       ? data.taskMap.get(selectedMission.linkedTaskId)
       : null;
   const selectedMissionCompletion = getMissionCompletionSummary(selectedMission, data);
+  const selectedMissionCouncilPreview = getMissionCouncilPreview(selectedMission, data);
+  const selectedMissionExecutionPreview = getMissionExecutionPreview(selectedMission, data);
+  const selectedMissionDeliverablesPreview = getMissionDeliverablesPreview(selectedMission, data);
+  const councilLoopStatus = getMissionLoopStatus(selectedMission, {
+    completion: selectedMissionCompletion,
+    council: selectedMissionCouncilPreview,
+    deliverables: selectedMissionDeliverablesPreview,
+    execution: selectedMissionExecutionPreview,
+  });
   const councilControl = getCouncilControlSnapshot(
     selectedMission,
     selectedCouncilSession,
@@ -14362,6 +14513,11 @@ function renderCouncil(data) {
                 ],
                 cards: [
                   {
+                    label: '루프 스테이지',
+                    title: councilLoopStatus.stageLabel,
+                    copy: `${councilLoopStatus.stopCondition}. ${councilLoopStatus.returnPoint}`,
+                  },
+                  {
                     label: '현재 판단',
                     title: councilControl.currentTitle,
                     copy: councilControl.currentCopy,
@@ -14494,6 +14650,11 @@ function renderCouncil(data) {
 }
 
 function renderCouncilHeartbeatStrip(mission, councilSession, linkedTask) {
+  const loopStatus = getMissionLoopStatus(mission, {
+    completion: { completionReady: false, linkedTask },
+    council: { councilSession },
+    execution: { linkedTask },
+  });
   const castEntries = COUNCIL_CAST_ORDER.map((role) => getCouncilCastEntry(role, councilSession));
   const councilHeartbeatSignals = getCompanySignalEntries({
     mission,
@@ -14558,9 +14719,11 @@ function renderCouncilHeartbeatStrip(mission, councilSession, linkedTask) {
           heartbeatTone,
         )}
         ${mission ? createToken(`안건:${mission.id}`, 'neutral') : ''}
+        ${loopStatus ? createToken(`루프:${loopStatus.stageLabel}`, loopStatus.stopTone) : ''}
+        ${loopStatus ? createToken(`중지:${loopStatus.stopCondition}`, loopStatus.stopTone) : ''}
       </div>
       <p class="detail-copy detail-copy-compact council-heartbeat-intro">
-        참석 역할, 정렬 상태, 인계 상태를 같은 회의 흐름에서 이어서 확인합니다.
+        참석 역할, 정렬 상태, 인계 상태를 같은 회의 흐름에서 이어서 확인합니다. Loop stop condition은 같은 선반에서 함께 봅니다.
       </p>
       <div class="council-heartbeat-signal-row">
         ${councilHeartbeatSignals

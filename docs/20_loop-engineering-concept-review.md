@@ -141,9 +141,7 @@ Deliverables should summarize:
 ## Next Safe Build Candidates
 These are candidates, not approvals:
 
-1. A Mission/Council copy polish slice that names loop stage and stop condition without changing
-   runtime semantics.
-2. A growth reflection rule that flags any proposal that claims "loop automation" while omitting
+1. A growth reflection rule that flags any proposal that claims "loop automation" while omitting
    budget, retry, rollback, and approval boundaries.
 
 ## Implemented Read-Only Slice: `loop-readiness-status`
@@ -163,6 +161,16 @@ The command does not accept arguments and does not execute work, call providers,
 schedule jobs, create commits, push, or open external connectors. Its focused smoke is
 `node scripts/smoke-loop-readiness-status.mjs`, and aggregate coverage is registered in
 `node scripts/verification_status.mjs`.
+
+## Implemented UI Copy Slice: `mission-council-loop-stage-stop-condition-copy`
+
+Mission과 Council 표면은 현재 loop stage와 stop condition을 source-derived copy로 표시한다.
+이 slice는 `ui/app.js`의 existing mission, council, execution, deliverables previews를 조합해
+`Discover / Plan / Execute / Verify / Iterate` 중 현재 stage와 사람에게 돌아갈 stop condition을
+보여 주며, runtime route나 state schema를 만들지 않고 UI copy만 추가한다.
+
+Focused smoke는 `node scripts/smoke-ui-slice-646.mjs`이고 aggregate coverage는
+`node scripts/verification_status.mjs`에 등록되어 있다.
 
 ## Not Authorized By This Note
 This review does not authorize:

@@ -182,6 +182,11 @@ const informationalChecks = [
     purpose: 'Loop Engineering readiness status checks goal, boundary, verification gate, stop condition, human return point, source-of-truth refs, and local evidence posture before loop automation can act',
   },
   {
+    id: 'mission-council-loop-stage-stop-condition-copy',
+    script: 'scripts/smoke-ui-slice-646.mjs',
+    purpose: 'Mission and Council copy names the current loop stage and stop condition without adding runtime routes, state schema, provider calls, memory, or automation semantics',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',
