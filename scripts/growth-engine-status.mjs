@@ -22,6 +22,7 @@ const SOURCE_FILES = [
   'tasks/lessons.md',
   'scripts/post-completion-next-step-status.mjs',
   'scripts/growth-evidence-ledger-status.mjs',
+  'scripts/growth-evidence-ledger-gateway-routing-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-skill-memory-registry-status.mjs',
@@ -333,6 +334,15 @@ function summarizeSources(sources) {
       /Growth Evidence Ledger status/.test(inventory),
     growthEvidenceLedgerStatusAggregateRegistered:
       /growth-evidence-ledger-status/.test(verificationStatus),
+    growthEvidenceLedgerGatewayRoutingStatusScriptPresent: fs.existsSync(
+      path.join(repoRoot, 'scripts', 'growth-evidence-ledger-gateway-routing-status.mjs'),
+    ),
+    growthEvidenceLedgerGatewayRoutingStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-gateway-routing-status`/.test(
+        plan,
+      ) && /Growth Evidence Ledger gateway routing status/.test(inventory),
+    growthEvidenceLedgerGatewayRoutingStatusAggregateRegistered:
+      /growth-evidence-ledger-gateway-routing-status/.test(verificationStatus),
     referenceRepoRecheckPresent: /## Reference Repo Recheck \(2026-06-01\)/.test(plan),
     referenceRepoCountPinned: REFERENCE_REPOS.filter((reference) =>
       plan.includes(reference.reviewedHead),
@@ -8490,8 +8500,22 @@ if (postCompletionRouterActive) {
     sourceSummary.growthEvidenceLedgerStatusScriptPresent &&
     sourceSummary.growthEvidenceLedgerStatusDocumented &&
     sourceSummary.growthEvidenceLedgerStatusAggregateRegistered;
+  const growthEvidenceLedgerGatewayRoutingStatusImplemented =
+    growthEvidenceLedgerStatusImplemented &&
+    sourceSummary.growthEvidenceLedgerGatewayRoutingStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerGatewayRoutingStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerGatewayRoutingStatusAggregateRegistered;
   const routedNextSlice = growthEvidenceLedgerStatusImplemented
-    ? {
+    ? growthEvidenceLedgerGatewayRoutingStatusImplemented
+      ? {
+          id: 'growth-evidence-ledger-reflection-handoff',
+          commandToAdd:
+            'node scripts/growth-evidence-ledger-gateway-routing-status.mjs && node scripts/growth-reflection-evaluator.mjs',
+          reason:
+            'The Growth Evidence Ledger is mapped into read-only gateway routing; the next safe vNext slice can make reflection consume that routed ledger status without proposal generation, runtime mutation, provider calls, memory persistence, commits, or pushes.',
+          mustRemainReadOnly: true,
+        }
+      : {
         id: 'growth-evidence-ledger-gateway-routing',
         commandToAdd:
           'node scripts/growth-evidence-ledger-status.mjs && node scripts/growth-gateway-surface-router-status.mjs',
@@ -8513,9 +8537,11 @@ if (postCompletionRouterActive) {
     firstSlice: 'post-completion-next-step-router',
     nextImplementationPosture: 'read-only-status-or-doc-smoke-first',
     growthEvidenceLedgerStatusImplemented,
+    growthEvidenceLedgerGatewayRoutingStatusImplemented,
     candidateWorkstreams: [
       'growth-evidence-ledger',
       'growth-evidence-ledger-gateway-routing',
+      'growth-evidence-ledger-reflection-handoff',
       'reflection-evaluator',
       'gateway-surface-router',
       'optional-real-live-rerun-when-env-visible',

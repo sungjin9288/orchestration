@@ -17281,6 +17281,41 @@ confirm that engine/reflection routing advances from `growth-evidence-ledger` to
 `growth-evidence-ledger-gateway-routing` only after this read-only ledger status contract is
 implemented, documented, and aggregate-registered.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-gateway-routing-status`
+
+`scripts/growth-evidence-ledger-gateway-routing-status.mjs` implements the next post-completion
+read-only slice by mapping Growth Evidence Ledger evidence into the existing gateway surface router
+contract.
+
+Command:
+
+```bash
+node scripts/growth-evidence-ledger-gateway-routing-status.mjs
+```
+
+It answers:
+
+- which ledger evidence types and source buckets can be shown on Mission, Council, Execution,
+  Deliverables, Taskboard, Logs, Artifacts, and Decision Inbox
+- whether every mapped gateway route stays `actionAllowed=false` with evidence links and
+  navigation-only posture
+- whether `growth-evidence-ledger-status` and `growth-gateway-surface-router-status` are both
+  readable and compatible before any reflection handoff consumes routed ledger status
+- whether engine/reflection routing has advanced past `growth-evidence-ledger-gateway-routing` only
+  after this status command is implemented, documented, and aggregate-registered
+
+It intentionally does not:
+
+- execute workers, run dogfood, call providers, persist memory, apply proposals, authorize gateway
+  actions, mutate runtime, mutate UI, mutate source, commit, or push
+- turn Mission, Council, Execution, Deliverables, Taskboard, Logs, Artifacts, or Decision Inbox into
+  executing gateway surfaces
+- treat logs, artifacts, or task ledger entries as hidden approval or execution authority
+
+The command is registered in `scripts/verification_status.mjs`, and existing growth engine and
+reflection smoke coverage checks that the next read-only lane becomes
+`growth-evidence-ledger-reflection-handoff` only after ledger-to-gateway routing is fixed.
+
 ## Supporting Lifecycle Chain Status
 The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
 completion baseline. Re-enter
@@ -17313,21 +17348,19 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-gateway-routing` as the next read-only vNext status/doc-smoke slice,
-routed through `node scripts/growth-evidence-ledger-status.mjs` and confirmed by
-`node scripts/growth-engine-status.mjs` plus `node scripts/growth-reflection-evaluator.mjs`.
+Build `growth-evidence-ledger-reflection-handoff` as the next read-only vNext status/doc-smoke
+slice, routed through `node scripts/growth-evidence-ledger-gateway-routing-status.mjs` and confirmed
+by `node scripts/growth-engine-status.mjs` plus `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- which ledger readiness fields can be surfaced through the existing gateway surface router without
-  granting execution authority
-- how `growth-evidence-ledger-status` and `growth-gateway-surface-router-status` stay connected by
-  read-only evidence rather than runtime mutation
-- which ledger fields must remain absent, blocked, redacted, or projection-only before gateway UI,
-  memory, provider, or worker execution is allowed
-- how gateway routing keeps `growth-reflection-evaluator` as evidence input without generating
-  proposals, applying patches, mutating runtime, mutating UI, persisting memory, opening channels,
-  committing, pushing, or releasing
+- which routed ledger fields become eligible reflection input without generating proposals
+- how `growth-reflection-evaluator` should distinguish ledger evidence, gateway route evidence,
+  negative evidence, projections, and blocked authority
+- which reflection findings can cite routed ledger status while proposal generation, memory
+  persistence, provider calls, runtime mutation, UI execution, commits, and pushes remain blocked
+- how reflection handoff keeps gateway routing read-only and does not turn any surface route into an
+  execution, approval, or source-mutation path
 
 The next command or doc-smoke must remain read-only/status-first. It must not reopen the default
 completion backlog or treat the source-mutation lifecycle chain as the default next product lane.

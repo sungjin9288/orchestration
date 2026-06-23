@@ -10,6 +10,11 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const statusScript = path.join(repoRoot, 'scripts', 'growth-engine-status.mjs');
 const ledgerStatusScript = path.join(repoRoot, 'scripts', 'growth-evidence-ledger-status.mjs');
+const gatewayRoutingStatusScript = path.join(
+  repoRoot,
+  'scripts',
+  'growth-evidence-ledger-gateway-routing-status.mjs',
+);
 
 function runStatus(args = []) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'growth-engine-status-smoke-'));
@@ -65,6 +70,30 @@ function runLedgerStatus(args = []) {
   };
 }
 
+function runGatewayRoutingStatus(args = []) {
+  const result = spawnSync(process.execPath, [gatewayRoutingStatusScript, ...args], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  const stdout = result.stdout?.trim() || '';
+  const stderr = result.stderr?.trim() || '';
+  let payload = null;
+
+  try {
+    payload = JSON.parse(stdout || stderr);
+  } catch (_error) {
+    payload = null;
+  }
+
+  return {
+    payload,
+    status: result.status,
+    stderr,
+    stdout,
+  };
+}
+
 const result = runStatus();
 assert.equal(result.status, 0, `growth-engine-status failed: ${result.stderr}`);
 const payload = result.payload;
@@ -84,7 +113,7 @@ assert.equal(payload.hermesEngine.role, 'inner self-improvement engine');
 assert.match(payload.hermesEngine.currentLoop, /planner -> architect -> task-breaker/);
 assert.equal(
   payload.hermesEngine.nextEngineSlice,
-  'growth-evidence-ledger-gateway-routing',
+  'growth-evidence-ledger-reflection-handoff',
 );
 assert.equal(payload.hermesEngine.currentMode, 'repo-native-hermes-style-post-completion-growth-routing');
 assert.equal(payload.referencePosture.reviewedAt, '2026-06-01');
@@ -139,6 +168,18 @@ assert.equal(payload.evidenceInventory.sourceSummary.postCompletionRouterDocumen
 assert.equal(payload.evidenceInventory.sourceSummary.growthEvidenceLedgerStatusScriptPresent, true);
 assert.equal(payload.evidenceInventory.sourceSummary.growthEvidenceLedgerStatusDocumented, true);
 assert.equal(payload.evidenceInventory.sourceSummary.growthEvidenceLedgerStatusAggregateRegistered, true);
+assert.equal(
+  payload.evidenceInventory.sourceSummary.growthEvidenceLedgerGatewayRoutingStatusScriptPresent,
+  true,
+);
+assert.equal(
+  payload.evidenceInventory.sourceSummary.growthEvidenceLedgerGatewayRoutingStatusDocumented,
+  true,
+);
+assert.equal(
+  payload.evidenceInventory.sourceSummary.growthEvidenceLedgerGatewayRoutingStatusAggregateRegistered,
+  true,
+);
 assert.equal(payload.evidenceInventory.sourceSummary.improvementAcceptanceStatusScriptPresent, true);
 assert.equal(payload.evidenceInventory.sourceSummary.improvementAcceptanceStatusDocumented, true);
 assert.equal(payload.evidenceInventory.sourceSummary.acceptedImprovementRegistryStatusScriptPresent, true);
@@ -1331,7 +1372,7 @@ assert.equal(
 );
 assert.equal(
   payload.nextRecommendedSlice.id,
-  'growth-evidence-ledger-gateway-routing',
+  'growth-evidence-ledger-reflection-handoff',
 );
 assert.equal(payload.nextRecommendedSlice.mustRemainReadOnly, true);
 assert.equal(payload.postCompletionRouter.active, true);
@@ -1339,9 +1380,11 @@ assert.equal(payload.postCompletionRouter.track, 'vNext-read-only-growth-loop');
 assert.equal(payload.postCompletionRouter.firstSlice, 'post-completion-next-step-router');
 assert.equal(payload.postCompletionRouter.nextImplementationPosture, 'read-only-status-or-doc-smoke-first');
 assert.equal(payload.postCompletionRouter.growthEvidenceLedgerStatusImplemented, true);
+assert.equal(payload.postCompletionRouter.growthEvidenceLedgerGatewayRoutingStatusImplemented, true);
 assert.deepEqual(payload.postCompletionRouter.candidateWorkstreams, [
   'growth-evidence-ledger',
   'growth-evidence-ledger-gateway-routing',
+  'growth-evidence-ledger-reflection-handoff',
   'reflection-evaluator',
   'gateway-surface-router',
   'optional-real-live-rerun-when-env-visible',
@@ -1391,6 +1434,34 @@ assert.equal(ledgerPayload.nextRecommendedSlice.id, 'growth-evidence-ledger-gate
 assert.equal(ledgerPayload.safetyBoundary.readOnly, true);
 assert.equal(ledgerPayload.safetyBoundary.doesNotWriteFiles, true);
 assert.equal(ledgerPayload.safetyBoundary.doesNotAuthorizeGatewayActions, true);
+
+const gatewayRoutingResult = runGatewayRoutingStatus();
+assert.equal(
+  gatewayRoutingResult.status,
+  0,
+  `growth-evidence-ledger-gateway-routing-status failed: ${gatewayRoutingResult.stderr}`,
+);
+const gatewayRoutingPayload = gatewayRoutingResult.payload;
+assert.equal(gatewayRoutingPayload.ok, true);
+assert.equal(gatewayRoutingPayload.mode, 'growth-evidence-ledger-gateway-routing-status');
+assert.equal(gatewayRoutingPayload.posture, 'local-read-only-ledger-to-gateway-routing');
+assert.equal(
+  gatewayRoutingPayload.schemaVersion,
+  'growth-evidence-ledger-gateway-routing-status/v0',
+);
+assert.equal(gatewayRoutingPayload.inputStatuses.ledger.ok, true);
+assert.equal(gatewayRoutingPayload.inputStatuses.gatewayRouter.ok, true);
+assert.equal(gatewayRoutingPayload.routeBindings.length, 8);
+assert.ok(gatewayRoutingPayload.routeBindings.every((binding) => binding.routePresent));
+assert.ok(gatewayRoutingPayload.routeBindings.every((binding) => binding.actionAllowed === false));
+assert.equal(gatewayRoutingPayload.readiness.ledgerStatusReady, true);
+assert.equal(gatewayRoutingPayload.readiness.gatewayRouterReady, true);
+assert.equal(gatewayRoutingPayload.readiness.routeBindingsDefined, true);
+assert.equal(gatewayRoutingPayload.readiness.docsAndAggregateReady, true);
+assert.equal(gatewayRoutingPayload.readiness.engineReflectionAdvanced, true);
+assert.equal(gatewayRoutingPayload.nextRecommendedSlice.id, 'growth-evidence-ledger-reflection-handoff');
+assert.equal(gatewayRoutingPayload.safetyBoundary.doesNotAuthorizeGatewayActions, true);
+assert.equal(gatewayRoutingPayload.safetyBoundary.doesNotApplyProposals, true);
 
 const typoResult = runStatus(['--typo']);
 assert.equal(typoResult.status, 2);
@@ -3836,7 +3907,7 @@ assert.match(
 );
 assert.match(
   plan,
-  /Build `growth-evidence-ledger-gateway-routing` as the next read-only vNext status\/doc-smoke slice/,
+  /Build `growth-evidence-ledger-reflection-handoff` as the next read-only vNext status\/doc-smoke\s+slice/,
 );
 assert.match(
   plan,
@@ -3862,7 +3933,7 @@ assert.match(
 assert.match(plan, /lifecycle close review status next gate/);
 assert.match(
   plan,
-  /Build `growth-evidence-ledger-gateway-routing` as the next read-only vNext status\/doc-smoke slice/,
+  /Build `growth-evidence-ledger-reflection-handoff` as the next read-only vNext status\/doc-smoke\s+slice/,
 );
 assert.match(
   plan,

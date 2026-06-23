@@ -227,6 +227,11 @@ const informationalChecks = [
     purpose: 'Growth Evidence Ledger status fixes read-only typed evidence source buckets and ledger schemas before reflection handoff, proposal generation, memory persistence, provider calls, or gateway execution can act',
   },
   {
+    id: 'growth-evidence-ledger-gateway-routing-status',
+    script: 'scripts/growth-evidence-ledger-gateway-routing-status.mjs',
+    purpose: 'Growth Evidence Ledger gateway routing status maps ledger evidence into owned gateway surfaces without granting execution authority, provider calls, memory persistence, source mutation, commits, or pushes',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',
