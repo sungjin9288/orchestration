@@ -17465,6 +17465,44 @@ reflection smoke coverage checks that the next read-only lane becomes
 `growth-evidence-ledger-proposal-record-review-gate` only after the record-readiness field map is
 fixed.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-review-gate-status`
+
+`scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs` implements the next
+post-completion read-only slice by converting proposal-record readiness evidence into a human review
+gate contract without approving, creating, or persisting a proposal record.
+
+Command:
+
+```bash
+node scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs
+```
+
+It answers:
+
+- which record-readiness evidence must be reviewed before a future proposal-record creation
+  readiness check can even be considered
+- which `approvalGate` fields from `growth-proposal-queue-status` are mapped into the review-gate
+  envelope
+- why the review gate remains non-approving even though it has an operator actor and review phrase
+- whether engine/reflection routing has advanced past
+  `growth-evidence-ledger-proposal-record-review-gate` only after this status command is
+  implemented, documented, ledgered, and aggregate-registered
+
+It intentionally does not:
+
+- approve proposals, accept proposals for implementation, assign proposal ids, assign proposal
+  statuses, persist created-at timestamps, create proposal records, persist proposal records,
+  generate proposals, apply proposals, or mutate proposal queues
+- execute workers, run dogfood, call providers, persist memory, authorize gateway actions, mutate
+  runtime, mutate UI, mutate source, commit, or push
+- treat a review gate as durable queue state, proposal approval, implementation authority, hidden
+  prioritization, source-mutation authority, or gateway action authority
+
+The command is registered in `scripts/verification_status.mjs`, and existing growth engine and
+reflection smoke coverage checks that the next read-only lane becomes
+`growth-evidence-ledger-proposal-record-creation-readiness` only after the record review-gate
+contract is fixed.
+
 ## Supporting Lifecycle Chain Status
 The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
 completion baseline. Re-enter
@@ -17497,20 +17535,20 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-record-review-gate` as the next read-only vNext
+Build `growth-evidence-ledger-proposal-record-creation-readiness` as the next read-only vNext
 status/doc-smoke slice, routed through
-`node scripts/growth-evidence-ledger-proposal-record-readiness-status.mjs` and
+`node scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs` and
 confirmed by `node scripts/growth-engine-status.mjs` plus
 `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- which human review question, gate actor, approval boundary, and blocked-action list must exist
-  before a future explicit proposal-record creation slice can be considered
-- how proposal-record review stays separate from proposal generation, proposal queue mutation,
-  proposal application, record persistence, approval, memory persistence, provider calls, runtime
+- which additional prerequisites must exist before any future explicit proposal-record creation
+  slice may assign `proposalId`, `status`, or `createdAt`
+- how creation readiness stays separate from proposal generation, proposal queue mutation, proposal
+  application, record persistence, proposal approval, memory persistence, provider calls, runtime
   mutation, UI execution, commits, and pushes
-- how the review-gate contract prevents preview-only record readiness from becoming hidden
+- how the creation-readiness contract prevents a reviewed preview shape from becoming hidden
   prioritization, execution authority, approval authority, source-mutation authority, or durable
   queue state
 

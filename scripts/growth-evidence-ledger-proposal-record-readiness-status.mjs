@@ -19,6 +19,7 @@ const SOURCE_FILES = [
   'tasks/todo.md',
   'tasks/lessons.md',
   'scripts/growth-evidence-ledger-proposal-record-readiness-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs',
   'scripts/growth-evidence-ledger-proposal-queue-handoff-status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-engine-status.mjs',
@@ -125,9 +126,17 @@ function summarizeSources(sources) {
       /proposal record readiness.*record creation/i.test(lessons) ||
       /record creation.*proposal record readiness/i.test(lessons),
     engineRoutesPastProposalRecordReadiness:
-      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-review-gate/.test(engine),
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-review-gate/.test(
+        engine,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-creation-readiness/.test(
+        engine,
+      ),
     reflectionRoutesPastProposalRecordReadiness:
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-review-gate/.test(
+        reflection,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-creation-readiness/.test(
         reflection,
       ),
     noDefaultBacklogOpen: !/^- \[ \]/m.test(todo),
