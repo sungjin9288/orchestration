@@ -135,6 +135,12 @@ Refresh public-facing docs from code and verification evidence only.
 Stop condition: README and portfolio-facing docs have current setup, testing, scope, limitations,
 and links with no unsupported numbers or unverified capability claims.
 
+Implemented evidence: `README.md` now states current setup, local API usage, source-derived route
+surface, source-derived optional OpenAI env vars, measured smoke file counts, current-head local API
+evidence from 2026-06-23, and explicit scope limitations. The source smoke
+`scripts/smoke-readme-scope-evidence.mjs` pins README section order, honesty patterns, measured
+counts, missing root `.env.example` / `package.json` notes, and server route coverage.
+
 ## Status-Loop Boundary
 The growth lifecycle read-only status chain remains supporting evidence, not the default product
 development path.

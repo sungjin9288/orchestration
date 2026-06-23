@@ -68,10 +68,10 @@ curl http://127.0.0.1:4310/api/snapshot
 
 ## Verified In This Repo Update
 
-2026-06-22 현재 아래 local check로 demo API path를 확인했다.
+2026-06-23 현재 head에서 아래 local check로 demo API path를 다시 확인했다.
 
 ```bash
-node scripts/serve-ui-slice-01.mjs --port 4323 --runtime-root /tmp/orchestration-local-demo-doc-check-fresh
+node scripts/serve-ui-slice-01.mjs --port 4324 --runtime-root /tmp/orchestration-local-demo-readme-check-20260623
 ```
 
 검증 결과:
@@ -82,10 +82,7 @@ node scripts/serve-ui-slice-01.mjs --port 4323 --runtime-root /tmp/orchestration
   "projectId": "project-0001",
   "taskId": "task-0001",
   "plannerRunId": "run-0001",
-  "plannerArtifactId": "artifact-0001",
-  "snapshotProjects": 1,
-  "snapshotTasks": 1,
-  "snapshotArtifacts": 1
+  "plannerArtifactId": "artifact-0001"
 }
 ```
 

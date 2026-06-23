@@ -202,6 +202,11 @@ const informationalChecks = [
     purpose: 'Deliverables completion summary answers changed, passed, blocked, and safe-next questions without adding new downstream actions',
   },
   {
+    id: 'readme-scope-evidence',
+    script: 'scripts/smoke-readme-scope-evidence.mjs',
+    purpose: 'README public-facing setup, testing, scope, route, env, and limitation claims stay backed by current source and measured smoke counts',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',

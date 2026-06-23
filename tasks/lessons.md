@@ -159,6 +159,7 @@
 - mission title strip density도 같은 원칙이 유지됐고, selected mission identity와 bounded goal도 새 상태나 helper copy를 늘리기보다 `relation-strip-compact / card-title-row-tight / detail-copy-compact` 같은 modifier class로 strip 밀도만 줄이는 편이 가장 안전했다.
 - detail polish가 title strip까지 닫히면, 그 다음에는 microcopy slice를 계속 쪼개기보다 acceptance freeze로 전환해 현재 `Mission / Council / Execution / Deliverables` baseline을 completion target으로 고정하는 편이 drift를 훨씬 줄였다.
 - acceptance freeze 단계에서는 새 capability를 더 열기보다 existing runtime fixture와 source-based acceptance smoke로 “이 baseline이 완성 상태다”를 고정하는 편이 가장 안전했다. completion 이후 남는 optional real-live/provider housekeeping은 반드시 non-blocking 운영 트랙으로 분리해야 했다.
+- portfolio-facing README를 닫을 때는 좋은 설명보다 source-backed honesty gate가 먼저다. route, env var, smoke count, demo status, missing setup file을 코드와 명령에서 직접 추출하고 focused README smoke로 고정해야 stale 숫자나 미검증 demo claim이 다시 들어오지 않는다.
 - completion baseline이 frozen 된 뒤에는 새 primary-shell slice를 계속 열기보다 남은 작업을 기존 non-blocking housekeeping backlog로 되돌리는 편이 drift를 가장 잘 막았다. baseline completion과 운영 housekeeping을 같은 queue에 두면 다시 product blocker처럼 보이기 쉽다.
 - 상위 방향성 항목(`ai-orchestration-pivot-v2`)이 실제로 구현된 뒤에도 backlog에 `[ ]`로 남겨두면 이후 housekeeping이 다시 product blocker처럼 보인다. completion freeze 이후에는 그 방향성 항목 자체를 완료로 닫고, 남은 작업만 explicit non-blocking 또는 later `vNext` entry로 되돌려야 ledger drift를 막기 쉽다.
 - deferred/rejected section도 같은 원칙이 적용됐고, docs가 이미 `deferred` 또는 `rejected`로 못 박은 항목을 todo 끝에 `- [ ]`로 남겨두면 실제 open implementation item처럼 오해되기 쉽다. 그런 항목은 unchecked backlog가 아니라 명시적 deferred/rejected note로 닫아 두는 편이 ledger drift를 가장 잘 막았다.

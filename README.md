@@ -1,106 +1,111 @@
 # Orchestration 1.0
 
-> AI 워크플로의 **실행 흐름 · 상태 전이 · 산출물 기록**을 control plane 관점에서 구조화한 local-first 실험 프로젝트(PoC).
+Local-first AI workflow control plane for running development work with explicit project context,
+execution state, review gates, approval gates, logs, and artifacts.
 
-단일 AI 기능을 호출하는 것보다, "어떤 작업이 어떤 순서로 실행되고 어디서 실패하며 어떤 상태로 관리되는가"를 **추적 가능한 구조**로 만드는 데 초점을 둡니다. project → mission → task → workflow → snapshot → artifact 흐름을 in-process 런타임과 파일 스토어로 구현했습니다.
-
-> ⚠️ 상태: **PoC / local-first · single-user · ops-first**. 상용 분산 오케스트레이션 플랫폼이 아니며, 운영 수준의 분산 실행·모니터링·권한 관리는 포함하지 않습니다.
-
----
+> Status: PoC / MVP-quality local project. This is a single-user, local-first implementation, not a
+> distributed orchestration service or hosted team platform.
 
 ## Why I Built This
 
-AI 기능이 많아질수록 실행 순서·실패 지점·상태 관리를 추적하기 어려워집니다. 단일 기능 구현보다 중요한 것은 **작업 실행 흐름과 상태를 관리하는 구조**라고 판단해, control plane 개념을 직접 구현하며 검증한 프로젝트입니다.
-
----
+AI coding workflows often fail in the gaps between steps: missing project context, unclear execution
+order, weak review evidence, and hidden approval boundaries. Orchestration 1.0 explores that control
+plane layer directly: a local project is registered, a mission or task is created, execution moves
+through bounded stages, and every meaningful output is inspectable through logs, artifacts, review,
+and approvals.
 
 ## Features
 
-| Feature | 설명 |
-|---------|------|
-| Workflow 실행 런타임 | project_path 기반으로 mission/task를 생성하고 workflow를 실행 (`src/runtime`) |
-| 상태 스냅샷 | 실행 후 상태 전이를 snapshot으로 기록 (in-process API 응답) |
-| Execution coordinator | 작업 실행 조율 + provider 어댑터 (`src/execution`) |
-| Provider 추상화 | OpenAI Responses 어댑터 + local-stub 어댑터 (오프라인 결정론 실행) |
-| File-store 영속화 | 외부 DB 없이 로컬 파일 스토어로 상태·산출물 관리 (local-first) |
-| UI Surfaces | mission / taskboard / artifact 표면 (정적 HTML/CSS/JS, `ui/`) |
-| Execution gates | 실행 전 review·approval 게이트를 보존하는 ops-first 규칙 |
-
----
+| Feature | Evidence-backed scope |
+| --- | --- |
+| Local project registry | `project_path` is required before execution; local project state is managed by `src/runtime/runtime-service.js`. |
+| Mission-first shell | `Mission / Council / Execution / Deliverables` is the default product shell in `ui/app.js`. |
+| Advanced Ops surfaces | `Taskboard / Logs / Artifacts / Decision Inbox` remain available as authoritative operator surfaces. |
+| Development pack loop | The implemented pack flow is documented in `packs/development/pack.md`: planner, architect, task-breaker, builder preflight, builder live mutation, reviewer, commit-package, local commit, release-package, close-out. |
+| Review and approval gates | Review-before-done and approval-before-commit/release follow-up are enforced through runtime/coordinator state and surfaced in Decision Inbox. |
+| Local artifact store | Runtime state and artifacts are persisted through `src/runtime/file-store.js`; no external database is required. |
+| Provider boundary | `local-stub` is the default. `openai-responses` exists as an explicit opt-in adapter for planner-through-reviewer roles. |
+| Local UI/API server | `scripts/serve-ui-slice-01.mjs` serves the static UI plus local JSON endpoints for demo and smoke flows. |
 
 ## Tech Stack
 
-| Area | Stack |
-|------|-------|
-| Runtime | Node.js (ESM `.mjs` + CommonJS `.js`), 표준 라이브러리 중심 (외부 npm 의존 최소) |
-| Execution | execution-coordinator, provider-adapter |
-| Providers | OpenAI Responses API 어댑터, local-stub 어댑터 (+ retry policy) |
-| Persistence | 로컬 파일 스토어 (`src/runtime/file-store.js`) |
-| UI | 정적 HTML / CSS / JavaScript (`ui/`) |
-| Verification | smoke-slice 하니스 (`node:assert/strict` 기반), harness 러너 |
-
----
+| Area | Current implementation |
+| --- | --- |
+| Runtime | Node.js, CommonJS runtime modules in `src/runtime/*.js` |
+| Execution | Node.js coordinator and provider adapters in `src/execution/*.js` |
+| UI | Static HTML/CSS/JavaScript in `ui/index.html`, `ui/styles.css`, `ui/app.js` |
+| Persistence | Local file store rooted by `--runtime-root` |
+| Verification | Node smoke scripts using `node:assert/strict`; representative browser/runtime QA through project scripts |
+| Dependencies | No root `package.json` is present on current head, so the documented local-stub path uses Node.js and built-in modules only. |
 
 ## Architecture
 
 ```text
-UI Surfaces (mission / taskboard / artifact)        ← ui/
-        │
-Project / Mission / Task Layer
-        │
-Workflow Execution Layer                            ← src/execution
-   ├─ execution-coordinator
-   └─ provider-adapter ─ OpenAI Responses / local-stub
-        │
-Runtime Service (state · contracts)                 ← src/runtime/runtime-service.js
-        │
-State Snapshot / Artifact Store (local file store)  ← src/runtime/file-store.js
-        │
-QA / Smoke-slice 검증 로그                            ← scripts/
+ui/
+  Mission / Council / Execution / Deliverables
+  Advanced Ops: Taskboard / Logs / Artifacts / Decision Inbox
+        |
+scripts/serve-ui-slice-01.mjs
+  local HTTP wrapper for UI, snapshot, artifact, log, and action endpoints
+        |
+src/runtime/runtime-service.js
+  project, mission, task, run, artifact, decision, review, approval state
+        |
+src/execution/execution-coordinator.js
+  planner -> architect -> task-breaker -> builder -> reviewer
+  commit-package -> local commit -> release-package -> close-out
+        |
+src/execution/providers/
+  local-stub default adapter
+  openai-responses explicit opt-in adapter
+        |
+src/runtime/file-store.js
+  local state and artifact persistence under the selected runtime root
 ```
-
-런타임은 HTTP 서버가 아니라 **in-process 서비스**(`createRuntimeService`)로, smoke 스크립트와 UI가 동일한 파일 스토어 상태를 공유합니다.
-
----
 
 ## Key Design Decisions
 
-- **local-first · single-user 선택** — v1 범위를 "development pack"으로 좁혀, 분산·멀티유저·OAuth 없이 실행 흐름과 상태 관리 구조 자체에 집중. (대신 운영 규모 확장성은 범위 밖)
-- **provider abstraction (OpenAI + local-stub)** — 외부 LLM 없이도 결정론적으로 실행·검증할 수 있도록 local-stub 어댑터를 둠. 네트워크·키 없이 smoke 검증 가능.
-- **file-store 영속화** — 외부 DB 의존을 없애 로컬에서 즉시 재현 가능. 상태·산출물을 파일로 추적해 control plane의 "관찰 가능성"을 단순하게 확보.
-- **execution gate(approval/review)를 비협상 규칙으로** — 실행 전 승인·검토 게이트를 아키텍처에 고정해, 자동 실행이 baseline을 조용히 바꾸지 못하게 함.
-
----
+- `local-first / single-user-first / ops-first`: repo files and local state define the workflow;
+  team workspace, OAuth, messenger, ranking, and org-management semantics are out of scope.
+- `development` pack only: v1 is intentionally narrow and does not implement a pack marketplace.
+- `project_path` before execution: every execution must be tied to an explicit local project path.
+- Review before done: task completion depends on review evidence, not just a successful run.
+- Approval before commit and release follow-up: commit-package and release-package prepare approval
+  records; local commit and close-out consume the approved provenance later.
+- Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
+  call an external release system.
+- Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
+  replace the default local-stub baseline.
 
 ## Getting Started
 
-> 외부 npm 의존이 없어 Node.js만 있으면 실행됩니다 (별도 `npm install` 불필요).
+Prerequisites:
+
+- Node.js
+- A local git worktree to use as `project_path`
+- No `npm install` step is documented for current head because root `package.json` is not present.
+- Root `.env.example` is not present. Optional live-provider variables are listed below from source
+  usage instead of an env template.
+
+Run the local UI/API server:
 
 ```bash
-# 사용 가능한 검증 하니스 목록
-node scripts/harness-run.mjs list
-
-# 특정 하니스 실행
-node scripts/harness-run.mjs <harness-id>
-
-# 개별 smoke-slice 직접 실행 (예: 부트스트랩)
-node scripts/smoke-bootstrap-slice-01.mjs
-
-# UI: 정적 파일을 브라우저에서 열기
-#   ui/index.html  (런타임 파일 스토어 상태를 표시)
+node scripts/serve-ui-slice-01.mjs --runtime-root /tmp/orchestration-demo-runtime
 ```
 
-Local UI/API server로 확인하는 경우:
+Open the local shell:
+
+```text
+http://127.0.0.1:4310/
+```
+
+Check the snapshot endpoint:
 
 ```bash
-# 기본값: 127.0.0.1:4310
-node scripts/serve-ui-slice-01.mjs --runtime-root /tmp/orchestration-demo-runtime
-
-# 다른 터미널에서 snapshot 확인
 curl http://127.0.0.1:4310/api/snapshot
 ```
 
-최소 API demo flow:
+Run the basic local-stub API flow:
 
 ```bash
 curl -X POST http://127.0.0.1:4310/api/projects \
@@ -116,65 +121,123 @@ curl -X POST http://127.0.0.1:4310/api/tasks/task-0001/run-planner \
   -d '{}'
 ```
 
-상세 checklist는 [`docs/local-demo-checklist.md`](./docs/local-demo-checklist.md)에 정리했습니다.
-
-런타임을 코드에서 직접 쓰는 경우:
-
-```js
-const { createRuntimeService } = require('./src/runtime/runtime-service.js');
-const runtime = createRuntimeService({ /* project_path 등 */ });
-```
-
-> 실행에는 `project_path`가 선행되어야 합니다(비협상 규칙). 자세한 운영 규칙은 `AGENTS.md`, 설계는 `docs/`(00_master-brief ~ 03_architecture-roadmap-v1) 참고.
-
----
-
-## Verification
-
-정식 단위 테스트 스위트 대신, 개발 과정에서 **누적된 smoke-slice 하니스**로 실행 경로를 검증합니다.
+Current-head local API evidence was rechecked on 2026-06-23 with:
 
 ```bash
-ls scripts/ | grep -c "^smoke-"   # → 838  (smoke-slice 스크립트)
-ls scripts/ | grep -c "qa-slice"  # → 10   (QA slice 러너)
+node scripts/serve-ui-slice-01.mjs --port 4324 --runtime-root /tmp/orchestration-local-demo-readme-check-20260623
 ```
 
-- smoke 스크립트는 `node:assert/strict`로 런타임을 직접 import해 상태 전이·산출물 생성을 검증합니다.
-- 숫자(838 / 10)는 `scripts/` 디렉터리의 파일 수를 직접 카운트한 값이며, **단위 테스트 케이스 수가 아니라 개발 슬라이스별 smoke 스크립트 수**입니다.
-- 각 하니스의 현재 pass 여부는 `node scripts/harness-run.mjs doctor` / 개별 실행으로 재확인하세요.
-- 대표 local user-flow smoke 근거: [`evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status`](./evidence/cli-logs/smoke-v1-user-flow-kickoff-2026-06-22.status)
+Observed result:
 
----
+```json
+{
+  "ok": true,
+  "projectId": "project-0001",
+  "taskId": "task-0001",
+  "plannerRunId": "run-0001",
+  "plannerArtifactId": "artifact-0001"
+}
+```
 
-## Evidence & Screenshots
+## API / Usage
 
-대표 UI evidence는 저장소의 정적 screenshot으로 확인할 수 있습니다. 아래 이미지는 hosted demo가 아니라 `evidence/screenshots/`에 보관된 로컬 캡처입니다.
+`scripts/serve-ui-slice-01.mjs` defines the local demo endpoints. Common routes include:
 
-![Mission surface](./evidence/screenshots/mission-surface.png)
+| Method | Route | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/snapshot` | Read the current runtime snapshot. |
+| `GET` | `/api/runs/:runId/logs` | Read stored logs for a run. |
+| `GET` | `/api/artifacts/:artifactId` | Read artifact metadata/content preview. |
+| `POST` | `/api/projects` | Register a project with `name` and `projectPath`. |
+| `POST` | `/api/projects/:projectId/select` | Select the active project. |
+| `POST` | `/api/projects/:projectId/provider-config` | Set non-secret provider config metadata. |
+| `POST` | `/api/projects/:projectId/linked-worktrees` | Create/select a linked worktree project. |
+| `POST` | `/api/missions` | Create a mission, optionally with council autodraft. |
+| `POST` | `/api/missions/:missionId/select` | Select a mission. |
+| `POST` | `/api/missions/:missionId/create-linked-task` | Create the mission-linked task. |
+| `POST` | `/api/missions/:missionId/draft-council` | Draft a council session for the mission. |
+| `POST` | `/api/missions/:missionId/approve-council` | Approve council alignment and start the bounded execution chain. |
+| `POST` | `/api/tasks` | Create a task under the active project. |
+| `POST` | `/api/tasks/:taskId/run-planner` | Run planner. |
+| `POST` | `/api/tasks/:taskId/run-architect` | Run architect. |
+| `POST` | `/api/tasks/:taskId/run-task-breaker` | Run task-breaker. |
+| `POST` | `/api/tasks/:taskId/run-builder-preflight` | Run builder preflight. |
+| `POST` | `/api/tasks/:taskId/request-builder-live-mutation-approval` | Request builder live-mutation approval. |
+| `POST` | `/api/tasks/:taskId/run-builder-live-mutation` | Run approved bounded live mutation. |
+| `POST` | `/api/tasks/:taskId/run-reviewer` | Run reviewer. |
+| `POST` | `/api/tasks/:taskId/run-commit-package` | Prepare commit package and approval. |
+| `POST` | `/api/tasks/:taskId/run-local-commit` | Execute approved local commit. |
+| `POST` | `/api/tasks/:taskId/run-release-package` | Prepare local-demo-only release package and approval. |
+| `POST` | `/api/tasks/:taskId/run-close-out` | Finalize approved close-out. |
+| `POST` | `/api/decision-inbox/:itemId/actions` | Approve, reject, or resolve a pending inbox item. |
 
-![Taskboard surface](./evidence/screenshots/taskboard-surface.png)
+Optional live-provider environment variables used by source:
 
-![Artifacts surface](./evidence/screenshots/artifacts-surface.png)
+| Variable | Source-backed purpose |
+| --- | --- |
+| `OPENAI_API_KEY` | Secret read from process env by the OpenAI Responses adapter when a project explicitly opts in. |
+| `OPENAI_RESPONSES_MODEL` | Optional real-live smoke/model selection variable used by live-provider scripts. |
+| `OPENAI_RESPONSES_TIMEOUT_MS` | Optional adapter timeout override. |
+| `OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS` | Optional retry attempt override. |
+| `OPENAI_RESPONSES_RETRY_DELAY_MS` | Optional retry delay override. |
 
-- Evidence manifest: [`evidence/evidence_manifest.md`](./evidence/evidence_manifest.md)
-- Architecture diagram evidence: [`evidence/architecture/`](./evidence/architecture/)
-- CLI and smoke logs: [`evidence/cli-logs/`](./evidence/cli-logs/)
+## Testing
 
----
+This repo uses source and runtime smoke scripts rather than a conventional unit-test suite. The
+counts below are file counts from current head, not a claim about passed test cases.
+
+```bash
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 844 smoke files
+find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 648 UI smoke files
+```
+
+Representative verification commands:
+
+```bash
+node scripts/smoke-readme-scope-evidence.mjs
+node scripts/ui_qa_status.mjs
+node scripts/verification_status.mjs
+node scripts/smoke-qa-slice-07.mjs
+```
+
+Current verification evidence from this README refresh:
+
+- `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
+  list, missing env-template/package notes, and honesty patterns.
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `26/26`; snapshot reachability is
+  informational and may be skipped when the local UI server is not running.
+- `node scripts/verification_status.mjs`: required `1/1`; informational count includes the README
+  source-evidence smoke.
+- `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
+  Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
+  duplicate guards.
 
 ## Scope & Limitations
 
-- 상용 orchestration platform이 아니라 **control plane 개념을 실험한 PoC**입니다.
-- **local-first · single-user**: 분산 실행, 멀티유저, OAuth, 메신저/랭킹/조직관리 의미는 의도적으로 범위에서 제외했습니다.
-- 운영 수준의 분산 실행 · 모니터링 · 권한 관리는 포함하지 않습니다.
-- LLM provider는 OpenAI Responses + local-stub만 지원하며, multi-provider-first 구조가 아닙니다.
-- 기본 검증 경로는 local-stub 중심입니다. OpenAI live provider 검증은 `OPENAI_API_KEY`와 `OPENAI_RESPONSES_MODEL`이 보이는 환경에서 별도 재실행해야 하는 optional path입니다.
-- 검증되지 않은 성능·자동화율 수치는 사용하지 않습니다.
-
----
+- This is a local-first PoC/MVP-quality project, not a hosted service.
+- The default path is single-user and local-stub based.
+- No public hosted demo URL is verified for reviewer access.
+- Root `.env.example` and root `package.json` are not present on current head.
+- Optional OpenAI live-provider verification requires visible `OPENAI_API_KEY` and
+  `OPENAI_RESPONSES_MODEL`; when those env vars are missing, live-provider checks are skipped rather
+  than treated as required failures.
+- The shipped local release path is local-demo-only: no push, publish, merge, or external release
+  automation is executed by release-package or close-out.
+- Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider
+  marketplace, and non-development packs are outside v1 scope.
+- The screenshot and screencast evidence are local artifacts, not proof of an accessible hosted app.
+- Verification counts are measured file counts or command results; this README avoids unsupported
+  performance, cost, accuracy, automation-rate, or adoption metrics.
 
 ## Links
 
-- GitHub: https://github.com/sungjin9288/orchestration
-- Demo: hosted public demo 미공개. Recorded demo plan: [`docs/public-demo-screencast-plan.md`](./docs/public-demo-screencast-plan.md)
-- Screenshots / evidence: [`evidence/screenshots/`](./evidence/screenshots/), [`evidence/evidence_manifest.md`](./evidence/evidence_manifest.md)
-- 운영 규칙 / 설계: [`AGENTS.md`](./AGENTS.md), [`DESIGN.md`](./DESIGN.md), [`docs/`](./docs/)
+- GitHub: [sungjin9288/orchestration](https://github.com/sungjin9288/orchestration)
+- Operating rules: [AGENTS.md](./AGENTS.md)
+- Design rules: [DESIGN.md](./DESIGN.md)
+- Completion gate inventory: [docs/22_completion-gate-inventory.md](./docs/22_completion-gate-inventory.md)
+- Local demo checklist: [docs/local-demo-checklist.md](./docs/local-demo-checklist.md)
+- Evidence manifest: [evidence/evidence_manifest.md](./evidence/evidence_manifest.md)
+- Screenshots: [evidence/screenshots/](./evidence/screenshots/)
+- Demo: no verified hosted public demo URL. Recorded local demo plan:
+  [docs/public-demo-screencast-plan.md](./docs/public-demo-screencast-plan.md)

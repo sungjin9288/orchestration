@@ -32,13 +32,13 @@ gaps, and currently missing or failed evidence.
 
 | Gate | Status | Evidence command or source | Current result | Next action |
 | --- | --- | --- | --- | --- |
-| Required aggregate synthetic gate | pass | `node scripts/verification_status.mjs` | `ok=true`; required `1/1`; informational `89/89` | Keep as the default required docs/runtime aggregate gate. |
+| Required aggregate synthetic gate | pass | `node scripts/verification_status.mjs` | `ok=true`; required `1/1`; informational `90/90` | Keep as the default required docs/runtime aggregate gate. |
 | UI QA synthetic gate | pass | `node scripts/ui_qa_status.mjs` | `ok=true`; required `26/26`; snapshot reachability informational skipped because local UI server was not running | Treat snapshot reachability as optional unless a UI server is intentionally started. |
 | Representative browser/runtime QA | pass | `node scripts/smoke-qa-slice-07.mjs` | `ok=true`; local browser flow reached Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and duplicate guards | Keep as the strongest current local browser/runtime proof. |
 | Harness aggregate | pass | `node scripts/harness_verification_status.mjs` | `ok=true`; `46/46` pass after memory-brief smoke reclassification | Keep harness aggregate in the completion gate set. |
 | Focused memory-brief harness | pass | `node scripts/smoke-harness-slice-38.mjs` | The smoke now accepts explicit unchecked completion-lane task lines while still rejecting historical `[OPEN]` heading false positives | Keep `memory-brief` read-only and let it report current open tasks instead of enforcing a zero-open baseline. |
-| Local demo checklist | documented | `docs/local-demo-checklist.md` and README local demo flow | Local-stub demo path is documented; checklist records a verified API path from `2026-06-22` | If public-facing readiness is needed, rerun the checklist on current head and record fresh evidence. |
-| README honesty gate | partial | README `Verification` and `Scope & Limitations` sections | README has Scope & Limitations, local demo status, smoke-count commands, and optional live-provider caveat | Full README refresh remains open for `completion-readme-scope-evidence-pass-post-m7-1177`. |
+| Local demo checklist | pass | `docs/local-demo-checklist.md` and README local demo flow | Local-stub API path was rechecked on current head on `2026-06-23` with project, task, planner run, and planner artifact ids recorded | Keep hosted demo unlinked until an externally accessible URL is verified. |
+| README honesty gate | pass | `README.md`, `node scripts/smoke-readme-scope-evidence.mjs`, README honesty grep | README has current setup, measured smoke file counts, source-derived route/env notes, Scope & Limitations, and no unsupported claim pattern matches | Keep this smoke in `verification_status` so future README drift is caught. |
 | Optional OpenAI real-live gates | skipped | `OPENAI_API_KEY` / `OPENAI_RESPONSES_MODEL` presence check; `docs/05_execution-spec-ops-verification-m5-02.md` | Both env vars were missing in this shell; optional live reruns were skipped by policy | Rerun only when both env vars are visible; classify as `skipped_missing_env` otherwise. |
 | Optional provider live smoke entrypoints | available | `scripts/smoke-provider-live-slice-02/03/05/06/07.mjs`, `scripts/smoke-qa-live-slice-04/05/06/07.mjs` | Entry points exist, but were not executed because env was missing | Keep optional and non-blocking unless a future decision promotes them. |
 | Product first-run polish | pass | `node scripts/smoke-ui-slice-647.mjs`, `node scripts/ui_qa_status.mjs` | Mission handoff now routes first-run state through Mission registration, Council alignment, linked execution cell creation, and Execution handoff using existing surfaces only | Keep as current first-run product-shell evidence. |
@@ -52,8 +52,8 @@ gaps, and currently missing or failed evidence.
 - `package.json`: not present at repo root.
 
 The absence of live-provider env means optional real-live verification is skipped, not failed. The
-absence of `.env.example` and `package.json` is a README evidence issue to handle in the later
-README/scope pass instead of inventing environment or script claims.
+absence of `.env.example` and `package.json` is now stated directly in README instead of inventing
+environment or install claims.
 
 ## Completion Readiness Judgment
 The current baseline is close to completion but not fully closed.
@@ -62,20 +62,19 @@ Ready evidence:
 - required aggregate synthetic gate is green
 - UI QA synthetic gate is green
 - representative browser/runtime QA is green
-- local demo flow is documented
+- local demo flow is documented and rechecked on current head
 - Deliverables can answer changed, passed, blocked, and safe-next questions from existing truth
-- README already contains Scope & Limitations and avoids unsupported performance claims in the
-  checked sections
+- README contains current setup, source-backed route/env notes, measured smoke file counts, Scope &
+  Limitations, and no unsupported claim pattern matches
 
 Blocking or open evidence:
 - optional OpenAI real-live gates are skipped because env is missing
-- current-head local demo rerun is not yet recorded in this inventory
-- README evidence/scope refresh is intentionally deferred to
-  `completion-readme-scope-evidence-pass-post-m7-1177`
+- lifecycle status chain remains supporting evidence only and should not become the default product
+  development lane unless a stale command or source-of-truth mismatch appears
 
 ## Recommended Next Order
-1. `completion-readme-scope-evidence-pass-post-m7-1177`: refresh public-facing evidence from code,
-   docs, and rerun smoke outputs only.
+1. `growth-lifecycle-status-supporting-evidence-boundary-post-m7-1178`: keep the lifecycle status
+   chain supporting-only unless current verification finds a stale command or source mismatch.
 
 ## Stop Condition For This Inventory Slice
 This slice is complete when:
