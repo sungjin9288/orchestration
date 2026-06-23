@@ -10,6 +10,10 @@ const roadmap = fs.readFileSync(
   path.join(repoRoot, 'docs', '03_architecture-roadmap-v1.md'),
   'utf8',
 );
+const completionInventory = fs.readFileSync(
+  path.join(repoRoot, 'docs', '22_completion-gate-inventory.md'),
+  'utf8',
+);
 
 const uncheckedItems = [...todo.matchAll(/^- \[ \] /gm)].map((match) => match[0]);
 
@@ -30,6 +34,15 @@ assert.match(
   roadmap,
   /future post-freeze follow-up returns to explicit non-blocking housekeeping or later `vNext` backlog entries/,
 );
+assert.match(
+  completionInventory,
+  /\| Zero-open completion baseline \| pass \| `node scripts\/smoke-ui-slice-63\.mjs`, `tasks\/todo\.md`, `docs\/22_completion-gate-inventory\.md` \| `tasks\/todo\.md` has no active unchecked `- \[ \]` item, so no default completion implementation slice remains open \| Open a new implementation slice only from an explicit operator request, concrete regression, usability issue, or accepted vNext decision\. \|/,
+);
+assert.match(
+  completionInventory,
+  /The current required completion baseline is closed for default implementation work\./,
+);
+assert.doesNotMatch(completionInventory, /The current baseline is close to completion but not fully closed/);
 
 console.log(
   JSON.stringify(

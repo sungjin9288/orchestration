@@ -212,6 +212,11 @@ const informationalChecks = [
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',
   },
   {
+    id: 'completion-zero-open-baseline',
+    script: 'scripts/smoke-ui-slice-63.mjs',
+    purpose: 'Completion baseline stays zero-open until an explicit operator request, concrete regression, usability issue, or accepted vNext decision opens a new implementation slice',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',
