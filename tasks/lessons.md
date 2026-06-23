@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review도 proposal approval이 아니다. finalized evidence를 다시 reviewed 상태로 묶어도 acceptance check 전 read-only evidence일 뿐이며, record creation/persistence, queue mutation, implementation, provider, memory, runtime, source mutation, commit, push authority는 계속 차단해야 한다.
 - proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization도 proposal approval이 아니다. accepted evidence를 finalized 상태로 묶어도 review check 전 read-only evidence일 뿐이며, record creation/persistence, queue mutation, implementation, provider, memory, runtime, source mutation, commit, push authority는 계속 차단해야 한다.
 - proposal record dry-run shape는 `proposalRecord` schema를 닮아도 durable queue record가 아니다. `proposalId`, `status`, `createdAt`, approval phrase, persistence, queue mutation authority를 계속 null/blocked로 유지하고, 다음 단계도 validation evidence로만 열어야 schema-shaped evidence가 hidden execution authority로 바뀌지 않는다.
 - zero-open completion 상태에서는 개별 growth status chain이 자체적으로 다음 recheck를 계속 추천하면 안 된다. post-completion router가 활성화되면 `growth-engine-status`도 lifecycle chain을 supporting evidence로 내리고, 다음 기본 vNext workstream은 read-only Growth Evidence Ledger 같은 status/doc-smoke slice로 고정해야 한다.
