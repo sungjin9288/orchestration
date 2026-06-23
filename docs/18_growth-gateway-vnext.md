@@ -17660,6 +17660,47 @@ reflection smoke coverage checks that the next read-only lane becomes
 `growth-evidence-ledger-proposal-record-dry-run-review-acceptance` only after the review envelope is
 defined and keeps the non-approval boundary.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status`
+
+`scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status.mjs` implements the
+next post-completion read-only slice by accepting the dry-run review evidence only as input for a
+later read-only finalization check. This acceptance is intentionally not proposal approval, proposal
+record creation, durable queue state, or implementation authority.
+
+Command:
+
+```bash
+node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status.mjs
+```
+
+It answers:
+
+- whether `growth-evidence-ledger-proposal-record-dry-run-review-status` is green and the review
+  state is `review-ready-for-acceptance-check`
+- whether every review finding passed before acceptance evidence is exposed
+- whether acceptance keeps proposal record creation, persistence, queue mutation, approval,
+  implementation, and durable record promotion blocked
+- whether acceptance can move only to a later read-only finalization check
+- whether engine/reflection routing has advanced past
+  `growth-evidence-ledger-proposal-record-dry-run-review-acceptance` only after this status command
+  is implemented, documented, ledgered, and aggregate-registered
+
+It intentionally does not:
+
+- accept review as proposal approval, generate proposal ids, assign proposal statuses, stamp
+  `createdAt`, create proposal records, persist proposal records, promote dry-run acceptance to
+  durable queue state, generate proposals, apply proposals, mutate proposal queues, or approve
+  proposals
+- execute workers, run dogfood, call providers, persist memory, authorize gateway actions, mutate
+  runtime, mutate UI, mutate source, commit, or push
+- treat review acceptance as proposal approval, durable queue state, implementation authority,
+  hidden prioritization, source-mutation authority, or gateway action authority
+
+The command is registered in `scripts/verification_status.mjs`, and existing growth engine and
+reflection smoke coverage checks that the next read-only lane becomes
+`growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization` only after acceptance
+is defined and keeps the non-approval boundary.
+
 ## Supporting Lifecycle Chain Status
 The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
 completion baseline. Re-enter
@@ -17692,21 +17733,21 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance` as the next read-only vNext
-status/doc-smoke slice, routed through
-`node scripts/growth-evidence-ledger-proposal-record-dry-run-review-status.mjs` and
+Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization` as the next
+read-only vNext status/doc-smoke slice, routed through
+`node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status.mjs` and
 confirmed by `node scripts/growth-engine-status.mjs` plus
 `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- whether the review evidence can enter an acceptance check without approving, creating, or
-  persisting a proposal record
-- how acceptance stays separate from proposal generation, proposal queue mutation, proposal
+- whether accepted dry-run review evidence can be finalized as read-only status evidence without
+  approving, creating, or persisting a proposal record
+- how finalization stays separate from proposal generation, proposal queue mutation, proposal
   application, record persistence, proposal approval, memory persistence, provider calls, runtime
   mutation, UI execution, commits, and pushes
-- how acceptance prevents dry-run review evidence from becoming hidden prioritization, execution
-  authority, approval authority, source-mutation authority, or durable queue state
+- how finalization prevents accepted dry-run review evidence from becoming hidden prioritization,
+  execution authority, approval authority, source-mutation authority, or durable queue state
 
 The next command or doc-smoke must remain read-only/status-first. It must not reopen the default
 completion backlog or treat the source-mutation lifecycle chain as the default next product lane.
