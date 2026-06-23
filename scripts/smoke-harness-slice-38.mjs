@@ -25,8 +25,12 @@ assert.equal(payload.sources.some((source) => source.path === 'tasks/todo.md' &&
 assert.equal(payload.sources.some((source) => source.path === 'tasks/lessons.md' && source.exists), true);
 assert.ok(payload.acceptedDecisionCount > 0);
 assert.ok(payload.lessonCount > 0);
-assert.equal(payload.openTaskCount, 0);
-assert.equal(payload.openTaskPreview.length, 0);
+assert.ok(payload.openTaskCount >= 0);
+assert.equal(
+  payload.openTaskPreview.length,
+  Math.min(payload.openTaskCount, payload.limits.openTaskPreview),
+);
+assert.equal(payload.openTaskPreview.every((line) => line.startsWith('- [ ]')), true);
 assert.equal(
   payload.openTaskPreview.some((line) => /^#{1,6}\s+.*\[OPEN\]/.test(line)),
   false,

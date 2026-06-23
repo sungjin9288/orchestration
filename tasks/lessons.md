@@ -3,6 +3,7 @@
 ## direction resets
 
 - 반복 read-only lifecycle status chain이 다음 개발 작업을 계속 대체하기 시작하면, 그 chain은 supporting evidence로 경계 짓고 completion gates, product-shell polish, evidence/readme readiness 같은 실제 완성 lane으로 전환해야 한다.
+- `memory-brief` 같은 read-only summary helper smoke는 open task를 보고하는 계약과 zero-open baseline 계약을 섞지 않는 편이 안전하다. completion lane을 다시 열 수 있는 단계에서는 `- [ ]` task line만 정확히 세고 historical `[OPEN]` heading false positive를 막는 데 집중해야 한다.
 - 사용자가 `이 디자인은 다른 사람이나 회사에 못 준다`고 말하는 순간은 보통 microcopy 문제가 아니라 product framing mismatch다. 그 시점에는 wording thin slice를 더 열지 말고, 먼저 `AGENTS / master brief / decision log` 에서 shell contract 자체를 다시 고정하는 편이 맞다.
 - 원하는 방향이 `ERP/company shell + visible AI roles + meeting/workday cues` 인데 repo truth가 여전히 `display-only HQ metaphor` 나 `office-first 금지`에 묶여 있으면, UI는 계속 themed website처럼 보일 수밖에 없다. 이런 경우에는 visual polish보다 source-of-truth reset이 먼저다.
 - 외부 reference가 둘 이상일 때는 역할을 분리해서 써야 한다. 이번처럼 `claw-empire` 는 shell/product posture, `OpenHarness` 는 harness/governance robustness reference로 나눠 두면 한 레포의 장점을 다른 축에 과하게 투사하는 실수를 줄이기 쉽다.

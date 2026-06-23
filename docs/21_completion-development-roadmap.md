@@ -100,8 +100,9 @@ checks, and remaining product-shell gaps.
 Stop condition: a single source-backed table identifies required, optional, skipped, and missing
 evidence without adding runtime behavior.
 
-Implemented evidence: `docs/22_completion-gate-inventory.md` records the current gate table and
-identifies the harness memory-brief open-lane mismatch as the next verification gap to resolve.
+Implemented evidence: `docs/22_completion-gate-inventory.md` records the current gate table. The
+follow-up harness memory-brief open-lane mismatch was reclassified by aligning the focused smoke to
+the current completion lane while keeping `memory-brief` read-only.
 
 ### Slice 2: `completion-first-run-product-polish`
 Tighten the first operator path from project selection and mission creation into council alignment

@@ -35,8 +35,8 @@ gaps, and currently missing or failed evidence.
 | Required aggregate synthetic gate | pass | `node scripts/verification_status.mjs` | `ok=true`; required `1/1`; informational `87/87` | Keep as the default required docs/runtime aggregate gate. |
 | UI QA synthetic gate | pass | `node scripts/ui_qa_status.mjs` | `ok=true`; required `24/24`; snapshot reachability informational skipped because local UI server was not running | Treat snapshot reachability as optional unless a UI server is intentionally started. |
 | Representative browser/runtime QA | pass | `node scripts/smoke-qa-slice-07.mjs` | `ok=true`; local browser flow reached Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and duplicate guards | Keep as the strongest current local browser/runtime proof. |
-| Harness aggregate | fail | `node scripts/harness_verification_status.mjs` | `ok=false`; `45/46` pass; `harness-memory-brief-preview` failed | Add a follow-up to align the memory-brief smoke with the reopened completion lane or explicitly reclassify it. |
-| Focused harness failure | fail | `node scripts/smoke-harness-slice-38.mjs` | Assertion expected `openTaskCount === 0`, but `node scripts/memory-brief.mjs` reports `openTaskCount=5` from the active completion lane | This is a current verification gap, not product-runtime evidence. Do not hide it by calling the baseline complete. |
+| Harness aggregate | pass | `node scripts/harness_verification_status.mjs` | `ok=true`; `46/46` pass after memory-brief smoke reclassification | Keep harness aggregate in the completion gate set. |
+| Focused memory-brief harness | pass | `node scripts/smoke-harness-slice-38.mjs` | The smoke now accepts explicit unchecked completion-lane task lines while still rejecting historical `[OPEN]` heading false positives | Keep `memory-brief` read-only and let it report current open tasks instead of enforcing a zero-open baseline. |
 | Local demo checklist | documented | `docs/local-demo-checklist.md` and README local demo flow | Local-stub demo path is documented; checklist records a verified API path from `2026-06-22` | If public-facing readiness is needed, rerun the checklist on current head and record fresh evidence. |
 | README honesty gate | partial | README `Verification` and `Scope & Limitations` sections | README has Scope & Limitations, local demo status, smoke-count commands, and optional live-provider caveat | Full README refresh remains open for `completion-readme-scope-evidence-pass-post-m7-1177`. |
 | Optional OpenAI real-live gates | skipped | `OPENAI_API_KEY` / `OPENAI_RESPONSES_MODEL` presence check; `docs/05_execution-spec-ops-verification-m5-02.md` | Both env vars were missing in this shell; optional live reruns were skipped by policy | Rerun only when both env vars are visible; classify as `skipped_missing_env` otherwise. |
@@ -67,21 +67,16 @@ Ready evidence:
   checked sections
 
 Blocking or open evidence:
-- harness aggregate is currently red because `harness-memory-brief-preview` still expects zero open
-  tasks while the completion lane intentionally has active open items
 - optional OpenAI real-live gates are skipped because env is missing
 - current-head local demo rerun is not yet recorded in this inventory
 - README evidence/scope refresh is intentionally deferred to
   `completion-readme-scope-evidence-pass-post-m7-1177`
 
 ## Recommended Next Order
-1. `completion-harness-memory-brief-open-lane-reclassification-post-m7-1174a`: decide whether the memory-brief
-   smoke should allow explicit completion-lane open tasks or whether the completion lane should use
-   a different non-blocking ledger marker.
-2. `completion-first-run-product-polish-post-m7-1175`: tighten the first operator path once the
-   current harness evidence gap is either fixed or explicitly accepted as non-blocking.
-3. `completion-deliverables-evidence-polish-post-m7-1176`: improve delivery packet clarity.
-4. `completion-readme-scope-evidence-pass-post-m7-1177`: refresh public-facing evidence from code,
+1. `completion-first-run-product-polish-post-m7-1175`: tighten the first operator path from local
+   project selection and mission creation into Council alignment and Execution handoff.
+2. `completion-deliverables-evidence-polish-post-m7-1176`: improve delivery packet clarity.
+3. `completion-readme-scope-evidence-pass-post-m7-1177`: refresh public-facing evidence from code,
    docs, and rerun smoke outputs only.
 
 ## Stop Condition For This Inventory Slice
