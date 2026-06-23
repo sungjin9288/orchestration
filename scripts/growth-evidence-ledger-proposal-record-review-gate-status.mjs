@@ -152,6 +152,9 @@ function summarizeSources(sources) {
       ) ||
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-validation/.test(
         engine,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-review/.test(
+        engine,
       ),
     reflectionRoutesPastProposalRecordReviewGate:
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-creation-readiness/.test(
@@ -161,6 +164,9 @@ function summarizeSources(sources) {
         reflection,
       ) ||
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-validation/.test(
+        reflection,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-review/.test(
         reflection,
       ),
     noDefaultBacklogOpen: !/^- \[ \]/m.test(todo),

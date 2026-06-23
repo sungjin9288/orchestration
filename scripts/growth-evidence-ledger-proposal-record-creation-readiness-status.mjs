@@ -127,12 +127,18 @@ function summarizeSources(sources) {
       ) ||
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-validation/.test(
         engine,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-review/.test(
+        engine,
       ),
     reflectionRoutesPastProposalRecordCreationReadiness:
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-shape/.test(
         reflection,
       ) ||
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-validation/.test(
+        reflection,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-review/.test(
         reflection,
       ),
     noDefaultBacklogOpen: !/^- \[ \]/m.test(todo),

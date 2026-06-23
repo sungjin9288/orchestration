@@ -50,6 +50,11 @@ const proposalRecordDryRunShapeStatusScript = path.join(
   'scripts',
   'growth-evidence-ledger-proposal-record-dry-run-shape-status.mjs',
 );
+const proposalRecordDryRunValidationStatusScript = path.join(
+  repoRoot,
+  'scripts',
+  'growth-evidence-ledger-proposal-record-dry-run-validation-status.mjs',
+);
 
 function runStatus(args = []) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'growth-engine-status-smoke-'));
@@ -297,6 +302,30 @@ function runProposalRecordDryRunShapeStatus(args = []) {
   };
 }
 
+function runProposalRecordDryRunValidationStatus(args = []) {
+  const result = spawnSync(process.execPath, [proposalRecordDryRunValidationStatusScript, ...args], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    maxBuffer: 30 * 1024 * 1024,
+  });
+  const stdout = result.stdout?.trim() || '';
+  const stderr = result.stderr?.trim() || '';
+  let payload = null;
+
+  try {
+    payload = JSON.parse(stdout || stderr);
+  } catch (_error) {
+    payload = null;
+  }
+
+  return {
+    payload,
+    status: result.status,
+    stderr,
+    stdout,
+  };
+}
+
 const result = runStatus();
 assert.equal(result.status, 0, `growth-engine-status failed: ${result.stderr}`);
 const payload = result.payload;
@@ -316,7 +345,7 @@ assert.equal(payload.hermesEngine.role, 'inner self-improvement engine');
 assert.match(payload.hermesEngine.currentLoop, /planner -> architect -> task-breaker/);
 assert.equal(
   payload.hermesEngine.nextEngineSlice,
-  'growth-evidence-ledger-proposal-record-dry-run-validation',
+  'growth-evidence-ledger-proposal-record-dry-run-review',
 );
 assert.equal(payload.hermesEngine.currentMode, 'repo-native-hermes-style-post-completion-growth-routing');
 assert.equal(payload.referencePosture.reviewedAt, '2026-06-01');
@@ -468,6 +497,21 @@ assert.equal(
 );
 assert.equal(
   payload.evidenceInventory.sourceSummary.growthEvidenceLedgerProposalRecordDryRunShapeStatusAggregateRegistered,
+  true,
+);
+assert.equal(
+  payload.evidenceInventory.sourceSummary
+    .growthEvidenceLedgerProposalRecordDryRunValidationStatusScriptPresent,
+  true,
+);
+assert.equal(
+  payload.evidenceInventory.sourceSummary
+    .growthEvidenceLedgerProposalRecordDryRunValidationStatusDocumented,
+  true,
+);
+assert.equal(
+  payload.evidenceInventory.sourceSummary
+    .growthEvidenceLedgerProposalRecordDryRunValidationStatusAggregateRegistered,
   true,
 );
 assert.equal(payload.evidenceInventory.sourceSummary.improvementAcceptanceStatusScriptPresent, true);
@@ -1662,7 +1706,7 @@ assert.equal(
 );
 assert.equal(
   payload.nextRecommendedSlice.id,
-  'growth-evidence-ledger-proposal-record-dry-run-validation',
+  'growth-evidence-ledger-proposal-record-dry-run-review',
 );
 assert.equal(payload.nextRecommendedSlice.mustRemainReadOnly, true);
 assert.equal(payload.postCompletionRouter.active, true);
@@ -1684,6 +1728,10 @@ assert.equal(
   payload.postCompletionRouter.growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented,
   true,
 );
+assert.equal(
+  payload.postCompletionRouter.growthEvidenceLedgerProposalRecordDryRunValidationStatusImplemented,
+  true,
+);
 assert.deepEqual(payload.postCompletionRouter.candidateWorkstreams, [
   'growth-evidence-ledger',
   'growth-evidence-ledger-gateway-routing',
@@ -1695,6 +1743,7 @@ assert.deepEqual(payload.postCompletionRouter.candidateWorkstreams, [
   'growth-evidence-ledger-proposal-record-creation-readiness',
   'growth-evidence-ledger-proposal-record-dry-run-shape',
   'growth-evidence-ledger-proposal-record-dry-run-validation',
+  'growth-evidence-ledger-proposal-record-dry-run-review',
   'reflection-evaluator',
   'gateway-surface-router',
   'optional-real-live-rerun-when-env-visible',
@@ -1835,7 +1884,7 @@ assert.equal(
 );
 assert.equal(
   proposalReadinessPayload.readinessEnvelope.candidateEnvelope.sourceFindingId,
-  'growth-evidence-ledger-proposal-record-dry-run-validation-needed',
+  'growth-evidence-ledger-proposal-record-dry-run-review-needed',
 );
 assert.equal(
   proposalReadinessPayload.nextRecommendedSlice.id,
@@ -2083,6 +2132,54 @@ assert.equal(
 assert.equal(proposalRecordDryRunShapePayload.safetyBoundary.doesNotCreateProposalRecords, true);
 assert.equal(proposalRecordDryRunShapePayload.safetyBoundary.doesNotPersistProposalRecords, true);
 assert.equal(proposalRecordDryRunShapePayload.safetyBoundary.doesNotPromoteDryRunShapeToRecord, true);
+
+const proposalRecordDryRunValidationResult = runProposalRecordDryRunValidationStatus();
+assert.equal(
+  proposalRecordDryRunValidationResult.status,
+  0,
+  `growth-evidence-ledger-proposal-record-dry-run-validation-status failed: ${proposalRecordDryRunValidationResult.stderr}`,
+);
+const proposalRecordDryRunValidationPayload = proposalRecordDryRunValidationResult.payload;
+assert.equal(proposalRecordDryRunValidationPayload.ok, true);
+assert.equal(
+  proposalRecordDryRunValidationPayload.mode,
+  'growth-evidence-ledger-proposal-record-dry-run-validation-status',
+);
+assert.equal(
+  proposalRecordDryRunValidationPayload.posture,
+  'local-read-only-ledger-proposal-record-dry-run-validation',
+);
+assert.equal(
+  proposalRecordDryRunValidationPayload.schemaVersion,
+  'growth-evidence-ledger-proposal-record-dry-run-validation-status/v0',
+);
+assert.equal(proposalRecordDryRunValidationPayload.inputStatuses.proposalRecordDryRunShape.ok, true);
+assert.equal(proposalRecordDryRunValidationPayload.inputStatuses.proposalQueue.ok, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.dryRunShapeReady, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.proposalQueueContractReady, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.validationEnvelopeDefined, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.allValidationChecksPassed, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.creationFieldsRemainUnassigned, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.applyAllowedFalse, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.approvalGateNonApproving, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.durableRecordPromotionBlocked, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.docsAndAggregateReady, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.engineReflectionAdvanced, true);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.proposalRecordCreationAllowed, false);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.proposalQueueMutationAllowed, false);
+assert.equal(proposalRecordDryRunValidationPayload.readiness.validationOnly, true);
+assert.equal(
+  proposalRecordDryRunValidationPayload.validationEnvelope.validationEnvelope.validationResult,
+  'valid-dry-run-shape-no-creation-authority',
+);
+assert.equal(
+  proposalRecordDryRunValidationPayload.nextRecommendedSlice.id,
+  'growth-evidence-ledger-proposal-record-dry-run-review',
+);
+assert.equal(proposalRecordDryRunValidationPayload.safetyBoundary.doesNotCreateProposalRecords, true);
+assert.equal(proposalRecordDryRunValidationPayload.safetyBoundary.doesNotPersistProposalRecords, true);
+assert.equal(proposalRecordDryRunValidationPayload.safetyBoundary.doesNotPromoteValidationToRecord, true);
+assert.equal(proposalRecordDryRunValidationPayload.safetyBoundary.doesNotValidateAsApproval, true);
 
 const typoResult = runStatus(['--typo']);
 assert.equal(typoResult.status, 2);
@@ -4528,7 +4625,7 @@ assert.match(
 );
 assert.match(
   plan,
-  /Build `growth-evidence-ledger-proposal-record-dry-run-validation` as the next read-only vNext\s+status\/doc-smoke slice/,
+  /Build `growth-evidence-ledger-proposal-record-dry-run-review` as the next read-only vNext\s+status\/doc-smoke slice/,
 );
 assert.match(
   plan,
@@ -4554,7 +4651,7 @@ assert.match(
 assert.match(plan, /lifecycle close review status next gate/);
 assert.match(
   plan,
-  /Build `growth-evidence-ledger-proposal-record-dry-run-validation` as the next read-only vNext\s+status\/doc-smoke slice/,
+  /Build `growth-evidence-ledger-proposal-record-dry-run-review` as the next read-only vNext\s+status\/doc-smoke slice/,
 );
 assert.match(
   plan,

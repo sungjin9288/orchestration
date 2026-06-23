@@ -176,6 +176,8 @@ function summarizeSources(sources) {
 
 function buildReadinessEnvelope({ handoffPayload, reflectionPayload, proposalQueuePayload }) {
   const primaryFinding = reflectionPayload?.reflectionFindings?.find(
+    (finding) => finding.id === 'growth-evidence-ledger-proposal-record-dry-run-review-needed',
+  ) || reflectionPayload?.reflectionFindings?.find(
     (finding) => finding.id === 'growth-evidence-ledger-proposal-record-dry-run-validation-needed',
   ) || reflectionPayload?.reflectionFindings?.find(
     (finding) => finding.id === 'growth-evidence-ledger-proposal-record-dry-run-shape-needed',
@@ -266,6 +268,7 @@ function buildReadiness({
     reflectionEvaluatorReady:
       reflectionResult.ok &&
       [
+        'ready-for-growth-evidence-ledger-proposal-record-dry-run-review',
         'ready-for-growth-evidence-ledger-proposal-record-dry-run-validation',
         'ready-for-growth-evidence-ledger-proposal-record-dry-run-shape',
         'ready-for-growth-evidence-ledger-proposal-record-creation-readiness',

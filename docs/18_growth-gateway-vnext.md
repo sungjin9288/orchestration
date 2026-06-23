@@ -17580,6 +17580,47 @@ reflection smoke coverage checks that the next read-only lane becomes
 `growth-evidence-ledger-proposal-record-dry-run-validation` only after the dry-run shape covers the
 proposal record schema without creation authority.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-validation-status`
+
+`scripts/growth-evidence-ledger-proposal-record-dry-run-validation-status.mjs` implements the next
+post-completion read-only slice by validating the dry-run-only `proposalRecord` candidate against the
+`growth-proposal-queue-status` schema without promoting the candidate into durable queue state.
+
+Command:
+
+```bash
+node scripts/growth-evidence-ledger-proposal-record-dry-run-validation-status.mjs
+```
+
+It answers:
+
+- whether every required `proposalRecord` field is present in the dry-run shape and covered by
+  `schemaFieldCoverage`
+- whether `proposalId`, `status`, and `createdAt` remain `null`, `applyAllowed` remains false, and
+  `approvalGate.approvalPhrase` remains `null`
+- whether approval, creation, persistence, queue mutation, and dry-run promotion remain blocked
+  after validation evidence is produced
+- whether optional durable proposal fields remain absent or null instead of becoming hidden queue
+  state
+- whether engine/reflection routing has advanced past
+  `growth-evidence-ledger-proposal-record-dry-run-validation` only after this status command is
+  implemented, documented, ledgered, and aggregate-registered
+
+It intentionally does not:
+
+- generate proposal ids, assign proposal statuses, stamp `createdAt`, create proposal records,
+  persist proposal records, promote dry-run validation to durable queue state, generate proposals,
+  apply proposals, mutate proposal queues, or approve proposals
+- execute workers, run dogfood, call providers, persist memory, authorize gateway actions, mutate
+  runtime, mutate UI, mutate source, commit, or push
+- treat dry-run validation evidence as proposal approval, durable queue state, implementation
+  authority, hidden prioritization, source-mutation authority, or gateway action authority
+
+The command is registered in `scripts/verification_status.mjs`, and existing growth engine and
+reflection smoke coverage checks that the next read-only lane becomes
+`growth-evidence-ledger-proposal-record-dry-run-review` only after validation proves schema coverage
+and preserves the non-authority boundary.
+
 ## Supporting Lifecycle Chain Status
 The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
 completion baseline. Re-enter
@@ -17612,20 +17653,20 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-record-dry-run-validation` as the next read-only vNext
+Build `growth-evidence-ledger-proposal-record-dry-run-review` as the next read-only vNext
 status/doc-smoke slice, routed through
-`node scripts/growth-evidence-ledger-proposal-record-dry-run-shape-status.mjs` and
+`node scripts/growth-evidence-ledger-proposal-record-dry-run-validation-status.mjs` and
 confirmed by `node scripts/growth-engine-status.mjs` plus
 `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- whether the dry-run-only proposal record shape satisfies the `proposalRecord` schema without
-  assigning `proposalId`, `status`, or `createdAt`
-- how validation stays separate from proposal generation, proposal queue mutation, proposal
-  application, record persistence, proposal approval, memory persistence, provider calls, runtime
-  mutation, UI execution, commits, and pushes
-- how validation prevents the dry-run shape from becoming hidden prioritization, execution
+- whether the validation evidence is reviewable by an operator without approving, creating, or
+  persisting a proposal record
+- how review stays separate from proposal generation, proposal queue mutation, proposal application,
+  record persistence, proposal approval, memory persistence, provider calls, runtime mutation, UI
+  execution, commits, and pushes
+- how review prevents dry-run validation evidence from becoming hidden prioritization, execution
   authority, approval authority, source-mutation authority, or durable queue state
 
 The next command or doc-smoke must remain read-only/status-first. It must not reopen the default

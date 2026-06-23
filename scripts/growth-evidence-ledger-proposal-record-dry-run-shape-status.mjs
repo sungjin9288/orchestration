@@ -133,9 +133,15 @@ function summarizeSources(sources) {
     engineRoutesPastProposalRecordDryRunShape:
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-validation/.test(
         engine,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-review/.test(
+        engine,
       ),
     reflectionRoutesPastProposalRecordDryRunShape:
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-validation/.test(
+        reflection,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-review/.test(
         reflection,
       ),
     noDefaultBacklogOpen: !/^- \[ \]/m.test(todo),
