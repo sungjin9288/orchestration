@@ -40,6 +40,7 @@ const SOURCE_FILES = [
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-worker-event-schema.mjs',
   'scripts/growth-proposal-queue-status.mjs',
@@ -753,6 +754,25 @@ function summarizeSources(sources) {
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusAggregateRegistered:
       /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status/.test(
+        verificationStatus,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent:
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          'scripts',
+          'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status.mjs',
+        ),
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status`/.test(
+        plan,
+      ) &&
+      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance status/.test(
+        inventory,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status/.test(
         verificationStatus,
       ),
     reflectionEvaluatorDocumented: /growth-reflection-evaluator/.test(plan),
@@ -13882,6 +13902,11 @@ if (postCompletionRouterActive) {
     sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusScriptPresent &&
     sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusDocumented &&
     sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusAggregateRegistered;
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented =
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered;
   const routedNextSlice = growthEvidenceLedgerStatusImplemented
     ? growthEvidenceLedgerGatewayRoutingStatusImplemented
       ? growthEvidenceLedgerReflectionHandoffStatusImplemented
@@ -13896,7 +13921,16 @@ if (postCompletionRouterActive) {
                         ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented
                           ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented
                             ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented
-                              ? {
+                              ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
+                                ? {
+                                    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization',
+                                    commandToAdd:
+                                      'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status.mjs',
+                                    reason:
+                                      'Dry-run review acceptance finalization review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize review-acceptance evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+                                    mustRemainReadOnly: true,
+                                  }
+                                : {
                                   id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance',
                                   commandToAdd:
                                     'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status.mjs',
@@ -14035,11 +14069,14 @@ if (postCompletionRouterActive) {
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented,
     lifecycleSupportingSlice,
     rationale:
       'The completion baseline is zero-open, so growth-reflection-evaluator must recommend read-only Growth Evidence Ledger work instead of continuing source-mutation lifecycle rechecks as the default product lane.',
   };
-  payload.aggregate.status = growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented
+  payload.aggregate.status = growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
+    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization'
+    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented
     ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance'
     : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented
     ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review'
@@ -14074,7 +14111,9 @@ if (postCompletionRouterActive) {
       id: growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented
         ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented
           ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented
-            ? 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-needed'
+            ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
+              ? 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-needed'
+              : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-needed'
             : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-needed'
           : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-needed'
         : growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented
@@ -14104,7 +14143,9 @@ if (postCompletionRouterActive) {
       claim: growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented
         ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented
           ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented
-            ? 'ProposalRecord dry-run review acceptance finalization evidence is now reviewed only for a read-only acceptance check; the next default vNext step is read-only dry-run review acceptance finalization review acceptance before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.'
+            ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
+              ? 'ProposalRecord dry-run review acceptance finalization review evidence is now accepted only for a read-only finalization check; the next default vNext step is read-only dry-run review acceptance finalization review acceptance finalization before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.'
+              : 'ProposalRecord dry-run review acceptance finalization evidence is now reviewed only for a read-only acceptance check; the next default vNext step is read-only dry-run review acceptance finalization review acceptance before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.'
             : 'ProposalRecord dry-run review acceptance evidence is now finalized only for a read-only review check; the next default vNext step is read-only dry-run review acceptance finalization review before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.'
           : 'ProposalRecord dry-run review evidence is now accepted only for a read-only finalization check; the next default vNext step is read-only dry-run review acceptance finalization before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.'
         : growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented
@@ -14133,7 +14174,9 @@ if (postCompletionRouterActive) {
       allowedNextAction: growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented
         ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented
           ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented
-            ? 'define growth-evidence-ledger proposal-record dry-run review acceptance finalization review acceptance as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation'
+            ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
+              ? 'define growth-evidence-ledger proposal-record dry-run review acceptance finalization review acceptance finalization as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation'
+              : 'define growth-evidence-ledger proposal-record dry-run review acceptance finalization review acceptance as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation'
             : 'define growth-evidence-ledger proposal-record dry-run review acceptance finalization review as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation'
           : 'define growth-evidence-ledger proposal-record dry-run review acceptance finalization as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation'
         : growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented

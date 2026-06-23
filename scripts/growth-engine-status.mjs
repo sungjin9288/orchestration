@@ -35,6 +35,7 @@ const SOURCE_FILES = [
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-skill-memory-registry-status.mjs',
@@ -505,6 +506,25 @@ function summarizeSources(sources) {
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusAggregateRegistered:
       /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status/.test(
+        verificationStatus,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent:
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          'scripts',
+          'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status.mjs',
+        ),
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status`/.test(
+        plan,
+      ) &&
+      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance status/.test(
+        inventory,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status/.test(
         verificationStatus,
       ),
     referenceRepoRecheckPresent: /## Reference Repo Recheck \(2026-06-01\)/.test(plan),
@@ -8729,6 +8749,11 @@ if (postCompletionRouterActive) {
     sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusScriptPresent &&
     sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusDocumented &&
     sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusAggregateRegistered;
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented =
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered;
   const routedNextSlice = growthEvidenceLedgerStatusImplemented
     ? growthEvidenceLedgerGatewayRoutingStatusImplemented
       ? growthEvidenceLedgerReflectionHandoffStatusImplemented
@@ -8743,7 +8768,16 @@ if (postCompletionRouterActive) {
                         ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented
                           ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented
                             ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented
-                              ? {
+                              ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
+                                ? {
+                                    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization',
+                                    commandToAdd:
+                                      'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status.mjs',
+                                    reason:
+                                      'Dry-run review acceptance finalization review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize review-acceptance evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+                                    mustRemainReadOnly: true,
+                                  }
+                                : {
                                   id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance',
                                   commandToAdd:
                                     'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status.mjs',
@@ -8882,6 +8916,7 @@ if (postCompletionRouterActive) {
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented,
     candidateWorkstreams: [
       'growth-evidence-ledger',
       'growth-evidence-ledger-gateway-routing',
@@ -8898,6 +8933,7 @@ if (postCompletionRouterActive) {
       'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization',
       'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review',
       'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance',
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization',
       'reflection-evaluator',
       'gateway-surface-router',
       'optional-real-live-rerun-when-env-visible',
