@@ -4727,6 +4727,76 @@ function getMissionExecutionPreview(mission, data) {
   };
 }
 
+function getMissionHandoffState({ mission = null, councilSession = null, linkedTask = null } = {}) {
+  if (!mission) {
+    return {
+      action: { label: '신규 안건 등록', targetSurface: 'mission' },
+      copy: '첫 안건을 먼저 등록합니다.',
+      current: '안건 대기',
+      evidence: 'mission pending',
+      next: '신규 안건 등록',
+      title: '신규 안건 등록',
+    };
+  }
+
+  if (!councilSession) {
+    return {
+      action: { label: '회의 초안', targetSurface: 'council' },
+      copy: '안건이 등록됐으므로 보이는 추천안과 정렬 지점을 먼저 엽니다.',
+      current: getMissionStatusDisplay(mission.status),
+      evidence: mission.id,
+      next: '회의 초안 작성',
+      title: '회의 초안',
+    };
+  }
+
+  const alignmentStatus = councilSession.alignment?.status || 'pending';
+
+  if (alignmentStatus !== 'approved') {
+    return {
+      action: { label: '협의회 정렬', targetSurface: 'council' },
+      copy: '추천안은 보이지만 정렬 승인이 끝나야 실행 인계가 열립니다.',
+      current: getAlignmentStatusDisplay(alignmentStatus),
+      evidence: councilSession.id,
+      next: '협의회 정렬',
+      title: '협의회 정렬',
+    };
+  }
+
+  if (!linkedTask) {
+    return {
+      action: { label: '실행 셀 연결', targetSurface: 'mission' },
+      copy: 'Council 정렬은 끝났고, 기존 Mission action으로 연결 실행 셀을 만듭니다.',
+      current: '정렬 승인 완료',
+      evidence: councilSession.id,
+      next: '실행 셀 연결',
+      title: '실행 셀 연결',
+    };
+  }
+
+  return {
+    action: { label: '실행 데스크', targetSurface: 'execution' },
+    copy: '연결 실행 셀이 있으므로 기존 Execution surface로 다음 게이트를 넘깁니다.',
+    current: getTaskLifecycleDisplay(linkedTask.lifecycleState),
+    evidence: linkedTask.id,
+    next: getExecutionDeskNext(linkedTask),
+    title: '실행 인계',
+  };
+}
+
+function getMissionFirstRunHandoff(mission, data) {
+  const councilSession =
+    mission?.councilSessionId && data.councilSessionMap.has(mission.councilSessionId)
+      ? data.councilSessionMap.get(mission.councilSessionId)
+      : null;
+  const linkedTask =
+    mission?.linkedTaskId && data.taskMap.has(mission.linkedTaskId)
+      ? data.taskMap.get(mission.linkedTaskId)
+      : null;
+
+  return getMissionHandoffState({ mission, councilSession, linkedTask });
+}
+
 function getMissionLoopStatus(mission, previews = {}) {
   const councilSession = previews.council?.councilSession || null;
   const linkedTask = previews.execution?.linkedTask || previews.completion?.linkedTask || null;
@@ -11108,6 +11178,7 @@ function getCompanyFloorBoardEntries(data, navGroupId) {
     data.inboxItems.find((item) => item.status === 'pending') ||
     null;
   const pendingGateCount = data.inboxItems.filter((item) => item.status === 'pending').length;
+  const selectedMissionHandoff = getMissionFirstRunHandoff(selectedMission, data);
 
   const entries = [
     {
@@ -11117,11 +11188,7 @@ function getCompanyFloorBoardEntries(data, navGroupId) {
       owner: '안건 담당',
       count: getSurfaceDockCount(data, 'mission'),
       status: selectedMission ? getMissionStatusDisplay(selectedMission.status) : '안건 대기',
-      next: selectedMission
-        ? selectedMission.councilSessionId
-          ? '회의실 정렬 계속'
-          : '회의실 초안 작성'
-        : '신규 안건 등록',
+      next: selectedMissionHandoff.next,
       note: selectedMission?.title || '등록된 안건이 아직 없습니다.',
     },
     {
@@ -11888,13 +11955,10 @@ function renderWorkflowsOverview(data, context, activeGroupId) {
       : selectedMission
         ? '안건 담당'
         : '운영자';
+  const selectedMissionHandoff = getMissionFirstRunHandoff(selectedMission, data);
   const selectedOrderNext = selectedTask
     ? getExecutionDeskNext(selectedTask)
-    : selectedMission?.councilSessionId
-      ? '회의 정렬 이어가기'
-      : selectedMission
-        ? '회의 초안 작성'
-        : '신규 안건 등록';
+    : selectedMissionHandoff.next;
   const workflowStartEmpty = !selectedMission && !selectedTask;
   const handoffPanelLabel = workflowStartEmpty ? 'Mission intake' : 'Execution handoff';
   const handoffPanelTitle = workflowStartEmpty ? '접수 인계' : '실행 인계';
@@ -12634,19 +12698,24 @@ function getControlOverviewFocus(context) {
 
   if (surface === 'mission') {
     const hasMission = Boolean(selectedMission);
+    const selectedMissionLinkedTask =
+      selectedMission?.linkedTaskId && activeTask?.id === selectedMission.linkedTaskId
+        ? activeTask
+        : null;
+    const missionHandoff = getMissionHandoffState({
+      mission: selectedMission,
+      councilSession: selectedCouncil,
+      linkedTask: selectedMissionLinkedTask,
+    });
 
     return {
       title: selectedMission?.title || '열린 안건 없음',
       copy: selectedMission
-        ? '안건과 다음 회의만 봅니다.'
+        ? '안건과 다음 인계만 봅니다.'
         : '새 안건을 기다립니다.',
       owner: '운영자 · 안건 흐름',
-      status: selectedMission ? getMissionStatusDisplay(selectedMission.status) : '안건 대기',
-      next: hasMission
-        ? selectedMission.councilSessionId
-          ? '협의회 정렬 계속'
-          : '회의 초안 작성'
-        : '신규 안건 등록',
+      status: hasMission ? getMissionStatusDisplay(selectedMission.status) : missionHandoff.current,
+      next: missionHandoff.next,
       evidence: selectedMission?.id || '미지정',
     };
   }
@@ -12775,24 +12844,15 @@ function getControlOverviewCheck(surface, context, data) {
   }
 
   if (surface === 'mission') {
-    if (!selectedMission) {
-      return {
-        title: '신규 안건 등록',
-        copy: '첫 안건을 먼저 등록합니다.',
-        current: '안건 대기',
-        next: '신규 안건 등록',
-        evidence: 'mission pending',
-        action: { label: '신규 안건 등록', targetSurface: 'mission' },
-      };
-    }
+    const missionHandoff = getMissionFirstRunHandoff(selectedMission, data);
 
     return {
-      title: '협의회 이동',
-      copy: '안건 정리 후 회의로 넘깁니다.',
-      current: getMissionStatusDisplay(selectedMission.status),
-      next: '협의회 정렬',
-      evidence: selectedMission.id,
-      action: { label: '협의회', targetSurface: 'council' },
+      title: missionHandoff.title,
+      copy: missionHandoff.copy,
+      current: missionHandoff.current,
+      next: missionHandoff.next,
+      evidence: missionHandoff.evidence,
+      action: missionHandoff.action,
     };
   }
 

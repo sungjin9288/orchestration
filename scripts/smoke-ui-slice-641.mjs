@@ -12,18 +12,16 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /function getControlOverviewFocus\(context\)/);
 assert.match(appJs, /const hasMission = Boolean\(selectedMission\);/);
+assert.match(appJs, /const missionHandoff = getMissionHandoffState\(\{/);
+assert.match(appJs, /next:\s*missionHandoff\.next/);
+assert.match(appJs, /if \(surface === 'mission'\) \{[\s\S]*const missionHandoff = getMissionFirstRunHandoff\(selectedMission, data\);/);
 assert.match(
   appJs,
-  /next:\s*hasMission\s*\?\s*selectedMission\.councilSessionId\s*\?\s*'협의회 정렬 계속'\s*:\s*'회의 초안 작성'\s*:\s*'신규 안건 등록'/,
-);
-assert.match(appJs, /if \(surface === 'mission'\) \{[\s\S]*if \(!selectedMission\) \{/);
-assert.match(
-  appJs,
-  /if \(!selectedMission\) \{[\s\S]*title:\s*'신규 안건 등록'[\s\S]*next:\s*'신규 안건 등록'[\s\S]*action:\s*\{ label:\s*'신규 안건 등록',\s*targetSurface:\s*'mission'\s*\}/,
+  /if \(!mission\) \{[\s\S]*action:\s*\{ label:\s*'신규 안건 등록',\s*targetSurface:\s*'mission'\s*\}[\s\S]*next:\s*'신규 안건 등록'[\s\S]*title:\s*'신규 안건 등록'/,
 );
 assert.match(
   appJs,
-  /const selectedOrderNext = selectedTask[\s\S]*:\s*selectedMission[\s\S]*\?\s*'회의 초안 작성'[\s\S]*:\s*'신규 안건 등록';/,
+  /const selectedMissionHandoff = getMissionFirstRunHandoff\(selectedMission, data\);[\s\S]*const selectedOrderNext = selectedTask[\s\S]*:\s*selectedMissionHandoff\.next;/,
 );
 assert.match(appJs, /data-target-surface="\$\{escapeHtml\(nextTargetSurface\)\}"/);
 assert.doesNotMatch(

@@ -136,6 +136,12 @@ const smokeChecks = [
     purpose:
       'Manual UI QA checklist rejects unexpected CLI arguments before emitting operator evidence',
   },
+  {
+    id: 'mission-first-run-handoff-state',
+    script: 'scripts/smoke-ui-slice-647.mjs',
+    purpose:
+      'Mission first-run handoff moves from project-backed mission creation into Council alignment, linked execution cell creation, and Execution handoff without adding new runtime routes',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

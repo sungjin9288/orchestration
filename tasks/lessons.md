@@ -125,6 +125,7 @@
 - top-level shell을 실제로 피벗하려면 surface를 추가하는 것만으로는 부족했고, header/nav/grouping copy에서 `Primary Orchestration`과 `Advanced Ops Mode`를 명시적으로 나눠야 사용자가 제품 중심을 덜 헷갈렸다.
 - orchestration-first entry를 만들려면 `Taskboard`를 숨기는 것만으로는 부족했고, first-run project registration/select 자체를 `Mission`에서 시작할 수 있어야 사용자가 실제 첫 클릭부터 제품 의도대로 들어올 수 있었다.
 - `Mission -> Council` handoff도 별도 버튼을 다시 찾게 두면 friction이 남았고, mission 생성 시 optional council autodraft를 붙이는 편이 intent 입력 직후 visible role discussion으로 바로 이어져 orchestration 흐름이 더 자연스러웠다.
+- first-run Mission handoff는 `councilSessionId` 하나만 보고 협의회로 고정하면 정렬 승인 이후에도 다음 단계가 흐려진다. `mission / council alignment / linkedTask`를 같이 읽어 `회의 초안 -> 협의회 정렬 -> 실행 셀 연결 -> 실행 데스크`로 나누면 새 route 없이도 첫 실행 인계가 더 분명해진다.
 - `Mission -> Council -> Execution` handoff에서는 `waitingApproval` 같은 추상 상태만 보여주는 것으로 부족했고, primary surface에서 approval id, target artifact, inbox item, 다음 operator step을 함께 요약해야 사용자가 현재 gate를 훨씬 빨리 이해할 수 있었다.
 - current gate가 pending builder approval 하나로 좁혀진 순간에는 `Execution`에서 explicit CTA 하나를 바로 노출하는 편이 자연스러웠고, 이때도 새 mutation path를 만들기보다 existing inbox approval action을 그대로 재사용하는 편이 semantics drift를 막기 쉬웠다.
 - primary shell에서 live mutation까지 끌어올릴 때도 별도 orchestration route를 새로 만들기보다 승인된 gate 뒤에 existing `run-builder-live-mutation` task route를 그대로 재사용하는 편이 bounded semantics와 기존 smoke 자산을 함께 유지하기 쉬웠다.

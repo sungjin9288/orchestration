@@ -192,6 +192,11 @@ const informationalChecks = [
     purpose: 'Mission and Council copy names the current loop stage and stop condition without adding runtime routes, state schema, provider calls, memory, or automation semantics',
   },
   {
+    id: 'mission-first-run-handoff-state',
+    script: 'scripts/smoke-ui-slice-647.mjs',
+    purpose: 'Mission first-run handoff moves from project-backed mission creation into Council alignment, linked execution cell creation, and Execution handoff without adding new runtime routes',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',

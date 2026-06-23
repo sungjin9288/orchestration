@@ -111,6 +111,11 @@ and execution handoff.
 Stop condition: Mission first-run state explains the next bounded move without long helper copy and
 without hiding `project_path` or linked task provenance.
 
+Implemented evidence: `ui/app.js` now derives Mission first-run handoff from current Mission,
+Council alignment, and linked task state. The source smoke `scripts/smoke-ui-slice-647.mjs` pins
+the bounded route sequence as Mission registration, Council alignment, linked execution cell
+creation, and Execution handoff without adding runtime routes.
+
 ### Slice 3: `completion-deliverables-evidence-polish`
 Tighten Deliverables so review, approval, verification, close-out, and next-cycle readiness are
 visible without leaving the primary product shell.
