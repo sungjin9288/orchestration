@@ -6,6 +6,7 @@ This document defines the current implemented baseline, architecture boundary, a
 ## Current Phase Position
 - the v1 control-plane baseline is complete and remains the authoritative shipped execution substrate
 - the accepted post-v1 AI orchestration pivot described in `docs/06_ai-orchestration-pivot.md` is now implemented on current `main`; it is no longer a pending next product step
+- `docs/21_completion-development-roadmap.md` now fixes the current completion direction: finish the implemented product baseline through explicit completion gates instead of treating repeated read-only lifecycle status checks as the default next product work
 - future work should reuse the current runtime, coordinator, artifact, approval, and review engine rather than replacing it
 - the existing shell remains available as `advanced ops mode`; it is not the intended default first-time product experience anymore
 - the default shell may now evolve into a denser company/ERP command center with visible role attendance, meeting, and workday framing, but `Taskboard / Logs / Artifacts / Decision Inbox` still remain the authoritative operator control surfaces and do not gain new hidden runtime semantics from that product shell
@@ -206,6 +207,7 @@ The following changes require an explicit decision log update before implementat
 ## Codex Handoff Package
 - `docs/04_codex-handoff-master-brief.md` is a repo-aligned briefing document for Codex executors. It summarizes current `main` truth, frozen boundaries, and implementation guardrails without replacing the core source-of-truth docs.
 - `docs/05_execution-spec-ops-verification-m5-02.md` locks the immediate stale-vs-real-fail execution spec for the optional real-live verification follow-up and does not widen runtime, execution, provider, or UI semantics.
+- `docs/21_completion-development-roadmap.md` defines the completion workstreams, completion gates, and immediate next slices for finishing the implemented Orchestration baseline without opening new runtime or provider semantics.
 
 ## Implemented Live-Provider Boundary
 - `local-stub` remains the shipped default; a live provider is explicit operator opt-in only and does not auto-enable from env or secret presence.
