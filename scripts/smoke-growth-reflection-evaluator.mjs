@@ -85,6 +85,12 @@ const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizati
     'scripts',
     'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
   );
+const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScript =
+  path.join(
+    repoRoot,
+    'scripts',
+    'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+  );
 
 function runEvaluator(args = []) {
   const result = spawnSync(process.execPath, [evaluatorScript, ...args], {
@@ -484,6 +490,35 @@ function runProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFina
 ) {
   const result = spawnSync(process.execPath, [
     proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScript,
+    ...args,
+  ], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    maxBuffer: 30 * 1024 * 1024,
+  });
+  const stdout = result.stdout?.trim() || '';
+  const stderr = result.stderr?.trim() || '';
+  let payload = null;
+
+  try {
+    payload = JSON.parse(stdout || stderr);
+  } catch (_error) {
+    payload = null;
+  }
+
+  return {
+    payload,
+    status: result.status,
+    stderr,
+    stdout,
+  };
+}
+
+function runProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus(
+  args = [],
+) {
+  const result = spawnSync(process.execPath, [
+    proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScript,
     ...args,
   ], {
     cwd: repoRoot,
@@ -1778,7 +1813,7 @@ assert.ok(payload.scorecard.some((criterion) => criterion.id === 'memory-safety'
 assert.ok(payload.scorecard.some((criterion) => criterion.id === 'operator-routing-clarity'));
 assert.ok(payload.aggregate.score >= 80);
 assert.equal(payload.aggregate.blockedCriteria, 0);
-assert.match(payload.aggregate.status, /ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance|ready-for-growth-evidence-ledger-proposal-record-dry-run-review|ready-for-growth-evidence-ledger-proposal-record-dry-run-validation|ready-for-growth-evidence-ledger-proposal-record-dry-run-shape|ready-for-growth-evidence-ledger-proposal-record-creation-readiness|ready-for-growth-evidence-ledger-proposal-record-review-gate|ready-for-growth-evidence-ledger-proposal-record-readiness|ready-for-growth-evidence-ledger-proposal-queue-handoff|ready-for-growth-evidence-ledger-proposal-readiness|ready-for-growth-evidence-ledger-reflection-handoff|ready-for-growth-evidence-ledger-gateway-routing|ready-for-growth-evidence-ledger|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-final-close-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-finalization-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-result-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-result-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-execution-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-authorization-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-readiness-status|ready-for-remediation-source-mutation-lifecycle-closeout-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-status|ready-for-remediation-source-mutation-completion-review-acceptance-status|ready-for-remediation-source-mutation-completion-review-status|ready-for-remediation-source-mutation-completion-status|ready-for-remediation-source-mutation-post-apply-audit-review-acceptance-status|ready-for-remediation-source-mutation-post-apply-audit-review-status|ready-for-remediation-source-mutation-post-apply-audit-status|ready-for-remediation-source-mutation-apply-finalization-status|ready-for-remediation-source-mutation-apply-closure-status|ready-for-remediation-source-mutation-apply-result-acceptance-status|ready-for-remediation-source-mutation-apply-result-review-status|ready-for-remediation-source-mutation-apply-result-status|ready-for-remediation-source-mutation-apply-execution-status|ready-for-remediation-source-mutation-apply-dispatch-status|ready-for-remediation-source-mutation-apply-execution-readiness-status|ready-for-remediation-source-mutation-apply-preflight-status|ready-for-remediation-source-mutation-apply-authorization-status|ready-for-remediation-source-mutation-draft-review-status|ready-for-remediation-source-mutation-draft-status|ready-for-remediation-source-mutation-application-preflight-status|ready-for-remediation-source-mutation-authorization-status|ready-for-remediation-source-mutation-request-status|ready-for-remediation-implementation-proposal-status|ready-for-remediation-approval-status|ready-for-remediation-plan-status|ready-for-rollback-review-status|ready-for-regression-watch-status|ready-for-accepted-improvement-registry-status|ready-for-improvement-acceptance-status|ready-for-continuous-development-loop-status|ready-for-gateway-surface-router-status|ready-for-skill-memory-registry-status|ready-for-proposal-queue-status|ready-for-typed-evidence-schema|watch-before-schema/);
+assert.match(payload.aggregate.status, /ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization|ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance|ready-for-growth-evidence-ledger-proposal-record-dry-run-review|ready-for-growth-evidence-ledger-proposal-record-dry-run-validation|ready-for-growth-evidence-ledger-proposal-record-dry-run-shape|ready-for-growth-evidence-ledger-proposal-record-creation-readiness|ready-for-growth-evidence-ledger-proposal-record-review-gate|ready-for-growth-evidence-ledger-proposal-record-readiness|ready-for-growth-evidence-ledger-proposal-queue-handoff|ready-for-growth-evidence-ledger-proposal-readiness|ready-for-growth-evidence-ledger-reflection-handoff|ready-for-growth-evidence-ledger-gateway-routing|ready-for-growth-evidence-ledger|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-final-close-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-finalization-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-result-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-result-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-execution-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-authorization-status|ready-for-remediation-source-mutation-lifecycle-closeout-closure-readiness-status|ready-for-remediation-source-mutation-lifecycle-closeout-review-acceptance-status|ready-for-remediation-source-mutation-lifecycle-closeout-review-status|ready-for-remediation-source-mutation-lifecycle-closeout-status|ready-for-remediation-source-mutation-completion-review-acceptance-status|ready-for-remediation-source-mutation-completion-review-status|ready-for-remediation-source-mutation-completion-status|ready-for-remediation-source-mutation-post-apply-audit-review-acceptance-status|ready-for-remediation-source-mutation-post-apply-audit-review-status|ready-for-remediation-source-mutation-post-apply-audit-status|ready-for-remediation-source-mutation-apply-finalization-status|ready-for-remediation-source-mutation-apply-closure-status|ready-for-remediation-source-mutation-apply-result-acceptance-status|ready-for-remediation-source-mutation-apply-result-review-status|ready-for-remediation-source-mutation-apply-result-status|ready-for-remediation-source-mutation-apply-execution-status|ready-for-remediation-source-mutation-apply-dispatch-status|ready-for-remediation-source-mutation-apply-execution-readiness-status|ready-for-remediation-source-mutation-apply-preflight-status|ready-for-remediation-source-mutation-apply-authorization-status|ready-for-remediation-source-mutation-draft-review-status|ready-for-remediation-source-mutation-draft-status|ready-for-remediation-source-mutation-application-preflight-status|ready-for-remediation-source-mutation-authorization-status|ready-for-remediation-source-mutation-request-status|ready-for-remediation-implementation-proposal-status|ready-for-remediation-approval-status|ready-for-remediation-plan-status|ready-for-rollback-review-status|ready-for-regression-watch-status|ready-for-accepted-improvement-registry-status|ready-for-improvement-acceptance-status|ready-for-continuous-development-loop-status|ready-for-gateway-surface-router-status|ready-for-skill-memory-registry-status|ready-for-proposal-queue-status|ready-for-typed-evidence-schema|watch-before-schema/);
 assert.ok(
   payload.reflectionFindings.some(
     (finding) =>
@@ -1790,13 +1825,13 @@ assert.ok(
   payload.reflectionFindings.some(
     (finding) =>
       finding.id ===
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-needed',
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
   ),
 );
 assert.ok(payload.reflectionFindings.some((finding) => finding.id === 'proposal-generation-still-blocked'));
 assert.equal(
   payload.nextRecommendedSlice.id,
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review',
+  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
 );
 assert.equal(payload.nextRecommendedSlice.mustRemainReadOnly, true);
 assert.equal(payload.postCompletionRouter.active, true);
@@ -1846,6 +1881,11 @@ assert.equal(
 assert.equal(
   payload.postCompletionRouter
     .growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented,
+  true,
+);
+assert.equal(
+  payload.postCompletionRouter
+    .growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented,
   true,
 );
 assert.equal(payload.postCompletionRouter.lifecycleSupportingSlice.id, 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status');
@@ -1941,7 +1981,7 @@ assert.equal(proposalReadinessPayload.readiness.proposalGenerationAllowed, false
 assert.equal(proposalReadinessPayload.readiness.proposalQueueMutationAllowed, false);
 assert.equal(
   proposalReadinessPayload.readinessEnvelope.candidateEnvelope.sourceFindingId,
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-needed',
+  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
 );
 assert.equal(
   proposalReadinessPayload.nextRecommendedSlice.id,
@@ -2596,6 +2636,117 @@ assert.equal(
 );
 assert.equal(
   proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationPayload.safetyBoundary
+    .doesNotCreateProposalRecords,
+  true,
+);
+
+const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewResult =
+  runProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus();
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewResult.status,
+  0,
+  `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status failed: ${proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewResult.stderr}`,
+);
+const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload =
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewResult.payload;
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.ok,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.mode,
+  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status',
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.posture,
+  'local-read-only-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review',
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.schemaVersion,
+  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status/v0',
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.inputStatuses
+    .proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalization.ok,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .finalizationStatusReady,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .reviewEnvelopeDefined,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .reviewFindingsPassed,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .reviewReadyForAcceptanceCheck,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .reviewDoesNotApprove,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .durableRecordPromotionBlocked,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .docsAndAggregateReady,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .engineReflectionAdvanced,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .proposalRecordCreationAllowed,
+  false,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .proposalQueueMutationAllowed,
+  false,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.readiness
+    .reviewOnly,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload
+    .reviewEnvelope.compatibility.reviewState,
+  'reviewed-for-read-only-acceptance-check',
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload
+    .nextRecommendedSlice.id,
+  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.safetyBoundary
+    .doesNotApproveProposals,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.safetyBoundary
+    .doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewToRecord,
+  true,
+);
+assert.equal(
+  proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewPayload.safetyBoundary
     .doesNotCreateProposalRecords,
   true,
 );
@@ -4656,7 +4807,7 @@ assert.match(
 assert.match(plan, /lifecycle close review status next gate/);
 assert.match(
   plan,
-  /Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review` as the next\s+read-only vNext status\/doc-smoke slice/,
+  /Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance` as the next\s+read-only vNext status\/doc-smoke slice/,
 );
 assert.match(
   plan,
