@@ -5867,6 +5867,127 @@ function getDeliverablesControlSnapshot(
   };
 }
 
+function getDeliverablesCompletionSummary(options = {}) {
+  const currentArtifact = options.currentArtifact || null;
+  const latestApproval = options.latestApproval || null;
+  const approvalSummary = options.approvalSummary || { pending: 0 };
+  const approvalBridge = options.approvalBridge || {};
+  const latestReviewStatus = options.latestReviewStatus || 'pending';
+  const missionCompletionReady = Boolean(options.missionCompletionReady);
+  const executionGateReason = options.executionGateReason || null;
+  const evidenceRail = options.evidenceRail || null;
+  const closeOutState = options.closeOutState || { summary: { allowed: false, reasons: [] } };
+  const releasePackageState = options.releasePackageState || { summary: { allowed: false, reasons: [] } };
+  const commitExecutionState = options.commitExecutionState || { summary: { allowed: false, reasons: [] } };
+  const commitPackageState = options.commitPackageState || { summary: { allowed: false, reasons: [] } };
+  const reviewerState = options.reviewerState || { summary: { allowed: false, reasons: [] } };
+  const pendingInboxItem = approvalBridge.pendingInboxItem || null;
+  const reviewPassed = latestReviewStatus === 'passed';
+  const pendingApprovalCount = Number(approvalSummary.pending || 0);
+  const blockedReason =
+    executionGateReason ||
+    evidenceRail?.blockedReason ||
+    pendingInboxItem?.prompt ||
+    pendingInboxItem?.title ||
+    (latestApproval?.status === 'pending'
+      ? `${latestApproval.id} 승인 대기`
+      : null) ||
+    getPrimaryBlockedReason(closeOutState.summary?.reasons, null) ||
+    getPrimaryBlockedReason(releasePackageState.summary?.reasons, null) ||
+    getPrimaryBlockedReason(commitExecutionState.summary?.reasons, null) ||
+    getPrimaryBlockedReason(commitPackageState.summary?.reasons, null) ||
+    getPrimaryBlockedReason(reviewerState.summary?.reasons, null);
+
+  let safeNextLabel = '실행으로 돌아가기';
+  let safeNextCopy = '현재 한정된 경로를 실행 표면에서 계속 전진합니다.';
+
+  if (missionCompletionReady) {
+    safeNextLabel = '다음 미션 준비';
+    safeNextCopy = '종료 정리 번들이 봉인됐으므로 미션에서 다음 안건을 준비합니다.';
+  } else if (pendingApprovalCount > 0 || latestApproval?.status === 'pending') {
+    safeNextLabel = '승인선 처리';
+    safeNextCopy = '현재 승인 안건을 결정함이나 실행 표면에서 먼저 처리합니다.';
+  } else if (closeOutState.summary?.allowed) {
+    safeNextLabel = '종료 정리 실행';
+    safeNextCopy = '현재 승인된 릴리스 번들을 기준으로 실행 표면에서 종료 정리를 실행합니다.';
+  } else if (releasePackageState.summary?.allowed) {
+    safeNextLabel = '릴리스 패키지 준비';
+    safeNextCopy = '최신 로컬 커밋 번들을 기준으로 실행 표면에서 릴리스 패키지를 준비합니다.';
+  } else if (commitExecutionState.summary?.allowed) {
+    safeNextLabel = '로컬 커밋 실행';
+    safeNextCopy = '승인된 커밋 패키지를 기준으로 실행 표면에서 로컬 커밋을 실행합니다.';
+  } else if (commitPackageState.summary?.allowed) {
+    safeNextLabel = '커밋 패키지 준비';
+    safeNextCopy = '리뷰를 통과한 번들을 기준으로 실행 표면에서 커밋 패키지를 준비합니다.';
+  } else if (reviewerState.summary?.allowed) {
+    safeNextLabel = '리뷰 보고 생성';
+    safeNextCopy = '최신 라이브 변경 번들을 기준으로 실행 표면에서 리뷰 보고를 생성합니다.';
+  }
+
+  return {
+    blockedCopy: missionCompletionReady
+      ? '현재 완료 경로에는 남은 차단이 없습니다.'
+      : blockedReason || '현재 보고 표면에서 새로 처리할 차단 사유는 없습니다.',
+    blockedLabel: missionCompletionReady || !blockedReason ? '차단 없음' : '차단 있음',
+    blockedTone: missionCompletionReady || !blockedReason ? 'success' : 'danger',
+    safeNextCopy,
+    safeNextLabel,
+    safeNextTone: missionCompletionReady ? 'success' : 'accent',
+    whatChangedCopy: currentArtifact
+      ? `${currentArtifact.id}가 현재 전달 선반의 대표 패킷입니다.`
+      : '아직 전달 선반에 대표 결과 패킷이 없습니다.',
+    whatChangedLabel: currentArtifact ? getArtifactTypeDisplay(currentArtifact.type) : '패킷 없음',
+    whatChangedTone: currentArtifact ? 'success' : 'warning',
+    whatPassedCopy: reviewPassed
+      ? '현재 리뷰 라인은 통과 상태입니다.'
+      : `현재 리뷰 라인은 ${getReviewStatusDisplay(latestReviewStatus)} 상태입니다.`,
+    whatPassedLabel: missionCompletionReady
+      ? '종료 정리 봉인'
+      : reviewPassed
+        ? '리뷰 통과'
+        : `리뷰 ${getReviewStatusDisplay(latestReviewStatus)}`,
+    whatPassedTone: missionCompletionReady || reviewPassed ? 'success' : getReviewTone(latestReviewStatus),
+  };
+}
+
+function renderDeliverablesCompletionSummary(summary) {
+  if (!summary) {
+    return '';
+  }
+
+  return `
+    <section class="relation-strip deliverables-completion-summary">
+      <div class="card-title-row">
+        <strong>완성 판단 요약</strong>
+        <div class="token-row">
+          ${createToken(`변경:${summary.whatChangedLabel}`, summary.whatChangedTone)}
+          ${createToken(`통과:${summary.whatPassedLabel}`, summary.whatPassedTone)}
+          ${createToken(summary.blockedLabel, summary.blockedTone)}
+          ${createToken(`다음:${summary.safeNextLabel}`, summary.safeNextTone)}
+        </div>
+      </div>
+      <div class="control-overview-register deliverables-completion-register">
+        <div class="control-overview-register-row">
+          <span class="control-overview-register-label">변경 내용</span>
+          <strong class="control-overview-register-value">${escapeHtml(summary.whatChangedCopy)}</strong>
+        </div>
+        <div class="control-overview-register-row">
+          <span class="control-overview-register-label">통과 근거</span>
+          <strong class="control-overview-register-value">${escapeHtml(summary.whatPassedCopy)}</strong>
+        </div>
+        <div class="control-overview-register-row">
+          <span class="control-overview-register-label">차단 사유</span>
+          <strong class="control-overview-register-value">${escapeHtml(summary.blockedCopy)}</strong>
+        </div>
+        <div class="control-overview-register-row">
+          <span class="control-overview-register-label">안전한 다음 행동</span>
+          <strong class="control-overview-register-value">${escapeHtml(summary.safeNextCopy)}</strong>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 function getDeliverablesLeftSnapshot(mission, task, currentArtifact, deliverablesControl, artifacts = {}) {
   if (!mission || !task) {
     return {
@@ -15599,6 +15720,21 @@ function renderDeliverables(data) {
     latestPlanArtifact ||
     latestArtifact;
   const deliverablesEvidenceState = getExecutionEvidenceRail(linkedTask, data);
+  const deliverablesCompletionSummary = getDeliverablesCompletionSummary({
+    approvalBridge,
+    approvalSummary,
+    closeOutState,
+    commitExecutionState,
+    commitPackageState,
+    currentArtifact: currentDeliverableArtifact,
+    evidenceRail: deliverablesEvidenceState,
+    executionGateReason,
+    latestApproval,
+    latestReviewStatus,
+    missionCompletionReady,
+    releasePackageState,
+    reviewerState,
+  });
   const deliverablesDeck = renderDeliverablesReportDeck({
     councilSession: selectedCouncilSession,
     mission: selectedMission,
@@ -15649,6 +15785,7 @@ function renderDeliverables(data) {
   elements.surfaces.deliverables.innerHTML = `
     <div class="stack">
       ${deliverablesDeck}
+      ${renderDeliverablesCompletionSummary(deliverablesCompletionSummary)}
       ${renderHarnessBriefRegister(harnessBrief)}
       <div class="surface-grid">
       <section class="surface-panel">

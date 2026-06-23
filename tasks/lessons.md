@@ -122,6 +122,7 @@
 - `Council`은 새 provider role이나 theater를 만들지 않아도, mission 위에 `visible roster + transcript + recommendation + single alignment CTA`만 얹으면 사용자가 제품 의도를 훨씬 빨리 이해할 수 있었다.
 - alignment 승인 뒤의 auto chain은 새 상태기계를 만드는 대신 기존 `runPlanner -> runArchitect -> runTaskBreaker -> runBuilderPreflight -> requestBuilderLiveMutationApproval` public path를 route 하나에서 순차 재사용하는 편이 provenance와 gate semantics를 가장 작게 유지했다.
 - `Deliverables`는 새 downstream action을 추가하지 말고, 이미 존재하는 artifact/review/approval state를 compact하게 재배열하는 편이 bounded semantics를 지키면서도 사용자가 "지금 무엇이 만들어졌는지"를 더 빨리 이해하게 만들었다.
+- `Deliverables`가 what changed / what passed / blocked / safe next를 답해야 할 때도 새 action을 만들기보다 existing artifact/review/approval/readiness truth를 read-only summary로 묶는 편이 scope drift를 막고 close-out authority를 유지하기 쉽다.
 - top-level shell을 실제로 피벗하려면 surface를 추가하는 것만으로는 부족했고, header/nav/grouping copy에서 `Primary Orchestration`과 `Advanced Ops Mode`를 명시적으로 나눠야 사용자가 제품 중심을 덜 헷갈렸다.
 - orchestration-first entry를 만들려면 `Taskboard`를 숨기는 것만으로는 부족했고, first-run project registration/select 자체를 `Mission`에서 시작할 수 있어야 사용자가 실제 첫 클릭부터 제품 의도대로 들어올 수 있었다.
 - `Mission -> Council` handoff도 별도 버튼을 다시 찾게 두면 friction이 남았고, mission 생성 시 optional council autodraft를 붙이는 편이 intent 입력 직후 visible role discussion으로 바로 이어져 orchestration 흐름이 더 자연스러웠다.

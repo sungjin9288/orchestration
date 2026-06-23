@@ -123,6 +123,12 @@ visible without leaving the primary product shell.
 Stop condition: Deliverables can answer what changed, what passed, what is blocked, and what the
 operator can safely do next.
 
+Implemented evidence: `ui/app.js` now derives a read-only Deliverables completion summary from the
+current artifact, review result, approval line, execution evidence, close-out state, release-package
+state, commit-package state, and reviewer readiness. The source smoke `scripts/smoke-ui-slice-648.mjs`
+pins the changed, passed, blocked, and safe-next labels while preserving existing release-package,
+close-out, inbox approval, and execution routes only.
+
 ### Slice 4: `completion-readme-scope-evidence-pass`
 Refresh public-facing docs from code and verification evidence only.
 

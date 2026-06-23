@@ -197,6 +197,11 @@ const informationalChecks = [
     purpose: 'Mission first-run handoff moves from project-backed mission creation into Council alignment, linked execution cell creation, and Execution handoff without adding new runtime routes',
   },
   {
+    id: 'deliverables-completion-summary',
+    script: 'scripts/smoke-ui-slice-648.mjs',
+    purpose: 'Deliverables completion summary answers changed, passed, blocked, and safe-next questions without adding new downstream actions',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',
