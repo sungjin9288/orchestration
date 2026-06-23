@@ -20,9 +20,12 @@ const SOURCE_FILES = [
   'docs/17_v1-completion-readiness.md',
   'docs/18_growth-gateway-vnext.md',
   'docs/20_loop-engineering-concept-review.md',
+  'docs/21_completion-development-roadmap.md',
+  'docs/22_completion-gate-inventory.md',
   'packs/development/pack.md',
   'tasks/todo.md',
   'tasks/lessons.md',
+  'scripts/post-completion-next-step-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-worker-event-schema.mjs',
   'scripts/growth-proposal-queue-status.mjs',
@@ -537,15 +540,36 @@ function buildScorecard({ sources, runtimeTotals, gitStatusLines }) {
 function summarizeSources(sources) {
   const plan = sourceText(sources, 'docs/18_growth-gateway-vnext.md');
   const loopConceptReview = sourceText(sources, 'docs/20_loop-engineering-concept-review.md');
+  const roadmap = sourceText(sources, 'docs/21_completion-development-roadmap.md');
+  const inventory = sourceText(sources, 'docs/22_completion-gate-inventory.md');
   const decisionLog = sourceText(sources, 'docs/01_decision-log.md');
+  const postCompletionRouter = sourceText(sources, 'scripts/post-completion-next-step-status.mjs');
   const verificationStatus = sourceText(sources, 'scripts/verification_status.mjs');
   const todo = sourceText(sources, 'tasks/todo.md');
   const lessons = sourceText(sources, 'tasks/lessons.md');
+  const uncheckedTaskCount = countMatches(todo, /^- \[ \]/gm);
 
   return {
     sourceCount: sources.length,
     availableSourceCount: sources.filter((source) => source.exists).length,
     growthGatewayPlanPresent: /# Growth Gateway VNext Plan/.test(plan),
+    growthEvidenceLedgerPlanned: /### Slice 1: Growth Evidence Ledger/.test(plan),
+    reflectionEvaluatorPlanned: /### Slice 2: Reflection Evaluator/.test(plan),
+    continuousDevelopmentLoopPlanned: /### Slice 6: Continuous Development Loop/.test(plan),
+    zeroOpenBacklog: uncheckedTaskCount === 0,
+    completionInventoryClosed:
+      /The current required completion baseline is closed for default implementation work\./.test(
+        inventory,
+      ) && /No default completion implementation slice remains open/.test(inventory),
+    growthLoopReadinessDocumented:
+      /Growth Loop Readiness/.test(roadmap) &&
+      /Use Loop Engineering as a bounded operating model/.test(roadmap),
+    postCompletionRouterScriptPresent: fs.existsSync(
+      path.join(repoRoot, 'scripts', 'post-completion-next-step-status.mjs'),
+    ),
+    postCompletionRouterDocumented:
+      /Post-completion next-step router/.test(inventory) &&
+      /post-completion-next-step-status/.test(postCompletionRouter),
     reflectionEvaluatorDocumented: /growth-reflection-evaluator/.test(plan),
     workerEventSchemaScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-worker-event-schema.mjs'),
@@ -2414,7 +2438,7 @@ function summarizeSources(sources) {
     referenceRepoRecheckPresent: /Reference Repo Recheck \(2026-06-01\)/.test(plan),
     decisionAccepted: /### DEC-047/.test(decisionLog),
     completedTaskCount: countMatches(todo, /^- \[x\]/gm),
-    openTaskCount: countMatches(todo, /^- \[ \]/gm),
+    openTaskCount: uncheckedTaskCount,
     lessonCount: countMatches(lessons, /^- /gm),
   };
 }
@@ -13590,6 +13614,54 @@ if (
         }
       : finding,
   );
+}
+
+const postCompletionRouterActive =
+  sourceSummary.zeroOpenBacklog &&
+  sourceSummary.completionInventoryClosed &&
+  sourceSummary.growthLoopReadinessDocumented &&
+  sourceSummary.postCompletionRouterScriptPresent &&
+  sourceSummary.postCompletionRouterDocumented &&
+  sourceSummary.growthEvidenceLedgerPlanned &&
+  sourceSummary.reflectionEvaluatorPlanned &&
+  sourceSummary.continuousDevelopmentLoopPlanned;
+
+if (postCompletionRouterActive) {
+  const lifecycleSupportingSlice = payload.nextRecommendedSlice;
+  payload.postCompletionRouter = {
+    active: true,
+    track: 'vNext-read-only-growth-loop',
+    firstSlice: 'post-completion-next-step-router',
+    nextImplementationPosture: 'read-only-status-or-doc-smoke-first',
+    lifecycleSupportingSlice,
+    rationale:
+      'The completion baseline is zero-open, so growth-reflection-evaluator must recommend read-only Growth Evidence Ledger work instead of continuing source-mutation lifecycle rechecks as the default product lane.',
+  };
+  payload.aggregate.status = 'ready-for-growth-evidence-ledger';
+  payload.nextRecommendedSlice = {
+    id: 'growth-evidence-ledger',
+    commandToAdd: 'node scripts/post-completion-next-step-status.mjs && node scripts/growth-reflection-evaluator.mjs',
+    reason:
+      'The post-completion router is active and reflection evidence is green; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while lifecycle closeout rechecks remain supporting evidence only.',
+    mustRemainReadOnly: true,
+  };
+  payload.reflectionFindings = [
+    {
+      id: 'growth-evidence-ledger-needed',
+      severity: 'info',
+      claim:
+        'Zero-open completion and Growth Loop readiness route the next default vNext step to a read-only Growth Evidence Ledger before any runtime, UI, memory, provider, or source-mutation expansion.',
+      allowedNextAction:
+        'define growth-evidence-ledger as read-only status/doc-smoke evidence before reflection, proposal generation, persistence, or source mutation',
+    },
+    ...payload.reflectionFindings,
+  ];
+} else {
+  payload.postCompletionRouter = {
+    active: false,
+    reason:
+      'The post-completion router prerequisites are not all present; keep the current reflection recommendation.',
+  };
 }
 
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);

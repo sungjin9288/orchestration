@@ -46,6 +46,7 @@ gaps, and currently missing or failed evidence.
 | Lifecycle status chain | pass | `node scripts/smoke-lifecycle-supporting-boundary.mjs`, `docs/21_completion-development-roadmap.md`, `tasks/todo.md`, `tasks/lessons.md` | Existing read-only lifecycle status chain is supporting evidence only and not the default product development lane | Recheck lifecycle status only when verification finds a stale command, stale source reference, or source-of-truth mismatch. |
 | Zero-open completion baseline | pass | `node scripts/smoke-ui-slice-63.mjs`, `tasks/todo.md`, `docs/22_completion-gate-inventory.md` | `tasks/todo.md` has no active unchecked `- [ ]` item, so no default completion implementation slice remains open | Open a new implementation slice only from an explicit operator request, concrete regression, usability issue, or accepted vNext decision. |
 | Post-completion next-step router | pass | `node scripts/post-completion-next-step-status.mjs`, `node scripts/smoke-ui-slice-63.mjs` | Explicit operator requests can open a read-only vNext routing slice without reopening the default completion backlog | Use this router before opening future product, vNext, or optional-live follow-up work. |
+| Growth engine post-completion routing | pass | `node scripts/growth-engine-status.mjs`, `node scripts/growth-reflection-evaluator.mjs`, `node scripts/smoke-growth-engine-status.mjs`, `node scripts/smoke-growth-reflection-evaluator.mjs` | Growth status and reflection now route the zero-open baseline to read-only `growth-evidence-ledger` work and keep the source-mutation lifecycle chain as supporting evidence only | Start with status/doc-smoke evidence for the Growth Evidence Ledger before any runtime, UI, memory, provider, or source-mutation expansion. |
 
 ## Environment Visibility
 - `OPENAI_API_KEY`: missing in this shell.
@@ -73,6 +74,8 @@ Remaining non-blocking evidence:
 - optional OpenAI real-live gates are skipped because env is missing
 - lifecycle status chain remains supporting evidence only and should not become the default product
   development lane unless a stale command or source-of-truth mismatch appears
+- growth engine routing now keeps the next default vNext workstream on `growth-evidence-ledger`
+  rather than continuing lifecycle closeout rechecks as the product lane
 - future product or vNext work requires an explicit operator request, concrete regression, usability
   issue, or accepted vNext decision
 

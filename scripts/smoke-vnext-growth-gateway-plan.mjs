@@ -3393,7 +3393,7 @@ assert.match(
 );
 assert.match(
   plan,
-  /Build `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status`/,
+  /Build `growth-evidence-ledger` as the next read-only vNext status\/doc-smoke slice/,
 );
 assert.match(
   plan,
@@ -3415,7 +3415,7 @@ assert.match(
 assert.match(plan, /lifecycle close review status next gate/);
 assert.match(
   plan,
-  /Build `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status`/,
+  /The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open/,
 );
 assert.match(
   plan,

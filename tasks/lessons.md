@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- zero-open completion 상태에서는 개별 growth status chain이 자체적으로 다음 recheck를 계속 추천하면 안 된다. post-completion router가 활성화되면 `growth-engine-status`도 lifecycle chain을 supporting evidence로 내리고, 다음 기본 vNext workstream은 read-only Growth Evidence Ledger 같은 status/doc-smoke slice로 고정해야 한다.
 - 반복 read-only lifecycle status chain이 다음 개발 작업을 계속 대체하기 시작하면, 그 chain은 supporting evidence로 경계 짓고 completion gates, product-shell polish, evidence/readme readiness 같은 실제 완성 lane으로 전환해야 한다.
 - `memory-brief` 같은 read-only summary helper smoke는 open task를 보고하는 계약과 zero-open baseline 계약을 섞지 않는 편이 안전하다. completion lane을 다시 열 수 있는 단계에서는 `- [ ]` task line만 정확히 세고 historical `[OPEN]` heading false positive를 막는 데 집중해야 한다.
 - 사용자가 `이 디자인은 다른 사람이나 회사에 못 준다`고 말하는 순간은 보통 microcopy 문제가 아니라 product framing mismatch다. 그 시점에는 wording thin slice를 더 열지 말고, 먼저 `AGENTS / master brief / decision log` 에서 shell contract 자체를 다시 고정하는 편이 맞다.

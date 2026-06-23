@@ -17243,9 +17243,12 @@ status as the next read-only gate.
 
 Canonical lifecycle close final-close status recheck-after-lifecycle-close-finalization-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance labels are `source mutation lifecycle closeout closure lifecycle close final close status rechecked after lifecycle close finalization acceptance status current final-close finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance`, `existing lifecycle close final close status command rechecked after lifecycle close finalization acceptance status current final-close finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance`, `lifecycle close status next gate`, and `source mutation lifecycle closeout closure lifecycle close final close status stays separate from actual source mutation execution`.
 
-## Recommended Next Slice
-Build `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status`
-as the next read-only status recheck command.
+## Supporting Lifecycle Chain Status
+The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
+completion baseline. Re-enter
+`growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status` only when a
+future verification run finds stale lifecycle source references, stale command wiring, or another
+source-of-truth mismatch inside the already implemented lifecycle chain.
 
 It should answer:
 
@@ -17267,6 +17270,27 @@ It should answer:
 - why lifecycle close final-close status must bind to one current source mutation lifecycle
   closeout closure lifecycle close final-close record instead of broad remediation state
 
-The next command must remain read-only and should re-check lifecycle close without accepting
-lifecycle close, accepting lifecycle close final-close, closing the lifecycle, applying patches,
-mutating source, or opening remediation execution.
+If this supporting chain is re-entered, the command must remain read-only and should re-check
+lifecycle close without accepting lifecycle close, accepting lifecycle close final-close, closing
+the lifecycle, applying patches, mutating source, or opening remediation execution.
+
+## Recommended Next Slice
+Build `growth-evidence-ledger` as the next read-only vNext status/doc-smoke slice, routed through
+`node scripts/post-completion-next-step-status.mjs` and confirmed by
+`node scripts/growth-engine-status.mjs` plus
+`node scripts/growth-reflection-evaluator.mjs`.
+
+It should answer:
+
+- which existing local evidence sources can be summarized as typed lifecycle events, claims,
+  negative evidence, field deltas, run outcomes, changed files, review results, approval states,
+  failed checks, operator decisions, lesson candidates, and artifact/log refs
+- which evidence is absent, stale, historical, redacted, or only a projection
+- how the ledger stays local-first and does not ingest secrets, arbitrary chat logs, external
+  channels, provider data, or global memory
+- how the ledger hands off to `growth-reflection-evaluator` without generating proposals, applying
+  patches, mutating runtime, mutating UI, persisting memory, opening channels, committing, pushing,
+  or releasing
+
+The next command or doc-smoke must remain read-only/status-first. It must not reopen the default
+completion backlog or treat the source-mutation lifecycle chain as the default next product lane.

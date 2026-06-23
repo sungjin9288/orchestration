@@ -59,8 +59,9 @@ assert.equal(payload.hermesEngine.role, 'inner self-improvement engine');
 assert.match(payload.hermesEngine.currentLoop, /planner -> architect -> task-breaker/);
 assert.equal(
   payload.hermesEngine.nextEngineSlice,
-  'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  'growth-evidence-ledger',
 );
+assert.equal(payload.hermesEngine.currentMode, 'repo-native-hermes-style-post-completion-growth-routing');
 assert.equal(payload.referencePosture.reviewedAt, '2026-06-01');
 assert.equal(payload.referencePosture.sourceOnly, true);
 assert.equal(payload.referencePosture.repos.length, 4);
@@ -102,6 +103,14 @@ assert.equal(payload.evidenceInventory.sourceSummary.gatewaySurfaceRouterStatusS
 assert.equal(payload.evidenceInventory.sourceSummary.gatewaySurfaceRouterStatusDocumented, true);
 assert.equal(payload.evidenceInventory.sourceSummary.continuousDevelopmentLoopStatusScriptPresent, true);
 assert.equal(payload.evidenceInventory.sourceSummary.continuousDevelopmentLoopStatusDocumented, true);
+assert.equal(payload.evidenceInventory.sourceSummary.zeroOpenBacklog, true);
+assert.equal(payload.evidenceInventory.sourceSummary.completionInventoryClosed, true);
+assert.equal(payload.evidenceInventory.sourceSummary.growthLoopReadinessDocumented, true);
+assert.equal(payload.evidenceInventory.sourceSummary.growthEvidenceLedgerPlanned, true);
+assert.equal(payload.evidenceInventory.sourceSummary.reflectionEvaluatorPlanned, true);
+assert.equal(payload.evidenceInventory.sourceSummary.continuousDevelopmentLoopPlanned, true);
+assert.equal(payload.evidenceInventory.sourceSummary.postCompletionRouterScriptPresent, true);
+assert.equal(payload.evidenceInventory.sourceSummary.postCompletionRouterDocumented, true);
 assert.equal(payload.evidenceInventory.sourceSummary.improvementAcceptanceStatusScriptPresent, true);
 assert.equal(payload.evidenceInventory.sourceSummary.improvementAcceptanceStatusDocumented, true);
 assert.equal(payload.evidenceInventory.sourceSummary.acceptedImprovementRegistryStatusScriptPresent, true);
@@ -1294,6 +1303,21 @@ assert.equal(
 );
 assert.equal(
   payload.nextRecommendedSlice.id,
+  'growth-evidence-ledger',
+);
+assert.equal(payload.nextRecommendedSlice.mustRemainReadOnly, true);
+assert.equal(payload.postCompletionRouter.active, true);
+assert.equal(payload.postCompletionRouter.track, 'vNext-read-only-growth-loop');
+assert.equal(payload.postCompletionRouter.firstSlice, 'post-completion-next-step-router');
+assert.equal(payload.postCompletionRouter.nextImplementationPosture, 'read-only-status-or-doc-smoke-first');
+assert.deepEqual(payload.postCompletionRouter.candidateWorkstreams, [
+  'growth-evidence-ledger',
+  'reflection-evaluator',
+  'gateway-surface-router',
+  'optional-real-live-rerun-when-env-visible',
+]);
+assert.equal(
+  payload.postCompletionRouter.lifecycleSupportingSlice.id,
   'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
 );
 assert.equal(payload.safetyBoundary.readOnly, true);
@@ -3743,7 +3767,15 @@ assert.match(
 );
 assert.match(
   plan,
-  /Build `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status`/,
+  /The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open/,
+);
+assert.match(
+  plan,
+  /Build `growth-evidence-ledger` as the next read-only vNext status\/doc-smoke slice/,
+);
+assert.match(
+  plan,
+  /must not reopen the default\s+completion backlog or treat the source-mutation lifecycle chain as the default next product lane/,
 );
 assert.match(
   plan,
@@ -3765,7 +3797,7 @@ assert.match(
 assert.match(plan, /lifecycle close review status next gate/);
 assert.match(
   plan,
-  /Build `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status`/,
+  /Build `growth-evidence-ledger` as the next read-only vNext status\/doc-smoke slice/,
 );
 assert.match(
   plan,

@@ -15,9 +15,12 @@ const SOURCE_FILES = [
   'docs/18_growth-gateway-vnext.md',
   'docs/13_harness-baseline.md',
   'docs/17_v1-completion-readiness.md',
+  'docs/21_completion-development-roadmap.md',
+  'docs/22_completion-gate-inventory.md',
   'docs/01_decision-log.md',
   'tasks/todo.md',
   'tasks/lessons.md',
+  'scripts/post-completion-next-step-status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-skill-memory-registry-status.mjs',
   'scripts/growth-gateway-surface-router-status.mjs',
@@ -288,16 +291,37 @@ function summarizeSources(sources) {
   const todo = sourceText(sources, 'tasks/todo.md');
   const lessons = sourceText(sources, 'tasks/lessons.md');
   const plan = sourceText(sources, 'docs/18_growth-gateway-vnext.md');
+  const roadmap = sourceText(sources, 'docs/21_completion-development-roadmap.md');
+  const inventory = sourceText(sources, 'docs/22_completion-gate-inventory.md');
+  const postCompletionRouter = sourceText(sources, 'scripts/post-completion-next-step-status.mjs');
   const decisionLog = sourceText(sources, 'docs/01_decision-log.md');
+  const uncheckedTaskCount = countMatches(todo, /^- \[ \]/gm);
 
   return {
     sourceCount: sources.length,
     availableSourceCount: sources.filter((source) => source.exists).length,
-    openTaskCount: countMatches(todo, /^- \[ \]/gm),
+    openTaskCount: uncheckedTaskCount,
     completedTaskCount: countMatches(todo, /^- \[x\]/gm),
     lessonCount: countMatches(lessons, /^- /gm),
     dogfoodMentions: countMatches(todo, /dogfood/gi),
     growthGatewayPlanPresent: /# Growth Gateway VNext Plan/.test(plan),
+    growthEvidenceLedgerPlanned: /### Slice 1: Growth Evidence Ledger/.test(plan),
+    reflectionEvaluatorPlanned: /### Slice 2: Reflection Evaluator/.test(plan),
+    continuousDevelopmentLoopPlanned: /### Slice 6: Continuous Development Loop/.test(plan),
+    zeroOpenBacklog: uncheckedTaskCount === 0,
+    completionInventoryClosed:
+      /The current required completion baseline is closed for default implementation work\./.test(
+        inventory,
+      ) && /No default completion implementation slice remains open/.test(inventory),
+    growthLoopReadinessDocumented:
+      /Growth Loop Readiness/.test(roadmap) &&
+      /Use Loop Engineering as a bounded operating model/.test(roadmap),
+    postCompletionRouterScriptPresent: fs.existsSync(
+      path.join(repoRoot, 'scripts', 'post-completion-next-step-status.mjs'),
+    ),
+    postCompletionRouterDocumented:
+      /Post-completion next-step router/.test(inventory) &&
+      /post-completion-next-step-status/.test(postCompletionRouter),
     referenceRepoRecheckPresent: /## Reference Repo Recheck \(2026-06-01\)/.test(plan),
     referenceRepoCountPinned: REFERENCE_REPOS.filter((reference) =>
       plan.includes(reference.reviewedHead),
@@ -8437,6 +8461,50 @@ if (
     mustRemainReadOnly: true,
   };
   payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
+}
+
+const postCompletionRouterActive =
+  sourceSummary.zeroOpenBacklog &&
+  sourceSummary.completionInventoryClosed &&
+  sourceSummary.growthLoopReadinessDocumented &&
+  sourceSummary.postCompletionRouterScriptPresent &&
+  sourceSummary.postCompletionRouterDocumented &&
+  sourceSummary.growthEvidenceLedgerPlanned &&
+  sourceSummary.reflectionEvaluatorPlanned &&
+  sourceSummary.continuousDevelopmentLoopPlanned;
+
+if (postCompletionRouterActive) {
+  const lifecycleSupportingSlice = payload.nextRecommendedSlice;
+  payload.postCompletionRouter = {
+    active: true,
+    track: 'vNext-read-only-growth-loop',
+    firstSlice: 'post-completion-next-step-router',
+    nextImplementationPosture: 'read-only-status-or-doc-smoke-first',
+    candidateWorkstreams: [
+      'growth-evidence-ledger',
+      'reflection-evaluator',
+      'gateway-surface-router',
+      'optional-real-live-rerun-when-env-visible',
+    ],
+    lifecycleSupportingSlice,
+    rationale:
+      'The completion baseline is zero-open, so growth-engine-status must route follow-up work through the post-completion vNext gate instead of continuing the source-mutation lifecycle recheck chain as the default next action.',
+  };
+  payload.nextRecommendedSlice = {
+    id: 'growth-evidence-ledger',
+    commandToAdd: 'node scripts/post-completion-next-step-status.mjs && node scripts/growth-engine-status.mjs',
+    reason:
+      'The post-completion router is active and the current completion backlog is zero-open; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while the lifecycle closeout chain remains supporting evidence only.',
+    mustRemainReadOnly: true,
+  };
+  payload.hermesEngine.currentMode = 'repo-native-hermes-style-post-completion-growth-routing';
+  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
+} else {
+  payload.postCompletionRouter = {
+    active: false,
+    reason:
+      'The post-completion router prerequisites are not all present; keep the current growth status chain recommendation.',
+  };
 }
 
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
