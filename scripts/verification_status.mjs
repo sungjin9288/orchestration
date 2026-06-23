@@ -262,6 +262,11 @@ const informationalChecks = [
     purpose: 'Growth Evidence Ledger proposal record creation readiness status defines id/status/timestamp policies without generating ids, assigning status, stamping timestamps, creating records, mutating queues, committing, or pushing',
   },
   {
+    id: 'growth-evidence-ledger-proposal-record-dry-run-shape-status',
+    script: 'scripts/growth-evidence-ledger-proposal-record-dry-run-shape-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record dry-run shape status covers the proposalRecord schema without assigning ids, status, timestamps, approval, persistence, queue mutation, commit, or push authority',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',

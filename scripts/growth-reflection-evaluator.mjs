@@ -34,6 +34,7 @@ const SOURCE_FILES = [
   'scripts/growth-evidence-ledger-proposal-record-readiness-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-shape-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-worker-event-schema.mjs',
   'scripts/growth-proposal-queue-status.mjs',
@@ -653,6 +654,19 @@ function summarizeSources(sources) {
       ) && /Growth Evidence Ledger proposal record creation readiness status/.test(inventory),
     growthEvidenceLedgerProposalRecordCreationReadinessStatusAggregateRegistered:
       /growth-evidence-ledger-proposal-record-creation-readiness-status/.test(verificationStatus),
+    growthEvidenceLedgerProposalRecordDryRunShapeStatusScriptPresent: fs.existsSync(
+      path.join(
+        repoRoot,
+        'scripts',
+        'growth-evidence-ledger-proposal-record-dry-run-shape-status.mjs',
+      ),
+    ),
+    growthEvidenceLedgerProposalRecordDryRunShapeStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-shape-status`/.test(
+        plan,
+      ) && /Growth Evidence Ledger proposal record dry-run shape status/.test(inventory),
+    growthEvidenceLedgerProposalRecordDryRunShapeStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-dry-run-shape-status/.test(verificationStatus),
     reflectionEvaluatorDocumented: /growth-reflection-evaluator/.test(plan),
     workerEventSchemaScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-worker-event-schema.mjs'),
@@ -13750,6 +13764,11 @@ if (postCompletionRouterActive) {
     sourceSummary.growthEvidenceLedgerProposalRecordCreationReadinessStatusScriptPresent &&
     sourceSummary.growthEvidenceLedgerProposalRecordCreationReadinessStatusDocumented &&
     sourceSummary.growthEvidenceLedgerProposalRecordCreationReadinessStatusAggregateRegistered;
+  const growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented =
+    growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunShapeStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunShapeStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunShapeStatusAggregateRegistered;
   const routedNextSlice = growthEvidenceLedgerStatusImplemented
     ? growthEvidenceLedgerGatewayRoutingStatusImplemented
       ? growthEvidenceLedgerReflectionHandoffStatusImplemented
@@ -13758,14 +13777,23 @@ if (postCompletionRouterActive) {
             ? growthEvidenceLedgerProposalRecordReadinessStatusImplemented
               ? growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
                 ? growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
-                  ? {
-                      id: 'growth-evidence-ledger-proposal-record-dry-run-shape',
-                      commandToAdd:
-                        'node scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs && node scripts/growth-proposal-queue-status.mjs',
-                      reason:
-                        'Proposal record creation policies are defined without assigning identity, status, or timestamps; the next safe vNext slice can design a dry-run record shape without creating, approving, applying, persisting, or mutating proposal records.',
-                      mustRemainReadOnly: true,
-                    }
+                  ? growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented
+                    ? {
+                        id: 'growth-evidence-ledger-proposal-record-dry-run-validation',
+                        commandToAdd:
+                          'node scripts/growth-evidence-ledger-proposal-record-dry-run-shape-status.mjs && node scripts/growth-proposal-queue-status.mjs',
+                        reason:
+                          'A complete proposalRecord-shaped dry-run candidate now exists without creation authority; the next safe vNext slice can validate that shape before any record creation, approval, persistence, or queue mutation.',
+                        mustRemainReadOnly: true,
+                      }
+                    : {
+                        id: 'growth-evidence-ledger-proposal-record-dry-run-shape',
+                        commandToAdd:
+                          'node scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs && node scripts/growth-proposal-queue-status.mjs',
+                        reason:
+                          'Proposal record creation policies are defined without assigning identity, status, or timestamps; the next safe vNext slice can design a dry-run record shape without creating, approving, applying, persisting, or mutating proposal records.',
+                        mustRemainReadOnly: true,
+                      }
                   : {
                       id: 'growth-evidence-ledger-proposal-record-creation-readiness',
                       commandToAdd:
@@ -13843,13 +13871,16 @@ if (postCompletionRouterActive) {
     growthEvidenceLedgerProposalRecordReadinessStatusImplemented,
     growthEvidenceLedgerProposalRecordReviewGateStatusImplemented,
     growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented,
+    growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented,
     lifecycleSupportingSlice,
     rationale:
       'The completion baseline is zero-open, so growth-reflection-evaluator must recommend read-only Growth Evidence Ledger work instead of continuing source-mutation lifecycle rechecks as the default product lane.',
   };
-  payload.aggregate.status = growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-shape'
-    : growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
+  payload.aggregate.status = growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented
+    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-validation'
+    : growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
+      ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-shape'
+      : growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
       ? 'ready-for-growth-evidence-ledger-proposal-record-creation-readiness'
       : growthEvidenceLedgerProposalRecordReadinessStatusImplemented
       ? 'ready-for-growth-evidence-ledger-proposal-record-review-gate'
@@ -13867,9 +13898,11 @@ if (postCompletionRouterActive) {
   payload.nextRecommendedSlice = routedNextSlice;
   payload.reflectionFindings = [
     {
-      id: growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
-        ? 'growth-evidence-ledger-proposal-record-dry-run-shape-needed'
-        : growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
+      id: growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented
+        ? 'growth-evidence-ledger-proposal-record-dry-run-validation-needed'
+        : growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
+          ? 'growth-evidence-ledger-proposal-record-dry-run-shape-needed'
+          : growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
           ? 'growth-evidence-ledger-proposal-record-creation-readiness-needed'
           : growthEvidenceLedgerProposalRecordReadinessStatusImplemented
           ? 'growth-evidence-ledger-proposal-record-review-gate-needed'
@@ -13885,9 +13918,11 @@ if (postCompletionRouterActive) {
                   ? 'growth-evidence-ledger-gateway-routing-needed'
                   : 'growth-evidence-ledger-needed',
       severity: 'info',
-      claim: growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
-        ? 'Proposal record creation policy prerequisites are defined without assigning identity, status, or timestamps; the next default vNext step is a dry-run record shape before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.'
-        : growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
+      claim: growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented
+        ? 'A complete proposalRecord-shaped dry-run candidate exists without assigning identity, status, timestamps, approval, or persistence; the next default vNext step is read-only dry-run validation before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.'
+        : growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
+          ? 'Proposal record creation policy prerequisites are defined without assigning identity, status, or timestamps; the next default vNext step is a dry-run record shape before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.'
+          : growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
           ? 'Proposal record review gate evidence is defined as read-only and non-approving; the next default vNext step is a creation-readiness check before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.'
           : growthEvidenceLedgerProposalRecordReadinessStatusImplemented
           ? 'Proposal record fields are classified as preview-only, mapped review input, forced false, or blocked until record creation; the next default vNext step is a read-only record review gate before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.'
@@ -13902,9 +13937,11 @@ if (postCompletionRouterActive) {
                 : growthEvidenceLedgerStatusImplemented
                   ? 'The Growth Evidence Ledger status is implemented, registered, and read-only; the next default vNext step is read-only gateway routing from ledger status before any runtime, UI, memory, provider, or source-mutation expansion.'
                   : 'Zero-open completion and Growth Loop readiness route the next default vNext step to a read-only Growth Evidence Ledger before any runtime, UI, memory, provider, or source-mutation expansion.',
-      allowedNextAction: growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
-        ? 'define growth-evidence-ledger proposal-record dry-run shape as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation'
-        : growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
+      allowedNextAction: growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented
+        ? 'define growth-evidence-ledger proposal-record dry-run validation as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation'
+        : growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
+          ? 'define growth-evidence-ledger proposal-record dry-run shape as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation'
+          : growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
           ? 'define growth-evidence-ledger proposal-record creation-readiness as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation'
           : growthEvidenceLedgerProposalRecordReadinessStatusImplemented
           ? 'define growth-evidence-ledger proposal-record review gate as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation'
