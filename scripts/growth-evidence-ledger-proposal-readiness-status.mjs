@@ -178,6 +178,10 @@ function buildReadinessEnvelope({ handoffPayload, reflectionPayload, proposalQue
   const primaryFinding = reflectionPayload?.reflectionFindings?.find(
     (finding) =>
       finding.id ===
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-needed',
+  ) || reflectionPayload?.reflectionFindings?.find(
+    (finding) =>
+      finding.id ===
       'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-needed',
   ) || reflectionPayload?.reflectionFindings?.find(
     (finding) => finding.id === 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-needed',
@@ -274,6 +278,7 @@ function buildReadiness({
     reflectionEvaluatorReady:
       reflectionResult.ok &&
       [
+        'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review',
         'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization',
         'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance',
         'ready-for-growth-evidence-ledger-proposal-record-dry-run-review',
