@@ -19,6 +19,7 @@ const SOURCE_FILES = [
   'tasks/todo.md',
   'tasks/lessons.md',
   'scripts/growth-evidence-ledger-proposal-queue-handoff-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-readiness-status.mjs',
   'scripts/growth-evidence-ledger-proposal-readiness-status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-engine-status.mjs',
@@ -178,9 +179,15 @@ function summarizeSources(sources) {
       /queue handoff.*proposal record/i.test(lessons) ||
       /proposal record.*queue handoff/i.test(lessons),
     engineRoutesPastProposalQueueHandoff:
-      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-readiness/.test(engine),
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-readiness/.test(engine) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-review-gate/.test(engine),
     reflectionRoutesPastProposalQueueHandoff:
-      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-readiness/.test(reflection),
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-readiness/.test(
+        reflection,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-review-gate/.test(
+        reflection,
+      ),
     noDefaultBacklogOpen: !/^- \[ \]/m.test(todo),
   };
 }

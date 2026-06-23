@@ -176,6 +176,8 @@ function summarizeSources(sources) {
 
 function buildReadinessEnvelope({ handoffPayload, reflectionPayload, proposalQueuePayload }) {
   const primaryFinding = reflectionPayload?.reflectionFindings?.find(
+    (finding) => finding.id === 'growth-evidence-ledger-proposal-record-review-gate-needed',
+  ) || reflectionPayload?.reflectionFindings?.find(
     (finding) => finding.id === 'growth-evidence-ledger-proposal-record-readiness-needed',
   ) || reflectionPayload?.reflectionFindings?.find(
     (finding) => finding.id === 'growth-evidence-ledger-proposal-queue-handoff-needed',
@@ -258,6 +260,7 @@ function buildReadiness({
     reflectionEvaluatorReady:
       reflectionResult.ok &&
       [
+        'ready-for-growth-evidence-ledger-proposal-record-review-gate',
         'ready-for-growth-evidence-ledger-proposal-record-readiness',
         'ready-for-growth-evidence-ledger-proposal-readiness',
         'ready-for-growth-evidence-ledger-proposal-queue-handoff',
