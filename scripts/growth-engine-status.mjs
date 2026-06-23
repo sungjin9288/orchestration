@@ -25,6 +25,7 @@ const SOURCE_FILES = [
   'scripts/growth-evidence-ledger-gateway-routing-status.mjs',
   'scripts/growth-evidence-ledger-reflection-handoff-status.mjs',
   'scripts/growth-evidence-ledger-proposal-readiness-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-queue-handoff-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-skill-memory-registry-status.mjs',
@@ -363,6 +364,15 @@ function summarizeSources(sources) {
       ) && /Growth Evidence Ledger proposal readiness status/.test(inventory),
     growthEvidenceLedgerProposalReadinessStatusAggregateRegistered:
       /growth-evidence-ledger-proposal-readiness-status/.test(verificationStatus),
+    growthEvidenceLedgerProposalQueueHandoffStatusScriptPresent: fs.existsSync(
+      path.join(repoRoot, 'scripts', 'growth-evidence-ledger-proposal-queue-handoff-status.mjs'),
+    ),
+    growthEvidenceLedgerProposalQueueHandoffStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-queue-handoff-status`/.test(
+        plan,
+      ) && /Growth Evidence Ledger proposal queue handoff status/.test(inventory),
+    growthEvidenceLedgerProposalQueueHandoffStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-queue-handoff-status/.test(verificationStatus),
     referenceRepoRecheckPresent: /## Reference Repo Recheck \(2026-06-01\)/.test(plan),
     referenceRepoCountPinned: REFERENCE_REPOS.filter((reference) =>
       plan.includes(reference.reviewedHead),
@@ -8535,18 +8545,32 @@ if (postCompletionRouterActive) {
     sourceSummary.growthEvidenceLedgerProposalReadinessStatusScriptPresent &&
     sourceSummary.growthEvidenceLedgerProposalReadinessStatusDocumented &&
     sourceSummary.growthEvidenceLedgerProposalReadinessStatusAggregateRegistered;
+  const growthEvidenceLedgerProposalQueueHandoffStatusImplemented =
+    growthEvidenceLedgerProposalReadinessStatusImplemented &&
+    sourceSummary.growthEvidenceLedgerProposalQueueHandoffStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerProposalQueueHandoffStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerProposalQueueHandoffStatusAggregateRegistered;
   const routedNextSlice = growthEvidenceLedgerStatusImplemented
     ? growthEvidenceLedgerGatewayRoutingStatusImplemented
       ? growthEvidenceLedgerReflectionHandoffStatusImplemented
         ? growthEvidenceLedgerProposalReadinessStatusImplemented
-          ? {
-              id: 'growth-evidence-ledger-proposal-queue-handoff',
-              commandToAdd:
-                'node scripts/growth-evidence-ledger-proposal-readiness-status.mjs && node scripts/growth-proposal-queue-status.mjs',
-              reason:
-                'Reflection-backed Growth Evidence Ledger findings now have a proposal-readiness envelope; the next safe vNext slice can define a read-only handoff into the existing proposal queue contract without generating, approving, applying, or mutating proposal records.',
-              mustRemainReadOnly: true,
-            }
+          ? growthEvidenceLedgerProposalQueueHandoffStatusImplemented
+            ? {
+                id: 'growth-evidence-ledger-proposal-record-readiness',
+                commandToAdd:
+                  'node scripts/growth-evidence-ledger-proposal-queue-handoff-status.mjs && node scripts/growth-proposal-queue-status.mjs',
+                reason:
+                  'Proposal-readiness evidence can now be handed to the queue contract as read-only review input; the next safe vNext slice can check proposal-record field readiness without creating, approving, applying, persisting, or mutating proposal records.',
+                mustRemainReadOnly: true,
+              }
+            : {
+                id: 'growth-evidence-ledger-proposal-queue-handoff',
+                commandToAdd:
+                  'node scripts/growth-evidence-ledger-proposal-readiness-status.mjs && node scripts/growth-proposal-queue-status.mjs',
+                reason:
+                  'Reflection-backed Growth Evidence Ledger findings now have a proposal-readiness envelope; the next safe vNext slice can define a read-only handoff into the existing proposal queue contract without generating, approving, applying, or mutating proposal records.',
+                mustRemainReadOnly: true,
+              }
           : {
             id: 'growth-evidence-ledger-proposal-readiness',
             commandToAdd:
@@ -8588,12 +8612,14 @@ if (postCompletionRouterActive) {
     growthEvidenceLedgerGatewayRoutingStatusImplemented,
     growthEvidenceLedgerReflectionHandoffStatusImplemented,
     growthEvidenceLedgerProposalReadinessStatusImplemented,
+    growthEvidenceLedgerProposalQueueHandoffStatusImplemented,
     candidateWorkstreams: [
       'growth-evidence-ledger',
       'growth-evidence-ledger-gateway-routing',
       'growth-evidence-ledger-reflection-handoff',
       'growth-evidence-ledger-proposal-readiness',
       'growth-evidence-ledger-proposal-queue-handoff',
+      'growth-evidence-ledger-proposal-record-readiness',
       'reflection-evaluator',
       'gateway-surface-router',
       'optional-real-live-rerun-when-env-visible',

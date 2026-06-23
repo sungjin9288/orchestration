@@ -17390,6 +17390,43 @@ reflection smoke coverage checks that the next read-only lane becomes
 `growth-evidence-ledger-proposal-queue-handoff` only after the proposal-readiness envelope is
 fixed.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-queue-handoff-status`
+
+`scripts/growth-evidence-ledger-proposal-queue-handoff-status.mjs` implements the next
+post-completion read-only slice by mapping the proposal-readiness envelope into the existing
+`growth-proposal-queue-status` contract as review input without creating proposal records.
+
+Command:
+
+```bash
+node scripts/growth-evidence-ledger-proposal-queue-handoff-status.mjs
+```
+
+It answers:
+
+- which proposal-readiness candidate, source finding, evidence refs, negative evidence refs, route
+  refs, source refs, verification refs, blocked actions, risk class, and human review question can
+  be handed to the proposal queue contract
+- which `proposalRecord` fields can be represented as read-only handoff input and which required
+  record fields remain intentionally absent until a later proposal-record readiness slice exists
+- whether `proposalId`, `title`, `proposalType`, `status`, and `createdAt` stay absent because no
+  queue record is created by this slice
+- whether engine/reflection routing has advanced past `growth-evidence-ledger-proposal-queue-handoff`
+  only after this status command is implemented, documented, ledgered, and aggregate-registered
+
+It intentionally does not:
+
+- create proposal records, persist proposal records, generate proposals, apply proposals, mutate
+  proposal queues, or approve proposal work
+- execute workers, run dogfood, call providers, persist memory, authorize gateway actions, mutate
+  runtime, mutate UI, mutate source, commit, or push
+- treat queue handoff as proposal record creation, implementation approval, queue mutation
+  authority, gateway action authority, source-mutation authority, or hidden prioritization
+
+The command is registered in `scripts/verification_status.mjs`, and existing growth engine and
+reflection smoke coverage checks that the next read-only lane becomes
+`growth-evidence-ledger-proposal-record-readiness` only after the queue-handoff envelope is fixed.
+
 ## Supporting Lifecycle Chain Status
 The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
 completion baseline. Re-enter
@@ -17422,22 +17459,23 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-queue-handoff` as the next read-only vNext status/doc-smoke
-slice, routed through `node scripts/growth-evidence-ledger-proposal-readiness-status.mjs` and
+Build `growth-evidence-ledger-proposal-record-readiness` as the next read-only vNext
+status/doc-smoke slice, routed through
+`node scripts/growth-evidence-ledger-proposal-queue-handoff-status.mjs` and
 confirmed by `node scripts/growth-engine-status.mjs` plus
 `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- how a proposal-readiness envelope can be handed to the existing proposal queue contract without
-  creating or mutating queue records
-- which queue fields may reference ledger/reflection evidence and which fields must remain absent
-  until a later approved proposal-generation slice exists
-- how proposal queue handoff stays separate from proposal generation, proposal queue mutation,
+- how queue handoff input maps into the required `proposalRecord` fields without creating,
+  persisting, approving, applying, or mutating records
+- which required proposal fields are still missing and what evidence would be needed before a future
+  proposal record can be considered reviewable
+- how proposal-record readiness stays separate from proposal generation, proposal queue mutation,
   proposal application, approval, memory persistence, provider calls, runtime mutation, UI
   execution, commits, and pushes
-- how the handoff contract prevents reflected evidence from becoming hidden prioritization,
-  execution authority, approval authority, or source-mutation authority
+- how the record-readiness contract prevents queue handoff from becoming hidden prioritization,
+  execution authority, approval authority, source-mutation authority, or durable queue state
 
 The next command or doc-smoke must remain read-only/status-first. It must not reopen the default
 completion backlog or treat the source-mutation lifecycle chain as the default next product lane.

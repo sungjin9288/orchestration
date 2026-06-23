@@ -242,6 +242,11 @@ const informationalChecks = [
     purpose: 'Growth Evidence Ledger proposal readiness status defines a read-only evidence envelope before proposal generation, proposal queue mutation, approval, source mutation, provider calls, commits, or pushes can act',
   },
   {
+    id: 'growth-evidence-ledger-proposal-queue-handoff-status',
+    script: 'scripts/growth-evidence-ledger-proposal-queue-handoff-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal queue handoff status maps proposal-readiness evidence into queue review input without creating records, mutating queues, approving proposals, calling providers, mutating source, committing, or pushing',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',

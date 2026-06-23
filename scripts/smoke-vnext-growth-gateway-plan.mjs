@@ -3393,7 +3393,7 @@ assert.match(
 );
 assert.match(
   plan,
-  /Build `growth-evidence-ledger-proposal-queue-handoff` as the next read-only vNext status\/doc-smoke\s+slice/,
+  /Build `growth-evidence-ledger-proposal-record-readiness` as the next read-only vNext\s+status\/doc-smoke slice/,
 );
 assert.match(
   plan,
