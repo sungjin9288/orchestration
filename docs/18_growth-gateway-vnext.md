@@ -17353,6 +17353,43 @@ reflection smoke coverage checks that the next read-only lane becomes
 `growth-evidence-ledger-proposal-readiness` only after routed ledger evidence is connected to
 reflection as read-only input.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-readiness-status`
+
+`scripts/growth-evidence-ledger-proposal-readiness-status.mjs` implements the next
+post-completion read-only slice by turning reflection-backed Growth Evidence Ledger findings into a
+proposal-readiness evidence envelope without creating proposal records.
+
+Command:
+
+```bash
+node scripts/growth-evidence-ledger-proposal-readiness-status.mjs
+```
+
+It answers:
+
+- which reflection-backed ledger finding can become a proposal-readiness candidate
+- which evidence refs, negative evidence refs, route refs, source refs, verification refs, blocked
+  actions, risk class, and human review question are required before a future proposal queue
+  handoff can be considered reviewable
+- whether the existing `growth-proposal-queue-status` contract is readable and remains
+  `proposalGenerationAllowed=false`, `proposalApplicationAllowed=false`, and
+  `proposalQueueMutationAllowed=false`
+- whether engine/reflection routing has advanced past `growth-evidence-ledger-proposal-readiness`
+  only after this status command is implemented, documented, ledgered, and aggregate-registered
+
+It intentionally does not:
+
+- generate proposal records, apply proposals, mutate proposal queues, or approve proposal work
+- execute workers, run dogfood, call providers, persist memory, authorize gateway actions, mutate
+  runtime, mutate UI, mutate source, commit, or push
+- treat proposal readiness as implementation approval, queue mutation authority, gateway action
+  authority, source-mutation authority, or hidden prioritization
+
+The command is registered in `scripts/verification_status.mjs`, and existing growth engine and
+reflection smoke coverage checks that the next read-only lane becomes
+`growth-evidence-ledger-proposal-queue-handoff` only after the proposal-readiness envelope is
+fixed.
+
 ## Supporting Lifecycle Chain Status
 The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
 completion baseline. Re-enter
@@ -17385,22 +17422,22 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-readiness` as the next read-only vNext status/doc-smoke
-slice, routed through `node scripts/growth-evidence-ledger-reflection-handoff-status.mjs` and
+Build `growth-evidence-ledger-proposal-queue-handoff` as the next read-only vNext status/doc-smoke
+slice, routed through `node scripts/growth-evidence-ledger-proposal-readiness-status.mjs` and
 confirmed by `node scripts/growth-engine-status.mjs` plus
 `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- which reflection-backed ledger findings are complete enough to enter proposal-readiness review
-  without generating proposal records
-- which source refs, verification refs, negative evidence, blocked authority, and route evidence
-  are required before a future proposal can be considered reviewable
-- how proposal readiness stays separate from proposal generation, proposal queue mutation, proposal
-  application, memory persistence, provider calls, runtime mutation, UI execution, commits, and
-  pushes
-- how the proposal-readiness contract keeps gateway routing and reflection handoff read-only and
-  does not turn any surface route into an execution, approval, or source-mutation path
+- how a proposal-readiness envelope can be handed to the existing proposal queue contract without
+  creating or mutating queue records
+- which queue fields may reference ledger/reflection evidence and which fields must remain absent
+  until a later approved proposal-generation slice exists
+- how proposal queue handoff stays separate from proposal generation, proposal queue mutation,
+  proposal application, approval, memory persistence, provider calls, runtime mutation, UI
+  execution, commits, and pushes
+- how the handoff contract prevents reflected evidence from becoming hidden prioritization,
+  execution authority, approval authority, or source-mutation authority
 
 The next command or doc-smoke must remain read-only/status-first. It must not reopen the default
 completion backlog or treat the source-mutation lifecycle chain as the default next product lane.

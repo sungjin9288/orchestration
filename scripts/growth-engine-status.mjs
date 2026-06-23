@@ -24,6 +24,7 @@ const SOURCE_FILES = [
   'scripts/growth-evidence-ledger-status.mjs',
   'scripts/growth-evidence-ledger-gateway-routing-status.mjs',
   'scripts/growth-evidence-ledger-reflection-handoff-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-readiness-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-skill-memory-registry-status.mjs',
@@ -353,6 +354,15 @@ function summarizeSources(sources) {
       ) && /Growth Evidence Ledger reflection handoff status/.test(inventory),
     growthEvidenceLedgerReflectionHandoffStatusAggregateRegistered:
       /growth-evidence-ledger-reflection-handoff-status/.test(verificationStatus),
+    growthEvidenceLedgerProposalReadinessStatusScriptPresent: fs.existsSync(
+      path.join(repoRoot, 'scripts', 'growth-evidence-ledger-proposal-readiness-status.mjs'),
+    ),
+    growthEvidenceLedgerProposalReadinessStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-readiness-status`/.test(
+        plan,
+      ) && /Growth Evidence Ledger proposal readiness status/.test(inventory),
+    growthEvidenceLedgerProposalReadinessStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-readiness-status/.test(verificationStatus),
     referenceRepoRecheckPresent: /## Reference Repo Recheck \(2026-06-01\)/.test(plan),
     referenceRepoCountPinned: REFERENCE_REPOS.filter((reference) =>
       plan.includes(reference.reviewedHead),
@@ -8520,10 +8530,24 @@ if (postCompletionRouterActive) {
     sourceSummary.growthEvidenceLedgerReflectionHandoffStatusScriptPresent &&
     sourceSummary.growthEvidenceLedgerReflectionHandoffStatusDocumented &&
     sourceSummary.growthEvidenceLedgerReflectionHandoffStatusAggregateRegistered;
+  const growthEvidenceLedgerProposalReadinessStatusImplemented =
+    growthEvidenceLedgerReflectionHandoffStatusImplemented &&
+    sourceSummary.growthEvidenceLedgerProposalReadinessStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerProposalReadinessStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerProposalReadinessStatusAggregateRegistered;
   const routedNextSlice = growthEvidenceLedgerStatusImplemented
     ? growthEvidenceLedgerGatewayRoutingStatusImplemented
       ? growthEvidenceLedgerReflectionHandoffStatusImplemented
-        ? {
+        ? growthEvidenceLedgerProposalReadinessStatusImplemented
+          ? {
+              id: 'growth-evidence-ledger-proposal-queue-handoff',
+              commandToAdd:
+                'node scripts/growth-evidence-ledger-proposal-readiness-status.mjs && node scripts/growth-proposal-queue-status.mjs',
+              reason:
+                'Reflection-backed Growth Evidence Ledger findings now have a proposal-readiness envelope; the next safe vNext slice can define a read-only handoff into the existing proposal queue contract without generating, approving, applying, or mutating proposal records.',
+              mustRemainReadOnly: true,
+            }
+          : {
             id: 'growth-evidence-ledger-proposal-readiness',
             commandToAdd:
               'node scripts/growth-evidence-ledger-reflection-handoff-status.mjs && node scripts/growth-reflection-evaluator.mjs',
@@ -8563,11 +8587,13 @@ if (postCompletionRouterActive) {
     growthEvidenceLedgerStatusImplemented,
     growthEvidenceLedgerGatewayRoutingStatusImplemented,
     growthEvidenceLedgerReflectionHandoffStatusImplemented,
+    growthEvidenceLedgerProposalReadinessStatusImplemented,
     candidateWorkstreams: [
       'growth-evidence-ledger',
       'growth-evidence-ledger-gateway-routing',
       'growth-evidence-ledger-reflection-handoff',
       'growth-evidence-ledger-proposal-readiness',
+      'growth-evidence-ledger-proposal-queue-handoff',
       'reflection-evaluator',
       'gateway-surface-router',
       'optional-real-live-rerun-when-env-visible',

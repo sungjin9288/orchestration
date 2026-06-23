@@ -237,6 +237,11 @@ const informationalChecks = [
     purpose: 'Growth Evidence Ledger reflection handoff status connects routed ledger evidence to reflection input without generating proposals, applying proposals, mutating source, persisting memory, calling providers, committing, or pushing',
   },
   {
+    id: 'growth-evidence-ledger-proposal-readiness-status',
+    script: 'scripts/growth-evidence-ledger-proposal-readiness-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal readiness status defines a read-only evidence envelope before proposal generation, proposal queue mutation, approval, source mutation, provider calls, commits, or pushes can act',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',
