@@ -272,6 +272,11 @@ const informationalChecks = [
     purpose: 'Growth Evidence Ledger proposal record dry-run validation status validates schema coverage and non-authority invariants without creating, persisting, approving, promoting, or mutating proposal records',
   },
   {
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-status',
+    script: 'scripts/growth-evidence-ledger-proposal-record-dry-run-review-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record dry-run review status reviews validation evidence without approving, creating, persisting, promoting, implementing, or mutating proposal records',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',
