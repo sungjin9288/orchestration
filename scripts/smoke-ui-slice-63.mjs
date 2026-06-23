@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -13,6 +14,11 @@ const roadmap = fs.readFileSync(
 const completionInventory = fs.readFileSync(
   path.join(repoRoot, 'docs', '22_completion-gate-inventory.md'),
   'utf8',
+);
+const postCompletionStatusScript = path.join(
+  repoRoot,
+  'scripts',
+  'post-completion-next-step-status.mjs',
 );
 
 const uncheckedItems = [...todo.matchAll(/^- \[ \] /gm)].map((match) => match[0]);
@@ -42,7 +48,38 @@ assert.match(
   completionInventory,
   /The current required completion baseline is closed for default implementation work\./,
 );
+assert.match(
+  completionInventory,
+  /\| Post-completion next-step router \| pass \| `node scripts\/post-completion-next-step-status\.mjs`, `node scripts\/smoke-ui-slice-63\.mjs` \| Explicit operator requests can open a read-only vNext routing slice without reopening the default completion backlog \| Use this router before opening future product, vNext, or optional-live follow-up work\. \|/,
+);
 assert.doesNotMatch(completionInventory, /The current baseline is close to completion but not fully closed/);
+
+const statusResult = spawnSync(process.execPath, [postCompletionStatusScript], {
+  cwd: repoRoot,
+  encoding: 'utf8',
+});
+
+assert.equal(statusResult.status, 0, `post-completion status failed: ${statusResult.stderr}`);
+
+const statusPayload = JSON.parse(statusResult.stdout);
+
+assert.equal(statusPayload.ok, true);
+assert.equal(statusPayload.mode, 'post-completion-next-step-status');
+assert.equal(statusPayload.posture, 'local-read-only-post-completion-router');
+assert.equal(statusPayload.completionBaseline.zeroOpenBacklog, true);
+assert.equal(statusPayload.completionBaseline.uncheckedTaskCount, 0);
+assert.equal(statusPayload.completionBaseline.defaultCompletionImplementationOpen, false);
+assert.equal(statusPayload.entryGate.currentEntryReason, 'explicit-operator-request');
+assert.equal(statusPayload.entryGate.defaultAutostartAllowed, false);
+assert.equal(statusPayload.recommendedNextStep.track, 'vNext-read-only-growth-loop');
+assert.equal(statusPayload.recommendedNextStep.nextImplementationPosture, 'read-only-status-or-doc-smoke-first');
+assert.equal(statusPayload.optionalLiveVerification.blocking, false);
+assert.equal(statusPayload.boundaries.runtimeMutation, false);
+assert.equal(statusPayload.boundaries.uiMutation, false);
+assert.equal(statusPayload.boundaries.providerMutation, false);
+assert.equal(statusPayload.boundaries.memoryPersistence, false);
+assert.equal(statusPayload.boundaries.automation, false);
+assert.equal(statusPayload.boundaries.commitOrPushAuthority, false);
 
 console.log(
   JSON.stringify(

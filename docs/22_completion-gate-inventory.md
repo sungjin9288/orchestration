@@ -32,7 +32,7 @@ gaps, and currently missing or failed evidence.
 
 | Gate | Status | Evidence command or source | Current result | Next action |
 | --- | --- | --- | --- | --- |
-| Required aggregate synthetic gate | pass | `node scripts/verification_status.mjs` | `ok=true`; required `1/1`; informational `92/92` | Keep as the default required docs/runtime aggregate gate. |
+| Required aggregate synthetic gate | pass | `node scripts/verification_status.mjs` | `ok=true`; required `1/1`; informational `93/93` | Keep as the default required docs/runtime aggregate gate. |
 | UI QA synthetic gate | pass | `node scripts/ui_qa_status.mjs` | `ok=true`; required `26/26`; snapshot reachability informational skipped because local UI server was not running | Treat snapshot reachability as optional unless a UI server is intentionally started. |
 | Representative browser/runtime QA | pass | `node scripts/smoke-qa-slice-07.mjs` | `ok=true`; local browser flow reached Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and duplicate guards | Keep as the strongest current local browser/runtime proof. |
 | Harness aggregate | pass | `node scripts/harness_verification_status.mjs` | `ok=true`; `46/46` pass after memory-brief smoke reclassification | Keep harness aggregate in the completion gate set. |
@@ -45,6 +45,7 @@ gaps, and currently missing or failed evidence.
 | Deliverables evidence polish | pass | `node scripts/smoke-ui-slice-648.mjs`, `node scripts/ui_qa_status.mjs` | Deliverables now answers changed, passed, blocked, and safe-next questions from existing artifact, review, approval, evidence, and readiness truth without adding downstream actions | Keep as current delivery clarity evidence. |
 | Lifecycle status chain | pass | `node scripts/smoke-lifecycle-supporting-boundary.mjs`, `docs/21_completion-development-roadmap.md`, `tasks/todo.md`, `tasks/lessons.md` | Existing read-only lifecycle status chain is supporting evidence only and not the default product development lane | Recheck lifecycle status only when verification finds a stale command, stale source reference, or source-of-truth mismatch. |
 | Zero-open completion baseline | pass | `node scripts/smoke-ui-slice-63.mjs`, `tasks/todo.md`, `docs/22_completion-gate-inventory.md` | `tasks/todo.md` has no active unchecked `- [ ]` item, so no default completion implementation slice remains open | Open a new implementation slice only from an explicit operator request, concrete regression, usability issue, or accepted vNext decision. |
+| Post-completion next-step router | pass | `node scripts/post-completion-next-step-status.mjs`, `node scripts/smoke-ui-slice-63.mjs` | Explicit operator requests can open a read-only vNext routing slice without reopening the default completion backlog | Use this router before opening future product, vNext, or optional-live follow-up work. |
 
 ## Environment Visibility
 - `OPENAI_API_KEY`: missing in this shell.
@@ -78,7 +79,10 @@ Remaining non-blocking evidence:
 ## Recommended Next Order
 No default completion implementation slice remains open. Start a new product or vNext slice only from
 an explicit operator request, or rerun optional real-live verification only when the required env vars
-are visible.
+are visible. For an explicit follow-up request, first run
+`node scripts/post-completion-next-step-status.mjs` and keep the next implementation posture
+read-only/status-or-doc-smoke-first until a concrete regression, usability issue, or accepted vNext
+decision justifies runtime or UI mutation.
 
 ## Stop Condition For This Inventory Slice
 This slice is complete when:

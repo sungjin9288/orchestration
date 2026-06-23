@@ -162,6 +162,7 @@
 - portfolio-facing README를 닫을 때는 좋은 설명보다 source-backed honesty gate가 먼저다. route, env var, smoke count, demo status, missing setup file을 코드와 명령에서 직접 추출하고 focused README smoke로 고정해야 stale 숫자나 미검증 demo claim이 다시 들어오지 않는다.
 - completion lane이 닫힌 뒤 lifecycle status chain은 새 구현 backlog가 아니라 stale command나 source-of-truth mismatch를 찾았을 때만 다시 여는 supporting gate로 남겨야 한다.
 - completion baseline이 frozen 된 뒤에는 새 primary-shell slice를 계속 열기보다 남은 작업을 기존 non-blocking housekeeping backlog로 되돌리는 편이 drift를 가장 잘 막았다. baseline completion과 운영 housekeeping을 같은 queue에 두면 다시 product blocker처럼 보이기 쉽다.
+- zero-open baseline 이후 사용자가 다음 스텝을 요청하더라도 곧바로 runtime/UI mutation을 열기보다 read-only next-step router를 먼저 두는 편이 안전하다. 이렇게 해야 explicit operator request와 concrete regression/usability/vNext decision entry를 구분하고, optional live rerun이나 growth-loop follow-up이 다시 default backlog처럼 보이는 drift를 막을 수 있다.
 - 상위 방향성 항목(`ai-orchestration-pivot-v2`)이 실제로 구현된 뒤에도 backlog에 `[ ]`로 남겨두면 이후 housekeeping이 다시 product blocker처럼 보인다. completion freeze 이후에는 그 방향성 항목 자체를 완료로 닫고, 남은 작업만 explicit non-blocking 또는 later `vNext` entry로 되돌려야 ledger drift를 막기 쉽다.
 - deferred/rejected section도 같은 원칙이 적용됐고, docs가 이미 `deferred` 또는 `rejected`로 못 박은 항목을 todo 끝에 `- [ ]`로 남겨두면 실제 open implementation item처럼 오해되기 쉽다. 그런 항목은 unchecked backlog가 아니라 명시적 deferred/rejected note로 닫아 두는 편이 ledger drift를 가장 잘 막았다.
 - todo에 active unchecked item이 0개가 된 시점은 그냥 상태가 아니라 baseline contract라서, `rg` 확인만 하고 끝내기보다 zero-open 상태 자체를 smoke로 고정해 두는 편이 이후 stale checkbox 재유입을 가장 빨리 잡아냈다.

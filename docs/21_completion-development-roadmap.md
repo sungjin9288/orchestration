@@ -154,3 +154,12 @@ as pass/supporting-only after the product-shell, Deliverables, README, and local
 The source smoke `scripts/smoke-lifecycle-supporting-boundary.mjs` pins that this chain is not the
 default product development lane and can be reopened only for stale command, stale source reference,
 or source-of-truth mismatch evidence.
+
+## Post-Completion Follow-Up Router
+After the zero-open completion baseline, follow-up work starts only from an explicit operator
+request, concrete regression, usability issue, or accepted vNext decision.
+
+Implemented evidence: `scripts/post-completion-next-step-status.mjs` emits the read-only routing
+status for that boundary. It records the zero-open backlog state, the explicit-entry reasons, the
+non-blocking optional-live env status, the recommended vNext read-only growth-loop posture, and the
+no-mutation boundary before any future runtime or UI slice opens.

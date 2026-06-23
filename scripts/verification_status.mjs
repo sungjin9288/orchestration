@@ -217,6 +217,11 @@ const informationalChecks = [
     purpose: 'Completion baseline stays zero-open until an explicit operator request, concrete regression, usability issue, or accepted vNext decision opens a new implementation slice',
   },
   {
+    id: 'post-completion-next-step-status',
+    script: 'scripts/post-completion-next-step-status.mjs',
+    purpose: 'Post-completion follow-up routes through an explicit operator request, regression, usability issue, or accepted vNext decision before any new implementation slice opens',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',
