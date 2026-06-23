@@ -232,6 +232,11 @@ const informationalChecks = [
     purpose: 'Growth Evidence Ledger gateway routing status maps ledger evidence into owned gateway surfaces without granting execution authority, provider calls, memory persistence, source mutation, commits, or pushes',
   },
   {
+    id: 'growth-evidence-ledger-reflection-handoff-status',
+    script: 'scripts/growth-evidence-ledger-reflection-handoff-status.mjs',
+    purpose: 'Growth Evidence Ledger reflection handoff status connects routed ledger evidence to reflection input without generating proposals, applying proposals, mutating source, persisting memory, calling providers, committing, or pushing',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',

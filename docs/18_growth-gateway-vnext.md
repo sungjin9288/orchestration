@@ -17316,6 +17316,43 @@ The command is registered in `scripts/verification_status.mjs`, and existing gro
 reflection smoke coverage checks that the next read-only lane becomes
 `growth-evidence-ledger-reflection-handoff` only after ledger-to-gateway routing is fixed.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-reflection-handoff-status`
+
+`scripts/growth-evidence-ledger-reflection-handoff-status.mjs` implements the next
+post-completion read-only slice by connecting routed Growth Evidence Ledger evidence to reflection
+input without opening proposal generation.
+
+Command:
+
+```bash
+node scripts/growth-evidence-ledger-reflection-handoff-status.mjs
+```
+
+It answers:
+
+- which routed ledger fields become eligible reflection input through `ledgerStatus`,
+  `gatewayRouteBindings`, `reflectionScorecard`, `negativeEvidence`, `blockedAuthorities`,
+  `verificationRefs`, and `sourceRefs`
+- how `growth-reflection-evaluator` can cite ledger evidence, gateway route evidence, negative
+  evidence, projections, redaction state, and blocked authority as typed read-only inputs
+- which Mission, Council, Execution, Deliverables, Taskboard, Logs, Artifacts, and Decision Inbox
+  routes feed reflection criteria while every route remains `actionAllowed=false`
+- whether engine/reflection routing has advanced past `growth-evidence-ledger-reflection-handoff`
+  only after this status command is implemented, documented, ledgered, and aggregate-registered
+
+It intentionally does not:
+
+- generate proposals, apply proposals, mutate proposal queues, or approve proposal work
+- execute workers, run dogfood, call providers, persist memory, authorize gateway actions, mutate
+  runtime, mutate UI, mutate source, commit, or push
+- treat routed evidence, logs, artifacts, task ledger entries, or reflection findings as hidden
+  execution, approval, memory persistence, provider, source-mutation, commit, or push authority
+
+The command is registered in `scripts/verification_status.mjs`, and existing growth engine and
+reflection smoke coverage checks that the next read-only lane becomes
+`growth-evidence-ledger-proposal-readiness` only after routed ledger evidence is connected to
+reflection as read-only input.
+
 ## Supporting Lifecycle Chain Status
 The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
 completion baseline. Re-enter
@@ -17348,19 +17385,22 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-reflection-handoff` as the next read-only vNext status/doc-smoke
-slice, routed through `node scripts/growth-evidence-ledger-gateway-routing-status.mjs` and confirmed
-by `node scripts/growth-engine-status.mjs` plus `node scripts/growth-reflection-evaluator.mjs`.
+Build `growth-evidence-ledger-proposal-readiness` as the next read-only vNext status/doc-smoke
+slice, routed through `node scripts/growth-evidence-ledger-reflection-handoff-status.mjs` and
+confirmed by `node scripts/growth-engine-status.mjs` plus
+`node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- which routed ledger fields become eligible reflection input without generating proposals
-- how `growth-reflection-evaluator` should distinguish ledger evidence, gateway route evidence,
-  negative evidence, projections, and blocked authority
-- which reflection findings can cite routed ledger status while proposal generation, memory
-  persistence, provider calls, runtime mutation, UI execution, commits, and pushes remain blocked
-- how reflection handoff keeps gateway routing read-only and does not turn any surface route into an
-  execution, approval, or source-mutation path
+- which reflection-backed ledger findings are complete enough to enter proposal-readiness review
+  without generating proposal records
+- which source refs, verification refs, negative evidence, blocked authority, and route evidence
+  are required before a future proposal can be considered reviewable
+- how proposal readiness stays separate from proposal generation, proposal queue mutation, proposal
+  application, memory persistence, provider calls, runtime mutation, UI execution, commits, and
+  pushes
+- how the proposal-readiness contract keeps gateway routing and reflection handoff read-only and
+  does not turn any surface route into an execution, approval, or source-mutation path
 
 The next command or doc-smoke must remain read-only/status-first. It must not reopen the default
 completion backlog or treat the source-mutation lifecycle chain as the default next product lane.
