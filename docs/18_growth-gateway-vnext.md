@@ -17243,6 +17243,44 @@ status as the next read-only gate.
 
 Canonical lifecycle close final-close status recheck-after-lifecycle-close-finalization-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance labels are `source mutation lifecycle closeout closure lifecycle close final close status rechecked after lifecycle close finalization acceptance status current final-close finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance`, `existing lifecycle close final close status command rechecked after lifecycle close finalization acceptance status current final-close finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance finalization acceptance`, `lifecycle close status next gate`, and `source mutation lifecycle closeout closure lifecycle close final close status stays separate from actual source mutation execution`.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-status`
+
+`scripts/growth-evidence-ledger-status.mjs` implements the first post-completion Growth Evidence
+Ledger slice as a local, read-only status command.
+
+Command:
+
+```bash
+node scripts/growth-evidence-ledger-status.mjs
+```
+
+It answers:
+
+- which source-of-truth docs, task ledger files, read-only status scripts, and local runtime
+  snapshots can feed a typed Growth Evidence Ledger
+- which evidence types are allowed before proposal generation or gateway routing can consume ledger
+  output: lifecycle events, claims, negative evidence, checked-absent facts, field deltas, run
+  outcomes, changed files, review results, approval states, failed checks, operator decisions,
+  lesson candidates, artifact refs, log refs, projections, and redacted entries
+- which evidence entry, runtime evidence ref, verification evidence ref, and lesson candidate fields
+  are required for future ledger consumers
+- whether Growth Evidence Ledger status is ready for reflection handoff while proposal generation,
+  ledger mutation, runtime mutation, memory persistence, provider calls, and gateway execution remain
+  explicitly disallowed
+
+It intentionally does not:
+
+- write files, mutate runtime state, execute workers, execute dogfood, call providers, persist
+  memory, open channels, authorize gateway actions, commit, or push
+- ingest arbitrary chat logs, secrets, external channel data, provider data, or global memory
+- treat the source-mutation lifecycle chain as the default product lane
+
+The command is registered in `scripts/verification_status.mjs`, and the existing
+`scripts/smoke-growth-engine-status.mjs` plus `scripts/smoke-growth-reflection-evaluator.mjs`
+confirm that engine/reflection routing advances from `growth-evidence-ledger` to
+`growth-evidence-ledger-gateway-routing` only after this read-only ledger status contract is
+implemented, documented, and aggregate-registered.
+
 ## Supporting Lifecycle Chain Status
 The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
 completion baseline. Re-enter
@@ -17275,22 +17313,21 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger` as the next read-only vNext status/doc-smoke slice, routed through
-`node scripts/post-completion-next-step-status.mjs` and confirmed by
-`node scripts/growth-engine-status.mjs` plus
-`node scripts/growth-reflection-evaluator.mjs`.
+Build `growth-evidence-ledger-gateway-routing` as the next read-only vNext status/doc-smoke slice,
+routed through `node scripts/growth-evidence-ledger-status.mjs` and confirmed by
+`node scripts/growth-engine-status.mjs` plus `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- which existing local evidence sources can be summarized as typed lifecycle events, claims,
-  negative evidence, field deltas, run outcomes, changed files, review results, approval states,
-  failed checks, operator decisions, lesson candidates, and artifact/log refs
-- which evidence is absent, stale, historical, redacted, or only a projection
-- how the ledger stays local-first and does not ingest secrets, arbitrary chat logs, external
-  channels, provider data, or global memory
-- how the ledger hands off to `growth-reflection-evaluator` without generating proposals, applying
-  patches, mutating runtime, mutating UI, persisting memory, opening channels, committing, pushing,
-  or releasing
+- which ledger readiness fields can be surfaced through the existing gateway surface router without
+  granting execution authority
+- how `growth-evidence-ledger-status` and `growth-gateway-surface-router-status` stay connected by
+  read-only evidence rather than runtime mutation
+- which ledger fields must remain absent, blocked, redacted, or projection-only before gateway UI,
+  memory, provider, or worker execution is allowed
+- how gateway routing keeps `growth-reflection-evaluator` as evidence input without generating
+  proposals, applying patches, mutating runtime, mutating UI, persisting memory, opening channels,
+  committing, pushing, or releasing
 
 The next command or doc-smoke must remain read-only/status-first. It must not reopen the default
 completion backlog or treat the source-mutation lifecycle chain as the default next product lane.

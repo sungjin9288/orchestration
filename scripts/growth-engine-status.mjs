@@ -21,6 +21,8 @@ const SOURCE_FILES = [
   'tasks/todo.md',
   'tasks/lessons.md',
   'scripts/post-completion-next-step-status.mjs',
+  'scripts/growth-evidence-ledger-status.mjs',
+  'scripts/verification_status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-skill-memory-registry-status.mjs',
   'scripts/growth-gateway-surface-router-status.mjs',
@@ -294,6 +296,7 @@ function summarizeSources(sources) {
   const roadmap = sourceText(sources, 'docs/21_completion-development-roadmap.md');
   const inventory = sourceText(sources, 'docs/22_completion-gate-inventory.md');
   const postCompletionRouter = sourceText(sources, 'scripts/post-completion-next-step-status.mjs');
+  const verificationStatus = sourceText(sources, 'scripts/verification_status.mjs');
   const decisionLog = sourceText(sources, 'docs/01_decision-log.md');
   const uncheckedTaskCount = countMatches(todo, /^- \[ \]/gm);
 
@@ -322,6 +325,14 @@ function summarizeSources(sources) {
     postCompletionRouterDocumented:
       /Post-completion next-step router/.test(inventory) &&
       /post-completion-next-step-status/.test(postCompletionRouter),
+    growthEvidenceLedgerStatusScriptPresent: fs.existsSync(
+      path.join(repoRoot, 'scripts', 'growth-evidence-ledger-status.mjs'),
+    ),
+    growthEvidenceLedgerStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-status`/.test(plan) &&
+      /Growth Evidence Ledger status/.test(inventory),
+    growthEvidenceLedgerStatusAggregateRegistered:
+      /growth-evidence-ledger-status/.test(verificationStatus),
     referenceRepoRecheckPresent: /## Reference Repo Recheck \(2026-06-01\)/.test(plan),
     referenceRepoCountPinned: REFERENCE_REPOS.filter((reference) =>
       plan.includes(reference.reviewedHead),
@@ -8475,13 +8486,36 @@ const postCompletionRouterActive =
 
 if (postCompletionRouterActive) {
   const lifecycleSupportingSlice = payload.nextRecommendedSlice;
+  const growthEvidenceLedgerStatusImplemented =
+    sourceSummary.growthEvidenceLedgerStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerStatusAggregateRegistered;
+  const routedNextSlice = growthEvidenceLedgerStatusImplemented
+    ? {
+        id: 'growth-evidence-ledger-gateway-routing',
+        commandToAdd:
+          'node scripts/growth-evidence-ledger-status.mjs && node scripts/growth-gateway-surface-router-status.mjs',
+        reason:
+          'The Growth Evidence Ledger read-only status command is implemented and registered; the next safe vNext slice can map ledger status into gateway routing without runtime, UI, memory, provider, source mutation, commit, or push authority.',
+        mustRemainReadOnly: true,
+      }
+    : {
+        id: 'growth-evidence-ledger',
+        commandToAdd:
+          'node scripts/post-completion-next-step-status.mjs && node scripts/growth-engine-status.mjs',
+        reason:
+          'The post-completion router is active and the current completion backlog is zero-open; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while the lifecycle closeout chain remains supporting evidence only.',
+        mustRemainReadOnly: true,
+      };
   payload.postCompletionRouter = {
     active: true,
     track: 'vNext-read-only-growth-loop',
     firstSlice: 'post-completion-next-step-router',
     nextImplementationPosture: 'read-only-status-or-doc-smoke-first',
+    growthEvidenceLedgerStatusImplemented,
     candidateWorkstreams: [
       'growth-evidence-ledger',
+      'growth-evidence-ledger-gateway-routing',
       'reflection-evaluator',
       'gateway-surface-router',
       'optional-real-live-rerun-when-env-visible',
@@ -8490,13 +8524,7 @@ if (postCompletionRouterActive) {
     rationale:
       'The completion baseline is zero-open, so growth-engine-status must route follow-up work through the post-completion vNext gate instead of continuing the source-mutation lifecycle recheck chain as the default next action.',
   };
-  payload.nextRecommendedSlice = {
-    id: 'growth-evidence-ledger',
-    commandToAdd: 'node scripts/post-completion-next-step-status.mjs && node scripts/growth-engine-status.mjs',
-    reason:
-      'The post-completion router is active and the current completion backlog is zero-open; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while the lifecycle closeout chain remains supporting evidence only.',
-    mustRemainReadOnly: true,
-  };
+  payload.nextRecommendedSlice = routedNextSlice;
   payload.hermesEngine.currentMode = 'repo-native-hermes-style-post-completion-growth-routing';
   payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
 } else {

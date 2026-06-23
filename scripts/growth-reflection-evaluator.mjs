@@ -26,6 +26,7 @@ const SOURCE_FILES = [
   'tasks/todo.md',
   'tasks/lessons.md',
   'scripts/post-completion-next-step-status.mjs',
+  'scripts/growth-evidence-ledger-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-worker-event-schema.mjs',
   'scripts/growth-proposal-queue-status.mjs',
@@ -570,6 +571,14 @@ function summarizeSources(sources) {
     postCompletionRouterDocumented:
       /Post-completion next-step router/.test(inventory) &&
       /post-completion-next-step-status/.test(postCompletionRouter),
+    growthEvidenceLedgerStatusScriptPresent: fs.existsSync(
+      path.join(repoRoot, 'scripts', 'growth-evidence-ledger-status.mjs'),
+    ),
+    growthEvidenceLedgerStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-status`/.test(plan) &&
+      /Growth Evidence Ledger status/.test(inventory),
+    growthEvidenceLedgerStatusAggregateRegistered:
+      /growth-evidence-ledger-status/.test(verificationStatus),
     reflectionEvaluatorDocumented: /growth-reflection-evaluator/.test(plan),
     workerEventSchemaScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-worker-event-schema.mjs'),
@@ -13628,31 +13637,53 @@ const postCompletionRouterActive =
 
 if (postCompletionRouterActive) {
   const lifecycleSupportingSlice = payload.nextRecommendedSlice;
+  const growthEvidenceLedgerStatusImplemented =
+    sourceSummary.growthEvidenceLedgerStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerStatusAggregateRegistered;
+  const routedNextSlice = growthEvidenceLedgerStatusImplemented
+    ? {
+        id: 'growth-evidence-ledger-gateway-routing',
+        commandToAdd:
+          'node scripts/growth-evidence-ledger-status.mjs && node scripts/growth-gateway-surface-router-status.mjs',
+        reason:
+          'The Growth Evidence Ledger read-only status command is implemented and registered; the next safe vNext slice can map ledger status into gateway routing without runtime, UI, memory, provider, source mutation, commit, or push authority.',
+        mustRemainReadOnly: true,
+      }
+    : {
+        id: 'growth-evidence-ledger',
+        commandToAdd:
+          'node scripts/post-completion-next-step-status.mjs && node scripts/growth-reflection-evaluator.mjs',
+        reason:
+          'The post-completion router is active and reflection evidence is green; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while lifecycle closeout rechecks remain supporting evidence only.',
+        mustRemainReadOnly: true,
+      };
   payload.postCompletionRouter = {
     active: true,
     track: 'vNext-read-only-growth-loop',
     firstSlice: 'post-completion-next-step-router',
     nextImplementationPosture: 'read-only-status-or-doc-smoke-first',
+    growthEvidenceLedgerStatusImplemented,
     lifecycleSupportingSlice,
     rationale:
       'The completion baseline is zero-open, so growth-reflection-evaluator must recommend read-only Growth Evidence Ledger work instead of continuing source-mutation lifecycle rechecks as the default product lane.',
   };
-  payload.aggregate.status = 'ready-for-growth-evidence-ledger';
-  payload.nextRecommendedSlice = {
-    id: 'growth-evidence-ledger',
-    commandToAdd: 'node scripts/post-completion-next-step-status.mjs && node scripts/growth-reflection-evaluator.mjs',
-    reason:
-      'The post-completion router is active and reflection evidence is green; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while lifecycle closeout rechecks remain supporting evidence only.',
-    mustRemainReadOnly: true,
-  };
+  payload.aggregate.status = growthEvidenceLedgerStatusImplemented
+    ? 'ready-for-growth-evidence-ledger-gateway-routing'
+    : 'ready-for-growth-evidence-ledger';
+  payload.nextRecommendedSlice = routedNextSlice;
   payload.reflectionFindings = [
     {
-      id: 'growth-evidence-ledger-needed',
+      id: growthEvidenceLedgerStatusImplemented
+        ? 'growth-evidence-ledger-gateway-routing-needed'
+        : 'growth-evidence-ledger-needed',
       severity: 'info',
-      claim:
-        'Zero-open completion and Growth Loop readiness route the next default vNext step to a read-only Growth Evidence Ledger before any runtime, UI, memory, provider, or source-mutation expansion.',
-      allowedNextAction:
-        'define growth-evidence-ledger as read-only status/doc-smoke evidence before reflection, proposal generation, persistence, or source mutation',
+      claim: growthEvidenceLedgerStatusImplemented
+        ? 'The Growth Evidence Ledger status is implemented, registered, and read-only; the next default vNext step is read-only gateway routing from ledger status before any runtime, UI, memory, provider, or source-mutation expansion.'
+        : 'Zero-open completion and Growth Loop readiness route the next default vNext step to a read-only Growth Evidence Ledger before any runtime, UI, memory, provider, or source-mutation expansion.',
+      allowedNextAction: growthEvidenceLedgerStatusImplemented
+        ? 'map growth-evidence-ledger status into gateway routing as read-only status/doc-smoke evidence before execution authority, persistence, provider calls, or source mutation'
+        : 'define growth-evidence-ledger as read-only status/doc-smoke evidence before reflection, proposal generation, persistence, or source mutation',
     },
     ...payload.reflectionFindings,
   ];
