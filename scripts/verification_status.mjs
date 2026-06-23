@@ -257,6 +257,11 @@ const informationalChecks = [
     purpose: 'Growth Evidence Ledger proposal record review gate status defines a read-only human review boundary before any record creation, proposal approval, queue mutation, source mutation, commit, or push can act',
   },
   {
+    id: 'growth-evidence-ledger-proposal-record-creation-readiness-status',
+    script: 'scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record creation readiness status defines id/status/timestamp policies without generating ids, assigning status, stamping timestamps, creating records, mutating queues, committing, or pushing',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',

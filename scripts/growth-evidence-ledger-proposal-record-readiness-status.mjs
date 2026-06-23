@@ -131,12 +131,18 @@ function summarizeSources(sources) {
       ) ||
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-creation-readiness/.test(
         engine,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-shape/.test(
+        engine,
       ),
     reflectionRoutesPastProposalRecordReadiness:
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-review-gate/.test(
         reflection,
       ) ||
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-creation-readiness/.test(
+        reflection,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-shape/.test(
         reflection,
       ),
     noDefaultBacklogOpen: !/^- \[ \]/m.test(todo),

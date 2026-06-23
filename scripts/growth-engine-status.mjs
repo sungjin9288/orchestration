@@ -28,6 +28,7 @@ const SOURCE_FILES = [
   'scripts/growth-evidence-ledger-proposal-queue-handoff-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-readiness-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-skill-memory-registry-status.mjs',
@@ -393,6 +394,19 @@ function summarizeSources(sources) {
       ) && /Growth Evidence Ledger proposal record review gate status/.test(inventory),
     growthEvidenceLedgerProposalRecordReviewGateStatusAggregateRegistered:
       /growth-evidence-ledger-proposal-record-review-gate-status/.test(verificationStatus),
+    growthEvidenceLedgerProposalRecordCreationReadinessStatusScriptPresent: fs.existsSync(
+      path.join(
+        repoRoot,
+        'scripts',
+        'growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
+      ),
+    ),
+    growthEvidenceLedgerProposalRecordCreationReadinessStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-creation-readiness-status`/.test(
+        plan,
+      ) && /Growth Evidence Ledger proposal record creation readiness status/.test(inventory),
+    growthEvidenceLedgerProposalRecordCreationReadinessStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-creation-readiness-status/.test(verificationStatus),
     referenceRepoRecheckPresent: /## Reference Repo Recheck \(2026-06-01\)/.test(plan),
     referenceRepoCountPinned: REFERENCE_REPOS.filter((reference) =>
       plan.includes(reference.reviewedHead),
@@ -8580,6 +8594,11 @@ if (postCompletionRouterActive) {
     sourceSummary.growthEvidenceLedgerProposalRecordReviewGateStatusScriptPresent &&
     sourceSummary.growthEvidenceLedgerProposalRecordReviewGateStatusDocumented &&
     sourceSummary.growthEvidenceLedgerProposalRecordReviewGateStatusAggregateRegistered;
+  const growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented =
+    growthEvidenceLedgerProposalRecordReviewGateStatusImplemented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordCreationReadinessStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerProposalRecordCreationReadinessStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordCreationReadinessStatusAggregateRegistered;
   const routedNextSlice = growthEvidenceLedgerStatusImplemented
     ? growthEvidenceLedgerGatewayRoutingStatusImplemented
       ? growthEvidenceLedgerReflectionHandoffStatusImplemented
@@ -8587,14 +8606,23 @@ if (postCompletionRouterActive) {
           ? growthEvidenceLedgerProposalQueueHandoffStatusImplemented
             ? growthEvidenceLedgerProposalRecordReadinessStatusImplemented
               ? growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
-                ? {
-                    id: 'growth-evidence-ledger-proposal-record-creation-readiness',
-                    commandToAdd:
-                      'node scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs && node scripts/growth-proposal-queue-status.mjs',
-                    reason:
-                      'The proposal record review gate is now defined as read-only review evidence only; the next safe vNext slice can check creation readiness without creating, approving, applying, persisting, or mutating proposal records.',
-                    mustRemainReadOnly: true,
-                  }
+                ? growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
+                  ? {
+                      id: 'growth-evidence-ledger-proposal-record-dry-run-shape',
+                      commandToAdd:
+                        'node scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs && node scripts/growth-proposal-queue-status.mjs',
+                      reason:
+                        'Proposal record creation policies are defined without assigning identity, status, or timestamps; the next safe vNext slice can design a dry-run record shape without creating, approving, applying, persisting, or mutating proposal records.',
+                      mustRemainReadOnly: true,
+                    }
+                  : {
+                      id: 'growth-evidence-ledger-proposal-record-creation-readiness',
+                      commandToAdd:
+                        'node scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs && node scripts/growth-proposal-queue-status.mjs',
+                      reason:
+                        'The proposal record review gate is now defined as read-only review evidence only; the next safe vNext slice can check creation readiness without creating, approving, applying, persisting, or mutating proposal records.',
+                      mustRemainReadOnly: true,
+                    }
                 : {
                     id: 'growth-evidence-ledger-proposal-record-review-gate',
                     commandToAdd:
@@ -8663,6 +8691,7 @@ if (postCompletionRouterActive) {
     growthEvidenceLedgerProposalQueueHandoffStatusImplemented,
     growthEvidenceLedgerProposalRecordReadinessStatusImplemented,
     growthEvidenceLedgerProposalRecordReviewGateStatusImplemented,
+    growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented,
     candidateWorkstreams: [
       'growth-evidence-ledger',
       'growth-evidence-ledger-gateway-routing',
@@ -8672,6 +8701,7 @@ if (postCompletionRouterActive) {
       'growth-evidence-ledger-proposal-record-readiness',
       'growth-evidence-ledger-proposal-record-review-gate',
       'growth-evidence-ledger-proposal-record-creation-readiness',
+      'growth-evidence-ledger-proposal-record-dry-run-shape',
       'reflection-evaluator',
       'gateway-surface-router',
       'optional-real-live-rerun-when-env-visible',

@@ -17503,6 +17503,43 @@ reflection smoke coverage checks that the next read-only lane becomes
 `growth-evidence-ledger-proposal-record-creation-readiness` only after the record review-gate
 contract is fixed.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-creation-readiness-status`
+
+`scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs` implements the next
+post-completion read-only slice by defining creation policy prerequisites for `proposalId`,
+`status`, and `createdAt` without assigning values or persisting a proposal record.
+
+Command:
+
+```bash
+node scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs
+```
+
+It answers:
+
+- which identity, initial status, and timestamp policies must exist before a future dry-run record
+  shape can be designed
+- why `proposalId`, `status`, and `createdAt` remain `null` in the dry-run-only shape
+- why `applyAllowed` remains false and proposal approval remains separate from creation readiness
+- whether engine/reflection routing has advanced past
+  `growth-evidence-ledger-proposal-record-creation-readiness` only after this status command is
+  implemented, documented, ledgered, and aggregate-registered
+
+It intentionally does not:
+
+- generate proposal ids, assign proposal statuses, stamp `createdAt`, create proposal records,
+  persist proposal records, generate proposals, apply proposals, mutate proposal queues, or approve
+  proposals
+- execute workers, run dogfood, call providers, persist memory, authorize gateway actions, mutate
+  runtime, mutate UI, mutate source, commit, or push
+- treat creation readiness as durable queue state, proposal approval, implementation authority,
+  hidden prioritization, source-mutation authority, or gateway action authority
+
+The command is registered in `scripts/verification_status.mjs`, and existing growth engine and
+reflection smoke coverage checks that the next read-only lane becomes
+`growth-evidence-ledger-proposal-record-dry-run-shape` only after creation policy prerequisites are
+fixed.
+
 ## Supporting Lifecycle Chain Status
 The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
 completion baseline. Re-enter
@@ -17535,20 +17572,20 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-record-creation-readiness` as the next read-only vNext
+Build `growth-evidence-ledger-proposal-record-dry-run-shape` as the next read-only vNext
 status/doc-smoke slice, routed through
-`node scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs` and
+`node scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs` and
 confirmed by `node scripts/growth-engine-status.mjs` plus
 `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- which additional prerequisites must exist before any future explicit proposal-record creation
-  slice may assign `proposalId`, `status`, or `createdAt`
-- how creation readiness stays separate from proposal generation, proposal queue mutation, proposal
+- what the exact dry-run-only proposal record shape would look like while `proposalId`, `status`,
+  and `createdAt` remain unassigned
+- how the dry-run shape stays separate from proposal generation, proposal queue mutation, proposal
   application, record persistence, proposal approval, memory persistence, provider calls, runtime
   mutation, UI execution, commits, and pushes
-- how the creation-readiness contract prevents a reviewed preview shape from becoming hidden
+- how the dry-run contract prevents creation readiness from becoming hidden
   prioritization, execution authority, approval authority, source-mutation authority, or durable
   queue state
 

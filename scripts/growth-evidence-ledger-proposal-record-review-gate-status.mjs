@@ -19,6 +19,7 @@ const SOURCE_FILES = [
   'tasks/todo.md',
   'tasks/lessons.md',
   'scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-readiness-status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-engine-status.mjs',
@@ -145,9 +146,15 @@ function summarizeSources(sources) {
     engineRoutesPastProposalRecordReviewGate:
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-creation-readiness/.test(
         engine,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-shape/.test(
+        engine,
       ),
     reflectionRoutesPastProposalRecordReviewGate:
       /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-creation-readiness/.test(
+        reflection,
+      ) ||
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-shape/.test(
         reflection,
       ),
     noDefaultBacklogOpen: !/^- \[ \]/m.test(todo),
