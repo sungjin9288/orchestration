@@ -17742,6 +17742,47 @@ reflection smoke coverage checks that the next read-only lane becomes
 `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review` only after
 finalization is defined and keeps the non-approval boundary.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status`
+
+`scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status.mjs`
+implements the next post-completion read-only slice by reviewing dry-run acceptance finalization
+evidence only as input for a later read-only acceptance check. This review is intentionally not
+proposal approval, proposal record creation, durable queue state, or implementation authority.
+
+Command:
+
+```bash
+node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status.mjs
+```
+
+It answers:
+
+- whether `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status` is
+  green and the finalization state is `finalized-for-read-only-review-check`
+- whether every finalization finding passed before review evidence is exposed
+- whether review keeps proposal record creation, persistence, queue mutation, approval,
+  implementation, and durable record promotion blocked
+- whether review can move only to a later read-only acceptance check
+- whether engine/reflection routing has advanced past
+  `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review` only after
+  this status command is implemented, documented, ledgered, and aggregate-registered
+
+It intentionally does not:
+
+- accept finalization review as proposal approval, generate proposal ids, assign proposal statuses,
+  stamp `createdAt`, create proposal records, persist proposal records, promote dry-run
+  finalization review to durable queue state, generate proposals, apply proposals, mutate proposal
+  queues, or approve proposals
+- execute workers, run dogfood, call providers, persist memory, authorize gateway actions, mutate
+  runtime, mutate UI, mutate source, commit, or push
+- treat finalization review evidence as proposal approval, durable queue state, implementation
+  authority, hidden prioritization, source-mutation authority, or gateway action authority
+
+The command is registered in `scripts/verification_status.mjs`, and existing growth engine and
+reflection smoke coverage checks that the next read-only lane becomes
+`growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance`
+only after finalization review is defined and keeps the non-approval boundary.
+
 ## Supporting Lifecycle Chain Status
 The source-mutation lifecycle closeout chain remains supporting evidence only after the zero-open
 completion baseline. Re-enter
@@ -17774,15 +17815,15 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review` as the next
+Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance` as the next
 read-only vNext status/doc-smoke slice, routed through
-`node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status.mjs` and
+`node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status.mjs` and
 confirmed by `node scripts/growth-engine-status.mjs` plus
 `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- whether finalized dry-run acceptance evidence can be reviewed as read-only status evidence without
+- whether reviewed dry-run finalization evidence can be accepted as read-only status evidence without
   approving, creating, or persisting a proposal record
 - how finalization stays separate from proposal generation, proposal queue mutation, proposal
   application, record persistence, proposal approval, memory persistence, provider calls, runtime
