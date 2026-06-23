@@ -32,7 +32,7 @@ gaps, and currently missing or failed evidence.
 
 | Gate | Status | Evidence command or source | Current result | Next action |
 | --- | --- | --- | --- | --- |
-| Required aggregate synthetic gate | pass | `node scripts/verification_status.mjs` | `ok=true`; required `1/1`; informational `90/90` | Keep as the default required docs/runtime aggregate gate. |
+| Required aggregate synthetic gate | pass | `node scripts/verification_status.mjs` | `ok=true`; required `1/1`; informational `91/91` | Keep as the default required docs/runtime aggregate gate. |
 | UI QA synthetic gate | pass | `node scripts/ui_qa_status.mjs` | `ok=true`; required `26/26`; snapshot reachability informational skipped because local UI server was not running | Treat snapshot reachability as optional unless a UI server is intentionally started. |
 | Representative browser/runtime QA | pass | `node scripts/smoke-qa-slice-07.mjs` | `ok=true`; local browser flow reached Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and duplicate guards | Keep as the strongest current local browser/runtime proof. |
 | Harness aggregate | pass | `node scripts/harness_verification_status.mjs` | `ok=true`; `46/46` pass after memory-brief smoke reclassification | Keep harness aggregate in the completion gate set. |
@@ -42,8 +42,8 @@ gaps, and currently missing or failed evidence.
 | Optional OpenAI real-live gates | skipped | `OPENAI_API_KEY` / `OPENAI_RESPONSES_MODEL` presence check; `docs/05_execution-spec-ops-verification-m5-02.md` | Both env vars were missing in this shell; optional live reruns were skipped by policy | Rerun only when both env vars are visible; classify as `skipped_missing_env` otherwise. |
 | Optional provider live smoke entrypoints | available | `scripts/smoke-provider-live-slice-02/03/05/06/07.mjs`, `scripts/smoke-qa-live-slice-04/05/06/07.mjs` | Entry points exist, but were not executed because env was missing | Keep optional and non-blocking unless a future decision promotes them. |
 | Product first-run polish | pass | `node scripts/smoke-ui-slice-647.mjs`, `node scripts/ui_qa_status.mjs` | Mission handoff now routes first-run state through Mission registration, Council alignment, linked execution cell creation, and Execution handoff using existing surfaces only | Keep as current first-run product-shell evidence. |
-| Deliverables evidence polish | pass | `node scripts/smoke-ui-slice-648.mjs`, `node scripts/ui_qa_status.mjs` | Deliverables now answers changed, passed, blocked, and safe-next questions from existing artifact, review, approval, evidence, and readiness truth without adding downstream actions | Continue to README evidence/scope refresh next. |
-| Lifecycle status chain | supporting only | `docs/21_completion-development-roadmap.md`, `tasks/todo.md`, `tasks/lessons.md` | Existing read-only lifecycle status chain is not the default next step | Continue only if a stale command or source-of-truth mismatch is found. |
+| Deliverables evidence polish | pass | `node scripts/smoke-ui-slice-648.mjs`, `node scripts/ui_qa_status.mjs` | Deliverables now answers changed, passed, blocked, and safe-next questions from existing artifact, review, approval, evidence, and readiness truth without adding downstream actions | Keep as current delivery clarity evidence. |
+| Lifecycle status chain | pass | `node scripts/smoke-lifecycle-supporting-boundary.mjs`, `docs/21_completion-development-roadmap.md`, `tasks/todo.md`, `tasks/lessons.md` | Existing read-only lifecycle status chain is supporting evidence only and not the default product development lane | Recheck lifecycle status only when verification finds a stale command, stale source reference, or source-of-truth mismatch. |
 
 ## Environment Visibility
 - `OPENAI_API_KEY`: missing in this shell.
@@ -73,8 +73,9 @@ Blocking or open evidence:
   development lane unless a stale command or source-of-truth mismatch appears
 
 ## Recommended Next Order
-1. `growth-lifecycle-status-supporting-evidence-boundary-post-m7-1178`: keep the lifecycle status
-   chain supporting-only unless current verification finds a stale command or source mismatch.
+No default completion implementation slice remains open. Start a new product or vNext slice only from
+an explicit operator request, or rerun optional real-live verification only when the required env vars
+are visible.
 
 ## Stop Condition For This Inventory Slice
 This slice is complete when:

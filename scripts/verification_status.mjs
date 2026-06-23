@@ -207,6 +207,11 @@ const informationalChecks = [
     purpose: 'README public-facing setup, testing, scope, route, env, and limitation claims stay backed by current source and measured smoke counts',
   },
   {
+    id: 'lifecycle-supporting-boundary',
+    script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
+    purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',

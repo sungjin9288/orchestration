@@ -148,3 +148,9 @@ development path.
 Continue a lifecycle status recheck only when the current completion gate inventory or verification
 run finds a stale command, stale reference, or source-of-truth mismatch. Otherwise, move the next
 slice through the completion workstreams above.
+
+Implemented evidence: `docs/22_completion-gate-inventory.md` now records the lifecycle status chain
+as pass/supporting-only after the product-shell, Deliverables, README, and local demo evidence passes.
+The source smoke `scripts/smoke-lifecycle-supporting-boundary.mjs` pins that this chain is not the
+default product development lane and can be reopened only for stale command, stale source reference,
+or source-of-truth mismatch evidence.
