@@ -8413,5 +8413,17 @@ if (
   payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
 }
 
+if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
+  payload.nextRecommendedSlice = {
+    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+    commandToAdd:
+      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
+    reason:
+      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
+    mustRemainReadOnly: true,
+  };
+  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
+}
+
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 process.exitCode = ok ? 0 : 1;
