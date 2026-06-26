@@ -101,9 +101,10 @@ Responsibilities:
 - Prefer steps that produce observable end-to-end movement over isolated internal churn.
 - Preserve the current plan-plus-architecture provenance chain and do not recombine stale upstream artifacts.
 - Preserve the current breakdown markdown contract so downstream parser and UI behavior stay stable.
+- Make each sub-task decision-complete: exact target paths, an explicit Must-NOT-Have, and no interpretation calls left to the builder.
 
 Required result:
-- An actionable breakdown that the builder can execute without widening scope.
+- An actionable, decision-complete breakdown — each task naming its target paths and Must-NOT-Have — that the builder can execute without widening scope or guessing intent.
 
 ### Builder
 Responsibilities:
