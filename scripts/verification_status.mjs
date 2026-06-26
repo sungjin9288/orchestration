@@ -202,6 +202,11 @@ const informationalChecks = [
     purpose: 'Deliverables completion summary answers changed, passed, blocked, and safe-next questions without adding new downstream actions',
   },
   {
+    id: 'reference-driven-growth-personalization-ui',
+    script: 'scripts/smoke-ui-slice-649.mjs',
+    purpose: 'Reference-driven enterprise redesign exposes read-only growth candidates and local-only personalization without provider, memory, source mutation, commit, or push authority',
+  },
+  {
     id: 'readme-scope-evidence',
     script: 'scripts/smoke-readme-scope-evidence.mjs',
     purpose: 'README public-facing setup, testing, scope, route, env, and limitation claims stay backed by current source and measured smoke counts',
@@ -358,6 +363,24 @@ const informationalChecks = [
     script:
       'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
     purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status finalizes accepted finalization review acceptance finalization review acceptance finalization review acceptance finalization review evidence only for read-only review checking without approving, creating, persisting, promoting, implementing, or mutating proposal records',
+  },
+  {
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+    script:
+      'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review status reviews finalized finalization review acceptance finalization review acceptance finalization review acceptance finalization review evidence only for read-only acceptance checking without approving, creating, persisting, promoting, implementing, or mutating proposal records',
+  },
+  {
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+    script:
+      'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status accepts reviewed finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review evidence only for read-only finalization checking without approving, creating, persisting, promoting, implementing, or mutating proposal records',
+  },
+  {
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
+    script:
+      'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status finalizes accepted finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review evidence only for read-only review checking without approving, creating, persisting, promoting, implementing, or mutating proposal records',
   },
   {
     id: 'growth-improvement-acceptance-status',

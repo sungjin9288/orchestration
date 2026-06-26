@@ -10,10 +10,14 @@ const repoRoot = path.resolve(__dirname, '..');
 const readmePath = path.join(repoRoot, 'README.md');
 const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_status.mjs');
+const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const referenceAuditPath = path.join(repoRoot, 'docs', 'reference', 'vnext-reference-driven-ui-audit.md');
 
 const readme = fs.readFileSync(readmePath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
+const appJs = fs.readFileSync(appJsPath, 'utf8');
+const referenceAudit = fs.readFileSync(referenceAuditPath, 'utf8');
 
 function countScripts(predicate) {
   return fs.readdirSync(path.join(repoRoot, 'scripts')).filter(predicate).length;
@@ -51,6 +55,15 @@ assert.match(readme, /No public hosted demo URL is verified/);
 assert.match(readme, /no verified hosted public demo URL/);
 assert.match(readme, /Current-head local API evidence was rechecked on 2026-06-23/);
 assert.match(readme, /"plannerArtifactId": "artifact-0001"/);
+assert.match(readme, /Reference-driven operator shell/);
+assert.match(readme, /Read-only growth evidence/);
+assert.match(readme, /Local-only personalization/);
+assert.match(readme, /Growth Evidence Ledger/);
+assert.match(readme, /Improvement Candidate Queue/);
+assert.match(readme, /orchestration\.ui-preferences\.v1/);
+assert.match(readme, /node scripts\/smoke-ui-slice-649\.mjs/);
+assert.match(readme, /output\/playwright\/vnext-desktop-top-final\.png/);
+assert.match(readme, /output\/playwright\/vnext-mobile\.png/);
 
 assert.match(readme, new RegExp(`${smokeFileCount} smoke files`));
 assert.match(readme, new RegExp(`${qaSliceFileCount} QA slice files`));
@@ -121,6 +134,18 @@ assert.match(readme, /`OPENAI_RESPONSES_TIMEOUT_MS`/);
 assert.match(readme, /`OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS`/);
 assert.match(readme, /`OPENAI_RESPONSES_RETRY_DELAY_MS`/);
 assert.match(verificationStatus, /smoke-readme-scope-evidence\.mjs/);
+assert.match(verificationStatus, /smoke-ui-slice-649\.mjs/);
+assert.match(appJs, /data-growth-learning-surface="read-only"/);
+assert.match(appJs, /data-personalization-scope="local-only"/);
+assert.match(appJs, /const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
+assert.match(appJs, /const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
+assert.match(referenceAudit, /Linear/);
+assert.match(referenceAudit, /LangSmith Studio/);
+assert.match(referenceAudit, /Retool/);
+assert.match(referenceAudit, /Dify/);
+assert.match(referenceAudit, /n8n HITL/);
+assert.match(referenceAudit, /Zapier/);
+assert.match(referenceAudit, /NN\/g 2026 UX/);
 
 console.log(
   JSON.stringify(

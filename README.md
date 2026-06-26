@@ -21,6 +21,9 @@ and approvals.
 | Local project registry | `project_path` is required before execution; local project state is managed by `src/runtime/runtime-service.js`. |
 | Mission-first shell | `Mission / Council / Execution / Deliverables` is the default product shell in `ui/app.js`. |
 | Advanced Ops surfaces | `Taskboard / Logs / Artifacts / Decision Inbox` remain available as authoritative operator surfaces. |
+| Reference-driven operator shell | `docs/reference/vnext-reference-driven-ui-audit.md` records what was adopted or rejected from Linear, LangSmith Studio, Retool, Dify, n8n HITL, Zapier, and NN/g before the UI refresh. |
+| Read-only growth evidence | The shell exposes `Growth Evidence Ledger` and `Improvement Candidate Queue` as evidence-derived candidate views; `scripts/smoke-ui-slice-649.mjs` pins that they do not call providers, persist memory, mutate source, apply proposals, commit, or push. |
+| Local-only personalization | Recent desks, evidence density, and preferred project hints are stored under `orchestration.ui-preferences.v1` in browser `localStorage`; they only change shell convenience and do not mutate runtime authority. |
 | Development pack loop | The implemented pack flow is documented in `packs/development/pack.md`: planner, architect, task-breaker, builder preflight, builder live mutation, reviewer, commit-package, local commit, release-package, close-out. |
 | Review and approval gates | Review-before-done and approval-before-commit/release follow-up are enforced through runtime/coordinator state and surfaced in Decision Inbox. |
 | Local artifact store | Runtime state and artifacts are persisted through `src/runtime/file-store.js`; no external database is required. |
@@ -44,6 +47,7 @@ and approvals.
 ui/
   Mission / Council / Execution / Deliverables
   Advanced Ops: Taskboard / Logs / Artifacts / Decision Inbox
+  Read-only growth evidence + local-only personalization
         |
 scripts/serve-ui-slice-01.mjs
   local HTTP wrapper for UI, snapshot, artifact, log, and action endpoints
@@ -72,6 +76,15 @@ src/runtime/file-store.js
 - Review before done: task completion depends on review evidence, not just a successful run.
 - Approval before commit and release follow-up: commit-package and release-package prepare approval
   records; local commit and close-out consume the approved provenance later.
+- Reference-driven design without cloning: the current shell borrows low-noise navigation, traceable
+  operator state, permission-aware density, and human approval posture from adjacent tools while
+  keeping Orchestration's local project and evidence boundary intact.
+- Growth is evidence review, not model training: growth surfaces can summarize local runs, artifacts,
+  reviews, approvals, and failed or blocked work into candidate counts, but they do not persist
+  memory, generate/apply proposals, call providers, mutate source, commit, or push.
+- Personalization is local convenience only: recent desks, evidence density, and preferred project
+  hints live in browser storage and are surfaced as shortcuts or prefilled context, not automatic
+  execution.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -187,14 +200,15 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 845 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 846 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 648 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 649 UI smoke files
 ```
 
 Representative verification commands:
 
 ```bash
+node scripts/smoke-ui-slice-649.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -203,15 +217,23 @@ node scripts/smoke-qa-slice-07.mjs
 
 Current verification evidence from this README refresh:
 
+- `node scripts/smoke-ui-slice-649.mjs`: reference-driven shell markers, read-only growth surface,
+  local-only personalization, and blocked provider/memory/source/proposal/commit/push authority.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `26/26`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
 - `node scripts/verification_status.mjs`: required `1/1`; informational count includes the README
   source-evidence smoke.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
+
+Recent local visual QA evidence for the refreshed shell was captured with the local UI server and
+Playwright CLI:
+
+- `output/playwright/vnext-desktop-top-final.png`
+- `output/playwright/vnext-mobile.png`
 
 ## Scope & Limitations
 
@@ -222,6 +244,9 @@ Current verification evidence from this README refresh:
 - Optional OpenAI live-provider verification requires visible `OPENAI_API_KEY` and
   `OPENAI_RESPONSES_MODEL`; when those env vars are missing, live-provider checks are skipped rather
   than treated as required failures.
+- Growth evidence and personalization are shell-level views only. They are not proof of model
+  learning, long-term memory, autonomous proposal application, source mutation, commit, push, or
+  external automation.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider

@@ -131,6 +131,18 @@ function valuesOf(value) {
   return [];
 }
 
+function statRuntimeStateFile(statePath) {
+  try {
+    return {
+      path: statePath,
+      relativePath: path.relative(repoRoot, statePath),
+      mtimeMs: fs.statSync(statePath).mtimeMs,
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
 function listRuntimeStateFiles() {
   if (!fs.existsSync(varRoot)) {
     return [];
@@ -140,12 +152,8 @@ function listRuntimeStateFiles() {
     .readdirSync(varRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && entry.name.startsWith('runtime'))
     .map((entry) => path.join(varRoot, entry.name, 'state.json'))
-    .filter((statePath) => fs.existsSync(statePath))
-    .map((statePath) => ({
-      path: statePath,
-      relativePath: path.relative(repoRoot, statePath),
-      mtimeMs: fs.statSync(statePath).mtimeMs,
-    }))
+    .map(statRuntimeStateFile)
+    .filter(Boolean)
     .sort((left, right) => right.mtimeMs - left.mtimeMs)
     .slice(0, 12);
 }

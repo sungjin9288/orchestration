@@ -51,6 +51,9 @@ const SOURCE_FILES = [
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-worker-event-schema.mjs',
   'scripts/growth-proposal-queue-status.mjs',
@@ -168,6 +171,18 @@ function valuesOf(value) {
   return [];
 }
 
+function statRuntimeStateFile(statePath) {
+  try {
+    return {
+      path: statePath,
+      relativePath: path.relative(repoRoot, statePath),
+      mtimeMs: fs.statSync(statePath).mtimeMs,
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
 function countBy(items, getKey) {
   const counts = {};
 
@@ -196,12 +211,8 @@ function listRuntimeStateFiles() {
     .readdirSync(varRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && entry.name.startsWith('runtime'))
     .map((entry) => path.join(varRoot, entry.name, 'state.json'))
-    .filter((statePath) => fs.existsSync(statePath))
-    .map((statePath) => ({
-      path: statePath,
-      relativePath: path.relative(repoRoot, statePath),
-      mtimeMs: fs.statSync(statePath).mtimeMs,
-    }))
+    .map(statRuntimeStateFile)
+    .filter(Boolean)
     .sort((left, right) => right.mtimeMs - left.mtimeMs);
 }
 
@@ -973,6 +984,63 @@ function summarizeSources(sources) {
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered:
       /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status/.test(
+        verificationStatus,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScriptPresent:
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          'scripts',
+          'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+        ),
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status`/.test(
+        plan,
+      ) &&
+      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review status/.test(
+        inventory,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status/.test(
+        verificationStatus,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent:
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          'scripts',
+          'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
+        ),
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status`/.test(
+        plan,
+      ) &&
+      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status/.test(
+        inventory,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status/.test(
+        verificationStatus,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent:
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          'scripts',
+          'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
+        ),
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status`/.test(
+        plan,
+      ) &&
+      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status/.test(
+        inventory,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status/.test(
         verificationStatus,
       ),
     reflectionEvaluatorDocumented: /growth-reflection-evaluator/.test(plan),
@@ -3423,43 +3491,45 @@ function buildReflectionFindings({ scorecard, runtimeTotals, sourceSummary }) {
     sourceSummary
       .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
 
+  const workerEventSchemaNeededFinding = {
+    id: 'typed-evidence-schema-needed',
+    severity: 'next-slice',
+    claim:
+      'Reflection is now read-only and machine-readable, but worker/subagent automation should wait for a typed event/report schema.',
+    evidence: [
+      {
+        type: 'projection',
+        source: 'docs/18_growth-gateway-vnext.md',
+        value: 'claw-code typed worker lifecycle + Harness execution/status conformance',
+      },
+    ],
+    allowedNextAction: 'define growth-worker-event-schema as read-only vocabulary first',
+  };
+  const proposalQueueContractNeededFinding = {
+    id: 'proposal-queue-contract-needed',
+    severity: 'next-slice',
+    claim:
+      'Worker event vocabulary is defined, but improvement proposals still need a read-only queue contract before review.',
+    evidence: [
+      {
+        type: 'projection',
+        source: 'docs/18_growth-gateway-vnext.md',
+        value: 'proposal readiness needs typed evidence refs, risk class, approval gate, and verification plan',
+      },
+    ],
+    allowedNextAction: 'define growth-proposal-queue-status as read-only proposal readiness contract first',
+  };
   const nextContractFinding = !workerEventSchemaImplemented
-    ? {
-        id: 'typed-evidence-schema-needed',
-        severity: 'next-slice',
-        claim:
-          'Reflection is now read-only and machine-readable, but worker/subagent automation should wait for a typed event/report schema.',
-        evidence: [
-          {
-            type: 'projection',
-            source: 'docs/18_growth-gateway-vnext.md',
-            value: 'claw-code typed worker lifecycle + Harness execution/status conformance',
-          },
-        ],
-        allowedNextAction: 'define growth-worker-event-schema as read-only vocabulary first',
-      }
+    ? workerEventSchemaNeededFinding
     : !proposalQueueStatusImplemented
-      ? {
-          id: 'proposal-queue-contract-needed',
-          severity: 'next-slice',
-          claim:
-            'Worker event vocabulary is defined, but improvement proposals still need a read-only queue contract before review.',
-          evidence: [
-            {
-              type: 'projection',
-              source: 'docs/18_growth-gateway-vnext.md',
-              value: 'proposal readiness needs typed evidence refs, risk class, approval gate, and verification plan',
-            },
-          ],
-          allowedNextAction: 'define growth-proposal-queue-status as read-only proposal readiness contract first',
-        }
-    : sourceMutationLifecycleCloseoutClosureReviewAcceptanceStatusImplemented
-      ? sourceMutationLifecycleCloseoutClosureAcceptanceStatusImplemented
-        ? sourceMutationLifecycleCloseoutClosureFinalizationStatusImplemented
-          ? sourceMutationLifecycleCloseoutClosureFinalizationReviewStatusImplemented
-            ? sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceStatusImplemented
-              ? sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceStatusImplemented
-                ? sourceMutationLifecycleCloseoutClosureFinalCloseStatusImplemented
+      ? proposalQueueContractNeededFinding
+      : sourceMutationLifecycleCloseoutClosureReviewAcceptanceStatusImplemented
+        ? sourceMutationLifecycleCloseoutClosureAcceptanceStatusImplemented
+          ? sourceMutationLifecycleCloseoutClosureFinalizationStatusImplemented
+            ? sourceMutationLifecycleCloseoutClosureFinalizationReviewStatusImplemented
+              ? sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceStatusImplemented
+                ? sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceStatusImplemented
+                  ? sourceMutationLifecycleCloseoutClosureFinalCloseStatusImplemented
 	                  ? sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented
 		                    ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented
 		                      ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented
@@ -14157,6 +14227,53 @@ if (postCompletionRouterActive) {
     sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent &&
     sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented &&
     sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered;
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented =
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusAggregateRegistered;
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented =
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered;
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented =
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented &&
+    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered;
+  const latestProposalRecordAcceptanceReadyForFinalization =
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented;
+  const latestProposalRecordFinalizationReadyForReview =
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented;
+  const latestProposalRecordFinalizationNextSlice = {
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
+    commandToAdd:
+      'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
+    reason:
+      'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize accepted evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    mustRemainReadOnly: true,
+  };
+  const latestProposalRecordFinalizationFindingUpdate = {
+    claim:
+      'ProposalRecord dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is now accepted only for a read-only finalization check; the next default vNext step is read-only finalization before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.',
+    allowedNextAction:
+      'define growth-evidence-ledger proposal-record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation',
+  };
+  const latestProposalRecordFinalizationReviewNextSlice = {
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
+    commandToAdd:
+      'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
+    reason:
+      'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalized evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    mustRemainReadOnly: true,
+  };
+  const latestProposalRecordFinalizationReviewFindingUpdate = {
+    claim:
+      'ProposalRecord dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization evidence is now finalized only for a read-only review check; the next default vNext step is read-only review before proposal record creation, approval, queue mutation, runtime mutation, memory persistence, provider calls, or source mutation.',
+    allowedNextAction:
+      'define growth-evidence-ledger proposal-record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review as read-only status/doc-smoke evidence before proposal record creation, approval, queue mutation, provider calls, execution authority, or source mutation',
+  };
   const routedNextSlice = growthEvidenceLedgerStatusImplemented
     ? growthEvidenceLedgerGatewayRoutingStatusImplemented
       ? growthEvidenceLedgerReflectionHandoffStatusImplemented
@@ -14174,22 +14291,31 @@ if (postCompletionRouterActive) {
                               ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
                                 ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
                                   ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
-                                      ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-                                        ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
+                                    ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
+                                      ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
                                         ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
                                           ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
                                             ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
                                               ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
                                                 ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
                                                   ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-                                                    ? {
-                                                        id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
-                                                        commandToAdd:
-                                                          'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
-                                                        reason:
-                                                          'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalized evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                                        mustRemainReadOnly: true,
-                                                      }
+                                                    ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
+                                                      ? {
+                                                          id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
+                                                          commandToAdd:
+                                                            'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+                                                          reason:
+                                                            'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe vNext slice can accept reviewed evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+                                                          mustRemainReadOnly: true,
+                                                        }
+                                                      : {
+                                                          id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
+                                                          commandToAdd:
+                                                            'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
+                                                          reason:
+                                                            'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalized evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+                                                          mustRemainReadOnly: true,
+                                                        }
                                                     : {
                                                         id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
                                                         commandToAdd:
@@ -14390,6 +14516,17 @@ if (postCompletionRouterActive) {
           'The post-completion router is active and reflection evidence is green; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while lifecycle closeout rechecks remain supporting evidence only.',
         mustRemainReadOnly: true,
       };
+  const selectedNextSlice = latestProposalRecordFinalizationReadyForReview
+    ? latestProposalRecordFinalizationReviewNextSlice
+    : latestProposalRecordAcceptanceReadyForFinalization
+    ? latestProposalRecordFinalizationNextSlice
+    : routedNextSlice;
+  const selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+  const selectedReflectionFindingUpdate = latestProposalRecordFinalizationReadyForReview
+    ? latestProposalRecordFinalizationReviewFindingUpdate
+    : latestProposalRecordAcceptanceReadyForFinalization
+    ? latestProposalRecordFinalizationFindingUpdate
+    : {};
   payload.postCompletionRouter = {
     active: true,
     track: 'vNext-read-only-growth-loop',
@@ -14420,115 +14557,18 @@ if (postCompletionRouterActive) {
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented,
     lifecycleSupportingSlice,
     rationale:
       'The completion baseline is zero-open, so growth-reflection-evaluator must recommend read-only Growth Evidence Ledger work instead of continuing source-mutation lifecycle rechecks as the default product lane.',
   };
-  payload.aggregate.status = growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-    ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-      ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review'
-      : 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review'
-    : growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization'
-    : growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance'
-    : growthEvidenceLedgerProposalRecordDryRunValidationStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review'
-    : growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented
-    ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-validation'
-    : growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
-      ? 'ready-for-growth-evidence-ledger-proposal-record-dry-run-shape'
-      : growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
-      ? 'ready-for-growth-evidence-ledger-proposal-record-creation-readiness'
-      : growthEvidenceLedgerProposalRecordReadinessStatusImplemented
-      ? 'ready-for-growth-evidence-ledger-proposal-record-review-gate'
-      : growthEvidenceLedgerProposalQueueHandoffStatusImplemented
-      ? 'ready-for-growth-evidence-ledger-proposal-record-readiness'
-      : growthEvidenceLedgerProposalReadinessStatusImplemented
-        ? 'ready-for-growth-evidence-ledger-proposal-queue-handoff'
-        : growthEvidenceLedgerReflectionHandoffStatusImplemented
-          ? 'ready-for-growth-evidence-ledger-proposal-readiness'
-          : growthEvidenceLedgerGatewayRoutingStatusImplemented
-            ? 'ready-for-growth-evidence-ledger-reflection-handoff'
-            : growthEvidenceLedgerStatusImplemented
-              ? 'ready-for-growth-evidence-ledger-gateway-routing'
-              : 'ready-for-growth-evidence-ledger';
-  payload.nextRecommendedSlice = routedNextSlice;
+  payload.aggregate.status = selectedNextSliceReadyStatus;
+  payload.nextRecommendedSlice = selectedNextSlice;
   payload.reflectionFindings = [
     {
-      id: growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented
-        ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented
-          ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented
-            ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-              ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-                ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
-                  ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-                    ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-                      ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
-                        ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-                          ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-                            ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
-                              ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-                                ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-                                  ? 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed'
-                                  : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed'
-                                : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed'
-                              : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed'
-                            : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed'
-                          : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed'
-                        : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed'
-                      : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed'
-                    : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed'
-                  : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-needed'
-                : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-needed'
-              : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-needed'
-            : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-needed'
-          : 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-needed'
-        : growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented
-        ? 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-needed'
-        : growthEvidenceLedgerProposalRecordDryRunValidationStatusImplemented
-        ? 'growth-evidence-ledger-proposal-record-dry-run-review-needed'
-        : growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented
-        ? 'growth-evidence-ledger-proposal-record-dry-run-validation-needed'
-        : growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
-          ? 'growth-evidence-ledger-proposal-record-dry-run-shape-needed'
-          : growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
-          ? 'growth-evidence-ledger-proposal-record-creation-readiness-needed'
-          : growthEvidenceLedgerProposalRecordReadinessStatusImplemented
-          ? 'growth-evidence-ledger-proposal-record-review-gate-needed'
-          : growthEvidenceLedgerProposalQueueHandoffStatusImplemented
-          ? 'growth-evidence-ledger-proposal-record-readiness-needed'
-          : growthEvidenceLedgerProposalReadinessStatusImplemented
-            ? 'growth-evidence-ledger-proposal-queue-handoff-needed'
-            : growthEvidenceLedgerReflectionHandoffStatusImplemented
-              ? 'growth-evidence-ledger-proposal-readiness-needed'
-              : growthEvidenceLedgerGatewayRoutingStatusImplemented
-                ? 'growth-evidence-ledger-reflection-handoff-needed'
-                : growthEvidenceLedgerStatusImplemented
-                  ? 'growth-evidence-ledger-gateway-routing-needed'
-                  : 'growth-evidence-ledger-needed',
+      id: `${selectedNextSlice.id}-needed`,
       severity: 'info',
       claim: growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented
         ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented
@@ -14624,6 +14664,7 @@ if (postCompletionRouterActive) {
                 : growthEvidenceLedgerStatusImplemented
                   ? 'map growth-evidence-ledger status into gateway routing as read-only status/doc-smoke evidence before execution authority, persistence, provider calls, or source mutation'
                   : 'define growth-evidence-ledger as read-only status/doc-smoke evidence before reflection, proposal generation, persistence, or source mutation',
+      ...selectedReflectionFindingUpdate,
     },
     ...payload.reflectionFindings,
   ];

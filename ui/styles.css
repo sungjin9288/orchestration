@@ -1,30 +1,36 @@
 :root {
-  --bg-top: #f5f7fb;
-  --bg-bottom: #edf1f6;
-  --panel: rgba(255, 255, 255, 0.92);
-  --panel-strong: rgba(255, 255, 255, 0.99);
-  --line: rgba(20, 34, 42, 0.1);
-  --text: #16202a;
-  --muted: #5f6b76;
-  --accent: #2563eb;
-  --accent-soft: rgba(37, 99, 235, 0.1);
-  --success: #0f8b6d;
-  --success-soft: rgba(15, 139, 109, 0.12);
-  --warning: #b7791f;
-  --warning-soft: rgba(183, 121, 31, 0.12);
-  --danger: #c44536;
-  --danger-soft: rgba(196, 69, 54, 0.12);
-  --panel-dark: rgba(22, 32, 42, 0.9);
-  --shadow: 0 8px 24px rgba(12, 22, 30, 0.06);
-  --radius-lg: 14px;
-  --radius-md: 10px;
-  --radius-sm: 999px;
-  --shell-grid-line: rgba(20, 34, 42, 0.06);
-  --shell-frame-line: rgba(20, 34, 42, 0.08);
-  --shell-panel: rgba(248, 250, 252, 0.96);
-  --shell-panel-strong: rgba(255, 255, 255, 0.99);
-  --shell-dark: #16202a;
-  --shell-dark-soft: #44525f;
+  --bg-top: #f4efe6;
+  --bg-bottom: #ebe2d4;
+  --panel: rgba(251, 248, 242, 0.94);
+  --panel-strong: rgba(255, 253, 248, 0.99);
+  --line: #cdbfa9;
+  --line-strong: #a99579;
+  --text: #202733;
+  --muted: #5d645f;
+  --accent: #8b5a2b;
+  --accent-soft: rgba(139, 90, 43, 0.12);
+  --success: #2f6a45;
+  --success-soft: rgba(47, 106, 69, 0.12);
+  --warning: #b26a1f;
+  --warning-soft: rgba(178, 106, 31, 0.13);
+  --danger: #9f4032;
+  --danger-soft: rgba(159, 64, 50, 0.13);
+  --info: #3c5f89;
+  --mission: #8b5a2b;
+  --council: #335f4d;
+  --execution: #375d78;
+  --deliverables: #79622f;
+  --panel-dark: rgba(31, 39, 50, 0.94);
+  --shadow: 0 10px 28px rgba(58, 45, 28, 0.08);
+  --radius-lg: 8px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
+  --shell-grid-line: rgba(169, 149, 121, 0.18);
+  --shell-frame-line: rgba(169, 149, 121, 0.34);
+  --shell-panel: rgba(251, 248, 242, 0.96);
+  --shell-panel-strong: rgba(255, 253, 248, 0.99);
+  --shell-dark: #1f2732;
+  --shell-dark-soft: #4c5561;
 }
 
 * {
@@ -36,7 +42,10 @@ body {
   min-height: 100vh;
   color: var(--text);
   font-family: "IBM Plex Sans", "Avenir Next", "Helvetica Neue", sans-serif;
-  background: linear-gradient(180deg, #f7f9fc 0%, #eef2f7 100%);
+  background:
+    linear-gradient(90deg, rgba(169, 149, 121, 0.1) 1px, transparent 1px),
+    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+  background-size: 64px 64px, auto;
 }
 
 button,
@@ -9277,5 +9286,255 @@ h3 {
 
   .council-meeting-stack {
     grid-template-columns: 1fr;
+  }
+}
+
+/* vNext reference-driven enterprise shell polish. */
+.office-sidebar,
+.office-brand-card,
+.office-sidebar-section,
+.nav-group,
+.shell-header,
+.control-overview-panel,
+.surface-panel,
+.detail-card,
+.card,
+.empty-state,
+.relation-strip {
+  border-color: rgba(169, 149, 121, 0.36);
+  background: var(--panel-strong);
+}
+
+.office-sidebar {
+  background: linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(245, 239, 229, 0.98));
+  box-shadow: 0 16px 40px rgba(58, 45, 28, 0.08);
+}
+
+.office-brand-card::before,
+.viewport-handoff-card-emphasis::before,
+.surface[data-surface="council"] .surface-panel::before,
+.surface[data-surface="council"] .detail-card::before,
+.surface[data-surface="execution"] .surface-panel::before,
+.surface[data-surface="execution"] .detail-card::before,
+.surface[data-surface="deliverables"] .surface-panel::before,
+.surface[data-surface="deliverables"] .detail-card::before {
+  background: var(--line-strong);
+}
+
+.nav-group-tab,
+.nav-button,
+.company-directory-row,
+.office-register-cell,
+.office-sidebar-status-cell,
+.company-directory-summary-cell,
+.control-overview-register-row,
+.workspace-location-cell,
+.workflow-stage-card,
+.review-lane-card {
+  border-color: rgba(169, 149, 121, 0.34);
+  background: rgba(251, 248, 242, 0.94);
+}
+
+.nav-group-tab:hover,
+.nav-group-tab:focus-visible,
+.nav-button:hover,
+.nav-button:focus-visible,
+.company-directory-row:hover,
+.company-directory-row:focus-visible {
+  border-color: rgba(139, 90, 43, 0.34);
+  background: rgba(255, 253, 248, 0.98);
+}
+
+.nav-group-tab.is-active,
+.nav-button.is-active,
+.company-directory-row.is-current-surface,
+.company-directory-row[data-selection-state='active'] {
+  border-color: rgba(139, 90, 43, 0.44);
+  background: rgba(139, 90, 43, 0.1);
+  color: var(--text);
+}
+
+.control-overview-label,
+.nav-group-summary-label,
+.office-sidebar-label,
+.office-register-label,
+.company-directory-section-label,
+.workspace-location-label,
+.control-overview-register-label {
+  color: color-mix(in srgb, var(--accent) 68%, var(--muted));
+}
+
+.office-brand-register {
+  grid-template-columns: 1fr;
+}
+
+.office-register-cell {
+  min-height: 44px;
+  grid-template-columns: minmax(48px, 0.48fr) minmax(0, 1fr);
+  align-items: center;
+}
+
+.office-sidebar-status-value,
+.company-directory-summary-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.office-register-value {
+  min-width: 0;
+  font-size: 0.8rem;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.company-directory-row {
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: start;
+}
+
+.company-directory-assignment {
+  grid-column: 2;
+  justify-items: start;
+  text-align: left;
+}
+
+.intelligence-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.intelligence-panel {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(169, 149, 121, 0.36);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.98);
+  overflow: hidden;
+}
+
+.intelligence-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 120px;
+  height: 2px;
+  background: var(--line-strong);
+}
+
+.intelligence-panel-growth::before {
+  background: var(--council);
+}
+
+.intelligence-panel-personal::before {
+  background: var(--mission);
+}
+
+.intelligence-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.intelligence-title {
+  margin: 2px 0 0;
+  color: var(--text);
+  font-size: 0.96rem;
+  line-height: 1.24;
+}
+
+.intelligence-register {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.intelligence-register-row,
+.preference-row {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(169, 149, 121, 0.32);
+  border-radius: 7px;
+  background: rgba(244, 239, 230, 0.72);
+}
+
+.intelligence-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.42;
+}
+
+.intelligence-boundary-strip,
+.recent-surface-row,
+.preference-toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.preference-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.preference-toggle,
+.recent-surface-chip {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(169, 149, 121, 0.42);
+  border-radius: 6px;
+  background: rgba(255, 253, 248, 0.98);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.preference-toggle:hover,
+.preference-toggle:focus-visible,
+.recent-surface-chip:hover,
+.recent-surface-chip:focus-visible {
+  border-color: rgba(139, 90, 43, 0.5);
+  outline: none;
+}
+
+.preference-toggle.is-active {
+  border-color: rgba(47, 106, 69, 0.5);
+  background: rgba(47, 106, 69, 0.12);
+  color: #214d35;
+}
+
+body[data-evidence-density='compact'] .workspace-playbook-grid,
+body[data-evidence-density='compact'] .viewport-handoff-grid,
+body[data-evidence-density='compact'] .workflow-stage-meta,
+body[data-evidence-density='compact'] .review-lane-card-meta,
+body[data-evidence-density='compact'] .intelligence-register {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+body[data-evidence-density='compact'] .workspace-playbook-note,
+body[data-evidence-density='compact'] .workflow-focus-copy,
+body[data-evidence-density='compact'] .review-packet-strip,
+body[data-evidence-density='compact'] .viewport-handoff-copy {
+  display: none;
+}
+
+body[data-evidence-density='compact'] .control-overview-stack {
+  gap: 8px;
+}
+
+@media (max-width: 1180px) {
+  .intelligence-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .intelligence-register {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
 }

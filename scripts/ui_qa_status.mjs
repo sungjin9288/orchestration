@@ -148,6 +148,12 @@ const smokeChecks = [
     purpose:
       'Deliverables completion summary answers changed, passed, blocked, and safe-next questions without adding new downstream actions',
   },
+  {
+    id: 'reference-driven-growth-personalization-ui',
+    script: 'scripts/smoke-ui-slice-649.mjs',
+    purpose:
+      'Reference-driven enterprise redesign exposes read-only growth candidates and local-only personalization without provider, memory, source mutation, commit, or push authority',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

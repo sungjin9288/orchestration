@@ -46,6 +46,9 @@ const SOURCE_FILES = [
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
   'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
   'scripts/verification_status.mjs',
   'scripts/growth-proposal-queue-status.mjs',
   'scripts/growth-skill-memory-registry-status.mjs',
@@ -239,6 +242,18 @@ function valuesOf(value) {
   return [];
 }
 
+function statRuntimeStateFile(statePath) {
+  try {
+    return {
+      path: statePath,
+      relativePath: path.relative(repoRoot, statePath),
+      mtimeMs: fs.statSync(statePath).mtimeMs,
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
 function countBy(items, getKey) {
   const counts = {};
 
@@ -259,12 +274,8 @@ function listRuntimeStateFiles() {
     .readdirSync(varRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && entry.name.startsWith('runtime'))
     .map((entry) => path.join(varRoot, entry.name, 'state.json'))
-    .filter((statePath) => fs.existsSync(statePath))
-    .map((statePath) => ({
-      path: statePath,
-      relativePath: path.relative(repoRoot, statePath),
-      mtimeMs: fs.statSync(statePath).mtimeMs,
-    }))
+    .map(statRuntimeStateFile)
+    .filter(Boolean)
     .sort((left, right) => right.mtimeMs - left.mtimeMs);
 }
 
@@ -313,6 +324,10 @@ function sourceText(sources, relativePath) {
   return sources.find((source) => source.path === relativePath)?.text || '';
 }
 
+function sourceSummaryStatusImplemented(summary, statusKey) {
+  return summary[`${statusKey}ScriptPresent`] && summary[`${statusKey}Documented`];
+}
+
 function summarizeSources(sources) {
   const todo = sourceText(sources, 'tasks/todo.md');
   const lessons = sourceText(sources, 'tasks/lessons.md');
@@ -322,20 +337,26 @@ function summarizeSources(sources) {
   const postCompletionRouter = sourceText(sources, 'scripts/post-completion-next-step-status.mjs');
   const verificationStatus = sourceText(sources, 'scripts/verification_status.mjs');
   const decisionLog = sourceText(sources, 'docs/01_decision-log.md');
-  const uncheckedTaskCount = countMatches(todo, /^- \[ \]/gm);
+  const openTaskCount = countMatches(todo, /^- \[ \]/gm);
+  const completedTaskCount = countMatches(todo, /^- \[x\]/gm);
+  const lessonCount = countMatches(lessons, /^- /gm);
+  const dogfoodMentions = countMatches(todo, /dogfood/gi);
+  const sourceCount = sources.length;
+  const availableSources = sources.filter((source) => source.exists);
+  const availableSourceCount = availableSources.length;
 
   return {
-    sourceCount: sources.length,
-    availableSourceCount: sources.filter((source) => source.exists).length,
-    openTaskCount: uncheckedTaskCount,
-    completedTaskCount: countMatches(todo, /^- \[x\]/gm),
-    lessonCount: countMatches(lessons, /^- /gm),
-    dogfoodMentions: countMatches(todo, /dogfood/gi),
+    sourceCount,
+    availableSourceCount,
+    openTaskCount,
+    completedTaskCount,
+    lessonCount,
+    dogfoodMentions,
     growthGatewayPlanPresent: /# Growth Gateway VNext Plan/.test(plan),
     growthEvidenceLedgerPlanned: /### Slice 1: Growth Evidence Ledger/.test(plan),
     reflectionEvaluatorPlanned: /### Slice 2: Reflection Evaluator/.test(plan),
     continuousDevelopmentLoopPlanned: /### Slice 6: Continuous Development Loop/.test(plan),
-    zeroOpenBacklog: uncheckedTaskCount === 0,
+    zeroOpenBacklog: openTaskCount === 0,
     completionInventoryClosed:
       /The current required completion baseline is closed for default implementation work\./.test(
         inventory,
@@ -725,6 +746,63 @@ function summarizeSources(sources) {
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered:
       /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status/.test(
+        verificationStatus,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScriptPresent:
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          'scripts',
+          'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+        ),
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status`/.test(
+        plan,
+      ) &&
+      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review status/.test(
+        inventory,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status/.test(
+        verificationStatus,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent:
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          'scripts',
+          'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
+        ),
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status`/.test(
+        plan,
+      ) &&
+      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status/.test(
+        inventory,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status/.test(
+        verificationStatus,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent:
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          'scripts',
+          'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
+        ),
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status`/.test(
+        plan,
+      ) &&
+      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status/.test(
+        inventory,
+      ),
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status/.test(
         verificationStatus,
       ),
     referenceRepoRecheckPresent: /## Reference Repo Recheck \(2026-06-01\)/.test(plan),
@@ -2600,17 +2678,111 @@ function buildImprovementCandidates({ runtimeSummaries, sourceSummary }) {
     0,
   );
   const totalArtifacts = runtimeSummaries.reduce((sum, runtime) => sum + runtime.counts.artifacts, 0);
+  const failedRunsAvailable = totalFailedRuns > 0;
+  const enoughDogfoodMentionsForTemplateMining = sourceSummary.dogfoodMentions > 10;
+  const failurePatternCandidateStatus =
+    failedRunsAvailable ? 'candidate-evidence-available' : 'watching-no-current-failures';
+  const templateMiningCandidateStatus =
+    enoughDogfoodMentionsForTemplateMining ? 'candidate-evidence-available' : 'needs-more-patterns';
+  const reflectionEvaluatorCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'reflectionEvaluator');
+  const workerEventSchemaCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'workerEventSchema');
+  const reflectionEvaluatorCandidateStatus = reflectionEvaluatorCandidateImplemented
+    ? 'implemented-read-only'
+    : totalArtifacts > 0
+      ? 'ready-for-thin-slice'
+      : 'blocked-missing-artifacts';
+  const workerEventSchemaCandidateStatus = workerEventSchemaCandidateImplemented
+    ? 'implemented-read-only'
+    : reflectionEvaluatorCandidateImplemented
+      ? 'ready-for-thin-slice'
+      : sourceSummary.referenceRepoRecheckPresent
+        ? 'ready-after-reflection-status'
+        : 'blocked-missing-reference-recheck';
+  const proposalQueueCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'proposalQueueStatus');
+  const skillMemoryRegistryCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'skillMemoryRegistryStatus');
+  const proposalQueueCandidateStatus = proposalQueueCandidateImplemented
+    ? 'implemented-read-only'
+    : workerEventSchemaCandidateImplemented
+      ? 'ready-for-thin-slice'
+      : 'blocked-until-worker-event-schema';
+  const lessonsAvailableForRegistry = sourceSummary.lessonCount > 0;
+  const skillMemoryRegistryCandidateStatus = skillMemoryRegistryCandidateImplemented
+    ? 'implemented-read-only'
+    : proposalQueueCandidateImplemented
+      ? 'ready-for-read-only-registry-contract'
+      : lessonsAvailableForRegistry
+        ? 'blocked-until-redaction-and-applicability-contract'
+        : 'needs-lessons';
+  const gatewaySurfaceRouterCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'gatewaySurfaceRouterStatus');
+  const gatewaySurfaceRouterCandidateStatus = gatewaySurfaceRouterCandidateImplemented
+    ? 'implemented-read-only'
+    : proposalQueueCandidateImplemented
+      ? skillMemoryRegistryCandidateImplemented
+        ? 'ready-for-read-only-surface-router'
+        : 'ready-after-skill-memory-registry'
+      : 'blocked-missing-proposal-queue';
+  const continuousDevelopmentLoopCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'continuousDevelopmentLoopStatus');
+  const continuousDevelopmentLoopCandidateStatus =
+    continuousDevelopmentLoopCandidateImplemented
+      ? 'implemented-read-only'
+      : gatewaySurfaceRouterCandidateImplemented
+        ? 'ready-for-read-only-loop-contract'
+        : 'blocked-until-gateway-surface-router';
+  const improvementAcceptanceCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'improvementAcceptanceStatus');
+  const improvementAcceptanceCandidateStatus = improvementAcceptanceCandidateImplemented
+    ? 'implemented-read-only'
+    : continuousDevelopmentLoopCandidateImplemented
+      ? 'ready-for-read-only-acceptance-contract'
+      : 'blocked-until-continuous-development-loop';
+  const acceptedImprovementRegistryCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'acceptedImprovementRegistryStatus');
+  const acceptedImprovementRegistryCandidateStatus =
+    acceptedImprovementRegistryCandidateImplemented
+      ? 'implemented-read-only'
+      : improvementAcceptanceCandidateImplemented
+        ? 'ready-for-read-only-registry-contract'
+        : 'blocked-until-improvement-acceptance';
+  const regressionWatchCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'regressionWatchStatus');
+  const regressionWatchCandidateStatus = regressionWatchCandidateImplemented
+    ? 'implemented-read-only'
+    : acceptedImprovementRegistryCandidateImplemented
+      ? 'ready-for-read-only-watch-contract'
+      : 'blocked-until-accepted-improvement-registry';
+  const rollbackReviewCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'rollbackReviewStatus');
+  const rollbackReviewCandidateStatus = rollbackReviewCandidateImplemented
+    ? 'implemented-read-only'
+    : regressionWatchCandidateImplemented
+      ? 'ready-for-read-only-review-contract'
+      : 'blocked-until-regression-watch';
+  const remediationPlanCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'remediationPlanStatus');
+  const remediationPlanCandidateStatus = remediationPlanCandidateImplemented
+    ? 'implemented-read-only'
+    : rollbackReviewCandidateImplemented
+      ? 'ready-for-read-only-plan-contract'
+      : 'blocked-until-rollback-review';
+  const remediationApprovalCandidateImplemented =
+    sourceSummaryStatusImplemented(sourceSummary, 'remediationApprovalStatus');
+  const remediationApprovalCandidateStatus = remediationApprovalCandidateImplemented
+    ? 'implemented-read-only'
+    : remediationPlanCandidateImplemented
+      ? 'ready-for-read-only-approval-contract'
+      : 'blocked-until-remediation-plan';
 
   return [
     {
       id: 'growth-reflection-evaluator',
       type: 'reflection',
-      status:
-        sourceSummary.reflectionEvaluatorScriptPresent && sourceSummary.reflectionEvaluatorDocumented
-          ? 'implemented-read-only'
-          : totalArtifacts > 0
-            ? 'ready-for-thin-slice'
-            : 'blocked-missing-artifacts',
+      status: reflectionEvaluatorCandidateStatus,
       reason:
         'Use existing run/artifact/review evidence plus typed claim, negative-evidence, and field-delta records to score work quality before proposing improvements.',
       evidence: {
@@ -2624,47 +2796,31 @@ function buildImprovementCandidates({ runtimeSummaries, sourceSummary }) {
     {
       id: 'growth-worker-event-schema',
       type: 'evidence-contract',
-      status:
-        sourceSummary.workerEventSchemaScriptPresent && sourceSummary.workerEventSchemaDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.reflectionEvaluatorScriptPresent && sourceSummary.reflectionEvaluatorDocumented
-          ? 'ready-for-thin-slice'
-          : sourceSummary.referenceRepoRecheckPresent
-            ? 'ready-after-reflection-status'
-            : 'blocked-missing-reference-recheck',
+      status: workerEventSchemaCandidateStatus,
       reason: 'Claw-code and Harness show that worker lifecycle, status checks, negative evidence, and projection provenance should be structured before automation acts.',
       evidence: {
         referenceRepoCountPinned: sourceSummary.referenceRepoCountPinned,
-        reflectionEvaluatorImplemented:
-          sourceSummary.reflectionEvaluatorScriptPresent && sourceSummary.reflectionEvaluatorDocumented,
-        workerEventSchemaImplemented:
-          sourceSummary.workerEventSchemaScriptPresent && sourceSummary.workerEventSchemaDocumented,
+        reflectionEvaluatorImplemented: reflectionEvaluatorCandidateImplemented,
+        workerEventSchemaImplemented: workerEventSchemaCandidateImplemented,
       },
       allowedNextAction: 'define read-only event/report vocabulary before adding new worker automation',
     },
     {
       id: 'growth-proposal-queue-status',
       type: 'proposal-contract',
-      status:
-        sourceSummary.proposalQueueStatusScriptPresent && sourceSummary.proposalQueueStatusDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.workerEventSchemaScriptPresent && sourceSummary.workerEventSchemaDocumented
-            ? 'ready-for-thin-slice'
-            : 'blocked-until-worker-event-schema',
+      status: proposalQueueCandidateStatus,
       reason:
         'Improvement proposals need typed evidence references, risk class, approval gate, and verification plan before any implementation slice can be reviewed.',
       evidence: {
-        workerEventSchemaImplemented:
-          sourceSummary.workerEventSchemaScriptPresent && sourceSummary.workerEventSchemaDocumented,
-        proposalQueueStatusImplemented:
-          sourceSummary.proposalQueueStatusScriptPresent && sourceSummary.proposalQueueStatusDocumented,
+        workerEventSchemaImplemented: workerEventSchemaCandidateImplemented,
+        proposalQueueStatusImplemented: proposalQueueCandidateImplemented,
       },
       allowedNextAction: 'model proposal queue readiness only; do not generate or apply proposals',
     },
     {
       id: 'failure-pattern-learning',
       type: 'learning',
-      status: totalFailedRuns > 0 ? 'candidate-evidence-available' : 'watching-no-current-failures',
+      status: failurePatternCandidateStatus,
       reason: 'Repeated failures should become explicit guards, but only after concrete evidence exists.',
       evidence: {
         failedRuns: totalFailedRuns,
@@ -2674,7 +2830,7 @@ function buildImprovementCandidates({ runtimeSummaries, sourceSummary }) {
     {
       id: 'repeated-work-template-mining',
       type: 'templating',
-      status: sourceSummary.dogfoodMentions > 10 ? 'candidate-evidence-available' : 'needs-more-patterns',
+      status: templateMiningCandidateStatus,
       reason: 'Dogfood and close-out repetitions can become operator-reviewed templates.',
       evidence: {
         dogfoodMentions: sourceSummary.dogfoodMentions,
@@ -2685,197 +2841,112 @@ function buildImprovementCandidates({ runtimeSummaries, sourceSummary }) {
     {
       id: 'skill-memory-registry',
       type: 'memory',
-      status:
-        sourceSummary.skillMemoryRegistryStatusScriptPresent && sourceSummary.skillMemoryRegistryStatusDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.proposalQueueStatusScriptPresent && sourceSummary.proposalQueueStatusDocumented
-            ? 'ready-for-read-only-registry-contract'
-            : sourceSummary.lessonCount > 0
-              ? 'blocked-until-redaction-and-applicability-contract'
-              : 'needs-lessons',
+      status: skillMemoryRegistryCandidateStatus,
       reason: 'Lessons can become reusable skills only after redaction, review, applicability, and verification rules exist.',
       evidence: {
         lessonCount: sourceSummary.lessonCount,
-        proposalQueueStatusImplemented:
-          sourceSummary.proposalQueueStatusScriptPresent && sourceSummary.proposalQueueStatusDocumented,
-        skillMemoryRegistryStatusImplemented:
-          sourceSummary.skillMemoryRegistryStatusScriptPresent && sourceSummary.skillMemoryRegistryStatusDocumented,
+        proposalQueueStatusImplemented: proposalQueueCandidateImplemented,
+        skillMemoryRegistryStatusImplemented: skillMemoryRegistryCandidateImplemented,
       },
       allowedNextAction: 'define registry schema before persisting any learned skill',
     },
     {
       id: 'gateway-growth-router',
       type: 'gateway',
-      status:
-        sourceSummary.gatewaySurfaceRouterStatusScriptPresent &&
-        sourceSummary.gatewaySurfaceRouterStatusDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.proposalQueueStatusScriptPresent && sourceSummary.proposalQueueStatusDocumented
-          ? sourceSummary.skillMemoryRegistryStatusScriptPresent &&
-            sourceSummary.skillMemoryRegistryStatusDocumented
-            ? 'ready-for-read-only-surface-router'
-            : 'ready-after-skill-memory-registry'
-          : 'blocked-missing-proposal-queue',
+      status: gatewaySurfaceRouterCandidateStatus,
       reason: 'OpenClaw-style backbone should expose growth state only after the status/reflection/proposal/memory registry layer is stable.',
       evidence: {
         surfaces: SURFACES,
-        skillMemoryRegistryStatusImplemented:
-          sourceSummary.skillMemoryRegistryStatusScriptPresent && sourceSummary.skillMemoryRegistryStatusDocumented,
-        gatewaySurfaceRouterStatusImplemented:
-          sourceSummary.gatewaySurfaceRouterStatusScriptPresent &&
-          sourceSummary.gatewaySurfaceRouterStatusDocumented,
+        skillMemoryRegistryStatusImplemented: skillMemoryRegistryCandidateImplemented,
+        gatewaySurfaceRouterStatusImplemented: gatewaySurfaceRouterCandidateImplemented,
       },
       allowedNextAction: 'route growth state into surfaces without adding channels',
     },
     {
       id: 'continuous-development-loop',
       type: 'loop-contract',
-      status:
-        sourceSummary.continuousDevelopmentLoopStatusScriptPresent &&
-        sourceSummary.continuousDevelopmentLoopStatusDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.gatewaySurfaceRouterStatusScriptPresent &&
-            sourceSummary.gatewaySurfaceRouterStatusDocumented
-            ? 'ready-for-read-only-loop-contract'
-            : 'blocked-until-gateway-surface-router',
+      status: continuousDevelopmentLoopCandidateStatus,
       reason:
         'The growth engine should compose evidence, reflection, proposal, approval, verification, lessons, and gateway exposure before any automation can act.',
       evidence: {
-        gatewaySurfaceRouterStatusImplemented:
-          sourceSummary.gatewaySurfaceRouterStatusScriptPresent &&
-          sourceSummary.gatewaySurfaceRouterStatusDocumented,
+        gatewaySurfaceRouterStatusImplemented: gatewaySurfaceRouterCandidateImplemented,
         continuousDevelopmentLoopStatusImplemented:
-          sourceSummary.continuousDevelopmentLoopStatusScriptPresent &&
-          sourceSummary.continuousDevelopmentLoopStatusDocumented,
+          continuousDevelopmentLoopCandidateImplemented,
       },
       allowedNextAction: 'model the loop as read-only before accepting improvements',
     },
     {
       id: 'improvement-acceptance-contract',
       type: 'acceptance-contract',
-      status:
-        sourceSummary.improvementAcceptanceStatusScriptPresent &&
-        sourceSummary.improvementAcceptanceStatusDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.continuousDevelopmentLoopStatusScriptPresent &&
-            sourceSummary.continuousDevelopmentLoopStatusDocumented
-            ? 'ready-for-read-only-acceptance-contract'
-            : 'blocked-until-continuous-development-loop',
+      status: improvementAcceptanceCandidateStatus,
       reason:
         'Self-improvement needs before/after proof, regression blockers, review evidence, and approval records before an improvement is considered adopted.',
       evidence: {
         continuousDevelopmentLoopStatusImplemented:
-          sourceSummary.continuousDevelopmentLoopStatusScriptPresent &&
-          sourceSummary.continuousDevelopmentLoopStatusDocumented,
-        improvementAcceptanceStatusImplemented:
-          sourceSummary.improvementAcceptanceStatusScriptPresent &&
-          sourceSummary.improvementAcceptanceStatusDocumented,
+          continuousDevelopmentLoopCandidateImplemented,
+        improvementAcceptanceStatusImplemented: improvementAcceptanceCandidateImplemented,
       },
       allowedNextAction: 'define accepted improvement registry after acceptance criteria are modeled',
     },
     {
       id: 'accepted-improvement-registry',
       type: 'registry-contract',
-      status:
-        sourceSummary.acceptedImprovementRegistryStatusScriptPresent &&
-        sourceSummary.acceptedImprovementRegistryStatusDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.improvementAcceptanceStatusScriptPresent &&
-            sourceSummary.improvementAcceptanceStatusDocumented
-            ? 'ready-for-read-only-registry-contract'
-            : 'blocked-until-improvement-acceptance',
+      status: acceptedImprovementRegistryCandidateStatus,
       reason:
         'Accepted improvements need visible accepted/rejected/deferred/blocked/rollback records before any durable learning state can be trusted.',
       evidence: {
-        improvementAcceptanceStatusImplemented:
-          sourceSummary.improvementAcceptanceStatusScriptPresent &&
-          sourceSummary.improvementAcceptanceStatusDocumented,
+        improvementAcceptanceStatusImplemented: improvementAcceptanceCandidateImplemented,
         acceptedImprovementRegistryStatusImplemented:
-          sourceSummary.acceptedImprovementRegistryStatusScriptPresent &&
-          sourceSummary.acceptedImprovementRegistryStatusDocumented,
+          acceptedImprovementRegistryCandidateImplemented,
       },
       allowedNextAction: 'define post-acceptance regression watch before remediation or rollback action',
     },
     {
       id: 'regression-watch',
       type: 'watch-contract',
-      status:
-        sourceSummary.regressionWatchStatusScriptPresent && sourceSummary.regressionWatchStatusDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.acceptedImprovementRegistryStatusScriptPresent &&
-            sourceSummary.acceptedImprovementRegistryStatusDocumented
-            ? 'ready-for-read-only-watch-contract'
-            : 'blocked-until-accepted-improvement-registry',
+      status: regressionWatchCandidateStatus,
       reason:
         'Accepted improvements need post-acceptance watch signals before rollback review or remediation can be considered.',
       evidence: {
         acceptedImprovementRegistryStatusImplemented:
-          sourceSummary.acceptedImprovementRegistryStatusScriptPresent &&
-          sourceSummary.acceptedImprovementRegistryStatusDocumented,
-        regressionWatchStatusImplemented:
-          sourceSummary.regressionWatchStatusScriptPresent && sourceSummary.regressionWatchStatusDocumented,
+          acceptedImprovementRegistryCandidateImplemented,
+        regressionWatchStatusImplemented: regressionWatchCandidateImplemented,
       },
       allowedNextAction: 'define rollback review states without executing rollback or remediation',
     },
     {
       id: 'rollback-review',
       type: 'review-contract',
-      status:
-        sourceSummary.rollbackReviewStatusScriptPresent && sourceSummary.rollbackReviewStatusDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.regressionWatchStatusScriptPresent &&
-            sourceSummary.regressionWatchStatusDocumented
-            ? 'ready-for-read-only-review-contract'
-            : 'blocked-until-regression-watch',
+      status: rollbackReviewCandidateStatus,
       reason:
         'Rollback review should turn confirmed watch signals into review-only decisions before any remediation plan can be drafted.',
       evidence: {
-        regressionWatchStatusImplemented:
-          sourceSummary.regressionWatchStatusScriptPresent && sourceSummary.regressionWatchStatusDocumented,
-        rollbackReviewStatusImplemented:
-          sourceSummary.rollbackReviewStatusScriptPresent && sourceSummary.rollbackReviewStatusDocumented,
+        regressionWatchStatusImplemented: regressionWatchCandidateImplemented,
+        rollbackReviewStatusImplemented: rollbackReviewCandidateImplemented,
       },
       allowedNextAction: 'define remediation plan fields without executing remediation',
     },
     {
       id: 'remediation-plan',
       type: 'planning-contract',
-      status:
-        sourceSummary.remediationPlanStatusScriptPresent && sourceSummary.remediationPlanStatusDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.rollbackReviewStatusScriptPresent &&
-            sourceSummary.rollbackReviewStatusDocumented
-            ? 'ready-for-read-only-plan-contract'
-            : 'blocked-until-rollback-review',
+      status: remediationPlanCandidateStatus,
       reason:
         'Remediation plans should define verification, rollback-proof, scope, and approval refs before any implementation proposal or remediation execution can act.',
       evidence: {
-        rollbackReviewStatusImplemented:
-          sourceSummary.rollbackReviewStatusScriptPresent && sourceSummary.rollbackReviewStatusDocumented,
-        remediationPlanStatusImplemented:
-          sourceSummary.remediationPlanStatusScriptPresent && sourceSummary.remediationPlanStatusDocumented,
+        rollbackReviewStatusImplemented: rollbackReviewCandidateImplemented,
+        remediationPlanStatusImplemented: remediationPlanCandidateImplemented,
       },
       allowedNextAction: 'define remediation approval gates without executing remediation',
     },
     {
       id: 'remediation-approval',
       type: 'approval-contract',
-      status:
-        sourceSummary.remediationApprovalStatusScriptPresent &&
-        sourceSummary.remediationApprovalStatusDocumented
-          ? 'implemented-read-only'
-          : sourceSummary.remediationPlanStatusScriptPresent &&
-            sourceSummary.remediationPlanStatusDocumented
-            ? 'ready-for-read-only-approval-contract'
-            : 'blocked-until-remediation-plan',
+      status: remediationApprovalCandidateStatus,
       reason:
         'Remediation approval should make operator authority, blocker state, stale proof, and rollback proof explicit before implementation proposal readiness can be modeled.',
       evidence: {
-        remediationPlanStatusImplemented:
-          sourceSummary.remediationPlanStatusScriptPresent && sourceSummary.remediationPlanStatusDocumented,
-        remediationApprovalStatusImplemented:
-          sourceSummary.remediationApprovalStatusScriptPresent &&
-          sourceSummary.remediationApprovalStatusDocumented,
+        remediationPlanStatusImplemented: remediationPlanCandidateImplemented,
+        remediationApprovalStatusImplemented: remediationApprovalCandidateImplemented,
       },
       allowedNextAction:
         'define implementation proposal fields without generating proposals or executing remediation',
@@ -2885,6 +2956,63 @@ function buildImprovementCandidates({ runtimeSummaries, sourceSummary }) {
 
 const sources = SOURCE_FILES.map(readSource);
 const sourceSummary = summarizeSources(sources);
+
+function sourceSummaryStatusRegistered(statusKey) {
+  return (
+    sourceSummaryStatusImplemented(sourceSummary, statusKey) &&
+    sourceSummary[`${statusKey}AggregateRegistered`]
+  );
+}
+
+function sourceSummaryStatusRegisteredAfter(previousStatusRegistered, statusKey) {
+  return previousStatusRegistered && sourceSummaryStatusRegistered(statusKey);
+}
+
+function sourceSummaryStatusRegistrationChain(statusKeys) {
+  let previousStatusRegistered = true;
+
+  return Object.fromEntries(
+    statusKeys.map((statusKey) => {
+      const statusRegistered = sourceSummaryStatusRegisteredAfter(
+        previousStatusRegistered,
+        statusKey,
+      );
+      previousStatusRegistered = statusRegistered;
+      return [statusKey, statusRegistered];
+    }),
+  );
+}
+
+function growthEvidenceLedgerStatusKey(statusName = '') {
+  return `growthEvidenceLedger${statusName}Status`;
+}
+
+function growthEvidenceLedgerStatusKeysAfterBase(statusNames) {
+  return [
+    growthEvidenceLedgerStatusKey(),
+    ...statusNames.map(growthEvidenceLedgerStatusKey),
+  ];
+}
+
+function proposalRecordReviewAcceptanceStatusStep(statusName) {
+  return `ProposalRecordDryRunReviewAcceptance${statusName}`;
+}
+
+function proposalRecordFinalizationReviewAcceptanceSteps(finalizationReviewCycleCount) {
+  const stepNames = ['Finalization'];
+  const finalizationCycleSteps = ['Review', 'Acceptance', 'Finalization'];
+  let currentStepName = stepNames[0];
+
+  for (let cycleIndex = 0; cycleIndex < finalizationReviewCycleCount; cycleIndex += 1) {
+    for (const cycleStep of finalizationCycleSteps) {
+      currentStepName = `${currentStepName}${cycleStep}`;
+      stepNames.push(currentStepName);
+    }
+  }
+
+  return stepNames;
+}
+
 const runtimeStateFiles = listRuntimeStateFiles();
 const recentRuntimeSummaries = runtimeStateFiles
   .slice(0, RECENT_RUNTIME_LIMIT)
@@ -2893,199 +3021,296 @@ const improvementCandidates = buildImprovementCandidates({
   runtimeSummaries: recentRuntimeSummaries,
   sourceSummary,
 });
-const missingSources = sources.filter((source) => !source.exists).map((source) => source.path);
-const ok = missingSources.length === 0 && sourceSummary.growthGatewayPlanPresent && sourceSummary.decisionAccepted;
-const reflectionEvaluatorImplemented =
-  sourceSummary.reflectionEvaluatorScriptPresent && sourceSummary.reflectionEvaluatorDocumented;
-const workerEventSchemaImplemented =
-  sourceSummary.workerEventSchemaScriptPresent && sourceSummary.workerEventSchemaDocumented;
-const proposalQueueStatusImplemented =
-  sourceSummary.proposalQueueStatusScriptPresent && sourceSummary.proposalQueueStatusDocumented;
-const skillMemoryRegistryStatusImplemented =
-  sourceSummary.skillMemoryRegistryStatusScriptPresent && sourceSummary.skillMemoryRegistryStatusDocumented;
-const gatewaySurfaceRouterStatusImplemented =
-  sourceSummary.gatewaySurfaceRouterStatusScriptPresent && sourceSummary.gatewaySurfaceRouterStatusDocumented;
-const continuousDevelopmentLoopStatusImplemented =
-  sourceSummary.continuousDevelopmentLoopStatusScriptPresent &&
-  sourceSummary.continuousDevelopmentLoopStatusDocumented;
-const improvementAcceptanceStatusImplemented =
-  sourceSummary.improvementAcceptanceStatusScriptPresent &&
-  sourceSummary.improvementAcceptanceStatusDocumented;
-const acceptedImprovementRegistryStatusImplemented =
-  sourceSummary.acceptedImprovementRegistryStatusScriptPresent &&
-  sourceSummary.acceptedImprovementRegistryStatusDocumented;
-const regressionWatchStatusImplemented =
-  sourceSummary.regressionWatchStatusScriptPresent && sourceSummary.regressionWatchStatusDocumented;
-const rollbackReviewStatusImplemented =
-  sourceSummary.rollbackReviewStatusScriptPresent && sourceSummary.rollbackReviewStatusDocumented;
-const remediationPlanStatusImplemented =
-  sourceSummary.remediationPlanStatusScriptPresent && sourceSummary.remediationPlanStatusDocumented;
-const remediationApprovalStatusImplemented =
-  sourceSummary.remediationApprovalStatusScriptPresent && sourceSummary.remediationApprovalStatusDocumented;
-const implementationProposalStatusImplemented =
-  sourceSummary.implementationProposalStatusScriptPresent &&
-  sourceSummary.implementationProposalStatusDocumented;
-const sourceMutationRequestStatusImplemented =
-  sourceSummary.sourceMutationRequestStatusScriptPresent &&
-  sourceSummary.sourceMutationRequestStatusDocumented;
-const sourceMutationAuthorizationStatusImplemented =
-  sourceSummary.sourceMutationAuthorizationStatusScriptPresent &&
-  sourceSummary.sourceMutationAuthorizationStatusDocumented;
-const sourceMutationApplicationPreflightStatusImplemented =
-  sourceSummary.sourceMutationApplicationPreflightStatusScriptPresent &&
-  sourceSummary.sourceMutationApplicationPreflightStatusDocumented;
-const sourceMutationDraftStatusImplemented =
-  sourceSummary.sourceMutationDraftStatusScriptPresent &&
-  sourceSummary.sourceMutationDraftStatusDocumented;
-const sourceMutationDraftReviewStatusImplemented =
-  sourceSummary.sourceMutationDraftReviewStatusScriptPresent &&
-  sourceSummary.sourceMutationDraftReviewStatusDocumented;
-const sourceMutationApplyAuthorizationStatusImplemented =
-  sourceSummary.sourceMutationApplyAuthorizationStatusScriptPresent &&
-  sourceSummary.sourceMutationApplyAuthorizationStatusDocumented;
-const sourceMutationApplyPreflightStatusImplemented =
-  sourceSummary.sourceMutationApplyPreflightStatusScriptPresent &&
-  sourceSummary.sourceMutationApplyPreflightStatusDocumented;
-const sourceMutationApplyExecutionReadinessStatusImplemented =
-  sourceSummary.sourceMutationApplyExecutionReadinessStatusScriptPresent &&
-  sourceSummary.sourceMutationApplyExecutionReadinessStatusDocumented;
-const sourceMutationApplyDispatchStatusImplemented =
-  sourceSummary.sourceMutationApplyDispatchStatusScriptPresent &&
-  sourceSummary.sourceMutationApplyDispatchStatusDocumented;
-const sourceMutationApplyExecutionStatusImplemented =
-  sourceSummary.sourceMutationApplyExecutionStatusScriptPresent &&
-  sourceSummary.sourceMutationApplyExecutionStatusDocumented;
-const sourceMutationApplyResultStatusImplemented =
-  sourceSummary.sourceMutationApplyResultStatusScriptPresent &&
-  sourceSummary.sourceMutationApplyResultStatusDocumented;
-const sourceMutationApplyResultReviewStatusImplemented =
-  sourceSummary.sourceMutationApplyResultReviewStatusScriptPresent &&
-  sourceSummary.sourceMutationApplyResultReviewStatusDocumented;
-const sourceMutationApplyResultAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationApplyResultAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationApplyResultAcceptanceStatusDocumented;
-const sourceMutationApplyClosureStatusImplemented =
-  sourceSummary.sourceMutationApplyClosureStatusScriptPresent &&
-  sourceSummary.sourceMutationApplyClosureStatusDocumented;
-const sourceMutationApplyFinalizationStatusImplemented =
-  sourceSummary.sourceMutationApplyFinalizationStatusScriptPresent &&
-  sourceSummary.sourceMutationApplyFinalizationStatusDocumented;
-const sourceMutationPostApplyAuditStatusImplemented =
-  sourceSummary.sourceMutationPostApplyAuditStatusScriptPresent &&
-  sourceSummary.sourceMutationPostApplyAuditStatusDocumented;
-const sourceMutationPostApplyAuditReviewStatusImplemented =
-  sourceSummary.sourceMutationPostApplyAuditReviewStatusScriptPresent &&
-  sourceSummary.sourceMutationPostApplyAuditReviewStatusDocumented;
-const sourceMutationPostApplyAuditReviewAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationPostApplyAuditReviewAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationPostApplyAuditReviewAcceptanceStatusDocumented;
-const sourceMutationCompletionStatusImplemented =
-  sourceSummary.sourceMutationCompletionStatusScriptPresent &&
-  sourceSummary.sourceMutationCompletionStatusDocumented;
-const sourceMutationCompletionReviewStatusImplemented =
-  sourceSummary.sourceMutationCompletionReviewStatusScriptPresent &&
-  sourceSummary.sourceMutationCompletionReviewStatusDocumented;
-const sourceMutationCompletionReviewAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationCompletionReviewAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationCompletionReviewAcceptanceStatusDocumented;
-const sourceMutationLifecycleCloseoutStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutStatusDocumented;
-const sourceMutationLifecycleCloseoutReviewStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutReviewStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutReviewStatusDocumented;
+const missingSources = sources
+  .filter((source) => !source.exists)
+  .map((source) => source.path);
+const allSourcesAvailable = missingSources.length === 0;
+const growthGatewayPlanReady = sourceSummary.growthGatewayPlanPresent;
+const growthDecisionAccepted = sourceSummary.decisionAccepted;
+const ok = allSourcesAvailable && growthGatewayPlanReady && growthDecisionAccepted;
+const reflectionEvaluatorImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'reflectionEvaluator',
+);
+const workerEventSchemaImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'workerEventSchema',
+);
+const proposalQueueStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'proposalQueueStatus',
+);
+const skillMemoryRegistryStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'skillMemoryRegistryStatus',
+);
+const gatewaySurfaceRouterStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'gatewaySurfaceRouterStatus',
+);
+const continuousDevelopmentLoopStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'continuousDevelopmentLoopStatus',
+);
+const improvementAcceptanceStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'improvementAcceptanceStatus',
+);
+const acceptedImprovementRegistryStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'acceptedImprovementRegistryStatus',
+);
+const regressionWatchStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'regressionWatchStatus',
+);
+const rollbackReviewStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'rollbackReviewStatus',
+);
+const remediationPlanStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'remediationPlanStatus',
+);
+const remediationApprovalStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'remediationApprovalStatus',
+);
+const implementationProposalStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'implementationProposalStatus',
+);
+const sourceMutationRequestStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationRequestStatus',
+);
+const sourceMutationAuthorizationStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationAuthorizationStatus',
+);
+const sourceMutationApplicationPreflightStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplicationPreflightStatus',
+);
+const sourceMutationDraftStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationDraftStatus',
+);
+const sourceMutationDraftReviewStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationDraftReviewStatus',
+);
+const sourceMutationApplyAuthorizationStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplyAuthorizationStatus',
+);
+const sourceMutationApplyPreflightStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplyPreflightStatus',
+);
+const sourceMutationApplyExecutionReadinessStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplyExecutionReadinessStatus',
+);
+const sourceMutationApplyDispatchStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplyDispatchStatus',
+);
+const sourceMutationApplyExecutionStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplyExecutionStatus',
+);
+const sourceMutationApplyResultStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplyResultStatus',
+);
+const sourceMutationApplyResultReviewStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplyResultReviewStatus',
+);
+const sourceMutationApplyResultAcceptanceStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplyResultAcceptanceStatus',
+);
+const sourceMutationApplyClosureStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplyClosureStatus',
+);
+const sourceMutationApplyFinalizationStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationApplyFinalizationStatus',
+);
+const sourceMutationPostApplyAuditStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationPostApplyAuditStatus',
+);
+const sourceMutationPostApplyAuditReviewStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationPostApplyAuditReviewStatus',
+);
+const sourceMutationPostApplyAuditReviewAcceptanceStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationPostApplyAuditReviewAcceptanceStatus',
+);
+const sourceMutationCompletionStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationCompletionStatus',
+);
+const sourceMutationCompletionReviewStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationCompletionReviewStatus',
+);
+const sourceMutationCompletionReviewAcceptanceStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationCompletionReviewAcceptanceStatus',
+);
+const sourceMutationLifecycleCloseoutStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationLifecycleCloseoutStatus',
+);
+const sourceMutationLifecycleCloseoutReviewStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationLifecycleCloseoutReviewStatus',
+);
 const sourceMutationLifecycleCloseoutReviewAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutReviewAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutReviewAcceptanceStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutReviewAcceptanceStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureReadinessStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureReadinessStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureReadinessStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureReadinessStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureAuthorizationStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureAuthorizationStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureAuthorizationStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureAuthorizationStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureExecutionReadinessStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureExecutionReadinessStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureExecutionReadinessStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureExecutionReadinessStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureDispatchStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureDispatchStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureDispatchStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureDispatchStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureExecutionStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureExecutionStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureExecutionStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureExecutionStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureResultStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureResultStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureResultStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureResultStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureResultReviewStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureResultReviewStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureResultReviewStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureResultReviewStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureResultAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureResultAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureResultAcceptanceStatusDocumented;
-const sourceMutationLifecycleCloseoutClosureStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureResultAcceptanceStatus',
+  );
+const sourceMutationLifecycleCloseoutClosureStatusImplemented = sourceSummaryStatusImplemented(
+  sourceSummary,
+  'sourceMutationLifecycleCloseoutClosureStatus',
+);
 const sourceMutationLifecycleCloseoutClosureReviewStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureReviewStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureReviewStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureReviewStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureReviewAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureReviewAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureReviewAcceptanceStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureReviewAcceptanceStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureAcceptanceStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureAcceptanceStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureFinalizationStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureFinalizationStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureFinalizationStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureFinalizationStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureFinalizationReviewStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureFinalizationReviewStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureFinalizationReviewStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureFinalizationReviewStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureFinalCloseStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureFinalCloseStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureFinalCloseStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureFinalCloseStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented =
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented =
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented =
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusScriptPresent &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented =
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusScriptPresent &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented =
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusScriptPresent &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented =
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusScriptPresent &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusDocumented;
+  sourceSummaryStatusImplemented(
+    sourceSummary,
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatus',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheckDocumented &&
@@ -4000,1172 +4225,1293 @@ const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptance
     .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckDocumented &&
   sourceSummary
     .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckLedgered;
-const nextRecommendedSlice = reflectionEvaluatorImplemented
-  ? workerEventSchemaImplemented
-    ? proposalQueueStatusImplemented
-      ? skillMemoryRegistryStatusImplemented
-        ? gatewaySurfaceRouterStatusImplemented
-          ? continuousDevelopmentLoopStatusImplemented
-            ? improvementAcceptanceStatusImplemented
-              ? acceptedImprovementRegistryStatusImplemented
-                ? regressionWatchStatusImplemented
-                  ? rollbackReviewStatusImplemented
-                    ? remediationPlanStatusImplemented
-                      ? remediationApprovalStatusImplemented
-                        ? implementationProposalStatusImplemented
-                          ? sourceMutationRequestStatusImplemented
-                            ? sourceMutationAuthorizationStatusImplemented
-                              ? sourceMutationApplicationPreflightStatusImplemented
-                                ? sourceMutationDraftStatusImplemented
-                                  ? sourceMutationDraftReviewStatusImplemented
-                                    ? sourceMutationApplyAuthorizationStatusImplemented
-                                      ? sourceMutationApplyPreflightStatusImplemented
-                                        ? sourceMutationApplyExecutionReadinessStatusImplemented
-                                          ? sourceMutationApplyDispatchStatusImplemented
-                                            ? sourceMutationApplyExecutionStatusImplemented
-                                              ? sourceMutationApplyResultStatusImplemented
-                                                ? sourceMutationApplyResultReviewStatusImplemented
-                                                  ? sourceMutationApplyResultAcceptanceStatusImplemented
-                                                    ? sourceMutationApplyClosureStatusImplemented
-                                                      ? sourceMutationApplyFinalizationStatusImplemented
-                                                          ? sourceMutationPostApplyAuditStatusImplemented
-                                                            ? sourceMutationPostApplyAuditReviewStatusImplemented
-                                                            ? sourceMutationPostApplyAuditReviewAcceptanceStatusImplemented
-                                                              ? sourceMutationCompletionStatusImplemented
-                                                                ? sourceMutationCompletionReviewStatusImplemented
-                                                                  ? sourceMutationCompletionReviewAcceptanceStatusImplemented
-                                                                    ? sourceMutationLifecycleCloseoutStatusImplemented
-                                                                      ? sourceMutationLifecycleCloseoutReviewStatusImplemented
-                                                                        ? sourceMutationLifecycleCloseoutReviewAcceptanceStatusImplemented
-                                                                          ? sourceMutationLifecycleCloseoutClosureReadinessStatusImplemented
-                                                                            ? sourceMutationLifecycleCloseoutClosureAuthorizationStatusImplemented
-                                                                              ? sourceMutationLifecycleCloseoutClosureExecutionReadinessStatusImplemented
-                                                                                ? sourceMutationLifecycleCloseoutClosureDispatchStatusImplemented
-                                                                                  ? sourceMutationLifecycleCloseoutClosureExecutionStatusImplemented
-                                                                                    ? sourceMutationLifecycleCloseoutClosureResultStatusImplemented
-                                                                                      ? sourceMutationLifecycleCloseoutClosureResultReviewStatusImplemented
-                                                                                        ? sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceStatusImplemented
-                                                                                          ? sourceMutationLifecycleCloseoutClosureResultAcceptanceStatusImplemented
-                                                                                            ? sourceMutationLifecycleCloseoutClosureStatusImplemented
-                                                                                              ? sourceMutationLifecycleCloseoutClosureReviewStatusImplemented
-                                                                                                ? sourceMutationLifecycleCloseoutClosureReviewAcceptanceStatusImplemented
-                                                                                                  ? sourceMutationLifecycleCloseoutClosureAcceptanceStatusImplemented
-                                                                                                  ? sourceMutationLifecycleCloseoutClosureFinalizationStatusImplemented
-                                                                                                    ? sourceMutationLifecycleCloseoutClosureFinalizationReviewStatusImplemented
-                                                                                                      ? sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceStatusImplemented
-                                                                                                          ? sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceStatusImplemented
-                                                                                                            ? sourceMutationLifecycleCloseoutClosureFinalCloseStatusImplemented
-                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented
-                                                                                                                ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented
-                                                                                                                  ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented
-                                                                                                                    ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented
-                                                                                                                      ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented
-                                                                                                                        ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented
-                                                                                                                          ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented
-                                                                                                                            ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented
-                                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented
-                                                                                                                                ? sourceMutationLifecycleCloseoutClosureLifecycleCloseRecheckCompleted
-                                                                                                                                  ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewRecheckCompleted
-	                                                                                                                                    ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceRecheckCompleted
-	                                                                                                                                      ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRecheckCompleted
-                                                                                                                                        ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationRecheckCompleted
-                                                                                                                                          ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewRecheckCompleted
-                                                                                                                                            ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceRecheckCompleted
-                                                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheckCompleted
-                                                                                                                                                  ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseRecheckCompleted
-                                                                                                                                                    ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseRecheckCompleted
-                                                                                                                                                      ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewRecheckCompleted
-                                                                                                                                                        ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceRecheckCompleted
-                                                                                                                                                          ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceRecheckCompleted
-                                                                                                                                                            ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationRecheckCompleted
-                                                                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewRecheckCompleted
-                                                                                                                                                                ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceRecheckCompleted
-                                                                                                                                                                  ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                    ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseAfterFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                      ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseAfterFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                        ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                          ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                            ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                  ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                    ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                      ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                        ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                          ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                            ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                  ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                    ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                      ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                        ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                          ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                            ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                  ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                    ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                      ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                        ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                          ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                            ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                            ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                  ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                    ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                      ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                        ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                          ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                            ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                                ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                                  ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                                    ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                                      ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                                        ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                                          ? sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                                            ? sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                                              ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                                                ? sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-                                                                                                                                                                                                                                                                  ? {
-                                                                                                                                                                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-                                                                                                                                                                                                                                                                      commandToAdd:
-                                                                                                                                                                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-                                                                                                                                                                                                                                                                      reason:
-                                                                                                                                                                                                                                                                        'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                  : {
-                                                                                                                                                                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-                                                                                                                                                                                                                                                                      commandToAdd:
-                                                                                                                                                                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-                                                                                                                                                                                                                                                                      reason:
-                                                                                                                                                                                                                                                                        'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                : {
-                                                                                                                                                                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-                                                                                                                                                                                                                                                                    commandToAdd:
-                                                                                                                                                                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-                                                                                                                                                                                                                                                                    reason:
-                                                                                                                                                                                                                                                                      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                                              : {
-                                                                                                                                                                                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-                                                                                                                                                                                                                                                                  commandToAdd:
-                                                                                                                                                                                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-                                                                                                                                                                                                                                                                  reason:
-                                                                                                                                                                                                                                                                    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                                  mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                            : {
-                                                                                                                                                                                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-                                                                                                                                                                                                                                                                commandToAdd:
-                                                                                                                                                                                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-                                                                                                                                                                                                                                                                reason:
-                                                                                                                                                                                                                                                                  'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                                mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                              }
-                                                                                                                                                                                                                                                          : {
-                                                                                                                                                                                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-                                                                                                                                                                                                                                                              commandToAdd:
-                                                                                                                                                                                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-                                                                                                                                                                                                                                                              reason:
-                                                                                                                                                                                                                                                                'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                              mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                        : {
-                                                                                                                                                                                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-                                                                                                                                                                                                                                                            commandToAdd:
-                                                                                                                                                                                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-                                                                                                                                                                                                                                                            reason:
-                                                                                                                                                                                                                                                              'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                            mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                          }
-                                                                                                                                                                                                                                                      : {
-                                                                                                                                                                                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-                                                                                                                                                                                                                                                          commandToAdd:
-                                                                                                                                                                                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-                                                                                                                                                                                                                                                          reason:
-                                                                                                                                                                                                                                                            'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                          mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                    : {
-                                                                                                                                                                                                                                                        id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-                                                                                                                                                                                                                                                        commandToAdd:
-                                                                                                                                                                                                                                                          'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-                                                                                                                                                                                                                                                        reason:
-                                                                                                                                                                                                                                                          'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                        mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                      }
-                                                                                                                                                                                                                                                  : {
-                                                                                                                                                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-                                                                                                                                                                                                                                                      commandToAdd:
-                                                                                                                                                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-                                                                                                                                                                                                                                                      reason:
-                                                                                                                                                                                                                                                        'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                : {
-                                                                                                                                                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-                                                                                                                                                                                                                                                    commandToAdd:
-                                                                                                                                                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-                                                                                                                                                                                                                                                    reason:
-                                                                                                                                                                                                                                                      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                                : {
-                                                                                                                                                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-                                                                                                                                                                                                                                                    commandToAdd:
-                                                                                                                                                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-                                                                                                                                                                                                                                                    reason:
-                                                                                                                                                                                                                                                      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                                              : {
-                                                                                                                                                                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-                                                                                                                                                                                                                                                  commandToAdd:
-                                                                                                                                                                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-                                                                                                                                                                                                                                                  reason:
-                                                                                                                                                                                                                                                    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                  mustRemainReadOnly: true,
-                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                            : {
-                                                                                                                                                                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-                                                                                                                                                                                                                                                commandToAdd:
-                                                                                                                                                                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-                                                                                                                                                                                                                                                reason:
-                                                                                                                                                                                                                                                  'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                                mustRemainReadOnly: true,
-                                                                                                                                                                                                                                              }
-                                                                                                                                                                                                                                          : {
-                                                                                                                                                                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-                                                                                                                                                                                                                                              commandToAdd:
-                                                                                                                                                                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-                                                                                                                                                                                                                                              reason:
-                                                                                                                                                                                                                                                'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                              mustRemainReadOnly: true,
-                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                        : {
-                                                                                                                                                                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-                                                                                                                                                                                                                                            commandToAdd:
-                                                                                                                                                                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-                                                                                                                                                                                                                                            reason:
-                                                                                                                                                                                                                                              'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                            mustRemainReadOnly: true,
-                                                                                                                                                                                                                                          }
-                                                                                                                                                                                                                                      : {
-                                                                                                                                                                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-                                                                                                                                                                                                                                          commandToAdd:
-                                                                                                                                                                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-                                                                                                                                                                                                                                          reason:
-                                                                                                                                                                                                                                            'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                          mustRemainReadOnly: true,
-                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                    : {
-                                                                                                                                                                                                                                        id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-                                                                                                                                                                                                                                        commandToAdd:
-                                                                                                                                                                                                                                          'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-                                                                                                                                                                                                                                        reason:
-                                                                                                                                                                                                                                          'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                        mustRemainReadOnly: true,
-                                                                                                                                                                                                                                      }
-                                                                                                                                                                                                                                  : {
-                                                                                                                                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-                                                                                                                                                                                                                                      commandToAdd:
-                                                                                                                                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-                                                                                                                                                                                                                                      reason:
-                                                                                                                                                                                                                                        'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                : {
-                                                                                                                                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-                                                                                                                                                                                                                                    commandToAdd:
-                                                                                                                                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-                                                                                                                                                                                                                                    reason:
-                                                                                                                                                                                                                                      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                                                                                                                                  }
-                                                                                                                                                                                                                              : {
-                                                                                                                                                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-                                                                                                                                                                                                                                  commandToAdd:
-                                                                                                                                                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-                                                                                                                                                                                                                                  reason:
-                                                                                                                                                                                                                                    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                  mustRemainReadOnly: true,
-                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                            : {
-                                                                                                                                                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-                                                                                                                                                                                                                                commandToAdd:
-                                                                                                                                                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-                                                                                                                                                                                                                                reason:
-                                                                                                                                                                                                                                  'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                                mustRemainReadOnly: true,
-                                                                                                                                                                                                                              }
-                                                                                                                                                                                                                          : {
-                                                                                                                                                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-                                                                                                                                                                                                                              commandToAdd:
-                                                                                                                                                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-                                                                                                                                                                                                                              reason:
-                                                                                                                                                                                                                                'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                              mustRemainReadOnly: true,
-                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                        : {
-                                                                                                                                                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-                                                                                                                                                                                                                            commandToAdd:
-                                                                                                                                                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-                                                                                                                                                                                                                            reason:
-                                                                                                                                                                                                                              'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                            mustRemainReadOnly: true,
-                                                                                                                                                                                                                          }
-                                                                                                                                                                                                                      : {
-                                                                                                                                                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-                                                                                                                                                                                                                          commandToAdd:
-                                                                                                                                                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-                                                                                                                                                                                                                          reason:
-                                                                                                                                                                                                                            'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                          mustRemainReadOnly: true,
-                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                    : {
-                                                                                                                                                                                                                        id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-                                                                                                                                                                                                                        commandToAdd:
-                                                                                                                                                                                                                          'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-                                                                                                                                                                                                                        reason:
-                                                                                                                                                                                                                          'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                        mustRemainReadOnly: true,
-                                                                                                                                                                                                                      }
-                                                                                                                                                                                                                  : {
-                                                                                                                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-                                                                                                                                                                                                                      commandToAdd:
-                                                                                                                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-                                                                                                                                                                                                                      reason:
-                                                                                                                                                                                                                        'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                : {
-                                                                                                                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-                                                                                                                                                                                                                    commandToAdd:
-                                                                                                                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-                                                                                                                                                                                                                    reason:
-                                                                                                                                                                                                                      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                                                                                                                  }
-                                                                                                                                                                                                              : {
-                                                                                                                                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-                                                                                                                                                                                                                  commandToAdd:
-                                                                                                                                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-                                                                                                                                                                                                                  reason:
-                                                                                                                                                                                                                    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                  mustRemainReadOnly: true,
-                                                                                                                                                                                                                }
-                                                                                                                                                                                                            : {
-                                                                                                                                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-                                                                                                                                                                                                                commandToAdd:
-                                                                                                                                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-                                                                                                                                                                                                                reason:
-                                                                                                                                                                                                                  'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                                mustRemainReadOnly: true,
-                                                                                                                                                                                                              }
-                                                                                                                                                                                                          : {
-                                                                                                                                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-                                                                                                                                                                                                              commandToAdd:
-                                                                                                                                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-                                                                                                                                                                                                              reason:
-                                                                                                                                                                                                                'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                              mustRemainReadOnly: true,
-                                                                                                                                                                                                            }
-                                                                                                                                                                                                        : {
-                                                                                                                                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-                                                                                                                                                                                                            commandToAdd:
-                                                                                                                                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-                                                                                                                                                                                                            reason:
-                                                                                                                                                                                                              'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                            mustRemainReadOnly: true,
-                                                                                                                                                                                                          }
-                                                                                                                                                                                                      : {
-                                                                                                                                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-                                                                                                                                                                                                          commandToAdd:
-                                                                                                                                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-                                                                                                                                                                                                          reason:
-                                                                                                                                                                                                            'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                          mustRemainReadOnly: true,
-                                                                                                                                                                                                        }
-                                                                                                                                                                                                   : {
-                                                                                                                                                                                                       id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-                                                                                                                                                                                                        commandToAdd:
-                                                                                                                                                                                                          'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-                                                                                                                                                                                                        reason:
-                                                                                                                                                                                                          'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                        mustRemainReadOnly: true,
-                                                                                                                                                                                                      }
-                                                                                                                                                                                                  : {
-                                                                                                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-                                                                                                                                                                                                      commandToAdd:
-                                                                                                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-                                                                                                                                                                                                      reason:
-                                                                                                                                                                                                        'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                                                                                                    }
-                                                                                                                                                                                                : {
-                                                                                                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-                                                                                                                                                                                                    commandToAdd:
-                                                                                                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-                                                                                                                                                                                                    reason:
-                                                                                                                                                                                                      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                                                                                                  }
-                                                                                                                                                                                              : {
-                                                                                                                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-                                                                                                                                                                                                  commandToAdd:
-                                                                                                                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-                                                                                                                                                                                                  reason:
-                                                                                                                                                                                                    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                  mustRemainReadOnly: true,
-                                                                                                                                                                                                }
-                                                                                                                                                                                            : {
-                                                                                                                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-                                                                                                                                                                                                commandToAdd:
-                                                                                                                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-                                                                                                                                                                                                reason:
-                                                                                                                                                                                                  'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                                mustRemainReadOnly: true,
-                                                                                                                                                                                              }
-                                                                                                                                                                                          : {
-                                                                                                                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-                                                                                                                                                                                              commandToAdd:
-                                                                                                                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-                                                                                                                                                                                              reason:
-                                                                                                                                                                                                'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                              mustRemainReadOnly: true,
-                                                                                                                                                                                            }
-                                                                                                                                                                                        : {
-                                                                                                                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-                                                                                                                                                                                            commandToAdd:
-                                                                                                                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-                                                                                                                                                                                            reason:
-                                                                                                                                                                                              'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                            mustRemainReadOnly: true,
-                                                                                                                                                                                          }
-                                                                                                                                                                                      : {
-                                                                                                                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-                                                                                                                                                                                          commandToAdd:
-                                                                                                                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-                                                                                                                                                                                          reason:
-                                                                                                                                                                                            'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                          mustRemainReadOnly: true,
-                                                                                                                                                                                        }
-                                                                                                                                                                                    : {
-                                                                                                                                                                                        id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-                                                                                                                                                                                        commandToAdd:
-                                                                                                                                                                                          'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-                                                                                                                                                                                        reason:
-                                                                                                                                                                                          'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                        mustRemainReadOnly: true,
-                                                                                                                                                                                      }
-                                                                                                                                                                                  : {
-                                                                                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-                                                                                                                                                                                      commandToAdd:
-                                                                                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-                                                                                                                                                                                      reason:
-                                                                                                                                                                                        'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                                                                                    }
-                                                                                                                                                                                : {
-                                                                                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-                                                                                                                                                                                    commandToAdd:
-                                                                                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-                                                                                                                                                                                    reason:
-                                                                                                                                                                                      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                                                                                  }
-                                                                                                                                                                              : {
-                                                                                                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-                                                                                                                                                                                  commandToAdd:
-                                                                                                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-                                                                                                                                                                                  reason:
-                                                                                                                                                                                    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                  mustRemainReadOnly: true,
-                                                                                                                                                                                }
-                                                                                                                                                                            : {
-                                                                                                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-                                                                                                                                                                                commandToAdd:
-                                                                                                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-                                                                                                                                                                                reason:
-                                                                                                                                                                                  'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                                mustRemainReadOnly: true,
-                                                                                                                                                                              }
-                                                                                                                                                                          : {
-                                                                                                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-                                                                                                                                                                              commandToAdd:
-                                                                                                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-                                                                                                                                                                              reason:
-                                                                                                                                                                                'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                              mustRemainReadOnly: true,
-                                                                                                                                                                            }
-                                                                                                                                                                        : {
-                                                                                                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-                                                                                                                                                                            commandToAdd:
-                                                                                                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-                                                                                                                                                                            reason:
-                                                                                                                                                                              'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                            mustRemainReadOnly: true,
-                                                                                                                                                                          }
-                                                                                                                                                                      : {
-                                                                                                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-                                                                                                                                                                          commandToAdd:
-                                                                                                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-                                                                                                                                                                          reason:
-                                                                                                                                                                            'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                          mustRemainReadOnly: true,
-                                                                                                                                                                        }
-                                                                                                                                                                    : {
-                                                                                                                                                                        id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-                                                                                                                                                                        commandToAdd:
-                                                                                                                                                                          'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-                                                                                                                                                                        reason:
-                                                                                                                                                                          'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                        mustRemainReadOnly: true,
-                                                                                                                                                                      }
-                                                                                                                                                                  : {
-                                                                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-                                                                                                                                                                      commandToAdd:
-                                                                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-                                                                                                                                                                      reason:
-                                                                                                                                                                        'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                                                                    }
-                                                                                                                                                                : {
-                                                                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-                                                                                                                                                                    commandToAdd:
-                                                                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-                                                                                                                                                                    reason:
-                                                                                                                                                                      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                                                                  }
-                                                                                                                                                              : {
-                                                                                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-                                                                                                                                                                  commandToAdd:
-                                                                                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-                                                                                                                                                                  reason:
-                                                                                                                                                                    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                  mustRemainReadOnly: true,
-                                                                                                                                                                }
-                                                                                                                                                            : {
-                                                                                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-                                                                                                                                                                commandToAdd:
-                                                                                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-                                                                                                                                                                reason:
-                                                                                                                                                                  'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                                mustRemainReadOnly: true,
-                                                                                                                                                              }
-                                                                                                                                                          : {
-                                                                                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-                                                                                                                                                              commandToAdd:
-                                                                                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-                                                                                                                                                              reason:
-                                                                                                                                                                'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                              mustRemainReadOnly: true,
-                                                                                                                                                            }
-                                                                                                                                                        : {
-                                                                                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-                                                                                                                                                            commandToAdd:
-                                                                                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-                                                                                                                                                            reason:
-                                                                                                                                                              'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                            mustRemainReadOnly: true,
-                                                                                                                                                          }
-                                                                                                                                                      : {
-                                                                                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-                                                                                                                                                          commandToAdd:
-                                                                                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-                                                                                                                                                          reason:
-                                                                                                                                                            'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                          mustRemainReadOnly: true,
-                                                                                                                                                        }
-                                                                                                                                                    : {
-                                                                                                                                                        id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-                                                                                                                                                        commandToAdd:
-                                                                                                                                                          'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-                                                                                                                                                        reason:
-                                                                                                                                                          'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                        mustRemainReadOnly: true,
-                                                                                                                                                      }
-                                                                                                                                                  : {
-                                                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-                                                                                                                                                      commandToAdd:
-                                                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-                                                                                                                                                      reason:
-                                                                                                                                                        'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck modeling; the next slice can check lifecycle close final-close without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                                                    }
-                                                                                                                                                : {
-                                                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-                                                                                                                                                    commandToAdd:
-                                                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-                                                                                                                                                    reason:
-                                                                                                                                                      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck modeling; the next slice can check lifecycle close finalization acceptance without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                                                  }
-                                                                                                                                              : {
-                                                                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-                                                                                                                                                  commandToAdd:
-                                                                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-                                                                                                                                                  reason:
-                                                                                                                                                    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck modeling; the next slice can check lifecycle close finalization review acceptance without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                  mustRemainReadOnly: true,
-                                                                                                                                                }
-                                                                                                                                            : {
-                                                                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-                                                                                                                                                commandToAdd:
-                                                                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-                                                                                                                                                reason:
-                                                                                                                                                  'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck modeling; the next slice can check lifecycle close finalization review without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                                mustRemainReadOnly: true,
-                                                                                                                                              }
-                                                                                                                                          : {
-                                                                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-                                                                                                                                              commandToAdd:
-                                                                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-                                                                                                                                              reason:
-                                                                                                                                                'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck modeling; the next slice can check lifecycle close finalization without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                              mustRemainReadOnly: true,
-                                                                                                                                            }
-                                                                                                                                        : {
-                                                                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-                                                                                                                                            commandToAdd:
-                                                                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-                                                                                                                                            reason:
-                                                                                                                                              'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck modeling; the next slice can check lifecycle close acceptance without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                            mustRemainReadOnly: true,
-                                                                                                                                          }
-                                                                                                                                      : {
-                                                                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-                                                                                                                                          commandToAdd:
-                                                                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-                                                                                                                                          reason:
-                                                                                                                                            'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck modeling; the next slice can check lifecycle close review acceptance without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                          mustRemainReadOnly: true,
-                                                                                                                                        }
-                                                                                                                                    : {
-                                                                                                                                        id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-                                                                                                                                        commandToAdd:
-                                                                                                                                          'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-                                                                                                                                        reason:
-                                                                                                                                          'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close modeling; the next slice can check lifecycle close review without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                        mustRemainReadOnly: true,
-                                                                                                                                      }
-                                                                                                                                  : {
-                                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-                                                                                                                                      commandToAdd:
-                                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-                                                                                                                                      reason:
-                                                                                                                                        'The source mutation lifecycle closeout closure lifecycle close final-close contract is now modeled as read-only; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-                                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                                    }
-                                                                                                                                : {
-                                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-                                                                                                                                    commandToAdd:
-                                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-                                                                                                                                    reason:
-                                                                                                                                      'The source mutation lifecycle closeout closure lifecycle close finalization acceptance contract is now modeled as read-only; the next slice should check lifecycle close final close before lifecycle closure, patch application, or source mutation.',
-                                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                                  }
-                                                                                                                              : {
-                                                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-                                                                                                                                  commandToAdd:
-                                                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-                                                                                                                                  reason:
-                                                                                                                                    'The source mutation lifecycle closeout closure lifecycle close finalization review acceptance contract is now modeled as read-only; the next slice should check lifecycle close finalization acceptance before lifecycle closure, patch application, or source mutation.',
-                                                                                                                                  mustRemainReadOnly: true,
-                                                                                                                                }
-                                                                                                                            : {
-                                                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-                                                                                                                                commandToAdd:
-                                                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-                                                                                                                                reason:
-                                                                                                                                  'The source mutation lifecycle closeout closure lifecycle close finalization review contract is now modeled as read-only; the next slice should check lifecycle close finalization review acceptance before lifecycle closure, patch application, or source mutation.',
-                                                                                                                                mustRemainReadOnly: true,
-                                                                                                                              }
-                                                                                                                          : {
-                                                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-                                                                                                                              commandToAdd:
-                                                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-                                                                                                                              reason:
-                                                                                                                                'The source mutation lifecycle closeout closure lifecycle close finalization contract is now modeled as read-only; the next slice should check lifecycle close finalization review before lifecycle closure, patch application, or source mutation.',
-                                                                                                                              mustRemainReadOnly: true,
-                                                                                                                            }
-                                                                                                                        : {
-                                                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-                                                                                                                            commandToAdd:
-                                                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-                                                                                                                            reason:
-                                                                                                                              'The source mutation lifecycle closeout closure lifecycle close acceptance contract is now modeled as read-only; the next slice should check lifecycle close finalization before lifecycle closure, patch application, or source mutation.',
-                                                                                                                            mustRemainReadOnly: true,
-                                                                                                                          }
-                                                                                                                      : {
-                                                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-                                                                                                                          commandToAdd:
-                                                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-                                                                                                                          reason:
-                                                                                                                            'The source mutation lifecycle closeout closure lifecycle close review acceptance contract is now modeled as read-only; the next slice should check lifecycle close acceptance before lifecycle closure, patch application, or source mutation.',
-                                                                                                                          mustRemainReadOnly: true,
-                                                                                                                        }
-                                                                                                                    : {
-                                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-                                                                                                                      commandToAdd:
-                                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-                                                                                                                      reason:
-                                                                                                                        'The source mutation lifecycle closeout closure lifecycle close review contract is now modeled as read-only; the next slice should check lifecycle close review acceptance before lifecycle closure, patch application, or source mutation.',
-                                                                                                                      mustRemainReadOnly: true,
-                                                                                                                    }
-                                                                                                                  : {
-                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-                                                                                                                    commandToAdd:
-                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-                                                                                                                    reason:
-                                                                                                                      'The source mutation lifecycle closeout closure lifecycle close contract is now modeled as read-only; the next slice should check lifecycle close review before lifecycle closure, patch application, or source mutation.',
-                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                  }
-                                                                                                                : {
-                                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-                                                                                                                    commandToAdd:
-                                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-                                                                                                                    reason:
-                                                                                                                      'The source mutation lifecycle closeout closure final close contract is now modeled as read-only; the next slice should check lifecycle close before lifecycle closure, patch application, or source mutation.',
-                                                                                                                    mustRemainReadOnly: true,
-                                                                                                                  }
-                                                                                                              : {
-                                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-final-close-status',
-                                                                                                                  commandToAdd:
-                                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-final-close-status.mjs',
-                                                                                                                  reason:
-                                                                                                                    'The source mutation lifecycle closeout closure finalization acceptance contract is now modeled as read-only; the next slice should check final close before lifecycle closure, patch application, or source mutation.',
-                                                                                                                  mustRemainReadOnly: true,
-                                                                                                                }
-                                                                                                            : {
-                                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status',
-                                                                                                                commandToAdd:
-                                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status.mjs',
-                                                                                                                reason:
-                                                                                                                  'The source mutation lifecycle closeout closure finalization review acceptance contract is now modeled as read-only; the next slice should check closure finalization acceptance before final lifecycle closure, patch application, or source mutation.',
-                                                                                                                mustRemainReadOnly: true,
-                                                                                                              }
-                                                                                                          : {
-                                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status',
-                                                                                                              commandToAdd:
-                                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status.mjs',
-                                                                                                              reason:
-                                                                                                                'The source mutation lifecycle closeout closure finalization review contract is now modeled as read-only; the next slice should check closure finalization review acceptance before final lifecycle closure, patch application, or source mutation.',
-                                                                                                              mustRemainReadOnly: true,
-                                                                                                            }
-                                                                                                        : {
-                                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status',
-                                                                                                            commandToAdd:
-                                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status.mjs',
-                                                                                                            reason:
-                                                                                                              'The source mutation lifecycle closeout closure finalization contract is now modeled as read-only; the next slice should check closure finalization review before final lifecycle closure, patch application, or source mutation.',
-                                                                                                            mustRemainReadOnly: true,
-                                                                                                          }
-                                                                                                      : {
-                                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-status',
-                                                                                                          commandToAdd:
-                                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-status.mjs',
-                                                                                                          reason:
-                                                                                                            'The source mutation lifecycle closeout closure acceptance contract is now modeled as read-only; the next slice should check closure finalization before final lifecycle closure, patch application, or source mutation.',
-                                                                                                          mustRemainReadOnly: true,
-                                                                                                        }
-                                                                                                    : {
-                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status',
-                                                                                                      commandToAdd:
-                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status.mjs',
-                                                                                                      reason:
-                                                                                                        'The source mutation lifecycle closeout closure review acceptance contract is now modeled as read-only; the next slice should check closure acceptance before final lifecycle closure, patch application, or source mutation.',
-                                                                                                      mustRemainReadOnly: true,
-                                                                                                    }
-                                                                                                  : {
-                                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status',
-                                                                                                      commandToAdd:
-                                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status.mjs',
-                                                                                                      reason:
-                                                                                                        'The source mutation lifecycle closeout closure review contract is now modeled as read-only; the next slice should check closure review acceptance before final lifecycle closure, patch application, or source mutation.',
-                                                                                                      mustRemainReadOnly: true,
-                                                                                                    }
-                                                                                                : {
-                                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-review-status',
-                                                                                                    commandToAdd:
-                                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-review-status.mjs',
-                                                                                                    reason:
-                                                                                                      'The source mutation lifecycle closeout closure contract is now modeled as read-only; the next slice should check closure review status before final lifecycle closure, patch application, or source mutation.',
-                                                                                                    mustRemainReadOnly: true,
-                                                                                                  }
-                                                                                              : {
-                                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-status',
-                                                                                                  commandToAdd:
-                                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-status.mjs',
-                                                                                                  reason:
-                                                                                                    'The source mutation lifecycle closeout closure result acceptance contract is now modeled as read-only; the next slice should check lifecycle closeout closure status before lifecycle closure, patch application, or source mutation.',
-                                                                                                  mustRemainReadOnly: true,
-                                                                                                }
-                                                                                            : {
-                                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status',
-                                                                                                commandToAdd:
-                                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status.mjs',
-                                                                                                reason:
-                                                                                                  'The source mutation lifecycle closeout closure result review acceptance contract is now modeled as read-only; the next slice should check closure result acceptance before lifecycle closure, patch application, or source mutation.',
-                                                                                                mustRemainReadOnly: true,
-                                                                                              }
-                                                                                          : {
-                                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status',
-                                                                                              commandToAdd:
-                                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status.mjs',
-                                                                                              reason:
-                                                                                                'The source mutation lifecycle closeout closure result review contract is now modeled as read-only; the next slice should check closure result review acceptance before actual result acceptance, lifecycle closure, patch application, or source mutation.',
-                                                                                              mustRemainReadOnly: true,
-                                                                                            }
-                                                                                        : {
-                                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-status',
-                                                                                            commandToAdd:
-                                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-status.mjs',
-                                                                                            reason:
-                                                                                              'The source mutation lifecycle closeout closure result contract is now modeled as read-only; the next slice should check closure result review before result acceptance, lifecycle closure, patch application, or source mutation.',
-                                                                                            mustRemainReadOnly: true,
-                                                                                          }
-                                                                                      : {
-                                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-status',
-                                                                                          commandToAdd:
-                                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-result-status.mjs',
-                                                                                          reason:
-                                                                                            'The source mutation lifecycle closeout closure execution contract is now modeled as read-only; the next slice should check closure result before lifecycle closure, patch application, or source mutation.',
-                                                                                          mustRemainReadOnly: true,
-                                                                                        }
-                                                                                    : {
-                                                                                        id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-status',
-                                                                                        commandToAdd:
-                                                                                          'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-execution-status.mjs',
-                                                                                        reason:
-                                                                                          'The source mutation lifecycle closeout closure dispatch contract is now modeled as read-only; the next slice should check closure execution before lifecycle closure, patch application, or source mutation.',
-                                                                                        mustRemainReadOnly: true,
-                                                                                      }
-                                                                                  : {
-                                                                                      id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status',
-                                                                                      commandToAdd:
-                                                                                        'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status.mjs',
-                                                                                      reason:
-                                                                                        'The source mutation lifecycle closeout closure execution readiness contract is now modeled as read-only; the next slice should check dispatch before lifecycle closure, patch application, or source mutation.',
-                                                                                      mustRemainReadOnly: true,
-                                                                                    }
-                                                                                : {
-                                                                                    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status',
-                                                                                    commandToAdd:
-                                                                                      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status.mjs',
-                                                                                    reason:
-                                                                                      'The source mutation lifecycle closeout closure authorization contract is now modeled as read-only; the next slice should check execution readiness before lifecycle closure, patch application, or source mutation.',
-                                                                                    mustRemainReadOnly: true,
-                                                                                  }
-                                                                              : {
-                                                                                  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-authorization-status',
-                                                                                  commandToAdd:
-                                                                                    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-authorization-status.mjs',
-                                                                                  reason:
-                                                                                    'The source mutation lifecycle closeout closure readiness contract is now modeled as read-only; the next slice should authorize closure readiness before lifecycle closure, patch application, or source mutation.',
-                                                                                  mustRemainReadOnly: true,
-                                                                                }
-                                                                            : {
-                                                                                id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-readiness-status',
-                                                                                commandToAdd:
-                                                                                  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-readiness-status.mjs',
-                                                                                reason:
-                                                                                  'The source mutation lifecycle closeout review acceptance contract is now modeled as read-only; the next slice should check closure readiness before lifecycle closure, patch application, or source mutation.',
-                                                                                mustRemainReadOnly: true,
-                                                                              }
-                                                                          : {
-                                                                              id: 'growth-remediation-source-mutation-lifecycle-closeout-review-acceptance-status',
-                                                                              commandToAdd:
-                                                                                'node scripts/growth-remediation-source-mutation-lifecycle-closeout-review-acceptance-status.mjs',
-                                                                              reason:
-                                                                                'The source mutation lifecycle closeout review contract is now modeled as read-only; the next slice should accept review readiness before lifecycle closure, patch application, or source mutation.',
-                                                                              mustRemainReadOnly: true,
-                                                                            }
-                                                                        : {
-                                                                            id: 'growth-remediation-source-mutation-lifecycle-closeout-review-status',
-                                                                            commandToAdd:
-                                                                              'node scripts/growth-remediation-source-mutation-lifecycle-closeout-review-status.mjs',
-                                                                            reason:
-                                                                              'The source mutation lifecycle closeout contract is now modeled as read-only; the next slice should review lifecycle closeout readiness before lifecycle closure, patch application, or source mutation.',
-                                                                            mustRemainReadOnly: true,
-                                                                          }
-                                                                      : {
-                                                                          id: 'growth-remediation-source-mutation-lifecycle-closeout-status',
-                                                                          commandToAdd:
-                                                                            'node scripts/growth-remediation-source-mutation-lifecycle-closeout-status.mjs',
-                                                                          reason:
-                                                                            'The source mutation completion review acceptance contract is now modeled as read-only; the next slice should define lifecycle closeout readiness without applying patches or mutating source.',
-                                                                          mustRemainReadOnly: true,
-                                                                        }
-                                                                    : {
-                                                                        id: 'growth-remediation-source-mutation-completion-review-acceptance-status',
-                                                                        commandToAdd:
-                                                                          'node scripts/growth-remediation-source-mutation-completion-review-acceptance-status.mjs',
-                                                                        reason:
-                                                                          'The source mutation completion review contract is now modeled as read-only; the next slice should define source mutation completion review acceptance readiness without applying patches or mutating source.',
-                                                                        mustRemainReadOnly: true,
-                                                                      }
-                                                                  : {
-                                                                      id: 'growth-remediation-source-mutation-completion-review-status',
-                                                                      commandToAdd:
-                                                                        'node scripts/growth-remediation-source-mutation-completion-review-status.mjs',
-                                                                      reason:
-                                                                        'The source mutation completion contract is now modeled as read-only; the next slice should define source mutation completion review readiness without applying patches or mutating source.',
-                                                                      mustRemainReadOnly: true,
-                                                                    }
-                                                                : {
-                                                                    id: 'growth-remediation-source-mutation-completion-status',
-                                                                    commandToAdd:
-                                                                      'node scripts/growth-remediation-source-mutation-completion-status.mjs',
-                                                                    reason:
-                                                                      'The source mutation post-apply audit review acceptance contract is now modeled as read-only; the next slice should define source mutation completion readiness without applying patches or mutating source.',
-                                                                    mustRemainReadOnly: true,
-                                                                  }
-                                                              : {
-                                                                  id: 'growth-remediation-source-mutation-post-apply-audit-review-acceptance-status',
-                                                                  commandToAdd:
-                                                                    'node scripts/growth-remediation-source-mutation-post-apply-audit-review-acceptance-status.mjs',
-                                                                  reason:
-                                                                    'The source mutation post-apply audit review contract is now modeled as read-only; the next slice should define review acceptance readiness without applying patches or mutating source.',
-                                                                  mustRemainReadOnly: true,
-                                                                }
-                                                            : {
-                                                                id: 'growth-remediation-source-mutation-post-apply-audit-review-status',
-                                                                commandToAdd:
-                                                                  'node scripts/growth-remediation-source-mutation-post-apply-audit-review-status.mjs',
-                                                                reason:
-                                                                  'The source mutation post-apply audit contract is now modeled as read-only; the next slice should define post-apply audit review readiness without applying patches or mutating source.',
-                                                                mustRemainReadOnly: true,
-                                                              }
-                                                          : {
-                                                              id: 'growth-remediation-source-mutation-post-apply-audit-status',
-                                                              commandToAdd:
-                                                                'node scripts/growth-remediation-source-mutation-post-apply-audit-status.mjs',
-                                                              reason:
-                                                                'The source mutation apply finalization contract is now modeled as read-only; the next slice should define post-apply audit readiness without applying patches or mutating source.',
-                                                              mustRemainReadOnly: true,
-                                                            }
-                                                        : {
-                                                            id: 'growth-remediation-source-mutation-apply-finalization-status',
-                                                            commandToAdd:
-                                                              'node scripts/growth-remediation-source-mutation-apply-finalization-status.mjs',
-                                                            reason:
-                                                              'The source mutation apply closure contract is now modeled as read-only; the next slice should define apply finalization readiness without applying patches or mutating source.',
-                                                            mustRemainReadOnly: true,
-                                                          }
-                                                      : {
-                                                          id: 'growth-remediation-source-mutation-apply-closure-status',
-                                                          commandToAdd:
-                                                            'node scripts/growth-remediation-source-mutation-apply-closure-status.mjs',
-                                                          reason:
-                                                            'The source mutation apply result acceptance contract is now modeled as read-only; the next slice should close the apply lifecycle contract without applying patches or mutating source.',
-                                                          mustRemainReadOnly: true,
-                                                        }
-                                                    : {
-                                                        id: 'growth-remediation-source-mutation-apply-result-acceptance-status',
-                                                        commandToAdd:
-                                                          'node scripts/growth-remediation-source-mutation-apply-result-acceptance-status.mjs',
-                                                        reason:
-                                                          'The source mutation apply result review contract is now modeled as read-only; the next slice should define apply-result-acceptance records without applying patches or mutating source.',
-                                                        mustRemainReadOnly: true,
-                                                      }
-                                                  : {
-                                                      id: 'growth-remediation-source-mutation-apply-result-review-status',
-                                                      commandToAdd:
-                                                        'node scripts/growth-remediation-source-mutation-apply-result-review-status.mjs',
-                                                      reason:
-                                                        'The source mutation apply result contract is now modeled as read-only; the next slice should define apply-result-review records without applying patches or mutating source.',
-                                                      mustRemainReadOnly: true,
-                                                    }
-                                                : {
-                                                    id: 'growth-remediation-source-mutation-apply-result-status',
-                                                    commandToAdd:
-                                                      'node scripts/growth-remediation-source-mutation-apply-result-status.mjs',
-                                                    reason:
-                                                      'The source mutation apply execution contract is now modeled as read-only; the next slice should define apply-result records without applying patches or mutating source.',
-                                                    mustRemainReadOnly: true,
-                                                  }
-                                              : {
-                                                  id: 'growth-remediation-source-mutation-apply-execution-status',
-                                                  commandToAdd:
-                                                    'node scripts/growth-remediation-source-mutation-apply-execution-status.mjs',
-                                                  reason:
-                                                    'The source mutation apply dispatch contract is now modeled as read-only; the next slice should define apply-execution records without applying patches or mutating source.',
-                                                  mustRemainReadOnly: true,
-                                                }
-                                            : {
-                                              id: 'growth-remediation-source-mutation-apply-dispatch-status',
-                                              commandToAdd:
-                                                'node scripts/growth-remediation-source-mutation-apply-dispatch-status.mjs',
-                                              reason:
-                                                'The source mutation apply execution readiness contract is now modeled as read-only; the next slice should define the dispatch contract without applying patches or mutating source.',
-                                              mustRemainReadOnly: true,
-                                            }
-                                          : {
-                                            id: 'growth-remediation-source-mutation-apply-execution-readiness-status',
-                                            commandToAdd:
-                                              'node scripts/growth-remediation-source-mutation-apply-execution-readiness-status.mjs',
-                                            reason:
-                                              'The source mutation apply preflight contract is now modeled as read-only; the next slice should define final apply execution readiness before any source mutation or remediation execution can act.',
-                                            mustRemainReadOnly: true,
-                                          }
-                                        : {
-                                            id: 'growth-remediation-source-mutation-apply-preflight-status',
-                                            commandToAdd:
-                                              'node scripts/growth-remediation-source-mutation-apply-preflight-status.mjs',
-                                            reason:
-                                              'The source mutation apply authorization contract is now modeled as read-only; the next slice should define apply preflight gates before any source mutation or remediation execution can act.',
-                                            mustRemainReadOnly: true,
-                                          }
-                                      : {
-                                        id: 'growth-remediation-source-mutation-apply-authorization-status',
-                                        commandToAdd:
-                                          'node scripts/growth-remediation-source-mutation-apply-authorization-status.mjs',
-                                        reason:
-                                          'The source mutation draft review contract is now modeled as read-only; the next slice should define apply authorization gates before any source mutation or remediation execution can act.',
-                                        mustRemainReadOnly: true,
-                                      }
-                                    : {
-                                      id: 'growth-remediation-source-mutation-draft-review-status',
-                                      commandToAdd:
-                                        'node scripts/growth-remediation-source-mutation-draft-review-status.mjs',
-                                      reason:
-                                        'The source mutation draft contract is now modeled as read-only; the next slice should define draft review gates before any source mutation or remediation execution can act.',
-                                      mustRemainReadOnly: true,
-                                    }
-                                  : {
-                                    id: 'growth-remediation-source-mutation-draft-status',
-                                    commandToAdd:
-                                      'node scripts/growth-remediation-source-mutation-draft-status.mjs',
-                                    reason:
-                                      'Application preflight is now modeled as read-only; the next slice should define mutation draft gates before any source mutation or remediation execution can act.',
-                                    mustRemainReadOnly: true,
-                                  }
-                                : {
-                                    id: 'growth-remediation-source-mutation-application-preflight-status',
-                                    commandToAdd:
-                                      'node scripts/growth-remediation-source-mutation-application-preflight-status.mjs',
-                                    reason:
-                                      'The source mutation authorization contract is now modeled as read-only; the next slice should define application preflight gates before any source mutation or remediation execution can act.',
-                                    mustRemainReadOnly: true,
-                                  }
-                              : {
-                                  id: 'growth-remediation-source-mutation-authorization-status',
-                                  commandToAdd:
-                                    'node scripts/growth-remediation-source-mutation-authorization-status.mjs',
-                                  reason:
-                                    'The source mutation request contract is now modeled as read-only; the next slice should define authorization gates before any source mutation or remediation execution can act.',
-                                  mustRemainReadOnly: true,
-                                }
-                            : {
-                                id: 'growth-remediation-source-mutation-request-status',
-                                commandToAdd:
-                                  'node scripts/growth-remediation-source-mutation-request-status.mjs',
-                                reason:
-                                  'The mutation preflight contract is now modeled as read-only; the next slice should define source mutation request gates before any source mutation or remediation execution can act.',
-                                mustRemainReadOnly: true,
-                              }
-                          : {
-                              id: 'growth-remediation-implementation-proposal-status',
-                              commandToAdd:
-                                'node scripts/growth-remediation-implementation-proposal-status.mjs',
-                              reason:
-                                'The remediation approval contract is now modeled as read-only; the next slice should define implementation proposal fields without generating proposals, mutating source, or executing remediation.',
-                              mustRemainReadOnly: true,
-                            }
-                        : {
-                            id: 'growth-remediation-approval-status',
-                            commandToAdd: 'node scripts/growth-remediation-approval-status.mjs',
-                            reason:
-                              'The remediation plan contract is now modeled as read-only; the next slice should define approval gates before implementation proposals or remediation execution can act.',
-                            mustRemainReadOnly: true,
-                          }
-                      : {
-                          id: 'growth-remediation-plan-status',
-                          commandToAdd: 'node scripts/growth-remediation-plan-status.mjs',
-                          reason:
-                            'The rollback review contract is now modeled as read-only; the next slice should define remediation plan fields without executing remediation or mutating accepted records.',
-                          mustRemainReadOnly: true,
-                        }
-                    : {
-                        id: 'growth-rollback-review-status',
-                        commandToAdd: 'node scripts/growth-rollback-review-status.mjs',
-                        reason:
-                          'The regression watch contract is now modeled as read-only; the next slice should define rollback review states without executing rollback or remediation.',
-                        mustRemainReadOnly: true,
-                      }
-                  : {
-                      id: 'growth-regression-watch-status',
-                      commandToAdd: 'node scripts/growth-regression-watch-status.mjs',
-                      reason:
-                        'The accepted improvement registry is now modeled as read-only; the next slice should define post-acceptance regression watch signals without remediation.',
-                      mustRemainReadOnly: true,
-                    }
-                : {
-                    id: 'growth-accepted-improvement-registry-status',
-                    commandToAdd: 'node scripts/growth-accepted-improvement-registry-status.mjs',
-                    reason:
-                      'The improvement acceptance contract is now modeled as read-only; the next slice should define where accepted improvements are recorded without applying them.',
-                    mustRemainReadOnly: true,
-                  }
-              : {
-        id: 'growth-improvement-acceptance-status',
-        commandToAdd: 'node scripts/growth-improvement-acceptance-status.mjs',
-        reason:
-          'The continuous development loop is now modeled as read-only; the next slice should define acceptance and regression criteria before improvements are adopted.',
-        mustRemainReadOnly: true,
-      }
-            : {
-        id: 'growth-continuous-development-loop-status',
-        commandToAdd: 'node scripts/growth-continuous-development-loop-status.mjs',
-        reason:
-          'Gateway surface routing is now implemented as read-only; the next slice should compose evidence, reflection, proposals, registry, and surface routing into a continuous development loop without automation.',
-        mustRemainReadOnly: true,
-      }
-          : {
-        id: 'growth-gateway-surface-router-status',
-        commandToAdd: 'node scripts/growth-gateway-surface-router-status.mjs',
-        reason:
-          'The skill/memory registry contract is now implemented as read-only; the next slice should route growth state into gateway surfaces without adding external channels.',
-        mustRemainReadOnly: true,
-      }
-        : {
-        id: 'growth-skill-memory-registry-status',
-        commandToAdd: 'node scripts/growth-skill-memory-registry-status.mjs',
-        reason:
-          'The proposal readiness contract is now implemented as read-only; the next slice should define skill/memory registry readiness without persisting memory.',
-        mustRemainReadOnly: true,
-      }
-      : {
-        id: 'growth-proposal-queue-status',
-        commandToAdd: 'node scripts/growth-proposal-queue-status.mjs',
-        reason:
-          'The worker event vocabulary is now implemented as a read-only schema; the next slice should model proposal queue readiness without applying proposals.',
-        mustRemainReadOnly: true,
-      }
-    : {
-      id: 'growth-worker-event-schema',
-      commandToAdd: 'node scripts/growth-worker-event-schema.mjs',
-      reason:
-        'The reflection evaluator is now implemented as read-only evidence scoring; the next slice should formalize worker lifecycle/event/report vocabulary before any automation acts.',
-      mustRemainReadOnly: true,
+const reflectionEvaluatorNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-reflection-evaluator',
+  reason:
+    'The status layer can already see local run/artifact/review evidence; the next slice should evaluate quality without mutating source.',
+});
+const workerEventSchemaNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-worker-event-schema',
+  reason:
+    'The reflection evaluator is now implemented as read-only evidence scoring; the next slice should formalize worker lifecycle/event/report vocabulary before any automation acts.',
+});
+const proposalQueueNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-proposal-queue-status',
+  reason:
+    'The worker event vocabulary is now implemented as a read-only schema; the next slice should model proposal queue readiness without applying proposals.',
+});
+const skillMemoryRegistryNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-skill-memory-registry-status',
+  reason:
+    'The proposal readiness contract is now implemented as read-only; the next slice should define skill/memory registry readiness without persisting memory.',
+});
+const gatewaySurfaceRouterNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-gateway-surface-router-status',
+  reason:
+    'The skill/memory registry contract is now implemented as read-only; the next slice should route growth state into gateway surfaces without adding external channels.',
+});
+const continuousDevelopmentLoopNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-continuous-development-loop-status',
+  reason:
+    'Gateway surface routing is now implemented as read-only; the next slice should compose evidence, reflection, proposals, registry, and surface routing into a continuous development loop without automation.',
+});
+const improvementAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-improvement-acceptance-status',
+  reason:
+    'The continuous development loop is now modeled as read-only; the next slice should define acceptance and regression criteria before improvements are adopted.',
+});
+const acceptedImprovementRegistryNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-accepted-improvement-registry-status',
+  reason:
+    'The improvement acceptance contract is now modeled as read-only; the next slice should define where accepted improvements are recorded without applying them.',
+});
+const regressionWatchNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-regression-watch-status',
+  reason:
+    'The accepted improvement registry is now modeled as read-only; the next slice should define post-acceptance regression watch signals without remediation.',
+});
+const rollbackReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-rollback-review-status',
+  reason:
+    'The regression watch contract is now modeled as read-only; the next slice should define rollback review states without executing rollback or remediation.',
+});
+const remediationPlanNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-plan-status',
+  reason:
+    'The rollback review contract is now modeled as read-only; the next slice should define remediation plan fields without executing remediation or mutating accepted records.',
+});
+const remediationApprovalNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-approval-status',
+  reason:
+    'The remediation plan contract is now modeled as read-only; the next slice should define approval gates before implementation proposals or remediation execution can act.',
+});
+const implementationProposalNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-implementation-proposal-status',
+  reason:
+    'The remediation approval contract is now modeled as read-only; the next slice should define implementation proposal fields without generating proposals, mutating source, or executing remediation.',
+});
+const sourceMutationRequestNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-request-status',
+  reason:
+    'The mutation preflight contract is now modeled as read-only; the next slice should define source mutation request gates before any source mutation or remediation execution can act.',
+});
+const sourceMutationAuthorizationNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-authorization-status',
+  reason:
+    'The source mutation request contract is now modeled as read-only; the next slice should define authorization gates before any source mutation or remediation execution can act.',
+});
+const sourceMutationApplicationPreflightNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-application-preflight-status',
+  reason:
+    'The source mutation authorization contract is now modeled as read-only; the next slice should define application preflight gates before any source mutation or remediation execution can act.',
+});
+const sourceMutationDraftNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-draft-status',
+  reason:
+    'Application preflight is now modeled as read-only; the next slice should define mutation draft gates before any source mutation or remediation execution can act.',
+});
+const sourceMutationDraftReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-draft-review-status',
+  reason:
+    'The source mutation draft contract is now modeled as read-only; the next slice should define draft review gates before any source mutation or remediation execution can act.',
+});
+const sourceMutationApplyAuthorizationNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-apply-authorization-status',
+  reason:
+    'The source mutation draft review contract is now modeled as read-only; the next slice should define apply authorization gates before any source mutation or remediation execution can act.',
+});
+const sourceMutationApplyPreflightNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-apply-preflight-status',
+  reason:
+    'The source mutation apply authorization contract is now modeled as read-only; the next slice should define apply preflight gates before any source mutation or remediation execution can act.',
+});
+const sourceMutationApplyExecutionReadinessNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-apply-execution-readiness-status',
+  reason:
+    'The source mutation apply preflight contract is now modeled as read-only; the next slice should define final apply execution readiness before any source mutation or remediation execution can act.',
+});
+const sourceMutationApplyDispatchNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-apply-dispatch-status',
+  reason:
+    'The source mutation apply execution readiness contract is now modeled as read-only; the next slice should define the dispatch contract without applying patches or mutating source.',
+});
+const sourceMutationApplyExecutionNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-apply-execution-status',
+  reason:
+    'The source mutation apply dispatch contract is now modeled as read-only; the next slice should define apply-execution records without applying patches or mutating source.',
+});
+const sourceMutationApplyResultNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-apply-result-status',
+  reason:
+    'The source mutation apply execution contract is now modeled as read-only; the next slice should define apply-result records without applying patches or mutating source.',
+});
+const sourceMutationApplyResultReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-apply-result-review-status',
+  reason:
+    'The source mutation apply result contract is now modeled as read-only; the next slice should define apply-result-review records without applying patches or mutating source.',
+});
+const sourceMutationApplyResultAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-apply-result-acceptance-status',
+  reason:
+    'The source mutation apply result review contract is now modeled as read-only; the next slice should define apply-result-acceptance records without applying patches or mutating source.',
+});
+const sourceMutationApplyClosureNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-apply-closure-status',
+  reason:
+    'The source mutation apply result acceptance contract is now modeled as read-only; the next slice should close the apply lifecycle contract without applying patches or mutating source.',
+});
+const sourceMutationApplyFinalizationNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-apply-finalization-status',
+  reason:
+    'The source mutation apply closure contract is now modeled as read-only; the next slice should define apply finalization readiness without applying patches or mutating source.',
+});
+const sourceMutationPostApplyAuditNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-post-apply-audit-status',
+  reason:
+    'The source mutation apply finalization contract is now modeled as read-only; the next slice should define post-apply audit readiness without applying patches or mutating source.',
+});
+const sourceMutationPostApplyAuditReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-post-apply-audit-review-status',
+  reason:
+    'The source mutation post-apply audit contract is now modeled as read-only; the next slice should define post-apply audit review readiness without applying patches or mutating source.',
+});
+const sourceMutationPostApplyAuditReviewAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-post-apply-audit-review-acceptance-status',
+  reason:
+    'The source mutation post-apply audit review contract is now modeled as read-only; the next slice should define review acceptance readiness without applying patches or mutating source.',
+});
+const sourceMutationCompletionNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-completion-status',
+  reason:
+    'The source mutation post-apply audit review acceptance contract is now modeled as read-only; the next slice should define source mutation completion readiness without applying patches or mutating source.',
+});
+const sourceMutationCompletionReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-completion-review-status',
+  reason:
+    'The source mutation completion contract is now modeled as read-only; the next slice should define source mutation completion review readiness without applying patches or mutating source.',
+});
+const sourceMutationCompletionReviewAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-completion-review-acceptance-status',
+  reason:
+    'The source mutation completion review contract is now modeled as read-only; the next slice should define source mutation completion review acceptance readiness without applying patches or mutating source.',
+});
+const sourceMutationLifecycleCloseoutNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-status',
+  reason:
+    'The source mutation completion review acceptance contract is now modeled as read-only; the next slice should define lifecycle closeout readiness without applying patches or mutating source.',
+});
+const sourceMutationLifecycleCloseoutReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-review-status',
+  reason:
+    'The source mutation lifecycle closeout contract is now modeled as read-only; the next slice should review lifecycle closeout readiness before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutReviewAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-review-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout review contract is now modeled as read-only; the next slice should accept review readiness before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureReadinessNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-readiness-status',
+  reason:
+    'The source mutation lifecycle closeout review acceptance contract is now modeled as read-only; the next slice should check closure readiness before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureAuthorizationNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-authorization-status',
+  reason:
+    'The source mutation lifecycle closeout closure readiness contract is now modeled as read-only; the next slice should authorize closure readiness before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureExecutionReadinessNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status',
+  reason:
+    'The source mutation lifecycle closeout closure authorization contract is now modeled as read-only; the next slice should check execution readiness before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureDispatchNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status',
+  reason:
+    'The source mutation lifecycle closeout closure execution readiness contract is now modeled as read-only; the next slice should check dispatch before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureExecutionNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-status',
+  reason:
+    'The source mutation lifecycle closeout closure dispatch contract is now modeled as read-only; the next slice should check closure execution before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureResultNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-status',
+  reason:
+    'The source mutation lifecycle closeout closure execution contract is now modeled as read-only; the next slice should check closure result before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureResultReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-status',
+  reason:
+    'The source mutation lifecycle closeout closure result contract is now modeled as read-only; the next slice should check closure result review before result acceptance, lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout closure result review contract is now modeled as read-only; the next slice should check closure result review acceptance before actual result acceptance, lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureResultAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout closure result review acceptance contract is now modeled as read-only; the next slice should check closure result acceptance before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-status',
+  reason:
+    'The source mutation lifecycle closeout closure result acceptance contract is now modeled as read-only; the next slice should check lifecycle closeout closure status before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-review-status',
+  reason:
+    'The source mutation lifecycle closeout closure contract is now modeled as read-only; the next slice should check closure review status before final lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureReviewAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout closure review contract is now modeled as read-only; the next slice should check closure review acceptance before final lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout closure review acceptance contract is now modeled as read-only; the next slice should check closure acceptance before final lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureFinalizationNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-status',
+  reason:
+    'The source mutation lifecycle closeout closure acceptance contract is now modeled as read-only; the next slice should check closure finalization before final lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureFinalizationReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status',
+  reason:
+    'The source mutation lifecycle closeout closure finalization contract is now modeled as read-only; the next slice should check closure finalization review before final lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout closure finalization review contract is now modeled as read-only; the next slice should check closure finalization review acceptance before final lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout closure finalization review acceptance contract is now modeled as read-only; the next slice should check closure finalization acceptance before final lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureFinalCloseNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-final-close-status',
+  reason:
+    'The source mutation lifecycle closeout closure finalization acceptance contract is now modeled as read-only; the next slice should check final close before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  reason:
+    'The source mutation lifecycle closeout closure final close contract is now modeled as read-only; the next slice should check lifecycle close before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  reason:
+    'The source mutation lifecycle closeout closure lifecycle close final-close contract is now modeled as read-only; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  reason:
+    'The source mutation lifecycle closeout closure lifecycle close contract is now modeled as read-only; the next slice should check lifecycle close review before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout closure lifecycle close review contract is now modeled as read-only; the next slice should check lifecycle close review acceptance before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout closure lifecycle close review acceptance contract is now modeled as read-only; the next slice should check lifecycle close acceptance before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  reason:
+    'The source mutation lifecycle closeout closure lifecycle close acceptance contract is now modeled as read-only; the next slice should check lifecycle close finalization before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  reason:
+    'The source mutation lifecycle closeout closure lifecycle close finalization contract is now modeled as read-only; the next slice should check lifecycle close finalization review before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout closure lifecycle close finalization review contract is now modeled as read-only; the next slice should check lifecycle close finalization review acceptance before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  reason:
+    'The source mutation lifecycle closeout closure lifecycle close finalization review acceptance contract is now modeled as read-only; the next slice should check lifecycle close finalization acceptance before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  reason:
+    'The source mutation lifecycle closeout closure lifecycle close finalization acceptance contract is now modeled as read-only; the next slice should check lifecycle close final close before lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalCloseRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close modeling; the next slice can check lifecycle close review without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLifecycleCloseRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck modeling; the next slice can check lifecycle close review acceptance without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck modeling; the next slice can check lifecycle close acceptance without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterReviewAcceptanceRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck modeling; the next slice can check lifecycle close finalization without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterAcceptanceRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck modeling; the next slice can check lifecycle close finalization review without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck modeling; the next slice can check lifecycle close finalization review acceptance without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck modeling; the next slice can check lifecycle close finalization acceptance without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationReviewAcceptanceStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck modeling; the next slice can check lifecycle close final-close without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalCloseStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalCloseRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLifecycleCloseRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterReviewRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterReviewAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationReviewRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationReviewAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalCloseFinalizationAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLifecycleCloseFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterReviewFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalCloseFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLifecycleCloseFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
+});
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
+});
+function firstPendingNextSlice(routes) {
+  for (const route of routes) {
+    if (!route.ready) {
+      return route.nextSlice;
     }
-  : {
-      id: 'growth-reflection-evaluator',
-      commandToAdd: 'node scripts/growth-reflection-evaluator.mjs',
-      reason:
-        'The status layer can already see local run/artifact/review evidence; the next slice should evaluate quality without mutating source.',
-      mustRemainReadOnly: true,
-    };
+  }
+
+  return null;
+}
+
+function firstReadyNextSlice(routes) {
+  for (const route of routes) {
+    if (route.ready) {
+      return route.nextSlice;
+    }
+  }
+
+  return null;
+}
+
+function routesFromPairs(routePairs) {
+  return routePairs.map(([ready, nextSlice]) => ({ ready, nextSlice }));
+}
+
+function nextSlicesFromRoutes(routes) {
+  return routes.map((route) => route.nextSlice);
+}
+
+function reversedWorkstreamIdsFromNextSlices(nextSlices) {
+  return nextSlices.map((nextSlice) => nextSlice.id).reverse();
+}
+
+function reversedWorkstreamIdsFromRoutes(routes) {
+  return reversedWorkstreamIdsFromNextSlices(nextSlicesFromRoutes(routes));
+}
+
+const foundationRoutes = routesFromPairs([
+  [reflectionEvaluatorImplemented, reflectionEvaluatorNextSlice],
+  [workerEventSchemaImplemented, workerEventSchemaNextSlice],
+  [proposalQueueStatusImplemented, proposalQueueNextSlice],
+  [skillMemoryRegistryStatusImplemented, skillMemoryRegistryNextSlice],
+  [gatewaySurfaceRouterStatusImplemented, gatewaySurfaceRouterNextSlice],
+  [continuousDevelopmentLoopStatusImplemented, continuousDevelopmentLoopNextSlice],
+  [improvementAcceptanceStatusImplemented, improvementAcceptanceNextSlice],
+  [acceptedImprovementRegistryStatusImplemented, acceptedImprovementRegistryNextSlice],
+  [regressionWatchStatusImplemented, regressionWatchNextSlice],
+  [rollbackReviewStatusImplemented, rollbackReviewNextSlice],
+  [remediationPlanStatusImplemented, remediationPlanNextSlice],
+  [remediationApprovalStatusImplemented, remediationApprovalNextSlice],
+  [implementationProposalStatusImplemented, implementationProposalNextSlice],
+]);
+
+const sourceMutationRoutes = routesFromPairs([
+  [sourceMutationRequestStatusImplemented, sourceMutationRequestNextSlice],
+  [
+    sourceMutationAuthorizationStatusImplemented,
+    sourceMutationAuthorizationNextSlice,
+  ],
+  [
+    sourceMutationApplicationPreflightStatusImplemented,
+    sourceMutationApplicationPreflightNextSlice,
+  ],
+  [sourceMutationDraftStatusImplemented, sourceMutationDraftNextSlice],
+  [sourceMutationDraftReviewStatusImplemented, sourceMutationDraftReviewNextSlice],
+  [
+    sourceMutationApplyAuthorizationStatusImplemented,
+    sourceMutationApplyAuthorizationNextSlice,
+  ],
+  [
+    sourceMutationApplyPreflightStatusImplemented,
+    sourceMutationApplyPreflightNextSlice,
+  ],
+  [
+    sourceMutationApplyExecutionReadinessStatusImplemented,
+    sourceMutationApplyExecutionReadinessNextSlice,
+  ],
+  [
+    sourceMutationApplyDispatchStatusImplemented,
+    sourceMutationApplyDispatchNextSlice,
+  ],
+  [
+    sourceMutationApplyExecutionStatusImplemented,
+    sourceMutationApplyExecutionNextSlice,
+  ],
+  [
+    sourceMutationApplyResultStatusImplemented,
+    sourceMutationApplyResultNextSlice,
+  ],
+  [
+    sourceMutationApplyResultReviewStatusImplemented,
+    sourceMutationApplyResultReviewNextSlice,
+  ],
+  [
+    sourceMutationApplyResultAcceptanceStatusImplemented,
+    sourceMutationApplyResultAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationApplyClosureStatusImplemented,
+    sourceMutationApplyClosureNextSlice,
+  ],
+  [
+    sourceMutationApplyFinalizationStatusImplemented,
+    sourceMutationApplyFinalizationNextSlice,
+  ],
+]);
+
+const postApplyAuditRoutes = routesFromPairs([
+  [sourceMutationPostApplyAuditStatusImplemented, sourceMutationPostApplyAuditNextSlice],
+  [
+    sourceMutationPostApplyAuditReviewStatusImplemented,
+    sourceMutationPostApplyAuditReviewNextSlice,
+  ],
+  [
+    sourceMutationPostApplyAuditReviewAcceptanceStatusImplemented,
+    sourceMutationPostApplyAuditReviewAcceptanceNextSlice,
+  ],
+  [sourceMutationCompletionStatusImplemented, sourceMutationCompletionNextSlice],
+  [sourceMutationCompletionReviewStatusImplemented, sourceMutationCompletionReviewNextSlice],
+  [
+    sourceMutationCompletionReviewAcceptanceStatusImplemented,
+    sourceMutationCompletionReviewAcceptanceNextSlice,
+  ],
+  [sourceMutationLifecycleCloseoutStatusImplemented, sourceMutationLifecycleCloseoutNextSlice],
+  [
+    sourceMutationLifecycleCloseoutReviewStatusImplemented,
+    sourceMutationLifecycleCloseoutReviewNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutReviewAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutReviewAcceptanceNextSlice,
+  ],
+]);
+
+const closurePreludeRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureReadinessStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureReadinessNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureAuthorizationStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureAuthorizationNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureExecutionReadinessStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureExecutionReadinessNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureDispatchStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureDispatchNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureExecutionStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureExecutionNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureResultStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureResultNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureResultReviewStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureResultReviewNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureResultAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureResultAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureReviewStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureReviewNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureReviewAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureReviewAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureFinalizationStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureFinalizationNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureFinalizationReviewStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureFinalizationReviewNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureFinalCloseStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureFinalCloseNextSlice,
+  ],
+]);
+
+const lifecycleCloseRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseNextSlice,
+  ],
+]);
+
+const lifecycleCloseRecheckRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalCloseRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLifecycleCloseRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterReviewAcceptanceRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterAcceptanceRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationReviewAcceptanceStatusRecheckNextSlice,
+  ],
+]);
+
+const lifecycleCloseAfterFinalCloseRecheckRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalCloseRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLifecycleCloseRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterReviewRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterReviewAcceptanceRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterAcceptanceRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationReviewRecheckModelingNextSlice,
+  ],
+]);
+
+const finalizationAcceptanceRecheckRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseAfterFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationReviewAcceptanceRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseAfterFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalCloseFinalizationAcceptanceRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLifecycleCloseFinalizationAcceptanceRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterReviewFinalizationAcceptanceRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterAcceptanceFinalizationAcceptanceRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain2RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice,
+  ],
+]);
+
+const finalizationAcceptanceChain2RecheckRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain2RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalCloseFinalizationAcceptanceChain2RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLifecycleCloseFinalizationAcceptanceChain2RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain2RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain3RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain3RecheckModelingNextSlice,
+  ],
+]);
+
+const finalizationAcceptanceChain3RecheckRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain3RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain3RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain3RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain4RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain4RecheckModelingNextSlice,
+  ],
+]);
+
+const finalizationAcceptanceChain4RecheckRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain4RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain4RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain4RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain5RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain5RecheckModelingNextSlice,
+  ],
+]);
+
+const finalizationAcceptanceChain5RecheckRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain5RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain5RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain6RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain6RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain6RecheckModelingNextSlice,
+  ],
+]);
+
+const finalizationAcceptanceChain6TerminalRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain6RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain6RecheckModelingNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice,
+  ],
+]);
+
+const nextRecommendedSlice =
+  firstPendingNextSlice(foundationRoutes) ||
+  firstPendingNextSlice(sourceMutationRoutes) ||
+  firstPendingNextSlice(postApplyAuditRoutes) ||
+  firstPendingNextSlice(closurePreludeRoutes) ||
+  firstPendingNextSlice(lifecycleCloseRoutes) ||
+  firstPendingNextSlice(lifecycleCloseRecheckRoutes) ||
+  firstPendingNextSlice(lifecycleCloseAfterFinalCloseRecheckRoutes) ||
+  firstPendingNextSlice(finalizationAcceptanceRecheckRoutes) ||
+  firstPendingNextSlice(finalizationAcceptanceChain2RecheckRoutes) ||
+  firstPendingNextSlice(finalizationAcceptanceChain3RecheckRoutes) ||
+  firstPendingNextSlice(finalizationAcceptanceChain4RecheckRoutes) ||
+  firstPendingNextSlice(finalizationAcceptanceChain5RecheckRoutes) ||
+  firstPendingNextSlice(finalizationAcceptanceChain6TerminalRoutes) ||
+  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice;
 
 const payload = {
   ok,
@@ -5250,3623 +5596,662 @@ const payload = {
   },
 };
 
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationReviewStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentReviewStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentReviewAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentFinalizationStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
-}
+function setPayloadNextRecommendedSlice(nextSlice) {
+  payload.nextRecommendedSlice = nextSlice;
+  payload.hermesEngine.nextEngineSlice = nextSlice.id;
+}
+
+function applyPayloadNextRecommendedSliceRoutes(routes) {
+  for (const route of routes) {
+    if (route.ready) {
+      setPayloadNextRecommendedSlice(route.nextSlice);
+    }
+  }
+}
+
+function readOnlyNextSlice(nextSlice) {
+  return {
+    ...nextSlice,
+    mustRemainReadOnly: true,
+  };
+}
+
+function readOnlyStatusScriptNextSlice({ id, commandId = id, reason }) {
+  return readOnlyNextSlice({
+    id,
+    commandToAdd: `node scripts/${commandId}.mjs`,
+    reason,
+  });
+}
+
+function readOnlyStatusScriptPairNextSlice({
+  id,
+  commandId = id,
+  companionCommandId,
+  reason,
+}) {
+  return readOnlyNextSlice({
+    id,
+    commandToAdd: `node scripts/${commandId}.mjs && node scripts/${companionCommandId}.mjs`,
+    reason,
+  });
+}
+
+function readOnlyQueueBackedStatusScriptNextSlice({ id, commandId = id, reason }) {
+  return readOnlyStatusScriptPairNextSlice({
+    id,
+    commandId,
+    companionCommandId: 'growth-proposal-queue-status',
+    reason,
+  });
+}
+
+const lifecycleCloseAcceptanceAfterReviewAcceptanceRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const lifecycleCloseFinalizationAfterAcceptanceRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
+});
+const lifecycleCloseFinalizationReviewAfterFinalizationRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
+});
+const lifecycleCloseFinalizationReviewAcceptanceAfterReviewRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const lifecycleCloseFinalizationAcceptanceAfterReviewAcceptanceRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+const lifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseAfterFinalCloseRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseReviewAfterLifecycleCloseRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseReviewAcceptanceAfterLifecycleCloseRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationAfterLatestReviewAcceptanceRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationReviewAfterLatestAcceptanceRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationAcceptanceAfterLatestReviewAcceptanceRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseAfterLatestFinalCloseStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationAfterCurrentReviewAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationReviewAfterCurrentAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseAfterCurrentFinalCloseStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseReviewAfterCurrentFinalCloseStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseAcceptanceAfterCurrentReviewStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseReviewBeforeCurrentFinalCloseStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseReviewAcceptanceBeforeCurrentLifecycleCloseStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseAcceptanceBeforeCurrentReviewStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationBeforeCurrentReviewAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationReviewBeforeCurrentAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationReviewAcceptanceBeforeCurrentFinalizationStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalizationAcceptanceBeforeCurrentFinalizationReviewStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseFinalCloseBeforeCurrentFinalizationAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
+});
+
+const lifecycleCloseBeforeCurrentFinalCloseStatusRecheckNextSlice = readOnlyNextSlice({
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
+});
+
+const firstLifecycleClosePayloadRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    lifecycleCloseAcceptanceAfterReviewAcceptanceRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    lifecycleCloseFinalizationAfterAcceptanceRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    lifecycleCloseFinalizationReviewAfterFinalizationRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted,
+    lifecycleCloseFinalizationReviewAcceptanceAfterReviewRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewRecheckCompleted,
+    lifecycleCloseFinalizationAcceptanceAfterReviewAcceptanceRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceRecheckCompleted,
+    lifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceRecheckCompleted,
+    lifecycleCloseAfterFinalCloseRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseRecheckCompleted,
+    lifecycleCloseReviewAfterLifecycleCloseRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseRecheckCompleted,
+    lifecycleCloseReviewAcceptanceAfterLifecycleCloseRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewRecheckCompleted,
+    lifecycleCloseAcceptanceAfterReviewAcceptanceRecheckNextSlice,
+  ],
+]);
+
+applyPayloadNextRecommendedSliceRoutes(firstLifecycleClosePayloadRoutes);
+
+const latestLifecycleClosePayloadRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceRecheckCompleted,
+    lifecycleCloseFinalizationAfterLatestReviewAcceptanceRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceRecheckCompleted,
+    lifecycleCloseFinalizationReviewAfterLatestAcceptanceRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationRecheckCompleted,
+    lifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewStatusRecheckCompleted,
+    lifecycleCloseFinalizationAcceptanceAfterLatestReviewAcceptanceRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceStatusRecheckCompleted,
+    lifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckCompleted,
+    lifecycleCloseAfterLatestFinalCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseStatusRecheckCompleted,
+    lifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckCompleted,
+    lifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckCompleted,
+    lifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckCompleted,
+    lifecycleCloseFinalizationAfterCurrentReviewAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceStatusRecheckCompleted,
+    lifecycleCloseFinalizationReviewAfterCurrentAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationStatusRecheckCompleted,
+    lifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationStatusRecheckNextSlice,
+  ],
+]);
+
+applyPayloadNextRecommendedSliceRoutes(latestLifecycleClosePayloadRoutes);
+
+const currentLifecycleClosePayloadRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationReviewStatusRecheckCompleted,
+    lifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewAcceptanceStatusRecheckCompleted,
+    lifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckCompleted,
+    lifecycleCloseAfterCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentFinalCloseStatusRecheckCompleted,
+    lifecycleCloseReviewAfterCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusRecheckCompleted,
+    lifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentReviewStatusRecheckCompleted,
+    lifecycleCloseAcceptanceAfterCurrentReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentReviewAcceptanceStatusRecheckCompleted,
+    lifecycleCloseFinalizationAfterCurrentReviewAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentAcceptanceStatusRecheckCompleted,
+    lifecycleCloseFinalizationReviewAfterCurrentAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentFinalizationStatusRecheckCompleted,
+    lifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusRecheckCompleted,
+    lifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusRecheckCompleted,
+    lifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted,
+    lifecycleCloseAfterCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+]);
+
+applyPayloadNextRecommendedSliceRoutes(currentLifecycleClosePayloadRoutes);
+
+const currentChainLifecycleClosePayloadRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusRecheckCompleted,
+    lifecycleCloseReviewAfterCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainRecheckCompleted,
+    lifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainRecheckCompleted,
+    lifecycleCloseAcceptanceAfterCurrentReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainRecheckCompleted,
+    lifecycleCloseFinalizationAfterCurrentReviewAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainRecheckCompleted,
+    lifecycleCloseFinalizationReviewAfterCurrentAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainRecheckCompleted,
+    lifecycleCloseFinalizationReviewAcceptanceBeforeCurrentFinalizationStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainRecheckCompleted,
+    lifecycleCloseFinalizationAcceptanceBeforeCurrentFinalizationReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainRecheckCompleted,
+    lifecycleCloseFinalCloseBeforeCurrentFinalizationAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainRecheckCompleted,
+    lifecycleCloseBeforeCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainRecheckCompleted,
+    lifecycleCloseReviewBeforeCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+]);
+
+applyPayloadNextRecommendedSliceRoutes(currentChainLifecycleClosePayloadRoutes);
+
+const currentChainAgainLifecycleClosePayloadRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainRecheckCompleted,
+    lifecycleCloseReviewAcceptanceBeforeCurrentLifecycleCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainRecheckCompleted,
+    lifecycleCloseAcceptanceBeforeCurrentReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainRecheckCompleted,
+    lifecycleCloseFinalizationBeforeCurrentReviewAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainRecheckCompleted,
+    lifecycleCloseFinalizationReviewBeforeCurrentAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainRecheckCompleted,
+    lifecycleCloseFinalizationReviewAcceptanceBeforeCurrentFinalizationStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainRecheckCompleted,
+    lifecycleCloseFinalizationAcceptanceBeforeCurrentFinalizationReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainRecheckCompleted,
+    lifecycleCloseFinalCloseBeforeCurrentFinalizationAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainRecheckCompleted,
+    lifecycleCloseBeforeCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainRecheckCompleted,
+    lifecycleCloseReviewBeforeCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+]);
+
+applyPayloadNextRecommendedSliceRoutes(currentChainAgainLifecycleClosePayloadRoutes);
+
+const currentChainAgainAgainLifecycleClosePayloadRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted,
+    lifecycleCloseReviewAcceptanceBeforeCurrentLifecycleCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted,
+    lifecycleCloseAcceptanceBeforeCurrentReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted,
+    lifecycleCloseFinalizationBeforeCurrentReviewAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted,
+    lifecycleCloseFinalizationReviewBeforeCurrentAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted,
+    lifecycleCloseFinalizationReviewAcceptanceBeforeCurrentFinalizationStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted,
+    lifecycleCloseFinalizationAcceptanceBeforeCurrentFinalizationReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted,
+    lifecycleCloseFinalCloseBeforeCurrentFinalizationAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted,
+    lifecycleCloseBeforeCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted,
+    lifecycleCloseReviewBeforeCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+]);
+
+applyPayloadNextRecommendedSliceRoutes(currentChainAgainAgainLifecycleClosePayloadRoutes);
+
+const latestLifecycleCloseCurrentFinalClosePayloadRoutes = routesFromPairs([
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted,
+    lifecycleCloseBeforeCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted,
+    lifecycleCloseReviewBeforeCurrentFinalCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted,
+    lifecycleCloseReviewAcceptanceBeforeCurrentLifecycleCloseStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted,
+    lifecycleCloseAcceptanceBeforeCurrentReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+    lifecycleCloseFinalizationBeforeCurrentReviewAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+    lifecycleCloseFinalizationReviewBeforeCurrentAcceptanceStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted,
+    lifecycleCloseFinalizationReviewAcceptanceBeforeCurrentFinalizationStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted,
+    lifecycleCloseFinalizationAcceptanceBeforeCurrentFinalizationReviewStatusRecheckNextSlice,
+  ],
+  [
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+    lifecycleCloseFinalCloseBeforeCurrentFinalizationAcceptanceStatusRecheckNextSlice,
+  ],
+]);
+
+applyPayloadNextRecommendedSliceRoutes(latestLifecycleCloseCurrentFinalClosePayloadRoutes);
+
+const latestLifecycleCloseCurrentFinalClosePayloadTailRoutes =
+  latestLifecycleCloseCurrentFinalClosePayloadRoutes.slice(0, 3);
+
+applyPayloadNextRecommendedSliceRoutes(latestLifecycleCloseCurrentFinalClosePayloadTailRoutes);
 
 const postCompletionRouterActive =
   sourceSummary.zeroOpenBacklog &&
@@ -8880,431 +6265,492 @@ const postCompletionRouterActive =
 
 if (postCompletionRouterActive) {
   const lifecycleSupportingSlice = payload.nextRecommendedSlice;
-  const growthEvidenceLedgerStatusImplemented =
-    sourceSummary.growthEvidenceLedgerStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerStatusAggregateRegistered;
-  const growthEvidenceLedgerGatewayRoutingStatusImplemented =
-    growthEvidenceLedgerStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerGatewayRoutingStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerGatewayRoutingStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerGatewayRoutingStatusAggregateRegistered;
-  const growthEvidenceLedgerReflectionHandoffStatusImplemented =
-    growthEvidenceLedgerGatewayRoutingStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerReflectionHandoffStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerReflectionHandoffStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerReflectionHandoffStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalReadinessStatusImplemented =
-    growthEvidenceLedgerReflectionHandoffStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalReadinessStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalReadinessStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalReadinessStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalQueueHandoffStatusImplemented =
-    growthEvidenceLedgerProposalReadinessStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalQueueHandoffStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalQueueHandoffStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalQueueHandoffStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordReadinessStatusImplemented =
-    growthEvidenceLedgerProposalQueueHandoffStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordReadinessStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordReadinessStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordReadinessStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordReviewGateStatusImplemented =
-    growthEvidenceLedgerProposalRecordReadinessStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordReviewGateStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordReviewGateStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordReviewGateStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented =
-    growthEvidenceLedgerProposalRecordReviewGateStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordCreationReadinessStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordCreationReadinessStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordCreationReadinessStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented =
-    growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunShapeStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunShapeStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunShapeStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunValidationStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunValidationStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunValidationStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunValidationStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunValidationStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered;
-  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented =
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented &&
-    sourceSummary.growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered;
-  const routedNextSlice = growthEvidenceLedgerStatusImplemented
-    ? growthEvidenceLedgerGatewayRoutingStatusImplemented
-      ? growthEvidenceLedgerReflectionHandoffStatusImplemented
-        ? growthEvidenceLedgerProposalReadinessStatusImplemented
-          ? growthEvidenceLedgerProposalQueueHandoffStatusImplemented
-            ? growthEvidenceLedgerProposalRecordReadinessStatusImplemented
-              ? growthEvidenceLedgerProposalRecordReviewGateStatusImplemented
-                ? growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented
-                  ? growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented
-                    ? growthEvidenceLedgerProposalRecordDryRunValidationStatusImplemented
-                      ? growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented
-                        ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented
-                          ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented
-                            ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented
-                              ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-                                ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-                                  ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
-                                      ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-                                        ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-                                        ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
-                                          ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-                                            ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-                                              ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented
-                                                ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented
-                                                  ? growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented
-                                                    ? {
-                                                        id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
-                                                        commandToAdd:
-                                                          'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
-                                                        reason:
-                                                          'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalized evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                                        mustRemainReadOnly: true,
-                                                      }
-                                                    : {
-                                                        id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
-                                                        commandToAdd:
-                                                          'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
-                                                        reason:
-                                                          'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize accepted evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                                        mustRemainReadOnly: true,
-                                                      }
-                                                  : {
-                                                      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
-                                                      commandToAdd:
-                                                        'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
-                                                      reason:
-                                                        'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe vNext slice can accept reviewed evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                                      mustRemainReadOnly: true,
-                                                    }
-                                                : {
-                                                    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
-                                                    commandToAdd:
-                                                      'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
-                                                    reason:
-                                                      'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalization evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                                    mustRemainReadOnly: true,
-                                                  }
-                                              : {
-                                                  id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
-                                                  commandToAdd:
-                                                    'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
-                                                  reason:
-                                                    'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize accepted review evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                                  mustRemainReadOnly: true,
-                                                }
-                                            : {
-                                                id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
-                                                commandToAdd:
-                                                  'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
-                                                reason:
-                                                  'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe vNext slice can accept review evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                                mustRemainReadOnly: true,
-                                              }
-                                          : {
-                                              id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
-                                              commandToAdd:
-                                                'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
-                                              reason:
-                                                'Dry-run review acceptance finalization review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalization evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                              mustRemainReadOnly: true,
-                                            }
-                                        : {
-                                            id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
-                                            commandToAdd:
-                                              'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
-                                            reason:
-                                              'Dry-run review acceptance finalization review acceptance finalization review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize acceptance evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                            mustRemainReadOnly: true,
-                                          }
-                                      : {
-                                          id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
-                                          commandToAdd:
-                                            'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
-                                          reason:
-                                            'Dry-run review acceptance finalization review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe vNext slice can accept review evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                          mustRemainReadOnly: true,
-                                        }
-                                    : {
-                                        id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review',
-                                        commandToAdd:
-                                          'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
-                                        reason:
-                                          'Dry-run review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalization before any record creation, approval, persistence, implementation, or queue mutation.',
-                                        mustRemainReadOnly: true,
-                                      }
-                                  : {
-                                    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization',
-                                    commandToAdd:
-                                      'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status.mjs',
-                                    reason:
-                                      'Dry-run review acceptance finalization review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize review-acceptance evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                    mustRemainReadOnly: true,
-                                  }
-                                : {
-                                  id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance',
-                                  commandToAdd:
-                                    'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status.mjs',
-                                  reason:
-                                    'Dry-run review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe vNext slice can accept review evidence before any record creation, approval, persistence, implementation, or queue mutation.',
-                                  mustRemainReadOnly: true,
-                                }
-                              : {
-                                id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review',
-                                commandToAdd:
-                                  'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status.mjs',
-                                reason:
-                                  'Dry-run review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalization before any record creation, approval, persistence, implementation, or queue mutation.',
-                                mustRemainReadOnly: true,
-                              }
-                            : {
-                              id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization',
-                              commandToAdd:
-                                'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status.mjs',
-                              reason:
-                                'Dry-run review evidence is accepted only for a read-only finalization check; the next safe vNext slice can define finalization before any record creation, approval, persistence, implementation, or queue mutation.',
-                              mustRemainReadOnly: true,
-                            }
-                          : {
-                            id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance',
-                            commandToAdd:
-                              'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-status.mjs',
-                            reason:
-                              'Dry-run validation evidence is now reviewable without approval authority; the next safe vNext slice can define read-only review acceptance before any record creation, approval, persistence, or queue mutation.',
-                            mustRemainReadOnly: true,
-                          }
-                        : {
-                            id: 'growth-evidence-ledger-proposal-record-dry-run-review',
-                            commandToAdd:
-                              'node scripts/growth-evidence-ledger-proposal-record-dry-run-validation-status.mjs',
-                            reason:
-                              'The proposalRecord dry-run candidate now validates against queue schema while preserving non-authority invariants; the next safe vNext slice can review that validation evidence before any record creation, approval, persistence, or queue mutation.',
-                            mustRemainReadOnly: true,
-                          }
-                      : {
-                          id: 'growth-evidence-ledger-proposal-record-dry-run-validation',
-                          commandToAdd:
-                            'node scripts/growth-evidence-ledger-proposal-record-dry-run-shape-status.mjs && node scripts/growth-proposal-queue-status.mjs',
-                          reason:
-                            'A complete proposalRecord-shaped dry-run candidate now exists without creation authority; the next safe vNext slice can validate that shape before any record creation, approval, persistence, or queue mutation.',
-                          mustRemainReadOnly: true,
-                        }
-                    : {
-                        id: 'growth-evidence-ledger-proposal-record-dry-run-shape',
-                        commandToAdd:
-                          'node scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs && node scripts/growth-proposal-queue-status.mjs',
-                        reason:
-                          'Proposal record creation policies are defined without assigning identity, status, or timestamps; the next safe vNext slice can design a dry-run record shape without creating, approving, applying, persisting, or mutating proposal records.',
-                        mustRemainReadOnly: true,
-                      }
-                  : {
-                      id: 'growth-evidence-ledger-proposal-record-creation-readiness',
-                      commandToAdd:
-                        'node scripts/growth-evidence-ledger-proposal-record-review-gate-status.mjs && node scripts/growth-proposal-queue-status.mjs',
-                      reason:
-                        'The proposal record review gate is now defined as read-only review evidence only; the next safe vNext slice can check creation readiness without creating, approving, applying, persisting, or mutating proposal records.',
-                      mustRemainReadOnly: true,
-                    }
-                : {
-                    id: 'growth-evidence-ledger-proposal-record-review-gate',
-                    commandToAdd:
-                      'node scripts/growth-evidence-ledger-proposal-record-readiness-status.mjs && node scripts/growth-proposal-queue-status.mjs',
-                    reason:
-                      'Proposal record fields are now classified as preview-only, mapped review input, forced false, or blocked until record creation; the next safe vNext slice can define the human review gate without creating, approving, applying, persisting, or mutating proposal records.',
-                    mustRemainReadOnly: true,
-                  }
-              : {
-                  id: 'growth-evidence-ledger-proposal-record-readiness',
-                  commandToAdd:
-                    'node scripts/growth-evidence-ledger-proposal-queue-handoff-status.mjs && node scripts/growth-proposal-queue-status.mjs',
-                  reason:
-                    'Proposal-readiness evidence can now be handed to the queue contract as read-only review input; the next safe vNext slice can check proposal-record field readiness without creating, approving, applying, persisting, or mutating proposal records.',
-                  mustRemainReadOnly: true,
-                }
-            : {
-                id: 'growth-evidence-ledger-proposal-queue-handoff',
-                commandToAdd:
-                  'node scripts/growth-evidence-ledger-proposal-readiness-status.mjs && node scripts/growth-proposal-queue-status.mjs',
-                reason:
-                  'Reflection-backed Growth Evidence Ledger findings now have a proposal-readiness envelope; the next safe vNext slice can define a read-only handoff into the existing proposal queue contract without generating, approving, applying, or mutating proposal records.',
-                mustRemainReadOnly: true,
-              }
-          : {
-            id: 'growth-evidence-ledger-proposal-readiness',
-            commandToAdd:
-              'node scripts/growth-evidence-ledger-reflection-handoff-status.mjs && node scripts/growth-reflection-evaluator.mjs',
-            reason:
-              'Routed Growth Evidence Ledger evidence is now connected to reflection as read-only input; the next safe vNext slice can define proposal-readiness checks without generating proposals, applying proposals, mutating runtime, persisting memory, calling providers, mutating source, committing, or pushing.',
-            mustRemainReadOnly: true,
-          }
-        : {
-          id: 'growth-evidence-ledger-reflection-handoff',
-          commandToAdd:
-            'node scripts/growth-evidence-ledger-gateway-routing-status.mjs && node scripts/growth-reflection-evaluator.mjs',
-          reason:
-            'The Growth Evidence Ledger is mapped into read-only gateway routing; the next safe vNext slice can make reflection consume that routed ledger status without proposal generation, runtime mutation, provider calls, memory persistence, commits, or pushes.',
-          mustRemainReadOnly: true,
-        }
-      : {
-        id: 'growth-evidence-ledger-gateway-routing',
-        commandToAdd:
-          'node scripts/growth-evidence-ledger-status.mjs && node scripts/growth-gateway-surface-router-status.mjs',
-        reason:
-          'The Growth Evidence Ledger read-only status command is implemented and registered; the next safe vNext slice can map ledger status into gateway routing without runtime, UI, memory, provider, source mutation, commit, or push authority.',
-        mustRemainReadOnly: true,
-      }
-    : {
-        id: 'growth-evidence-ledger',
-        commandToAdd:
-          'node scripts/post-completion-next-step-status.mjs && node scripts/growth-engine-status.mjs',
-        reason:
-          'The post-completion router is active and the current completion backlog is zero-open; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while the lifecycle closeout chain remains supporting evidence only.',
-        mustRemainReadOnly: true,
-      };
+  const gatewayProposalStatusSteps = [
+    'GatewayRouting',
+    'ReflectionHandoff',
+    'ProposalReadiness',
+    'ProposalQueueHandoff',
+  ];
+  const proposalRecordDryRunStatusSteps = [
+    'ProposalRecordReadiness',
+    'ProposalRecordReviewGate',
+    'ProposalRecordCreationReadiness',
+    'ProposalRecordDryRunShape',
+    'ProposalRecordDryRunValidation',
+    'ProposalRecordDryRunReview',
+    'ProposalRecordDryRunReviewAcceptance',
+  ];
+  const proposalRecordFinalizationReviewCycleCount = 5;
+  const proposalRecordFinalizationStatusSteps =
+    proposalRecordFinalizationReviewAcceptanceSteps(
+      proposalRecordFinalizationReviewCycleCount,
+    ).map(proposalRecordReviewAcceptanceStatusStep);
+  const proposalRecordSourceStatusSteps = [
+    ...gatewayProposalStatusSteps,
+    ...proposalRecordDryRunStatusSteps,
+    ...proposalRecordFinalizationStatusSteps,
+  ];
+  const proposalRecordSourceStatusRegistrationKeys =
+    growthEvidenceLedgerStatusKeysAfterBase(proposalRecordSourceStatusSteps);
+  const proposalRecordSourceStatusRegistration =
+    sourceSummaryStatusRegistrationChain(proposalRecordSourceStatusRegistrationKeys);
+  const {
+    growthEvidenceLedgerStatus: growthEvidenceLedgerDefinedForGatewayRouting,
+    growthEvidenceLedgerGatewayRoutingStatus: growthGatewayRoutingDefinedForReflectionHandoff,
+    growthEvidenceLedgerReflectionHandoffStatus:
+      growthLoopReflectionHandoffDefinedForProposalReadiness,
+    growthEvidenceLedgerProposalReadinessStatus: proposalReadinessDefinedForQueueHandoff,
+    growthEvidenceLedgerProposalQueueHandoffStatus:
+      proposalRecordQueueHandoffDefinedForReadinessCheck,
+    growthEvidenceLedgerProposalRecordReadinessStatus:
+      proposalRecordReadinessCheckedForReviewGate,
+    growthEvidenceLedgerProposalRecordReviewGateStatus:
+      proposalRecordReviewGateDefinedForCreationCheck,
+    growthEvidenceLedgerProposalRecordCreationReadinessStatus:
+      proposalRecordCreationReadinessCheckedForDryRunShape,
+    growthEvidenceLedgerProposalRecordDryRunShapeStatus:
+      proposalRecordCreationReadinessShapedForValidation,
+    growthEvidenceLedgerProposalRecordDryRunValidationStatus:
+      proposalRecordDryRunShapeValidatedForReview,
+    growthEvidenceLedgerProposalRecordDryRunReviewStatus:
+      proposalRecordDryRunValidationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatus:
+      proposalRecordDryRunReviewAcceptedForFinalization,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatus:
+      legacyProposalRecordReviewAcceptanceFinalizedForReview,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatus:
+      legacyProposalRecordFinalizationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatus:
+      legacyProposalRecordFinalizationReviewAccepted,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus:
+      legacyProposalRecordReviewAcceptanceFinalized,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus:
+      oldestProposalRecordFinalizationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatus:
+      oldestProposalRecordReviewedFinalizationAccepted,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus:
+      olderProposalRecordAcceptanceFinalizedForReview,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus:
+      olderProposalRecordFinalizationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatus:
+      earlierProposalRecordReviewedFinalizationAccepted,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus:
+      earlierProposalRecordAcceptanceFinalizedForReview,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus:
+      priorProposalRecordFinalizationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatus:
+      priorProposalRecordReviewedFinalizationAcceptedForFinalization,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus:
+      latestProposalRecordAcceptanceFinalizedForReview,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus:
+      latestProposalRecordFinalizationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatus:
+      latestProposalRecordAcceptanceReadyForFinalization,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus:
+      latestProposalRecordFinalizationReadyForReview,
+  } = proposalRecordSourceStatusRegistration;
+  const latestProposalRecordFinalizationNextSlice = readOnlyStatusScriptNextSlice({
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
+    commandId:
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+    reason:
+      'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize accepted evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+  });
+  const latestProposalRecordFinalizationReviewNextSlice = readOnlyStatusScriptNextSlice({
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
+    commandId:
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
+    reason:
+      'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalized evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+  });
+  const proposalRecordNextSlices = {
+    acceptNewestReviewedFinalization: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe vNext slice can accept reviewed evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    reviewNewestFinalization: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalized evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    finalizeNewestAcceptance: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize accepted evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    acceptPriorReviewedFinalization: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe vNext slice can accept reviewed evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    reviewPriorFinalization: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalization evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    finalizePriorAcceptance: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize accepted review evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    acceptEarlierReviewedFinalization: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe vNext slice can accept review evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    reviewEarlierFinalization: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalization evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    finalizeEarlierAcceptance: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance finalization review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize acceptance evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    acceptOlderReviewedFinalization: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe vNext slice can accept review evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    reviewOlderFinalization: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-status',
+      reason:
+        'Dry-run review acceptance finalization review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalization before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    finalizeOlderAcceptance: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status',
+      reason:
+        'Dry-run review acceptance finalization review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize review-acceptance evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    acceptLegacyFinalizationReview: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status',
+      reason:
+        'Dry-run review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe vNext slice can accept review evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    reviewLegacyFinalization: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status',
+      reason:
+        'Dry-run review acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalization before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    finalizeLegacyReviewAcceptance: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status',
+      reason:
+        'Dry-run review evidence is accepted only for a read-only finalization check; the next safe vNext slice can define finalization before any record creation, approval, persistence, implementation, or queue mutation.',
+    }),
+    acceptDryRunReview: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance',
+      commandId: 'growth-evidence-ledger-proposal-record-dry-run-review-status',
+      reason:
+        'Dry-run validation evidence is now reviewable without approval authority; the next safe vNext slice can define read-only review acceptance before any record creation, approval, persistence, or queue mutation.',
+    }),
+    reviewDryRunValidation: readOnlyStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-review',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-validation-status',
+      reason:
+        'The proposalRecord dry-run candidate now validates against queue schema while preserving non-authority invariants; the next safe vNext slice can review that validation evidence before any record creation, approval, persistence, or queue mutation.',
+    }),
+    validateDryRunShape: readOnlyQueueBackedStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-validation',
+      commandId:
+        'growth-evidence-ledger-proposal-record-dry-run-shape-status',
+      reason:
+        'A complete proposalRecord-shaped dry-run candidate now exists without creation authority; the next safe vNext slice can validate that shape before any record creation, approval, persistence, or queue mutation.',
+    }),
+    shapeCreationReadiness: readOnlyQueueBackedStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-dry-run-shape',
+      commandId:
+        'growth-evidence-ledger-proposal-record-creation-readiness-status',
+      reason:
+        'Proposal record creation policies are defined without assigning identity, status, or timestamps; the next safe vNext slice can design a dry-run record shape without creating, approving, applying, persisting, or mutating proposal records.',
+    }),
+    checkCreationReadiness: readOnlyQueueBackedStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-creation-readiness',
+      commandId:
+        'growth-evidence-ledger-proposal-record-review-gate-status',
+      reason:
+        'The proposal record review gate is now defined as read-only review evidence only; the next safe vNext slice can check creation readiness without creating, approving, applying, persisting, or mutating proposal records.',
+    }),
+    defineRecordReviewGate: readOnlyQueueBackedStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-review-gate',
+      commandId: 'growth-evidence-ledger-proposal-record-readiness-status',
+      reason:
+        'Proposal record fields are now classified as preview-only, mapped review input, forced false, or blocked until record creation; the next safe vNext slice can define the human review gate without creating, approving, applying, persisting, or mutating proposal records.',
+    }),
+    checkRecordReadiness: readOnlyQueueBackedStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-record-readiness',
+      commandId: 'growth-evidence-ledger-proposal-queue-handoff-status',
+      reason:
+        'Proposal-readiness evidence can now be handed to the queue contract as read-only review input; the next safe vNext slice can check proposal-record field readiness without creating, approving, applying, persisting, or mutating proposal records.',
+    }),
+    defineQueueHandoff: readOnlyQueueBackedStatusScriptNextSlice({
+      id: 'growth-evidence-ledger-proposal-queue-handoff',
+      commandId: 'growth-evidence-ledger-proposal-readiness-status',
+      reason:
+        'Reflection-backed Growth Evidence Ledger findings now have a proposal-readiness envelope; the next safe vNext slice can define a read-only handoff into the existing proposal queue contract without generating, approving, applying, or mutating proposal records.',
+    }),
+    defineProposalReadiness: readOnlyStatusScriptPairNextSlice({
+      id: 'growth-evidence-ledger-proposal-readiness',
+      commandId: 'growth-evidence-ledger-reflection-handoff-status',
+      companionCommandId: 'growth-reflection-evaluator',
+      reason:
+        'Routed Growth Evidence Ledger evidence is now connected to reflection as read-only input; the next safe vNext slice can define proposal-readiness checks without generating proposals, applying proposals, mutating runtime, persisting memory, calling providers, mutating source, committing, or pushing.',
+    }),
+    defineReflectionHandoff: readOnlyStatusScriptPairNextSlice({
+      id: 'growth-evidence-ledger-reflection-handoff',
+      commandId: 'growth-evidence-ledger-gateway-routing-status',
+      companionCommandId: 'growth-reflection-evaluator',
+      reason:
+        'The Growth Evidence Ledger is mapped into read-only gateway routing; the next safe vNext slice can make reflection consume that routed ledger status without proposal generation, runtime mutation, provider calls, memory persistence, commits, or pushes.',
+    }),
+    defineGatewayRouting: readOnlyStatusScriptPairNextSlice({
+      id: 'growth-evidence-ledger-gateway-routing',
+      commandId: 'growth-evidence-ledger-status',
+      companionCommandId: 'growth-gateway-surface-router-status',
+      reason:
+        'The Growth Evidence Ledger read-only status command is implemented and registered; the next safe vNext slice can map ledger status into gateway routing without runtime, UI, memory, provider, source mutation, commit, or push authority.',
+    }),
+    defineEvidenceLedger: readOnlyStatusScriptPairNextSlice({
+      id: 'growth-evidence-ledger',
+      commandId: 'post-completion-next-step-status',
+      companionCommandId: 'growth-engine-status',
+      reason:
+        'The post-completion router is active and the current completion backlog is zero-open; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while the lifecycle closeout chain remains supporting evidence only.',
+    }),
+  };
+  const readinessPrerequisiteRoutes = routesFromPairs([
+    [growthEvidenceLedgerDefinedForGatewayRouting, proposalRecordNextSlices.defineEvidenceLedger],
+    [
+      growthGatewayRoutingDefinedForReflectionHandoff,
+      proposalRecordNextSlices.defineGatewayRouting,
+    ],
+    [
+      growthLoopReflectionHandoffDefinedForProposalReadiness,
+      proposalRecordNextSlices.defineReflectionHandoff,
+    ],
+    [
+      proposalReadinessDefinedForQueueHandoff,
+      proposalRecordNextSlices.defineProposalReadiness,
+    ],
+    [
+      proposalRecordQueueHandoffDefinedForReadinessCheck,
+      proposalRecordNextSlices.defineQueueHandoff,
+    ],
+    [
+      proposalRecordReadinessCheckedForReviewGate,
+      proposalRecordNextSlices.checkRecordReadiness,
+    ],
+    [
+      proposalRecordReviewGateDefinedForCreationCheck,
+      proposalRecordNextSlices.defineRecordReviewGate,
+    ],
+    [
+      proposalRecordCreationReadinessCheckedForDryRunShape,
+      proposalRecordNextSlices.checkCreationReadiness,
+    ],
+    [
+      proposalRecordCreationReadinessShapedForValidation,
+      proposalRecordNextSlices.shapeCreationReadiness,
+    ],
+    [
+      proposalRecordDryRunShapeValidatedForReview,
+      proposalRecordNextSlices.validateDryRunShape,
+    ],
+    [
+      proposalRecordDryRunValidationReviewedForAcceptance,
+      proposalRecordNextSlices.reviewDryRunValidation,
+    ],
+    [
+      proposalRecordDryRunReviewAcceptedForFinalization,
+      proposalRecordNextSlices.acceptDryRunReview,
+    ],
+    [
+      legacyProposalRecordReviewAcceptanceFinalizedForReview,
+      proposalRecordNextSlices.finalizeLegacyReviewAcceptance,
+    ],
+    [
+      legacyProposalRecordFinalizationReviewedForAcceptance,
+      proposalRecordNextSlices.reviewLegacyFinalization,
+    ],
+    [
+      legacyProposalRecordFinalizationReviewAccepted,
+      proposalRecordNextSlices.acceptLegacyFinalizationReview,
+    ],
+    [
+      legacyProposalRecordReviewAcceptanceFinalized,
+      proposalRecordNextSlices.finalizeOlderAcceptance,
+    ],
+    [
+      oldestProposalRecordFinalizationReviewedForAcceptance,
+      proposalRecordNextSlices.reviewOlderFinalization,
+    ],
+    [
+      oldestProposalRecordReviewedFinalizationAccepted,
+      proposalRecordNextSlices.acceptOlderReviewedFinalization,
+    ],
+    [
+      olderProposalRecordAcceptanceFinalizedForReview,
+      proposalRecordNextSlices.finalizeEarlierAcceptance,
+    ],
+    [
+      olderProposalRecordFinalizationReviewedForAcceptance,
+      proposalRecordNextSlices.reviewEarlierFinalization,
+    ],
+    [
+      earlierProposalRecordReviewedFinalizationAccepted,
+      proposalRecordNextSlices.acceptEarlierReviewedFinalization,
+    ],
+    [
+      earlierProposalRecordAcceptanceFinalizedForReview,
+      proposalRecordNextSlices.finalizePriorAcceptance,
+    ],
+    [
+      priorProposalRecordFinalizationReviewedForAcceptance,
+      proposalRecordNextSlices.reviewPriorFinalization,
+    ],
+    [
+      priorProposalRecordReviewedFinalizationAcceptedForFinalization,
+      proposalRecordNextSlices.acceptPriorReviewedFinalization,
+    ],
+    [
+      latestProposalRecordAcceptanceFinalizedForReview,
+      proposalRecordNextSlices.finalizeNewestAcceptance,
+    ],
+    [
+      latestProposalRecordFinalizationReviewedForAcceptance,
+      proposalRecordNextSlices.reviewNewestFinalization,
+    ],
+  ]);
+  const readinessNextSlice =
+    firstPendingNextSlice(readinessPrerequisiteRoutes) ||
+    proposalRecordNextSlices.acceptNewestReviewedFinalization;
+  const latestFinalizationRoutes = routesFromPairs([
+    [
+      latestProposalRecordFinalizationReadyForReview,
+      latestProposalRecordFinalizationReviewNextSlice,
+    ],
+    [
+      latestProposalRecordAcceptanceReadyForFinalization,
+      latestProposalRecordFinalizationNextSlice,
+    ],
+  ]);
+  const selectedNextSlice =
+    firstReadyNextSlice(latestFinalizationRoutes) ||
+    readinessNextSlice;
+  const proposalRecordWorkstreamIds = reversedWorkstreamIdsFromNextSlices(
+    Object.values(proposalRecordNextSlices),
+  );
+  const latestFinalizationWorkstreamIds =
+    reversedWorkstreamIdsFromRoutes(latestFinalizationRoutes);
+  const generalFollowUpWorkstreamIds = [
+    'reflection-evaluator',
+    'gateway-surface-router',
+    'optional-real-live-rerun-when-env-visible',
+  ];
+  const candidateWorkstreamIds = [
+    ...proposalRecordWorkstreamIds,
+    ...latestFinalizationWorkstreamIds,
+    ...generalFollowUpWorkstreamIds,
+  ];
   payload.postCompletionRouter = {
     active: true,
     track: 'vNext-read-only-growth-loop',
     firstSlice: 'post-completion-next-step-router',
     nextImplementationPosture: 'read-only-status-or-doc-smoke-first',
-    growthEvidenceLedgerStatusImplemented,
-    growthEvidenceLedgerGatewayRoutingStatusImplemented,
-    growthEvidenceLedgerReflectionHandoffStatusImplemented,
-    growthEvidenceLedgerProposalReadinessStatusImplemented,
-    growthEvidenceLedgerProposalQueueHandoffStatusImplemented,
-    growthEvidenceLedgerProposalRecordReadinessStatusImplemented,
-    growthEvidenceLedgerProposalRecordReviewGateStatusImplemented,
-    growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunValidationStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented,
-    candidateWorkstreams: [
-      'growth-evidence-ledger',
-      'growth-evidence-ledger-gateway-routing',
-      'growth-evidence-ledger-reflection-handoff',
-      'growth-evidence-ledger-proposal-readiness',
-      'growth-evidence-ledger-proposal-queue-handoff',
-      'growth-evidence-ledger-proposal-record-readiness',
-      'growth-evidence-ledger-proposal-record-review-gate',
-      'growth-evidence-ledger-proposal-record-creation-readiness',
-      'growth-evidence-ledger-proposal-record-dry-run-shape',
-      'growth-evidence-ledger-proposal-record-dry-run-validation',
-      'growth-evidence-ledger-proposal-record-dry-run-review',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
-      'reflection-evaluator',
-      'gateway-surface-router',
-      'optional-real-live-rerun-when-env-visible',
-    ],
+    growthEvidenceLedgerStatusImplemented: growthEvidenceLedgerDefinedForGatewayRouting,
+    growthEvidenceLedgerGatewayRoutingStatusImplemented:
+      growthGatewayRoutingDefinedForReflectionHandoff,
+    growthEvidenceLedgerReflectionHandoffStatusImplemented:
+      growthLoopReflectionHandoffDefinedForProposalReadiness,
+    growthEvidenceLedgerProposalReadinessStatusImplemented: proposalReadinessDefinedForQueueHandoff,
+    growthEvidenceLedgerProposalQueueHandoffStatusImplemented:
+      proposalRecordQueueHandoffDefinedForReadinessCheck,
+    growthEvidenceLedgerProposalRecordReadinessStatusImplemented:
+      proposalRecordReadinessCheckedForReviewGate,
+    growthEvidenceLedgerProposalRecordReviewGateStatusImplemented:
+      proposalRecordReviewGateDefinedForCreationCheck,
+    growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented:
+      proposalRecordCreationReadinessCheckedForDryRunShape,
+    growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented:
+      proposalRecordCreationReadinessShapedForValidation,
+    growthEvidenceLedgerProposalRecordDryRunValidationStatusImplemented:
+      proposalRecordDryRunShapeValidatedForReview,
+    growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented:
+      proposalRecordDryRunValidationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented:
+      proposalRecordDryRunReviewAcceptedForFinalization,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented:
+      legacyProposalRecordReviewAcceptanceFinalizedForReview,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented:
+      legacyProposalRecordFinalizationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
+      legacyProposalRecordFinalizationReviewAccepted,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
+      legacyProposalRecordReviewAcceptanceFinalized,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented:
+      oldestProposalRecordFinalizationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
+      oldestProposalRecordReviewedFinalizationAccepted,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
+      olderProposalRecordAcceptanceFinalizedForReview,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented:
+      olderProposalRecordFinalizationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
+      earlierProposalRecordReviewedFinalizationAccepted,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
+      earlierProposalRecordAcceptanceFinalizedForReview,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented:
+      priorProposalRecordFinalizationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
+      priorProposalRecordReviewedFinalizationAcceptedForFinalization,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
+      latestProposalRecordAcceptanceFinalizedForReview,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented:
+      latestProposalRecordFinalizationReviewedForAcceptance,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
+      latestProposalRecordAcceptanceReadyForFinalization,
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
+      latestProposalRecordFinalizationReadyForReview,
+    candidateWorkstreams: candidateWorkstreamIds,
     lifecycleSupportingSlice,
     rationale:
       'The completion baseline is zero-open, so growth-engine-status must route follow-up work through the post-completion vNext gate instead of continuing the source-mutation lifecycle recheck chain as the default next action.',
   };
-  payload.nextRecommendedSlice = routedNextSlice;
+  payload.nextRecommendedSlice = selectedNextSlice;
   payload.hermesEngine.currentMode = 'repo-native-hermes-style-post-completion-growth-routing';
-  payload.hermesEngine.nextEngineSlice = payload.nextRecommendedSlice.id;
+  payload.hermesEngine.nextEngineSlice = selectedNextSlice.id;
 } else {
   payload.postCompletionRouter = {
     active: false,

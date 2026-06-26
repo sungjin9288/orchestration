@@ -263,6 +263,22 @@ const GROUP_PLAYBOOK_META = {
   },
 };
 const COMPANY_MEMBER_STORAGE_KEY = 'orchestration.company-members.v1';
+const UI_PREFERENCE_STORAGE_KEY = 'orchestration.ui-preferences.v1';
+const EVIDENCE_DENSITY_OPTIONS = ['standard', 'compact'];
+const DEFAULT_UI_PREFERENCES = {
+  evidenceDensity: 'standard',
+  preferredProjectId: null,
+  recentSurfaces: ['mission'],
+  surfaceCounts: {},
+};
+const GROWTH_AUTHORITY_BOUNDARY = Object.freeze({
+  commitPushAllowed: false,
+  memoryPersistenceAllowed: false,
+  proposalApplicationAllowed: false,
+  proposalGenerationAllowed: false,
+  providerCallsAllowed: false,
+  sourceMutationAllowed: false,
+});
 const COMPANY_ROLE_OPTIONS = [
   { value: 'chief-of-staff', label: 'Chief of Staff' },
   { value: 'council-lead', label: 'Council Lead' },
@@ -340,6 +356,7 @@ const state = {
   companyMemberDraftRole: 'builder',
   companyMemberDraftSurface: 'execution',
   companyMembers: readCompanyMembers(),
+  uiPreferences: readUiPreferences(),
   opsEditorGroup: 'all',
   menuGroup: 'workflows',
   surface: 'mission',
@@ -525,6 +542,87 @@ function persistCompanyMembers() {
   } catch (_error) {
     // Ignore storage failures and keep the in-memory directory.
   }
+}
+
+function normalizeUiPreferences(entry = {}) {
+  const evidenceDensity = EVIDENCE_DENSITY_OPTIONS.includes(entry.evidenceDensity)
+    ? entry.evidenceDensity
+    : DEFAULT_UI_PREFERENCES.evidenceDensity;
+  const recentSurfaces = Array.isArray(entry.recentSurfaces)
+    ? entry.recentSurfaces.filter((surface) => SURFACE_IDS.includes(surface)).slice(0, 6)
+    : DEFAULT_UI_PREFERENCES.recentSurfaces;
+  const surfaceCounts =
+    entry.surfaceCounts && typeof entry.surfaceCounts === 'object'
+      ? Object.fromEntries(
+          Object.entries(entry.surfaceCounts)
+            .filter(([surface]) => SURFACE_IDS.includes(surface))
+            .map(([surface, count]) => [surface, Number.isFinite(Number(count)) ? Number(count) : 0]),
+        )
+      : {};
+
+  return {
+    evidenceDensity,
+    preferredProjectId:
+      typeof entry.preferredProjectId === 'string' && entry.preferredProjectId.trim()
+        ? entry.preferredProjectId.trim()
+        : null,
+    recentSurfaces: recentSurfaces.length ? recentSurfaces : DEFAULT_UI_PREFERENCES.recentSurfaces,
+    surfaceCounts,
+  };
+}
+
+function readUiPreferences() {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return normalizeUiPreferences(DEFAULT_UI_PREFERENCES);
+  }
+
+  try {
+    const raw = window.localStorage.getItem(UI_PREFERENCE_STORAGE_KEY);
+
+    if (!raw) {
+      return normalizeUiPreferences(DEFAULT_UI_PREFERENCES);
+    }
+
+    return normalizeUiPreferences(JSON.parse(raw));
+  } catch (_error) {
+    return normalizeUiPreferences(DEFAULT_UI_PREFERENCES);
+  }
+}
+
+function persistUiPreferences() {
+  state.uiPreferences = normalizeUiPreferences(state.uiPreferences);
+
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(UI_PREFERENCE_STORAGE_KEY, JSON.stringify(state.uiPreferences));
+  } catch (_error) {
+    // Preference persistence is local-only convenience; runtime state stays authoritative.
+  }
+}
+
+function rememberSurfaceVisit(surface) {
+  if (!SURFACE_IDS.includes(surface)) {
+    return;
+  }
+
+  const preferences = normalizeUiPreferences(state.uiPreferences);
+  const recentSurfaces = [
+    surface,
+    ...preferences.recentSurfaces.filter((candidate) => candidate !== surface),
+  ].slice(0, 6);
+
+  state.uiPreferences = {
+    ...preferences,
+    recentSurfaces,
+    surfaceCounts: {
+      ...preferences.surfaceCounts,
+      [surface]: (preferences.surfaceCounts[surface] || 0) + 1,
+    },
+  };
+  persistUiPreferences();
 }
 
 function getCompanyRoleLabel(role) {
@@ -9766,6 +9864,14 @@ function applySnapshotPayload(payload) {
   ) {
     syncProjectProviderDraft(activeProject);
   }
+
+  if (activeProject?.id && state.uiPreferences?.preferredProjectId !== activeProject.id) {
+    state.uiPreferences = {
+      ...normalizeUiPreferences(state.uiPreferences),
+      preferredProjectId: activeProject.id,
+    };
+    persistUiPreferences();
+  }
 }
 
 function resolvePostMutationSurface(currentSurface, payload, fallbackSurface) {
@@ -9956,6 +10062,7 @@ function prepareNextMissionDraft(missionId) {
 async function handleSurfaceChange(surface) {
   state.menuGroup = getNavGroupForSurface(surface);
   state.surface = surface;
+  rememberSurfaceVisit(surface);
   render();
   elements.workspaceMain?.focus();
 }
@@ -9967,6 +10074,7 @@ async function handleNavGroupChange(groupId) {
 
   if (!group.surfaces.includes(state.surface)) {
     state.surface = group.defaultSurface;
+    rememberSurfaceVisit(state.surface);
   }
 
   render();
@@ -11615,6 +11723,180 @@ function renderControlOverviewSignalStrip(items) {
   `;
 }
 
+function getGrowthLearningSnapshot(data, context) {
+  const failedRuns = data.runs.filter((run) => run.status === 'failed' || run.status === 'error');
+  const reviewArtifacts = data.artifacts.filter((artifact) => artifact.type === 'review');
+  const blockedTasks = data.tasks.filter(
+    (task) => task.flags?.blocked || task.flags?.waitingApproval || task.flags?.waitingDecision,
+  );
+  const evidenceCount =
+    data.artifacts.length + data.runs.length + data.approvals.length + data.inboxItems.length;
+  const candidateCount = reviewArtifacts.length + failedRuns.length + blockedTasks.length;
+  const selectedEvidence =
+    context.selectedArtifact?.id ||
+    context.selectedRun?.id ||
+    context.selectedInboxItem?.id ||
+    context.activeTask?.id ||
+    context.selectedMission?.id ||
+    '근거 대기';
+
+  return {
+    candidateCount,
+    evidenceCount,
+    failedRuns,
+    reviewArtifacts,
+    blockedTasks,
+    selectedEvidence,
+    status: candidateCount > 0 ? '개선 후보 있음' : '후보 대기',
+    statusTone: candidateCount > 0 ? 'accent' : 'neutral',
+  };
+}
+
+function getPersonalizationSnapshot(data, context) {
+  const preferences = normalizeUiPreferences(state.uiPreferences);
+  const preferredProject =
+    preferences.preferredProjectId && data.snapshot.projects?.[preferences.preferredProjectId]
+      ? data.snapshot.projects[preferences.preferredProjectId]
+      : data.activeProject;
+  const recentSurfaces = preferences.recentSurfaces.filter((surface) => SURFACE_IDS.includes(surface));
+  const frequentSurface = Object.entries(preferences.surfaceCounts).sort((left, right) => right[1] - left[1])[0]?.[0] || null;
+  const suggestedSurface =
+    context.pendingGateCount > 0
+      ? 'decision-inbox'
+      : frequentSurface || recentSurfaces[0] || SURFACE_LOCATION_GUIDANCE[state.surface]?.targetSurface || 'mission';
+
+  return {
+    density: preferences.evidenceDensity,
+    preferredProject,
+    recentSurfaces,
+    suggestedSurface,
+    visitCount: preferences.surfaceCounts[suggestedSurface] || 0,
+  };
+}
+
+function renderEvidenceDensityControls(currentDensity) {
+  return `
+    <div class="preference-toggle-group" role="group" aria-label="증적 밀도 설정">
+      ${EVIDENCE_DENSITY_OPTIONS.map((option) => {
+        const label = option === 'compact' ? 'Compact' : 'Standard';
+        const active = option === currentDensity;
+
+        return `
+          <button
+            class="preference-toggle ${active ? 'is-active' : ''}"
+            type="button"
+            data-action="set-evidence-density"
+            data-density="${escapeHtml(option)}"
+            aria-pressed="${active ? 'true' : 'false'}"
+            ${state.loading || state.mutating ? 'disabled' : ''}
+          >
+            ${escapeHtml(label)}
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderIntelligenceOverview(data, context) {
+  const growth = getGrowthLearningSnapshot(data, context);
+  const personalization = getPersonalizationSnapshot(data, context);
+  const blockedAuthorityCount = Object.values(GROWTH_AUTHORITY_BOUNDARY).filter((allowed) => allowed === false).length;
+
+  return `
+    <section
+      class="intelligence-overview"
+      data-growth-learning-surface="read-only"
+      data-personalization-scope="local-only"
+      data-provider-calls-allowed="${GROWTH_AUTHORITY_BOUNDARY.providerCallsAllowed}"
+      data-memory-persistence-allowed="${GROWTH_AUTHORITY_BOUNDARY.memoryPersistenceAllowed}"
+      data-source-mutation-allowed="${GROWTH_AUTHORITY_BOUNDARY.sourceMutationAllowed}"
+      aria-label="학습 후보와 개인화 상태"
+    >
+      <article class="intelligence-panel intelligence-panel-growth">
+        <div class="intelligence-panel-head">
+          <div>
+            <p class="control-overview-label">Growth Evidence Ledger</p>
+            <h3 class="intelligence-title">검증 증거에서 개선 후보를 추출합니다</h3>
+          </div>
+          ${createToken(growth.status, growth.statusTone)}
+        </div>
+        <div class="intelligence-register">
+          <div class="intelligence-register-row">
+            <span class="control-overview-register-label">증거 원천</span>
+            <strong class="control-overview-register-value">${escapeHtml(`${growth.evidenceCount}건`)}</strong>
+          </div>
+          <div class="intelligence-register-row">
+            <span class="control-overview-register-label">Improvement Candidate Queue</span>
+            <strong class="control-overview-register-value">${escapeHtml(`${growth.candidateCount}건`)}</strong>
+          </div>
+          <div class="intelligence-register-row">
+            <span class="control-overview-register-label">현재 근거</span>
+            <strong class="control-overview-register-value">${escapeHtml(growth.selectedEvidence)}</strong>
+          </div>
+        </div>
+        <p class="intelligence-copy">
+          학습 완료가 아니라 실행, 리뷰, 승인, 실패 증거에서 읽기 전용 개선 후보만 제안합니다.
+        </p>
+        <div class="intelligence-boundary-strip" aria-label="차단된 성장 권한">
+          ${createToken(`차단 권한:${blockedAuthorityCount}개`, 'warning')}
+          ${createToken('provider call:false', 'neutral')}
+          ${createToken('memory persistence:false', 'neutral')}
+          ${createToken('source mutation:false', 'neutral')}
+          ${createToken('commit/push:false', 'neutral')}
+        </div>
+      </article>
+      <article class="intelligence-panel intelligence-panel-personal">
+        <div class="intelligence-panel-head">
+          <div>
+            <p class="control-overview-label">Local Personalization</p>
+            <h3 class="intelligence-title">반복 작업은 추천 shortcut으로만 남깁니다</h3>
+          </div>
+          ${createToken('localStorage only', 'success')}
+        </div>
+        <div class="intelligence-register">
+          <div class="intelligence-register-row">
+            <span class="control-overview-register-label">선호 프로젝트</span>
+            <strong class="control-overview-register-value">${escapeHtml(personalization.preferredProject?.name || '선택 없음')}</strong>
+          </div>
+          <div class="intelligence-register-row">
+            <span class="control-overview-register-label">추천 desk</span>
+            <strong class="control-overview-register-value">${escapeHtml(getSurfaceDisplayName(personalization.suggestedSurface))}</strong>
+          </div>
+          <div class="intelligence-register-row">
+            <span class="control-overview-register-label">방문 신호</span>
+            <strong class="control-overview-register-value">${escapeHtml(`${personalization.visitCount}회`)}</strong>
+          </div>
+        </div>
+        <div class="preference-row">
+          <div>
+            <span class="control-overview-register-label">증적 밀도</span>
+            <strong class="control-overview-register-value">${escapeHtml(personalization.density)}</strong>
+          </div>
+          ${renderEvidenceDensityControls(personalization.density)}
+        </div>
+        <div class="recent-surface-row" aria-label="최근 desk">
+          ${personalization.recentSurfaces
+            .map(
+              (surface) => `
+                <button
+                  class="recent-surface-chip"
+                  type="button"
+                  data-action="open-surface"
+                  data-target-surface="${escapeHtml(surface)}"
+                  ${state.loading || state.mutating ? 'disabled' : ''}
+                >
+                  ${escapeHtml(getSurfaceDisplayName(surface))}
+                </button>
+              `,
+            )
+            .join('')}
+        </div>
+      </article>
+    </section>
+  `;
+}
+
 function renderOperatorRunway(data, context, activeGroupId, focus, check) {
   const activeProject = data.activeProject;
   const activeMissionTitle = context.selectedMission?.title || '등록된 active mission 없음';
@@ -12093,6 +12375,7 @@ function renderWorkflowsOverview(data, context, activeGroupId) {
         { label: '담당', value: selectedOrderOwner },
         { label: '다음', value: selectedOrderNext },
       ])}
+      ${renderIntelligenceOverview(data, context)}
       ${renderWorkspacePlaybook(activeGroupId, context)}
       <div class="control-overview-grid control-overview-grid-workflows workflow-overview-shell" data-surface="${escapeHtml(state.surface)}" data-nav-group="${escapeHtml(activeGroupId)}">
       <aside class="control-overview-panel workflow-overview-rail">
@@ -12226,6 +12509,7 @@ function renderReviewOverview(data, context, activeGroupId) {
         { label: '담당', value: focus.owner },
         { label: '다음', value: check.next },
       ])}
+      ${renderIntelligenceOverview(data, context)}
       ${renderWorkspacePlaybook(activeGroupId, context)}
       <div class="control-overview-grid control-overview-grid-review review-overview-shell" data-surface="${escapeHtml(state.surface)}" data-nav-group="${escapeHtml(activeGroupId)}">
       <aside class="control-overview-panel review-overview-lanes">
@@ -12495,6 +12779,7 @@ function renderOpsOverview(data, context, activeGroupId) {
         { label: '다음', value: 'agent 배정' },
         { label: '하네스', value: getHarnessBriefSignalValue(harnessBrief) },
       ])}
+      ${renderIntelligenceOverview(data, context)}
       ${renderWorkspacePlaybook(activeGroupId, context)}
       <div class="control-overview-grid control-overview-grid-ops ops-overview-shell" data-surface="${escapeHtml(state.surface)}" data-nav-group="${escapeHtml(activeGroupId)}">
       <section class="control-overview-panel ops-overview-org">
@@ -13057,6 +13342,7 @@ function renderControlOverview(data) {
   elements.officeSidebarStatus.runs.textContent = `${activeRuns}건`;
   elements.officeSidebarStatus.gates.textContent = `${context.pendingGateCount}건`;
   elements.refreshButton.disabled = state.loading || state.mutating;
+  document.body.dataset.evidenceDensity = normalizeUiPreferences(state.uiPreferences).evidenceDensity;
   renderWorkspaceHeader(data, context);
   renderCompanyDirectory(data);
   if (elements.workspaceLiveStatus) {
@@ -19087,6 +19373,21 @@ document.addEventListener('click', async (event) => {
     const targetSurface = actionButton.dataset.targetSurface || 'mission';
     state.menuGroup = getNavGroupForSurface(targetSurface);
     state.surface = targetSurface;
+    rememberSurfaceVisit(targetSurface);
+    render();
+    return;
+  }
+
+  if (actionButton?.dataset.action === 'set-evidence-density') {
+    const density = EVIDENCE_DENSITY_OPTIONS.includes(actionButton.dataset.density)
+      ? actionButton.dataset.density
+      : DEFAULT_UI_PREFERENCES.evidenceDensity;
+
+    state.uiPreferences = {
+      ...normalizeUiPreferences(state.uiPreferences),
+      evidenceDensity: density,
+    };
+    persistUiPreferences();
     render();
     return;
   }
