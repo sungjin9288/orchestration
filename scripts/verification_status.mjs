@@ -383,6 +383,18 @@ const informationalChecks = [
     purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status finalizes accepted finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review evidence only for read-only review checking without approving, creating, persisting, promoting, implementing, or mutating proposal records',
   },
   {
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+    script:
+      'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review status reviews finalized finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review evidence only for read-only acceptance checking without approving, creating, persisting, promoting, implementing, or mutating proposal records',
+  },
+  {
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+    script:
+      'scripts/growth-evidence-ledger/proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status accepts reviewed finalization review evidence only for read-only finalization checking without approving, creating, persisting, promoting, implementing, or mutating proposal records; script uses a shorter alias path to avoid filesystem filename limits',
+  },
+  {
     id: 'growth-improvement-acceptance-status',
     script: 'scripts/smoke-growth-improvement-acceptance-status.mjs',
     purpose: 'Growth improvement acceptance status fixes read-only before/after evidence, regression, review, and approval criteria before accepted improvements can be recorded',
@@ -730,6 +742,10 @@ function runNodeScript(relativeScriptPath) {
   const result = spawnSync(process.execPath, [absoluteScriptPath], {
     cwd: repoRoot,
     encoding: 'utf8',
+    env: {
+      ...process.env,
+      ORCHESTRATION_VERIFICATION_STATUS: '1',
+    },
   });
 
   return {
@@ -838,6 +854,7 @@ function buildReport() {
     concurrency: {
       lockPath: path.relative(repoRoot, lockPath),
       serialized: true,
+      duplicateSmokeStatusAssertionsSkipped: true,
     },
     counts: {
       totalChecks: allResults.length,

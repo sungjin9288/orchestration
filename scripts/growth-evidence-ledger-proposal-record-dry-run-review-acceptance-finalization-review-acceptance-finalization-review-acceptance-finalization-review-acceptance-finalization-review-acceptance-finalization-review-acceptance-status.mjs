@@ -254,7 +254,7 @@ function buildAcceptanceFindings({ reviewPayload }) {
         readiness.proposalQueueMutationAllowed === false &&
         readiness.implementationAllowed === false &&
         readiness.durableRecordPromotionBlocked === true &&
-        safetyBoundary.doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewToRecord ===
+        safetyBoundary.doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceToRecord ===
           true,
       evidenceRef: 'readiness and safetyBoundary',
       observed: {
@@ -263,8 +263,8 @@ function buildAcceptanceFindings({ reviewPayload }) {
         proposalQueueMutationAllowed: readiness.proposalQueueMutationAllowed,
         implementationAllowed: readiness.implementationAllowed,
         durableRecordPromotionBlocked: readiness.durableRecordPromotionBlocked,
-        doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewToRecord:
-          safetyBoundary.doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewToRecord,
+        doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceToRecord:
+          safetyBoundary.doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceToRecord,
       },
     },
   ];
@@ -469,6 +469,8 @@ const payload = {
     doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceToRecord: true,
     doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationToRecord: true,
     doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewToRecord: true,
+    doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewToRecord: true,
+    doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewToRecord: true,
     doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceToRecord: true,
     doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceToRecord: true,
     doesNotApplyProposals: true,

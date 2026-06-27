@@ -2,6 +2,9 @@
 
 ## direction resets
 
+- When a status route id grows past filesystem filename limits, keep the product route id intact and move only the executable script to a shorter alias path. The status payload, verification id, docs, and smoke should still use the route identity so traceability is preserved without fighting OS path constraints.
+- Aggregate verification should not re-run the same deep status-chain assertions inside high-level smokes when those status scripts are already registered as separate verification checks. Mark aggregate child executions explicitly, keep direct smoke full-depth by default, and record the skip flag in the aggregate report so coverage and performance are both auditable.
+- When reflection creates a deeper ready-for aggregate id, proposal readiness must extend its preferred finding allowlist in the same slice. Otherwise the aggregate can be green while the candidate envelope still reports `sourceFindingId: null`, which makes the next read-only status fail even though engine and reflection routing are aligned.
 - Reference-driven UI refreshes should still expose authority boundaries as code-visible facts. Showing Growth Evidence Ledger and personalization in the shell is safe when provider calls, memory persistence, long-term memory storage, raw transcript ingestion, cross-workspace memory, skill promotion, proposal generation/application, durable proposal record creation/persistence, source mutation, commit, and push stay false and a focused smoke checks those markers.
 - Route-pair helper codemods should be anchored to route-list declarations, not generic array endings. Broad array regex can accidentally wrap source lists or summary arrays, so inspect non-route arrays before trusting the mechanical rewrite.
 - Adjacent prerequisite route segments should use the same route entry helper once their shape is identical. Keeping each segment's domain name separate preserves route meaning while removing object scaffolding noise.
@@ -258,6 +261,8 @@
 - 객체를 만든 뒤 첫 항목을 다시 덮어쓰는 흐름은 읽는 사람에게 “예외 처리”처럼 보인다. 같은 결과라면 `selected*Update`를 먼저 계산하고 객체를 조립할 때 spread해서 한 번에 완성하는 편이 자연스럽다.
 - 최신 route에만 적용되는 finding override는 조건문 안에 긴 claim/action 객체를 직접 쓰기보다 `latest*FindingUpdate` 같은 이름 있는 객체로 먼저 묶는 편이 좋다. 그러면 조건문은 “언제 적용되는가”만 말하고, 문구 계약은 위쪽에서 따로 읽힌다.
 - Reflection finding id가 next recommended slice의 id에 `-needed`를 붙인 값이라면, 별도 routing ternary를 다시 만들지 말고 `${selectedNextSlice.id}-needed`로 도출하는 편이 맞다. route identity가 한 곳에서만 결정되면 finding, aggregate status, next slice가 서로 어긋날 여지가 줄어든다.
+- post-completion Growth Evidence Ledger route가 acceptance -> finalization -> review 순환을 반복할 때는 최신 finalization-ready 상태를 acceptance-ready 상태보다 먼저 평가해야 한다. 이미 green인 finalization slice를 다시 추천하면 smoke는 통과해도 다음 develop 후보가 stale 상태에 머문다.
+- proposal-record dry-run chain에서는 blocked action 목록과 safetyBoundary boolean이 같은 금지 대상을 가리켜야 한다. blockedActions에 promotion 금지가 있어도 safetyBoundary key가 한 단계 빠지면 direct status는 false가 되고, 다음 read-only slice가 이전 증빙을 신뢰할 수 없다.
 - 같은 routing 결과에서 `nextRecommendedSlice.id`와 aggregate `ready-for-*` status가 1:1로 움직이면 status를 별도 ternary로 다시 계산하지 않는 편이 좋다. `selectedNextSliceReadyStatus`처럼 이미 선택된 slice에서 status를 도출하면 drift 가능성이 줄고 코드가 한 문장처럼 읽힌다.
 - Routing code는 기본값을 할당한 뒤 나중에 덮어쓰기보다, 먼저 `selectedNextSlice` 같은 최종 선택값을 계산하고 payload에는 한 번만 넣는 편이 읽기 쉽다. 이렇게 하면 override가 예외 동작처럼 보이지 않고 현재 evidence 상태에서 선택된 다음 단계로 자연스럽게 읽힌다.
 - Routing override가 긴 next-slice object를 직접 품고 있으면 조건의 의미가 다시 묻힌다. 긴 id와 command는 계약값으로 유지하되, `latestProposalRecordFinalizationNextSlice`처럼 이름 있는 객체로 먼저 묶으면 if block은 상태 전환 의도만 보여 준다.

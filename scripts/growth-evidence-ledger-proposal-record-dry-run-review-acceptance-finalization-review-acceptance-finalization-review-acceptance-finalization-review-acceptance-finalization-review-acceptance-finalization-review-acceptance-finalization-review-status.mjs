@@ -9,15 +9,8 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 
 requireNoCliArgs(process.argv.slice(2), {
-  mode: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+  mode: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
 });
-
-const MODE =
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status';
-const PREVIOUS_STATUS =
-  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs';
-const NEXT_SLICE =
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance';
 
 const SOURCE_FILES = [
   'AGENTS.md',
@@ -25,8 +18,8 @@ const SOURCE_FILES = [
   'docs/22_completion-gate-inventory.md',
   'tasks/todo.md',
   'tasks/lessons.md',
-  `scripts/${MODE}.mjs`,
-  PREVIOUS_STATUS,
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
   'scripts/growth-engine-status.mjs',
   'scripts/growth-reflection-evaluator.mjs',
   'scripts/verification_status.mjs',
@@ -51,20 +44,17 @@ const REVIEW_FIELDS = [
 const REVIEW_CRITERIA = [
   {
     id: 'finalization-status-is-ready',
-    question:
-      'Is the dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status green and ready for review?',
+    question: 'Is the dry-run review acceptance finalization status green and ready for review?',
     requiredEvidenceRef: 'finalizationEnvelope.compatibility.finalizationState',
   },
   {
     id: 'finalization-findings-passed',
-    question:
-      'Did every dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization finding pass without evidence gaps?',
+    question: 'Did every dry-run review acceptance finalization finding pass without evidence gaps?',
     requiredEvidenceRef: 'finalizationEnvelope.finalizationFindings',
   },
   {
     id: 'finalization-remains-non-approval',
-    question:
-      'Does review keep finalized finalization review acceptance finalization review acceptance finalization review acceptance evidence separate from proposal approval?',
+    question: 'Does review keep finalized acceptance evidence separate from proposal approval?',
     requiredEvidenceRef: 'readiness.finalizationDoesNotApprove and safetyBoundary',
   },
   {
@@ -77,26 +67,8 @@ const REVIEW_CRITERIA = [
 const REQUIRED_BLOCKED_ACTIONS = [
   'accept-dry-run-acceptance-as-approval',
   'accept-dry-run-finalization-as-approval',
-  'accept-dry-run-finalization-review-as-approval',
-  'accept-dry-run-finalization-review-acceptance-as-approval',
-  'accept-dry-run-finalization-review-acceptance-finalization-as-approval',
-  'accept-dry-run-finalization-review-acceptance-finalization-review-as-approval',
-  'accept-dry-run-finalization-review-acceptance-finalization-review-acceptance-as-approval',
-  'accept-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-as-approval',
-  'accept-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-as-approval',
-  'accept-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-as-approval',
-  'accept-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-as-approval',
   'promote-dry-run-acceptance-to-record',
   'promote-dry-run-finalization-to-record',
-  'promote-dry-run-finalization-review-to-record',
-  'promote-dry-run-finalization-review-acceptance-to-record',
-  'promote-dry-run-finalization-review-acceptance-finalization-to-record',
-  'promote-dry-run-finalization-review-acceptance-finalization-review-to-record',
-  'promote-dry-run-finalization-review-acceptance-finalization-review-acceptance-to-record',
-  'promote-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-to-record',
-  'promote-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-to-record',
-  'promote-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-to-record',
-  'promote-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-to-record',
   'create-proposal-record',
   'persist-proposal-record',
   'mutate-proposal-queue',
@@ -168,24 +140,36 @@ function summarizeSources(sources) {
   return {
     sourceCount: sources.length,
     availableSourceCount: sources.filter((source) => source.exists).length,
-    statusDocumented:
-      new RegExp(`Post-Completion Implemented Slice: \`${MODE}\``).test(plan) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review status/.test(
+    proposalRecordDryRunReviewAcceptanceFinalizationReviewStatusDocumented:
+      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status`/.test(
+        plan,
+      ) &&
+      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review status/.test(
         inventory,
       ),
-    statusAggregateRegistered: new RegExp(MODE).test(verificationStatus),
-    statusLedgered: new RegExp(`${MODE}-readonly-post-m7`).test(todo),
-    lessonCaptured:
-      /proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review.*proposal approval/i.test(
+    proposalRecordDryRunReviewAcceptanceFinalizationReviewStatusAggregateRegistered:
+      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status/.test(
+        verificationStatus,
+      ),
+    proposalRecordDryRunReviewAcceptanceFinalizationReviewStatusLedgered:
+      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status-readonly-post-m7/.test(
+        todo,
+      ),
+    proposalRecordDryRunReviewAcceptanceFinalizationReviewLessonCaptured:
+      /proposal record dry-run review acceptance finalization review.*proposal approval/i.test(
         lessons,
       ) ||
-      /proposal approval.*proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review/i.test(
+      /proposal approval.*proposal record dry-run review acceptance finalization review/i.test(
         lessons,
       ),
-    engineRoutesPastReview: new RegExp(`nextRecommendedSlice[\\s\\S]*${NEXT_SLICE}`).test(engine),
-    reflectionRoutesPastReview: new RegExp(`nextRecommendedSlice[\\s\\S]*${NEXT_SLICE}`).test(
-      reflection,
-    ),
+    engineRoutesPastProposalRecordDryRunReviewAcceptanceFinalizationReview:
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance/.test(
+        engine,
+      ),
+    reflectionRoutesPastProposalRecordDryRunReviewAcceptanceFinalizationReview:
+      /nextRecommendedSlice[\s\S]*growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance/.test(
+        reflection,
+      ),
     noDefaultBacklogOpen: !/^- \[ \]/m.test(todo),
   };
 }
@@ -249,8 +233,7 @@ function buildReviewFindings({ finalizationPayload }) {
         readiness.proposalQueueMutationAllowed === false &&
         readiness.implementationAllowed === false &&
         readiness.durableRecordPromotionBlocked === true &&
-        safetyBoundary.doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationToRecord ===
-          true,
+        safetyBoundary.doesNotPromoteFinalizationToRecord === true,
       evidenceRef: 'readiness and safetyBoundary',
       observed: {
         proposalRecordCreationAllowed: readiness.proposalRecordCreationAllowed,
@@ -258,8 +241,8 @@ function buildReviewFindings({ finalizationPayload }) {
         proposalQueueMutationAllowed: readiness.proposalQueueMutationAllowed,
         implementationAllowed: readiness.implementationAllowed,
         durableRecordPromotionBlocked: readiness.durableRecordPromotionBlocked,
-        doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationToRecord:
-          safetyBoundary.doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationToRecord,
+        doesNotPromoteFinalizationToRecord:
+          safetyBoundary.doesNotPromoteFinalizationToRecord,
       },
     },
   ];
@@ -272,8 +255,8 @@ function buildReviewEnvelope({ finalizationPayload }) {
   const blockedActions = [
     ...new Set([
       ...(finalizationEnvelope.blockedActions || []),
-      'accept-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-as-approval',
-      'promote-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-to-record',
+      'accept-dry-run-finalization-review-as-approval',
+      'promote-dry-run-finalization-review-to-record',
       'create-proposal-record',
       'persist-proposal-record',
       'mutate-proposal-queue',
@@ -288,12 +271,12 @@ function buildReviewEnvelope({ finalizationPayload }) {
     requiredFields: REVIEW_FIELDS,
     reviewEnvelope: {
       reviewId:
-        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-candidate',
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-candidate',
       sourceFinalizationId: finalizationEnvelope.finalizationId || null,
       targetQueueContract: 'growth-proposal-queue-status',
       targetSchema: 'proposalRecord',
       reviewPurpose:
-        'Review finalized dry-run finalization review acceptance finalization review acceptance finalization review acceptance evidence only for the next read-only acceptance check while keeping proposal approval, record creation, persistence, queue mutation, and implementation authority blocked.',
+        'Review finalized dry-run acceptance evidence only for the next read-only acceptance check while keeping proposal approval, record creation, persistence, queue mutation, and implementation authority blocked.',
       reviewInputs: {
         finalizationState:
           finalizationPayload?.finalizationEnvelope?.compatibility?.finalizationState || null,
@@ -317,9 +300,9 @@ function buildReviewEnvelope({ finalizationPayload }) {
       ],
       blockedActions,
       acceptanceQuestion:
-        'Can this reviewed dry-run finalization review acceptance finalization review acceptance finalization review acceptance evidence move to a read-only acceptance check without approving, creating, persisting, or mutating proposal records?',
+        'Can this reviewed dry-run finalization evidence move to a read-only acceptance check without approving, creating, persisting, or mutating proposal records?',
       nonApprovalStatement:
-        'Proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review is review for a later read-only acceptance check only; it is not proposal approval, proposal record creation, queue persistence, implementation authorization, or source mutation authority.',
+        'Proposal record dry-run review acceptance finalization review is review for a later read-only acceptance check only; it is not proposal approval, proposal record creation, queue persistence, implementation authorization, or source mutation authority.',
     },
     compatibility: {
       finalizationStatusReady:
@@ -330,20 +313,12 @@ function buildReviewEnvelope({ finalizationPayload }) {
       reviewFindingsPassed: reviewFindings.every((finding) => finding.ok),
       reviewState,
       reviewDoesNotApprove:
-        blockedActions.includes(
-          'accept-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-as-approval',
-        ) &&
-        blockedActions.includes(
-          'accept-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-as-approval',
-        ) &&
+        blockedActions.includes('accept-dry-run-finalization-as-approval') &&
+        blockedActions.includes('accept-dry-run-finalization-review-as-approval') &&
         blockedActions.includes('approve-proposal'),
       durableRecordPromotionBlocked:
-        blockedActions.includes(
-          'promote-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-to-record',
-        ) &&
-        blockedActions.includes(
-          'promote-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-to-record',
-        ),
+        blockedActions.includes('promote-dry-run-finalization-to-record') &&
+        blockedActions.includes('promote-dry-run-finalization-review-to-record'),
     },
   };
 }
@@ -365,12 +340,13 @@ function buildReadiness({ sourceSummary, finalizationResult, reviewEnvelope }) {
     durableRecordPromotionBlocked:
       reviewEnvelope.compatibility.durableRecordPromotionBlocked,
     docsAndAggregateReady:
-      sourceSummary.statusDocumented &&
-      sourceSummary.statusAggregateRegistered &&
-      sourceSummary.statusLedgered &&
-      sourceSummary.lessonCaptured,
+      sourceSummary.proposalRecordDryRunReviewAcceptanceFinalizationReviewStatusDocumented &&
+      sourceSummary.proposalRecordDryRunReviewAcceptanceFinalizationReviewStatusAggregateRegistered &&
+      sourceSummary.proposalRecordDryRunReviewAcceptanceFinalizationReviewStatusLedgered &&
+      sourceSummary.proposalRecordDryRunReviewAcceptanceFinalizationReviewLessonCaptured,
     engineReflectionAdvanced:
-      sourceSummary.engineRoutesPastReview && sourceSummary.reflectionRoutesPastReview,
+      sourceSummary.engineRoutesPastProposalRecordDryRunReviewAcceptanceFinalizationReview &&
+      sourceSummary.reflectionRoutesPastProposalRecordDryRunReviewAcceptanceFinalizationReview,
     inputFinalizationStatusOk: finalizationResult.ok,
     proposalRecordCreationAllowed: false,
     proposalRecordPersistenceAllowed: false,
@@ -394,7 +370,9 @@ function buildReadiness({ sourceSummary, finalizationResult, reviewEnvelope }) {
 const sources = SOURCE_FILES.map(readSource);
 const missingSources = sources.filter((source) => !source.exists).map((source) => source.path);
 const sourceSummary = summarizeSources(sources);
-const finalizationResult = runStatusScript(PREVIOUS_STATUS);
+const finalizationResult = runStatusScript(
+  'scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
+);
 const reviewEnvelope = buildReviewEnvelope({
   finalizationPayload: finalizationResult.payload,
 });
@@ -416,10 +394,11 @@ const ok =
 
 const payload = {
   ok,
-  mode: MODE,
+  mode: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
   posture:
-    'local-read-only-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
-  schemaVersion: `${MODE}/v0`,
+    'local-read-only-ledger-proposal-record-dry-run-review-acceptance-finalization-review',
+  schemaVersion:
+    'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status/v0',
   currentHead: {
     branch: runGitOrNull(['branch', '--show-current']),
     commit: runGitOrNull(['rev-parse', '--short', 'HEAD']),
@@ -427,7 +406,7 @@ const payload = {
   },
   sourceSummary,
   inputStatuses: {
-    proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalization: {
+    proposalRecordDryRunReviewAcceptanceFinalization: {
       path: finalizationResult.path,
       ok: finalizationResult.ok,
       status: finalizationResult.status,
@@ -437,10 +416,11 @@ const payload = {
   reviewEnvelope,
   readiness,
   nextRecommendedSlice: {
-    id: NEXT_SLICE,
-    commandToAdd: `node scripts/${MODE}.mjs`,
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
+    commandToAdd:
+      'node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
     reason:
-      'The dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe slice can accept review evidence without approving, creating, persisting, implementing, or mutating proposal records.',
+      'The dry-run review acceptance finalization evidence is reviewed only for a read-only acceptance check; the next safe slice can accept review evidence without approving, creating, persisting, implementing, or mutating proposal records.',
     mustRemainReadOnly: true,
   },
   safetyBoundary: {
@@ -466,16 +446,6 @@ const payload = {
     doesNotPromoteAcceptanceToRecord: true,
     doesNotPromoteFinalizationToRecord: true,
     doesNotPromoteFinalizationReviewToRecord: true,
-    doesNotPromoteFinalizationReviewAcceptanceToRecord: true,
-    doesNotPromoteFinalizationReviewAcceptanceFinalizationToRecord: true,
-    doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewToRecord: true,
-    doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceToRecord: true,
-    doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationToRecord: true,
-    doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewToRecord: true,
-    doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceToRecord: true,
-    doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewToRecord: true,
-    doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationToRecord: true,
-    doesNotPromoteFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewToRecord: true,
     doesNotApplyProposals: true,
     doesNotMutateProposalQueue: true,
     doesNotApproveProposals: true,
@@ -485,8 +455,7 @@ const payload = {
   },
   failures: {
     missingSources,
-    proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationFailed:
-      !finalizationResult.ok,
+    proposalRecordDryRunReviewAcceptanceFinalizationFailed: !finalizationResult.ok,
     failedReviewFindings: reviewEnvelope.reviewEnvelope.reviewFindings
       .filter((finding) => !finding.ok)
       .map((finding) => finding.id),
