@@ -273,6 +273,7 @@ const DEFAULT_UI_PREFERENCES = {
 };
 const GROWTH_AUTHORITY_BOUNDARY = Object.freeze({
   commitPushAllowed: false,
+  crossWorkspaceMemoryAllowed: false,
   longTermMemoryStoreAllowed: false,
   memoryPersistenceAllowed: false,
   proposalApplicationAllowed: false,
@@ -280,6 +281,8 @@ const GROWTH_AUTHORITY_BOUNDARY = Object.freeze({
   proposalRecordCreationAllowed: false,
   proposalRecordPersistenceAllowed: false,
   providerCallsAllowed: false,
+  rawTranscriptIngestionAllowed: false,
+  skillPromotionAllowed: false,
   sourceMutationAllowed: false,
 });
 const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object.freeze([
@@ -287,6 +290,12 @@ const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object.freeze([
   'id, 상태, 시각, 원천, 증거 참조가 먼저 정의되어야 합니다',
   '이 검토 게이트는 제안 승인과 분리됩니다',
   '장기 기억 전에 redaction, export, expiry 규칙이 필요합니다',
+]);
+const MEMORY_STORE_OPEN_REQUIREMENTS = Object.freeze([
+  '원문 transcript 수집은 금지 상태로 둡니다',
+  '기억 항목마다 원천, 증거, 적용 범위가 필요합니다',
+  '민감정보 제거, 내보내기, 만료 규칙이 먼저 있어야 합니다',
+  '스킬 승격은 별도 리뷰와 검증 명령이 필요합니다',
 ]);
 const COMPANY_ROLE_OPTIONS = [
   { value: 'chief-of-staff', label: 'Chief of Staff' },
@@ -12038,6 +12047,31 @@ function renderPersonalizationSettings(personalization, data) {
           <strong class="control-overview-register-value">${escapeHtml(getSurfaceDisplayName(personalization.suggestedSurface))}</strong>
         </div>
       </div>
+      <div
+        class="memory-readiness-gate"
+        data-memory-readiness-gate="blocked"
+        data-long-term-memory-store-allowed="${GROWTH_AUTHORITY_BOUNDARY.longTermMemoryStoreAllowed}"
+        data-raw-transcript-ingestion-allowed="${GROWTH_AUTHORITY_BOUNDARY.rawTranscriptIngestionAllowed}"
+        data-cross-workspace-memory-allowed="${GROWTH_AUTHORITY_BOUNDARY.crossWorkspaceMemoryAllowed}"
+        data-skill-promotion-allowed="${GROWTH_AUTHORITY_BOUNDARY.skillPromotionAllowed}"
+      >
+        <div class="memory-readiness-head">
+          <div>
+            <span class="control-overview-register-label">장기 기억 준비 게이트</span>
+            <strong>저장 전 검토만 표시합니다</strong>
+          </div>
+          ${createToken('장기 기억 저장:false', 'warning')}
+        </div>
+        <div class="memory-readiness-list" aria-label="장기 기억 저장 전 조건">
+          ${MEMORY_STORE_OPEN_REQUIREMENTS.map(
+            (requirement) => `
+              <span>
+                ${escapeHtml(requirement)}
+              </span>
+            `,
+          ).join('')}
+        </div>
+      </div>
       <div class="personalization-actions">
         <button
           class="recent-surface-chip"
@@ -12109,6 +12143,8 @@ function renderIntelligenceOverview(data, context) {
           ${createToken('provider 호출:false', 'neutral')}
           ${createToken('메모리 저장:false', 'neutral')}
           ${createToken('장기 기억:false', 'neutral')}
+          ${createToken('원문 수집:false', 'neutral')}
+          ${createToken('스킬 승격:false', 'neutral')}
           ${createToken('제안 기록:false', 'neutral')}
           ${createToken('소스 변경:false', 'neutral')}
           ${createToken('commit/push:false', 'neutral')}

@@ -116,6 +116,18 @@ These are routing and isolation domains, not multi-tenant SaaS semantics.
   evidence refs, separate human approval semantics, redaction, export, expiry rules, and focused
   smoke coverage that proves blocked authority remains blocked until explicit approval.
 
+## Current Long-Term Memory Boundary
+
+`DEC-049` fixes the current product boundary for memory:
+
+- The shell may show a long-term memory readiness gate.
+- Browser `localStorage` preferences are convenience state, not runtime memory.
+- The shell must not persist memory, ingest raw transcripts, globalize memory across workspaces,
+  promote skills, call providers, mutate source, commit, or push.
+- A future memory store needs a storage decision, item schema, source/evidence refs, workspace and
+  applicability rules, redaction policy, export format, expiry or deletion policy, human review
+  semantics, and focused smoke coverage before it can become anything beyond readiness.
+
 ## Reference Repo Recheck (2026-06-01)
 The follow-up reference pass reviewed the current public heads below and keeps them as source
 signals only. No upstream runtime, daemon, installer, channel adapter, provider matrix, or DevOps

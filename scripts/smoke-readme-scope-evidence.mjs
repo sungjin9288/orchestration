@@ -65,6 +65,13 @@ assert.match(readme, /create\/persist durable proposal records/);
 assert.match(readme, /Proposal review is not proposal approval/);
 assert.match(readme, /DEC-048/);
 assert.match(readme, /Durable proposal record creation remains blocked/);
+assert.match(readme, /Long-term memory is readiness only/);
+assert.match(readme, /DEC-049/);
+assert.match(readme, /raw transcript ingestion/);
+assert.match(readme, /cross-workspace memory/);
+assert.match(readme, /skill promotion blocked/);
+assert.match(readme, /Long-term memory storage remains blocked/);
+assert.match(readme, /raw transcript exclusion/);
 assert.match(readme, /redaction, export, expiry/);
 assert.match(readme, /orchestration\.ui-preferences\.v1/);
 assert.match(readme, /node scripts\/smoke-ui-slice-649\.mjs/);
@@ -146,6 +153,10 @@ assert.match(appJs, /data-personalization-scope="local-only"/);
 assert.match(appJs, /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/);
 assert.match(appJs, /data-proposal-record-persistence-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordPersistenceAllowed\}"/);
 assert.match(appJs, /data-long-term-memory-store-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.longTermMemoryStoreAllowed\}"/);
+assert.match(appJs, /data-memory-readiness-gate="blocked"/);
+assert.match(appJs, /data-raw-transcript-ingestion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.rawTranscriptIngestionAllowed\}"/);
+assert.match(appJs, /data-cross-workspace-memory-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.crossWorkspaceMemoryAllowed\}"/);
+assert.match(appJs, /data-skill-promotion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.skillPromotionAllowed\}"/);
 assert.match(appJs, /const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
 assert.match(appJs, /const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
 assert.match(referenceAudit, /Linear/);
@@ -156,6 +167,7 @@ assert.match(referenceAudit, /n8n HITL/);
 assert.match(referenceAudit, /Zapier/);
 assert.match(referenceAudit, /NN\/g 2026 UX/);
 assert.match(referenceAudit, /DEC-048/);
+assert.match(referenceAudit, /DEC-049/);
 
 console.log(
   JSON.stringify(

@@ -258,6 +258,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `ui/app.js` must keep proposal record creation, proposal record persistence, long-term memory store, provider calls, source mutation, proposal generation/application, commit, and push as source-checkable `false` authority markers until another accepted decision opens them. README, reference audit, and focused UI smoke must describe the gate as blocked and read-only. Local personalization remains browser convenience only.
 - Needed Before: A future durable proposal record feature needs an accepted decision, schema with `id`, `status`, timestamps, source refs, evidence refs, and reviewer/approval refs; separate human approval semantics for record creation and application; redaction, export, and expiry rules before long-term memory; focused smoke proving provider calls, memory persistence, source mutation, commit, and push stay blocked until explicit approval.
 
+### DEC-049
+- Status: `Accepted`
+- Decision: The vNext long-term memory surface is a readiness gate only. It may show prerequisites for future memory storage, but it must not persist memory, ingest raw transcripts, globalize memory across workspaces, promote skills, mutate sources, call providers, commit, or push.
+- Why: Personalization now stores local UI convenience in browser storage, and growth evidence can show repeated patterns. Without a separate memory boundary, those local hints can be mistaken for durable learning or global memory. The product needs a visible path toward memory while keeping the default behavior local-only and approval-gated.
+- Impact: `ui/app.js` must expose long-term memory store, raw transcript ingestion, cross-workspace memory, and skill promotion as source-checkable `false` markers. README, reference audit, vNext plan, and focused smokes must describe the memory gate as blocked readiness, not learning persistence. Browser `localStorage` preferences remain convenience state and are not runtime memory.
+- Needed Before: A future memory store needs an accepted storage decision, memory item schema with source refs and evidence refs, workspace/applicability rules, redaction policy, export format, expiry/deletion policy, human review semantics, and focused smoke proving provider calls, raw transcript ingestion, memory persistence, source mutation, commit, and push remain blocked until explicit approval.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

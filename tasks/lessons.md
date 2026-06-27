@@ -2,7 +2,7 @@
 
 ## direction resets
 
-- Reference-driven UI refreshes should still expose authority boundaries as code-visible facts. Showing Growth Evidence Ledger and personalization in the shell is safe when provider calls, memory persistence, long-term memory storage, proposal generation/application, durable proposal record creation/persistence, source mutation, commit, and push stay false and a focused smoke checks those markers.
+- Reference-driven UI refreshes should still expose authority boundaries as code-visible facts. Showing Growth Evidence Ledger and personalization in the shell is safe when provider calls, memory persistence, long-term memory storage, raw transcript ingestion, cross-workspace memory, skill promotion, proposal generation/application, durable proposal record creation/persistence, source mutation, commit, and push stay false and a focused smoke checks those markers.
 - Route-pair helper codemods should be anchored to route-list declarations, not generic array endings. Broad array regex can accidentally wrap source lists or summary arrays, so inspect non-route arrays before trusting the mechanical rewrite.
 - Adjacent prerequisite route segments should use the same route entry helper once their shape is identical. Keeping each segment's domain name separate preserves route meaning while removing object scaffolding noise.
 - Priority selectors read best as ordered ready-route lists when the branch is choosing the first available follow-up, not the first missing prerequisite. Use a `firstReadyNextSlice` helper for that shape so the fallback stays explicit.
@@ -1238,3 +1238,4 @@
 - mobile first viewport에서 sidebar roster가 primary workspace를 밀어내면 responsive QA는 통과처럼 보여도 실제 첫 화면은 운영 표면이 아니라 디렉터리만 보인다. 모바일에서는 보조 brand/register/roster를 과감히 접고 navigation과 workspace hint가 같은 첫 viewport에 들어오게 해야 growth/personalization panel 같은 새 surface가 실제로 발견된다.
 - 제품 화면에 review gate를 추가할 때는 durable record creation과 approval semantics를 별도 권한으로 노출해야 한다. 제안 기록 id/status/timestamp, long-term memory, redaction/export/expiry 규칙이 없으면 UI는 readiness와 차단 조건만 보여 주고 create/persist/apply 권한은 source-checkable `false` marker로 고정해야 한다.
 - 한국어 UI에 새 gate 조건을 노출할 때는 contract marker 이름은 그대로 두더라도 visible copy는 한국어 흐름으로 써야 한다. `proposal record:false`처럼 내부 용어를 그대로 보이면 권한 경계는 맞아도 화면의 의도가 한눈에 읽히지 않는다.
+- 장기 기억 readiness를 제품 표면에 올릴 때는 localStorage 개인화와 durable memory를 한 문장 안에서 분리해야 한다. 원문 transcript 수집, workspace 간 기억 공유, skill 승격, redaction/export/expiry가 준비되지 않았으면 UI는 저장 전 조건만 보여 주고 persistence authority는 계속 false marker로 고정해야 한다.

@@ -30,18 +30,28 @@ assert.match(audit, /NN\/g 2026 UX/);
 assert.match(audit, /provider calls/);
 assert.match(audit, /memory persistence/);
 assert.match(audit, /long-term memory store/);
+assert.match(audit, /raw transcript ingestion/);
+assert.match(audit, /cross-workspace memory/);
+assert.match(audit, /skill promotion/);
 assert.match(audit, /durable proposal record creation or persistence/);
 assert.match(audit, /source mutation/);
 assert.match(decisionLog, /### DEC-048/);
 assert.match(decisionLog, /review-readiness surface only/);
 assert.match(decisionLog, /does not create or persist durable proposal records/);
 assert.match(decisionLog, /redaction, export, and expiry rules/);
+assert.match(decisionLog, /### DEC-049/);
+assert.match(decisionLog, /long-term memory surface is a readiness gate only/);
+assert.match(decisionLog, /must not persist memory, ingest raw transcripts, globalize memory across workspaces, promote skills/);
+assert.match(decisionLog, /workspace\/applicability rules, redaction policy, export format, expiry\/deletion policy/);
 
 assert.match(appJs, /const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
 assert.match(appJs, /const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
 assert.match(appJs, /providerCallsAllowed: false/);
 assert.match(appJs, /memoryPersistenceAllowed: false/);
 assert.match(appJs, /longTermMemoryStoreAllowed: false/);
+assert.match(appJs, /rawTranscriptIngestionAllowed: false/);
+assert.match(appJs, /crossWorkspaceMemoryAllowed: false/);
+assert.match(appJs, /skillPromotionAllowed: false/);
 assert.match(appJs, /proposalRecordCreationAllowed: false/);
 assert.match(appJs, /proposalRecordPersistenceAllowed: false/);
 assert.match(appJs, /sourceMutationAllowed: false/);
@@ -50,6 +60,10 @@ assert.match(appJs, /const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object\.freeze\(\
 assert.match(appJs, /제안 기록 생성은 별도 승인 결정이 필요합니다/);
 assert.match(appJs, /이 검토 게이트는 제안 승인과 분리됩니다/);
 assert.match(appJs, /장기 기억 전에 redaction, export, expiry 규칙이 필요합니다/);
+assert.match(appJs, /const MEMORY_STORE_OPEN_REQUIREMENTS = Object\.freeze\(\[/);
+assert.match(appJs, /원문 transcript 수집은 금지 상태로 둡니다/);
+assert.match(appJs, /민감정보 제거, 내보내기, 만료 규칙이 먼저 있어야 합니다/);
+assert.match(appJs, /스킬 승격은 별도 리뷰와 검증 명령이 필요합니다/);
 assert.match(appJs, /function renderIntelligenceOverview\(data, context\)/);
 assert.match(appJs, /data-growth-learning-surface="read-only"/);
 assert.match(appJs, /data-personalization-scope="local-only"/);
@@ -65,10 +79,17 @@ assert.match(appJs, /data-proposal-application-allowed="\$\{GROWTH_AUTHORITY_BOU
 assert.match(appJs, /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/);
 assert.match(appJs, /data-proposal-record-persistence-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordPersistenceAllowed\}"/);
 assert.match(appJs, /data-long-term-memory-store-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.longTermMemoryStoreAllowed\}"/);
+assert.match(appJs, /data-memory-readiness-gate="blocked"/);
+assert.match(appJs, /data-raw-transcript-ingestion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.rawTranscriptIngestionAllowed\}"/);
+assert.match(appJs, /data-cross-workspace-memory-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.crossWorkspaceMemoryAllowed\}"/);
+assert.match(appJs, /data-skill-promotion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.skillPromotionAllowed\}"/);
 assert.match(appJs, /리뷰 질문/);
 assert.match(appJs, /제안 검토 게이트/);
 assert.match(appJs, /승인 전 적용 차단/);
 assert.match(appJs, /장기 기억:false/);
+assert.match(appJs, /장기 기억 저장:false/);
+assert.match(appJs, /원문 수집:false/);
+assert.match(appJs, /스킬 승격:false/);
 assert.match(appJs, /제안 기록:false/);
 assert.match(appJs, /function renderPersonalizationSettings\(personalization, data\)/);
 assert.match(appJs, /data-local-personalization-settings="true"/);
@@ -87,6 +108,8 @@ assert.match(styles, /\.intelligence-panel-growth::before/);
 assert.match(styles, /\.growth-candidate-list/);
 assert.match(styles, /\.growth-proposal-review/);
 assert.match(styles, /\.growth-proposal-readiness/);
+assert.match(styles, /\.memory-readiness-gate/);
+assert.match(styles, /\.memory-readiness-list/);
 assert.match(styles, /\.personalization-settings/);
 assert.match(styles, /body\[data-evidence-density='compact'\]/);
 assert.doesNotMatch(appJs, /data-action="generate-growth-proposal"/);
@@ -111,6 +134,9 @@ console.log(
           'provider calls',
           'memory persistence',
           'long-term memory store',
+          'raw transcript ingestion',
+          'cross-workspace memory',
+          'skill promotion',
           'durable proposal record creation/persistence',
           'proposal generation/application',
           'source mutation',

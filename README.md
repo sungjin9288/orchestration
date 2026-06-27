@@ -23,7 +23,7 @@ and approvals.
 | Advanced Ops surfaces | `Taskboard / Logs / Artifacts / Decision Inbox` remain available as authoritative operator surfaces. |
 | Reference-driven operator shell | `docs/reference/vnext-reference-driven-ui-audit.md` records what was adopted or rejected from Linear, LangSmith Studio, Retool, Dify, n8n HITL, Zapier, and NN/g before the UI refresh. |
 | Read-only growth evidence | The shell exposes `성장 증거 원장`, `개선 후보 대기열` drilldown, and a blocked `제안 검토 게이트` as evidence-derived views; `scripts/smoke-ui-slice-649.mjs` pins that they do not call providers, persist memory, create/persist durable proposal records, mutate source, generate/apply proposals, commit, or push. |
-| Local-only personalization | Recent desks, evidence density, preferred project hints, and preference reset/set controls are stored under `orchestration.ui-preferences.v1` in browser `localStorage`; they only change shell convenience and do not mutate runtime authority. |
+| Local-only personalization | Recent desks, evidence density, preferred project hints, preference reset/set controls, and a blocked long-term memory readiness gate stay local-only; browser `localStorage` under `orchestration.ui-preferences.v1` only changes shell convenience and does not mutate runtime authority. |
 | Development pack loop | The implemented pack flow is documented in `packs/development/pack.md`: planner, architect, task-breaker, builder preflight, builder live mutation, reviewer, commit-package, local commit, release-package, close-out. |
 | Review and approval gates | Review-before-done and approval-before-commit/release follow-up are enforced through runtime/coordinator state and surfaced in Decision Inbox. |
 | Local artifact store | Runtime state and artifacts are persisted through `src/runtime/file-store.js`; no external database is required. |
@@ -89,6 +89,9 @@ src/runtime/file-store.js
 - Personalization is local convenience only: recent desks, evidence density, preferred project hints,
   and preference reset/set controls live in browser storage and are surfaced as shortcuts or prefilled
   context, not automatic execution.
+- Long-term memory is readiness only: `DEC-049` keeps raw transcript ingestion, durable memory
+  persistence, cross-workspace memory, and skill promotion blocked until schema, source refs,
+  redaction, export, expiry, human review, and focused smoke evidence exist.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -244,6 +247,9 @@ Playwright CLI:
 - `output/playwright/vnext-proposal-boundary-desktop.png`
 - `output/playwright/vnext-proposal-boundary-mobile.png`
 - `output/playwright/vnext-proposal-boundary-mobile-growth.png`
+- `output/playwright/vnext-memory-boundary-desktop.png`
+- `output/playwright/vnext-memory-boundary-mobile-readiness.png`
+- `output/playwright/vnext-memory-boundary-gate-element.png`
 
 ## Scope & Limitations
 
@@ -260,6 +266,10 @@ Playwright CLI:
 - Durable proposal record creation remains blocked until an accepted decision defines record schema,
   separate human approval semantics, source/evidence refs, redaction, export, expiry, and focused
   smoke coverage for the unchanged provider, memory, source, commit, and push boundaries.
+- Long-term memory storage remains blocked until an accepted decision defines memory item schema,
+  source/evidence refs, workspace applicability, raw transcript exclusion, redaction, export, expiry,
+  deletion, human review, and focused smoke coverage for unchanged provider/source/commit/push
+  boundaries.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider
