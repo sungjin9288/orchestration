@@ -603,6 +603,25 @@ function persistUiPreferences() {
   }
 }
 
+function resetUiPreferences() {
+  state.uiPreferences = normalizeUiPreferences(DEFAULT_UI_PREFERENCES);
+  persistUiPreferences();
+}
+
+function setPreferredProjectPreference(projectId) {
+  const normalizedProjectId = typeof projectId === 'string' ? projectId.trim() : '';
+
+  if (!normalizedProjectId) {
+    return;
+  }
+
+  state.uiPreferences = {
+    ...normalizeUiPreferences(state.uiPreferences),
+    preferredProjectId: normalizedProjectId,
+  };
+  persistUiPreferences();
+}
+
 function rememberSurfaceVisit(surface) {
   if (!SURFACE_IDS.includes(surface)) {
     return;
@@ -11723,6 +11742,97 @@ function renderControlOverviewSignalStrip(items) {
   `;
 }
 
+function createGrowthCandidate({
+  id,
+  type,
+  title,
+  sourceId,
+  sourceSurface,
+  reason,
+  reviewerQuestion,
+  severity,
+  severityLabel,
+  confidence,
+  confidenceLabel,
+  typeLabel,
+}) {
+  return {
+    id,
+    type,
+    typeLabel,
+    title,
+    sourceId,
+    sourceSurface,
+    reason,
+    reviewerQuestion,
+    severity,
+    severityLabel,
+    confidence,
+    confidenceLabel,
+    proposedNextStep: '사람 리뷰가 제안 기록으로 넘길지 결정합니다.',
+    blockedActions: [
+      'proposal generation',
+      'proposal application',
+      'memory persistence',
+      'source mutation',
+      'commit/push',
+    ],
+  };
+}
+
+function getGrowthEvidenceCandidates({ failedRuns, reviewArtifacts, blockedTasks }) {
+  const reviewCandidates = reviewArtifacts.slice(0, 4).map((artifact) =>
+    createGrowthCandidate({
+      id: `review:${artifact.id}`,
+      type: 'review-evidence',
+      typeLabel: '검토 증거',
+      title: artifact.title || artifact.name || '검토 증거',
+      sourceId: artifact.id,
+      sourceSurface: 'artifacts',
+      reason: '검토 결과는 반복되는 품질 기준, 누락된 검증, 승인 전 보완점을 가장 직접적으로 드러냅니다.',
+      reviewerQuestion: '이 검토 지적을 다음 실행 전 점검 항목이나 보호 규칙으로 올려야 하는가?',
+      severity: 'medium',
+      severityLabel: '중간',
+      confidence: 'artifact-backed',
+      confidenceLabel: 'artifact 기반',
+    }),
+  );
+  const failedRunCandidates = failedRuns.slice(0, 4).map((run) =>
+    createGrowthCandidate({
+      id: `run:${run.id}`,
+      type: 'failed-run',
+      typeLabel: '실패한 실행',
+      title: `${getRunStatusDisplay(run.status)} · ${run.role || run.kind || '실행'}`,
+      sourceId: run.id,
+      sourceSurface: 'logs',
+      reason: '실패한 실행은 복구 경로, 사전 점검 조건, 사용자 안내가 부족한 지점을 보여 줍니다.',
+      reviewerQuestion: '이 실패를 줄이려면 어떤 사전 확인, 되돌림 안내, 또는 작업자 안내가 필요한가?',
+      severity: 'high',
+      severityLabel: '높음',
+      confidence: 'runtime-backed',
+      confidenceLabel: 'runtime 기반',
+    }),
+  );
+  const blockedTaskCandidates = blockedTasks.slice(0, 4).map((task) =>
+    createGrowthCandidate({
+      id: `task:${task.id}`,
+      type: 'blocked-task',
+      typeLabel: '차단된 작업',
+      title: task.title || '차단된 작업',
+      sourceId: task.id,
+      sourceSurface: 'taskboard',
+      reason: '차단된 작업은 승인, 결정, 증거 인계가 충분히 명확한지 확인할 수 있는 신호입니다.',
+      reviewerQuestion: '작업자가 이 gate를 해소하기 위해 필요한 증거와 다음 위치를 한눈에 볼 수 있는가?',
+      severity: task.flags?.blocked ? 'high' : 'medium',
+      severityLabel: task.flags?.blocked ? '높음' : '중간',
+      confidence: 'state-backed',
+      confidenceLabel: 'state 기반',
+    }),
+  );
+
+  return [...reviewCandidates, ...failedRunCandidates, ...blockedTaskCandidates].slice(0, 6);
+}
+
 function getGrowthLearningSnapshot(data, context) {
   const failedRuns = data.runs.filter((run) => run.status === 'failed' || run.status === 'error');
   const reviewArtifacts = data.artifacts.filter((artifact) => artifact.type === 'review');
@@ -11731,6 +11841,7 @@ function getGrowthLearningSnapshot(data, context) {
   );
   const evidenceCount =
     data.artifacts.length + data.runs.length + data.approvals.length + data.inboxItems.length;
+  const candidates = getGrowthEvidenceCandidates({ failedRuns, reviewArtifacts, blockedTasks });
   const candidateCount = reviewArtifacts.length + failedRuns.length + blockedTasks.length;
   const selectedEvidence =
     context.selectedArtifact?.id ||
@@ -11746,6 +11857,7 @@ function getGrowthLearningSnapshot(data, context) {
     failedRuns,
     reviewArtifacts,
     blockedTasks,
+    candidates,
     selectedEvidence,
     status: candidateCount > 0 ? '개선 후보 있음' : '후보 대기',
     statusTone: candidateCount > 0 ? 'accent' : 'neutral',
@@ -11798,6 +11910,136 @@ function renderEvidenceDensityControls(currentDensity) {
   `;
 }
 
+function renderGrowthCandidateDrilldown(growth) {
+  if (!growth.candidates.length) {
+    return `
+      <div class="growth-candidate-empty" data-growth-candidate-drilldown="empty">
+        <strong>후보 대기</strong>
+        <span>실행 실패, 검토 산출물, 대기 중인 gate가 생기면 여기에서 근거별 개선 후보를 읽습니다.</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="growth-candidate-list" data-growth-candidate-drilldown="true">
+      ${growth.candidates
+        .map(
+          (candidate, index) => `
+            <details class="growth-candidate-card" ${index === 0 ? 'open' : ''}>
+              <summary class="growth-candidate-summary">
+                <span class="growth-candidate-rank">${escapeHtml(String(index + 1).padStart(2, '0'))}</span>
+                <span class="growth-candidate-main">
+                  <strong>${escapeHtml(candidate.title)}</strong>
+                  <span>${escapeHtml(candidate.typeLabel)} · ${escapeHtml(candidate.sourceId)}</span>
+                </span>
+                ${createToken(candidate.severityLabel, candidate.severity === 'high' ? 'warning' : 'neutral')}
+              </summary>
+              <div class="growth-candidate-detail">
+                <div class="growth-candidate-detail-grid">
+                  <div>
+                    <span class="control-overview-register-label">근거 위치</span>
+                    <strong class="control-overview-register-value">${escapeHtml(getSurfaceDisplayName(candidate.sourceSurface))}</strong>
+                  </div>
+                  <div>
+                    <span class="control-overview-register-label">신뢰도</span>
+                    <strong class="control-overview-register-value">${escapeHtml(candidate.confidenceLabel)}</strong>
+                  </div>
+                </div>
+                <p>${escapeHtml(candidate.reason)}</p>
+                <p><strong>리뷰 질문</strong>: ${escapeHtml(candidate.reviewerQuestion)}</p>
+                <p><strong>다음 판단</strong>: ${escapeHtml(candidate.proposedNextStep)}</p>
+              </div>
+            </details>
+          `,
+        )
+        .join('')}
+    </div>
+  `;
+}
+
+function renderGrowthProposalReviewPreview(growth) {
+  const leadCandidate = growth.candidates[0] || null;
+  const blockedActionCount = leadCandidate?.blockedActions.length || 5;
+
+  return `
+    <div
+      class="growth-proposal-review"
+      data-growth-proposal-review="blocked"
+      data-proposal-generation-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalGenerationAllowed}"
+      data-proposal-application-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalApplicationAllowed}"
+      data-memory-persistence-allowed="${GROWTH_AUTHORITY_BOUNDARY.memoryPersistenceAllowed}"
+      data-source-mutation-allowed="${GROWTH_AUTHORITY_BOUNDARY.sourceMutationAllowed}"
+    >
+      <div>
+        <p class="control-overview-label">제안 검토 게이트</p>
+        <h4 class="growth-proposal-title">${escapeHtml(leadCandidate ? leadCandidate.title : '후보 선택 대기')}</h4>
+        <p class="intelligence-copy">
+          ${escapeHtml(
+            leadCandidate
+              ? leadCandidate.reviewerQuestion
+              : '검증 증거가 생기면 제안 기록으로 보낼지 사람 리뷰에서 먼저 판단합니다.',
+          )}
+        </p>
+      </div>
+      <div class="growth-proposal-actions" aria-label="차단된 proposal 권한">
+        ${createToken(`차단:${blockedActionCount}`, 'warning')}
+        <button class="growth-proposal-blocked-button" type="button" disabled>
+          승인 전 적용 차단
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderPersonalizationSettings(personalization, data) {
+  const activeProject = data.activeProject;
+
+  return `
+    <div class="personalization-settings" data-local-personalization-settings="true">
+      <div class="personalization-settings-head">
+        <div>
+          <p class="control-overview-label">선호 설정</p>
+          <h4 class="growth-proposal-title">로컬 선호만 관리합니다</h4>
+        </div>
+        ${createToken(UI_PREFERENCE_STORAGE_KEY, 'neutral')}
+      </div>
+      <div class="personalization-settings-grid">
+        <div>
+          <span class="control-overview-register-label">저장 범위</span>
+          <strong class="control-overview-register-value">browser localStorage</strong>
+        </div>
+        <div>
+          <span class="control-overview-register-label">자동 실행</span>
+          <strong class="control-overview-register-value">없음</strong>
+        </div>
+        <div>
+          <span class="control-overview-register-label">추천 화면</span>
+          <strong class="control-overview-register-value">${escapeHtml(getSurfaceDisplayName(personalization.suggestedSurface))}</strong>
+        </div>
+      </div>
+      <div class="personalization-actions">
+        <button
+          class="recent-surface-chip"
+          type="button"
+          data-action="set-preferred-project-local"
+          data-project-id="${escapeHtml(activeProject?.id || '')}"
+          ${!activeProject?.id || state.loading || state.mutating ? 'disabled' : ''}
+        >
+          현재 프로젝트 고정
+        </button>
+        <button
+          class="recent-surface-chip"
+          type="button"
+          data-action="reset-local-personalization"
+          ${state.loading || state.mutating ? 'disabled' : ''}
+        >
+          로컬 선호 초기화
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function renderIntelligenceOverview(data, context) {
   const growth = getGrowthLearningSnapshot(data, context);
   const personalization = getPersonalizationSnapshot(data, context);
@@ -11816,7 +12058,7 @@ function renderIntelligenceOverview(data, context) {
       <article class="intelligence-panel intelligence-panel-growth">
         <div class="intelligence-panel-head">
           <div>
-            <p class="control-overview-label">Growth Evidence Ledger</p>
+            <p class="control-overview-label">성장 증거 원장</p>
             <h3 class="intelligence-title">검증 증거에서 개선 후보를 추출합니다</h3>
           </div>
           ${createToken(growth.status, growth.statusTone)}
@@ -11827,7 +12069,7 @@ function renderIntelligenceOverview(data, context) {
             <strong class="control-overview-register-value">${escapeHtml(`${growth.evidenceCount}건`)}</strong>
           </div>
           <div class="intelligence-register-row">
-            <span class="control-overview-register-label">Improvement Candidate Queue</span>
+            <span class="control-overview-register-label">개선 후보 대기열</span>
             <strong class="control-overview-register-value">${escapeHtml(`${growth.candidateCount}건`)}</strong>
           </div>
           <div class="intelligence-register-row">
@@ -11838,21 +12080,23 @@ function renderIntelligenceOverview(data, context) {
         <p class="intelligence-copy">
           학습 완료가 아니라 실행, 리뷰, 승인, 실패 증거에서 읽기 전용 개선 후보만 제안합니다.
         </p>
+        ${renderGrowthCandidateDrilldown(growth)}
+        ${renderGrowthProposalReviewPreview(growth)}
         <div class="intelligence-boundary-strip" aria-label="차단된 성장 권한">
           ${createToken(`차단 권한:${blockedAuthorityCount}개`, 'warning')}
-          ${createToken('provider call:false', 'neutral')}
-          ${createToken('memory persistence:false', 'neutral')}
-          ${createToken('source mutation:false', 'neutral')}
+          ${createToken('provider 호출:false', 'neutral')}
+          ${createToken('메모리 저장:false', 'neutral')}
+          ${createToken('소스 변경:false', 'neutral')}
           ${createToken('commit/push:false', 'neutral')}
         </div>
       </article>
       <article class="intelligence-panel intelligence-panel-personal">
         <div class="intelligence-panel-head">
           <div>
-            <p class="control-overview-label">Local Personalization</p>
-            <h3 class="intelligence-title">반복 작업은 추천 shortcut으로만 남깁니다</h3>
+            <p class="control-overview-label">로컬 개인화</p>
+            <h3 class="intelligence-title">반복 작업은 추천 바로가기로만 남깁니다</h3>
           </div>
-          ${createToken('localStorage only', 'success')}
+          ${createToken('로컬 저장만', 'success')}
         </div>
         <div class="intelligence-register">
           <div class="intelligence-register-row">
@@ -11860,7 +12104,7 @@ function renderIntelligenceOverview(data, context) {
             <strong class="control-overview-register-value">${escapeHtml(personalization.preferredProject?.name || '선택 없음')}</strong>
           </div>
           <div class="intelligence-register-row">
-            <span class="control-overview-register-label">추천 desk</span>
+            <span class="control-overview-register-label">추천 화면</span>
             <strong class="control-overview-register-value">${escapeHtml(getSurfaceDisplayName(personalization.suggestedSurface))}</strong>
           </div>
           <div class="intelligence-register-row">
@@ -11892,6 +12136,7 @@ function renderIntelligenceOverview(data, context) {
             )
             .join('')}
         </div>
+        ${renderPersonalizationSettings(personalization, data)}
       </article>
     </section>
   `;
@@ -19388,6 +19633,19 @@ document.addEventListener('click', async (event) => {
       evidenceDensity: density,
     };
     persistUiPreferences();
+    render();
+    return;
+  }
+
+  if (actionButton?.dataset.action === 'set-preferred-project-local') {
+    setPreferredProjectPreference(actionButton.dataset.projectId);
+    render();
+    return;
+  }
+
+  if (actionButton?.dataset.action === 'reset-local-personalization') {
+    resetUiPreferences();
+    document.body.dataset.evidenceDensity = state.uiPreferences.evidenceDensity;
     render();
     return;
   }
