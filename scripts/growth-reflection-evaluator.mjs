@@ -15165,7 +15165,9 @@ if (postCompletionRouterActive) {
           'The post-completion router is active and reflection evidence is green; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while lifecycle closeout rechecks remain supporting evidence only.',
         mustRemainReadOnly: true,
       };
-  const selectedNextSlice = latestProposalRecordFinalizationReviewReadyForAcceptance
+  const selectedNextSlice = latestProposalRecordAcceptanceReadyForFinalization
+    ? latestProposalRecordFinalizationNextSlice
+    : latestProposalRecordFinalizationReviewReadyForAcceptance
     ? routedNextSlice
     : latestProposalRecordFinalizationReadyForReview
     ? latestProposalRecordFinalizationReviewNextSlice
@@ -15173,7 +15175,9 @@ if (postCompletionRouterActive) {
     ? latestProposalRecordFinalizationNextSlice
     : routedNextSlice;
   const selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
-  const selectedReflectionFindingUpdate = latestProposalRecordFinalizationReviewReadyForAcceptance
+  const selectedReflectionFindingUpdate = latestProposalRecordAcceptanceReadyForFinalization
+    ? latestProposalRecordFinalizationFindingUpdate
+    : latestProposalRecordFinalizationReviewReadyForAcceptance
     ? {}
     : latestProposalRecordFinalizationReadyForReview
     ? latestProposalRecordFinalizationReviewFindingUpdate

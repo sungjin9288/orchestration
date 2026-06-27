@@ -7146,16 +7146,16 @@ if (postCompletionRouterActive) {
   }
   const newestFinalizationFollowUpRoutes = routesFromPairs([
     [
+      newestAcceptanceReadyForFinalization,
+      newestFinalizationNextSlice,
+    ],
+    [
       newestFinalizationReviewReadyForAcceptance,
       proposalRecordNextSlices.acceptNewestReviewedFinalization,
     ],
     [
       newestFinalizationReadyForReview,
       newestFinalizationReviewNextSlice,
-    ],
-    [
-      newestAcceptanceReadyForFinalization,
-      newestFinalizationNextSlice,
     ],
   ]);
   const newestReadyFinalizationRoute = newestFinalizationFollowUpRoutes.find(
