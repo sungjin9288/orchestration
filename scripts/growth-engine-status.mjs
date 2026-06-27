@@ -258,11 +258,32 @@ function countBy(items, getKey) {
   const counts = {};
 
   for (const item of items) {
-    const key = getKey(item) || 'unknown';
-    counts[key] = (counts[key] || 0) + 1;
+    let key = getKey(item);
+
+    if (!key) {
+      key = 'unknown';
+    }
+
+    const currentCount = counts[key];
+
+    if (currentCount) {
+      counts[key] = currentCount + 1;
+    } else {
+      counts[key] = 1;
+    }
   }
 
   return counts;
+}
+
+function reviewStatusForTask(task) {
+  const review = task.review;
+
+  if (!review) {
+    return undefined;
+  }
+
+  return review.status;
 }
 
 function listRuntimeStateFiles() {
@@ -280,14 +301,24 @@ function listRuntimeStateFiles() {
 }
 
 function summarizeRuntimeState(entry) {
-  const state = safeReadJson(entry.path) || {};
+  const runtimeState = safeReadJson(entry.path);
+  let state = {};
+
+  if (runtimeState) {
+    state = runtimeState;
+  }
   const projects = valuesOf(state.projects);
   const tasks = valuesOf(state.tasks);
   const runs = valuesOf(state.runs);
   const artifacts = valuesOf(state.artifacts);
   const approvals = valuesOf(state.approvals);
   const inboxItems = valuesOf(state.decisionInboxItems);
-  const roleRuns = runs.filter((run) => run.kind === 'role' || run.role);
+  const roleRuns = runs.filter((run) => {
+    const hasRoleKind = run.kind === 'role';
+    const hasRoleName = Boolean(run.role);
+
+    return hasRoleKind || hasRoleName;
+  });
 
   return {
     path: path.dirname(entry.relativePath),
@@ -305,23 +336,61 @@ function summarizeRuntimeState(entry) {
     roleCounts: countBy(roleRuns, (run) => run.role),
     taskLifecycleCounts: countBy(tasks, (task) => task.lifecycleState),
     approvalStatusCounts: countBy(approvals, (approval) => approval.status),
-    reviewStatusCounts: countBy(tasks, (task) => task.review?.status),
+    reviewStatusCounts: countBy(tasks, reviewStatusForTask),
     evidenceFlags: {
       hasApprovals: approvals.length > 0,
       hasArtifacts: artifacts.length > 0,
       hasFailedRuns: runs.some((run) => run.status === 'failed'),
-      hasReviewPassed: tasks.some((task) => task.review?.status === 'passed'),
+      hasReviewPassed: tasks.some(
+        (task) => reviewStatusForTask(task) === 'passed',
+      ),
       hasResolvedInbox: inboxItems.some((item) => item.status === 'resolved'),
     },
   };
 }
 
 function countMatches(text, pattern) {
-  return [...String(text || '').matchAll(pattern)].length;
+  let searchableText = '';
+
+  if (text) {
+    searchableText = String(text);
+  }
+
+  return [...searchableText.matchAll(pattern)].length;
+}
+
+function implementedSliceDocumented(plan, label, sliceId) {
+  return plan.includes(`${label} Implemented Slice: \`${sliceId}\``);
+}
+
+function planMentionsSlice(plan, sliceId) {
+  return plan.includes(sliceId);
+}
+
+function sourceMentions(source, expectedText) {
+  return String(source || '').includes(expectedText);
+}
+
+function taskLedgerMentionsSlice(todo, sliceId) {
+  return String(todo || '').includes(sliceId);
+}
+
+function postCompletionImplementedSliceDocumented(plan, sliceId) {
+  return plan.includes(`Post-Completion Implemented Slice: \`${sliceId}\``);
 }
 
 function sourceText(sources, relativePath) {
-  return sources.find((source) => source.path === relativePath)?.text || '';
+  const matchingSource = sources.find((source) => source.path === relativePath);
+
+  if (!matchingSource) {
+    return '';
+  }
+
+  return matchingSource.text;
+}
+
+function sourceExists(source) {
+  return source.exists;
 }
 
 function sourceSummaryStatusImplemented(summary, statusKey) {
@@ -342,8 +411,209 @@ function summarizeSources(sources) {
   const lessonCount = countMatches(lessons, /^- /gm);
   const dogfoodMentions = countMatches(todo, /dogfood/gi);
   const sourceCount = sources.length;
-  const availableSources = sources.filter((source) => source.exists);
+  const availableSources = sources.filter(sourceExists);
   const availableSourceCount = availableSources.length;
+  const completionBaselineClosed =
+    sourceMentions(inventory, 'The current required completion baseline is closed for default implementation work.');
+  const noDefaultCompletionSliceOpen = sourceMentions(inventory, 'No default completion implementation slice remains open');
+  const growthLoopReadinessSectionPresent = sourceMentions(roadmap, 'Growth Loop Readiness');
+  const loopEngineeringBoundedModelDocumented =
+    sourceMentions(roadmap, 'Use Loop Engineering as a bounded operating model');
+  const postCompletionRouterInventoryDocumented = sourceMentions(inventory, 'Post-completion next-step router');
+  const postCompletionRouterScriptDocumented = sourceMentions(postCompletionRouter, 'post-completion-next-step-status');
+  const growthEvidenceLedgerStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(plan, 'growth-evidence-ledger-status');
+  const growthEvidenceLedgerStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger status');
+  const growthEvidenceLedgerGatewayRoutingStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-gateway-routing-status',
+    );
+  const growthEvidenceLedgerGatewayRoutingStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger gateway routing status');
+  const growthEvidenceLedgerReflectionHandoffStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-reflection-handoff-status',
+    );
+  const growthEvidenceLedgerReflectionHandoffStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger reflection handoff status');
+  const growthEvidenceLedgerProposalReadinessStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-readiness-status',
+    );
+  const growthEvidenceLedgerProposalReadinessStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal readiness status');
+  const growthEvidenceLedgerProposalQueueHandoffStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-queue-handoff-status',
+    );
+  const growthEvidenceLedgerProposalQueueHandoffStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal queue handoff status');
+  const growthEvidenceLedgerProposalRecordReadinessStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-readiness-status',
+    );
+  const growthEvidenceLedgerProposalRecordReadinessStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record readiness status');
+  const growthEvidenceLedgerProposalRecordReviewGateStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-review-gate-status',
+    );
+  const growthEvidenceLedgerProposalRecordReviewGateStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record review gate status');
+  const growthEvidenceLedgerProposalRecordCreationReadinessStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-creation-readiness-status',
+    );
+  const growthEvidenceLedgerProposalRecordCreationReadinessStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record creation readiness status');
+  const growthEvidenceLedgerProposalRecordDryRunShapeStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-shape-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunShapeStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run shape status');
+  const growthEvidenceLedgerProposalRecordDryRunValidationStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-validation-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunValidationStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run validation status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status');
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusPlanDocumented =
+    postCompletionImplementedSliceDocumented(
+      plan,
+      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
+    );
+  const growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusInventoryDocumented =
+    sourceMentions(inventory, 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status');
 
   return {
     sourceCount,
@@ -352,86 +622,75 @@ function summarizeSources(sources) {
     completedTaskCount,
     lessonCount,
     dogfoodMentions,
-    growthGatewayPlanPresent: /# Growth Gateway VNext Plan/.test(plan),
-    growthEvidenceLedgerPlanned: /### Slice 1: Growth Evidence Ledger/.test(plan),
-    reflectionEvaluatorPlanned: /### Slice 2: Reflection Evaluator/.test(plan),
-    continuousDevelopmentLoopPlanned: /### Slice 6: Continuous Development Loop/.test(plan),
+    growthGatewayPlanPresent: sourceMentions(plan, '# Growth Gateway VNext Plan'),
+    growthEvidenceLedgerPlanned: sourceMentions(plan, '### Slice 1: Growth Evidence Ledger'),
+    reflectionEvaluatorPlanned: sourceMentions(plan, '### Slice 2: Reflection Evaluator'),
+    continuousDevelopmentLoopPlanned: sourceMentions(plan, '### Slice 6: Continuous Development Loop'),
     zeroOpenBacklog: openTaskCount === 0,
-    completionInventoryClosed:
-      /The current required completion baseline is closed for default implementation work\./.test(
-        inventory,
-      ) && /No default completion implementation slice remains open/.test(inventory),
+    completionInventoryClosed: completionBaselineClosed && noDefaultCompletionSliceOpen,
     growthLoopReadinessDocumented:
-      /Growth Loop Readiness/.test(roadmap) &&
-      /Use Loop Engineering as a bounded operating model/.test(roadmap),
+      growthLoopReadinessSectionPresent && loopEngineeringBoundedModelDocumented,
     postCompletionRouterScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'post-completion-next-step-status.mjs'),
     ),
     postCompletionRouterDocumented:
-      /Post-completion next-step router/.test(inventory) &&
-      /post-completion-next-step-status/.test(postCompletionRouter),
+      postCompletionRouterInventoryDocumented && postCompletionRouterScriptDocumented,
     growthEvidenceLedgerStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-evidence-ledger-status.mjs'),
     ),
     growthEvidenceLedgerStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-status`/.test(plan) &&
-      /Growth Evidence Ledger status/.test(inventory),
+      growthEvidenceLedgerStatusPlanDocumented &&
+      growthEvidenceLedgerStatusInventoryDocumented,
     growthEvidenceLedgerStatusAggregateRegistered:
-      /growth-evidence-ledger-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-status'),
     growthEvidenceLedgerGatewayRoutingStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-evidence-ledger-gateway-routing-status.mjs'),
     ),
     growthEvidenceLedgerGatewayRoutingStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-gateway-routing-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger gateway routing status/.test(inventory),
+      growthEvidenceLedgerGatewayRoutingStatusPlanDocumented &&
+      growthEvidenceLedgerGatewayRoutingStatusInventoryDocumented,
     growthEvidenceLedgerGatewayRoutingStatusAggregateRegistered:
-      /growth-evidence-ledger-gateway-routing-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-gateway-routing-status'),
     growthEvidenceLedgerReflectionHandoffStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-evidence-ledger-reflection-handoff-status.mjs'),
     ),
     growthEvidenceLedgerReflectionHandoffStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-reflection-handoff-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger reflection handoff status/.test(inventory),
+      growthEvidenceLedgerReflectionHandoffStatusPlanDocumented &&
+      growthEvidenceLedgerReflectionHandoffStatusInventoryDocumented,
     growthEvidenceLedgerReflectionHandoffStatusAggregateRegistered:
-      /growth-evidence-ledger-reflection-handoff-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-reflection-handoff-status'),
     growthEvidenceLedgerProposalReadinessStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-evidence-ledger-proposal-readiness-status.mjs'),
     ),
     growthEvidenceLedgerProposalReadinessStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-readiness-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger proposal readiness status/.test(inventory),
+      growthEvidenceLedgerProposalReadinessStatusPlanDocumented &&
+      growthEvidenceLedgerProposalReadinessStatusInventoryDocumented,
     growthEvidenceLedgerProposalReadinessStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-readiness-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-readiness-status'),
     growthEvidenceLedgerProposalQueueHandoffStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-evidence-ledger-proposal-queue-handoff-status.mjs'),
     ),
     growthEvidenceLedgerProposalQueueHandoffStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-queue-handoff-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger proposal queue handoff status/.test(inventory),
+      growthEvidenceLedgerProposalQueueHandoffStatusPlanDocumented &&
+      growthEvidenceLedgerProposalQueueHandoffStatusInventoryDocumented,
     growthEvidenceLedgerProposalQueueHandoffStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-queue-handoff-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-queue-handoff-status'),
     growthEvidenceLedgerProposalRecordReadinessStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-evidence-ledger-proposal-record-readiness-status.mjs'),
     ),
     growthEvidenceLedgerProposalRecordReadinessStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-readiness-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger proposal record readiness status/.test(inventory),
+      growthEvidenceLedgerProposalRecordReadinessStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordReadinessStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordReadinessStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-readiness-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-readiness-status'),
     growthEvidenceLedgerProposalRecordReviewGateStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-evidence-ledger-proposal-record-review-gate-status.mjs'),
     ),
     growthEvidenceLedgerProposalRecordReviewGateStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-review-gate-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger proposal record review gate status/.test(inventory),
+      growthEvidenceLedgerProposalRecordReviewGateStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordReviewGateStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordReviewGateStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-review-gate-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-review-gate-status'),
     growthEvidenceLedgerProposalRecordCreationReadinessStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -440,11 +699,10 @@ function summarizeSources(sources) {
       ),
     ),
     growthEvidenceLedgerProposalRecordCreationReadinessStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-creation-readiness-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger proposal record creation readiness status/.test(inventory),
+      growthEvidenceLedgerProposalRecordCreationReadinessStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordCreationReadinessStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordCreationReadinessStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-creation-readiness-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-creation-readiness-status'),
     growthEvidenceLedgerProposalRecordDryRunShapeStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -453,11 +711,10 @@ function summarizeSources(sources) {
       ),
     ),
     growthEvidenceLedgerProposalRecordDryRunShapeStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-shape-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger proposal record dry-run shape status/.test(inventory),
+      growthEvidenceLedgerProposalRecordDryRunShapeStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunShapeStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunShapeStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-shape-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-shape-status'),
     growthEvidenceLedgerProposalRecordDryRunValidationStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -466,11 +723,10 @@ function summarizeSources(sources) {
       ),
     ),
     growthEvidenceLedgerProposalRecordDryRunValidationStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-validation-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger proposal record dry-run validation status/.test(inventory),
+      growthEvidenceLedgerProposalRecordDryRunValidationStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunValidationStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunValidationStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-validation-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-validation-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -479,11 +735,10 @@ function summarizeSources(sources) {
       ),
     ),
     growthEvidenceLedgerProposalRecordDryRunReviewStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger proposal record dry-run review status/.test(inventory),
+      growthEvidenceLedgerProposalRecordDryRunReviewStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-status/.test(verificationStatus),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -492,15 +747,10 @@ function summarizeSources(sources) {
       ),
     ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status`/.test(
-        plan,
-      ) && /Growth Evidence Ledger proposal record dry-run review acceptance status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -508,18 +758,12 @@ function summarizeSources(sources) {
           'scripts',
           'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status.mjs',
         ),
-      ),
+    ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -527,18 +771,12 @@ function summarizeSources(sources) {
           'scripts',
           'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status.mjs',
         ),
-      ),
+    ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -546,18 +784,12 @@ function summarizeSources(sources) {
           'scripts',
           'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status.mjs',
         ),
-      ),
+    ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -565,18 +797,12 @@ function summarizeSources(sources) {
           'scripts',
           'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
         ),
-      ),
+    ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -584,18 +810,12 @@ function summarizeSources(sources) {
           'scripts',
           'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
         ),
-      ),
+    ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -603,18 +823,12 @@ function summarizeSources(sources) {
           'scripts',
           'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
         ),
-      ),
+    ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -622,18 +836,12 @@ function summarizeSources(sources) {
           'scripts',
           'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
         ),
-      ),
+    ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -643,16 +851,10 @@ function summarizeSources(sources) {
         ),
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -662,16 +864,10 @@ function summarizeSources(sources) {
         ),
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -681,16 +877,10 @@ function summarizeSources(sources) {
         ),
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -700,16 +890,10 @@ function summarizeSources(sources) {
         ),
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -719,16 +903,10 @@ function summarizeSources(sources) {
         ),
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -738,16 +916,10 @@ function summarizeSources(sources) {
         ),
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -757,16 +929,10 @@ function summarizeSources(sources) {
         ),
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -776,16 +942,10 @@ function summarizeSources(sources) {
         ),
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status/.test(
-        verificationStatus,
-      ),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status'),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -795,110 +955,169 @@ function summarizeSources(sources) {
         ),
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented:
-      /Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status`/.test(
-        plan,
-      ) &&
-      /Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status/.test(
-        inventory,
-      ),
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusPlanDocumented &&
+      growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusInventoryDocumented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered:
-      /growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status/.test(
-        verificationStatus,
-      ),
-    referenceRepoRecheckPresent: /## Reference Repo Recheck \(2026-06-01\)/.test(plan),
+      sourceMentions(verificationStatus, 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status'),
+    referenceRepoRecheckPresent: sourceMentions(
+      plan,
+      '## Reference Repo Recheck (2026-06-01)',
+    ),
     referenceRepoCountPinned: REFERENCE_REPOS.filter((reference) =>
       plan.includes(reference.reviewedHead),
     ).length,
     reflectionEvaluatorScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-reflection-evaluator.mjs'),
     ),
-    reflectionEvaluatorDocumented: /Second Implemented Slice: `growth-reflection-evaluator`/.test(plan),
+    reflectionEvaluatorDocumented: implementedSliceDocumented(
+      plan,
+      'Second',
+      'growth-reflection-evaluator',
+    ),
     workerEventSchemaScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-worker-event-schema.mjs'),
     ),
-    workerEventSchemaDocumented: /Third Implemented Slice: `growth-worker-event-schema`/.test(plan),
+    workerEventSchemaDocumented: implementedSliceDocumented(
+      plan,
+      'Third',
+      'growth-worker-event-schema',
+    ),
     proposalQueueStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-proposal-queue-status.mjs'),
     ),
-    proposalQueueStatusDocumented: /Fourth Implemented Slice: `growth-proposal-queue-status`/.test(plan),
+    proposalQueueStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Fourth',
+      'growth-proposal-queue-status',
+    ),
     skillMemoryRegistryStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-skill-memory-registry-status.mjs'),
     ),
-    skillMemoryRegistryStatusDocumented:
-      /Fifth Implemented Slice: `growth-skill-memory-registry-status`/.test(plan),
+    skillMemoryRegistryStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Fifth',
+      'growth-skill-memory-registry-status',
+    ),
     gatewaySurfaceRouterStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-gateway-surface-router-status.mjs'),
     ),
-    gatewaySurfaceRouterStatusDocumented:
-      /Sixth Implemented Slice: `growth-gateway-surface-router-status`/.test(plan),
+    gatewaySurfaceRouterStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Sixth',
+      'growth-gateway-surface-router-status',
+    ),
     continuousDevelopmentLoopStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-continuous-development-loop-status.mjs'),
     ),
-    continuousDevelopmentLoopStatusDocumented:
-      /Seventh Implemented Slice: `growth-continuous-development-loop-status`/.test(plan),
+    continuousDevelopmentLoopStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Seventh',
+      'growth-continuous-development-loop-status',
+    ),
     improvementAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-improvement-acceptance-status.mjs'),
     ),
-    improvementAcceptanceStatusDocumented:
-      /Eighth Implemented Slice: `growth-improvement-acceptance-status`/.test(plan),
+    improvementAcceptanceStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Eighth',
+      'growth-improvement-acceptance-status',
+    ),
     acceptedImprovementRegistryStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-accepted-improvement-registry-status.mjs'),
     ),
-    acceptedImprovementRegistryStatusDocumented:
-      /Ninth Implemented Slice: `growth-accepted-improvement-registry-status`/.test(plan),
-    regressionWatchNextDocumented: /growth-regression-watch-status/.test(plan),
+    acceptedImprovementRegistryStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Ninth',
+      'growth-accepted-improvement-registry-status',
+    ),
+    regressionWatchNextDocumented: planMentionsSlice(
+      plan,
+      'growth-regression-watch-status',
+    ),
     regressionWatchStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-regression-watch-status.mjs'),
     ),
-    regressionWatchStatusDocumented:
-      /Tenth Implemented Slice: `growth-regression-watch-status`/.test(plan),
-    rollbackReviewNextDocumented: /growth-rollback-review-status/.test(plan),
+    regressionWatchStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Tenth',
+      'growth-regression-watch-status',
+    ),
+    rollbackReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-rollback-review-status',
+    ),
     rollbackReviewStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-rollback-review-status.mjs'),
     ),
-    rollbackReviewStatusDocumented:
-      /Eleventh Implemented Slice: `growth-rollback-review-status`/.test(plan),
-    remediationPlanNextDocumented: /growth-remediation-plan-status/.test(plan),
+    rollbackReviewStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Eleventh',
+      'growth-rollback-review-status',
+    ),
+    remediationPlanNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-plan-status',
+    ),
     remediationPlanStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-remediation-plan-status.mjs'),
     ),
-    remediationPlanStatusDocumented:
-      /Twelfth Implemented Slice: `growth-remediation-plan-status`/.test(plan),
-    remediationApprovalNextDocumented: /growth-remediation-approval-status/.test(plan),
+    remediationPlanStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twelfth',
+      'growth-remediation-plan-status',
+    ),
+    remediationApprovalNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-approval-status',
+    ),
     remediationApprovalStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-remediation-approval-status.mjs'),
     ),
-    remediationApprovalStatusDocumented:
-      /Thirteenth Implemented Slice: `growth-remediation-approval-status`/.test(plan),
-    implementationProposalNextDocumented:
-      /growth-remediation-implementation-proposal-status/.test(plan),
+    remediationApprovalStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirteenth',
+      'growth-remediation-approval-status',
+    ),
+    implementationProposalNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-implementation-proposal-status',
+    ),
     implementationProposalStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-remediation-implementation-proposal-status.mjs'),
     ),
-    implementationProposalStatusDocumented:
-      /Fourteenth Implemented Slice: `growth-remediation-implementation-proposal-status`/.test(
-        plan,
-      ),
-    implementationReviewNextDocumented:
-      /growth-remediation-source-mutation-request-status/.test(plan),
+    implementationProposalStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Fourteenth',
+      'growth-remediation-implementation-proposal-status',
+    ),
+    implementationReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-request-status',
+    ),
     sourceMutationRequestStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-remediation-source-mutation-request-status.mjs'),
     ),
-    sourceMutationRequestStatusDocumented:
-      /Nineteenth Implemented Slice: `growth-remediation-source-mutation-request-status`/.test(
-        plan,
-      ),
-    sourceMutationAuthorizationNextDocumented:
-      /growth-remediation-source-mutation-authorization-status/.test(plan),
+    sourceMutationRequestStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Nineteenth',
+      'growth-remediation-source-mutation-request-status',
+    ),
+    sourceMutationAuthorizationNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-authorization-status',
+    ),
     sourceMutationAuthorizationStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-remediation-source-mutation-authorization-status.mjs'),
     ),
-    sourceMutationAuthorizationStatusDocumented:
-      /Twentieth Implemented Slice: `growth-remediation-source-mutation-authorization-status`/.test(
-        plan,
-      ),
-    sourceMutationApplicationPreflightNextDocumented:
-      /growth-remediation-source-mutation-application-preflight-status/.test(plan),
+    sourceMutationAuthorizationStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twentieth',
+      'growth-remediation-source-mutation-authorization-status',
+    ),
+    sourceMutationApplicationPreflightNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-application-preflight-status',
+    ),
     sourceMutationApplicationPreflightStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -906,30 +1125,39 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-application-preflight-status.mjs',
       ),
     ),
-    sourceMutationApplicationPreflightStatusDocumented:
-      /Twenty-first Implemented Slice: `growth-remediation-source-mutation-application-preflight-status`/.test(
-        plan,
-      ),
-    sourceMutationDraftNextDocumented:
-      /growth-remediation-source-mutation-draft-status/.test(plan),
+    sourceMutationApplicationPreflightStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twenty-first',
+      'growth-remediation-source-mutation-application-preflight-status',
+    ),
+    sourceMutationDraftNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-draft-status',
+    ),
     sourceMutationDraftStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-remediation-source-mutation-draft-status.mjs'),
     ),
-    sourceMutationDraftStatusDocumented:
-      /Twenty-second Implemented Slice: `growth-remediation-source-mutation-draft-status`/.test(
-        plan,
-      ),
-    sourceMutationDraftReviewNextDocumented:
-      /growth-remediation-source-mutation-draft-review-status/.test(plan),
+    sourceMutationDraftStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twenty-second',
+      'growth-remediation-source-mutation-draft-status',
+    ),
+    sourceMutationDraftReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-draft-review-status',
+    ),
     sourceMutationDraftReviewStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-remediation-source-mutation-draft-review-status.mjs'),
     ),
-    sourceMutationDraftReviewStatusDocumented:
-      /Twenty-third Implemented Slice: `growth-remediation-source-mutation-draft-review-status`/.test(
-        plan,
-      ),
-    sourceMutationApplyAuthorizationNextDocumented:
-      /growth-remediation-source-mutation-apply-authorization-status/.test(plan),
+    sourceMutationDraftReviewStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twenty-third',
+      'growth-remediation-source-mutation-draft-review-status',
+    ),
+    sourceMutationApplyAuthorizationNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-apply-authorization-status',
+    ),
     sourceMutationApplyAuthorizationStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -937,12 +1165,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-apply-authorization-status.mjs',
       ),
     ),
-    sourceMutationApplyAuthorizationStatusDocumented:
-      /Twenty-fourth Implemented Slice: `growth-remediation-source-mutation-apply-authorization-status`/.test(
-        plan,
-      ),
-    sourceMutationApplyPreflightNextDocumented:
-      /growth-remediation-source-mutation-apply-preflight-status/.test(plan),
+    sourceMutationApplyAuthorizationStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twenty-fourth',
+      'growth-remediation-source-mutation-apply-authorization-status',
+    ),
+    sourceMutationApplyPreflightNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-apply-preflight-status',
+    ),
     sourceMutationApplyPreflightStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -950,12 +1181,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-apply-preflight-status.mjs',
       ),
     ),
-    sourceMutationApplyPreflightStatusDocumented:
-      /Twenty-fifth Implemented Slice: `growth-remediation-source-mutation-apply-preflight-status`/.test(
-        plan,
-      ),
-    sourceMutationApplyExecutionReadinessNextDocumented:
-      /growth-remediation-source-mutation-apply-execution-readiness-status/.test(plan),
+    sourceMutationApplyPreflightStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twenty-fifth',
+      'growth-remediation-source-mutation-apply-preflight-status',
+    ),
+    sourceMutationApplyExecutionReadinessNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-apply-execution-readiness-status',
+    ),
     sourceMutationApplyExecutionReadinessStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -963,12 +1197,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-apply-execution-readiness-status.mjs',
       ),
     ),
-    sourceMutationApplyExecutionReadinessStatusDocumented:
-      /Twenty-sixth Implemented Slice: `growth-remediation-source-mutation-apply-execution-readiness-status`/.test(
-        plan,
-      ),
-    sourceMutationApplyDispatchNextDocumented:
-      /growth-remediation-source-mutation-apply-dispatch-status/.test(plan),
+    sourceMutationApplyExecutionReadinessStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twenty-sixth',
+      'growth-remediation-source-mutation-apply-execution-readiness-status',
+    ),
+    sourceMutationApplyDispatchNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-apply-dispatch-status',
+    ),
     sourceMutationApplyDispatchStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -976,12 +1213,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-apply-dispatch-status.mjs',
       ),
     ),
-    sourceMutationApplyDispatchStatusDocumented:
-      /Twenty-seventh Implemented Slice: `growth-remediation-source-mutation-apply-dispatch-status`/.test(
-        plan,
-      ),
-    sourceMutationApplyExecutionNextDocumented:
-      /growth-remediation-source-mutation-apply-execution-status/.test(plan),
+    sourceMutationApplyDispatchStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twenty-seventh',
+      'growth-remediation-source-mutation-apply-dispatch-status',
+    ),
+    sourceMutationApplyExecutionNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-apply-execution-status',
+    ),
     sourceMutationApplyExecutionStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -989,21 +1229,27 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-apply-execution-status.mjs',
       ),
     ),
-    sourceMutationApplyExecutionStatusDocumented:
-      /Twenty-eighth Implemented Slice: `growth-remediation-source-mutation-apply-execution-status`/.test(
-        plan,
-      ),
-    sourceMutationApplyResultNextDocumented:
-      /growth-remediation-source-mutation-apply-result-status/.test(plan),
+    sourceMutationApplyExecutionStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twenty-eighth',
+      'growth-remediation-source-mutation-apply-execution-status',
+    ),
+    sourceMutationApplyResultNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-apply-result-status',
+    ),
     sourceMutationApplyResultStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-remediation-source-mutation-apply-result-status.mjs'),
     ),
-    sourceMutationApplyResultStatusDocumented:
-      /Twenty-ninth Implemented Slice: `growth-remediation-source-mutation-apply-result-status`/.test(
-        plan,
-      ),
-    sourceMutationApplyResultReviewNextDocumented:
-      /growth-remediation-source-mutation-apply-result-review-status/.test(plan),
+    sourceMutationApplyResultStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Twenty-ninth',
+      'growth-remediation-source-mutation-apply-result-status',
+    ),
+    sourceMutationApplyResultReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-apply-result-review-status',
+    ),
     sourceMutationApplyResultReviewStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1011,12 +1257,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-apply-result-review-status.mjs',
       ),
     ),
-    sourceMutationApplyResultReviewStatusDocumented:
-      /Thirtieth Implemented Slice: `growth-remediation-source-mutation-apply-result-review-status`/.test(
-        plan,
-      ),
-    sourceMutationApplyResultAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-apply-result-acceptance-status/.test(plan),
+    sourceMutationApplyResultReviewStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirtieth',
+      'growth-remediation-source-mutation-apply-result-review-status',
+    ),
+    sourceMutationApplyResultAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-apply-result-acceptance-status',
+    ),
     sourceMutationApplyResultAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1024,12 +1273,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-apply-result-acceptance-status.mjs',
       ),
     ),
-    sourceMutationApplyResultAcceptanceStatusDocumented:
-      /Thirty-first Implemented Slice: `growth-remediation-source-mutation-apply-result-acceptance-status`/.test(
-        plan,
-      ),
-    sourceMutationApplyClosureNextDocumented:
-      /growth-remediation-source-mutation-apply-closure-status/.test(plan),
+    sourceMutationApplyResultAcceptanceStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirty-first',
+      'growth-remediation-source-mutation-apply-result-acceptance-status',
+    ),
+    sourceMutationApplyClosureNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-apply-closure-status',
+    ),
     sourceMutationApplyClosureStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1037,12 +1289,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-apply-closure-status.mjs',
       ),
     ),
-    sourceMutationApplyClosureStatusDocumented:
-      /Thirty-second Implemented Slice: `growth-remediation-source-mutation-apply-closure-status`/.test(
-        plan,
-      ),
-    sourceMutationApplyFinalizationNextDocumented:
-      /growth-remediation-source-mutation-apply-finalization-status/.test(plan),
+    sourceMutationApplyClosureStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirty-second',
+      'growth-remediation-source-mutation-apply-closure-status',
+    ),
+    sourceMutationApplyFinalizationNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-apply-finalization-status',
+    ),
     sourceMutationApplyFinalizationStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1050,12 +1305,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-apply-finalization-status.mjs',
       ),
     ),
-    sourceMutationApplyFinalizationStatusDocumented:
-      /Thirty-third Implemented Slice: `growth-remediation-source-mutation-apply-finalization-status`/.test(
-        plan,
-      ),
-    sourceMutationPostApplyAuditNextDocumented:
-      /growth-remediation-source-mutation-post-apply-audit-status/.test(plan),
+    sourceMutationApplyFinalizationStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirty-third',
+      'growth-remediation-source-mutation-apply-finalization-status',
+    ),
+    sourceMutationPostApplyAuditNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-post-apply-audit-status',
+    ),
     sourceMutationPostApplyAuditStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1063,12 +1321,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-post-apply-audit-status.mjs',
       ),
     ),
-    sourceMutationPostApplyAuditStatusDocumented:
-      /Thirty-fourth Implemented Slice: `growth-remediation-source-mutation-post-apply-audit-status`/.test(
-        plan,
-      ),
-    sourceMutationPostApplyAuditReviewNextDocumented:
-      /growth-remediation-source-mutation-post-apply-audit-review-status/.test(plan),
+    sourceMutationPostApplyAuditStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirty-fourth',
+      'growth-remediation-source-mutation-post-apply-audit-status',
+    ),
+    sourceMutationPostApplyAuditReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-post-apply-audit-review-status',
+    ),
     sourceMutationPostApplyAuditReviewStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1076,14 +1337,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-post-apply-audit-review-status.mjs',
       ),
     ),
-    sourceMutationPostApplyAuditReviewStatusDocumented:
-      /Thirty-fifth Implemented Slice: `growth-remediation-source-mutation-post-apply-audit-review-status`/.test(
-        plan,
-      ),
-    sourceMutationPostApplyAuditReviewAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-post-apply-audit-review-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationPostApplyAuditReviewStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirty-fifth',
+      'growth-remediation-source-mutation-post-apply-audit-review-status',
+    ),
+    sourceMutationPostApplyAuditReviewAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-post-apply-audit-review-acceptance-status',
+    ),
     sourceMutationPostApplyAuditReviewAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1091,21 +1353,27 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-post-apply-audit-review-acceptance-status.mjs',
       ),
     ),
-    sourceMutationPostApplyAuditReviewAcceptanceStatusDocumented:
-      /Thirty-sixth Implemented Slice: `growth-remediation-source-mutation-post-apply-audit-review-acceptance-status`/.test(
-        plan,
-      ),
-    sourceMutationCompletionNextDocumented:
-      /growth-remediation-source-mutation-completion-status/.test(plan),
+    sourceMutationPostApplyAuditReviewAcceptanceStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirty-sixth',
+      'growth-remediation-source-mutation-post-apply-audit-review-acceptance-status',
+    ),
+    sourceMutationCompletionNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-completion-status',
+    ),
     sourceMutationCompletionStatusScriptPresent: fs.existsSync(
       path.join(repoRoot, 'scripts', 'growth-remediation-source-mutation-completion-status.mjs'),
     ),
-    sourceMutationCompletionStatusDocumented:
-      /Thirty-seventh Implemented Slice: `growth-remediation-source-mutation-completion-status`/.test(
-        plan,
-      ),
-    sourceMutationCompletionReviewNextDocumented:
-      /growth-remediation-source-mutation-completion-review-status/.test(plan),
+    sourceMutationCompletionStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirty-seventh',
+      'growth-remediation-source-mutation-completion-status',
+    ),
+    sourceMutationCompletionReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-completion-review-status',
+    ),
     sourceMutationCompletionReviewStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1113,12 +1381,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-completion-review-status.mjs',
       ),
     ),
-    sourceMutationCompletionReviewStatusDocumented:
-      /Thirty-eighth Implemented Slice: `growth-remediation-source-mutation-completion-review-status`/.test(
-        plan,
-      ),
-    sourceMutationCompletionReviewAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-completion-review-acceptance-status/.test(plan),
+    sourceMutationCompletionReviewStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirty-eighth',
+      'growth-remediation-source-mutation-completion-review-status',
+    ),
+    sourceMutationCompletionReviewAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-completion-review-acceptance-status',
+    ),
     sourceMutationCompletionReviewAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1126,12 +1397,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-completion-review-acceptance-status.mjs',
       ),
     ),
-    sourceMutationCompletionReviewAcceptanceStatusDocumented:
-      /Thirty-ninth Implemented Slice: `growth-remediation-source-mutation-completion-review-acceptance-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-status/.test(plan),
+    sourceMutationCompletionReviewAcceptanceStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Thirty-ninth',
+      'growth-remediation-source-mutation-completion-review-acceptance-status',
+    ),
+    sourceMutationLifecycleCloseoutNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-status',
+    ),
     sourceMutationLifecycleCloseoutStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1139,12 +1413,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutStatusDocumented:
-      /Fortieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutReviewNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-review-status/.test(plan),
+    sourceMutationLifecycleCloseoutStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Fortieth',
+      'growth-remediation-source-mutation-lifecycle-closeout-status',
+    ),
+    sourceMutationLifecycleCloseoutReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-review-status',
+    ),
     sourceMutationLifecycleCloseoutReviewStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1152,12 +1429,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-review-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutReviewStatusDocumented:
-      /Forty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-review-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutReviewAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-review-acceptance-status/.test(plan),
+    sourceMutationLifecycleCloseoutReviewStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Forty-first',
+      'growth-remediation-source-mutation-lifecycle-closeout-review-status',
+    ),
+    sourceMutationLifecycleCloseoutReviewAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-review-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutReviewAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1165,14 +1445,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-review-acceptance-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutReviewAcceptanceStatusDocumented:
-      /Forty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-review-acceptance-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutClosureReadinessNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-readiness-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutReviewAcceptanceStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Forty-second',
+      'growth-remediation-source-mutation-lifecycle-closeout-review-acceptance-status',
+    ),
+    sourceMutationLifecycleCloseoutClosureReadinessNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-readiness-status',
+    ),
     sourceMutationLifecycleCloseoutClosureReadinessStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1180,14 +1461,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-closure-readiness-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutClosureReadinessStatusDocumented:
-      /Forty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-readiness-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutClosureAuthorizationNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-authorization-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureReadinessStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Forty-third',
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-readiness-status',
+    ),
+    sourceMutationLifecycleCloseoutClosureAuthorizationNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-authorization-status',
+    ),
     sourceMutationLifecycleCloseoutClosureAuthorizationStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1195,14 +1477,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-closure-authorization-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutClosureAuthorizationStatusDocumented:
-      /Forty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-authorization-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutClosureExecutionReadinessNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureAuthorizationStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Forty-fourth',
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-authorization-status',
+    ),
+    sourceMutationLifecycleCloseoutClosureExecutionReadinessNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status',
+    ),
     sourceMutationLifecycleCloseoutClosureExecutionReadinessStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1211,13 +1494,15 @@ function summarizeSources(sources) {
       ),
     ),
     sourceMutationLifecycleCloseoutClosureExecutionReadinessStatusDocumented:
-      /Forty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Forty-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-readiness-status',
       ),
-    sourceMutationLifecycleCloseoutClosureDispatchNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureDispatchNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status',
+    ),
     sourceMutationLifecycleCloseoutClosureDispatchStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1225,14 +1510,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutClosureDispatchStatusDocumented:
-      /Forty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutClosureExecutionNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-execution-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureDispatchStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Forty-sixth',
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-dispatch-status',
+    ),
+    sourceMutationLifecycleCloseoutClosureExecutionNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-status',
+    ),
     sourceMutationLifecycleCloseoutClosureExecutionStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1240,12 +1526,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutClosureExecutionStatusDocumented:
-      /Forty-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-execution-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutClosureResultNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-result-status/.test(plan),
+    sourceMutationLifecycleCloseoutClosureExecutionStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Forty-seventh',
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-execution-status',
+    ),
+    sourceMutationLifecycleCloseoutClosureResultNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-result-status',
+    ),
     sourceMutationLifecycleCloseoutClosureResultStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1253,14 +1542,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-closure-result-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutClosureResultStatusDocumented:
-      /Forty-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-result-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutClosureResultReviewNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureResultStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Forty-eighth',
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-result-status',
+    ),
+    sourceMutationLifecycleCloseoutClosureResultReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-status',
+    ),
     sourceMutationLifecycleCloseoutClosureResultReviewStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1269,13 +1559,15 @@ function summarizeSources(sources) {
       ),
     ),
     sourceMutationLifecycleCloseoutClosureResultReviewStatusDocumented:
-      /Forty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Forty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-status',
       ),
-    sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -1285,13 +1577,15 @@ function summarizeSources(sources) {
         ),
       ),
     sourceMutationLifecycleCloseoutClosureResultReviewAcceptanceStatusDocumented:
-      /Fiftieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Fiftieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-result-review-acceptance-status',
       ),
-    sourceMutationLifecycleCloseoutClosureResultAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureResultAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutClosureResultAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1300,11 +1594,15 @@ function summarizeSources(sources) {
       ),
     ),
     sourceMutationLifecycleCloseoutClosureResultAcceptanceStatusDocumented:
-      /Fifty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Fifty-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-result-acceptance-status',
       ),
-    sourceMutationLifecycleCloseoutClosureNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-status/.test(plan),
+    sourceMutationLifecycleCloseoutClosureNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-status',
+    ),
     sourceMutationLifecycleCloseoutClosureStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1312,12 +1610,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-closure-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutClosureStatusDocumented:
-      /Fifty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutClosureReviewNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-review-status/.test(plan),
+    sourceMutationLifecycleCloseoutClosureStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Fifty-second',
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-status',
+    ),
+    sourceMutationLifecycleCloseoutClosureReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-review-status',
+    ),
     sourceMutationLifecycleCloseoutClosureReviewStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1325,14 +1626,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-closure-review-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutClosureReviewStatusDocumented:
-      /Fifty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-review-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutClosureReviewAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureReviewStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Fifty-third',
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-review-status',
+    ),
+    sourceMutationLifecycleCloseoutClosureReviewAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutClosureReviewAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1341,13 +1643,15 @@ function summarizeSources(sources) {
       ),
     ),
     sourceMutationLifecycleCloseoutClosureReviewAcceptanceStatusDocumented:
-      /Fifty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Fifty-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-review-acceptance-status',
       ),
-    sourceMutationLifecycleCloseoutClosureAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutClosureAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1355,14 +1659,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutClosureAcceptanceStatusDocumented:
-      /Fifty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutClosureFinalizationNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureAcceptanceStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Fifty-fifth',
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-acceptance-status',
+    ),
+    sourceMutationLifecycleCloseoutClosureFinalizationNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-status',
+    ),
     sourceMutationLifecycleCloseoutClosureFinalizationStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1371,13 +1676,15 @@ function summarizeSources(sources) {
       ),
     ),
     sourceMutationLifecycleCloseoutClosureFinalizationStatusDocumented:
-      /Fifty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Fifty-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-status',
       ),
-    sourceMutationLifecycleCloseoutClosureFinalizationReviewNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureFinalizationReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status',
+    ),
     sourceMutationLifecycleCloseoutClosureFinalizationReviewStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1386,13 +1693,15 @@ function summarizeSources(sources) {
       ),
     ),
     sourceMutationLifecycleCloseoutClosureFinalizationReviewStatusDocumented:
-      /Fifty-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Fifty-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-status',
       ),
-    sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1401,13 +1710,15 @@ function summarizeSources(sources) {
       ),
     ),
     sourceMutationLifecycleCloseoutClosureFinalizationReviewAcceptanceStatusDocumented:
-      /Fifty-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Fifty-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-review-acceptance-status',
       ),
-    sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1416,13 +1727,15 @@ function summarizeSources(sources) {
       ),
     ),
     sourceMutationLifecycleCloseoutClosureFinalizationAcceptanceStatusDocumented:
-      /Fifty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Fifty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-finalization-acceptance-status',
       ),
-    sourceMutationLifecycleCloseoutClosureFinalCloseNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-final-close-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureFinalCloseNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-final-close-status',
+    ),
     sourceMutationLifecycleCloseoutClosureFinalCloseStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1430,14 +1743,15 @@ function summarizeSources(sources) {
         'growth-remediation-source-mutation-lifecycle-closeout-closure-final-close-status.mjs',
       ),
     ),
-    sourceMutationLifecycleCloseoutClosureFinalCloseStatusDocumented:
-      /Sixtieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-final-close-status`/.test(
-        plan,
-      ),
-    sourceMutationLifecycleCloseoutClosureLifecycleCloseNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureFinalCloseStatusDocumented: implementedSliceDocumented(
+      plan,
+      'Sixtieth',
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-final-close-status',
+    ),
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
+    ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1446,13 +1760,15 @@ function summarizeSources(sources) {
       ),
     ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusDocumented:
-      /Sixty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Sixty-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
       ),
-    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
+    ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusScriptPresent: fs.existsSync(
       path.join(
         repoRoot,
@@ -1461,29 +1777,37 @@ function summarizeSources(sources) {
       ),
     ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusDocumented:
-      /Sixty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Sixty-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewRecheckDocumented:
-      /Seventy-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck`/.test(
+      implementedSliceDocumented(
         plan,
+        'Seventy-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-readonly-post-m7-878/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-readonly-post-m7-878',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseRecheckDocumented:
-      /Eightieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close`/.test(
+      implementedSliceDocumented(
         plan,
+        'Eightieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-readonly-post-m7-887/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-readonly-post-m7-887',
       ),
-    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -1493,29 +1817,37 @@ function summarizeSources(sources) {
         ),
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusDocumented:
-      /Sixty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Sixty-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceRecheckDocumented:
-      /Seventy-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck`/.test(
+      implementedSliceDocumented(
         plan,
+        'Seventy-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-readonly-post-m7-879/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-readonly-post-m7-879',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewRecheckDocumented:
-      /Eighty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review`/.test(
+      implementedSliceDocumented(
         plan,
+        'Eighty-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-readonly-post-m7-888/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-readonly-post-m7-888',
       ),
-    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -1525,29 +1857,37 @@ function summarizeSources(sources) {
         ),
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusDocumented:
-      /Sixty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Sixty-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRecheckDocumented:
-      /Seventy-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck`/.test(
+      implementedSliceDocumented(
         plan,
+        'Seventy-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-readonly-post-m7-880/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-readonly-post-m7-880',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceRecheckDocumented:
-      /Eighty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Eighty-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-readonly-post-m7-889/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-readonly-post-m7-889',
       ),
-    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+    ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -1557,29 +1897,37 @@ function summarizeSources(sources) {
         ),
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusDocumented:
-      /Sixty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Sixty-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationRecheckDocumented:
-      /Seventy-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck`/.test(
+      implementedSliceDocumented(
         plan,
+        'Seventy-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-readonly-post-m7-881/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-readonly-post-m7-881',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceRecheckDocumented:
-      /Eighty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Eighty-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-readonly-post-m7-890/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-readonly-post-m7-890',
       ),
-    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
+    ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -1589,29 +1937,37 @@ function summarizeSources(sources) {
         ),
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusDocumented:
-      /Sixty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Sixty-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewRecheckDocumented:
-      /Seventy-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck`/.test(
+      implementedSliceDocumented(
         plan,
+        'Seventy-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-readonly-post-m7-882/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-readonly-post-m7-882',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationRecheckDocumented:
-      /Eighty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization`/.test(
+      implementedSliceDocumented(
         plan,
+        'Eighty-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-readonly-post-m7-891/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-readonly-post-m7-891',
       ),
-    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -1621,29 +1977,37 @@ function summarizeSources(sources) {
         ),
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusDocumented:
-      /Sixty-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Sixty-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceRecheckDocumented:
-      /Seventy-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck`/.test(
+      implementedSliceDocumented(
         plan,
+        'Seventy-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-readonly-post-m7-883/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-readonly-post-m7-883',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewRecheckDocumented:
-      /Eighty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review`/.test(
+      implementedSliceDocumented(
         plan,
+        'Eighty-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-readonly-post-m7-892/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-readonly-post-m7-892',
       ),
-    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
+    ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -1653,981 +2017,1346 @@ function summarizeSources(sources) {
         ),
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusDocumented:
-      /Sixty-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Sixty-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceRecheckDocumented:
-      /Seventy-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck`/.test(
+      implementedSliceDocumented(
         plan,
+        'Seventy-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-readonly-post-m7-884/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-readonly-post-m7-884',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceRecheckDocumented:
-      /Eighty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Eighty-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-readonly-post-m7-893/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-readonly-post-m7-893',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckDocumented:
-      /Eighty-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Eighty-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-readonly-post-m7-894/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-readonly-post-m7-894',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseAfterFinalizationAcceptanceRecheckDocumented:
-      /Eighty-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Eighty-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseAfterFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-readonly-post-m7-895/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-readonly-post-m7-895',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseAfterFinalizationAcceptanceRecheckDocumented:
-      /Eighty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Eighty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseAfterFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-readonly-post-m7-896/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-readonly-post-m7-896',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceRecheckDocumented:
-      /Ninetieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Ninetieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-readonly-post-m7-897/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-readonly-post-m7-897',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /Ninety-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Ninety-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-readonly-post-m7-898/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-readonly-post-m7-898',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /Ninety-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Ninety-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-readonly-post-m7-899/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-readonly-post-m7-899',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /Ninety-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Ninety-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-readonly-post-m7-900/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-readonly-post-m7-900',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /Ninety-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Ninety-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-readonly-post-m7-901/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-readonly-post-m7-901',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /Ninety-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Ninety-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-readonly-post-m7-902/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-readonly-post-m7-902',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /Ninety-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Ninety-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-readonly-post-m7-903/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-readonly-post-m7-903',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /Ninety-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Ninety-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-readonly-post-m7-904/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-readonly-post-m7-904',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /Ninety-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Ninety-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-readonly-post-m7-905/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-readonly-post-m7-905',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /Ninety-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Ninety-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-readonly-post-m7-906/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-readonly-post-m7-906',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundredth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundredth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-907/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-907',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-908/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-908',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-909/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-909',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-910/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-910',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twelfth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twelfth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-919/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-919',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-thirteenth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirteenth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-920/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-920',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-fourteenth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fourteenth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-921/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-921',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-fifteenth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifteenth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-922/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-922',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-sixteenth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixteenth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-923/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-923',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-seventeenth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventeenth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-924/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-924',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-eighteenth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eighteenth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-925/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-925',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-nineteenth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-nineteenth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-926/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-926',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twentieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twentieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-927/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-927',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twenty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twenty-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-928/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-928',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twenty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twenty-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-929/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-929',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twenty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twenty-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-930/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-930',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twenty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twenty-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-931/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-931',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twenty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twenty-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-932/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-932',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twenty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twenty-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-933/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-933',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twenty-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twenty-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-934/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-934',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twenty-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twenty-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-935/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-935',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-twenty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-twenty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-936/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-936',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-thirtieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirtieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-937/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-937',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-thirty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirty-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-938/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-938',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-thirty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirty-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-939/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-939',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-thirty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirty-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-940/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-940',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-thirty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirty-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-941/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-941',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-thirty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirty-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-942/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-942',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-thirty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirty-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-943/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-943',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-thirty-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirty-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-944/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-944',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-thirty-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirty-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-945/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-945',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewRecheckDocumented:
-      /One-hundred-thirty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-thirty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-946/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-946',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceRecheckDocumented:
-      /One-hundred-fortieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fortieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-947/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-947',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-forty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-forty-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-948/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-948',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseRecheckDocumented:
-      /One-hundred-forty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-forty-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-949/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-949',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseRecheckDocumented:
-      /One-hundred-forty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-forty-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-950/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-950',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewRecheckDocumented:
-      /One-hundred-forty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-forty-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-951/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-951',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceRecheckDocumented:
-      /One-hundred-forty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-forty-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-952/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-952',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceRecheckDocumented:
-      /One-hundred-forty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-forty-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-953/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-953',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationRecheckDocumented:
-      /One-hundred-forty-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-forty-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-954/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-954',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewStatusRecheckDocumented:
-      /One-hundred-forty-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-forty-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-955/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-955',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationReviewStatusRecheckDocumented:
-      /One-hundred-fifty-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifty-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationReviewStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-964/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-finalization-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-964',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewAcceptanceStatusRecheckDocumented:
-      /One-hundred-fifty-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifty-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-965/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-965',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckDocumented:
-      /One-hundred-fifty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-966/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-966',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentFinalCloseStatusRecheckDocumented:
-      /One-hundred-sixtieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixtieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-967/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-967',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusRecheckDocumented:
-      /One-hundred-sixty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixty-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-968/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-968',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentReviewStatusRecheckDocumented:
-      /One-hundred-sixty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixty-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentReviewStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-969/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-969',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentReviewAcceptanceStatusRecheckDocumented:
-      /One-hundred-sixty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixty-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentReviewAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-970/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-970',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentAcceptanceStatusRecheckDocumented:
-      /One-hundred-sixty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixty-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-971/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-971',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentFinalizationStatusRecheckDocumented:
-      /One-hundred-sixty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixty-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentFinalizationStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-972/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-972',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusRecheckDocumented:
-      /One-hundred-sixty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixty-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-973/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-973',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusRecheckDocumented:
-      /One-hundred-sixty-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixty-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-974/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-974',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusRecheckDocumented:
-      /One-hundred-sixty-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixty-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-975/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-975',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusRecheckDocumented:
-      /One-hundred-sixty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-976/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-976',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainRecheckDocumented:
-      /One-hundred-seventieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-977/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-977',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainRecheckDocumented:
-      /One-hundred-seventy-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventy-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-978/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-978',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainRecheckDocumented:
-      /One-hundred-seventy-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventy-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-979/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-979',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainRecheckDocumented:
-      /One-hundred-seventy-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventy-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-980/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-980',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainRecheckDocumented:
-      /One-hundred-seventy-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventy-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-981/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-981',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainRecheckDocumented:
-      /One-hundred-seventy-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventy-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-982/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-982',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainRecheckDocumented:
-      /One-hundred-seventy-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventy-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-983/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-983',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainRecheckDocumented:
-      /One-hundred-seventy-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventy-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-984/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-984',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainRecheckDocumented:
-      /One-hundred-seventy-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventy-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-985/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-985',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainRecheckDocumented:
-      /One-hundred-seventy-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventy-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-986/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-986',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainRecheckDocumented:
-      /One-hundred-eightieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eightieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-987/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-987',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainRecheckDocumented:
-      /One-hundred-eighty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eighty-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-988/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-988',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainRecheckDocumented:
-      /One-hundred-eighty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eighty-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-989/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-989',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainRecheckDocumented:
-      /One-hundred-eighty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eighty-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-990/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-990',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainRecheckDocumented:
-      /One-hundred-eighty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eighty-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-991/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-991',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainRecheckDocumented:
-      /One-hundred-eighty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eighty-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-992/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-992',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainRecheckDocumented:
-      /One-hundred-eighty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eighty-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-993/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-993',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainRecheckDocumented:
-      /One-hundred-eighty-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eighty-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-994/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-994',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckDocumented:
-      /Two-hundred-ninety-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Two-hundred-ninety-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1103/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1103',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckDocumented:
-      /Two-hundred-ninety-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Two-hundred-ninety-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1104/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1104',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckDocumented:
-      /Two-hundred-eighty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Two-hundred-eighty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1096/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1096',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckDocumented:
-      /Two-hundred-ninetieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Two-hundred-ninetieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1097/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1097',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckDocumented:
-      /Two-hundred-ninety-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Two-hundred-ninety-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1098/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1098',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckDocumented:
-      /Two-hundred-ninety-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Two-hundred-ninety-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1099/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1099',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckDocumented:
-      /Two-hundred-ninety-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Two-hundred-ninety-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1100/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1100',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckDocumented:
-      /Two-hundred-ninety-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Two-hundred-ninety-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1101/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1101',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckDocumented:
-      /Three-hundred-sixty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Three-hundred-sixty-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1173/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-lifecycle-close-finalization-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1173',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckDocumented:
-      /Two-hundred-ninety-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Two-hundred-ninety-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1102/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1102',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckDocumented:
-      /Three-hundred-fifty-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Three-hundred-fifty-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1165/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-lifecycle-close-final-close-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1165',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckDocumented:
-      /Three-hundred-fifty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Three-hundred-fifty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1166/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1166',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceStatusRecheckDocumented:
-      /One-hundred-forty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-forty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-956/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-956',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckDocumented:
-      /One-hundred-fiftieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fiftieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-957/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-957',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseStatusRecheckDocumented:
-      /One-hundred-fifty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifty-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-958/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-958',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckDocumented:
-      /One-hundred-fifty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifty-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-959/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-959',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckDocumented:
-      /One-hundred-fifty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifty-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-960/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-960',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckDocumented:
-      /Three-hundred-sixtieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Three-hundred-sixtieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1167/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-lifecycle-close-review-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1167',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckDocumented:
-      /Three-hundred-sixty-first Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Three-hundred-sixty-first',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1168/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-lifecycle-close-review-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1168',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckDocumented:
-      /Three-hundred-sixty-second Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Three-hundred-sixty-second',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1169/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-lifecycle-close-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1169',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckDocumented:
-      /Three-hundred-sixty-third Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Three-hundred-sixty-third',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1170/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-lifecycle-close-finalization-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1170',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckDocumented:
-      /Three-hundred-sixty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Three-hundred-sixty-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1171/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-recheck-after-lifecycle-close-finalization-review-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1171',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckDocumented:
-      /Three-hundred-sixty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'Three-hundred-sixty-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1172/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-lifecycle-close-finalization-review-acceptance-status-current-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-1172',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckDocumented:
-      /One-hundred-fifty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifty-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-961/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-961',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceStatusRecheckDocumented:
-      /One-hundred-fifty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifty-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-962/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-962',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationStatusRecheckDocumented:
-      /One-hundred-fifty-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifty-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationStatusRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-963/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-963',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fourth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-911/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-911',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-fifth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-912/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-912',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-sixth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-sixth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-913/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-913',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-seventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-seventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-914/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-914',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-915/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-915',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-916/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-916',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-tenth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-tenth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-917/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-917',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented:
-      /One-hundred-eleventh Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance`/.test(
+      implementedSliceDocumented(
         plan,
+        'One-hundred-eleventh',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-918/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-readonly-post-m7-918',
       ),
-    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseNextDocumented:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status/.test(
-        plan,
-      ),
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseNextDocumented: planMentionsSlice(
+      plan,
+      'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
+    ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusScriptPresent:
       fs.existsSync(
         path.join(
@@ -2637,34 +3366,45 @@ function summarizeSources(sources) {
         ),
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusDocumented:
-      /Sixty-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status`/.test(
+      implementedSliceDocumented(
         plan,
+        'Sixty-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheckDocumented:
-      /Seventy-eighth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck`/.test(
+      implementedSliceDocumented(
         plan,
+        'Seventy-eighth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-readonly-post-m7-885/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-recheck-readonly-post-m7-885',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseRecheckDocumented:
-      /Seventieth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck`/.test(
+      implementedSliceDocumented(
         plan,
+        'Seventieth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-readonly-post-m7-877/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-readonly-post-m7-877',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseRecheckDocumented:
-      /Seventy-ninth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close`/.test(
+      implementedSliceDocumented(
         plan,
+        'Seventy-ninth',
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close',
       ),
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseRecheckLedgered:
-      /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-readonly-post-m7-886/.test(
+      taskLedgerMentionsSlice(
         todo,
+        'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-recheck-after-final-close-readonly-post-m7-886',
       ),
-    decisionAccepted: /### DEC-047/.test(decisionLog),
+    decisionAccepted: sourceMentions(decisionLog, '### DEC-047'),
   };
 }
 
@@ -2957,60 +3697,11 @@ function buildImprovementCandidates({ runtimeSummaries, sourceSummary }) {
 const sources = SOURCE_FILES.map(readSource);
 const sourceSummary = summarizeSources(sources);
 
-function sourceSummaryStatusRegistered(statusKey) {
+function sourceSummaryEvidenceRecorded(evidenceKey) {
   return (
-    sourceSummaryStatusImplemented(sourceSummary, statusKey) &&
-    sourceSummary[`${statusKey}AggregateRegistered`]
+    sourceSummary[`${evidenceKey}Documented`] &&
+    sourceSummary[`${evidenceKey}Ledgered`]
   );
-}
-
-function sourceSummaryStatusRegisteredAfter(previousStatusRegistered, statusKey) {
-  return previousStatusRegistered && sourceSummaryStatusRegistered(statusKey);
-}
-
-function sourceSummaryStatusRegistrationChain(statusKeys) {
-  let previousStatusRegistered = true;
-
-  return Object.fromEntries(
-    statusKeys.map((statusKey) => {
-      const statusRegistered = sourceSummaryStatusRegisteredAfter(
-        previousStatusRegistered,
-        statusKey,
-      );
-      previousStatusRegistered = statusRegistered;
-      return [statusKey, statusRegistered];
-    }),
-  );
-}
-
-function growthEvidenceLedgerStatusKey(statusName = '') {
-  return `growthEvidenceLedger${statusName}Status`;
-}
-
-function growthEvidenceLedgerStatusKeysAfterBase(statusNames) {
-  return [
-    growthEvidenceLedgerStatusKey(),
-    ...statusNames.map(growthEvidenceLedgerStatusKey),
-  ];
-}
-
-function proposalRecordReviewAcceptanceStatusStep(statusName) {
-  return `ProposalRecordDryRunReviewAcceptance${statusName}`;
-}
-
-function proposalRecordFinalizationReviewAcceptanceSteps(finalizationReviewCycleCount) {
-  const stepNames = ['Finalization'];
-  const finalizationCycleSteps = ['Review', 'Acceptance', 'Finalization'];
-  let currentStepName = stepNames[0];
-
-  for (let cycleIndex = 0; cycleIndex < finalizationReviewCycleCount; cycleIndex += 1) {
-    for (const cycleStep of finalizationCycleSteps) {
-      currentStepName = `${currentStepName}${cycleStep}`;
-      stepNames.push(currentStepName);
-    }
-  }
-
-  return stepNames;
 }
 
 const runtimeStateFiles = listRuntimeStateFiles();
@@ -3313,918 +4004,811 @@ const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplem
   );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseRecheckCompleted &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseAfterFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseAfterFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseAfterFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseAfterFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseAfterFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseAfterFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseAfterFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseAfterFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseAfterFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseAfterFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLifecycleCloseFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterReviewFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterReviewAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewRecheckCompleted &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceRecheckCompleted &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceRecheckCompleted &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseRecheckCompleted &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationReviewStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestFinalizationReviewAcceptanceStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckCompleted &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseStatusRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestFinalCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestAcceptanceStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationReviewStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestFinalizationStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationReviewStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationReviewStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationReviewStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationReviewStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewAcceptanceStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentFinalCloseStatusRecheckDocumented &&
-  sourceSummary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentFinalCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentFinalCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentReviewStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentReviewStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentReviewStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentReviewStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentReviewAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentReviewStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentReviewAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentReviewAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentReviewAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentReviewAcceptanceStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentFinalizationStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentAcceptanceStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentFinalizationStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentFinalizationStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentFinalizationStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentFinalizationStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseReviewStatusCurrentChainAgainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterCurrentLifecycleCloseReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterCurrentLifecycleCloseAcceptanceStatusCurrentChainAgainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterCurrentLifecycleCloseFinalizationStatusCurrentChainAgainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentLifecycleCloseFinalizationReviewStatusCurrentChainAgainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterCurrentLifecycleCloseFinalizationReviewAcceptanceStatusCurrentChainAgainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterCurrentLifecycleCloseFinalizationAcceptanceStatusCurrentChainAgainAgainRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusCurrentChainAgainAgainRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheck',
+  );
 const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceStatusImplemented &&
   sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckDocumented &&
-  sourceSummary
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckLedgered;
+  sourceSummaryEvidenceRecorded(
+    'sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheck',
+  );
 const reflectionEvaluatorNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-reflection-evaluator',
   reason:
@@ -4675,327 +5259,213 @@ const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinaliz
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLifecycleCloseFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLifecycleCloseFinalizationAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterReviewFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterReviewFinalizationAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationReviewAcceptanceFinalizationAcceptanceRecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalCloseFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalCloseFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLifecycleCloseFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLifecycleCloseFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain6RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain5RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain4RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterFinalizationAcceptanceChain3RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
 });
-const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyNextSlice({
+const sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterFinalizationAcceptanceChain2RecheckModelingNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
 });
-function firstPendingNextSlice(routes) {
-  for (const route of routes) {
-    if (!route.ready) {
-      return route.nextSlice;
-    }
-  }
-
-  return null;
-}
-
-function firstReadyNextSlice(routes) {
-  for (const route of routes) {
-    if (route.ready) {
-      return route.nextSlice;
-    }
-  }
-
-  return null;
-}
-
 function routesFromPairs(routePairs) {
   return routePairs.map(([ready, nextSlice]) => ({ ready, nextSlice }));
-}
-
-function nextSlicesFromRoutes(routes) {
-  return routes.map((route) => route.nextSlice);
-}
-
-function reversedWorkstreamIdsFromNextSlices(nextSlices) {
-  return nextSlices.map((nextSlice) => nextSlice.id).reverse();
-}
-
-function reversedWorkstreamIdsFromRoutes(routes) {
-  return reversedWorkstreamIdsFromNextSlices(nextSlicesFromRoutes(routes));
 }
 
 const foundationRoutes = routesFromPairs([
@@ -5497,28 +5967,49 @@ const finalizationAcceptanceChain6TerminalRoutes = routesFromPairs([
   ],
 ]);
 
-const nextRecommendedSlice =
-  firstPendingNextSlice(foundationRoutes) ||
-  firstPendingNextSlice(sourceMutationRoutes) ||
-  firstPendingNextSlice(postApplyAuditRoutes) ||
-  firstPendingNextSlice(closurePreludeRoutes) ||
-  firstPendingNextSlice(lifecycleCloseRoutes) ||
-  firstPendingNextSlice(lifecycleCloseRecheckRoutes) ||
-  firstPendingNextSlice(lifecycleCloseAfterFinalCloseRecheckRoutes) ||
-  firstPendingNextSlice(finalizationAcceptanceRecheckRoutes) ||
-  firstPendingNextSlice(finalizationAcceptanceChain2RecheckRoutes) ||
-  firstPendingNextSlice(finalizationAcceptanceChain3RecheckRoutes) ||
-  firstPendingNextSlice(finalizationAcceptanceChain4RecheckRoutes) ||
-  firstPendingNextSlice(finalizationAcceptanceChain5RecheckRoutes) ||
-  firstPendingNextSlice(finalizationAcceptanceChain6TerminalRoutes) ||
+const nextRecommendedSliceRouteGroups = [
+  foundationRoutes,
+  sourceMutationRoutes,
+  postApplyAuditRoutes,
+  closurePreludeRoutes,
+  lifecycleCloseRoutes,
+  lifecycleCloseRecheckRoutes,
+  lifecycleCloseAfterFinalCloseRecheckRoutes,
+  finalizationAcceptanceRecheckRoutes,
+  finalizationAcceptanceChain2RecheckRoutes,
+  finalizationAcceptanceChain3RecheckRoutes,
+  finalizationAcceptanceChain4RecheckRoutes,
+  finalizationAcceptanceChain5RecheckRoutes,
+  finalizationAcceptanceChain6TerminalRoutes,
+];
+
+let nextRecommendedSlice =
   sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterFinalizationAcceptanceChain6RecheckModelingNextSlice;
+
+for (const routes of nextRecommendedSliceRouteGroups) {
+  const nextUnreadyRoute = routes.find((route) => !route.ready);
+
+  if (!nextUnreadyRoute) {
+    continue;
+  }
+
+  const nextSlice = nextUnreadyRoute.nextSlice;
+
+  if (nextSlice) {
+    nextRecommendedSlice = nextSlice;
+    break;
+  }
+}
+
+const currentBranchLine =
+  (runGitOrNull(['status', '--short', '--branch']) || '').split('\n')[0] || '';
 
 const payload = {
   ok,
   mode: 'growth-engine-status',
-    posture: 'local-read-only-growth-foundation',
+  posture: 'local-read-only-growth-foundation',
   currentHead: {
-    branchLine: (runGitOrNull(['status', '--short', '--branch']) || '').split('\n')[0] || '',
+    branchLine: currentBranchLine,
     head: runGitOrNull(['rev-parse', 'HEAD']),
     shortHead: runGitOrNull(['rev-parse', '--short', 'HEAD']),
   },
@@ -5601,14 +6092,6 @@ function setPayloadNextRecommendedSlice(nextSlice) {
   payload.hermesEngine.nextEngineSlice = nextSlice.id;
 }
 
-function applyPayloadNextRecommendedSliceRoutes(routes) {
-  for (const route of routes) {
-    if (route.ready) {
-      setPayloadNextRecommendedSlice(route.nextSlice);
-    }
-  }
-}
-
 function readOnlyNextSlice(nextSlice) {
   return {
     ...nextSlice,
@@ -5646,285 +6129,213 @@ function readOnlyQueueBackedStatusScriptNextSlice({ id, commandId = id, reason }
   });
 }
 
-const lifecycleCloseAcceptanceAfterReviewAcceptanceRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseAcceptanceAfterReviewAcceptanceRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after lifecycle close review status recheck-after-lifecycle-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const lifecycleCloseFinalizationAfterAcceptanceRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationAfterAcceptanceRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
 });
-const lifecycleCloseFinalizationReviewAfterFinalizationRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationReviewAfterFinalizationRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
 });
-const lifecycleCloseFinalizationReviewAcceptanceAfterReviewRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationReviewAcceptanceAfterReviewRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const lifecycleCloseFinalizationAcceptanceAfterReviewAcceptanceRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationAcceptanceAfterReviewAcceptanceRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
 });
-const lifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalCloseAfterFinalizationAcceptanceRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after lifecycle close finalization review acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseAfterFinalCloseRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseAfterFinalCloseRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after lifecycle close finalization acceptance status recheck-after-finalization-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseReviewAfterLifecycleCloseRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseReviewAfterLifecycleCloseRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after lifecycle close final-close status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseReviewAcceptanceAfterLifecycleCloseRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseReviewAcceptanceAfterLifecycleCloseRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after lifecycle close status recheck-after-final-close-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationAfterLatestReviewAcceptanceRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationAfterLatestReviewAcceptanceRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after lifecycle close review acceptance status recheck-after-review-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationReviewAfterLatestAcceptanceRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationReviewAfterLatestAcceptanceRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after lifecycle close acceptance status recheck-after-review-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationReviewAcceptanceAfterLatestFinalizationRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after lifecycle close finalization status recheck-after-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationAcceptanceAfterLatestReviewAcceptanceRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationAcceptanceAfterLatestReviewAcceptanceRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after lifecycle close finalization review status recheck-after-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance-finalization-acceptance modeling; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalCloseAfterLatestFinalizationAcceptanceStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseAfterLatestFinalCloseStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseAfterLatestFinalCloseStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseReviewAfterLatestLifecycleCloseStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseReviewAcceptanceAfterLatestReviewStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseAcceptanceAfterLatestReviewAcceptanceStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationAfterCurrentReviewAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationAfterCurrentReviewAcceptanceStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationReviewAfterCurrentAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationReviewAfterCurrentAcceptanceStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationAcceptanceAfterCurrentFinalizationReviewStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalCloseAfterCurrentFinalizationAcceptanceStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseAfterCurrentFinalCloseStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseAfterCurrentFinalCloseStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseReviewAfterCurrentFinalCloseStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseReviewAfterCurrentFinalCloseStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseReviewAcceptanceAfterCurrentLifecycleCloseStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseAcceptanceAfterCurrentReviewStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseAcceptanceAfterCurrentReviewStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status without lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseReviewBeforeCurrentFinalCloseStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseReviewBeforeCurrentFinalCloseStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseReviewAcceptanceBeforeCurrentLifecycleCloseStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseReviewAcceptanceBeforeCurrentLifecycleCloseStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseAcceptanceBeforeCurrentReviewStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseAcceptanceBeforeCurrentReviewStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationBeforeCurrentReviewAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationBeforeCurrentReviewAcceptanceStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationReviewBeforeCurrentAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationReviewBeforeCurrentAcceptanceStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationReviewAcceptanceBeforeCurrentFinalizationStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationReviewAcceptanceBeforeCurrentFinalizationStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalizationAcceptanceBeforeCurrentFinalizationReviewStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalizationAcceptanceBeforeCurrentFinalizationReviewStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseFinalCloseBeforeCurrentFinalizationAcceptanceStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseFinalCloseBeforeCurrentFinalizationAcceptanceStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
 });
 
-const lifecycleCloseBeforeCurrentFinalCloseStatusRecheckNextSlice = readOnlyNextSlice({
+const lifecycleCloseBeforeCurrentFinalCloseStatusRecheckNextSlice = readOnlyStatusScriptNextSlice({
   id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-  commandToAdd:
-    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
   reason:
     'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
 });
@@ -5971,8 +6382,6 @@ const firstLifecycleClosePayloadRoutes = routesFromPairs([
     lifecycleCloseAcceptanceAfterReviewAcceptanceRecheckNextSlice,
   ],
 ]);
-
-applyPayloadNextRecommendedSliceRoutes(firstLifecycleClosePayloadRoutes);
 
 const latestLifecycleClosePayloadRoutes = routesFromPairs([
   [
@@ -6025,8 +6434,6 @@ const latestLifecycleClosePayloadRoutes = routesFromPairs([
   ],
 ]);
 
-applyPayloadNextRecommendedSliceRoutes(latestLifecycleClosePayloadRoutes);
-
 const currentLifecycleClosePayloadRoutes = routesFromPairs([
   [
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterCurrentFinalizationReviewStatusRecheckCompleted,
@@ -6078,8 +6485,6 @@ const currentLifecycleClosePayloadRoutes = routesFromPairs([
   ],
 ]);
 
-applyPayloadNextRecommendedSliceRoutes(currentLifecycleClosePayloadRoutes);
-
 const currentChainLifecycleClosePayloadRoutes = routesFromPairs([
   [
     sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterCurrentLifecycleCloseFinalCloseStatusRecheckCompleted,
@@ -6123,8 +6528,6 @@ const currentChainLifecycleClosePayloadRoutes = routesFromPairs([
   ],
 ]);
 
-applyPayloadNextRecommendedSliceRoutes(currentChainLifecycleClosePayloadRoutes);
-
 const currentChainAgainLifecycleClosePayloadRoutes = routesFromPairs([
   [
     sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterCurrentLifecycleCloseStatusCurrentChainAgainRecheckCompleted,
@@ -6163,8 +6566,6 @@ const currentChainAgainLifecycleClosePayloadRoutes = routesFromPairs([
     lifecycleCloseReviewBeforeCurrentFinalCloseStatusRecheckNextSlice,
   ],
 ]);
-
-applyPayloadNextRecommendedSliceRoutes(currentChainAgainLifecycleClosePayloadRoutes);
 
 const currentChainAgainAgainLifecycleClosePayloadRoutes = routesFromPairs([
   [
@@ -6205,8 +6606,6 @@ const currentChainAgainAgainLifecycleClosePayloadRoutes = routesFromPairs([
   ],
 ]);
 
-applyPayloadNextRecommendedSliceRoutes(currentChainAgainAgainLifecycleClosePayloadRoutes);
-
 const latestLifecycleCloseCurrentFinalClosePayloadRoutes = routesFromPairs([
   [
     sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted,
@@ -6246,117 +6645,186 @@ const latestLifecycleCloseCurrentFinalClosePayloadRoutes = routesFromPairs([
   ],
 ]);
 
-applyPayloadNextRecommendedSliceRoutes(latestLifecycleCloseCurrentFinalClosePayloadRoutes);
-
 const latestLifecycleCloseCurrentFinalClosePayloadTailRoutes =
   latestLifecycleCloseCurrentFinalClosePayloadRoutes.slice(0, 3);
 
-applyPayloadNextRecommendedSliceRoutes(latestLifecycleCloseCurrentFinalClosePayloadTailRoutes);
+const lifecycleClosePayloadRouteGroups = [
+  firstLifecycleClosePayloadRoutes,
+  latestLifecycleClosePayloadRoutes,
+  currentLifecycleClosePayloadRoutes,
+  currentChainLifecycleClosePayloadRoutes,
+  currentChainAgainLifecycleClosePayloadRoutes,
+  currentChainAgainAgainLifecycleClosePayloadRoutes,
+  latestLifecycleCloseCurrentFinalClosePayloadRoutes,
+  latestLifecycleCloseCurrentFinalClosePayloadTailRoutes,
+];
 
-const postCompletionRouterActive =
+for (const routes of lifecycleClosePayloadRouteGroups) {
+  for (const route of routes) {
+    if (route.ready) {
+      setPayloadNextRecommendedSlice(route.nextSlice);
+    }
+  }
+}
+
+const completionBacklogClosed =
   sourceSummary.zeroOpenBacklog &&
-  sourceSummary.completionInventoryClosed &&
+  sourceSummary.completionInventoryClosed;
+const postCompletionRouterReady =
   sourceSummary.growthLoopReadinessDocumented &&
   sourceSummary.postCompletionRouterScriptPresent &&
-  sourceSummary.postCompletionRouterDocumented &&
+  sourceSummary.postCompletionRouterDocumented;
+const plannedGrowthLoopReady =
   sourceSummary.growthEvidenceLedgerPlanned &&
   sourceSummary.reflectionEvaluatorPlanned &&
   sourceSummary.continuousDevelopmentLoopPlanned;
+const postCompletionRouterActive =
+  completionBacklogClosed && postCompletionRouterReady && plannedGrowthLoopReady;
 
 if (postCompletionRouterActive) {
   const lifecycleSupportingSlice = payload.nextRecommendedSlice;
-  const gatewayProposalStatusSteps = [
-    'GatewayRouting',
-    'ReflectionHandoff',
-    'ProposalReadiness',
-    'ProposalQueueHandoff',
+  const finalizationStatusSuffixCycleCount = 5;
+  let currentFinalizationStatusName = 'Finalization';
+  const finalizationStatusNames = [currentFinalizationStatusName];
+  const finalizationStatusSuffixes = ['Review', 'Acceptance', 'Finalization'];
+
+  let remainingSuffixCycles = finalizationStatusSuffixCycleCount;
+
+  while (remainingSuffixCycles > 0) {
+    for (const statusSuffix of finalizationStatusSuffixes) {
+      currentFinalizationStatusName += statusSuffix;
+      finalizationStatusNames.push(currentFinalizationStatusName);
+    }
+
+    remainingSuffixCycles -= 1;
+  }
+
+  const registrationStepGroups = {
+    gatewayAndQueue: [
+      'GatewayRouting',
+      'ReflectionHandoff',
+      'ProposalReadiness',
+      'ProposalQueueHandoff',
+    ],
+    dryRun: [
+      'ProposalRecordReadiness',
+      'ProposalRecordReviewGate',
+      'ProposalRecordCreationReadiness',
+      'ProposalRecordDryRunShape',
+      'ProposalRecordDryRunValidation',
+      'ProposalRecordDryRunReview',
+      'ProposalRecordDryRunReviewAcceptance',
+    ],
+    finalizationStatusChain: finalizationStatusNames.map(
+      (finalizationStatusName) =>
+        `ProposalRecordDryRunReviewAcceptance${finalizationStatusName}`,
+    ),
+  };
+  const preparationStatusNames = [
+    ...registrationStepGroups.gatewayAndQueue,
+    ...registrationStepGroups.dryRun,
   ];
-  const proposalRecordDryRunStatusSteps = [
-    'ProposalRecordReadiness',
-    'ProposalRecordReviewGate',
-    'ProposalRecordCreationReadiness',
-    'ProposalRecordDryRunShape',
-    'ProposalRecordDryRunValidation',
-    'ProposalRecordDryRunReview',
-    'ProposalRecordDryRunReviewAcceptance',
+  const sourceStatusNames = [
+    ...preparationStatusNames,
+    ...registrationStepGroups.finalizationStatusChain,
   ];
-  const proposalRecordFinalizationReviewCycleCount = 5;
-  const proposalRecordFinalizationStatusSteps =
-    proposalRecordFinalizationReviewAcceptanceSteps(
-      proposalRecordFinalizationReviewCycleCount,
-    ).map(proposalRecordReviewAcceptanceStatusStep);
-  const proposalRecordSourceStatusSteps = [
-    ...gatewayProposalStatusSteps,
-    ...proposalRecordDryRunStatusSteps,
-    ...proposalRecordFinalizationStatusSteps,
+  const preparationStatusKeys = [
+    'growthEvidenceLedgerStatus',
+    ...preparationStatusNames.map(
+      (preparationStatusName) =>
+        `growthEvidenceLedger${preparationStatusName}Status`,
+    ),
   ];
-  const proposalRecordSourceStatusRegistrationKeys =
-    growthEvidenceLedgerStatusKeysAfterBase(proposalRecordSourceStatusSteps);
-  const proposalRecordSourceStatusRegistration =
-    sourceSummaryStatusRegistrationChain(proposalRecordSourceStatusRegistrationKeys);
+  const sourceStatusKeys = [
+    ...preparationStatusKeys,
+    ...registrationStepGroups.finalizationStatusChain.map(
+      (finalizationStatusName) =>
+        `growthEvidenceLedger${finalizationStatusName}Status`,
+    ),
+  ];
+  let previousStatusRegistered = true;
+  const sourceStatusRegistration = {};
+
+  for (const sourceStatusKey of sourceStatusKeys) {
+    const implemented = sourceSummaryStatusImplemented(
+      sourceSummary,
+      sourceStatusKey,
+    );
+    const aggregateRegistered =
+      sourceSummary[`${sourceStatusKey}AggregateRegistered`];
+    const registered =
+      previousStatusRegistered &&
+      implemented &&
+      aggregateRegistered;
+
+    previousStatusRegistered = registered;
+    sourceStatusRegistration[sourceStatusKey] = registered;
+  }
   const {
-    growthEvidenceLedgerStatus: growthEvidenceLedgerDefinedForGatewayRouting,
-    growthEvidenceLedgerGatewayRoutingStatus: growthGatewayRoutingDefinedForReflectionHandoff,
+    growthEvidenceLedgerStatus: evidenceLedgerReadyForGatewayRouting,
+    growthEvidenceLedgerGatewayRoutingStatus:
+      gatewayRoutingReadyForReflectionHandoff,
     growthEvidenceLedgerReflectionHandoffStatus:
-      growthLoopReflectionHandoffDefinedForProposalReadiness,
-    growthEvidenceLedgerProposalReadinessStatus: proposalReadinessDefinedForQueueHandoff,
+      reflectionHandoffReadyForProposalReadiness,
+    growthEvidenceLedgerProposalReadinessStatus:
+      proposalReadinessReadyForQueueHandoff,
     growthEvidenceLedgerProposalQueueHandoffStatus:
-      proposalRecordQueueHandoffDefinedForReadinessCheck,
+      queueHandoffReadyForRecordReadiness,
     growthEvidenceLedgerProposalRecordReadinessStatus:
-      proposalRecordReadinessCheckedForReviewGate,
+      recordReadinessReadyForReviewGate,
     growthEvidenceLedgerProposalRecordReviewGateStatus:
-      proposalRecordReviewGateDefinedForCreationCheck,
+      reviewGateReadyForCreationReadiness,
     growthEvidenceLedgerProposalRecordCreationReadinessStatus:
-      proposalRecordCreationReadinessCheckedForDryRunShape,
+      creationReadinessReadyForDryRunShape,
     growthEvidenceLedgerProposalRecordDryRunShapeStatus:
-      proposalRecordCreationReadinessShapedForValidation,
+      dryRunShapeReadyForValidation,
     growthEvidenceLedgerProposalRecordDryRunValidationStatus:
-      proposalRecordDryRunShapeValidatedForReview,
+      dryRunValidationReadyForReview,
     growthEvidenceLedgerProposalRecordDryRunReviewStatus:
-      proposalRecordDryRunValidationReviewedForAcceptance,
+      dryRunReviewReadyForAcceptance,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatus:
-      proposalRecordDryRunReviewAcceptedForFinalization,
+      dryRunReviewAcceptanceReadyForFinalization,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatus:
-      legacyProposalRecordReviewAcceptanceFinalizedForReview,
+      legacyFinalizationReadyForReview,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatus:
-      legacyProposalRecordFinalizationReviewedForAcceptance,
+      legacyFinalizationReviewReadyForAcceptance,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatus:
-      legacyProposalRecordFinalizationReviewAccepted,
+      legacyFinalizationReviewAcceptanceReadyForFinalization,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus:
-      legacyProposalRecordReviewAcceptanceFinalized,
+      legacyFinalizationReadyForNextReview,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus:
-      oldestProposalRecordFinalizationReviewedForAcceptance,
+      nextFinalizationReviewReadyForAcceptance,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatus:
-      oldestProposalRecordReviewedFinalizationAccepted,
+      reviewedFinalizationReadyForAcceptance,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus:
-      olderProposalRecordAcceptanceFinalizedForReview,
+      acceptedFinalizationReadyForReview,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus:
-      olderProposalRecordFinalizationReviewedForAcceptance,
+      reviewedAcceptedFinalizationReadyForAcceptance,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatus:
-      earlierProposalRecordReviewedFinalizationAccepted,
+      acceptedReviewedFinalizationReadyForFinalization,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus:
-      earlierProposalRecordAcceptanceFinalizedForReview,
+      acceptedReviewedFinalizationReadyForReview,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus:
-      priorProposalRecordFinalizationReviewedForAcceptance,
+      nextReviewedFinalizationReadyForAcceptance,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatus:
-      priorProposalRecordReviewedFinalizationAcceptedForFinalization,
+      acceptedNextReviewedFinalizationReadyForFinalization,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus:
-      latestProposalRecordAcceptanceFinalizedForReview,
+      newestAcceptanceReadyForReview,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus:
-      latestProposalRecordFinalizationReviewedForAcceptance,
+      newestFinalizationReviewReadyForAcceptance,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatus:
-      latestProposalRecordAcceptanceReadyForFinalization,
+      newestAcceptanceReadyForFinalization,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus:
-      latestProposalRecordFinalizationReadyForReview,
-  } = proposalRecordSourceStatusRegistration;
-  const latestProposalRecordFinalizationNextSlice = readOnlyStatusScriptNextSlice({
+      newestFinalizationReadyForReview,
+  } = sourceStatusRegistration;
+  const newestFinalizationNextSlice = readOnlyStatusScriptNextSlice({
     id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
     commandId:
       'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
     reason:
       'Dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize accepted evidence before any record creation, approval, persistence, implementation, or queue mutation.',
   });
-  const latestProposalRecordFinalizationReviewNextSlice = readOnlyStatusScriptNextSlice({
+  const newestFinalizationReviewNextSlice = readOnlyStatusScriptNextSlice({
     id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
     commandId:
       'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
@@ -6550,213 +7018,266 @@ if (postCompletionRouterActive) {
         'The post-completion router is active and the current completion backlog is zero-open; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while the lifecycle closeout chain remains supporting evidence only.',
     }),
   };
-  const readinessPrerequisiteRoutes = routesFromPairs([
-    [growthEvidenceLedgerDefinedForGatewayRouting, proposalRecordNextSlices.defineEvidenceLedger],
+  const proposalRecordBaseReadinessRoutes = routesFromPairs([
     [
-      growthGatewayRoutingDefinedForReflectionHandoff,
+      evidenceLedgerReadyForGatewayRouting,
+      proposalRecordNextSlices.defineEvidenceLedger,
+    ],
+    [
+      gatewayRoutingReadyForReflectionHandoff,
       proposalRecordNextSlices.defineGatewayRouting,
     ],
     [
-      growthLoopReflectionHandoffDefinedForProposalReadiness,
+      reflectionHandoffReadyForProposalReadiness,
       proposalRecordNextSlices.defineReflectionHandoff,
     ],
     [
-      proposalReadinessDefinedForQueueHandoff,
+      proposalReadinessReadyForQueueHandoff,
       proposalRecordNextSlices.defineProposalReadiness,
     ],
     [
-      proposalRecordQueueHandoffDefinedForReadinessCheck,
+      queueHandoffReadyForRecordReadiness,
       proposalRecordNextSlices.defineQueueHandoff,
     ],
     [
-      proposalRecordReadinessCheckedForReviewGate,
+      recordReadinessReadyForReviewGate,
       proposalRecordNextSlices.checkRecordReadiness,
     ],
     [
-      proposalRecordReviewGateDefinedForCreationCheck,
+      reviewGateReadyForCreationReadiness,
       proposalRecordNextSlices.defineRecordReviewGate,
     ],
     [
-      proposalRecordCreationReadinessCheckedForDryRunShape,
+      creationReadinessReadyForDryRunShape,
       proposalRecordNextSlices.checkCreationReadiness,
     ],
     [
-      proposalRecordCreationReadinessShapedForValidation,
+      dryRunShapeReadyForValidation,
       proposalRecordNextSlices.shapeCreationReadiness,
     ],
     [
-      proposalRecordDryRunShapeValidatedForReview,
+      dryRunValidationReadyForReview,
       proposalRecordNextSlices.validateDryRunShape,
     ],
     [
-      proposalRecordDryRunValidationReviewedForAcceptance,
+      dryRunReviewReadyForAcceptance,
       proposalRecordNextSlices.reviewDryRunValidation,
     ],
     [
-      proposalRecordDryRunReviewAcceptedForFinalization,
+      dryRunReviewAcceptanceReadyForFinalization,
       proposalRecordNextSlices.acceptDryRunReview,
     ],
+  ]);
+  const proposalRecordFinalizationReadinessRoutes = routesFromPairs([
     [
-      legacyProposalRecordReviewAcceptanceFinalizedForReview,
+      legacyFinalizationReadyForReview,
       proposalRecordNextSlices.finalizeLegacyReviewAcceptance,
     ],
     [
-      legacyProposalRecordFinalizationReviewedForAcceptance,
+      legacyFinalizationReviewReadyForAcceptance,
       proposalRecordNextSlices.reviewLegacyFinalization,
     ],
     [
-      legacyProposalRecordFinalizationReviewAccepted,
+      legacyFinalizationReviewAcceptanceReadyForFinalization,
       proposalRecordNextSlices.acceptLegacyFinalizationReview,
     ],
     [
-      legacyProposalRecordReviewAcceptanceFinalized,
+      legacyFinalizationReadyForNextReview,
       proposalRecordNextSlices.finalizeOlderAcceptance,
     ],
     [
-      oldestProposalRecordFinalizationReviewedForAcceptance,
+      nextFinalizationReviewReadyForAcceptance,
       proposalRecordNextSlices.reviewOlderFinalization,
     ],
     [
-      oldestProposalRecordReviewedFinalizationAccepted,
+      reviewedFinalizationReadyForAcceptance,
       proposalRecordNextSlices.acceptOlderReviewedFinalization,
     ],
     [
-      olderProposalRecordAcceptanceFinalizedForReview,
+      acceptedFinalizationReadyForReview,
       proposalRecordNextSlices.finalizeEarlierAcceptance,
     ],
     [
-      olderProposalRecordFinalizationReviewedForAcceptance,
+      reviewedAcceptedFinalizationReadyForAcceptance,
       proposalRecordNextSlices.reviewEarlierFinalization,
     ],
     [
-      earlierProposalRecordReviewedFinalizationAccepted,
+      acceptedReviewedFinalizationReadyForFinalization,
       proposalRecordNextSlices.acceptEarlierReviewedFinalization,
     ],
     [
-      earlierProposalRecordAcceptanceFinalizedForReview,
+      acceptedReviewedFinalizationReadyForReview,
       proposalRecordNextSlices.finalizePriorAcceptance,
     ],
     [
-      priorProposalRecordFinalizationReviewedForAcceptance,
+      nextReviewedFinalizationReadyForAcceptance,
       proposalRecordNextSlices.reviewPriorFinalization,
     ],
     [
-      priorProposalRecordReviewedFinalizationAcceptedForFinalization,
+      acceptedNextReviewedFinalizationReadyForFinalization,
       proposalRecordNextSlices.acceptPriorReviewedFinalization,
     ],
     [
-      latestProposalRecordAcceptanceFinalizedForReview,
+      newestAcceptanceReadyForReview,
       proposalRecordNextSlices.finalizeNewestAcceptance,
     ],
     [
-      latestProposalRecordFinalizationReviewedForAcceptance,
+      newestFinalizationReviewReadyForAcceptance,
       proposalRecordNextSlices.reviewNewestFinalization,
     ],
   ]);
-  const readinessNextSlice =
-    firstPendingNextSlice(readinessPrerequisiteRoutes) ||
+  const readinessRoutes = [
+    ...proposalRecordBaseReadinessRoutes,
+    ...proposalRecordFinalizationReadinessRoutes,
+  ];
+  const nextUnreadyReadinessRoute = readinessRoutes.find(
+    (readinessRoute) => !readinessRoute.ready,
+  );
+  const defaultReadinessFollowUp =
     proposalRecordNextSlices.acceptNewestReviewedFinalization;
-  const latestFinalizationRoutes = routesFromPairs([
+  let readinessFollowUp = defaultReadinessFollowUp;
+
+  if (nextUnreadyReadinessRoute) {
+    const nextReadinessSlice = nextUnreadyReadinessRoute.nextSlice;
+
+    if (nextReadinessSlice) {
+      readinessFollowUp = nextReadinessSlice;
+    }
+  }
+  const newestFinalizationFollowUpRoutes = routesFromPairs([
     [
-      latestProposalRecordFinalizationReadyForReview,
-      latestProposalRecordFinalizationReviewNextSlice,
+      newestFinalizationReadyForReview,
+      newestFinalizationReviewNextSlice,
     ],
     [
-      latestProposalRecordAcceptanceReadyForFinalization,
-      latestProposalRecordFinalizationNextSlice,
+      newestAcceptanceReadyForFinalization,
+      newestFinalizationNextSlice,
     ],
   ]);
-  const selectedNextSlice =
-    firstReadyNextSlice(latestFinalizationRoutes) ||
-    readinessNextSlice;
-  const proposalRecordWorkstreamIds = reversedWorkstreamIdsFromNextSlices(
-    Object.values(proposalRecordNextSlices),
+  const newestReadyFinalizationRoute = newestFinalizationFollowUpRoutes.find(
+    (finalizationFollowUpRoute) => finalizationFollowUpRoute.ready,
   );
-  const latestFinalizationWorkstreamIds =
-    reversedWorkstreamIdsFromRoutes(latestFinalizationRoutes);
-  const generalFollowUpWorkstreamIds = [
+  let newestFinalizationFollowUp;
+
+  if (newestReadyFinalizationRoute) {
+    const readyFinalizationNextSlice =
+      newestReadyFinalizationRoute.nextSlice;
+
+    if (readyFinalizationNextSlice) {
+      newestFinalizationFollowUp = readyFinalizationNextSlice;
+    }
+  }
+  let selectedFollowUpSlice = readinessFollowUp;
+
+  if (newestFinalizationFollowUp) {
+    selectedFollowUpSlice = newestFinalizationFollowUp;
+  }
+  const generalWorkstreams = [
     'reflection-evaluator',
     'gateway-surface-router',
     'optional-real-live-rerun-when-env-visible',
   ];
-  const candidateWorkstreamIds = [
-    ...proposalRecordWorkstreamIds,
-    ...latestFinalizationWorkstreamIds,
-    ...generalFollowUpWorkstreamIds,
+  const readinessNextSlices = Object.values(proposalRecordNextSlices);
+  const readinessWorkstreams = readinessNextSlices
+    .map((readinessNextSlice) => {
+      const readinessSliceId = readinessNextSlice.id;
+      return readinessSliceId;
+    })
+    .reverse();
+  const newestFinalizationNextSlices = newestFinalizationFollowUpRoutes.map(
+    (finalizationFollowUpRoute) => finalizationFollowUpRoute.nextSlice,
+  );
+  const newestFinalizationWorkstreams = newestFinalizationNextSlices
+    .map((finalizationNextSlice) => {
+      const finalizationSliceId = finalizationNextSlice.id;
+      return finalizationSliceId;
+    })
+    .reverse();
+  const candidateWorkstreams = [
+    ...readinessWorkstreams,
+    ...newestFinalizationWorkstreams,
+    ...generalWorkstreams,
   ];
-  payload.postCompletionRouter = {
+  const activeRouterContext = {
     active: true,
     track: 'vNext-read-only-growth-loop',
     firstSlice: 'post-completion-next-step-router',
     nextImplementationPosture: 'read-only-status-or-doc-smoke-first',
-    growthEvidenceLedgerStatusImplemented: growthEvidenceLedgerDefinedForGatewayRouting,
-    growthEvidenceLedgerGatewayRoutingStatusImplemented:
-      growthGatewayRoutingDefinedForReflectionHandoff,
-    growthEvidenceLedgerReflectionHandoffStatusImplemented:
-      growthLoopReflectionHandoffDefinedForProposalReadiness,
-    growthEvidenceLedgerProposalReadinessStatusImplemented: proposalReadinessDefinedForQueueHandoff,
-    growthEvidenceLedgerProposalQueueHandoffStatusImplemented:
-      proposalRecordQueueHandoffDefinedForReadinessCheck,
-    growthEvidenceLedgerProposalRecordReadinessStatusImplemented:
-      proposalRecordReadinessCheckedForReviewGate,
-    growthEvidenceLedgerProposalRecordReviewGateStatusImplemented:
-      proposalRecordReviewGateDefinedForCreationCheck,
-    growthEvidenceLedgerProposalRecordCreationReadinessStatusImplemented:
-      proposalRecordCreationReadinessCheckedForDryRunShape,
-    growthEvidenceLedgerProposalRecordDryRunShapeStatusImplemented:
-      proposalRecordCreationReadinessShapedForValidation,
-    growthEvidenceLedgerProposalRecordDryRunValidationStatusImplemented:
-      proposalRecordDryRunShapeValidatedForReview,
-    growthEvidenceLedgerProposalRecordDryRunReviewStatusImplemented:
-      proposalRecordDryRunValidationReviewedForAcceptance,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented:
-      proposalRecordDryRunReviewAcceptedForFinalization,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationStatusImplemented:
-      legacyProposalRecordReviewAcceptanceFinalizedForReview,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewStatusImplemented:
-      legacyProposalRecordFinalizationReviewedForAcceptance,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
-      legacyProposalRecordFinalizationReviewAccepted,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
-      legacyProposalRecordReviewAcceptanceFinalized,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented:
-      oldestProposalRecordFinalizationReviewedForAcceptance,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
-      oldestProposalRecordReviewedFinalizationAccepted,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
-      olderProposalRecordAcceptanceFinalizedForReview,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented:
-      olderProposalRecordFinalizationReviewedForAcceptance,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
-      earlierProposalRecordReviewedFinalizationAccepted,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
-      earlierProposalRecordAcceptanceFinalizedForReview,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented:
-      priorProposalRecordFinalizationReviewedForAcceptance,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
-      priorProposalRecordReviewedFinalizationAcceptedForFinalization,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
-      latestProposalRecordAcceptanceFinalizedForReview,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented:
-      latestProposalRecordFinalizationReviewedForAcceptance,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
-      latestProposalRecordAcceptanceReadyForFinalization,
-    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
-      latestProposalRecordFinalizationReadyForReview,
-    candidateWorkstreams: candidateWorkstreamIds,
+  };
+  const implementedEvidenceFieldName = (evidenceStatusKey) =>
+    `${evidenceStatusKey}Implemented`;
+  const dryRunReviewAcceptanceStatusKey = (finalizationStatusName) =>
+    `growthEvidenceLedgerProposalRecordDryRunReviewAcceptance${finalizationStatusName}Status`;
+  const preparationStatusReadiness = [
+    evidenceLedgerReadyForGatewayRouting,
+    gatewayRoutingReadyForReflectionHandoff,
+    reflectionHandoffReadyForProposalReadiness,
+    proposalReadinessReadyForQueueHandoff,
+    queueHandoffReadyForRecordReadiness,
+    recordReadinessReadyForReviewGate,
+    reviewGateReadyForCreationReadiness,
+    creationReadinessReadyForDryRunShape,
+    dryRunShapeReadyForValidation,
+    dryRunValidationReadyForReview,
+    dryRunReviewReadyForAcceptance,
+    dryRunReviewAcceptanceReadyForFinalization,
+  ];
+  const preparationStatusEvidence = Object.fromEntries(
+    preparationStatusKeys.map((preparationStatusKey, preparationStatusIndex) => {
+      const implementedEvidenceField = implementedEvidenceFieldName(preparationStatusKey);
+      const preparationReadiness = preparationStatusReadiness[preparationStatusIndex];
+      return [implementedEvidenceField, preparationReadiness];
+    }),
+  );
+  const finalizationStatusReadiness = [
+    legacyFinalizationReadyForReview,
+    legacyFinalizationReviewReadyForAcceptance,
+    legacyFinalizationReviewAcceptanceReadyForFinalization,
+    legacyFinalizationReadyForNextReview,
+    nextFinalizationReviewReadyForAcceptance,
+    reviewedFinalizationReadyForAcceptance,
+    acceptedFinalizationReadyForReview,
+    reviewedAcceptedFinalizationReadyForAcceptance,
+    acceptedReviewedFinalizationReadyForFinalization,
+    acceptedReviewedFinalizationReadyForReview,
+    nextReviewedFinalizationReadyForAcceptance,
+    acceptedNextReviewedFinalizationReadyForFinalization,
+    newestAcceptanceReadyForReview,
+    newestFinalizationReviewReadyForAcceptance,
+    newestAcceptanceReadyForFinalization,
+    newestFinalizationReadyForReview,
+  ];
+  const finalizationStatusEvidence = Object.fromEntries(
+    finalizationStatusNames.map((finalizationStatusName, finalizationStatusIndex) => {
+      const reviewAcceptanceStatusKey = dryRunReviewAcceptanceStatusKey(finalizationStatusName);
+      const implementedEvidenceField = implementedEvidenceFieldName(reviewAcceptanceStatusKey);
+      const finalizationReadiness = finalizationStatusReadiness[finalizationStatusIndex];
+      return [implementedEvidenceField, finalizationReadiness];
+    }),
+  );
+  const activeRouterRationale =
+    'The completion baseline is zero-open, so growth-engine-status must route follow-up work through the post-completion vNext gate instead of continuing the source-mutation lifecycle recheck chain as the default next action.';
+  const activeHermesMode =
+    'repo-native-hermes-style-post-completion-growth-routing';
+  const activeRouterState = {
+    ...activeRouterContext,
+    ...preparationStatusEvidence,
+    ...finalizationStatusEvidence,
+    candidateWorkstreams,
     lifecycleSupportingSlice,
-    rationale:
-      'The completion baseline is zero-open, so growth-engine-status must route follow-up work through the post-completion vNext gate instead of continuing the source-mutation lifecycle recheck chain as the default next action.',
+    rationale: activeRouterRationale,
   };
-  payload.nextRecommendedSlice = selectedNextSlice;
-  payload.hermesEngine.currentMode = 'repo-native-hermes-style-post-completion-growth-routing';
-  payload.hermesEngine.nextEngineSlice = selectedNextSlice.id;
+  payload.postCompletionRouter = activeRouterState;
+  setPayloadNextRecommendedSlice(selectedFollowUpSlice);
+  payload.hermesEngine.currentMode = activeHermesMode;
 } else {
-  payload.postCompletionRouter = {
+  const inactiveRouterReason =
+    'The post-completion router prerequisites are not all present; keep the current growth status chain recommendation.';
+  const inactiveRouterState = {
     active: false,
-    reason:
-      'The post-completion router prerequisites are not all present; keep the current growth status chain recommendation.',
+    reason: inactiveRouterReason,
   };
+  payload.postCompletionRouter = inactiveRouterState;
 }
 
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
