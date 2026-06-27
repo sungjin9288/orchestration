@@ -6,7 +6,8 @@ Build Orchestration 1.0 as a local-first, single-user-first, ops-first control p
 ## Codex Operating Rules
 
 ### Default Flow
-- Start non-trivial work with `$repo-intake`.
+- Start non-trivial work with `$karpathy-guidelines` to state assumptions, success criteria, minimal scope, and verification gates.
+- Then run `$repo-intake` before editing repo files.
 - Follow `$orchestration-freeze-gate` for runtime, UI, docs, tasks, smoke slices, and any change that can widen scope or alter baseline behavior.
 - Finish with `$verify-gate` before close-out.
 - Use `$task-ledger-sync` when `tasks/todo.md` or `tasks/lessons.md` should change as part of the work.
@@ -22,6 +23,11 @@ Build Orchestration 1.0 as a local-first, single-user-first, ops-first control p
 - Add `$linear` and Linear MCP only when the task is tied to tracked issue, project, or operations follow-up work.
 - Keep optional live-provider verification non-blocking unless the task explicitly targets that boundary.
 - If extra skills or MCPs are added, state briefly why they were needed.
+
+### External Pattern Intake
+- Treat LazyCodex-style work as pattern input, not a dependency: planner, executor, reviewer, verification, evidence, and role-routing ideas must preserve Orchestration's local-first runtime and freeze gates.
+- Treat Hermes Desktop-style work as UX pattern input, not an Electron migration: provider setup, profile/session separation, run logs, tool progress, and scheduling/gateway concepts may inform the operator shell only when they keep Advanced Ops authority intact.
+- Do not vendor external repos, install global harnesses, or change provider/session contracts without an explicit task and approval-sensitive plan.
 
 ### Execution Rules
 - Choose the smallest vertical slice that satisfies the task.
