@@ -22,7 +22,7 @@ and approvals.
 | Mission-first shell | `Mission / Council / Execution / Deliverables` is the default product shell in `ui/app.js`. |
 | Advanced Ops surfaces | `Taskboard / Logs / Artifacts / Decision Inbox` remain available as authoritative operator surfaces. |
 | Reference-driven operator shell | `docs/reference/vnext-reference-driven-ui-audit.md` records what was adopted or rejected from Linear, LangSmith Studio, Retool, Dify, n8n HITL, Zapier, and NN/g before the UI refresh. |
-| Read-only growth evidence | The shell exposes `성장 증거 원장`, `개선 후보 대기열` drilldown, and a blocked `제안 검토 게이트` as evidence-derived views; `scripts/smoke-ui-slice-649.mjs` pins that they do not call providers, persist memory, mutate source, generate/apply proposals, commit, or push. |
+| Read-only growth evidence | The shell exposes `성장 증거 원장`, `개선 후보 대기열` drilldown, and a blocked `제안 검토 게이트` as evidence-derived views; `scripts/smoke-ui-slice-649.mjs` pins that they do not call providers, persist memory, create/persist durable proposal records, mutate source, generate/apply proposals, commit, or push. |
 | Local-only personalization | Recent desks, evidence density, preferred project hints, and preference reset/set controls are stored under `orchestration.ui-preferences.v1` in browser `localStorage`; they only change shell convenience and do not mutate runtime authority. |
 | Development pack loop | The implemented pack flow is documented in `packs/development/pack.md`: planner, architect, task-breaker, builder preflight, builder live mutation, reviewer, commit-package, local commit, release-package, close-out. |
 | Review and approval gates | Review-before-done and approval-before-commit/release follow-up are enforced through runtime/coordinator state and surfaced in Decision Inbox. |
@@ -82,7 +82,10 @@ src/runtime/file-store.js
 - Growth is evidence review, not model training: growth surfaces can summarize local runs, artifacts,
   reviews, approvals, and failed or blocked work into candidate counts, candidate detail, reviewer
   questions, and a blocked proposal-review preview, but they do not persist memory, generate/apply
-  proposals, call providers, mutate source, commit, or push.
+  proposals, create or persist durable proposal records, call providers, mutate source, commit, or push.
+- Proposal review is not proposal approval: `DEC-048` keeps durable proposal record creation,
+  proposal record persistence, and long-term memory blocked until schema, approval semantics,
+  redaction, export, expiry, and focused smoke evidence exist.
 - Personalization is local convenience only: recent desks, evidence density, preferred project hints,
   and preference reset/set controls live in browser storage and are surfaced as shortcuts or prefilled
   context, not automatic execution.
@@ -220,7 +223,7 @@ Current verification evidence from this README refresh:
 
 - `node scripts/smoke-ui-slice-649.mjs`: reference-driven shell markers, read-only growth candidate
   drilldown, blocked proposal-review preview, local-only personalization settings, and blocked
-  provider/memory/source/proposal/commit/push authority.
+  provider/memory/proposal-record/source/proposal/commit/push authority.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
@@ -238,6 +241,9 @@ Playwright CLI:
 - `output/playwright/vnext-mobile.png`
 - `output/playwright/vnext-p1-desktop.png`
 - `output/playwright/vnext-p1-mobile.png`
+- `output/playwright/vnext-proposal-boundary-desktop.png`
+- `output/playwright/vnext-proposal-boundary-mobile.png`
+- `output/playwright/vnext-proposal-boundary-mobile-growth.png`
 
 ## Scope & Limitations
 
@@ -251,6 +257,9 @@ Playwright CLI:
 - Growth evidence and personalization are shell-level views only. Candidate drilldown and the proposal
   review preview are not proof of model learning, long-term memory, durable proposal record creation,
   autonomous proposal application, source mutation, commit, push, or external automation.
+- Durable proposal record creation remains blocked until an accepted decision defines record schema,
+  separate human approval semantics, source/evidence refs, redaction, export, expiry, and focused
+  smoke coverage for the unchanged provider, memory, source, commit, and push boundaries.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider

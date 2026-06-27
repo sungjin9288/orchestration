@@ -103,6 +103,19 @@ These are routing and isolation domains, not multi-tenant SaaS semantics.
    - Tool isolation matters, but sandboxing is not a substitute for approval, review, provenance,
      rollback, or operator visibility.
 
+## Current Proposal Record Boundary
+
+`DEC-048` fixes the current product boundary for growth proposals:
+
+- `제안 검토 게이트` is review readiness only, not proposal approval.
+- The shell may show evidence-derived improvement candidates and record-opening prerequisites.
+- The shell must not create proposal ids, assign proposal statuses, stamp timestamps, persist durable
+  proposal records, persist long-term memory, generate or apply proposals, mutate the proposal queue,
+  call providers, mutate source, commit, or push.
+- A future durable proposal record feature needs an accepted decision, a schema with source and
+  evidence refs, separate human approval semantics, redaction, export, expiry rules, and focused
+  smoke coverage that proves blocked authority remains blocked until explicit approval.
+
 ## Reference Repo Recheck (2026-06-01)
 The follow-up reference pass reviewed the current public heads below and keeps them as source
 signals only. No upstream runtime, daemon, installer, channel adapter, provider matrix, or DevOps

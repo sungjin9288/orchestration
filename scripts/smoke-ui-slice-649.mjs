@@ -9,12 +9,14 @@ const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const auditPath = path.join(repoRoot, 'docs', 'reference', 'vnext-reference-driven-ui-audit.md');
+const decisionLogPath = path.join(repoRoot, 'docs', '01_decision-log.md');
 const uiQaStatusPath = path.join(repoRoot, 'scripts', 'ui_qa_status.mjs');
 const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_status.mjs');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const audit = fs.readFileSync(auditPath, 'utf8');
+const decisionLog = fs.readFileSync(decisionLogPath, 'utf8');
 const uiQaStatus = fs.readFileSync(uiQaStatusPath, 'utf8');
 const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 
@@ -27,14 +29,27 @@ assert.match(audit, /Zapier/);
 assert.match(audit, /NN\/g 2026 UX/);
 assert.match(audit, /provider calls/);
 assert.match(audit, /memory persistence/);
+assert.match(audit, /long-term memory store/);
+assert.match(audit, /durable proposal record creation or persistence/);
 assert.match(audit, /source mutation/);
+assert.match(decisionLog, /### DEC-048/);
+assert.match(decisionLog, /review-readiness surface only/);
+assert.match(decisionLog, /does not create or persist durable proposal records/);
+assert.match(decisionLog, /redaction, export, and expiry rules/);
 
 assert.match(appJs, /const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
 assert.match(appJs, /const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
 assert.match(appJs, /providerCallsAllowed: false/);
 assert.match(appJs, /memoryPersistenceAllowed: false/);
+assert.match(appJs, /longTermMemoryStoreAllowed: false/);
+assert.match(appJs, /proposalRecordCreationAllowed: false/);
+assert.match(appJs, /proposalRecordPersistenceAllowed: false/);
 assert.match(appJs, /sourceMutationAllowed: false/);
 assert.match(appJs, /commitPushAllowed: false/);
+assert.match(appJs, /const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object\.freeze\(\[/);
+assert.match(appJs, /제안 기록 생성은 별도 승인 결정이 필요합니다/);
+assert.match(appJs, /이 검토 게이트는 제안 승인과 분리됩니다/);
+assert.match(appJs, /장기 기억 전에 redaction, export, expiry 규칙이 필요합니다/);
 assert.match(appJs, /function renderIntelligenceOverview\(data, context\)/);
 assert.match(appJs, /data-growth-learning-surface="read-only"/);
 assert.match(appJs, /data-personalization-scope="local-only"/);
@@ -47,9 +62,14 @@ assert.match(appJs, /function renderGrowthProposalReviewPreview\(growth\)/);
 assert.match(appJs, /data-growth-proposal-review="blocked"/);
 assert.match(appJs, /data-proposal-generation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalGenerationAllowed\}"/);
 assert.match(appJs, /data-proposal-application-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalApplicationAllowed\}"/);
+assert.match(appJs, /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/);
+assert.match(appJs, /data-proposal-record-persistence-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordPersistenceAllowed\}"/);
+assert.match(appJs, /data-long-term-memory-store-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.longTermMemoryStoreAllowed\}"/);
 assert.match(appJs, /리뷰 질문/);
 assert.match(appJs, /제안 검토 게이트/);
 assert.match(appJs, /승인 전 적용 차단/);
+assert.match(appJs, /장기 기억:false/);
+assert.match(appJs, /제안 기록:false/);
 assert.match(appJs, /function renderPersonalizationSettings\(personalization, data\)/);
 assert.match(appJs, /data-local-personalization-settings="true"/);
 assert.match(appJs, /data-action="set-evidence-density"/);
@@ -66,6 +86,7 @@ assert.match(styles, /\.intelligence-overview/);
 assert.match(styles, /\.intelligence-panel-growth::before/);
 assert.match(styles, /\.growth-candidate-list/);
 assert.match(styles, /\.growth-proposal-review/);
+assert.match(styles, /\.growth-proposal-readiness/);
 assert.match(styles, /\.personalization-settings/);
 assert.match(styles, /body\[data-evidence-density='compact'\]/);
 assert.doesNotMatch(appJs, /data-action="generate-growth-proposal"/);
@@ -89,6 +110,8 @@ console.log(
         blockedAuthorities: [
           'provider calls',
           'memory persistence',
+          'long-term memory store',
+          'durable proposal record creation/persistence',
           'proposal generation/application',
           'source mutation',
           'commit/push',

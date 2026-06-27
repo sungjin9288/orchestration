@@ -9596,6 +9596,24 @@ h3 {
   line-height: 1.24;
 }
 
+.growth-proposal-readiness {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.growth-proposal-readiness span {
+  max-width: 100%;
+  padding: 4px 6px;
+  border: 1px solid rgba(144, 104, 56, 0.24);
+  border-radius: 5px;
+  background: rgba(255, 253, 248, 0.58);
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.24;
+}
+
 .growth-proposal-actions,
 .personalization-actions {
   display: flex;

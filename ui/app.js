@@ -273,12 +273,21 @@ const DEFAULT_UI_PREFERENCES = {
 };
 const GROWTH_AUTHORITY_BOUNDARY = Object.freeze({
   commitPushAllowed: false,
+  longTermMemoryStoreAllowed: false,
   memoryPersistenceAllowed: false,
   proposalApplicationAllowed: false,
   proposalGenerationAllowed: false,
+  proposalRecordCreationAllowed: false,
+  proposalRecordPersistenceAllowed: false,
   providerCallsAllowed: false,
   sourceMutationAllowed: false,
 });
+const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object.freeze([
+  '제안 기록 생성은 별도 승인 결정이 필요합니다',
+  'id, 상태, 시각, 원천, 증거 참조가 먼저 정의되어야 합니다',
+  '이 검토 게이트는 제안 승인과 분리됩니다',
+  '장기 기억 전에 redaction, export, expiry 규칙이 필요합니다',
+]);
 const COMPANY_ROLE_OPTIONS = [
   { value: 'chief-of-staff', label: 'Chief of Staff' },
   { value: 'council-lead', label: 'Council Lead' },
@@ -11967,7 +11976,10 @@ function renderGrowthProposalReviewPreview(growth) {
       data-growth-proposal-review="blocked"
       data-proposal-generation-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalGenerationAllowed}"
       data-proposal-application-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalApplicationAllowed}"
+      data-proposal-record-creation-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalRecordCreationAllowed}"
+      data-proposal-record-persistence-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalRecordPersistenceAllowed}"
       data-memory-persistence-allowed="${GROWTH_AUTHORITY_BOUNDARY.memoryPersistenceAllowed}"
+      data-long-term-memory-store-allowed="${GROWTH_AUTHORITY_BOUNDARY.longTermMemoryStoreAllowed}"
       data-source-mutation-allowed="${GROWTH_AUTHORITY_BOUNDARY.sourceMutationAllowed}"
     >
       <div>
@@ -11980,6 +11992,15 @@ function renderGrowthProposalReviewPreview(growth) {
               : '검증 증거가 생기면 제안 기록으로 보낼지 사람 리뷰에서 먼저 판단합니다.',
           )}
         </p>
+        <div class="growth-proposal-readiness" aria-label="제안 기록 생성 전 조건">
+          ${PROPOSAL_RECORD_OPEN_REQUIREMENTS.map(
+            (requirement) => `
+              <span>
+                ${escapeHtml(requirement)}
+              </span>
+            `,
+          ).join('')}
+        </div>
       </div>
       <div class="growth-proposal-actions" aria-label="차단된 proposal 권한">
         ${createToken(`차단:${blockedActionCount}`, 'warning')}
@@ -12052,6 +12073,7 @@ function renderIntelligenceOverview(data, context) {
       data-personalization-scope="local-only"
       data-provider-calls-allowed="${GROWTH_AUTHORITY_BOUNDARY.providerCallsAllowed}"
       data-memory-persistence-allowed="${GROWTH_AUTHORITY_BOUNDARY.memoryPersistenceAllowed}"
+      data-long-term-memory-store-allowed="${GROWTH_AUTHORITY_BOUNDARY.longTermMemoryStoreAllowed}"
       data-source-mutation-allowed="${GROWTH_AUTHORITY_BOUNDARY.sourceMutationAllowed}"
       aria-label="학습 후보와 개인화 상태"
     >
@@ -12086,6 +12108,8 @@ function renderIntelligenceOverview(data, context) {
           ${createToken(`차단 권한:${blockedAuthorityCount}개`, 'warning')}
           ${createToken('provider 호출:false', 'neutral')}
           ${createToken('메모리 저장:false', 'neutral')}
+          ${createToken('장기 기억:false', 'neutral')}
+          ${createToken('제안 기록:false', 'neutral')}
           ${createToken('소스 변경:false', 'neutral')}
           ${createToken('commit/push:false', 'neutral')}
         </div>
