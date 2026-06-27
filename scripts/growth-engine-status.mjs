@@ -7146,6 +7146,10 @@ if (postCompletionRouterActive) {
   }
   const newestFinalizationFollowUpRoutes = routesFromPairs([
     [
+      newestFinalizationReviewReadyForAcceptance,
+      proposalRecordNextSlices.acceptNewestReviewedFinalization,
+    ],
+    [
       newestFinalizationReadyForReview,
       newestFinalizationReviewNextSlice,
     ],

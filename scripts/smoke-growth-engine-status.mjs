@@ -8,685 +8,242 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
-const statusScript = path.join(repoRoot, 'scripts', 'growth-engine-status.mjs');
-const ledgerStatusScript = path.join(repoRoot, 'scripts', 'growth-evidence-ledger-status.mjs');
-const gatewayRoutingStatusScript = path.join(
-  repoRoot,
-  'scripts',
-  'growth-evidence-ledger-gateway-routing-status.mjs',
-);
-const reflectionHandoffStatusScript = path.join(
-  repoRoot,
-  'scripts',
-  'growth-evidence-ledger-reflection-handoff-status.mjs',
-);
-const proposalReadinessStatusScript = path.join(
-  repoRoot,
-  'scripts',
-  'growth-evidence-ledger-proposal-readiness-status.mjs',
-);
-const proposalQueueHandoffStatusScript = path.join(
-  repoRoot,
-  'scripts',
+
+function scriptPath(fileName) {
+  return path.join(repoRoot, 'scripts', fileName);
+}
+
+const statusScript = scriptPath('growth-engine-status.mjs');
+const ledgerStatusScript = scriptPath('growth-evidence-ledger-status.mjs');
+const gatewayRoutingStatusScript = scriptPath('growth-evidence-ledger-gateway-routing-status.mjs');
+const reflectionHandoffStatusScript = scriptPath('growth-evidence-ledger-reflection-handoff-status.mjs');
+const proposalReadinessStatusScript = scriptPath('growth-evidence-ledger-proposal-readiness-status.mjs');
+const proposalQueueHandoffStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-queue-handoff-status.mjs',
 );
-const proposalRecordReadinessStatusScript = path.join(
-  repoRoot,
-  'scripts',
+const proposalRecordReadinessStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-record-readiness-status.mjs',
 );
-const proposalRecordReviewGateStatusScript = path.join(
-  repoRoot,
-  'scripts',
+const proposalRecordReviewGateStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-record-review-gate-status.mjs',
 );
-const proposalRecordCreationReadinessStatusScript = path.join(
-  repoRoot,
-  'scripts',
+const proposalRecordCreationReadinessStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
 );
-const proposalRecordDryRunShapeStatusScript = path.join(
-  repoRoot,
-  'scripts',
+const proposalRecordDryRunShapeStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-record-dry-run-shape-status.mjs',
 );
-const proposalRecordDryRunValidationStatusScript = path.join(
-  repoRoot,
-  'scripts',
+const proposalRecordDryRunValidationStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-record-dry-run-validation-status.mjs',
 );
-const proposalRecordDryRunReviewStatusScript = path.join(
-  repoRoot,
-  'scripts',
+const proposalRecordDryRunReviewStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-record-dry-run-review-status.mjs',
 );
-const proposalRecordDryRunReviewAcceptanceStatusScript = path.join(
-  repoRoot,
-  'scripts',
+const proposalRecordDryRunReviewAcceptanceStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-status.mjs',
 );
-const proposalRecordDryRunReviewAcceptanceFinalizationStatusScript = path.join(
-  repoRoot,
-  'scripts',
+const proposalRecordDryRunReviewAcceptanceFinalizationStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-status.mjs',
 );
-const proposalRecordDryRunReviewAcceptanceFinalizationReviewStatusScript = path.join(
-  repoRoot,
-  'scripts',
+const proposalRecordDryRunReviewAcceptanceFinalizationReviewStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-status.mjs',
 );
-const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusScript = path.join(
-  repoRoot,
-  'scripts',
+const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusScript = scriptPath(
   'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-status.mjs',
 );
 const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScript =
-  path.join(
-    repoRoot,
-    'scripts',
+  scriptPath(
     'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
   );
 const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScript =
-  path.join(
-    repoRoot,
-    'scripts',
+  scriptPath(
     'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
   );
 const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScript =
-  path.join(
-    repoRoot,
-    'scripts',
+  scriptPath(
     'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
   );
 const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScript =
-  path.join(
-    repoRoot,
-    'scripts',
+  scriptPath(
     'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
   );
 const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScript =
-  path.join(
-    repoRoot,
-    'scripts',
+  scriptPath(
     'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
   );
 const proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScript =
-  path.join(
-    repoRoot,
-    'scripts',
+  scriptPath(
     'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs',
   );
 
-function runStatus(args = []) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'growth-engine-status-smoke-'));
-  const stdoutPath = path.join(tempDir, 'stdout.json');
-  const stdoutFd = fs.openSync(stdoutPath, 'w');
-  let stdout = '';
-  const result = spawnSync(process.execPath, [statusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    stdio: ['ignore', stdoutFd, 'pipe'],
-  });
-  fs.closeSync(stdoutFd);
-  stdout = fs.existsSync(stdoutPath) ? fs.readFileSync(stdoutPath, 'utf8').trim() : '';
-  fs.rmSync(tempDir, { force: true, recursive: true });
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
+function parseJsonFromOutput(stdout, stderr) {
   try {
-    payload = JSON.parse(stdout || stderr);
+    return JSON.parse(stdout || stderr);
   } catch (_error) {
-    payload = null;
+    return null;
+  }
+}
+
+function runJsonScript(script, args = [], options = {}) {
+  const maxBuffer = options.maxBuffer ?? 30 * 1024 * 1024;
+
+  if (options.stdoutTempPrefix) {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), options.stdoutTempPrefix));
+    const stdoutPath = path.join(tempDir, 'stdout.json');
+    const stdoutFd = fs.openSync(stdoutPath, 'w');
+    const result = spawnSync(process.execPath, [script, ...args], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', stdoutFd, 'pipe'],
+    });
+    fs.closeSync(stdoutFd);
+    const stdout = fs.existsSync(stdoutPath) ? fs.readFileSync(stdoutPath, 'utf8').trim() : '';
+    const stderr = result.stderr?.trim() || '';
+    fs.rmSync(tempDir, { force: true, recursive: true });
+
+    return {
+      payload: parseJsonFromOutput(stdout, stderr),
+      status: result.status,
+      stderr,
+      stdout,
+    };
   }
 
+  const result = spawnSync(process.execPath, [script, ...args], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    maxBuffer,
+  });
+  const stdout = result.stdout?.trim() || '';
+  const stderr = result.stderr?.trim() || '';
+
   return {
-    payload,
+    payload: parseJsonFromOutput(stdout, stderr),
     status: result.status,
     stderr,
     stdout,
   };
+}
+
+function runStatus(args = []) {
+  return runJsonScript(statusScript, args, { stdoutTempPrefix: 'growth-engine-status-smoke-' });
 }
 
 function runLedgerStatus(args = []) {
-  const result = spawnSync(process.execPath, [ledgerStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(ledgerStatusScript, args);
 }
 
 function runGatewayRoutingStatus(args = []) {
-  const result = spawnSync(process.execPath, [gatewayRoutingStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(gatewayRoutingStatusScript, args);
 }
 
 function runReflectionHandoffStatus(args = []) {
-  const result = spawnSync(process.execPath, [reflectionHandoffStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 20 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(reflectionHandoffStatusScript, args, { maxBuffer: 20 * 1024 * 1024 });
 }
 
 function runProposalReadinessStatus(args = []) {
-  const result = spawnSync(process.execPath, [proposalReadinessStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalReadinessStatusScript, args);
 }
 
 function runProposalQueueHandoffStatus(args = []) {
-  const result = spawnSync(process.execPath, [proposalQueueHandoffStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalQueueHandoffStatusScript, args);
 }
 
 function runProposalRecordReadinessStatus(args = []) {
-  const result = spawnSync(process.execPath, [proposalRecordReadinessStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalRecordReadinessStatusScript, args);
 }
 
 function runProposalRecordReviewGateStatus(args = []) {
-  const result = spawnSync(process.execPath, [proposalRecordReviewGateStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalRecordReviewGateStatusScript, args);
 }
 
 function runProposalRecordCreationReadinessStatus(args = []) {
-  const result = spawnSync(process.execPath, [proposalRecordCreationReadinessStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalRecordCreationReadinessStatusScript, args);
 }
 
 function runProposalRecordDryRunShapeStatus(args = []) {
-  const result = spawnSync(process.execPath, [proposalRecordDryRunShapeStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalRecordDryRunShapeStatusScript, args);
 }
 
 function runProposalRecordDryRunValidationStatus(args = []) {
-  const result = spawnSync(process.execPath, [proposalRecordDryRunValidationStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalRecordDryRunValidationStatusScript, args);
 }
 
 function runProposalRecordDryRunReviewStatus(args = []) {
-  const result = spawnSync(process.execPath, [proposalRecordDryRunReviewStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalRecordDryRunReviewStatusScript, args);
 }
 
 function runProposalRecordDryRunReviewAcceptanceStatus(args = []) {
-  const result = spawnSync(process.execPath, [proposalRecordDryRunReviewAcceptanceStatusScript, ...args], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalRecordDryRunReviewAcceptanceStatusScript, args);
 }
 
 function runProposalRecordDryRunReviewAcceptanceFinalizationStatus(args = []) {
-  const result = spawnSync(process.execPath, [
-    proposalRecordDryRunReviewAcceptanceFinalizationStatusScript,
-    ...args,
-  ], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalRecordDryRunReviewAcceptanceFinalizationStatusScript, args);
 }
 
 function runProposalRecordDryRunReviewAcceptanceFinalizationReviewStatus(args = []) {
-  const result = spawnSync(process.execPath, [
-    proposalRecordDryRunReviewAcceptanceFinalizationReviewStatusScript,
-    ...args,
-  ], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+  return runJsonScript(proposalRecordDryRunReviewAcceptanceFinalizationReviewStatusScript, args);
 }
 
 function runProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatus(args = []) {
-  const result = spawnSync(process.execPath, [
+  return runJsonScript(
     proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceStatusScript,
-    ...args,
-  ], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+    args,
+  );
 }
 
 function runProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus(
   args = [],
 ) {
-  const result = spawnSync(process.execPath, [
+  return runJsonScript(
     proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScript,
-    ...args,
-  ], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+    args,
+  );
 }
 
 function runProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus(
   args = [],
 ) {
-  const result = spawnSync(process.execPath, [
+  return runJsonScript(
     proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScript,
-    ...args,
-  ], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+    args,
+  );
 }
 
 function runProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatus(
   args = [],
 ) {
-  const result = spawnSync(process.execPath, [
+  return runJsonScript(
     proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScript,
-    ...args,
-  ], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+    args,
+  );
 }
 
 function runProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatus(
   args = [],
 ) {
-  const result = spawnSync(process.execPath, [
+  return runJsonScript(
     proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScript,
-    ...args,
-  ], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+    args,
+  );
 }
 
 function runProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatus(
   args = [],
 ) {
-  const result = spawnSync(process.execPath, [
+  return runJsonScript(
     proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusScript,
-    ...args,
-  ], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  const stderr = result.stderr?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout || stderr);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr,
-    stdout,
-  };
+    args,
+  );
 }
 
 function runProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatus(
   args = [],
 ) {
-  const result = spawnSync(process.execPath, [
+  return runJsonScript(
     proposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScript,
-    ...args,
-  ], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 30 * 1024 * 1024,
-  });
-  const stdout = result.stdout?.trim() || '';
-  let payload = null;
-
-  try {
-    payload = JSON.parse(stdout);
-  } catch (_error) {
-    payload = null;
-  }
-
-  return {
-    payload,
-    status: result.status,
-    stderr: result.stderr?.trim() || '',
-    stdout,
-  };
+    args,
+  );
 }
 
 const result = runStatus();
@@ -708,7 +265,7 @@ assert.equal(payload.hermesEngine.role, 'inner self-improvement engine');
 assert.match(payload.hermesEngine.currentLoop, /planner -> architect -> task-breaker/);
 assert.equal(
   payload.hermesEngine.nextEngineSlice,
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
+  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
 );
 assert.equal(payload.hermesEngine.currentMode, 'repo-native-hermes-style-post-completion-growth-routing');
 assert.equal(payload.referencePosture.reviewedAt, '2026-06-01');
@@ -2081,7 +1638,7 @@ assert.equal(
 );
 assert.equal(
   payload.nextRecommendedSlice.id,
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
+  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
 );
 assert.equal(payload.nextRecommendedSlice.mustRemainReadOnly, true);
 assert.equal(payload.postCompletionRouter.active, true);
@@ -2225,6 +1782,7 @@ assert.deepEqual(payload.postCompletionRouter.candidateWorkstreams, [
   'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
   'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
   'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
+  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance',
   'reflection-evaluator',
   'gateway-surface-router',
   'optional-real-live-rerun-when-env-visible',
@@ -2365,7 +1923,7 @@ assert.equal(
 );
 assert.equal(
   proposalReadinessPayload.readinessEnvelope.candidateEnvelope.sourceFindingId,
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
+  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
 );
 assert.equal(
   proposalReadinessPayload.nextRecommendedSlice.id,
@@ -6123,7 +5681,7 @@ assert.match(
 );
 assert.match(
   plan,
-  /Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review` as the next\s+read-only vNext status\/doc-smoke slice/,
+  /Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance` as the next\s+read-only vNext status\/doc-smoke slice/,
 );
 assert.match(
   plan,
@@ -6149,7 +5707,7 @@ assert.match(
 assert.match(plan, /lifecycle close review status next gate/);
 assert.match(
   plan,
-  /Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review` as the next\s+read-only vNext status\/doc-smoke slice/,
+  /Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance` as the next\s+read-only vNext status\/doc-smoke slice/,
 );
 assert.match(
   plan,

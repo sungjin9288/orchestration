@@ -18426,15 +18426,15 @@ lifecycle close without accepting lifecycle close, accepting lifecycle close fin
 the lifecycle, applying patches, mutating source, or opening remediation execution.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review` as the next
+Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance` as the next
 read-only vNext status/doc-smoke slice, routed through
-`node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs` and
+`node scripts/growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs` and
 confirmed by `node scripts/growth-engine-status.mjs` plus
 `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- whether accepted dry-run finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization evidence can be reviewed as read-only status evidence without
+- whether reviewed dry-run finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization evidence can be accepted as read-only status evidence without
   approving, creating, or persisting a proposal record
 - how finalization review acceptance finalization review acceptance finalization review acceptance finalization review stays separate from proposal generation, proposal queue mutation, proposal
   application, record persistence, proposal approval, memory persistence, provider calls, runtime

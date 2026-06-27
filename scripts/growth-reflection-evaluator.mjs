@@ -14893,6 +14893,8 @@ if (postCompletionRouterActive) {
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented;
   const latestProposalRecordFinalizationReadyForReview =
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented;
+  const latestProposalRecordFinalizationReviewReadyForAcceptance =
+    growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented;
   const latestProposalRecordFinalizationNextSlice = {
     id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
     commandToAdd:
@@ -15163,13 +15165,17 @@ if (postCompletionRouterActive) {
           'The post-completion router is active and reflection evidence is green; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while lifecycle closeout rechecks remain supporting evidence only.',
         mustRemainReadOnly: true,
       };
-  const selectedNextSlice = latestProposalRecordFinalizationReadyForReview
+  const selectedNextSlice = latestProposalRecordFinalizationReviewReadyForAcceptance
+    ? routedNextSlice
+    : latestProposalRecordFinalizationReadyForReview
     ? latestProposalRecordFinalizationReviewNextSlice
     : latestProposalRecordAcceptanceReadyForFinalization
     ? latestProposalRecordFinalizationNextSlice
     : routedNextSlice;
   const selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
-  const selectedReflectionFindingUpdate = latestProposalRecordFinalizationReadyForReview
+  const selectedReflectionFindingUpdate = latestProposalRecordFinalizationReviewReadyForAcceptance
+    ? {}
+    : latestProposalRecordFinalizationReadyForReview
     ? latestProposalRecordFinalizationReviewFindingUpdate
     : latestProposalRecordAcceptanceReadyForFinalization
     ? latestProposalRecordFinalizationFindingUpdate
