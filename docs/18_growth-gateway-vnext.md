@@ -18880,17 +18880,17 @@ The route id remains `growth-evidence-ledger-proposal-record-dry-run-review-acce
 - Follow-up: route the next vNext slice through read-only `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization` via `node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs`.
 
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance` as the next
+Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization` as the next
 read-only vNext status/doc-smoke slice, routed through
-`node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status.mjs` and
+`node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs` and
 confirmed by `node scripts/growth-engine-status.mjs` plus
 `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- whether reviewed short-alias dry-run evidence can be accepted as read-only status evidence without approving, creating, or persisting a proposal record
-- how finalization review acceptance finalization review acceptance evidence stays separate from proposal generation, proposal queue mutation, proposal application, record persistence, proposal approval, memory persistence, provider calls, runtime mutation, UI execution, commits, and pushes
-- how the next acceptance lane prevents reviewed dry-run evidence from becoming hidden prioritization, execution authority, approval authority, source-mutation authority, or durable queue state
+- whether accepted short-alias dry-run evidence can be finalized as read-only status evidence without approving, creating, or persisting a proposal record
+- how finalization review acceptance finalization review acceptance finalization evidence stays separate from proposal generation, proposal queue mutation, proposal application, record persistence, proposal approval, memory persistence, provider calls, runtime mutation, UI execution, commits, and pushes
+- how the next finalization lane prevents accepted dry-run evidence from becoming hidden prioritization, execution authority, approval authority, source-mutation authority, or durable queue state
 
 The next command or doc-smoke must remain read-only/status-first. It must not reopen the default
 completion backlog or treat the source-mutation lifecycle chain as the default next product lane.

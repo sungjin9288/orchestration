@@ -16,7 +16,7 @@ const PREVIOUS_STATUS = 'scripts/growth-evidence-ledger/proposal-record-acceptan
 const NEXT_ROUTE = `${ROUTE}-finalization`;
 const NEXT_COMMAND = 'node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs';
 const LEDGER_ID =
-  'growth-evidence-ledger-proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-alias-status-readonly-post-m7-1926';
+  'growth-evidence-ledger-proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-alias-status-readonly-post-m7-1929';
 const STATUS_LABEL =
   'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance status';
 

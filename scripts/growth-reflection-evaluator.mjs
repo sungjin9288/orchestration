@@ -16172,6 +16172,13 @@ if (postCompletionRouterActive) {
     selectedReflectionFindingUpdate =
       latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFindingUpdate;
   }
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationFindingUpdate;
+  }
   payload.postCompletionRouter = {
     active: true,
     track: 'vNext-read-only-growth-loop',
