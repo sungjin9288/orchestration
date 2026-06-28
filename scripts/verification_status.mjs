@@ -430,7 +430,7 @@ const informationalChecks = [
     purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization alias finalizes accepted short-alias evidence only for read-only review checking without approving, creating, persisting, promoting, implementing, or mutating proposal records; script uses a short alias path to avoid filesystem filename limits',
   },
   {
-    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
     script: 'scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
     purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review alias reviews finalized short-alias evidence only for read-only acceptance checking without approving, creating, persisting, promoting, implementing, or mutating proposal records; script uses a short alias path to avoid filesystem filename limits',
   },
@@ -443,6 +443,11 @@ const informationalChecks = [
     id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
     script: 'scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
     purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization alias finalizes accepted short-alias evidence only for read-only review checking without approving, creating, persisting, promoting, implementing, or mutating proposal records; script uses a short alias path to avoid filesystem filename limits',
+  },
+  {
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status',
+    script: 'scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review alias reviews finalized short-alias evidence only for read-only acceptance checking without approving, creating, persisting, promoting, implementing, or mutating proposal records; script uses a short alias path to avoid filesystem filename limits',
   },
   {
     id: 'growth-improvement-acceptance-status',
