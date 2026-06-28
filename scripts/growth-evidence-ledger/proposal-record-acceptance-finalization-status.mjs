@@ -14,7 +14,7 @@ const MODE = `${BASE}-status`;
 const SCRIPT_PATH = 'scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-status.mjs';
 const PREVIOUS_STATUS = 'scripts/growth-evidence-ledger/proposal-record-acceptance-status.mjs';
 const NEXT_SLICE = `${BASE}-review`;
-const NEXT_COMMAND = 'node scripts/growth-evidence-ledger/proposal-record-review-status.mjs';
+const NEXT_COMMAND = 'node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-status.mjs';
 const STATUS_LABEL =
   'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status';
 
