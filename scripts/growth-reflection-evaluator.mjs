@@ -16200,6 +16200,13 @@ if (postCompletionRouterActive) {
     selectedReflectionFindingUpdate =
       latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationFindingUpdate;
   }
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewFindingUpdate;
+  }
   payload.postCompletionRouter = {
     active: true,
     track: 'vNext-read-only-growth-loop',
