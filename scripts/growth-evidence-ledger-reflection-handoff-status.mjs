@@ -134,7 +134,7 @@ function runStatusScript(relativePath) {
   const result = spawnSync(process.execPath, [path.join(repoRoot, relativePath)], {
     cwd: repoRoot,
     encoding: 'utf8',
-    maxBuffer: 20 * 1024 * 1024,
+    maxBuffer: 30 * 1024 * 1024,
   });
   const stdout = result.stdout?.trim() || '';
   const stderr = result.stderr?.trim() || '';

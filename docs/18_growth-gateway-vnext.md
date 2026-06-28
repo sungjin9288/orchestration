@@ -18551,18 +18551,42 @@ It must not:
 The route id remains `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status`, while the executable uses the shorter alias path above so the repository does not exceed filesystem filename limits. The command is registered in `scripts/verification_status.mjs`, and existing growth engine and reflection smoke coverage checks that the next read-only lane becomes
 `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization` only after review evidence is accepted and keeps the non-approval boundary.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status`
+`scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-status.mjs` finalizes accepted short-alias dry-run evidence only for a later read-only review check.
+
+Run:
+
+```sh
+node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-status.mjs
+```
+
+It checks:
+
+- whether the previous short alias acceptance status is green and ready for read-only finalization
+- whether every acceptance finding passed before finalized evidence can move to a read-only review check
+- whether finalization remains separate from proposal approval, proposal record creation, durable queue persistence, implementation authority, memory persistence, provider calls, runtime mutation, source mutation, commit, and push
+- whether blocked actions still prevent treating finalized evidence as approval or promoting it to a durable proposal record
+
+It must not:
+
+- generate proposals, apply proposals, create proposal records, persist proposal records, mutate the proposal queue, approve proposals, execute workers, execute dogfood, call providers, persist memory, mutate runtime, mutate UI, mutate source, commit, or push
+- treat finalization evidence as proposal approval, durable queue state, implementation authority, hidden prioritization, source-mutation authority, or gateway action authority
+
+The route id remains `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status`, while the executable uses the shorter alias path above so the repository does not exceed filesystem filename limits. The command is registered in `scripts/verification_status.mjs`, and existing growth engine and reflection status coverage checks that the next read-only lane becomes
+`growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review` only after short-alias acceptance evidence is finalized and keeps the non-approval boundary.
+
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization` as the next
+Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review` as the next
 read-only vNext status/doc-smoke slice, routed through
-`node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-status.mjs` and
+`node scripts/growth-evidence-ledger/proposal-record-review-status.mjs` and
 confirmed by `node scripts/growth-engine-status.mjs` plus
 `node scripts/growth-reflection-evaluator.mjs`.
 
 It should answer:
 
-- whether accepted dry-run review evidence can be finalized as read-only status evidence without approving, creating, or persisting a proposal record
-- how finalization review acceptance finalization stays separate from proposal generation, proposal queue mutation, proposal application, record persistence, proposal approval, memory persistence, provider calls, runtime mutation, UI execution, commits, and pushes
-- how finalization review acceptance finalization prevents finalized dry-run evidence from becoming hidden prioritization, execution authority, approval authority, source-mutation authority, or durable queue state
+- whether finalized short-alias dry-run evidence can be reviewed as read-only status evidence without approving, creating, or persisting a proposal record
+- how finalization review stays separate from proposal generation, proposal queue mutation, proposal application, record persistence, proposal approval, memory persistence, provider calls, runtime mutation, UI execution, commits, and pushes
+- how finalization review prevents reviewed dry-run evidence from becoming hidden prioritization, execution authority, approval authority, source-mutation authority, or durable queue state
 
 The next command or doc-smoke must remain read-only/status-first. It must not reopen the default
 completion backlog or treat the source-mutation lifecycle chain as the default next product lane.
