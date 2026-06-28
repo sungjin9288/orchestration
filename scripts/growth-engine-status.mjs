@@ -7993,6 +7993,10 @@ if (postCompletionRouterActive) {
     selectedFollowUpSlice =
       newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
   }
+  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
+    selectedFollowUpSlice =
+      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
+  }
   const generalWorkstreams = [
     'reflection-evaluator',
     'gateway-surface-router',
