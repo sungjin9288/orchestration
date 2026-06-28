@@ -16158,6 +16158,20 @@ if (postCompletionRouterActive) {
     selectedReflectionFindingUpdate =
       latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationFindingUpdate;
   }
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewFindingUpdate;
+  }
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFindingUpdate;
+  }
   payload.postCompletionRouter = {
     active: true,
     track: 'vNext-read-only-growth-loop',

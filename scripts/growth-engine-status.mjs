@@ -8001,6 +8001,14 @@ if (postCompletionRouterActive) {
     selectedFollowUpSlice =
       newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
   }
+  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
+    selectedFollowUpSlice =
+      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
+  }
+  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
+    selectedFollowUpSlice =
+      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
+  }
   const generalWorkstreams = [
     'reflection-evaluator',
     'gateway-surface-router',
