@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- When repeated short-alias router overrides compute a deeper finalization handoff, re-apply that deeper route after the last shallower acceptance override in both engine and reflection selectors. Otherwise the status command can be green while the published next slice falls back to an already-consumed acceptance lane.
 - When a status route id grows past filesystem filename limits, keep the product route id intact and move only the executable script to a shorter alias path. The status payload, verification id, docs, and smoke should still use the route identity so traceability is preserved without fighting OS path constraints.
 - Aggregate verification should not re-run the same deep status-chain assertions inside high-level smokes when those status scripts are already registered as separate verification checks. Mark aggregate child executions explicitly, keep direct smoke full-depth by default, and record the skip flag in the aggregate report so coverage and performance are both auditable.
 - When reflection creates a deeper ready-for aggregate id, proposal readiness must extend its preferred finding allowlist in the same slice. Otherwise the aggregate can be green while the candidate envelope still reports `sourceFindingId: null`, which makes the next read-only status fail even though engine and reflection routing are aligned.

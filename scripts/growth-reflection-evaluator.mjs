@@ -16137,20 +16137,6 @@ if (postCompletionRouterActive) {
     selectedReflectionFindingUpdate =
       latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationFindingUpdate;
   }
-  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
-    selectedNextSlice =
-      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
-    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
-    selectedReflectionFindingUpdate =
-      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewFindingUpdate;
-  }
-  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
-    selectedNextSlice =
-      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
-    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
-    selectedReflectionFindingUpdate =
-      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFindingUpdate;
-  }
   if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
     selectedNextSlice =
       latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
@@ -16213,6 +16199,34 @@ if (postCompletionRouterActive) {
     selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
     selectedReflectionFindingUpdate =
       latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFindingUpdate;
+  }
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationFindingUpdate;
+  }
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewFindingUpdate;
+  }
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFindingUpdate;
+  }
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationFindingUpdate;
   }
   payload.postCompletionRouter = {
     active: true,
