@@ -1041,7 +1041,7 @@ function summarizeSources(sources) {
           repoRoot,
           'scripts',
           'growth-evidence-ledger',
-          'proposal-record-acceptance-finalization-status.mjs',
+          'proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
         ),
       ),
     latestProposalRecordFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented:
@@ -1172,6 +1172,29 @@ function summarizeSources(sources) {
       sourceMentions(
         verificationStatus,
         'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-status',
+      ),
+    latestProposalRecordFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent:
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          'scripts',
+          'growth-evidence-ledger',
+          'proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
+        ),
+      ),
+    latestProposalRecordFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented:
+      postCompletionImplementedSliceDocumented(
+        plan,
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
+      ) &&
+      sourceMentions(
+        inventory,
+        'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status',
+      ),
+    latestProposalRecordFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered:
+      sourceMentions(
+        verificationStatus,
+        'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status',
       ),
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent:
       fs.existsSync(
@@ -7094,6 +7117,11 @@ if (postCompletionRouterActive) {
     sourceSummary.latestProposalRecordFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusScriptPresent &&
     sourceSummary.latestProposalRecordFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusDocumented &&
     sourceSummary.latestProposalRecordFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusAggregateRegistered;
+  const newestFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview =
+    newestFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization &&
+    sourceSummary.latestProposalRecordFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusScriptPresent &&
+    sourceSummary.latestProposalRecordFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusDocumented &&
+    sourceSummary.latestProposalRecordFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusAggregateRegistered;
   const newestFinalizationNextSlice = readOnlyStatusScriptNextSlice({
     id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
     commandId:
@@ -7179,6 +7207,13 @@ if (postCompletionRouterActive) {
       'node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs',
     reason:
       'Dry-run short-alias review evidence is accepted only for a read-only finalization check; the next safe vNext slice can finalize accepted evidence before any record creation, approval, persistence, implementation, or queue mutation.',
+  });
+  const newestFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice = readOnlyNextSlice({
+    id: 'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review',
+    commandToAdd:
+      'node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs',
+    reason:
+      'Dry-run short-alias acceptance evidence is finalized only for a read-only review check; the next safe vNext slice can review finalized evidence before any record creation, approval, persistence, implementation, or queue mutation.',
   });
   const proposalRecordNextSlices = {
     acceptNewestReviewedFinalization: readOnlyStatusScriptNextSlice({
@@ -7494,6 +7529,10 @@ if (postCompletionRouterActive) {
     }
   }
   const newestFinalizationFollowUpRoutes = routesFromPairs([
+    [
+      newestFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview,
+      newestFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice,
+    ],
     [
       newestFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization,
       newestFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice,
