@@ -7945,6 +7945,14 @@ if (postCompletionRouterActive) {
     selectedFollowUpSlice =
       newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
   }
+  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
+    selectedFollowUpSlice =
+      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
+  }
+  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
+    selectedFollowUpSlice =
+      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
+  }
   const generalWorkstreams = [
     'reflection-evaluator',
     'gateway-surface-router',
@@ -8038,6 +8046,10 @@ if (postCompletionRouterActive) {
     ...finalizationStatusEvidence,
     latestProposalRecordShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
       newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview,
+    latestProposalRecordShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented:
+      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance,
+    latestProposalRecordShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
+      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization,
     candidateWorkstreams,
     lifecycleSupportingSlice,
     rationale: activeRouterRationale,

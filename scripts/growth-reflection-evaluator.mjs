@@ -16091,6 +16091,20 @@ if (postCompletionRouterActive) {
     selectedReflectionFindingUpdate =
       latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewFindingUpdate;
   }
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFindingUpdate;
+  }
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationFindingUpdate;
+  }
   payload.postCompletionRouter = {
     active: true,
     track: 'vNext-read-only-growth-loop',
@@ -16126,6 +16140,10 @@ if (postCompletionRouterActive) {
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented,
     latestProposalRecordShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
       latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview,
+    latestProposalRecordShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented:
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance,
+    latestProposalRecordShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented:
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization,
     lifecycleSupportingSlice,
     rationale:
       'The completion baseline is zero-open, so growth-reflection-evaluator must recommend read-only Growth Evidence Ledger work instead of continuing source-mutation lifecycle rechecks as the default product lane.',
