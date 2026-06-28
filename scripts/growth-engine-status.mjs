@@ -7941,6 +7941,10 @@ if (postCompletionRouterActive) {
   if (newestFinalizationFollowUp) {
     selectedFollowUpSlice = newestFinalizationFollowUp;
   }
+  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
+    selectedFollowUpSlice =
+      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
+  }
   const generalWorkstreams = [
     'reflection-evaluator',
     'gateway-surface-router',
@@ -8032,6 +8036,8 @@ if (postCompletionRouterActive) {
     ...activeRouterContext,
     ...preparationStatusEvidence,
     ...finalizationStatusEvidence,
+    latestProposalRecordShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
+      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview,
     candidateWorkstreams,
     lifecycleSupportingSlice,
     rationale: activeRouterRationale,

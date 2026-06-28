@@ -15993,7 +15993,7 @@ if (postCompletionRouterActive) {
           'The post-completion router is active and reflection evidence is green; the next safe vNext workstream is a read-only Growth Evidence Ledger status/doc-smoke slice, while lifecycle closeout rechecks remain supporting evidence only.',
         mustRemainReadOnly: true,
       };
-  const selectedNextSlice = latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization
+  let selectedNextSlice = latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization
     ? latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice
     : latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance
     ? latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice
@@ -16038,8 +16038,8 @@ if (postCompletionRouterActive) {
     : latestProposalRecordAcceptanceReadyForFinalization
     ? latestProposalRecordFinalizationNextSlice
     : routedNextSlice;
-  const selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
-  const selectedReflectionFindingUpdate = latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization
+  let selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+  let selectedReflectionFindingUpdate = latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization
     ? latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationFindingUpdate
     : latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance
     ? latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFindingUpdate
@@ -16084,6 +16084,13 @@ if (postCompletionRouterActive) {
     : latestProposalRecordAcceptanceReadyForFinalization
     ? latestProposalRecordFinalizationFindingUpdate
     : {};
+  if (latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
+    selectedNextSlice =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
+    selectedNextSliceReadyStatus = `ready-for-${selectedNextSlice.id}`;
+    selectedReflectionFindingUpdate =
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewFindingUpdate;
+  }
   payload.postCompletionRouter = {
     active: true,
     track: 'vNext-read-only-growth-loop',
@@ -16117,6 +16124,8 @@ if (postCompletionRouterActive) {
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewStatusImplemented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceStatusImplemented,
     growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented,
+    latestProposalRecordShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationStatusImplemented:
+      latestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview,
     lifecycleSupportingSlice,
     rationale:
       'The completion baseline is zero-open, so growth-reflection-evaluator must recommend read-only Growth Evidence Ledger work instead of continuing source-mutation lifecycle rechecks as the default product lane.',

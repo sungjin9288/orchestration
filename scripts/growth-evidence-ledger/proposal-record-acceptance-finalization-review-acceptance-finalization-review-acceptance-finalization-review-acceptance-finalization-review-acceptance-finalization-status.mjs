@@ -16,7 +16,7 @@ const PREVIOUS_STATUS = 'scripts/growth-evidence-ledger/proposal-record-acceptan
 const NEXT_SLICE = `${BASE}-review`;
 const NEXT_COMMAND = 'node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-status.mjs';
 const LEDGER_ID =
-  'growth-evidence-ledger-proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-alias-status-readonly-post-m7-1918';
+  'growth-evidence-ledger-proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-alias-status-readonly-post-m7-1921';
 const STATUS_LABEL =
   'Growth Evidence Ledger proposal record dry-run review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization review acceptance finalization status';
 
@@ -89,6 +89,14 @@ const requiredBlockedActions = [
   'persist-proposal-record',
   'mutate-proposal-queue',
   'approve-proposal',
+];
+const currentFinalizationActionScope = BASE.replace(
+  /^growth-evidence-ledger-proposal-record-dry-run-review-acceptance-/,
+  '',
+);
+const currentFinalizationActions = [
+  `accept-dry-run-${currentFinalizationActionScope}-as-approval`,
+  `promote-dry-run-${currentFinalizationActionScope}-to-record`,
 ];
 
 function readSourceBundle() {
@@ -173,13 +181,7 @@ function buildFinalizationFindings({ acceptanceEnvelope, acceptanceFindings, pre
 }
 
 function buildBlockedActions(existingBlockedActions) {
-  return [
-    ...new Set([
-      ...existingBlockedActions,
-      'accept-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-as-approval',
-      'promote-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-to-record',
-    ]),
-  ];
+  return [...new Set([...existingBlockedActions, ...currentFinalizationActions])];
 }
 
 function buildFinalizationEnvelope({ acceptanceEnvelope, finalizationFindings, finalizationBlockedActions }) {
@@ -219,13 +221,11 @@ function buildFinalizationEnvelope({ acceptanceEnvelope, finalizationFindings, f
       finalizationState,
       finalizationFindingsPassed: finalizationFindings.every((finding) => finding.ok),
       finalizationDoesNotApprove:
-        finalizationBlockedActions.includes(
-          'accept-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-as-approval',
-        ) && finalizationBlockedActions.includes('approve-proposal'),
+        finalizationBlockedActions.includes(currentFinalizationActions[0]) &&
+        finalizationBlockedActions.includes('approve-proposal'),
       durableRecordPromotionBlocked:
-        finalizationBlockedActions.includes(
-          'promote-dry-run-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-to-record',
-        ) && finalizationBlockedActions.includes('persist-proposal-record'),
+        finalizationBlockedActions.includes(currentFinalizationActions[1]) &&
+        finalizationBlockedActions.includes('persist-proposal-record'),
     },
   };
 }
