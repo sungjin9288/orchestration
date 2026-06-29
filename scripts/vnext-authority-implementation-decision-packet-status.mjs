@@ -184,7 +184,7 @@ assert.equal(
   true,
 );
 
-const authorityBoundary = {
+const proposalRecordDecisionPacketAuthorityBoundary = {
   providerCallsAllowed: false,
   memoryPersistenceAllowed: false,
   longTermMemoryStoreAllowed: false,
@@ -233,7 +233,7 @@ process.stdout.write(
           posture: authorityExpansionReviewStatus.posture,
         },
       },
-      authority: authorityBoundary,
+      authority: proposalRecordDecisionPacketAuthorityBoundary,
     },
     null,
     2,

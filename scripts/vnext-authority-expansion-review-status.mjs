@@ -221,7 +221,7 @@ assert.equal(
   true,
 );
 
-const authorityBoundary = {
+const authorityExpansionReviewAuthorityBoundary = {
   providerCallsAllowed: false,
   memoryPersistenceAllowed: false,
   longTermMemoryStoreAllowed: false,
@@ -267,7 +267,7 @@ process.stdout.write(
             memoryReadinessDecisionSpecStatus.authority?.memoryPersistenceAllowed,
         },
       },
-      authority: authorityBoundary,
+      authority: authorityExpansionReviewAuthorityBoundary,
     },
     null,
     2,

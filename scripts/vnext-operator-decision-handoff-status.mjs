@@ -225,7 +225,7 @@ const proposalApplicationImplementationDecisionSlice =
   'proposal application implementation decision required';
 const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
-const authorityBoundary = {
+const proposalRecordOperatorHandoffAuthorityBoundary = {
   handoffRecordsDecision: false,
   planningApproved: true,
   implementationApproved: true,
@@ -289,7 +289,7 @@ process.stdout.write(
           nextSlice: proposalApplicationImplementationDecisionSlice,
         },
       },
-      authority: authorityBoundary,
+      authority: proposalRecordOperatorHandoffAuthorityBoundary,
     },
     null,
     2,
