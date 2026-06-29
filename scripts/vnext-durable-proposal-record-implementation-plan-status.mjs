@@ -208,9 +208,15 @@ const sourceEvidence = {
 
 assertSourceEvidence(durableProposalRecordImplementationPlanSources, sourceEvidence);
 
-const handoffStatus = runStatus('scripts/vnext-operator-decision-handoff-status.mjs');
-const planningPreviewStatus = runStatus('scripts/vnext-durable-proposal-record-planning-preview-status.mjs');
-const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
+const proposalRecordOperatorHandoffStatus = runStatus(
+  'scripts/vnext-operator-decision-handoff-status.mjs',
+);
+const durableProposalRecordPlanningPreviewStatus = runStatus(
+  'scripts/vnext-durable-proposal-record-planning-preview-status.mjs',
+);
+const proposalReviewDecisionSpecStatus = runStatus(
+  'scripts/vnext-proposal-review-decision-spec-status.mjs',
+);
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
@@ -218,12 +224,12 @@ const proposalApplicationDecisionGate = 'proposal application decision required'
 const proposalApplicationImplementationDecisionSlice =
   'proposal application implementation decision required';
 
-assert.equal(handoffStatus.ok, true);
-assert.equal(planningPreviewStatus.ok, true);
-assert.equal(proposalSpecStatus.ok, true);
+assert.equal(proposalRecordOperatorHandoffStatus.ok, true);
+assert.equal(durableProposalRecordPlanningPreviewStatus.ok, true);
+assert.equal(proposalReviewDecisionSpecStatus.ok, true);
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(proposalSpecStatus.authority?.proposalRecordCreationAllowed, false);
-assert.equal(proposalSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
+assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalRecordCreationAllowed, false);
+assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
@@ -276,17 +282,19 @@ process.stdout.write(
       },
       upstreamStatus: {
         handoff: {
-          ok: handoffStatus.ok,
-          currentGate: handoffStatus.currentGate,
+          ok: proposalRecordOperatorHandoffStatus.ok,
+          currentGate: proposalRecordOperatorHandoffStatus.currentGate,
         },
         planningPreview: {
-          ok: planningPreviewStatus.ok,
-          currentGate: planningPreviewStatus.currentGate,
+          ok: durableProposalRecordPlanningPreviewStatus.ok,
+          currentGate: durableProposalRecordPlanningPreviewStatus.currentGate,
         },
         proposalDecisionSpec: {
-          ok: proposalSpecStatus.ok,
-          proposalRecordCreationAllowed: proposalSpecStatus.authority?.proposalRecordCreationAllowed,
-          proposalRecordPersistenceAllowed: proposalSpecStatus.authority?.proposalRecordPersistenceAllowed,
+          ok: proposalReviewDecisionSpecStatus.ok,
+          proposalRecordCreationAllowed:
+            proposalReviewDecisionSpecStatus.authority?.proposalRecordCreationAllowed,
+          proposalRecordPersistenceAllowed:
+            proposalReviewDecisionSpecStatus.authority?.proposalRecordPersistenceAllowed,
         },
         vnextAudit: {
           ok: vnextDevelopmentAuditStatus.ok,

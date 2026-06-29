@@ -191,9 +191,15 @@ const sourceEvidence = {
 assertSourceEvidence(authorityExpansionReviewSources, sourceEvidence);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const growthDashboardStatus = runStatus('scripts/vnext-growth-dashboard-evidence-depth-status.mjs');
-const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
-const memorySpecStatus = runStatus('scripts/vnext-memory-readiness-decision-spec-status.mjs');
+const growthDashboardEvidenceDepthStatus = runStatus(
+  'scripts/vnext-growth-dashboard-evidence-depth-status.mjs',
+);
+const proposalReviewDecisionSpecStatus = runStatus(
+  'scripts/vnext-proposal-review-decision-spec-status.mjs',
+);
+const memoryReadinessDecisionSpecStatus = runStatus(
+  'scripts/vnext-memory-readiness-decision-spec-status.mjs',
+);
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationDecisionSlice =
@@ -201,9 +207,9 @@ const proposalApplicationImplementationDecisionSlice =
 const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(growthDashboardStatus.ok, true);
-assert.equal(proposalSpecStatus.ok, true);
-assert.equal(memorySpecStatus.ok, true);
+assert.equal(growthDashboardEvidenceDepthStatus.ok, true);
+assert.equal(proposalReviewDecisionSpecStatus.ok, true);
+assert.equal(memoryReadinessDecisionSpecStatus.ok, true);
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
@@ -244,16 +250,18 @@ process.stdout.write(
           nextSlice: vnextDevelopmentAuditNextSlice,
         },
         growthDashboardEvidenceDepth: {
-          ok: growthDashboardStatus.ok,
-          displayOnly: growthDashboardStatus.implemented?.displayOnly,
+          ok: growthDashboardEvidenceDepthStatus.ok,
+          displayOnly: growthDashboardEvidenceDepthStatus.implemented?.displayOnly,
         },
         proposalReviewDecisionSpec: {
-          ok: proposalSpecStatus.ok,
-          proposalRecordCreationAllowed: proposalSpecStatus.authority?.proposalRecordCreationAllowed,
+          ok: proposalReviewDecisionSpecStatus.ok,
+          proposalRecordCreationAllowed:
+            proposalReviewDecisionSpecStatus.authority?.proposalRecordCreationAllowed,
         },
         memoryReadinessDecisionSpec: {
-          ok: memorySpecStatus.ok,
-          memoryPersistenceAllowed: memorySpecStatus.authority?.memoryPersistenceAllowed,
+          ok: memoryReadinessDecisionSpecStatus.ok,
+          memoryPersistenceAllowed:
+            memoryReadinessDecisionSpecStatus.authority?.memoryPersistenceAllowed,
         },
       },
       authority: authorityBoundary,

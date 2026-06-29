@@ -163,7 +163,9 @@ const sourceEvidence = {
 assertSourceEvidence(proposalRecordDecisionPacketSources, sourceEvidence);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-review-status.mjs');
+const authorityExpansionReviewStatus = runStatus(
+  'scripts/vnext-authority-expansion-review-status.mjs',
+);
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const operatorDecisionGate = 'operator decision required';
@@ -173,7 +175,7 @@ const proposalApplicationImplementationDecisionSlice =
 const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(authorityReviewStatus.ok, true);
+assert.equal(authorityExpansionReviewStatus.ok, true);
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
@@ -227,8 +229,8 @@ process.stdout.write(
           implementationAuthority: 'accepted for durable proposal record creation and persistence only',
         },
         authorityExpansionReview: {
-          ok: authorityReviewStatus.ok,
-          posture: authorityReviewStatus.posture,
+          ok: authorityExpansionReviewStatus.ok,
+          posture: authorityExpansionReviewStatus.posture,
         },
       },
       authority: authorityBoundary,

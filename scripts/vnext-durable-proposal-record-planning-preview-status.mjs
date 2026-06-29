@@ -173,10 +173,14 @@ const sourceEvidence = {
 
 assertSourceEvidence(durableProposalRecordPlanningPreviewSources, sourceEvidence);
 
-const decisionPacketStatus = runStatus('scripts/vnext-authority-implementation-decision-packet-status.mjs');
-const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
-const proposalQueueStatus = runStatus('scripts/growth-proposal-queue-status.mjs');
-const creationReadinessStatus = runStatus(
+const proposalRecordDecisionPacketStatus = runStatus(
+  'scripts/vnext-authority-implementation-decision-packet-status.mjs',
+);
+const proposalReviewDecisionSpecStatus = runStatus(
+  'scripts/vnext-proposal-review-decision-spec-status.mjs',
+);
+const growthProposalQueueStatus = runStatus('scripts/growth-proposal-queue-status.mjs');
+const proposalRecordCreationReadinessStatus = runStatus(
   'scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
 );
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
@@ -186,20 +190,26 @@ const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
 const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
-assert.equal(decisionPacketStatus.ok, true);
-assert.equal(proposalSpecStatus.ok, true);
-assert.equal(proposalQueueStatus.ok, true);
-assert.equal(creationReadinessStatus.ok, true);
+assert.equal(proposalRecordDecisionPacketStatus.ok, true);
+assert.equal(proposalReviewDecisionSpecStatus.ok, true);
+assert.equal(growthProposalQueueStatus.ok, true);
+assert.equal(proposalRecordCreationReadinessStatus.ok, true);
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(decisionPacketStatus.originalGate, operatorDecisionGate);
-assert.equal(decisionPacketStatus.currentGate, proposalApplicationDecisionGate);
-assert.equal(proposalSpecStatus.authority?.proposalRecordCreationAllowed, false);
-assert.equal(proposalSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
-assert.equal(proposalQueueStatus.readiness?.proposalGenerationAllowed, false);
-assert.equal(proposalQueueStatus.readiness?.proposalApplicationAllowed, false);
-assert.equal(creationReadinessStatus.readiness?.proposalRecordCreationAllowed, false);
-assert.equal(creationReadinessStatus.readiness?.proposalRecordPersistenceAllowed, false);
-assert.equal(creationReadinessStatus.readiness?.implementationAllowed, false);
+assert.equal(proposalRecordDecisionPacketStatus.originalGate, operatorDecisionGate);
+assert.equal(proposalRecordDecisionPacketStatus.currentGate, proposalApplicationDecisionGate);
+assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalRecordCreationAllowed, false);
+assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
+assert.equal(growthProposalQueueStatus.readiness?.proposalGenerationAllowed, false);
+assert.equal(growthProposalQueueStatus.readiness?.proposalApplicationAllowed, false);
+assert.equal(
+  proposalRecordCreationReadinessStatus.readiness?.proposalRecordCreationAllowed,
+  false,
+);
+assert.equal(
+  proposalRecordCreationReadinessStatus.readiness?.proposalRecordPersistenceAllowed,
+  false,
+);
+assert.equal(proposalRecordCreationReadinessStatus.readiness?.implementationAllowed, false);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'durable proposal record planning preview',
@@ -247,22 +257,27 @@ process.stdout.write(
       },
       upstreamStatus: {
         decisionPacket: {
-          ok: decisionPacketStatus.ok,
-          currentGate: decisionPacketStatus.currentGate,
+          ok: proposalRecordDecisionPacketStatus.ok,
+          currentGate: proposalRecordDecisionPacketStatus.currentGate,
         },
         proposalDecisionSpec: {
-          ok: proposalSpecStatus.ok,
-          proposalRecordCreationAllowed: proposalSpecStatus.authority?.proposalRecordCreationAllowed,
+          ok: proposalReviewDecisionSpecStatus.ok,
+          proposalRecordCreationAllowed:
+            proposalReviewDecisionSpecStatus.authority?.proposalRecordCreationAllowed,
         },
         proposalQueue: {
-          ok: proposalQueueStatus.ok,
-          proposalGenerationAllowed: proposalQueueStatus.readiness?.proposalGenerationAllowed,
-          proposalApplicationAllowed: proposalQueueStatus.readiness?.proposalApplicationAllowed,
+          ok: growthProposalQueueStatus.ok,
+          proposalGenerationAllowed:
+            growthProposalQueueStatus.readiness?.proposalGenerationAllowed,
+          proposalApplicationAllowed:
+            growthProposalQueueStatus.readiness?.proposalApplicationAllowed,
         },
         creationReadiness: {
-          ok: creationReadinessStatus.ok,
-          creationStillBlocked: creationReadinessStatus.readiness?.creationStillBlocked,
-          implementationAllowed: creationReadinessStatus.readiness?.implementationAllowed,
+          ok: proposalRecordCreationReadinessStatus.ok,
+          creationStillBlocked:
+            proposalRecordCreationReadinessStatus.readiness?.creationStillBlocked,
+          implementationAllowed:
+            proposalRecordCreationReadinessStatus.readiness?.implementationAllowed,
         },
         vnextAudit: {
           ok: vnextDevelopmentAuditStatus.ok,
