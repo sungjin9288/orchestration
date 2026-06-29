@@ -118,6 +118,24 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function assertContainsAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
+  }
+}
+
+function assertContainsBacktickedAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
+  }
+}
+
+function assertDoesNotMatchAny(source, patterns) {
+  for (const pattern of patterns) {
+    assert.doesNotMatch(source, pattern);
+  }
+}
+
 function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
@@ -130,34 +148,37 @@ for (const section of requiredSpecSections) {
   assert.match(sources.spec, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-for (const field of requiredRequestFields) {
-  assert.match(sources.spec, new RegExp(`\\\`${escapeRegExp(field)}\\\``));
-}
+assertContainsBacktickedAll(sources.spec, requiredRequestFields);
+assertContainsAll(sources.spec, reviewCandidates);
+assertContainsAll(sources.app, blockedAuthorityMarkers);
+assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
-for (const candidate of reviewCandidates) {
-  assert.match(sources.spec, new RegExp(escapeRegExp(candidate)));
-}
+const sourceEvidence = {
+  decisionLog: [
+    '### DEC-052',
+    'docs/26_authority-expansion-review-spec.md',
+    'Review acceptance can only feed the next explicit decision',
+  ],
+  audit: [
+    'Completed: `operator-approved authority expansion review`',
+    '`proposal application implementation decision required`',
+  ],
+  inventory: ['vNext authority expansion review'],
+  readme: [
+    'Authority expansion review is not implementation approval',
+    'docs/26_authority-expansion-review-spec.md',
+  ],
+  uiSmoke: [
+    'providerCallsAllowed: false',
+    'proposalRecordCreationAllowed: false',
+    'commitPushAllowed: false',
+  ],
+  verification: ['vnext-authority-expansion-review-status.mjs'],
+};
 
-for (const marker of blockedAuthorityMarkers) {
-  assert.match(sources.app, new RegExp(escapeRegExp(marker)));
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
 }
-
-for (const pattern of forbiddenActionPatterns) {
-  assert.doesNotMatch(sources.app, pattern);
-}
-
-assert.match(sources.decisionLog, /### DEC-052/);
-assert.match(sources.decisionLog, /docs\/26_authority-expansion-review-spec\.md/);
-assert.match(sources.decisionLog, /Review acceptance can only feed the next explicit decision/);
-assert.match(sources.audit, /Completed: `operator-approved authority expansion review`/);
-assert.match(sources.audit, /`proposal application implementation decision required`/);
-assert.match(sources.inventory, /vNext authority expansion review/);
-assert.match(sources.readme, /Authority expansion review is not implementation approval/);
-assert.match(sources.readme, /docs\/26_authority-expansion-review-spec\.md/);
-assert.match(sources.uiSmoke, /providerCallsAllowed: false/);
-assert.match(sources.uiSmoke, /proposalRecordCreationAllowed: false/);
-assert.match(sources.uiSmoke, /commitPushAllowed: false/);
-assert.match(sources.verification, /vnext-authority-expansion-review-status\.mjs/);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const growthDashboardStatus = runStatus('scripts/vnext-growth-dashboard-evidence-depth-status.mjs');
