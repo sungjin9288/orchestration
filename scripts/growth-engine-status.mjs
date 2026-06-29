@@ -8045,6 +8045,10 @@ if (postCompletionRouterActive) {
     selectedFollowUpSlice =
       newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
   }
+  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
+    selectedFollowUpSlice =
+      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
+  }
   const generalWorkstreams = [
     'reflection-evaluator',
     'gateway-surface-router',
