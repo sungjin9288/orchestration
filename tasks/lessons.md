@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- When a newest short-alias finalization review is already green, re-apply both review-ready and acceptance-ready overrides after the finalization-ready fallback. Otherwise engine/reflection can stop at a stale review lane even though review and acceptance direct statuses are green.
 - Long Growth Evidence Ledger route ids overlap with older route ids. When updating the current recommended route, avoid broad file-wide substitutions across docs and ledgers; target the current summary block or smoke assertion, then inspect historical implemented-slice entries before continuing.
 - Repeated read-only routing slices should be batched into related commit/push groups instead of committing every narrow status hop. Keep local verification and ledger evidence per slice, but wait for an operator-approved grouping point before explicit commit or push.
 - When repeated short-alias router overrides compute a deeper finalization handoff, re-apply that deeper route after the last shallower acceptance override in both engine and reflection selectors. Otherwise the status command can be green while the published next slice falls back to an already-consumed acceptance lane.

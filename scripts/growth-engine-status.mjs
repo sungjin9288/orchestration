@@ -8001,54 +8001,6 @@ if (postCompletionRouterActive) {
     selectedFollowUpSlice =
       newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
   }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationReadyForReview) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewReadyForAcceptance) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceNextSlice;
-  }
-  if (newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceReadyForFinalization) {
-    selectedFollowUpSlice =
-      newestShortAliasAcceptanceFinalizationReviewAcceptanceFinalizationReviewAcceptanceFinalizationNextSlice;
-  }
   const generalWorkstreams = [
     'reflection-evaluator',
     'gateway-surface-router',
