@@ -145,7 +145,7 @@ function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
-const sources = Object.fromEntries(
+const durableProposalRecordImplementationPlanSources = Object.fromEntries(
   Object.entries(durableProposalRecordImplementationPlanFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -153,12 +153,21 @@ const sources = Object.fromEntries(
 );
 
 for (const section of requiredPlanSections) {
-  assert.match(sources.plan, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
+  assert.match(
+    durableProposalRecordImplementationPlanSources.plan,
+    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
+  );
 }
 
-assertContainsBacktickedAll(sources.plan, proposalRecordImplementationDecisionRequiredFields);
-assertContainsBacktickedAll(sources.plan, requiredRecordFields);
-assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
+assertContainsBacktickedAll(
+  durableProposalRecordImplementationPlanSources.plan,
+  proposalRecordImplementationDecisionRequiredFields,
+);
+assertContainsBacktickedAll(
+  durableProposalRecordImplementationPlanSources.plan,
+  requiredRecordFields,
+);
+assertDoesNotMatchAny(durableProposalRecordImplementationPlanSources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
   plan: [
@@ -197,7 +206,7 @@ const sourceEvidence = {
   verification: ['vnext-durable-proposal-record-implementation-plan-status.mjs'],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(durableProposalRecordImplementationPlanSources, sourceEvidence);
 
 const handoffStatus = runStatus('scripts/vnext-operator-decision-handoff-status.mjs');
 const planningPreviewStatus = runStatus('scripts/vnext-durable-proposal-record-planning-preview-status.mjs');

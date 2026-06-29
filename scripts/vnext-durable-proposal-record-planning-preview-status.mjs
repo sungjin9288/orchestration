@@ -124,7 +124,7 @@ function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
-const sources = Object.fromEntries(
+const durableProposalRecordPlanningPreviewSources = Object.fromEntries(
   Object.entries(durableProposalRecordPlanningPreviewFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -132,11 +132,14 @@ const sources = Object.fromEntries(
 );
 
 for (const section of requiredPreviewSections) {
-  assert.match(sources.preview, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
+  assert.match(
+    durableProposalRecordPlanningPreviewSources.preview,
+    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
+  );
 }
 
-assertContainsBacktickedAll(sources.preview, requiredRecordFields);
-assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
+assertContainsBacktickedAll(durableProposalRecordPlanningPreviewSources.preview, requiredRecordFields);
+assertDoesNotMatchAny(durableProposalRecordPlanningPreviewSources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
   preview: [
@@ -168,7 +171,7 @@ const sourceEvidence = {
   verification: ['vnext-durable-proposal-record-planning-preview-status.mjs'],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(durableProposalRecordPlanningPreviewSources, sourceEvidence);
 
 const decisionPacketStatus = runStatus('scripts/vnext-authority-implementation-decision-packet-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');

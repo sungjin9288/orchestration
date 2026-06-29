@@ -54,7 +54,7 @@ const durableProposalRecordImplementationStatusFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const sources = Object.fromEntries(
+const durableProposalRecordImplementationStatusSources = Object.fromEntries(
   Object.entries(durableProposalRecordImplementationStatusFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -102,9 +102,9 @@ const sourceEvidence = {
   ],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(durableProposalRecordImplementationStatusSources, sourceEvidence);
 
-assertDoesNotMatchAny(sources.app, [
+assertDoesNotMatchAny(durableProposalRecordImplementationStatusSources.app, [
   /data-action="create-proposal-record"/,
   /data-action="apply-proposal"/,
 ]);
