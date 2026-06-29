@@ -135,11 +135,11 @@ for (const section of requiredSpecSections) {
 }
 
 assertContainsBacktickedAll(sources.spec, requiredMemoryFields);
-assertContainsAll(sources.spec, reviewSemantics);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenAuthorityPatterns);
 
 const sourceEvidence = {
+  spec: reviewSemantics,
+  app: blockedAuthorityMarkers,
   decisionLog: [
     '### DEC-049',
     '### DEC-051',

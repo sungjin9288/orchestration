@@ -149,11 +149,11 @@ for (const section of requiredSpecSections) {
 }
 
 assertContainsBacktickedAll(sources.spec, requiredRequestFields);
-assertContainsAll(sources.spec, reviewCandidates);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
+  spec: reviewCandidates,
+  app: blockedAuthorityMarkers,
   decisionLog: [
     '### DEC-052',
     'docs/26_authority-expansion-review-spec.md',
