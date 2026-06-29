@@ -134,45 +134,48 @@ assertContainsBacktickedAll(sources.handoff, decisionOptions);
 assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
-assertContainsAll(sources.handoff, [
-  'Current gate: `proposal application planning decision required`',
-  'Decision packet: `docs/31_proposal-application-decision-packet.md`',
-  'Handoff status: `decision-template-only`',
-  'It is not an operator decision',
-  'It is not proposal application approval',
-  'It is not source mutation approval',
-  'durable proposal record creation approval as application approval',
-  'application planning and implementation approval are collapsed into one unclear statement',
-  'application approval and source mutation approval are collapsed into one statement',
-]);
+const sourceEvidence = {
+  handoff: [
+    'Current gate: `proposal application planning decision required`',
+    'Decision packet: `docs/31_proposal-application-decision-packet.md`',
+    'Handoff status: `decision-template-only`',
+    'It is not an operator decision',
+    'It is not proposal application approval',
+    'It is not source mutation approval',
+    'durable proposal record creation approval as application approval',
+    'application planning and implementation approval are collapsed into one unclear statement',
+    'application approval and source mutation approval are collapsed into one statement',
+  ],
+  decisionPacket: [
+    'Current packet status: `decision-input-only`',
+    'approve-application-planning-only',
+    'approve-application-implementation-slice',
+  ],
+  proposalSpec: [
+    'Creation approval',
+    'Application approval',
+    'missing explicit application approval',
+  ],
+  implementationPlan: [
+    'Runtime implementation: completed',
+    'Next blocked authority: proposal application',
+  ],
+  decisionLog: ['### DEC-058', '### DEC-059'],
+  audit: [
+    'Completed: `proposal application operator decision handoff`',
+    '1. `proposal application planning decision required`',
+  ],
+  inventory: ['vNext proposal application operator decision handoff'],
+  readme: [
+    'Proposal application operator decision handoff is not approval',
+    'docs/32_proposal-application-operator-decision-handoff.md',
+  ],
+  verification: ['vnext-proposal-application-operator-decision-handoff-status.mjs'],
+};
 
-assertContainsAll(sources.decisionPacket, [
-  'Current packet status: `decision-input-only`',
-  'approve-application-planning-only',
-  'approve-application-implementation-slice',
-]);
-assertContainsAll(sources.proposalSpec, [
-  'Creation approval',
-  'Application approval',
-  'missing explicit application approval',
-]);
-assertContainsAll(sources.implementationPlan, [
-  'Runtime implementation: completed',
-  'Next blocked authority: proposal application',
-]);
-assertContainsAll(sources.decisionLog, ['### DEC-058', '### DEC-059']);
-assertContainsAll(sources.audit, [
-  'Completed: `proposal application operator decision handoff`',
-  '1. `proposal application planning decision required`',
-]);
-assertContainsAll(sources.inventory, ['vNext proposal application operator decision handoff']);
-assertContainsAll(sources.readme, [
-  'Proposal application operator decision handoff is not approval',
-  'docs/32_proposal-application-operator-decision-handoff.md',
-]);
-assertContainsAll(sources.verification, [
-  'vnext-proposal-application-operator-decision-handoff-status.mjs',
-]);
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
+}
 
 const packetStatus = runStatus('scripts/vnext-proposal-application-decision-packet-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
@@ -208,6 +211,25 @@ const authority = {
   pushAllowed: false,
 };
 
+const upstreamStatus = {
+  proposalApplicationDecisionPacket: {
+    ok: packetStatus.ok,
+    proposalApplicationAllowed: packetStatus.authority?.proposalApplicationAllowed,
+  },
+  proposalReviewDecisionSpec: {
+    ok: proposalSpecStatus.ok,
+    proposalApplicationAllowed: proposalSpecStatus.authority?.proposalApplicationAllowed,
+  },
+  durableProposalRecordImplementation: {
+    ok: implementationStatus.ok,
+    proposalApplicationAllowed: implementationStatus.authority?.proposalApplicationAllowed,
+  },
+  vnextAudit: {
+    ok: auditStatus.ok,
+    nextSlice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
+  },
+};
+
 process.stdout.write(
   `${JSON.stringify(
     {
@@ -224,24 +246,7 @@ process.stdout.write(
         'operator-provided application planning or implementation decision for existing durable proposal records',
       decisionOptions,
       requiredDecisionFields,
-      upstreamStatus: {
-        proposalApplicationDecisionPacket: {
-          ok: packetStatus.ok,
-          proposalApplicationAllowed: packetStatus.authority?.proposalApplicationAllowed,
-        },
-        proposalReviewDecisionSpec: {
-          ok: proposalSpecStatus.ok,
-          proposalApplicationAllowed: proposalSpecStatus.authority?.proposalApplicationAllowed,
-        },
-        durableProposalRecordImplementation: {
-          ok: implementationStatus.ok,
-          proposalApplicationAllowed: implementationStatus.authority?.proposalApplicationAllowed,
-        },
-        vnextAudit: {
-          ok: auditStatus.ok,
-          nextSlice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
-        },
-      },
+      upstreamStatus,
       authority,
     },
     null,
