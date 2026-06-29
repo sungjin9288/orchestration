@@ -108,6 +108,24 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function assertContainsAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
+  }
+}
+
+function assertContainsBacktickedAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
+  }
+}
+
+function assertDoesNotMatchAny(source, forbiddenPatterns) {
+  for (const forbiddenPattern of forbiddenPatterns) {
+    assert.doesNotMatch(source, forbiddenPattern);
+  }
+}
+
 const sources = Object.fromEntries(
   Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
 );
@@ -116,54 +134,56 @@ for (const section of requiredHandoffSections) {
   assert.match(sources.handoff, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-for (const field of requiredDecisionFields) {
-  assert.match(sources.handoff, new RegExp(`\\\`${escapeRegExp(field)}\\\``));
-}
+assertContainsBacktickedAll(sources.handoff, requiredDecisionFields);
+assertContainsBacktickedAll(sources.handoff, decisionOptions);
+assertContainsAll(sources.handoff, invalidShortcuts);
+assertContainsAll(sources.app, blockedAuthorityMarkers);
+assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
-for (const option of decisionOptions) {
-  assert.match(sources.handoff, new RegExp(`\\\`${escapeRegExp(option)}\\\``));
-}
+assertContainsAll(sources.handoff, [
+  'It is not an operator decision',
+  'It is not `approve-planning-only`',
+  'Current gate: `operator decision required`',
+  'Handoff status: `ready-for-operator-input`',
+  'Recommended first value: `durable proposal record creation and persistence`',
+  'implementationPlanRefs` | Empty until `approve-planning-only` exists',
+  'I approve planning only for durable proposal record creation and persistence',
+  'This approval allows one implementation plan, rollback plan, and focused smoke plan',
+  'does not approve implementation, proposal application, provider calls, memory persistence, source mutation, commit, or push',
+  'no explicit `approve-planning-only` or stronger accepted operator decision exists',
+  'The script must stay read-only',
+]);
 
-for (const shortcut of invalidShortcuts) {
-  assert.match(sources.handoff, new RegExp(escapeRegExp(shortcut)));
-}
+assertContainsAll(sources.decisionPacket, [
+  'Current gate: `operator decision required`',
+  'Current implementation authority: blocked',
+  'This packet does not provide that approval',
+]);
 
-for (const marker of blockedAuthorityMarkers) {
-  assert.match(sources.app, new RegExp(escapeRegExp(marker)));
-}
+assertContainsAll(sources.planningPreview, [
+  'no explicit `approve-planning-only` or stronger accepted decision exists',
+  'Current implementation authority: blocked',
+  'proposal application remains blocked',
+]);
 
-for (const pattern of forbiddenActionPatterns) {
-  assert.doesNotMatch(sources.app, pattern);
-}
+assertContainsAll(sources.audit, [
+  '1. `operator decision required`',
+  'Completed: `durable proposal record planning preview`',
+  'Completed: `operator decision handoff`',
+]);
 
-assert.match(sources.handoff, /It is not an operator decision/);
-assert.match(sources.handoff, /It is not `approve-planning-only`/);
-assert.match(sources.handoff, /Current gate: `operator decision required`/);
-assert.match(sources.handoff, /Handoff status: `ready-for-operator-input`/);
-assert.match(sources.handoff, /Recommended first value: `durable proposal record creation and persistence`/);
-assert.match(sources.handoff, /implementationPlanRefs` \| Empty until `approve-planning-only` exists/);
-assert.match(sources.handoff, /I approve planning only for durable proposal record creation and persistence/);
-assert.match(sources.handoff, /This approval allows one implementation plan, rollback plan, and focused smoke plan/);
-assert.match(sources.handoff, /does not approve implementation, proposal application, provider calls, memory persistence, source mutation, commit, or push/);
-assert.match(sources.handoff, /no explicit `approve-planning-only` or stronger accepted operator decision exists/);
-assert.match(sources.handoff, /The script must stay read-only/);
-assert.match(sources.decisionPacket, /Current gate: `operator decision required`/);
-assert.match(sources.decisionPacket, /Current implementation authority: blocked/);
-assert.match(sources.decisionPacket, /This packet does not provide that approval/);
-assert.match(sources.planningPreview, /no explicit `approve-planning-only` or stronger accepted decision exists/);
-assert.match(sources.planningPreview, /Current implementation authority: blocked/);
-assert.match(sources.planningPreview, /proposal application remains blocked/);
-assert.match(sources.audit, /1\. `operator decision required`/);
-assert.match(sources.audit, /Completed: `durable proposal record planning preview`/);
-assert.match(sources.decisionLog, /### DEC-055/);
-assert.match(sources.audit, /Completed: `operator decision handoff`/);
-assert.match(sources.inventory, /vNext operator decision handoff/);
-assert.match(sources.readme, /Operator decision handoff is not approval/);
-assert.match(sources.readme, /docs\/29_operator-decision-handoff\.md/);
-assert.match(sources.verification, /vnext-operator-decision-handoff-status\.mjs/);
-assert.match(sources.verification, /vnext-authority-implementation-decision-packet-status\.mjs/);
-assert.match(sources.verification, /vnext-durable-proposal-record-planning-preview-status\.mjs/);
-assert.match(sources.verification, /vnext-development-audit-status\.mjs/);
+assertContainsAll(sources.decisionLog, ['### DEC-055']);
+assertContainsAll(sources.inventory, ['vNext operator decision handoff']);
+assertContainsAll(sources.readme, [
+  'Operator decision handoff is not approval',
+  'docs/29_operator-decision-handoff.md',
+]);
+assertContainsAll(sources.verification, [
+  'vnext-operator-decision-handoff-status.mjs',
+  'vnext-authority-implementation-decision-packet-status.mjs',
+  'vnext-durable-proposal-record-planning-preview-status.mjs',
+  'vnext-development-audit-status.mjs',
+]);
 
 const authority = {
   operatorDecisionRecorded: false,
