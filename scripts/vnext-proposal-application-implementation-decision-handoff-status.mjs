@@ -136,54 +136,57 @@ assertContainsAll(sources.handoff, invalidShortcuts);
 assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
-assertContainsAll(sources.handoff, [
-  'It is not an operator decision',
-  'Current gate: `proposal application implementation decision required`',
-  'Handoff status: `decision-input-only`',
-  'Planning approval: accepted through `operator-decision-vnext-proposal-application-001`',
-  'Implementation approval: blocked',
-  'decisionStatus=approve-application-implementation-slice',
-  'targetAuthority=proposal application implementation for one audit-only attempt path on existing durable proposal records',
-  'applicationPath=record one inert application attempt for an existing durable proposal record without source mutation',
-  'proposal generation remains blocked, source mutation remains blocked, provider calls remain blocked, memory persistence remains blocked, commit and push remain blocked',
-  'This does not approve proposal generation, source mutation, provider calls, memory persistence, commit, or push.',
-  'decisionStatus=reject-application-implementation',
-  'source mutation approval',
-  'node scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs',
-]);
+const sourceEvidence = {
+  handoff: [
+    'It is not an operator decision',
+    'Current gate: `proposal application implementation decision required`',
+    'Handoff status: `decision-input-only`',
+    'Planning approval: accepted through `operator-decision-vnext-proposal-application-001`',
+    'Implementation approval: blocked',
+    'decisionStatus=approve-application-implementation-slice',
+    'targetAuthority=proposal application implementation for one audit-only attempt path on existing durable proposal records',
+    'applicationPath=record one inert application attempt for an existing durable proposal record without source mutation',
+    'proposal generation remains blocked, source mutation remains blocked, provider calls remain blocked, memory persistence remains blocked, commit and push remain blocked',
+    'This does not approve proposal generation, source mutation, provider calls, memory persistence, commit, or push.',
+    'decisionStatus=reject-application-implementation',
+    'source mutation approval',
+    'node scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs',
+  ],
+  plan: [
+    'Planning approval: accepted',
+    'Implementation approval: blocked',
+    'Current downstream gate: `proposal application implementation decision required`',
+    'no later `approve-application-implementation-slice` decision exists',
+  ],
+  planningHandoff: [
+    'Handoff status: `consumed-by-application-planning-only-decision`',
+    'Current gate: `proposal application implementation decision required`',
+  ],
+  decisionPacket: [
+    'Current packet status: `consumed-by-application-planning-only-decision`',
+    'Current application authority: planning only',
+  ],
+  proposalSpec: ['Creation approval', 'Application approval'],
+  durableImplementationPlan: [
+    'Runtime implementation: completed',
+    'Next blocked authority: proposal application',
+  ],
+  decisionLog: ['### DEC-060', '### DEC-061'],
+  audit: [
+    'Completed: `proposal application implementation decision handoff`',
+    '1. `proposal application implementation decision required`',
+  ],
+  inventory: ['vNext proposal application implementation decision handoff'],
+  readme: [
+    'Proposal application implementation decision handoff is not approval',
+    'docs/34_proposal-application-implementation-decision-handoff.md',
+  ],
+  verification: ['vnext-proposal-application-implementation-decision-handoff-status.mjs'],
+};
 
-assertContainsAll(sources.plan, [
-  'Planning approval: accepted',
-  'Implementation approval: blocked',
-  'Current downstream gate: `proposal application implementation decision required`',
-  'no later `approve-application-implementation-slice` decision exists',
-]);
-assertContainsAll(sources.planningHandoff, [
-  'Handoff status: `consumed-by-application-planning-only-decision`',
-  'Current gate: `proposal application implementation decision required`',
-]);
-assertContainsAll(sources.decisionPacket, [
-  'Current packet status: `consumed-by-application-planning-only-decision`',
-  'Current application authority: planning only',
-]);
-assertContainsAll(sources.proposalSpec, ['Creation approval', 'Application approval']);
-assertContainsAll(sources.durableImplementationPlan, [
-  'Runtime implementation: completed',
-  'Next blocked authority: proposal application',
-]);
-assertContainsAll(sources.decisionLog, ['### DEC-060', '### DEC-061']);
-assertContainsAll(sources.audit, [
-  'Completed: `proposal application implementation decision handoff`',
-  '1. `proposal application implementation decision required`',
-]);
-assertContainsAll(sources.inventory, ['vNext proposal application implementation decision handoff']);
-assertContainsAll(sources.readme, [
-  'Proposal application implementation decision handoff is not approval',
-  'docs/34_proposal-application-implementation-decision-handoff.md',
-]);
-assertContainsAll(sources.verification, [
-  'vnext-proposal-application-implementation-decision-handoff-status.mjs',
-]);
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
+}
 
 const applicationPlanStatus = runStatus('scripts/vnext-proposal-application-implementation-plan-status.mjs');
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
