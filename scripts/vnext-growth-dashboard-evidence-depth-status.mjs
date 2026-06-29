@@ -129,7 +129,7 @@ assertDoesNotMatchAny(sources.app, forbiddenActions);
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const nextSlice = 'proposal application implementation decision required';
-const currentNextDecision = {
+const proposalApplicationImplementationDecision = {
   id: 'proposal-application-implementation-decision-required',
   slice: nextSlice,
   reason:
@@ -165,7 +165,7 @@ process.stdout.write(
         sourceMutationAllowed: false,
         commitPushAllowed: false,
       },
-      nextRecommendedDecision: currentNextDecision,
+      nextRecommendedDecision: proposalApplicationImplementationDecision,
     },
     null,
     2,

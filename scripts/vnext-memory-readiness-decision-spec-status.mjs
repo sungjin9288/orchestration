@@ -179,7 +179,7 @@ const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const nextSlice = 'proposal application implementation decision required';
-const currentNextSlice = {
+const proposalApplicationImplementationDecision = {
   id: 'proposal-application-implementation-decision-required',
   slice: nextSlice,
   command: 'node scripts/vnext-memory-readiness-decision-spec-status.mjs',
@@ -248,7 +248,7 @@ process.stdout.write(
           memoryPersistenceAllowed: proposalSpecStatus.authority?.memoryPersistenceAllowed,
         },
       },
-      nextRecommendedSlice: currentNextSlice,
+      nextRecommendedSlice: proposalApplicationImplementationDecision,
       authority,
     },
     null,
