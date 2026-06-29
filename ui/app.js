@@ -11871,8 +11871,78 @@ function getGrowthEvidenceCandidates({ failedRuns, reviewArtifacts, blockedTasks
   return [...reviewCandidates, ...failedRunCandidates, ...blockedTaskCandidates].slice(0, 6);
 }
 
+function getGrowthFailurePatternGroups({ failedRuns, reviewArtifacts, blockedTasks }) {
+  return [
+    {
+      id: 'runtime-failures',
+      label: '실행 실패',
+      count: failedRuns.length,
+      surface: 'logs',
+      evidenceRefs: failedRuns.slice(0, 3).map((run) => run.id),
+      reviewPrompt: '실패 전 사전 조건이나 복구 안내가 충분했는지 봅니다.',
+    },
+    {
+      id: 'review-findings',
+      label: '리뷰 보완',
+      count: reviewArtifacts.length,
+      surface: 'artifacts',
+      evidenceRefs: reviewArtifacts.slice(0, 3).map((artifact) => artifact.id),
+      reviewPrompt: '반복되는 품질 기준을 다음 리뷰 체크로 올릴지 봅니다.',
+    },
+    {
+      id: 'blocked-gates',
+      label: '게이트 대기',
+      count: blockedTasks.length,
+      surface: 'decision-inbox',
+      evidenceRefs: blockedTasks.slice(0, 3).map((task) => task.id),
+      reviewPrompt: '작업자가 승인·결정·증거 위치를 한눈에 찾는지 봅니다.',
+    },
+  ];
+}
+
+function getGrowthRegressionComparison({ failedRuns, completedRuns }) {
+  const latestFailed = failedRuns[0] || null;
+  const latestCompleted = completedRuns[0] || null;
+
+  return {
+    failedCount: failedRuns.length,
+    completedCount: completedRuns.length,
+    latestFailedRef: latestFailed?.id || '실패 없음',
+    latestCompletedRef: latestCompleted?.id || '완료 없음',
+    summary:
+      failedRuns.length > 0
+        ? '최근 실패 경로를 완료 경로와 나란히 보고 회귀 가능성을 리뷰합니다.'
+        : '현재 snapshot에서는 실패 실행이 없어 완료 경로만 기준으로 봅니다.',
+  };
+}
+
+function getGrowthRollbackEvidenceLinks(artifacts) {
+  const rollbackTypes = new Set([
+    'patch',
+    'diff',
+    'change-summary',
+    'review',
+    'commit-package',
+    'commit-result',
+    'release-package',
+    'close-out',
+  ]);
+
+  return artifacts
+    .filter((artifact) => rollbackTypes.has(artifact.type))
+    .sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')))
+    .slice(0, 4)
+    .map((artifact) => ({
+      id: artifact.id,
+      type: getArtifactTypeDisplay(artifact.type),
+      surface: 'artifacts',
+      taskId: artifact.taskId || 'task 미지정',
+    }));
+}
+
 function getGrowthLearningSnapshot(data, context) {
   const failedRuns = data.runs.filter((run) => run.status === 'failed' || run.status === 'error');
+  const completedRuns = data.runs.filter((run) => run.status === 'completed');
   const reviewArtifacts = data.artifacts.filter((artifact) => artifact.type === 'review');
   const blockedTasks = data.tasks.filter(
     (task) => task.flags?.blocked || task.flags?.waitingApproval || task.flags?.waitingDecision,
@@ -11893,9 +11963,13 @@ function getGrowthLearningSnapshot(data, context) {
     candidateCount,
     evidenceCount,
     failedRuns,
+    completedRuns,
     reviewArtifacts,
     blockedTasks,
     candidates,
+    failurePatternGroups: getGrowthFailurePatternGroups({ failedRuns, reviewArtifacts, blockedTasks }),
+    regressionComparison: getGrowthRegressionComparison({ failedRuns, completedRuns }),
+    rollbackEvidenceLinks: getGrowthRollbackEvidenceLinks(data.artifacts),
     selectedEvidence,
     status: candidateCount > 0 ? '개선 후보 있음' : '후보 대기',
     statusTone: candidateCount > 0 ? 'accent' : 'neutral',
@@ -11991,6 +12065,65 @@ function renderGrowthCandidateDrilldown(growth) {
           `,
         )
         .join('')}
+    </div>
+  `;
+}
+
+function renderGrowthDashboardEvidenceDepth(growth) {
+  return `
+    <div
+      class="growth-dashboard-depth"
+      data-growth-dashboard-evidence-depth="read-only"
+      data-failure-pattern-groups="true"
+      data-regression-comparison="read-only"
+      data-rollback-evidence-links="true"
+      data-growth-dashboard-action-allowed="false"
+    >
+      <div class="growth-dashboard-depth-head">
+        <div>
+          <p class="control-overview-label">증거 깊이</p>
+          <h4 class="growth-proposal-title">실패 묶음, 회귀 비교, 되돌림 근거를 함께 봅니다</h4>
+        </div>
+        ${createToken('표시 전용', 'neutral')}
+      </div>
+      <div class="growth-pattern-grid" aria-label="묶인 실패 패턴">
+        ${growth.failurePatternGroups
+          .map(
+            (group) => `
+              <div class="growth-pattern-cell" data-growth-failure-pattern="${escapeHtml(group.id)}">
+                <span class="control-overview-register-label">${escapeHtml(group.label)}</span>
+                <strong class="control-overview-register-value">${escapeHtml(`${group.count}건`)}</strong>
+                <span>${escapeHtml(group.evidenceRefs.length ? group.evidenceRefs.join(', ') : '근거 대기')}</span>
+                <em>${escapeHtml(group.reviewPrompt)}</em>
+              </div>
+            `,
+          )
+          .join('')}
+      </div>
+      <div class="growth-regression-row" aria-label="회귀 비교">
+        <div>
+          <span class="control-overview-register-label">실패 / 완료</span>
+          <strong class="control-overview-register-value">${escapeHtml(`${growth.regressionComparison.failedCount} / ${growth.regressionComparison.completedCount}`)}</strong>
+        </div>
+        <div>
+          <span class="control-overview-register-label">최근 비교</span>
+          <strong class="control-overview-register-value">${escapeHtml(`${growth.regressionComparison.latestFailedRef} ↔ ${growth.regressionComparison.latestCompletedRef}`)}</strong>
+        </div>
+        <p>${escapeHtml(growth.regressionComparison.summary)}</p>
+      </div>
+      <div class="growth-rollback-list" aria-label="되돌림 근거 링크">
+        ${growth.rollbackEvidenceLinks.length
+          ? growth.rollbackEvidenceLinks
+              .map(
+                (link) => `
+                  <span class="growth-rollback-chip">
+                    ${escapeHtml(link.type)} · ${escapeHtml(link.id)} · ${escapeHtml(link.taskId)}
+                  </span>
+                `,
+              )
+              .join('')
+          : '<span class="growth-rollback-chip">되돌림 근거 대기</span>'}
+      </div>
     </div>
   `;
 }
@@ -12169,6 +12302,7 @@ function renderIntelligenceOverview(data, context) {
         <p class="intelligence-copy">
           학습 완료가 아니라 실행, 리뷰, 승인, 실패 증거에서 읽기 전용 개선 후보만 제안합니다.
         </p>
+        ${renderGrowthDashboardEvidenceDepth(growth)}
         ${renderGrowthCandidateDrilldown(growth)}
         ${renderGrowthProposalReviewPreview(growth)}
         <div class="intelligence-boundary-strip" aria-label="차단된 성장 권한">

@@ -22,7 +22,7 @@ and approvals.
 | Mission-first shell | `Mission / Council / Execution / Deliverables` is the default product shell in `ui/app.js`. |
 | Advanced Ops surfaces | `Taskboard / Logs / Artifacts / Decision Inbox` remain available as authoritative operator surfaces. |
 | Reference-driven operator shell | `docs/reference/vnext-reference-driven-ui-audit.md` records what was adopted or rejected from Linear, LangSmith Studio, Retool, Dify, n8n HITL, Zapier, and NN/g before the UI refresh. |
-| Read-only growth evidence | The shell exposes `성장 증거 원장`, `개선 후보 대기열` drilldown, and a blocked `제안 검토 게이트` as evidence-derived views; `scripts/smoke-ui-slice-649.mjs` pins that they do not call providers, persist memory, create/persist durable proposal records, mutate source, generate/apply proposals, commit, or push. |
+| Read-only growth evidence | The shell exposes `성장 증거 원장`, `개선 후보 대기열` drilldown, grouped failure patterns, current-snapshot regression comparison, rollback evidence links, and a blocked `제안 검토 게이트` as evidence-derived views; `scripts/smoke-ui-slice-649.mjs` pins that they do not call providers, persist memory, create/persist durable proposal records, mutate source, generate/apply proposals, commit, or push. |
 | Local-only personalization | Recent desks, evidence density, preferred project hints, copyable preference review, preference reset/set controls, and a blocked long-term memory readiness gate stay local-only; browser `localStorage` under `orchestration.ui-preferences.v1` only changes shell convenience and the review packet is not an import/apply path. |
 | Development pack loop | The implemented pack flow is documented in `packs/development/pack.md`: planner, architect, task-breaker, builder preflight, builder live mutation, reviewer, commit-package, local commit, release-package, close-out. |
 | Review and approval gates | Review-before-done and approval-before-commit/release follow-up are enforced through runtime/coordinator state and surfaced in Decision Inbox. |
@@ -80,7 +80,8 @@ src/runtime/file-store.js
   operator state, permission-aware density, and human approval posture from adjacent tools while
   keeping Orchestration's local project and evidence boundary intact.
 - Growth is evidence review, not model training: growth surfaces can summarize local runs, artifacts,
-  reviews, approvals, and failed or blocked work into candidate counts, candidate detail, reviewer
+  reviews, approvals, and failed or blocked work into candidate counts, candidate detail, grouped
+  failure patterns, current-snapshot regression comparison, rollback evidence links, reviewer
   questions, and a blocked proposal-review preview, but they do not persist memory, generate/apply
   proposals, create or persist durable proposal records, call providers, mutate source, commit, or push.
 - Proposal review is not proposal approval: `DEC-048` keeps durable proposal record creation,
@@ -221,6 +222,7 @@ Representative verification commands:
 
 ```bash
 node scripts/smoke-ui-slice-649.mjs
+node scripts/vnext-growth-dashboard-evidence-depth-status.mjs
 node scripts/vnext-memory-readiness-decision-spec-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
@@ -231,8 +233,12 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README refresh:
 
 - `node scripts/smoke-ui-slice-649.mjs`: reference-driven shell markers, read-only growth candidate
-  drilldown, blocked proposal-review preview, local-only personalization settings, and blocked
-  provider/memory/proposal-record/source/proposal/commit/push authority.
+  drilldown, grouped failure patterns, regression comparison, rollback evidence links, blocked
+  proposal-review preview, local-only personalization settings, and blocked provider/memory/
+  proposal-record/source/proposal/commit/push authority.
+- `node scripts/vnext-growth-dashboard-evidence-depth-status.mjs`: Growth Evidence Ledger dashboard
+  depth stays display-only while grouped failure patterns, regression comparison, and rollback
+  evidence links are source-checked.
 - `node scripts/vnext-memory-readiness-decision-spec-status.mjs`: memory item contract, source and
   redaction rules, review gates, export, expiry, deletion, and blocked memory/provider/source/commit
   authority.
@@ -240,8 +246,9 @@ Current verification evidence from this README refresh:
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `144/144`, total `145/145`;
-  the aggregate includes the README source-evidence smoke and vNext memory readiness decision spec.
+- `node scripts/verification_status.mjs`: required `1/1`, informational `145/145`, total `146/146`;
+  the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec, and
+  read-only growth dashboard evidence depth checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.

@@ -74,6 +74,12 @@ assert.match(sources.styles, /\.intelligence-overview/);
 assert.match(sources.app, /data-growth-learning-surface="read-only"/);
 assert.match(sources.app, /data-personalization-scope="local-only"/);
 assert.match(sources.app, /function renderGrowthCandidateDrilldown\(growth\)/);
+assert.match(sources.app, /function renderGrowthDashboardEvidenceDepth\(growth\)/);
+assert.match(sources.app, /data-growth-dashboard-evidence-depth="read-only"/);
+assert.match(sources.app, /data-failure-pattern-groups="true"/);
+assert.match(sources.app, /data-regression-comparison="read-only"/);
+assert.match(sources.app, /data-rollback-evidence-links="true"/);
+assert.match(sources.app, /data-growth-dashboard-action-allowed="false"/);
 assert.match(sources.app, /function renderGrowthProposalReviewPreview\(growth\)/);
 assert.match(sources.app, /function renderPersonalizationSettings\(personalization, data\)/);
 assert.match(sources.app, /const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
@@ -88,6 +94,9 @@ assert.match(sources.decisionLog, /### DEC-049/);
 assert.match(sources.decisionLog, /### DEC-050/);
 assert.match(sources.decisionLog, /### DEC-051/);
 assert.match(sources.readme, /Read-only growth evidence/);
+assert.match(sources.readme, /grouped failure patterns/);
+assert.match(sources.readme, /regression comparison/);
+assert.match(sources.readme, /rollback evidence links/);
 assert.match(sources.readme, /Local-only personalization/);
 assert.match(sources.readme, /docs\/25_memory-readiness-decision-spec\.md/);
 assert.match(sources.vnextAudit, /^# vNext Development Audit/m);
@@ -101,6 +110,7 @@ assert.match(sources.proposalDecisionSpec, /## Approval Semantics/);
 assert.match(sources.proposalDecisionSpec, /## Expiry And Supersession/);
 assert.match(sources.proposalDecisionSpec, /Review-readiness evidence is not approval/);
 assert.match(sources.vnextAudit, /Completed: `memory readiness decision spec`/);
+assert.match(sources.vnextAudit, /Completed: `growth dashboard evidence depth`/);
 assert.match(sources.memoryDecisionSpec, /^# Memory Readiness Decision Spec/m);
 assert.match(sources.memoryDecisionSpec, /## Memory Item Contract/);
 assert.match(sources.memoryDecisionSpec, /## Source And Redaction Rules/);
@@ -108,13 +118,18 @@ assert.match(sources.memoryDecisionSpec, /## Expiry And Deletion/);
 assert.match(sources.memoryDecisionSpec, /Local personalization is not memory/);
 assert.match(sources.uiSmoke, /data-growth-learning-surface="read-only"/);
 assert.match(sources.uiSmoke, /data-personalization-scope="local-only"/);
+assert.match(sources.uiSmoke, /data-growth-dashboard-evidence-depth="read-only"/);
+assert.match(sources.uiSmoke, /data-regression-comparison="read-only"/);
+assert.match(sources.uiSmoke, /data-rollback-evidence-links="true"/);
 assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="persist-growth-memory"/);
 assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="import-local-personalization"/);
 assert.match(sources.verification, /smoke-ui-slice-649\.mjs/);
 assert.match(sources.verification, /vnext-development-audit-status\.mjs/);
 assert.match(sources.verification, /vnext-memory-readiness-decision-spec-status\.mjs/);
+assert.match(sources.verification, /vnext-growth-dashboard-evidence-depth-status\.mjs/);
 assert.match(sources.inventory, /vNext development audit/);
 assert.match(sources.inventory, /vNext memory readiness decision spec/);
+assert.match(sources.inventory, /vNext growth dashboard evidence depth/);
 
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
 const reflection = runStatus('scripts/growth-reflection-evaluator.mjs');
@@ -139,6 +154,11 @@ const implemented = [
   {
     area: 'read-only growth evidence',
     evidence: ['ui/app.js', 'scripts/smoke-ui-slice-649.mjs', 'docs/01_decision-log.md#DEC-048'],
+    status: 'implemented-read-only-with-dashboard-depth',
+  },
+  {
+    area: 'growth dashboard evidence depth',
+    evidence: ['ui/app.js', 'ui/styles.css', 'scripts/vnext-growth-dashboard-evidence-depth-status.mjs'],
     status: 'implemented-read-only',
   },
   {
@@ -178,10 +198,10 @@ const blocked = [
 const recommendedDevelopmentPlan = [
   {
     priority: 1,
-    slice: 'growth dashboard evidence depth',
+    slice: 'operator-approved authority expansion review',
     scope:
-      'Expand read-only Growth Evidence Ledger views with grouped failure patterns, regression comparisons, and rollback evidence links.',
-    gate: 'Must remain evidence display only; no proposal application or source mutation.',
+      'Decide whether a later slice may open durable proposal records, memory persistence, provider calls, or source mutation.',
+    gate: 'Requires explicit operator approval and a new implementation plan; this audit opens no authority by itself.',
   },
 ];
 

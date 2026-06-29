@@ -217,6 +217,11 @@ const informationalChecks = [
     purpose: 'vNext design, growth learning, personalization, proposal, and memory development plan stays grounded in current source evidence without opening blocked authority',
   },
   {
+    id: 'vnext-growth-dashboard-evidence-depth-status',
+    script: 'scripts/vnext-growth-dashboard-evidence-depth-status.mjs',
+    purpose: 'vNext Growth Evidence Ledger dashboard depth exposes grouped failure patterns, regression comparison, and rollback evidence links as display-only evidence without opening proposal, memory, provider, source mutation, commit, or push authority',
+  },
+  {
     id: 'vnext-proposal-review-decision-spec-status',
     script: 'scripts/vnext-proposal-review-decision-spec-status.mjs',
     purpose: 'vNext proposal review decision spec defines durable proposal record schema, approval separation, expiry, and stop conditions without opening record creation, persistence, approval, application, source mutation, commit, or push authority',

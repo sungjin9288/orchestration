@@ -9478,6 +9478,7 @@ h3 {
 
 .growth-candidate-card,
 .growth-candidate-empty,
+.growth-dashboard-depth,
 .growth-proposal-review,
 .personalization-settings {
   border: 1px solid rgba(169, 149, 121, 0.32);
@@ -9556,6 +9557,64 @@ h3 {
 
 .growth-candidate-detail p {
   margin: 0;
+}
+
+.growth-dashboard-depth {
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+}
+
+.growth-dashboard-depth-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.growth-pattern-grid,
+.growth-regression-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.growth-pattern-cell,
+.growth-regression-row > div,
+.growth-regression-row > p {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(244, 239, 230, 0.68);
+}
+
+.growth-pattern-cell span:last-of-type,
+.growth-pattern-cell em,
+.growth-regression-row > p {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-style: normal;
+  line-height: 1.34;
+}
+
+.growth-rollback-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.growth-rollback-chip {
+  max-width: 100%;
+  padding: 4px 6px;
+  border: 1px solid rgba(55, 93, 120, 0.24);
+  border-radius: 5px;
+  background: rgba(55, 93, 120, 0.1);
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.24;
 }
 
 .growth-candidate-detail-grid,
@@ -9745,6 +9804,8 @@ body[data-evidence-density='compact'] .workflow-stage-meta,
 body[data-evidence-density='compact'] .review-lane-card-meta,
 body[data-evidence-density='compact'] .intelligence-register,
 body[data-evidence-density='compact'] .growth-candidate-detail-grid,
+body[data-evidence-density='compact'] .growth-pattern-grid,
+body[data-evidence-density='compact'] .growth-regression-row,
 body[data-evidence-density='compact'] .personalization-settings-grid {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
@@ -9775,6 +9836,11 @@ body[data-evidence-density='compact'] .control-overview-stack {
 
   .growth-proposal-actions {
     justify-content: flex-start;
+  }
+
+  .growth-pattern-grid,
+  .growth-regression-row {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -9837,6 +9903,7 @@ body[data-evidence-density='compact'] .control-overview-stack {
   }
 
   .growth-candidate-summary,
+  .growth-dashboard-depth-head,
   .growth-proposal-review,
   .personalization-settings-head,
   .personalization-settings-grid {

@@ -136,7 +136,11 @@ assert.match(sources.verification, /vnext-proposal-review-decision-spec-status\.
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 assert.equal(auditStatus.ok, true);
 assert.ok(
-  ['memory readiness decision spec', 'growth dashboard evidence depth'].includes(
+  [
+    'memory readiness decision spec',
+    'growth dashboard evidence depth',
+    'operator-approved authority expansion review',
+  ].includes(
     auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
   ),
 );
@@ -219,6 +223,8 @@ process.stdout.write(
         id:
           auditStatus.recommendedDevelopmentPlan?.[0]?.slice === 'growth dashboard evidence depth'
             ? 'growth-dashboard-evidence-depth'
+            : auditStatus.recommendedDevelopmentPlan?.[0]?.slice === 'operator-approved authority expansion review'
+              ? 'operator-approved-authority-expansion-review'
             : 'memory-readiness-decision-spec',
         slice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice || 'memory readiness decision spec',
         command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',

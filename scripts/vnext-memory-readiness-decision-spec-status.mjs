@@ -139,7 +139,8 @@ assert.match(sources.decisionLog, /memory item schema with source refs and evide
 assert.match(sources.decisionLog, /redaction policy, export format, expiry\/deletion policy, human review semantics/);
 assert.match(sources.audit, /Completed: `memory readiness decision spec`/);
 assert.match(sources.audit, /docs\/25_memory-readiness-decision-spec\.md/);
-assert.match(sources.audit, /`growth dashboard evidence depth`/);
+assert.match(sources.audit, /Completed: `growth dashboard evidence depth`/);
+assert.match(sources.audit, /`operator-approved authority expansion review`/);
 assert.match(sources.inventory, /vNext memory readiness decision spec/);
 assert.match(sources.readme, /Long-term memory is readiness only/);
 assert.match(sources.readme, /docs\/25_memory-readiness-decision-spec\.md/);
@@ -155,7 +156,7 @@ const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 
 assert.equal(auditStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'growth dashboard evidence depth');
+assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'operator-approved authority expansion review');
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.memoryPersistenceAllowed, false);
 
@@ -216,11 +217,11 @@ process.stdout.write(
         },
       },
       nextRecommendedSlice: {
-        id: 'growth-dashboard-evidence-depth',
-        slice: 'growth dashboard evidence depth',
+        id: 'operator-approved-authority-expansion-review',
+        slice: 'operator-approved authority expansion review',
         command: 'node scripts/vnext-memory-readiness-decision-spec-status.mjs',
         reason:
-          'Proposal and memory decision specs are now source-backed; the next product slice can deepen read-only Growth Evidence Ledger views without opening persistence or source mutation.',
+          'Proposal and memory decision specs plus read-only growth evidence depth are now source-backed; opening persistence, providers, or source mutation requires explicit operator approval and a new plan.',
       },
       authority,
     },
