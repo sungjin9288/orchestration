@@ -152,40 +152,45 @@ assertContainsBacktickedAll(sources.plan, requiredRecordFields);
 assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
-assertContainsAll(sources.plan, [
-  'decisionId` | `operator-decision-vnext-proposal-record-001`',
-  'decisionStatus` | `approve-planning-only`',
-  'decisionId` | `operator-decision-vnext-proposal-record-implementation-001`',
-  'decisionStatus` | `approve-implementation-slice`',
-  'targetAuthority` | `durable proposal record creation and persistence`',
-  'Planning approval: accepted',
-  'Implementation approval: accepted',
-  'Runtime implementation: completed',
-  'Current implementation authority: local proposal record creation and persistence only',
-  'extend the runtime state contract with a `proposalRecords` collection and a `proposalRecord` sequence',
-  'persist records in the existing runtime `state.json` under the selected runtime root',
-  'force `applyAllowed` to `false` for every created record',
-  'record creation fails without explicit creation approval',
-  'proposal application remains blocked',
-  'provider calls remain blocked',
-  'memory persistence remains blocked',
-  'source mutation remains blocked',
-  'commit and push remain blocked',
-  'no later proposal application decision exists for created durable proposal records',
-]);
+const sourceEvidence = {
+  plan: [
+    'decisionId` | `operator-decision-vnext-proposal-record-001`',
+    'decisionStatus` | `approve-planning-only`',
+    'decisionId` | `operator-decision-vnext-proposal-record-implementation-001`',
+    'decisionStatus` | `approve-implementation-slice`',
+    'targetAuthority` | `durable proposal record creation and persistence`',
+    'Planning approval: accepted',
+    'Implementation approval: accepted',
+    'Runtime implementation: completed',
+    'Current implementation authority: local proposal record creation and persistence only',
+    'extend the runtime state contract with a `proposalRecords` collection and a `proposalRecord` sequence',
+    'persist records in the existing runtime `state.json` under the selected runtime root',
+    'force `applyAllowed` to `false` for every created record',
+    'record creation fails without explicit creation approval',
+    'proposal application remains blocked',
+    'provider calls remain blocked',
+    'memory persistence remains blocked',
+    'source mutation remains blocked',
+    'commit and push remain blocked',
+    'no later proposal application decision exists for created durable proposal records',
+  ],
+  handoff: ['I approve planning only for durable proposal record creation and persistence'],
+  preview: ['file-store-backed durable proposal record collection under the selected runtime root'],
+  decisionPacket: ['write one implementation plan for durable proposal record creation and persistence'],
+  proposalSpec: ['## Durable Proposal Record Contract'],
+  decisionLog: ['### DEC-056', '### DEC-057'],
+  audit: ['Completed: `durable proposal record implementation plan`'],
+  inventory: ['vNext durable proposal record implementation plan'],
+  readme: [
+    'Durable proposal record creation and persistence is implemented',
+    'docs/30_durable-proposal-record-implementation-plan.md',
+  ],
+  verification: ['vnext-durable-proposal-record-implementation-plan-status.mjs'],
+};
 
-assertContainsAll(sources.handoff, ['I approve planning only for durable proposal record creation and persistence']);
-assertContainsAll(sources.preview, ['file-store-backed durable proposal record collection under the selected runtime root']);
-assertContainsAll(sources.decisionPacket, ['write one implementation plan for durable proposal record creation and persistence']);
-assertContainsAll(sources.proposalSpec, ['## Durable Proposal Record Contract']);
-assertContainsAll(sources.decisionLog, ['### DEC-056', '### DEC-057']);
-assertContainsAll(sources.audit, ['Completed: `durable proposal record implementation plan`']);
-assertContainsAll(sources.inventory, ['vNext durable proposal record implementation plan']);
-assertContainsAll(sources.readme, [
-  'Durable proposal record creation and persistence is implemented',
-  'docs/30_durable-proposal-record-implementation-plan.md',
-]);
-assertContainsAll(sources.verification, ['vnext-durable-proposal-record-implementation-plan-status.mjs']);
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
+}
 
 const handoffStatus = runStatus('scripts/vnext-operator-decision-handoff-status.mjs');
 const planningPreviewStatus = runStatus('scripts/vnext-durable-proposal-record-planning-preview-status.mjs');
