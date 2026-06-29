@@ -293,6 +293,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Future authority-opening work must use the packet's required decision fields, single-target-authority rule, still-blocked authority list, rollback refs, focused smoke refs, and aggregate verification ref. The packet is not implementation approval and must not create proposal records, persist memory, call providers, mutate source, commit, or push.
 - Needed Before: Any future implementation still needs an explicit operator decision choosing one outcome, a later accepted implementation plan for exactly one authority path, rollback evidence, focused smoke coverage, aggregate verification, and separate approval before commit or push.
 
+### DEC-054
+- Status: `Accepted`
+- Decision: The vNext durable proposal record planning preview is defined in `docs/28_durable-proposal-record-planning-preview.md` as a read-only pre-decision planning input for the recommended first candidate.
+- Why: The authority decision packet names durable proposal record creation and persistence as the most reviewable first candidate, but the repo needs a concrete shape, storage candidate, focused smoke preview, rollback preview, and stop conditions before the operator can approve planning without accidentally opening implementation authority.
+- Impact: Future proposal record planning must preserve the preview's single-authority scope, record shape, local-first storage candidate, focused smoke preview, rollback preview, and stop conditions. This preview is not `approve-planning-only`, implementation approval, record creation, record persistence, proposal application, memory persistence, provider calls, source mutation, commit, or push.
+- Needed Before: Actual implementation still needs explicit operator approval through `approve-planning-only` or a stronger accepted decision, a later accepted implementation plan, focused smoke coverage, aggregate verification, rollback evidence, and separate commit or push approval.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

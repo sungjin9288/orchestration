@@ -108,6 +108,11 @@ src/runtime/file-store.js
   `docs/27_authority-implementation-decision-packet.md` list the operator decision outcomes,
   required fields, still-blocked authority, rollback refs, focused smoke refs, and aggregate
   verification ref needed before a later implementation plan can open exactly one authority path.
+- Durable proposal record planning preview is not planning approval: `DEC-054` and
+  `docs/28_durable-proposal-record-planning-preview.md` define the record shape, local-first
+  storage candidate, focused smoke preview, rollback preview, and stop conditions for the
+  recommended first candidate, but they do not approve planning, create or persist records, apply
+  proposals, persist memory, call providers, mutate source, commit, or push.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -236,6 +241,7 @@ node scripts/vnext-growth-dashboard-evidence-depth-status.mjs
 node scripts/vnext-memory-readiness-decision-spec-status.mjs
 node scripts/vnext-authority-expansion-review-status.mjs
 node scripts/vnext-authority-implementation-decision-packet-status.mjs
+node scripts/vnext-durable-proposal-record-planning-preview-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -260,14 +266,18 @@ Current verification evidence from this README refresh:
 - `node scripts/vnext-authority-implementation-decision-packet-status.mjs`: operator decision
   outcomes, required decision fields, recommended first candidate, still-blocked authority, rollback
   refs, focused smoke refs, and aggregate verification ref stay read-only.
+- `node scripts/vnext-durable-proposal-record-planning-preview-status.mjs`: durable proposal record
+  shape, local-first storage candidate, focused smoke preview, rollback preview, and stop conditions
+  stay planning input only and do not open record creation, persistence, proposal application,
+  provider, memory, source mutation, commit, or push authority.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `147/147`, total `148/148`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `148/148`, total `149/149`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
-  decision packet checks.
+  decision packet plus durable proposal record planning preview checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
@@ -311,6 +321,10 @@ Playwright CLI:
   `docs/26_authority-expansion-review-spec.md` recommends durable proposal record creation and
   persistence as the most reviewable first future candidate, implementation still requires an
   explicit operator decision, accepted plan, rollback plan, and focused smoke coverage.
+- Durable proposal record planning preview remains pre-decision evidence only. `docs/28_durable-proposal-record-planning-preview.md`
+  does not create or persist records, assign ids or timestamps, mutate queues, apply proposals, call
+  providers, persist memory, mutate source, commit, or push; actual implementation still needs
+  explicit operator approval and a later accepted implementation plan.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider

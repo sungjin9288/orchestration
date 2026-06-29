@@ -242,6 +242,11 @@ const informationalChecks = [
     purpose: 'vNext authority implementation decision packet defines operator decision outcomes, required decision fields, still-blocked authority, rollback refs, focused smoke refs, and aggregate verification refs before any authority-opening implementation can be considered',
   },
   {
+    id: 'vnext-durable-proposal-record-planning-preview-status',
+    script: 'scripts/vnext-durable-proposal-record-planning-preview-status.mjs',
+    purpose: 'vNext durable proposal record planning preview defines record shape, local storage candidate, focused smoke preview, rollback preview, and stop conditions as read-only planning input without opening creation, persistence, proposal application, provider, memory, source mutation, commit, or push authority',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',
