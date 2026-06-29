@@ -112,7 +112,6 @@ for (const section of requiredPacketSections) {
 
 assertContainsBacktickedAll(sources.packet, requiredDecisionFields);
 assertContainsBacktickedAll(sources.packet, decisionOptions);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
 
 const sourceEvidence = {
   packet: [
@@ -139,6 +138,7 @@ const sourceEvidence = {
     'Authority implementation decision packet is decision input only',
     'docs/27_authority-implementation-decision-packet.md',
   ],
+  app: blockedAuthorityMarkers,
   verification: ['vnext-authority-implementation-decision-packet-status.mjs'],
 };
 

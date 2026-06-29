@@ -137,12 +137,11 @@ for (const section of requiredHandoffSections) {
 
 assertContainsBacktickedAll(sources.handoff, requiredDecisionFields);
 assertContainsBacktickedAll(sources.handoff, decisionOptions);
-assertContainsAll(sources.handoff, invalidShortcuts);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
   handoff: [
+    ...invalidShortcuts,
     'It is not an operator decision',
     'It is not `approve-planning-only`',
     'Original gate: `operator decision required`',
@@ -190,6 +189,7 @@ const sourceEvidence = {
     'Operator decision handoff is not approval',
     'docs/29_operator-decision-handoff.md',
   ],
+  app: blockedAuthorityMarkers,
   verification: [
     'vnext-operator-decision-handoff-status.mjs',
     'vnext-authority-implementation-decision-packet-status.mjs',

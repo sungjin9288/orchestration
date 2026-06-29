@@ -127,7 +127,6 @@ for (const section of requiredPreviewSections) {
 }
 
 assertContainsBacktickedAll(sources.preview, requiredRecordFields);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
@@ -156,6 +155,7 @@ const sourceEvidence = {
     'Durable proposal record planning preview is not planning approval',
     'docs/28_durable-proposal-record-planning-preview.md',
   ],
+  app: blockedAuthorityMarkers,
   verification: ['vnext-durable-proposal-record-planning-preview-status.mjs'],
 };
 
