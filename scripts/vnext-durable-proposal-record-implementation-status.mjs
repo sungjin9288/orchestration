@@ -24,45 +24,83 @@ function runJson(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
-const contracts = readFile('src/runtime/contracts.js');
-const fileStore = readFile('src/runtime/file-store.js');
-const runtimeService = readFile('src/runtime/runtime-service.js');
-const app = readFile('ui/app.js');
-const decisionLog = readFile('docs/01_decision-log.md');
-const implementationPlan = readFile('docs/30_durable-proposal-record-implementation-plan.md');
-const readme = readFile('README.md');
-const inventory = readFile('docs/22_completion-gate-inventory.md');
-const verification = readFile('scripts/verification_status.mjs');
+function assertMatchesAll(source, expectedPatterns) {
+  for (const expectedPattern of expectedPatterns) {
+    assert.match(source, expectedPattern);
+  }
+}
 
-assert.match(contracts, /schemaVersion: 5/);
-assert.match(contracts, /proposalRecord: 0/);
-assert.match(contracts, /proposalRecords: \{\}/);
-assert.match(contracts, /PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS/);
-assert.match(fileStore, /proposalRecords: state\.proposalRecords \|\| \{\}/);
-assert.match(fileStore, /proposalRecord\.applyAllowed = false/);
-assert.match(runtimeService, /function createProposalRecord\(input = \{\}\)/);
-assert.match(runtimeService, /function nextProposalRecordId\(state\)/);
-assert.match(runtimeService, /proposal-record-\$\{String\(state\.sequences\.proposalRecord\)\.padStart\(4, '0'\)\}/);
-assert.match(runtimeService, /creationApproval\.status must be approved/);
-assert.match(runtimeService, /approvalRefs must include creationApproval\.decisionId/);
-assert.match(runtimeService, /applyAllowed: false/);
-assert.match(runtimeService, /function quarantineProposalRecord\(input = \{\}\)/);
-assert.match(app, /function renderDurableProposalRecordLedger\(growth\)/);
-assert.match(app, /data-durable-proposal-record-ledger="read-only"/);
-assert.match(app, /data-proposal-application-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalApplicationAllowed\}"/);
-assert.match(app, /proposalRecordCreationAllowed: false/);
-assert.match(app, /proposalRecordPersistenceAllowed: false/);
-assert.doesNotMatch(app, /data-action="create-proposal-record"/);
-assert.doesNotMatch(app, /data-action="apply-proposal"/);
-assert.match(decisionLog, /### DEC-057/);
-assert.match(decisionLog, /approve-implementation-slice/);
-assert.match(implementationPlan, /Implementation approval: accepted/);
-assert.match(implementationPlan, /Runtime implementation: completed/);
-assert.match(implementationPlan, /Default expiry policy: 30 days from `createdAt`/);
-assert.match(readme, /Durable proposal record creation and persistence is implemented/);
-assert.match(inventory, /vNext durable proposal record implementation/);
-assert.match(verification, /vnext-durable-proposal-record-implementation-status\.mjs/);
-assert.match(verification, /smoke-durable-proposal-record-creation\.mjs/);
+function assertDoesNotMatchAny(source, forbiddenPatterns) {
+  for (const forbiddenPattern of forbiddenPatterns) {
+    assert.doesNotMatch(source, forbiddenPattern);
+  }
+}
+
+const files = {
+  contracts: 'src/runtime/contracts.js',
+  fileStore: 'src/runtime/file-store.js',
+  runtimeService: 'src/runtime/runtime-service.js',
+  app: 'ui/app.js',
+  decisionLog: 'docs/01_decision-log.md',
+  implementationPlan: 'docs/30_durable-proposal-record-implementation-plan.md',
+  readme: 'README.md',
+  inventory: 'docs/22_completion-gate-inventory.md',
+  verification: 'scripts/verification_status.mjs',
+};
+
+const sources = Object.fromEntries(
+  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+);
+
+const sourceEvidence = {
+  contracts: [
+    /schemaVersion: 5/,
+    /proposalRecord: 0/,
+    /proposalRecords: \{\}/,
+    /PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS/,
+  ],
+  fileStore: [
+    /proposalRecords: state\.proposalRecords \|\| \{\}/,
+    /proposalRecord\.applyAllowed = false/,
+  ],
+  runtimeService: [
+    /function createProposalRecord\(input = \{\}\)/,
+    /function nextProposalRecordId\(state\)/,
+    /proposal-record-\$\{String\(state\.sequences\.proposalRecord\)\.padStart\(4, '0'\)\}/,
+    /creationApproval\.status must be approved/,
+    /approvalRefs must include creationApproval\.decisionId/,
+    /applyAllowed: false/,
+    /function quarantineProposalRecord\(input = \{\}\)/,
+  ],
+  app: [
+    /function renderDurableProposalRecordLedger\(growth\)/,
+    /data-durable-proposal-record-ledger="read-only"/,
+    /data-proposal-application-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalApplicationAllowed\}"/,
+    /proposalRecordCreationAllowed: false/,
+    /proposalRecordPersistenceAllowed: false/,
+  ],
+  decisionLog: [/### DEC-057/, /approve-implementation-slice/],
+  implementationPlan: [
+    /Implementation approval: accepted/,
+    /Runtime implementation: completed/,
+    /Default expiry policy: 30 days from `createdAt`/,
+  ],
+  readme: [/Durable proposal record creation and persistence is implemented/],
+  inventory: [/vNext durable proposal record implementation/],
+  verification: [
+    /vnext-durable-proposal-record-implementation-status\.mjs/,
+    /smoke-durable-proposal-record-creation\.mjs/,
+  ],
+};
+
+for (const [sourceName, expectedPatterns] of Object.entries(sourceEvidence)) {
+  assertMatchesAll(sources[sourceName], expectedPatterns);
+}
+
+assertDoesNotMatchAny(sources.app, [
+  /data-action="create-proposal-record"/,
+  /data-action="apply-proposal"/,
+]);
 
 const smokeStatus = runJson('scripts/smoke-durable-proposal-record-creation.mjs');
 assert.equal(smokeStatus.ok, true);
