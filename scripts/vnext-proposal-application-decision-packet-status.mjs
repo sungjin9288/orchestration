@@ -194,15 +194,17 @@ const sourceEvidence = {
 assertSourceEvidence(proposalApplicationDecisionPacketSources, sourceEvidence);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
-const implementationStatus = runStatus('scripts/vnext-durable-proposal-record-implementation-status.mjs');
+const proposalReviewDecisionSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
+const durableProposalRecordImplementationStatus = runStatus(
+  'scripts/vnext-durable-proposal-record-implementation-status.mjs',
+);
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationGate = 'proposal application implementation decision required';
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(proposalSpecStatus.ok, true);
-assert.equal(implementationStatus.ok, true);
+assert.equal(proposalReviewDecisionSpecStatus.ok, true);
+assert.equal(durableProposalRecordImplementationStatus.ok, true);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'proposal application decision packet',
@@ -210,10 +212,11 @@ assert.equal(
   true,
 );
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationGate);
-assert.equal(proposalSpecStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(implementationStatus.authority?.proposalApplicationAllowed, false);
+assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalApplicationAllowed, false);
+assert.equal(durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(
-  implementationStatus.authority?.proposalRecordCreationAllowedThroughApprovedRuntimeFunction,
+  durableProposalRecordImplementationStatus.authority
+    ?.proposalRecordCreationAllowedThroughApprovedRuntimeFunction,
   true,
 );
 
@@ -251,14 +254,17 @@ process.stdout.write(
       requiredDecisionFields: proposalApplicationDecisionRequiredFields,
       upstreamStatus: {
         proposalReviewDecisionSpec: {
-          ok: proposalSpecStatus.ok,
-          proposalApplicationAllowed: proposalSpecStatus.authority?.proposalApplicationAllowed,
+          ok: proposalReviewDecisionSpecStatus.ok,
+          proposalApplicationAllowed:
+            proposalReviewDecisionSpecStatus.authority?.proposalApplicationAllowed,
         },
         durableProposalRecordImplementation: {
-          ok: implementationStatus.ok,
+          ok: durableProposalRecordImplementationStatus.ok,
           proposalRecordCreationAllowedThroughApprovedRuntimeFunction:
-            implementationStatus.authority?.proposalRecordCreationAllowedThroughApprovedRuntimeFunction,
-          proposalApplicationAllowed: implementationStatus.authority?.proposalApplicationAllowed,
+            durableProposalRecordImplementationStatus.authority
+              ?.proposalRecordCreationAllowedThroughApprovedRuntimeFunction,
+          proposalApplicationAllowed:
+            durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed,
         },
         vnextAudit: {
           ok: vnextDevelopmentAuditStatus.ok,

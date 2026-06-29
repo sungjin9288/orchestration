@@ -213,23 +213,29 @@ const sourceEvidence = {
 
 assertSourceEvidence(proposalApplicationImplementationPlanSources, sourceEvidence);
 
-const handoffStatus = runStatus('scripts/vnext-proposal-application-operator-decision-handoff-status.mjs');
-const packetStatus = runStatus('scripts/vnext-proposal-application-decision-packet-status.mjs');
-const implementationStatus = runStatus('scripts/vnext-durable-proposal-record-implementation-status.mjs');
+const proposalApplicationOperatorHandoffStatus = runStatus(
+  'scripts/vnext-proposal-application-operator-decision-handoff-status.mjs',
+);
+const proposalApplicationDecisionPacketStatus = runStatus(
+  'scripts/vnext-proposal-application-decision-packet-status.mjs',
+);
+const durableProposalRecordImplementationStatus = runStatus(
+  'scripts/vnext-durable-proposal-record-implementation-status.mjs',
+);
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationGate = 'proposal application implementation decision required';
 
-assert.equal(handoffStatus.ok, true);
-assert.equal(packetStatus.ok, true);
-assert.equal(implementationStatus.ok, true);
+assert.equal(proposalApplicationOperatorHandoffStatus.ok, true);
+assert.equal(proposalApplicationDecisionPacketStatus.ok, true);
+assert.equal(durableProposalRecordImplementationStatus.ok, true);
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(handoffStatus.currentGate, proposalApplicationImplementationGate);
-assert.equal(packetStatus.currentGate, proposalApplicationImplementationGate);
-assert.equal(packetStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(handoffStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(implementationStatus.authority?.proposalApplicationAllowed, false);
+assert.equal(proposalApplicationOperatorHandoffStatus.currentGate, proposalApplicationImplementationGate);
+assert.equal(proposalApplicationDecisionPacketStatus.currentGate, proposalApplicationImplementationGate);
+assert.equal(proposalApplicationDecisionPacketStatus.authority?.proposalApplicationAllowed, false);
+assert.equal(proposalApplicationOperatorHandoffStatus.authority?.proposalApplicationAllowed, false);
+assert.equal(durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationGate);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
@@ -258,18 +264,21 @@ const proposalApplicationAuthorityBoundary = {
 
 const proposalApplicationImplementationPlanUpstreamStatus = {
   proposalApplicationOperatorHandoff: {
-    ok: handoffStatus.ok,
-    currentGate: handoffStatus.currentGate,
-    proposalApplicationAllowed: handoffStatus.authority?.proposalApplicationAllowed,
+    ok: proposalApplicationOperatorHandoffStatus.ok,
+    currentGate: proposalApplicationOperatorHandoffStatus.currentGate,
+    proposalApplicationAllowed:
+      proposalApplicationOperatorHandoffStatus.authority?.proposalApplicationAllowed,
   },
   proposalApplicationDecisionPacket: {
-    ok: packetStatus.ok,
-    currentGate: packetStatus.currentGate,
-    proposalApplicationAllowed: packetStatus.authority?.proposalApplicationAllowed,
+    ok: proposalApplicationDecisionPacketStatus.ok,
+    currentGate: proposalApplicationDecisionPacketStatus.currentGate,
+    proposalApplicationAllowed:
+      proposalApplicationDecisionPacketStatus.authority?.proposalApplicationAllowed,
   },
   durableProposalRecordImplementation: {
-    ok: implementationStatus.ok,
-    proposalApplicationAllowed: implementationStatus.authority?.proposalApplicationAllowed,
+    ok: durableProposalRecordImplementationStatus.ok,
+    proposalApplicationAllowed:
+      durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed,
   },
   vnextAudit: {
     ok: vnextDevelopmentAuditStatus.ok,

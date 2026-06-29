@@ -203,18 +203,20 @@ const sourceEvidence = {
 
 assertSourceEvidence(proposalApplicationImplementationDecisionHandoffSources, sourceEvidence);
 
-const applicationPlanStatus = runStatus('scripts/vnext-proposal-application-implementation-plan-status.mjs');
+const proposalApplicationImplementationPlanStatus = runStatus(
+  'scripts/vnext-proposal-application-implementation-plan-status.mjs',
+);
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationGate = 'proposal application implementation decision required';
 
-assert.equal(applicationPlanStatus.ok, true);
+assert.equal(proposalApplicationImplementationPlanStatus.ok, true);
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(applicationPlanStatus.currentGate, proposalApplicationImplementationGate);
+assert.equal(proposalApplicationImplementationPlanStatus.currentGate, proposalApplicationImplementationGate);
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationGate);
-assert.equal(applicationPlanStatus.authority?.implementationApproved, false);
-assert.equal(applicationPlanStatus.authority?.proposalApplicationAllowed, false);
+assert.equal(proposalApplicationImplementationPlanStatus.authority?.implementationApproved, false);
+assert.equal(proposalApplicationImplementationPlanStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'proposal application implementation decision handoff',
@@ -258,10 +260,12 @@ process.stdout.write(
         'operator-provided approve-application-implementation-slice or reject-application-implementation decision',
       upstreamStatus: {
         applicationPlan: {
-          ok: applicationPlanStatus.ok,
-          currentGate: applicationPlanStatus.currentGate,
-          implementationApproved: applicationPlanStatus.authority?.implementationApproved,
-          proposalApplicationAllowed: applicationPlanStatus.authority?.proposalApplicationAllowed,
+          ok: proposalApplicationImplementationPlanStatus.ok,
+          currentGate: proposalApplicationImplementationPlanStatus.currentGate,
+          implementationApproved:
+            proposalApplicationImplementationPlanStatus.authority?.implementationApproved,
+          proposalApplicationAllowed:
+            proposalApplicationImplementationPlanStatus.authority?.proposalApplicationAllowed,
         },
         vnextAudit: {
           ok: vnextDevelopmentAuditStatus.ok,
