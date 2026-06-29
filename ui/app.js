@@ -271,6 +271,7 @@ const DEFAULT_UI_PREFERENCES = {
   recentSurfaces: ['mission'],
   surfaceCounts: {},
 };
+const UI_PREFERENCE_PACKET_SCHEMA = 'orchestration.ui-preferences.portable-review.v1';
 const GROWTH_AUTHORITY_BOUNDARY = Object.freeze({
   commitPushAllowed: false,
   crossWorkspaceMemoryAllowed: false,
@@ -624,6 +625,25 @@ function persistUiPreferences() {
 function resetUiPreferences() {
   state.uiPreferences = normalizeUiPreferences(DEFAULT_UI_PREFERENCES);
   persistUiPreferences();
+}
+
+function getPortableUiPreferenceReview() {
+  return {
+    schemaVersion: UI_PREFERENCE_PACKET_SCHEMA,
+    storageKey: UI_PREFERENCE_STORAGE_KEY,
+    scope: 'browser-local-only',
+    preferences: normalizeUiPreferences(state.uiPreferences),
+    authority: {
+      memoryPersistenceAllowed: false,
+      runtimeMutationAllowed: false,
+      sourceMutationAllowed: false,
+      commitPushAllowed: false,
+    },
+  };
+}
+
+function getPortableUiPreferenceReviewText() {
+  return JSON.stringify(getPortableUiPreferenceReview(), null, 2);
 }
 
 function setPreferredProjectPreference(projectId) {
@@ -12023,6 +12043,7 @@ function renderGrowthProposalReviewPreview(growth) {
 
 function renderPersonalizationSettings(personalization, data) {
   const activeProject = data.activeProject;
+  const portableReviewText = getPortableUiPreferenceReviewText();
 
   return `
     <div class="personalization-settings" data-local-personalization-settings="true">
@@ -12076,6 +12097,14 @@ function renderPersonalizationSettings(personalization, data) {
         <button
           class="recent-surface-chip"
           type="button"
+          data-action="copy-local-personalization-review"
+          ${state.loading || state.mutating ? 'disabled' : ''}
+        >
+          선호 설정 묶음 복사
+        </button>
+        <button
+          class="recent-surface-chip"
+          type="button"
           data-action="set-preferred-project-local"
           data-project-id="${escapeHtml(activeProject?.id || '')}"
           ${!activeProject?.id || state.loading || state.mutating ? 'disabled' : ''}
@@ -12090,6 +12119,10 @@ function renderPersonalizationSettings(personalization, data) {
         >
           로컬 선호 초기화
         </button>
+      </div>
+      <div class="personalization-portability" data-local-personalization-portability="copy-review-only">
+        <span class="control-overview-register-label">이동성 검토 묶음</span>
+        <pre>${escapeHtml(portableReviewText)}</pre>
       </div>
     </div>
   `;
@@ -19335,6 +19368,16 @@ async function copyHarnessPolicyReport(reportText) {
   });
 }
 
+async function copyLocalPersonalizationReview() {
+  await copyTextValue({
+    value: getPortableUiPreferenceReviewText(),
+    emptyErrorMessage: '복사할 로컬 선호 설정 묶음이 없습니다.',
+    copiedMessage: () => '로컬 선호 설정 묶음을 복사했습니다.',
+    unsupportedMessage: () =>
+      '클립보드 미지원 환경입니다. 화면의 로컬 선호 설정 묶음을 직접 확인하세요.',
+  });
+}
+
 async function summarizeHarnessExecutionPreview(actionButton) {
   const previewText = String(actionButton?.dataset.previewText || '').trim();
   const executionKey = String(actionButton?.dataset.executionKey || '').trim();
@@ -19707,6 +19750,11 @@ document.addEventListener('click', async (event) => {
     resetUiPreferences();
     document.body.dataset.evidenceDensity = state.uiPreferences.evidenceDensity;
     render();
+    return;
+  }
+
+  if (actionButton?.dataset.action === 'copy-local-personalization-review') {
+    await copyLocalPersonalizationReview();
     return;
   }
 

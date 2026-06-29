@@ -9623,6 +9623,26 @@ h3 {
   align-items: center;
 }
 
+.personalization-portability {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.personalization-portability pre {
+  overflow: auto;
+  max-height: 156px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid rgba(169, 149, 121, 0.28);
+  border-radius: 6px;
+  background: rgba(244, 239, 230, 0.68);
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.36;
+  white-space: pre-wrap;
+}
+
 .growth-proposal-blocked-button {
   min-height: 30px;
   padding: 0 10px;

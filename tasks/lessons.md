@@ -3,6 +3,7 @@
 ## direction resets
 
 - When a newest short-alias finalization review is already green, re-apply both review-ready and acceptance-ready overrides after the finalization-ready fallback. Otherwise engine/reflection can stop at a stale review lane even though review and acceptance direct statuses are green.
+- Browser preference portability should start as a copyable review packet, not import/apply. That gives operators handoff evidence while keeping localStorage convenience separate from runtime memory, long-term memory, provider calls, source mutation, commit, and push authority.
 - Planning audit scripts should verify their own source docs and aggregate registration before being used as development direction. Otherwise a useful read-only audit can drift as an untracked helper instead of becoming durable completion evidence.
 - Long Growth Evidence Ledger route ids overlap with older route ids. When updating the current recommended route, avoid broad file-wide substitutions across docs and ledgers; target the current summary block or smoke assertion, then inspect historical implemented-slice entries before continuing.
 - Repeated read-only routing slices should be batched into related commit/push groups instead of committing every narrow status hop. Keep local verification and ledger evidence per slice, but wait for an operator-approved grouping point before explicit commit or push.

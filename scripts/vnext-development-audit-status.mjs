@@ -75,6 +75,11 @@ assert.match(sources.app, /function renderGrowthCandidateDrilldown\(growth\)/);
 assert.match(sources.app, /function renderGrowthProposalReviewPreview\(growth\)/);
 assert.match(sources.app, /function renderPersonalizationSettings\(personalization, data\)/);
 assert.match(sources.app, /const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
+assert.match(sources.app, /const UI_PREFERENCE_PACKET_SCHEMA = 'orchestration\.ui-preferences\.portable-review\.v1'/);
+assert.match(sources.app, /function getPortableUiPreferenceReview\(\)/);
+assert.match(sources.app, /runtimeMutationAllowed: false/);
+assert.match(sources.app, /data-local-personalization-portability="copy-review-only"/);
+assert.match(sources.app, /data-action="copy-local-personalization-review"/);
 assert.match(sources.app, /data-memory-readiness-gate="blocked"/);
 assert.match(sources.decisionLog, /### DEC-048/);
 assert.match(sources.decisionLog, /### DEC-049/);
@@ -87,6 +92,7 @@ assert.match(sources.vnextAudit, /commit or push/);
 assert.match(sources.uiSmoke, /data-growth-learning-surface="read-only"/);
 assert.match(sources.uiSmoke, /data-personalization-scope="local-only"/);
 assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="persist-growth-memory"/);
+assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="import-local-personalization"/);
 assert.match(sources.verification, /smoke-ui-slice-649\.mjs/);
 assert.match(sources.verification, /vnext-development-audit-status\.mjs/);
 assert.match(sources.inventory, /vNext development audit/);
@@ -118,8 +124,8 @@ const implemented = [
   },
   {
     area: 'local-only personalization',
-    evidence: ['ui/app.js', 'README.md', 'docs/01_decision-log.md#DEC-049'],
-    status: 'implemented-local-only',
+    evidence: ['ui/app.js', 'README.md', 'docs/01_decision-log.md#DEC-049', 'scripts/smoke-ui-slice-649.mjs'],
+    status: 'implemented-local-only-copy-review',
   },
   {
     area: 'completion and README evidence',
@@ -143,27 +149,20 @@ const blocked = [
 const recommendedDevelopmentPlan = [
   {
     priority: 1,
-    slice: 'local-only personalization portability',
-    scope:
-      'Add export/import or copyable preference review for browser-only UI preferences, with reset still local-only and no runtime mutation.',
-    gate: 'Must keep UI_PREFERENCE_STORAGE_KEY as browser convenience state only.',
-  },
-  {
-    priority: 2,
     slice: 'proposal review decision spec',
     scope:
       'Define the durable proposal record schema, approval semantics, source refs, evidence refs, reviewer refs, and expiry rules before opening record creation.',
     gate: 'Requires a new accepted decision before any creation or persistence action appears.',
   },
   {
-    priority: 3,
+    priority: 2,
     slice: 'memory readiness decision spec',
     scope:
       'Define memory item schema, source boundaries, redaction, export, expiry, deletion, and skill-promotion review before enabling long-term memory.',
     gate: 'Requires focused smoke proving raw transcript ingestion and cross-workspace memory remain blocked until approval.',
   },
   {
-    priority: 4,
+    priority: 3,
     slice: 'growth dashboard evidence depth',
     scope:
       'Expand read-only Growth Evidence Ledger views with grouped failure patterns, regression comparisons, and rollback evidence links.',
