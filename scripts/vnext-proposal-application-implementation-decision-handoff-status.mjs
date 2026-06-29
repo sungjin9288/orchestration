@@ -195,12 +195,12 @@ assertSourceEvidence(sources, sourceEvidence);
 const applicationPlanStatus = runStatus('scripts/vnext-proposal-application-implementation-plan-status.mjs');
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const currentGate = 'proposal application implementation decision required';
+const proposalApplicationImplementationGate = 'proposal application implementation decision required';
 
 assert.equal(applicationPlanStatus.ok, true);
 assert.equal(auditStatus.ok, true);
-assert.equal(applicationPlanStatus.currentGate, currentGate);
-assert.equal(auditNextSlice, currentGate);
+assert.equal(applicationPlanStatus.currentGate, proposalApplicationImplementationGate);
+assert.equal(auditNextSlice, proposalApplicationImplementationGate);
 assert.equal(applicationPlanStatus.authority?.implementationApproved, false);
 assert.equal(applicationPlanStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(
@@ -236,7 +236,7 @@ process.stdout.write(
       readOnly: true,
       doesNotCommit: true,
       doesNotPush: true,
-      currentGate,
+      currentGate: proposalApplicationImplementationGate,
       handoffStatus: 'decision-input-only',
       requiredDecisionFields,
       invalidShortcutsRejected: invalidShortcuts,

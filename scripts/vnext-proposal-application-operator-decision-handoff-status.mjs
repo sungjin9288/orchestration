@@ -195,7 +195,7 @@ const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spe
 const implementationStatus = runStatus('scripts/vnext-durable-proposal-record-implementation-status.mjs');
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const currentGate = 'proposal application implementation decision required';
+const proposalApplicationImplementationGate = 'proposal application implementation decision required';
 
 assert.equal(packetStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
@@ -204,7 +204,7 @@ assert.equal(auditStatus.ok, true);
 assert.equal(packetStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(proposalSpecStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(implementationStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(auditNextSlice, currentGate);
+assert.equal(auditNextSlice, proposalApplicationImplementationGate);
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'proposal application operator decision handoff'),
   true,
@@ -256,7 +256,7 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       handoff: files.handoff,
-      currentGate,
+      currentGate: proposalApplicationImplementationGate,
       nextRequiredInput:
         'operator-provided application implementation decision for exactly one durable proposal record application path',
       decisionOptions,
