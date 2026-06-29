@@ -129,7 +129,6 @@ for (const section of requiredPacketSections) {
 
 assertContainsBacktickedAll(sources.packet, requiredDecisionFields);
 assertContainsBacktickedAll(sources.packet, decisionOptions);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
@@ -170,6 +169,7 @@ const sourceEvidence = {
     'docs/31_proposal-application-decision-packet.md',
     'Proposal application implementation plan is planning-only evidence',
   ],
+  app: blockedAuthorityMarkers,
   verification: ['vnext-proposal-application-decision-packet-status.mjs'],
 };
 

@@ -144,7 +144,6 @@ for (const section of requiredPlanSections) {
 
 assertContainsBacktickedAll(sources.plan, requiredDecisionFields);
 assertContainsBacktickedAll(sources.plan, requiredAttemptFields);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
@@ -193,6 +192,7 @@ const sourceEvidence = {
     'Proposal application implementation plan is planning-only evidence',
     'docs/33_proposal-application-implementation-plan.md',
   ],
+  app: blockedAuthorityMarkers,
   verification: ['vnext-proposal-application-implementation-plan-status.mjs'],
 };
 

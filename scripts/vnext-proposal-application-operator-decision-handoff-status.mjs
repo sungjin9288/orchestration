@@ -132,7 +132,6 @@ for (const section of requiredSections) {
 
 assertContainsBacktickedAll(sources.handoff, requiredDecisionFields);
 assertContainsBacktickedAll(sources.handoff, decisionOptions);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
@@ -179,6 +178,7 @@ const sourceEvidence = {
     'docs/32_proposal-application-operator-decision-handoff.md',
     'Proposal application implementation plan is planning-only evidence',
   ],
+  app: blockedAuthorityMarkers,
   verification: ['vnext-proposal-application-operator-decision-handoff-status.mjs'],
 };
 

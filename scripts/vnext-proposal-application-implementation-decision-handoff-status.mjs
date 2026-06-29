@@ -132,12 +132,11 @@ for (const section of requiredSections) {
 }
 
 assertContainsBacktickedAll(sources.handoff, requiredDecisionFields);
-assertContainsAll(sources.handoff, invalidShortcuts);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
   handoff: [
+    ...invalidShortcuts,
     'It is not an operator decision',
     'Current gate: `proposal application implementation decision required`',
     'Handoff status: `decision-input-only`',
@@ -181,6 +180,7 @@ const sourceEvidence = {
     'Proposal application implementation decision handoff is not approval',
     'docs/34_proposal-application-implementation-decision-handoff.md',
   ],
+  app: blockedAuthorityMarkers,
   verification: ['vnext-proposal-application-implementation-decision-handoff-status.mjs'],
 };
 
