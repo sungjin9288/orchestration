@@ -104,6 +104,24 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function assertContainsAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
+  }
+}
+
+function assertContainsBacktickedAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
+  }
+}
+
+function assertDoesNotMatchAny(source, patterns) {
+  for (const pattern of patterns) {
+    assert.doesNotMatch(source, pattern);
+  }
+}
+
 function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
@@ -116,42 +134,42 @@ for (const section of requiredSpecSections) {
   assert.match(sources.spec, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-for (const field of requiredMemoryFields) {
-  assert.match(sources.spec, new RegExp(`\\\`${escapeRegExp(field)}\\\``));
-}
+assertContainsBacktickedAll(sources.spec, requiredMemoryFields);
+assertContainsAll(sources.spec, reviewSemantics);
+assertContainsAll(sources.app, blockedAuthorityMarkers);
+assertDoesNotMatchAny(sources.app, forbiddenAuthorityPatterns);
 
-for (const semantic of reviewSemantics) {
-  assert.match(sources.spec, new RegExp(escapeRegExp(semantic)));
-}
+const sourceEvidence = {
+  decisionLog: [
+    '### DEC-049',
+    '### DEC-051',
+    'docs/25_memory-readiness-decision-spec.md',
+    'memory item schema with source refs and evidence refs',
+    'redaction policy, export format, expiry/deletion policy, human review semantics',
+  ],
+  audit: [
+    'Completed: `memory readiness decision spec`',
+    'docs/25_memory-readiness-decision-spec.md',
+    'Completed: `growth dashboard evidence depth`',
+    'Completed: `operator-approved authority expansion review`',
+    '`proposal application implementation decision required`',
+  ],
+  inventory: ['vNext memory readiness decision spec'],
+  readme: ['Long-term memory is readiness only', 'docs/25_memory-readiness-decision-spec.md'],
+  uiSmoke: [
+    'data-memory-readiness-gate="blocked"',
+    'doesNotMatch(appJs, /data-action="persist-growth-memory"',
+    'doesNotMatch(appJs, /data-action="ingest-raw-transcript"',
+    'doesNotMatch(appJs, /data-action="promote-memory-skill"',
+    'doesNotMatch(appJs, /data-action="enable-cross-workspace-memory"',
+    'doesNotMatch(appJs, /data-action="create-memory-record"',
+  ],
+  verification: ['vnext-memory-readiness-decision-spec-status.mjs'],
+};
 
-for (const marker of blockedAuthorityMarkers) {
-  assert.match(sources.app, new RegExp(escapeRegExp(marker)));
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
 }
-
-for (const pattern of forbiddenAuthorityPatterns) {
-  assert.doesNotMatch(sources.app, pattern);
-}
-
-assert.match(sources.decisionLog, /### DEC-049/);
-assert.match(sources.decisionLog, /### DEC-051/);
-assert.match(sources.decisionLog, /docs\/25_memory-readiness-decision-spec\.md/);
-assert.match(sources.decisionLog, /memory item schema with source refs and evidence refs/);
-assert.match(sources.decisionLog, /redaction policy, export format, expiry\/deletion policy, human review semantics/);
-assert.match(sources.audit, /Completed: `memory readiness decision spec`/);
-assert.match(sources.audit, /docs\/25_memory-readiness-decision-spec\.md/);
-assert.match(sources.audit, /Completed: `growth dashboard evidence depth`/);
-assert.match(sources.audit, /Completed: `operator-approved authority expansion review`/);
-assert.match(sources.audit, /`proposal application implementation decision required`/);
-assert.match(sources.inventory, /vNext memory readiness decision spec/);
-assert.match(sources.readme, /Long-term memory is readiness only/);
-assert.match(sources.readme, /docs\/25_memory-readiness-decision-spec\.md/);
-assert.match(sources.uiSmoke, /data-memory-readiness-gate="blocked"/);
-assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="persist-growth-memory"/);
-assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="ingest-raw-transcript"/);
-assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="promote-memory-skill"/);
-assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="enable-cross-workspace-memory"/);
-assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="create-memory-record"/);
-assert.match(sources.verification, /vnext-memory-readiness-decision-spec-status\.mjs/);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
