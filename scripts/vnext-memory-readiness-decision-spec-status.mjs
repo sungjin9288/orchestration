@@ -140,7 +140,8 @@ assert.match(sources.decisionLog, /redaction policy, export format, expiry\/dele
 assert.match(sources.audit, /Completed: `memory readiness decision spec`/);
 assert.match(sources.audit, /docs\/25_memory-readiness-decision-spec\.md/);
 assert.match(sources.audit, /Completed: `growth dashboard evidence depth`/);
-assert.match(sources.audit, /`operator-approved authority expansion review`/);
+assert.match(sources.audit, /Completed: `operator-approved authority expansion review`/);
+assert.match(sources.audit, /`operator decision required`/);
 assert.match(sources.inventory, /vNext memory readiness decision spec/);
 assert.match(sources.readme, /Long-term memory is readiness only/);
 assert.match(sources.readme, /docs\/25_memory-readiness-decision-spec\.md/);
@@ -154,9 +155,15 @@ assert.match(sources.verification, /vnext-memory-readiness-decision-spec-status\
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
+const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const nextSliceIds = {
+  'operator-approved authority expansion review': 'operator-approved-authority-expansion-review',
+  'explicit authority implementation decision required': 'explicit-authority-implementation-decision-required',
+  'operator decision required': 'operator-decision-required',
+};
 
 assert.equal(auditStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'operator-approved authority expansion review');
+assert.ok(Object.hasOwn(nextSliceIds, auditNextSlice));
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.memoryPersistenceAllowed, false);
 
@@ -217,11 +224,11 @@ process.stdout.write(
         },
       },
       nextRecommendedSlice: {
-        id: 'operator-approved-authority-expansion-review',
-        slice: 'operator-approved authority expansion review',
+        id: nextSliceIds[auditNextSlice],
+        slice: auditNextSlice,
         command: 'node scripts/vnext-memory-readiness-decision-spec-status.mjs',
         reason:
-          'Proposal and memory decision specs plus read-only growth evidence depth are now source-backed; opening persistence, providers, or source mutation requires explicit operator approval and a new plan.',
+          'Proposal, memory, growth dashboard, and authority review contracts are now source-backed; opening persistence, providers, or source mutation requires a later accepted decision, explicit approval, and a new plan.',
       },
       authority,
     },

@@ -232,6 +232,11 @@ const informationalChecks = [
     purpose: 'vNext memory readiness decision spec defines durable memory schema, source and redaction rules, review gates, export, expiry, deletion, and stop conditions without opening memory persistence, raw transcript ingestion, cross-workspace memory, skill promotion, provider calls, source mutation, commit, or push authority',
   },
   {
+    id: 'vnext-authority-expansion-review-status',
+    script: 'scripts/vnext-authority-expansion-review-status.mjs',
+    purpose: 'vNext authority expansion review defines the shared read-only request contract, candidate authority paths, separated approvals, stop conditions, rollback requirements, and focused smoke requirements before any proposal, memory, provider, source mutation, commit, or push authority can open',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

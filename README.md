@@ -24,6 +24,7 @@ and approvals.
 | Reference-driven operator shell | `docs/reference/vnext-reference-driven-ui-audit.md` records what was adopted or rejected from Linear, LangSmith Studio, Retool, Dify, n8n HITL, Zapier, and NN/g before the UI refresh. |
 | Read-only growth evidence | The shell exposes `성장 증거 원장`, `개선 후보 대기열` drilldown, grouped failure patterns, current-snapshot regression comparison, rollback evidence links, and a blocked `제안 검토 게이트` as evidence-derived views; `scripts/smoke-ui-slice-649.mjs` pins that they do not call providers, persist memory, create/persist durable proposal records, mutate source, generate/apply proposals, commit, or push. |
 | Local-only personalization | Recent desks, evidence density, preferred project hints, copyable preference review, preference reset/set controls, and a blocked long-term memory readiness gate stay local-only; browser `localStorage` under `orchestration.ui-preferences.v1` only changes shell convenience and the review packet is not an import/apply path. |
+| Authority expansion review | `docs/26_authority-expansion-review-spec.md` records the shared read-only request contract for future durable proposal records, memory persistence, provider calls, or source mutation; it does not approve implementation or open any authority. |
 | Development pack loop | The implemented pack flow is documented in `packs/development/pack.md`: planner, architect, task-breaker, builder preflight, builder live mutation, reviewer, commit-package, local commit, release-package, close-out. |
 | Review and approval gates | Review-before-done and approval-before-commit/release follow-up are enforced through runtime/coordinator state and surfaced in Decision Inbox. |
 | Local artifact store | Runtime state and artifacts are persisted through `src/runtime/file-store.js`; no external database is required. |
@@ -98,6 +99,11 @@ src/runtime/file-store.js
   `docs/25_memory-readiness-decision-spec.md` now define the current read-only memory item schema,
   source/redaction rules, export/deletion gates, expiry, and stop conditions before any persistence
   path can open.
+- Authority expansion review is not implementation approval: `DEC-052` and
+  `docs/26_authority-expansion-review-spec.md` define request fields, candidate authority paths,
+  separated readiness/planning/implementation/application gates, stop conditions, rollback refs,
+  and verification requirements before a later approved slice can open any durable proposal,
+  memory, provider, source mutation, commit, or push authority.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -224,6 +230,7 @@ Representative verification commands:
 node scripts/smoke-ui-slice-649.mjs
 node scripts/vnext-growth-dashboard-evidence-depth-status.mjs
 node scripts/vnext-memory-readiness-decision-spec-status.mjs
+node scripts/vnext-authority-expansion-review-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -242,13 +249,16 @@ Current verification evidence from this README refresh:
 - `node scripts/vnext-memory-readiness-decision-spec-status.mjs`: memory item contract, source and
   redaction rules, review gates, export, expiry, deletion, and blocked memory/provider/source/commit
   authority.
+- `node scripts/vnext-authority-expansion-review-status.mjs`: authority expansion request fields,
+  candidate authority paths, approval separation, stop conditions, rollback refs, and focused smoke
+  requirements stay read-only.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `145/145`, total `146/146`;
-  the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec, and
-  read-only growth dashboard evidence depth checks.
+- `node scripts/verification_status.mjs`: required `1/1`, informational `146/146`, total `147/147`;
+  the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
+  read-only growth dashboard evidence depth, and authority expansion review checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
@@ -288,6 +298,10 @@ Playwright CLI:
   source/evidence refs, workspace applicability, raw transcript exclusion, redaction, export, expiry,
   deletion, human review, and focused smoke coverage for unchanged provider/source/commit/push
   boundaries.
+- Authority expansion review remains a review contract only. Even though
+  `docs/26_authority-expansion-review-spec.md` recommends durable proposal record creation and
+  persistence as the most reviewable first future candidate, implementation still requires an
+  explicit operator decision, accepted plan, rollback plan, and focused smoke coverage.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider

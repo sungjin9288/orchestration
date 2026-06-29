@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- Authority expansion reviews should end in an explicit operator decision, not silently choose the next mutation path. A review can recommend the most reviewable first candidate, but durable proposal records, memory persistence, provider calls, source mutation, commit, and push still need a later accepted implementation plan and focused smoke.
 - Growth dashboard depth should remain a current-snapshot read-only summary until an operator explicitly opens authority. Grouped failure patterns, regression comparison, and rollback evidence links are useful for review, but they must not imply trend analysis, proposal approval, memory persistence, source mutation, commit, or push.
 - Memory readiness needs the same top-level decision-spec boundary as proposal records. Local browser preferences and repeated Growth Evidence Ledger patterns should not become durable memory until source refs, redaction refs, workspace scope, export/deletion gates, expiry, and human review are explicit.
 - Durable proposal record work needs a top-level decision spec before more read-only status-chain hops. The useful boundary is not another green review state, but explicit separation between proposal review, record creation approval, and proposal application approval, with expiry and stop conditions visible before persistence opens.

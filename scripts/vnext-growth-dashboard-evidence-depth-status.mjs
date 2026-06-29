@@ -103,12 +103,19 @@ assert.match(sources.inventory, /vNext growth dashboard evidence depth/);
 assert.match(sources.verification, /vnext-growth-dashboard-evidence-depth-status\.mjs/);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const nextDecisionIds = {
+  'operator-approved authority expansion review': 'operator-approved-authority-expansion-review',
+  'explicit authority implementation decision required': 'explicit-authority-implementation-decision-required',
+  'operator decision required': 'operator-decision-required',
+};
+
 assert.equal(auditStatus.ok, true);
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'growth dashboard evidence depth'),
   true,
 );
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'operator-approved authority expansion review');
+assert.ok(Object.hasOwn(nextDecisionIds, auditNextSlice));
 
 process.stdout.write(
   `${JSON.stringify(
@@ -133,10 +140,10 @@ process.stdout.write(
         commitPushAllowed: false,
       },
       nextRecommendedDecision: {
-        id: 'operator-approved-authority-expansion-review',
-        slice: 'operator-approved authority expansion review',
+        id: nextDecisionIds[auditNextSlice],
+        slice: auditNextSlice,
         reason:
-          'The read-only growth dashboard can now show deeper evidence; any durable proposal, memory, provider, or source-mutation implementation still needs explicit operator approval, a new plan, and focused smoke.',
+          'The read-only growth dashboard and authority review contracts are now source-backed; any durable proposal, memory, provider, or source-mutation implementation needs a later accepted decision, explicit approval, a new plan, and focused smoke.',
       },
     },
     null,

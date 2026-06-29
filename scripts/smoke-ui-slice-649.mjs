@@ -152,6 +152,11 @@ assert.doesNotMatch(appJs, /data-action="apply-growth-dashboard-evidence"/);
 assert.doesNotMatch(appJs, /data-action="create-growth-dashboard-proposal"/);
 assert.doesNotMatch(appJs, /data-action="persist-growth-dashboard-memory"/);
 assert.doesNotMatch(appJs, /data-action="mutate-growth-dashboard-source"/);
+assert.doesNotMatch(appJs, /data-action="apply-authority-expansion"/);
+assert.doesNotMatch(appJs, /data-action="approve-authority-expansion"/);
+assert.doesNotMatch(appJs, /data-action="open-provider-calls"/);
+assert.doesNotMatch(appJs, /data-action="open-source-mutation"/);
+assert.doesNotMatch(appJs, /data-action="open-commit-push"/);
 
 assert.match(uiQaStatus, /smoke-ui-slice-649\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-649\.mjs/);

@@ -134,16 +134,17 @@ assert.match(sources.readme, /docs\/24_proposal-review-decision-spec\.md/);
 assert.match(sources.verification, /vnext-proposal-review-decision-spec-status\.mjs/);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice || 'memory readiness decision spec';
+const nextSliceIds = {
+  'memory readiness decision spec': 'memory-readiness-decision-spec',
+  'growth dashboard evidence depth': 'growth-dashboard-evidence-depth',
+  'operator-approved authority expansion review': 'operator-approved-authority-expansion-review',
+  'explicit authority implementation decision required': 'explicit-authority-implementation-decision-required',
+  'operator decision required': 'operator-decision-required',
+};
+
 assert.equal(auditStatus.ok, true);
-assert.ok(
-  [
-    'memory readiness decision spec',
-    'growth dashboard evidence depth',
-    'operator-approved authority expansion review',
-  ].includes(
-    auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
-  ),
-);
+assert.ok(Object.hasOwn(nextSliceIds, auditNextSlice));
 
 const proposalQueue = runStatus('scripts/growth-proposal-queue-status.mjs');
 const creationReadiness = runStatus(
@@ -220,13 +221,8 @@ process.stdout.write(
         },
       },
       nextRecommendedSlice: {
-        id:
-          auditStatus.recommendedDevelopmentPlan?.[0]?.slice === 'growth dashboard evidence depth'
-            ? 'growth-dashboard-evidence-depth'
-            : auditStatus.recommendedDevelopmentPlan?.[0]?.slice === 'operator-approved authority expansion review'
-              ? 'operator-approved-authority-expansion-review'
-            : 'memory-readiness-decision-spec',
-        slice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice || 'memory readiness decision spec',
+        id: nextSliceIds[auditNextSlice],
+        slice: auditNextSlice,
         command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',
         reason:
           'Proposal review has a source-backed decision spec; the vNext audit owns the current next slice while proposal creation and application authority remain blocked.',

@@ -279,6 +279,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Future memory work must preserve the required memory item fields, source/redaction rules, separated readiness/storage/export/deletion/skill-promotion gates, expiry and deletion rules, and stop conditions in `docs/25_memory-readiness-decision-spec.md`. Readiness can only feed the next explicit decision. It must not persist memory, ingest raw transcripts, globalize memory across workspaces, promote skills, call providers, mutate source, commit, or push. `ui/app.js` must keep memory persistence, long-term memory store, raw transcript ingestion, cross-workspace memory, skill promotion, provider calls, source mutation, commit, and push blocked until a later accepted implementation decision opens a narrower path.
 - Needed Before: A future memory persistence slice still needs implementation code, focused smoke coverage, task-ledger evidence, and aggregate verification proving storage is gated and raw transcript ingestion, cross-workspace memory, skill promotion, source mutation, commit, and push remain blocked.
 
+### DEC-052
+- Status: `Accepted`
+- Decision: The vNext authority expansion review spec is defined in `docs/26_authority-expansion-review-spec.md` as a read-only contract for deciding whether any currently blocked authority can move into later implementation planning.
+- Why: The current vNext audit has completed read-only proposal, memory, and growth-dashboard depth contracts, but durable proposal records, memory persistence, provider calls, source mutation, commit, and push still need one shared approval boundary before any narrower implementation slice can open.
+- Impact: Future authority expansion work must preserve the request fields, separated readiness/planning/implementation/application gates, stop conditions, rollback requirements, and verification requirements in `docs/26_authority-expansion-review-spec.md`. Review acceptance can only feed the next explicit decision. It must not open proposal generation/application, proposal record creation/persistence, memory persistence, provider calls, source mutation, commit, or push by itself.
+- Needed Before: Any future authority-opening slice still needs a later accepted implementation decision naming the exact authority, target surface, approval payload, implementation plan, rollback plan, focused smoke coverage, aggregate verification, and authorities that remain blocked.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
