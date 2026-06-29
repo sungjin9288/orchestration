@@ -68,7 +68,7 @@ const memoryReadinessReviewSemantics = [
   'Readiness can only feed the next explicit decision',
 ];
 
-const blockedAuthorityMarkers = [
+const memoryReadinessDecisionSpecBlockedAuthorityMarkers = [
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
   'rawTranscriptIngestionAllowed: false',
@@ -151,7 +151,7 @@ assertDoesNotMatchAny(memoryReadinessDecisionSpecSources.app, forbiddenAuthority
 
 const memoryReadinessDecisionSpecSourceEvidence = {
   spec: memoryReadinessReviewSemantics,
-  app: blockedAuthorityMarkers,
+  app: memoryReadinessDecisionSpecBlockedAuthorityMarkers,
   decisionLog: [
     '### DEC-049',
     '### DEC-051',

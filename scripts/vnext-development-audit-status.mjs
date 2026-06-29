@@ -94,7 +94,7 @@ const referenceSignals = [
   'Zapier',
   'NN/g 2026 UX',
 ];
-const blockedAuthorityMarkers = [
+const vnextDevelopmentAuditBlockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
@@ -121,7 +121,7 @@ const vnextDevelopmentAuditSourceEvidence = {
   },
   app: {
     contains: [
-      ...blockedAuthorityMarkers,
+      ...vnextDevelopmentAuditBlockedAuthorityMarkers,
       'data-growth-learning-surface="read-only"',
       'data-personalization-scope="local-only"',
       'function renderGrowthCandidateDrilldown(growth)',

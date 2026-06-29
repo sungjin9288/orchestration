@@ -80,7 +80,7 @@ const durableProposalImplementationPlanRecordFields = [
   'nonApprovalStatement',
 ];
 
-const blockedAuthorityMarkers = [
+const durableProposalRecordImplementationPlanBlockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
@@ -202,7 +202,7 @@ const durableProposalRecordImplementationPlanSourceEvidence = {
     'Durable proposal record creation and persistence is implemented',
     'docs/30_durable-proposal-record-implementation-plan.md',
   ],
-  app: blockedAuthorityMarkers,
+  app: durableProposalRecordImplementationPlanBlockedAuthorityMarkers,
   verification: ['vnext-durable-proposal-record-implementation-plan-status.mjs'],
 };
 

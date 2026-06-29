@@ -25,7 +25,7 @@ const growthDashboardEvidenceDepthFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const blockedAuthorityMarkers = [
+const growthDashboardEvidenceDepthBlockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
@@ -88,9 +88,10 @@ const growthDashboardEvidenceDepthSources = Object.fromEntries(
   ]),
 );
 
-const escapedAuthorityMarkers = blockedAuthorityMarkers.map(
+const growthDashboardEvidenceDepthEscapedAuthorityMarkers =
+  growthDashboardEvidenceDepthBlockedAuthorityMarkers.map(
   (marker) => new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-);
+  );
 
 const growthDashboardEvidenceDepthSourceEvidence = {
   app: [
@@ -105,7 +106,7 @@ const growthDashboardEvidenceDepthSourceEvidence = {
     /data-growth-dashboard-action-allowed="false"/,
     /실패 묶음, 회귀 비교, 되돌림 근거를 함께 봅니다/,
     /되돌림 근거 링크/,
-    ...escapedAuthorityMarkers,
+    ...growthDashboardEvidenceDepthEscapedAuthorityMarkers,
   ],
   styles: [
     /\.growth-dashboard-depth/,

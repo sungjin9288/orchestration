@@ -62,7 +62,7 @@ const proposalReviewApprovalSemantics = [
   'Review acceptance can only feed the next explicit decision',
 ];
 
-const blockedAuthorityMarkers = [
+const proposalReviewDecisionSpecBlockedAuthorityMarkers = [
   'proposalRecordCreationAllowed: false',
   'proposalRecordPersistenceAllowed: false',
   'proposalGenerationAllowed: false',
@@ -139,7 +139,7 @@ assertDoesNotMatchAny(proposalReviewDecisionSpecSources.app, forbiddenAuthorityP
 
 const proposalReviewDecisionSpecSourceEvidence = {
   spec: proposalReviewApprovalSemantics,
-  app: blockedAuthorityMarkers,
+  app: proposalReviewDecisionSpecBlockedAuthorityMarkers,
   decisionLog: [
     '### DEC-048',
     '### DEC-050',
