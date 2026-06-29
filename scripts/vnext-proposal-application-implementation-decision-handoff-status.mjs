@@ -44,7 +44,7 @@ const requiredSections = [
   '## Verification',
 ];
 
-const requiredDecisionFields = [
+const proposalApplicationImplementationDecisionRequiredFields = [
   'decisionId',
   'decisionStatus',
   'targetAuthority',
@@ -137,7 +137,10 @@ for (const section of requiredSections) {
   assert.match(sources.handoff, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-assertContainsBacktickedAll(sources.handoff, requiredDecisionFields);
+assertContainsBacktickedAll(
+  sources.handoff,
+  proposalApplicationImplementationDecisionRequiredFields,
+);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
@@ -238,7 +241,7 @@ process.stdout.write(
       doesNotPush: true,
       currentGate: proposalApplicationImplementationGate,
       handoffStatus: 'decision-input-only',
-      requiredDecisionFields,
+      requiredDecisionFields: proposalApplicationImplementationDecisionRequiredFields,
       invalidShortcutsRejected: invalidShortcuts,
       nextRequiredInput:
         'operator-provided approve-application-implementation-slice or reject-application-implementation decision',

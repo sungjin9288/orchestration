@@ -43,7 +43,7 @@ const requiredPlanSections = [
   '## Verification',
 ];
 
-const requiredDecisionFields = [
+const proposalApplicationPlanningDecisionRequiredFields = [
   'decisionId',
   'decisionStatus',
   'targetAuthority',
@@ -148,7 +148,7 @@ for (const section of requiredPlanSections) {
   assert.match(sources.plan, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-assertContainsBacktickedAll(sources.plan, requiredDecisionFields);
+assertContainsBacktickedAll(sources.plan, proposalApplicationPlanningDecisionRequiredFields);
 assertContainsBacktickedAll(sources.plan, requiredAttemptFields);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
