@@ -154,7 +154,7 @@ const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-review-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const originalGate = 'operator decision required';
-const currentGate = 'proposal application decision required';
+const proposalApplicationDecisionGate = 'proposal application decision required';
 const nextSlice = 'proposal application implementation decision required';
 const recommendedFirstCandidate = 'durable proposal record creation and persistence';
 
@@ -196,7 +196,7 @@ process.stdout.write(
       doesNotPush: true,
       packet: files.packet,
       originalGate,
-      currentGate,
+      currentGate: proposalApplicationDecisionGate,
       recommendedFirstCandidate,
       decisionOptions,
       requiredDecisionFields,
