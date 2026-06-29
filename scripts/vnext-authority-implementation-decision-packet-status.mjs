@@ -85,6 +85,18 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function assertContainsAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
+  }
+}
+
+function assertContainsBacktickedAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
+  }
+}
+
 function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
@@ -97,33 +109,29 @@ for (const section of requiredPacketSections) {
   assert.match(sources.packet, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-for (const field of requiredDecisionFields) {
-  assert.match(sources.packet, new RegExp(`\\\`${escapeRegExp(field)}\\\``));
-}
+assertContainsBacktickedAll(sources.packet, requiredDecisionFields);
+assertContainsBacktickedAll(sources.packet, decisionOptions);
+assertContainsAll(sources.app, blockedAuthorityMarkers);
 
-for (const option of decisionOptions) {
-  assert.match(sources.packet, new RegExp(`\\\`${escapeRegExp(option)}\\\``));
-}
+assertContainsAll(sources.packet, [
+  'Current gate: `operator decision required`',
+  'Current implementation authority: blocked',
+  'This packet does not provide that approval',
+  'Proceed in this order',
+  'write one implementation plan for durable proposal record creation and persistence',
+  'This path is a sequence for finishing the project',
+  'commit or push is requested without a separate explicit approval',
+]);
 
-for (const marker of blockedAuthorityMarkers) {
-  assert.match(sources.app, new RegExp(escapeRegExp(marker)));
-}
-
-assert.match(sources.packet, /Current gate: `operator decision required`/);
-assert.match(sources.packet, /Current implementation authority: blocked/);
-assert.match(sources.packet, /This packet does not provide that approval/);
-assert.match(sources.packet, /Proceed in this order/);
-assert.match(sources.packet, /write one implementation plan for durable proposal record creation and persistence/);
-assert.match(sources.packet, /This path is a sequence for finishing the project/);
-assert.match(sources.packet, /commit or push is requested without a separate explicit approval/);
-assert.match(sources.reviewSpec, /The current state remains `operator decision required`/);
-assert.match(sources.decisionLog, /### DEC-052/);
-assert.match(sources.decisionLog, /### DEC-053/);
-assert.match(sources.audit, /Completed: `authority implementation decision packet`/);
-assert.match(sources.inventory, /vNext authority implementation decision packet/);
-assert.match(sources.readme, /Authority implementation decision packet is decision input only/);
-assert.match(sources.readme, /docs\/27_authority-implementation-decision-packet\.md/);
-assert.match(sources.verification, /vnext-authority-implementation-decision-packet-status\.mjs/);
+assertContainsAll(sources.reviewSpec, ['The current state remains `operator decision required`']);
+assertContainsAll(sources.decisionLog, ['### DEC-052', '### DEC-053']);
+assertContainsAll(sources.audit, ['Completed: `authority implementation decision packet`']);
+assertContainsAll(sources.inventory, ['vNext authority implementation decision packet']);
+assertContainsAll(sources.readme, [
+  'Authority implementation decision packet is decision input only',
+  'docs/27_authority-implementation-decision-packet.md',
+]);
+assertContainsAll(sources.verification, ['vnext-authority-implementation-decision-packet-status.mjs']);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-review-status.mjs');

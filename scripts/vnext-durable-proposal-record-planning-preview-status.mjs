@@ -95,6 +95,24 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function assertContainsAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
+  }
+}
+
+function assertContainsBacktickedAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
+  }
+}
+
+function assertDoesNotMatchAny(source, forbiddenPatterns) {
+  for (const forbiddenPattern of forbiddenPatterns) {
+    assert.doesNotMatch(source, forbiddenPattern);
+  }
+}
+
 function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
@@ -107,33 +125,30 @@ for (const section of requiredPreviewSections) {
   assert.match(sources.preview, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-for (const field of requiredRecordFields) {
-  assert.match(sources.preview, new RegExp(`\\\`${escapeRegExp(field)}\\\``));
-}
+assertContainsBacktickedAll(sources.preview, requiredRecordFields);
+assertContainsAll(sources.app, blockedAuthorityMarkers);
+assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
-for (const marker of blockedAuthorityMarkers) {
-  assert.match(sources.app, new RegExp(escapeRegExp(marker)));
-}
+assertContainsAll(sources.preview, [
+  'It is not `approve-planning-only`',
+  'Current gate: `operator decision required`',
+  'ready-for-planning-review',
+  'file-store-backed durable proposal record collection under the selected runtime root',
+  'The planning preview only records that candidate',
+  'proposal application remains blocked',
+  'no explicit `approve-planning-only` or stronger accepted decision exists',
+]);
 
-for (const pattern of forbiddenActionPatterns) {
-  assert.doesNotMatch(sources.app, pattern);
-}
-
-assert.match(sources.preview, /It is not `approve-planning-only`/);
-assert.match(sources.preview, /Current gate: `operator decision required`/);
-assert.match(sources.preview, /ready-for-planning-review/);
-assert.match(sources.preview, /file-store-backed durable proposal record collection under the selected runtime root/);
-assert.match(sources.preview, /The planning preview only records that candidate/);
-assert.match(sources.preview, /proposal application remains blocked/);
-assert.match(sources.preview, /no explicit `approve-planning-only` or stronger accepted decision exists/);
-assert.match(sources.decisionPacket, /This path is a sequence for finishing the project/);
-assert.match(sources.proposalSpec, /## Durable Proposal Record Contract/);
-assert.match(sources.decisionLog, /### DEC-054/);
-assert.match(sources.audit, /Completed: `durable proposal record planning preview`/);
-assert.match(sources.inventory, /vNext durable proposal record planning preview/);
-assert.match(sources.readme, /Durable proposal record planning preview is not planning approval/);
-assert.match(sources.readme, /docs\/28_durable-proposal-record-planning-preview\.md/);
-assert.match(sources.verification, /vnext-durable-proposal-record-planning-preview-status\.mjs/);
+assertContainsAll(sources.decisionPacket, ['This path is a sequence for finishing the project']);
+assertContainsAll(sources.proposalSpec, ['## Durable Proposal Record Contract']);
+assertContainsAll(sources.decisionLog, ['### DEC-054']);
+assertContainsAll(sources.audit, ['Completed: `durable proposal record planning preview`']);
+assertContainsAll(sources.inventory, ['vNext durable proposal record planning preview']);
+assertContainsAll(sources.readme, [
+  'Durable proposal record planning preview is not planning approval',
+  'docs/28_durable-proposal-record-planning-preview.md',
+]);
+assertContainsAll(sources.verification, ['vnext-durable-proposal-record-planning-preview-status.mjs']);
 
 const decisionPacketStatus = runStatus('scripts/vnext-authority-implementation-decision-packet-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
