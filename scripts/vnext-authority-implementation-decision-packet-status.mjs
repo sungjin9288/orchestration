@@ -155,12 +155,13 @@ const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-revie
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const originalGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
-const nextSlice = 'proposal application implementation decision required';
+const proposalApplicationImplementationDecisionSlice =
+  'proposal application implementation decision required';
 const recommendedFirstCandidate = 'durable proposal record creation and persistence';
 
 assert.equal(auditStatus.ok, true);
 assert.equal(authorityReviewStatus.ok, true);
-assert.equal(auditNextSlice, nextSlice);
+assert.equal(auditNextSlice, proposalApplicationImplementationDecisionSlice);
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'authority implementation decision packet'),
   true,

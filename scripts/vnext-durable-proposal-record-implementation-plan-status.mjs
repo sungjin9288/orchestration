@@ -202,7 +202,8 @@ const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spe
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationDecisionGate = 'proposal application decision required';
-const nextSlice = 'proposal application implementation decision required';
+const proposalApplicationImplementationDecisionSlice =
+  'proposal application implementation decision required';
 
 assert.equal(handoffStatus.ok, true);
 assert.equal(planningPreviewStatus.ok, true);
@@ -210,7 +211,7 @@ assert.equal(proposalSpecStatus.ok, true);
 assert.equal(auditStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.proposalRecordCreationAllowed, false);
 assert.equal(proposalSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
-assert.equal(auditNextSlice, nextSlice);
+assert.equal(auditNextSlice, proposalApplicationImplementationDecisionSlice);
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'durable proposal record implementation plan'),
   true,

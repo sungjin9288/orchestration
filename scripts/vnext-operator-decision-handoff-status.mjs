@@ -209,7 +209,8 @@ assertSourceEvidence(sources, sourceEvidence);
 
 const originalGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
-const nextSlice = 'proposal application implementation decision required';
+const proposalApplicationImplementationDecisionSlice =
+  'proposal application implementation decision required';
 const recommendedFirstCandidate = 'durable proposal record creation and persistence';
 
 const authority = {
@@ -273,7 +274,7 @@ process.stdout.write(
         },
         vnextAudit: {
           registered: true,
-          nextSlice,
+          nextSlice: proposalApplicationImplementationDecisionSlice,
         },
       },
       authority,

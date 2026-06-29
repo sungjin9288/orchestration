@@ -189,14 +189,15 @@ const growthDashboardStatus = runStatus('scripts/vnext-growth-dashboard-evidence
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const memorySpecStatus = runStatus('scripts/vnext-memory-readiness-decision-spec-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const nextSlice = 'proposal application implementation decision required';
+const proposalApplicationImplementationDecisionSlice =
+  'proposal application implementation decision required';
 const recommendedFirstCandidate = 'durable proposal record creation and persistence';
 
 assert.equal(auditStatus.ok, true);
 assert.equal(growthDashboardStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(memorySpecStatus.ok, true);
-assert.equal(auditNextSlice, nextSlice);
+assert.equal(auditNextSlice, proposalApplicationImplementationDecisionSlice);
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'operator-approved authority expansion review'),
   true,
