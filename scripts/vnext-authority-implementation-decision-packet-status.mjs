@@ -63,7 +63,7 @@ const proposalRecordDecisionOptions = [
   'defer',
 ];
 
-const blockedAuthorityMarkers = [
+const proposalRecordDecisionPacketBlockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
@@ -156,7 +156,7 @@ const sourceEvidence = {
     'Authority implementation decision packet is decision input only',
     'docs/27_authority-implementation-decision-packet.md',
   ],
-  app: blockedAuthorityMarkers,
+  app: proposalRecordDecisionPacketBlockedAuthorityMarkers,
   verification: ['vnext-authority-implementation-decision-packet-status.mjs'],
 };
 

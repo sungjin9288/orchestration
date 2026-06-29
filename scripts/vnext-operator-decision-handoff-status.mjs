@@ -72,7 +72,7 @@ const proposalRecordDecisionInvalidShortcuts = [
   'approve all',
 ];
 
-const blockedAuthorityMarkers = [
+const proposalRecordOperatorHandoffBlockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
@@ -207,7 +207,7 @@ const sourceEvidence = {
     'Operator decision handoff is not approval',
     'docs/29_operator-decision-handoff.md',
   ],
-  app: blockedAuthorityMarkers,
+  app: proposalRecordOperatorHandoffBlockedAuthorityMarkers,
   verification: [
     'vnext-operator-decision-handoff-status.mjs',
     'vnext-authority-implementation-decision-packet-status.mjs',

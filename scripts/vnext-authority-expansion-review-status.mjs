@@ -65,7 +65,7 @@ const reviewCandidates = [
   'Source mutation from accepted improvement candidates',
 ];
 
-const blockedAuthorityMarkers = [
+const authorityExpansionReviewBlockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
@@ -168,7 +168,7 @@ assertDoesNotMatchAny(authorityExpansionReviewSources.app, forbiddenActionPatter
 
 const sourceEvidence = {
   spec: reviewCandidates,
-  app: blockedAuthorityMarkers,
+  app: authorityExpansionReviewBlockedAuthorityMarkers,
   decisionLog: [
     '### DEC-052',
     'docs/26_authority-expansion-review-spec.md',

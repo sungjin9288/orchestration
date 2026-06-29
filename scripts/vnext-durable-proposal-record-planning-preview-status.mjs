@@ -59,7 +59,7 @@ const durableProposalPlanningPreviewRecordFields = [
   'applyAllowed',
 ];
 
-const blockedAuthorityMarkers = [
+const durableProposalPlanningPreviewBlockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
@@ -170,7 +170,7 @@ const sourceEvidence = {
     'Durable proposal record planning preview is not planning approval',
     'docs/28_durable-proposal-record-planning-preview.md',
   ],
-  app: blockedAuthorityMarkers,
+  app: durableProposalPlanningPreviewBlockedAuthorityMarkers,
   verification: ['vnext-durable-proposal-record-planning-preview-status.mjs'],
 };
 
