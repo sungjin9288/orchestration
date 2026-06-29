@@ -321,6 +321,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `src/runtime/contracts.js`, `src/runtime/file-store.js`, and `src/runtime/runtime-service.js` now support a `proposalRecords` collection, `proposalRecord` sequence, `proposal-record-0001` ids, approved creation payload validation, required source/negative/reviewer/approval evidence, default 30-day expiry, `applyAllowed=false`, and rollback quarantine. `ui/app.js` reads saved records on the proposal review surface, but still exposes no create/apply UI action. Proposal application, proposal generation, provider calls, memory persistence, source mutation, commit, and push remain blocked.
 - Needed Before: Any proposal application or source mutation from a durable proposal record still needs a later explicit operator decision, application approval semantics, rollback evidence, focused smoke coverage, aggregate verification, and separate commit or push approval.
 
+### DEC-058
+- Status: `Accepted`
+- Decision: Proposal application now stops at a read-only decision packet instead of moving directly from durable record creation into application implementation.
+- Why: Durable proposal records can now be created and persisted locally, but applying a record could imply source mutation, provider execution, memory persistence, commit, or push. The next gate needs a fielded operator decision that separates application planning, application implementation, source mutation approval, commit approval, and push approval.
+- Impact: `docs/31_proposal-application-decision-packet.md` defines decision options, required fields, application boundary, still-blocked authority, stop conditions, and verification for the next proposal application decision. `scripts/vnext-proposal-application-decision-packet-status.mjs` pins that this is decision input only and does not create a proposal application path. Runtime, UI, provider, memory, source mutation, commit, and push behavior remain unchanged.
+- Needed Before: Any proposal application implementation still needs an explicit `approve-application-planning-only` or `approve-application-implementation-slice` path as appropriate, source and negative evidence refs, rollback refs, focused smoke refs, aggregate verification, and separate approval for source mutation, commit, or push when those actions are involved.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

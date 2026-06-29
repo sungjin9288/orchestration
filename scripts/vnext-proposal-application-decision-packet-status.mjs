@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 
-const STATUS_MODE = 'vnext-authority-implementation-decision-packet-status';
+const STATUS_MODE = 'vnext-proposal-application-decision-packet-status';
 const STATUS_SCHEMA_VERSION = '1.0.0';
 
 requireNoCliArgs(process.argv.slice(2), {
@@ -17,8 +17,8 @@ requireNoCliArgs(process.argv.slice(2), {
 });
 
 const files = {
-  packet: 'docs/27_authority-implementation-decision-packet.md',
-  reviewSpec: 'docs/26_authority-expansion-review-spec.md',
+  packet: 'docs/31_proposal-application-decision-packet.md',
+  proposalSpec: 'docs/24_proposal-review-decision-spec.md',
   implementationPlan: 'docs/30_durable-proposal-record-implementation-plan.md',
   audit: 'docs/23_vnext-development-audit.md',
   decisionLog: 'docs/01_decision-log.md',
@@ -33,8 +33,7 @@ const requiredPacketSections = [
   '## Current Decision State',
   '## Decision Options',
   '## Required Operator Decision',
-  '## Recommended First Candidate',
-  '## Completion Path',
+  '## Application Boundary',
   '## Still Blocked',
   '## Stop Conditions',
   '## Verification',
@@ -47,7 +46,7 @@ const requiredDecisionFields = [
   'targetSurface',
   'sourceEvidenceRefs',
   'negativeEvidenceRefs',
-  'implementationPlanRefs',
+  'applicationPlanRefs',
   'rollbackRefs',
   'focusedSmokeRefs',
   'aggregateVerificationRef',
@@ -56,8 +55,8 @@ const requiredDecisionFields = [
 ];
 
 const decisionOptions = [
-  'approve-planning-only',
-  'approve-implementation-slice',
+  'approve-application-planning-only',
+  'approve-application-implementation-slice',
   'request-more-evidence',
   'reject',
   'defer',
@@ -76,6 +75,17 @@ const blockedAuthorityMarkers = [
   'proposalRecordPersistenceAllowed: false',
   'sourceMutationAllowed: false',
   'commitPushAllowed: false',
+];
+
+const forbiddenActionPatterns = [
+  /data-action="apply-proposal"/,
+  /data-action="approve-proposal"/,
+  /data-action="generate-growth-proposal"/,
+  /data-action="mutate-growth-source"/,
+  /data-action="persist-growth-memory"/,
+  /proposalApplicationAllowed: true/,
+  /proposalGenerationAllowed: true/,
+  /sourceMutationAllowed: true/,
 ];
 
 function readFile(relativePath) {
@@ -98,6 +108,12 @@ function assertContainsBacktickedAll(source, expectedValues) {
   }
 }
 
+function assertDoesNotMatchAny(source, patterns) {
+  for (const pattern of patterns) {
+    assert.doesNotMatch(source, pattern);
+  }
+}
+
 function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
@@ -113,63 +129,74 @@ for (const section of requiredPacketSections) {
 assertContainsBacktickedAll(sources.packet, requiredDecisionFields);
 assertContainsBacktickedAll(sources.packet, decisionOptions);
 assertContainsAll(sources.app, blockedAuthorityMarkers);
+assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 assertContainsAll(sources.packet, [
-  'Original gate: `operator decision required`',
-  'Accepted follow-up: `DEC-056`',
-  'Current downstream gate: `proposal application decision required`',
-  'Current implementation authority: accepted for durable proposal record creation and persistence only',
-  'Current packet status: `consumed-by-planning-only-decision`',
-  'This packet does not provide that approval',
-  'Proceed in this order',
-  'write one implementation plan for durable proposal record creation and persistence',
-  'This path is a sequence for finishing the project',
+  'Original gate: `proposal application decision required`',
+  'Source implementation: `DEC-057`',
+  'Current packet status: `decision-input-only`',
+  'Current application authority: blocked',
+  'This packet turns the current `proposal application decision required` gate into a concrete decision input',
+  'It is not proposal application approval',
+  'creation approval and application approval are collapsed into one approval',
+  'application approval and source mutation approval are collapsed into one approval',
   'commit or push is requested without a separate explicit approval',
 ]);
 
-assertContainsAll(sources.reviewSpec, [
-  'current downstream state to `proposal application decision required`',
+assertContainsAll(sources.proposalSpec, [
+  'Creation approval',
+  'Application approval',
+  'missing explicit application approval',
 ]);
 assertContainsAll(sources.implementationPlan, [
-  'decisionStatus` | `approve-planning-only`',
   'Runtime implementation: completed',
+  'Next blocked authority: proposal application',
 ]);
-assertContainsAll(sources.decisionLog, ['### DEC-052', '### DEC-053', '### DEC-056', '### DEC-057']);
-assertContainsAll(sources.audit, ['Completed: `authority implementation decision packet`']);
-assertContainsAll(sources.inventory, ['vNext authority implementation decision packet']);
+assertContainsAll(sources.decisionLog, ['### DEC-057', '### DEC-058']);
+assertContainsAll(sources.audit, [
+  'Completed: `proposal application decision packet`',
+  '1. `proposal application planning decision required`',
+]);
+assertContainsAll(sources.inventory, ['vNext proposal application decision packet']);
 assertContainsAll(sources.readme, [
-  'Authority implementation decision packet is decision input only',
-  'docs/27_authority-implementation-decision-packet.md',
+  'Proposal application decision packet is decision input only',
+  'docs/31_proposal-application-decision-packet.md',
 ]);
-assertContainsAll(sources.verification, ['vnext-authority-implementation-decision-packet-status.mjs']);
+assertContainsAll(sources.verification, ['vnext-proposal-application-decision-packet-status.mjs']);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-review-status.mjs');
+const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
+const implementationStatus = runStatus('scripts/vnext-durable-proposal-record-implementation-status.mjs');
 
 assert.equal(auditStatus.ok, true);
-assert.equal(authorityReviewStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application planning decision required');
+assert.equal(proposalSpecStatus.ok, true);
+assert.equal(implementationStatus.ok, true);
 assert.equal(
-  auditStatus.implemented?.some((entry) => entry.area === 'authority implementation decision packet'),
+  auditStatus.implemented?.some((entry) => entry.area === 'proposal application decision packet'),
+  true,
+);
+assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application planning decision required');
+assert.equal(proposalSpecStatus.authority?.proposalApplicationAllowed, false);
+assert.equal(implementationStatus.authority?.proposalApplicationAllowed, false);
+assert.equal(
+  implementationStatus.authority?.proposalRecordCreationAllowedThroughApprovedRuntimeFunction,
   true,
 );
 
 const authority = {
+  proposalApplicationAllowed: false,
+  proposalGenerationAllowed: false,
+  proposalQueueMutationAllowed: false,
+  proposalRecordUiCreateActionAllowed: false,
+  sourceMutationAllowed: false,
   providerCallsAllowed: false,
   memoryPersistenceAllowed: false,
   longTermMemoryStoreAllowed: false,
   rawTranscriptIngestionAllowed: false,
   crossWorkspaceMemoryAllowed: false,
   skillPromotionAllowed: false,
-  proposalGenerationAllowed: false,
-  proposalApplicationAllowed: false,
-  proposalRecordCreationAllowed: false,
-  proposalRecordPersistenceAllowed: false,
-  proposalRecordCreationAllowedThroughApprovedRuntimeFunction: true,
-  proposalRecordPersistenceAllowedThroughApprovedRuntimeFunction: true,
-  proposalRecordUiCreateActionAllowed: false,
-  sourceMutationAllowed: false,
-  commitPushAllowed: false,
+  commitAllowed: false,
+  pushAllowed: false,
 };
 
 process.stdout.write(
@@ -178,29 +205,30 @@ process.stdout.write(
       ok: true,
       mode: STATUS_MODE,
       schemaVersion: STATUS_SCHEMA_VERSION,
-      posture: 'read-only-authority-implementation-decision-packet',
+      posture: 'read-only-proposal-application-decision-packet',
       readOnly: true,
       doesNotCommit: true,
       doesNotPush: true,
       packet: files.packet,
-      originalGate: 'operator decision required',
-      currentGate: 'proposal application decision required',
-      recommendedFirstCandidate: 'durable proposal record creation and persistence',
+      currentGate: 'proposal application planning decision required',
+      nextRequiredInput:
+        'operator-provided application planning or implementation decision for existing durable proposal records',
       decisionOptions,
       requiredDecisionFields,
       upstreamStatus: {
+        proposalReviewDecisionSpec: {
+          ok: proposalSpecStatus.ok,
+          proposalApplicationAllowed: proposalSpecStatus.authority?.proposalApplicationAllowed,
+        },
+        durableProposalRecordImplementation: {
+          ok: implementationStatus.ok,
+          proposalRecordCreationAllowedThroughApprovedRuntimeFunction:
+            implementationStatus.authority?.proposalRecordCreationAllowedThroughApprovedRuntimeFunction,
+          proposalApplicationAllowed: implementationStatus.authority?.proposalApplicationAllowed,
+        },
         vnextAudit: {
           ok: auditStatus.ok,
           nextSlice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
-        },
-        implementationPlan: {
-          registered: true,
-          planningApproval: 'accepted',
-          implementationAuthority: 'accepted for durable proposal record creation and persistence only',
-        },
-        authorityExpansionReview: {
-          ok: authorityReviewStatus.ok,
-          posture: authorityReviewStatus.posture,
         },
       },
       authority,

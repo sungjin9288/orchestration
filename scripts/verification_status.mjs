@@ -267,6 +267,11 @@ const informationalChecks = [
     purpose: 'vNext durable proposal record implementation source-checks the runtime contract, file-store normalization, service API, read-only UI ledger, focused smoke, and aggregate registration for the approved creation/persistence slice',
   },
   {
+    id: 'vnext-proposal-application-decision-packet-status',
+    script: 'scripts/vnext-proposal-application-decision-packet-status.mjs',
+    purpose: 'vNext proposal application decision packet defines application decision outcomes, required decision fields, application boundary, still-blocked authority, rollback refs, focused smoke refs, and aggregate verification refs before any durable proposal record can be applied',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

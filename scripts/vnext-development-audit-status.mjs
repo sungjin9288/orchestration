@@ -27,6 +27,7 @@ const files = {
   proposalRecordPlanningPreview: 'docs/28_durable-proposal-record-planning-preview.md',
   operatorDecisionHandoff: 'docs/29_operator-decision-handoff.md',
   proposalRecordImplementationPlan: 'docs/30_durable-proposal-record-implementation-plan.md',
+  proposalApplicationDecisionPacket: 'docs/31_proposal-application-decision-packet.md',
   proposalRecordImplementationStatus: 'scripts/vnext-durable-proposal-record-implementation-status.mjs',
   proposalRecordCreationSmoke: 'scripts/smoke-durable-proposal-record-creation.mjs',
   decisionLog: 'docs/01_decision-log.md',
@@ -118,6 +119,7 @@ assertContainsAll(sources.decisionLog, [
   '### DEC-055',
   '### DEC-056',
   '### DEC-057',
+  '### DEC-058',
 ]);
 assertContainsAll(sources.readme, [
   'Read-only growth evidence',
@@ -134,9 +136,11 @@ assertContainsAll(sources.readme, [
   'docs/28_durable-proposal-record-planning-preview.md',
   'Operator decision handoff is not approval',
   'docs/29_operator-decision-handoff.md',
-  'Durable proposal record implementation plan is planning-only',
+  'Durable proposal record implementation plan is consumed decision evidence',
   'Durable proposal record creation and persistence is implemented',
   'docs/30_durable-proposal-record-implementation-plan.md',
+  'Proposal application decision packet is decision input only',
+  'docs/31_proposal-application-decision-packet.md',
 ]);
 assertContainsAll(sources.vnextAudit, [
   'local-only personalization portability',
@@ -151,7 +155,8 @@ assertContainsAll(sources.vnextAudit, [
   'Completed: `operator decision handoff`',
   'Completed: `durable proposal record implementation plan`',
   'Completed: `durable proposal record implementation`',
-  '1. `proposal application decision required`',
+  'Completed: `proposal application decision packet`',
+  '1. `proposal application planning decision required`',
 ]);
 assertMatchesAll(sources.vnextAudit, [/^# vNext Development Audit/m]);
 
@@ -217,6 +222,19 @@ assertContainsAll(sources.operatorDecisionHandoff, [
 ]);
 assertMatchesAll(sources.operatorDecisionHandoff, [/^# Operator Decision Handoff/m]);
 
+assertContainsAll(sources.proposalApplicationDecisionPacket, [
+  'Original gate: `proposal application decision required`',
+  'Source implementation: `DEC-057`',
+  'Current packet status: `decision-input-only`',
+  'Current application authority: blocked',
+  'It is not proposal application approval',
+  'approve-application-planning-only',
+  'approve-application-implementation-slice',
+  'creation approval and application approval are collapsed into one approval',
+  'application approval and source mutation approval are collapsed into one approval',
+]);
+assertMatchesAll(sources.proposalApplicationDecisionPacket, [/^# Proposal Application Decision Packet/m]);
+
 assertContainsAll(sources.proposalRecordImplementationPlan, [
   'decisionStatus` | `approve-planning-only`',
   'Planning approval: accepted',
@@ -257,6 +275,7 @@ assertContainsAll(sources.verification, [
   'vnext-durable-proposal-record-implementation-plan-status.mjs',
   'smoke-durable-proposal-record-creation.mjs',
   'vnext-durable-proposal-record-implementation-status.mjs',
+  'vnext-proposal-application-decision-packet-status.mjs',
 ]);
 assertContainsAll(sources.inventory, [
   'vNext development audit',
@@ -267,6 +286,7 @@ assertContainsAll(sources.inventory, [
   'vNext durable proposal record planning preview',
   'vNext operator decision handoff',
   'vNext durable proposal record implementation plan',
+  'vNext proposal application decision packet',
 ]);
 
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
@@ -276,7 +296,7 @@ const proposalReadiness = runStatus('scripts/growth-evidence-ledger-proposal-rea
 const growthEngineNextSlice = growthEngine.nextRecommendedSlice?.id || null;
 const reflectionNextSlice = reflection.nextRecommendedSlice?.id || null;
 const proposalQueueHandoff = proposalReadiness.nextRecommendedSlice?.id || null;
-const nextGrowthSlice = 'proposal application decision required';
+const nextGrowthSlice = 'proposal application planning decision required';
 
 assert.equal(growthEngine.ok, true);
 assert.equal(reflection.ok, true);
@@ -369,6 +389,15 @@ const implemented = [
     status: 'implemented-creation-persistence-only',
   },
   {
+    area: 'proposal application decision packet',
+    evidence: [
+      'docs/31_proposal-application-decision-packet.md',
+      'docs/01_decision-log.md#DEC-058',
+      'scripts/vnext-proposal-application-decision-packet-status.mjs',
+    ],
+    status: 'documented-read-only-decision-input',
+  },
+  {
     area: 'completion and README evidence',
     evidence: ['scripts/smoke-readme-scope-evidence.mjs', 'scripts/verification_status.mjs'],
     status: 'verified',
@@ -390,10 +419,10 @@ const blocked = [
 const recommendedDevelopmentPlan = [
   {
     priority: 1,
-    slice: 'proposal application decision required',
+    slice: 'proposal application planning decision required',
     scope:
-      'Choose whether a later slice should define proposal application semantics for existing durable proposal records.',
-    gate: 'Requires explicit proposal application authority, focused smoke coverage, rollback evidence, and aggregate verification before any proposal can mutate source or apply itself.',
+      'Choose whether a later slice should plan proposal application semantics for existing durable proposal records.',
+    gate: 'Requires explicit proposal application planning or implementation authority, focused smoke coverage, rollback evidence, and aggregate verification before any proposal can mutate source or apply itself.',
   },
 ];
 

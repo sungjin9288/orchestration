@@ -85,11 +85,10 @@ src/runtime/file-store.js
   failure patterns, current-snapshot regression comparison, rollback evidence links, reviewer
   questions, and a blocked proposal-review preview, but they do not persist memory, generate/apply
   proposals, create or persist durable proposal records, call providers, mutate source, commit, or push.
-- Proposal review is not proposal approval: `DEC-048` keeps durable proposal record creation,
-  proposal record persistence, and long-term memory blocked. `DEC-050` and
-  `docs/24_proposal-review-decision-spec.md` now define the current read-only schema, separated
-  review/create/apply gates, expiry, supersession, and stop conditions before any creation path can
-  open.
+- Proposal review is not proposal approval: `DEC-048` separates review from application, while
+  `DEC-050` and `docs/24_proposal-review-decision-spec.md` define the schema, separated
+  review/create/apply gates, expiry, supersession, and stop conditions. Durable record creation and
+  persistence now exist only through the approved local runtime path; application remains blocked.
 - Personalization is local convenience only: recent desks, evidence density, preferred project hints,
   and preference reset/set controls live in browser storage and are surfaced as shortcuts or prefilled
   context, not automatic execution.
@@ -118,16 +117,20 @@ src/runtime/file-store.js
   shapes, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop
   conditions that led to the accepted planning-only decision, but they do not approve
   implementation, persistence, provider calls, memory, source mutation, commit, or push.
-- Durable proposal record implementation plan is planning-only: `DEC-056` and
+- Durable proposal record implementation plan is consumed decision evidence: `DEC-056` and
   `docs/30_durable-proposal-record-implementation-plan.md` record the accepted
-  `approve-planning-only` decision plus the implementation plan, rollback plan, and focused smoke
-  plan for local durable proposal record creation and persistence, but they do not approve
-  implementation, create records, persist records, apply proposals, call providers, persist memory,
-  mutate source, commit, or push.
+  `approve-planning-only` decision plus the implementation plan, rollback plan, focused smoke plan,
+  and implementation decision for local durable proposal record creation and persistence, but they do
+  not approve applying proposals, calling providers, persisting memory, mutating source, committing,
+  or pushing.
 - Durable proposal record creation and persistence is implemented: `DEC-057` adds the approved
   local runtime path for `proposalRecords` in the selected `state.json`. Created records keep
   `applyAllowed=false`; proposal application, provider calls, memory persistence, source mutation,
   commit, and push remain blocked.
+- Proposal application decision packet is decision input only: `DEC-058` and
+  `docs/31_proposal-application-decision-packet.md` define application decision options, required
+  fields, application boundary, stop conditions, still-blocked authority, rollback refs, focused
+  smoke refs, and aggregate verification refs before any durable proposal record can be applied.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -261,6 +264,7 @@ node scripts/vnext-operator-decision-handoff-status.mjs
 node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs
 node scripts/smoke-durable-proposal-record-creation.mjs
 node scripts/vnext-durable-proposal-record-implementation-status.mjs
+node scripts/vnext-proposal-application-decision-packet-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -303,15 +307,20 @@ Current verification evidence from this README refresh:
 - `node scripts/vnext-durable-proposal-record-implementation-status.mjs`: source-checks the runtime
   contract, file-store normalization, service API, read-only UI ledger, focused smoke, and aggregate
   registration for the approved creation/persistence slice.
+- `node scripts/vnext-proposal-application-decision-packet-status.mjs`: source-checks the read-only
+  proposal application decision packet, required application decision fields, still-blocked
+  application/provider/memory/source/commit/push authority, upstream proposal review spec, and
+  durable proposal record implementation evidence.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `152/152`, total `153/153`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `153/153`, total `154/154`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
-  durable proposal record implementation plan and implementation checks.
+  durable proposal record implementation plan, implementation, and proposal application decision
+  packet checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
@@ -345,6 +354,9 @@ Playwright CLI:
 - Durable proposal record creation and persistence are implemented only for approved local runtime
   records under `proposalRecords` in the selected `state.json`. This does not approve proposal
   application, provider calls, memory persistence, source mutation, commit, or push.
+- Proposal application remains decision-gated. `docs/31_proposal-application-decision-packet.md`
+  is read-only input and does not apply records, generate proposals, call providers, persist memory,
+  mutate source, commit, or push.
 - Long-term memory storage remains blocked until an accepted decision defines memory item schema,
   source/evidence refs, workspace applicability, raw transcript exclusion, redaction, export, expiry,
   deletion, human review, and focused smoke coverage for unchanged provider/source/commit/push
