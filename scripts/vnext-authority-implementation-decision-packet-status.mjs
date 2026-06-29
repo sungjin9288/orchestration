@@ -114,34 +114,37 @@ assertContainsBacktickedAll(sources.packet, requiredDecisionFields);
 assertContainsBacktickedAll(sources.packet, decisionOptions);
 assertContainsAll(sources.app, blockedAuthorityMarkers);
 
-assertContainsAll(sources.packet, [
-  'Original gate: `operator decision required`',
-  'Accepted follow-up: `DEC-056`',
-  'Current downstream gate: `proposal application decision required`',
-  'Current implementation authority: accepted for durable proposal record creation and persistence only',
-  'Current packet status: `consumed-by-planning-only-decision`',
-  'This packet does not provide that approval',
-  'Proceed in this order',
-  'write one implementation plan for durable proposal record creation and persistence',
-  'This path is a sequence for finishing the project',
-  'commit or push is requested without a separate explicit approval',
-]);
+const sourceEvidence = {
+  packet: [
+    'Original gate: `operator decision required`',
+    'Accepted follow-up: `DEC-056`',
+    'Current downstream gate: `proposal application decision required`',
+    'Current implementation authority: accepted for durable proposal record creation and persistence only',
+    'Current packet status: `consumed-by-planning-only-decision`',
+    'This packet does not provide that approval',
+    'Proceed in this order',
+    'write one implementation plan for durable proposal record creation and persistence',
+    'This path is a sequence for finishing the project',
+    'commit or push is requested without a separate explicit approval',
+  ],
+  reviewSpec: ['current downstream state to `proposal application decision required`'],
+  implementationPlan: [
+    'decisionStatus` | `approve-planning-only`',
+    'Runtime implementation: completed',
+  ],
+  decisionLog: ['### DEC-052', '### DEC-053', '### DEC-056', '### DEC-057'],
+  audit: ['Completed: `authority implementation decision packet`'],
+  inventory: ['vNext authority implementation decision packet'],
+  readme: [
+    'Authority implementation decision packet is decision input only',
+    'docs/27_authority-implementation-decision-packet.md',
+  ],
+  verification: ['vnext-authority-implementation-decision-packet-status.mjs'],
+};
 
-assertContainsAll(sources.reviewSpec, [
-  'current downstream state to `proposal application decision required`',
-]);
-assertContainsAll(sources.implementationPlan, [
-  'decisionStatus` | `approve-planning-only`',
-  'Runtime implementation: completed',
-]);
-assertContainsAll(sources.decisionLog, ['### DEC-052', '### DEC-053', '### DEC-056', '### DEC-057']);
-assertContainsAll(sources.audit, ['Completed: `authority implementation decision packet`']);
-assertContainsAll(sources.inventory, ['vNext authority implementation decision packet']);
-assertContainsAll(sources.readme, [
-  'Authority implementation decision packet is decision input only',
-  'docs/27_authority-implementation-decision-packet.md',
-]);
-assertContainsAll(sources.verification, ['vnext-authority-implementation-decision-packet-status.mjs']);
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
+}
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-review-status.mjs');
