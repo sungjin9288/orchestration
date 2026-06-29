@@ -58,7 +58,7 @@ const proposalApplicationPlanningDecisionRequiredFields = [
   'approvalStatement',
 ];
 
-const requiredAttemptFields = [
+const proposalApplicationAttemptFields = [
   'applicationAttemptId',
   'proposalId',
   'status',
@@ -158,7 +158,10 @@ assertContainsBacktickedAll(
   proposalApplicationImplementationPlanSources.plan,
   proposalApplicationPlanningDecisionRequiredFields,
 );
-assertContainsBacktickedAll(proposalApplicationImplementationPlanSources.plan, requiredAttemptFields);
+assertContainsBacktickedAll(
+  proposalApplicationImplementationPlanSources.plan,
+  proposalApplicationAttemptFields,
+);
 assertDoesNotMatchAny(proposalApplicationImplementationPlanSources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {

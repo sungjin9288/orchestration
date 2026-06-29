@@ -40,7 +40,7 @@ const authorityExpansionSpecSections = [
   '## Verification',
 ];
 
-const requiredRequestFields = [
+const authorityExpansionReviewRequestFields = [
   'id',
   'status',
   'createdAt',
@@ -160,7 +160,10 @@ for (const section of authorityExpansionSpecSections) {
   );
 }
 
-assertContainsBacktickedAll(authorityExpansionReviewSources.spec, requiredRequestFields);
+assertContainsBacktickedAll(
+  authorityExpansionReviewSources.spec,
+  authorityExpansionReviewRequestFields,
+);
 assertDoesNotMatchAny(authorityExpansionReviewSources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {

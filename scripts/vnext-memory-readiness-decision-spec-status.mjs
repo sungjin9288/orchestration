@@ -40,7 +40,7 @@ const memoryReadinessSpecSections = [
   '## Verification',
 ];
 
-const requiredMemoryFields = [
+const memoryReadinessItemFields = [
   'id',
   'status',
   'createdAt',
@@ -146,7 +146,7 @@ for (const section of memoryReadinessSpecSections) {
   );
 }
 
-assertContainsBacktickedAll(memoryReadinessDecisionSpecSources.spec, requiredMemoryFields);
+assertContainsBacktickedAll(memoryReadinessDecisionSpecSources.spec, memoryReadinessItemFields);
 assertDoesNotMatchAny(memoryReadinessDecisionSpecSources.app, forbiddenAuthorityPatterns);
 
 const sourceEvidence = {
@@ -227,7 +227,7 @@ process.stdout.write(
       posture: 'read-only-memory-readiness-decision-spec',
       spec: memoryReadinessDecisionSpecFiles.spec,
       requiredSections: memoryReadinessSpecSections,
-      requiredMemoryFields,
+      requiredMemoryFields: memoryReadinessItemFields,
       reviewSemantics,
       stopConditions: [
         'missing sourceRefs',
