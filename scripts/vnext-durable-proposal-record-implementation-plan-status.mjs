@@ -16,7 +16,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const durableProposalRecordImplementationPlanFiles = {
   plan: 'docs/30_durable-proposal-record-implementation-plan.md',
   handoff: 'docs/29_operator-decision-handoff.md',
   preview: 'docs/28_durable-proposal-record-planning-preview.md',
@@ -146,7 +146,10 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(durableProposalRecordImplementationPlanFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 for (const section of requiredPlanSections) {
@@ -247,7 +250,7 @@ process.stdout.write(
       readOnly: true,
       doesNotCommit: true,
       doesNotPush: true,
-      plan: files.plan,
+      plan: durableProposalRecordImplementationPlanFiles.plan,
       acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
       targetAuthority: 'durable proposal record creation and persistence',
       currentGate: proposalApplicationDecisionGate,

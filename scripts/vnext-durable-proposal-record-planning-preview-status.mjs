@@ -16,7 +16,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const durableProposalRecordPlanningPreviewFiles = {
   preview: 'docs/28_durable-proposal-record-planning-preview.md',
   decisionPacket: 'docs/27_authority-implementation-decision-packet.md',
   implementationPlan: 'docs/30_durable-proposal-record-implementation-plan.md',
@@ -125,7 +125,10 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(durableProposalRecordPlanningPreviewFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 for (const section of requiredPreviewSections) {
@@ -226,7 +229,7 @@ process.stdout.write(
       readOnly: true,
       doesNotCommit: true,
       doesNotPush: true,
-      preview: files.preview,
+      preview: durableProposalRecordPlanningPreviewFiles.preview,
       currentGate: proposalApplicationDecisionGate,
       recommendedFirstCandidate: durableProposalRecordCreationCandidate,
       nextRequiredInput: 'explicit proposal application decision before applying any durable proposal record',

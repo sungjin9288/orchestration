@@ -42,7 +42,7 @@ function assertSourceEvidence(sourcesByName, evidenceBySource) {
   }
 }
 
-const files = {
+const durableProposalRecordImplementationStatusFiles = {
   contracts: 'src/runtime/contracts.js',
   fileStore: 'src/runtime/file-store.js',
   runtimeService: 'src/runtime/runtime-service.js',
@@ -55,7 +55,10 @@ const files = {
 };
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(durableProposalRecordImplementationStatusFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 const sourceEvidence = {
