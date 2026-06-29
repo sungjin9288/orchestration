@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- When durable proposal record creation is approved, keep creation/persistence separate from application. The runtime can assign ids, timestamps, expiry, and local `state.json` records only through an approved creation payload, while UI creation actions, proposal application, provider calls, memory persistence, source mutation, commit, and push remain separate gates.
 - Operator decision handoffs should reject shortcut approvals explicitly. A copy-ready template can make the next human decision faster, and phrases such as `continue`, `do everything`, `approve all`, or `implement vNext` can express continuation intent, but they must not open planning or implementation authority unless the fielded decision states the exact outcome, target authority, evidence refs, rollback refs, smoke refs, and still-blocked authorities.
 - Once a planning-only operator decision is accepted, earlier handoff, packet, and preview docs should become consumed evidence instead of continuing to claim the same current gate. Move the current downstream gate forward, but keep implementation, persistence, provider, memory, source mutation, commit, and push authority false until a later implementation decision exists.
 - Durable proposal record planning previews must stay separate from approval. A useful preview can name record shape, storage candidate, smoke coverage, rollback, and stop conditions, but it should not assign ids, stamp timestamps, persist records, mutate queues, or imply `approve-planning-only`.

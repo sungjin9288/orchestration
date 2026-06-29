@@ -9,13 +9,13 @@ The current product posture is:
 - reference-driven shell: implemented
 - read-only growth evidence: implemented as evidence review with grouped dashboard depth, not model training
 - local-only personalization: implemented as browser convenience with copyable preference review, not runtime memory
-- durable proposal records: read-only decision spec defined; creation and persistence remain blocked
+- durable proposal records: creation and persistence are implemented only through approved local runtime records; proposal application remains blocked
 - long-term memory: read-only decision spec defined; persistence, raw transcript ingestion, cross-workspace memory, and skill promotion remain blocked
 - authority expansion: read-only review spec defined; implementation approval and all blocked authorities remain blocked
 - operator decision packet: read-only decision input defined; it does not approve implementation
 - durable proposal record planning preview: read-only planning input defined; it is not planning approval and does not create or persist records
 - operator decision handoff: read-only decision template defined; it is not an operator decision
-- durable proposal record implementation plan: planning-only approval accepted and implementation plan defined; implementation authority, record creation, and record persistence remain blocked
+- durable proposal record implementation plan: planning-only approval accepted, implementation approval accepted, and local runtime creation/persistence implemented without proposal application authority
 
 ## Current Evidence
 
@@ -24,14 +24,14 @@ The current product posture is:
 | Reference-driven design | Implemented. The shell uses the warm enterprise direction from `DESIGN.md` and the adopted/rejected reference matrix. | `DESIGN.md`, `docs/reference/vnext-reference-driven-ui-audit.md`, `ui/styles.css`, `scripts/smoke-ui-slice-649.mjs` |
 | Product surface | Implemented. `Mission / Council / Execution / Deliverables` is the default shell, while `Taskboard / Logs / Artifacts / Decision Inbox` remains Advanced Ops. | `README.md`, `ui/app.js`, `docs/00_master-brief.md` |
 | Growth learning | Implemented as read-only evidence extraction with grouped failure patterns, current-snapshot regression comparison, and rollback evidence links. It shows candidates from runs, reviews, approvals, blockers, and artifacts, but it does not train a model or mutate state. | `ui/app.js`, `ui/styles.css`, `scripts/smoke-ui-slice-649.mjs`, `scripts/vnext-growth-dashboard-evidence-depth-status.mjs`, `docs/01_decision-log.md#DEC-048` |
-| Proposal review gate | Implemented as a blocked readiness preview. The future decision spec is defined, but the UI still does not create, approve, apply, or persist proposal records. | `ui/app.js`, `README.md`, `docs/01_decision-log.md#DEC-048`, `docs/01_decision-log.md#DEC-050`, `docs/24_proposal-review-decision-spec.md`, `scripts/vnext-proposal-review-decision-spec-status.mjs` |
+| Proposal review gate | Implemented as a blocked application preview plus read-only durable record ledger. The runtime can create and persist records only through the approved creation function; the UI still does not create, approve, apply, or mutate proposals. | `ui/app.js`, `README.md`, `docs/01_decision-log.md#DEC-048`, `docs/01_decision-log.md#DEC-050`, `docs/01_decision-log.md#DEC-057`, `docs/24_proposal-review-decision-spec.md`, `scripts/vnext-proposal-review-decision-spec-status.mjs`, `scripts/smoke-durable-proposal-record-creation.mjs` |
 | Personalization | Implemented as local browser preference only: recent surfaces, evidence density, preferred project hint, copyable preference review, and reset controls. | `ui/app.js`, `README.md`, `docs/01_decision-log.md#DEC-049`, `scripts/smoke-ui-slice-649.mjs` |
 | Long-term memory | Not implemented by design. The future decision spec is defined, but the UI still does not persist memory, ingest raw transcripts, globalize memory across workspaces, promote skills, call providers, mutate source, commit, or push. | `docs/01_decision-log.md#DEC-049`, `docs/01_decision-log.md#DEC-051`, `docs/25_memory-readiness-decision-spec.md`, `ui/app.js`, `scripts/smoke-ui-slice-649.mjs`, `scripts/vnext-memory-readiness-decision-spec-status.mjs` |
 | Authority expansion review | Implemented as a read-only review contract. It defines request fields, separated readiness/planning/implementation/application gates, rollback refs, and stop conditions, but it does not open implementation authority. | `docs/01_decision-log.md#DEC-052`, `docs/26_authority-expansion-review-spec.md`, `scripts/vnext-authority-expansion-review-status.mjs` |
 | Authority implementation decision packet | Implemented as a read-only operator decision input. It lists decision outcomes, required decision fields, still-blocked authority, stop conditions, rollback refs, and focused smoke refs, but it does not approve implementation. | `docs/01_decision-log.md#DEC-053`, `docs/27_authority-implementation-decision-packet.md`, `scripts/vnext-authority-implementation-decision-packet-status.mjs` |
 | Durable proposal record planning preview | Implemented as a read-only planning preview. It turns the recommended first candidate into a concrete record-shape, storage, focused-smoke, rollback, and stop-condition input, but it is not `approve-planning-only`, implementation approval, creation, persistence, application, provider, memory, source mutation, commit, or push authority. | `docs/01_decision-log.md#DEC-054`, `docs/28_durable-proposal-record-planning-preview.md`, `scripts/vnext-durable-proposal-record-planning-preview-status.mjs` |
 | Operator decision handoff | Implemented as a read-only decision template and consumed by the accepted planning-only decision. It preserves valid statement shapes, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop conditions without approving implementation, record creation, persistence, application, memory, provider, source mutation, commit, or push. | `docs/01_decision-log.md#DEC-055`, `docs/29_operator-decision-handoff.md`, `scripts/vnext-operator-decision-handoff-status.mjs` |
-| Durable proposal record implementation plan | Implemented as a planning-only artifact after accepted `approve-planning-only`. It records the implementation plan, rollback plan, and focused smoke plan for durable proposal record creation and persistence, but it does not approve implementation, create records, persist records, apply proposals, call providers, persist memory, mutate source, commit, or push. | `docs/01_decision-log.md#DEC-056`, `docs/30_durable-proposal-record-implementation-plan.md`, `scripts/vnext-durable-proposal-record-implementation-plan-status.mjs` |
+| Durable proposal record implementation | Implemented as an approved local runtime slice. It stores durable proposal records in `state.json`, uses stable `proposal-record-0001` ids, requires creation approval evidence, keeps `applyAllowed=false`, exposes records as read-only UI data, and keeps proposal application, provider calls, memory persistence, source mutation, commit, and push blocked. | `docs/01_decision-log.md#DEC-056`, `docs/01_decision-log.md#DEC-057`, `docs/30_durable-proposal-record-implementation-plan.md`, `src/runtime/contracts.js`, `src/runtime/file-store.js`, `src/runtime/runtime-service.js`, `scripts/smoke-durable-proposal-record-creation.mjs`, `scripts/vnext-durable-proposal-record-implementation-status.mjs` |
 
 ## Development Plan
 
@@ -62,8 +62,11 @@ Completed: `operator decision handoff`
 Completed: `durable proposal record implementation plan`
 `docs/30_durable-proposal-record-implementation-plan.md` records the accepted `approve-planning-only` decision and defines the implementation plan, rollback plan, and focused smoke plan for the recommended durable proposal record creation and persistence path. It is planning-only and does not approve implementation, proposal record creation, proposal record persistence, proposal application, provider calls, memory persistence, source mutation, commit, or push.
 
-1. `implementation decision required`
-   Choose whether the planned durable proposal record creation and persistence slice may be implemented. The current plan is limited to local-first record creation and persistence in the selected runtime root. It still requires explicit `approve-implementation-slice`, focused smoke coverage, rollback evidence, and aggregate verification before any record creation or persistence behavior changes.
+Completed: `durable proposal record implementation`
+`src/runtime/contracts.js`, `src/runtime/file-store.js`, and `src/runtime/runtime-service.js` implement approved local proposal record creation and persistence under the selected runtime root. `ui/app.js` reads saved records on the proposal review surface without adding create/apply UI actions. `scripts/smoke-durable-proposal-record-creation.mjs` proves approval-required creation, evidence-required validation, local `state.json` persistence, `applyAllowed=false`, blocked proposal application/provider/memory/source/commit/push authority, and rollback quarantine evidence.
+
+1. `proposal application decision required`
+   Choose whether a later slice should define proposal application semantics for existing durable proposal records. The current implementation only creates and persists local records; it does not generate proposals, apply proposals, mutate source, call providers, persist memory, commit, or push.
 
 ## Authority Boundary
 
@@ -76,7 +79,7 @@ These authorities remain blocked:
 - cross-workspace memory
 - skill promotion
 - proposal generation or application
-- durable proposal record creation or persistence
+- durable proposal record UI creation action
 - runtime, UI, or source mutation from growth candidates
 - commit or push
 
@@ -94,6 +97,8 @@ node scripts/vnext-authority-implementation-decision-packet-status.mjs
 node scripts/vnext-durable-proposal-record-planning-preview-status.mjs
 node scripts/vnext-operator-decision-handoff-status.mjs
 node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs
+node scripts/smoke-durable-proposal-record-creation.mjs
+node scripts/vnext-durable-proposal-record-implementation-status.mjs
 ```
 
-The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, and durable proposal record implementation plan. They must remain read-only.
+The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, and the approved durable proposal record creation/persistence smoke.

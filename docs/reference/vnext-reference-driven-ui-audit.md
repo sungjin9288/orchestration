@@ -23,7 +23,7 @@ This audit fixes the reference boundary for the vNext shell redesign. The goal i
 - Growth learning is displayed as read-only evidence extraction, not as autonomous learning completion.
 - Personalization is local-only UI preference: recent desks, preferred project hint, and evidence density.
 - Advanced ops surfaces remain visible and aligned with the same register, packet, and approval-line grammar.
-- The proposal review gate displays record-opening prerequisites, but durable proposal record creation and long-term memory stay blocked by `DEC-048`.
+- The proposal review gate follows `DEC-048` and can display durable proposal records created by the approved runtime path, but UI-side record creation, proposal application, and long-term memory stay blocked.
 - The memory readiness gate displays future ingest, source, redaction, export, expiry, and skill-promotion prerequisites, but long-term memory storage stays blocked by `DEC-049`.
 
 ## Authority Boundary
@@ -37,7 +37,7 @@ The vNext UI may display growth candidates and local preferences, but it must no
 - cross-workspace memory
 - skill promotion
 - proposal generation or proposal application
-- durable proposal record creation or persistence
+- UI-side durable proposal record creation or proposal application
 - source mutation
 - commit or push
 - hidden gateway action

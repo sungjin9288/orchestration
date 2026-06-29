@@ -33,7 +33,7 @@ assert.match(audit, /long-term memory store/);
 assert.match(audit, /raw transcript ingestion/);
 assert.match(audit, /cross-workspace memory/);
 assert.match(audit, /skill promotion/);
-assert.match(audit, /durable proposal record creation or persistence/);
+assert.match(audit, /UI-side durable proposal record creation or proposal application/);
 assert.match(audit, /source mutation/);
 assert.match(decisionLog, /### DEC-048/);
 assert.match(decisionLog, /review-readiness surface only/);
@@ -57,7 +57,10 @@ assert.match(appJs, /proposalRecordPersistenceAllowed: false/);
 assert.match(appJs, /sourceMutationAllowed: false/);
 assert.match(appJs, /commitPushAllowed: false/);
 assert.match(appJs, /const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object\.freeze\(\[/);
-assert.match(appJs, /제안 기록 생성은 별도 승인 결정이 필요합니다/);
+assert.match(appJs, /생성은 승인된 implementation slice 함수로만 가능합니다/);
+assert.match(appJs, /function renderDurableProposalRecordLedger\(growth\)/);
+assert.match(appJs, /data-durable-proposal-record-ledger="read-only"/);
+assert.match(appJs, /승인된 생성 함수가 기록을 만들면 이 영역에 읽기 전용으로 표시됩니다/);
 assert.match(appJs, /이 검토 게이트는 제안 승인과 분리됩니다/);
 assert.match(appJs, /장기 기억 전에 redaction, export, expiry 규칙이 필요합니다/);
 assert.match(appJs, /const MEMORY_STORE_OPEN_REQUIREMENTS = Object\.freeze\(\[/);
@@ -176,7 +179,7 @@ console.log(
           'raw transcript ingestion',
           'cross-workspace memory',
           'skill promotion',
-          'durable proposal record creation/persistence',
+          'UI-side durable proposal record creation/application',
           'proposal generation/application',
           'source mutation',
           'commit/push',

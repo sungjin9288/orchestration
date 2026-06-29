@@ -62,7 +62,7 @@ A future authority expansion request must define at least these fields before im
 
 | Candidate | Current state | Why it is not open yet | Minimum later smoke |
 | --- | --- | --- | --- |
-| Durable proposal record creation and persistence | Blocked | `docs/24_proposal-review-decision-spec.md` defines the record contract, but no implementation approval has named storage, ids, timestamps, or write behavior. | Prove record creation is approval-gated, source-linked, expiry-aware, rollback-ready, and still separate from proposal application. |
+| Durable proposal record creation and persistence | Implemented for approved local runtime records only | `DEC-057` implements approved local `proposalRecords` storage with stable ids, timestamps, expiry, rollback quarantine, and `applyAllowed=false`. | Keep proposal application, UI creation actions, provider calls, memory persistence, source mutation, commit, and push blocked until a later explicit decision. |
 | Memory persistence | Blocked | `docs/25_memory-readiness-decision-spec.md` defines durable memory readiness, but no storage decision has accepted source refs, redaction refs, expiry, export, deletion, or workspace scope as write behavior. | Prove storage rejects raw transcripts, secrets, cross-workspace leakage, missing review refs, and stale evidence. |
 | Provider calls from growth surfaces | Blocked | Current growth learning is evidence extraction only. Provider calls would change runtime trust, cost, failure, and data-boundary behavior. | Prove provider calls are opt-in, scoped, logged, retry-bounded, cancellable, and never treated as memory or source mutation approval. |
 | Source mutation from accepted improvement candidates | Blocked | Growth candidates are review evidence, not executable changes. Mutation needs a separate plan, approval payload, rollback path, and verification bundle. | Prove accepted candidates cannot mutate source without implementation approval, focused diff checks, rollback evidence, and aggregate verification. |
@@ -71,7 +71,7 @@ A future authority expansion request must define at least these fields before im
 
 The safest first future candidate is durable proposal record creation and persistence, because proposal review, proposal queue handoff, and proposal record readiness already have the most mature source-backed contracts.
 
-That recommendation is not approval. It only names the most reviewable first implementation slice. The accepted planning-only decision in `DEC-056` moved the current downstream state to `implementation decision required`.
+That recommendation is not application approval. It names the first implemented creation/persistence slice. `DEC-056` accepted the implementation plan, and `DEC-057` moved the current downstream state to `proposal application decision required`.
 
 ## Approval Semantics
 

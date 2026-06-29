@@ -16,6 +16,10 @@ const {
   PACKS,
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,
+  PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS,
+  PROPOSAL_RECORD_RISK_CLASS,
+  PROPOSAL_RECORD_STATUS,
+  PROPOSAL_RECORD_TYPE,
   RETENTION_CONSUMER_ACTION,
   RETENTION_CONSUMER_DISPOSITION,
   RETENTION_CONSUMER_STATUS,
@@ -29,10 +33,18 @@ function createRuntimeService(options = {}) {
   const store = createFileStore(options);
   const decisionInboxKinds = new Set(Object.values(DECISION_INBOX_KIND));
   const decisionInboxSourceTypes = new Set(Object.values(DECISION_INBOX_SOURCE_TYPE));
+  const proposalRecordTypes = new Set(Object.values(PROPOSAL_RECORD_TYPE));
+  const proposalRecordRiskClasses = new Set(Object.values(PROPOSAL_RECORD_RISK_CLASS));
+  const proposalRecordDefaultBlockedActions = [...PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS];
 
   function nextId(state, entity) {
     state.sequences[entity] += 1;
     return `${entity}-${String(state.sequences[entity]).padStart(4, '0')}`;
+  }
+
+  function nextProposalRecordId(state) {
+    state.sequences.proposalRecord += 1;
+    return `proposal-record-${String(state.sequences.proposalRecord).padStart(4, '0')}`;
   }
 
   function normalizeOptionalString(value) {
@@ -42,6 +54,61 @@ function createRuntimeService(options = {}) {
 
     const normalizedValue = String(value).trim();
     return normalizedValue.length > 0 ? normalizedValue : null;
+  }
+
+  function normalizeRequiredString(value, fieldName) {
+    const normalizedValue = normalizeOptionalString(value);
+
+    if (!normalizedValue) {
+      throw new Error(`${fieldName} is required`);
+    }
+
+    return normalizedValue;
+  }
+
+  function normalizeRequiredStringArray(value, fieldName) {
+    if (!Array.isArray(value)) {
+      throw new Error(`${fieldName} must be a non-empty array`);
+    }
+
+    const normalizedValues = value
+      .map((item) => normalizeOptionalString(item))
+      .filter(Boolean);
+
+    if (normalizedValues.length === 0) {
+      throw new Error(`${fieldName} must be a non-empty array`);
+    }
+
+    return [...new Set(normalizedValues)];
+  }
+
+  function normalizeRepoRelativePaths(value, fieldName) {
+    const paths = normalizeRequiredStringArray(value, fieldName);
+
+    for (const relativePath of paths) {
+      if (path.isAbsolute(relativePath) || relativePath.split(/[\\/]/).includes('..')) {
+        throw new Error(`${fieldName} must contain repo-relative paths only`);
+      }
+    }
+
+    return paths;
+  }
+
+  function normalizeIsoTimestamp(value, fieldName) {
+    const timestamp = normalizeRequiredString(value, fieldName);
+    const parsed = Date.parse(timestamp);
+
+    if (Number.isNaN(parsed)) {
+      throw new Error(`${fieldName} must be an ISO timestamp`);
+    }
+
+    return new Date(parsed).toISOString();
+  }
+
+  function defaultProposalRecordExpiry(createdAt) {
+    const expiry = new Date(Date.parse(createdAt));
+    expiry.setUTCDate(expiry.getUTCDate() + 30);
+    return expiry.toISOString();
   }
 
   function createDefaultProjectProviderConfig() {
@@ -250,6 +317,16 @@ function createRuntimeService(options = {}) {
     }
 
     return approval;
+  }
+
+  function assertProposalRecord(proposalId, state) {
+    const proposalRecord = state.proposalRecords[proposalId];
+
+    if (!proposalRecord) {
+      throw new Error(`Proposal record not found: ${proposalId}`);
+    }
+
+    return proposalRecord;
   }
 
   function isCommitAction(action) {
@@ -1627,6 +1704,217 @@ function createRuntimeService(options = {}) {
     return state.decisionInboxItems[id];
   }
 
+  function normalizeProposalRecordCreationApproval(input) {
+    const approval = input && typeof input === 'object' ? input : null;
+
+    if (!approval) {
+      throw new Error('creationApproval is required');
+    }
+
+    const status = normalizeRequiredString(approval.status, 'creationApproval.status');
+    const decisionId = normalizeRequiredString(approval.decisionId, 'creationApproval.decisionId');
+    const targetAuthority = normalizeRequiredString(
+      approval.targetAuthority,
+      'creationApproval.targetAuthority',
+    );
+    const approvalStatement = normalizeRequiredString(
+      approval.approvalStatement,
+      'creationApproval.approvalStatement',
+    );
+
+    if (status !== APPROVAL_STATUS.APPROVED) {
+      throw new Error('creationApproval.status must be approved');
+    }
+
+    if (targetAuthority !== 'durable proposal record creation and persistence') {
+      throw new Error(
+        'creationApproval.targetAuthority must be durable proposal record creation and persistence',
+      );
+    }
+
+    if (!/approve implementation only/i.test(approvalStatement)) {
+      throw new Error('creationApproval.approvalStatement must approve implementation only');
+    }
+
+    if (!/does not approve proposal application/i.test(approvalStatement)) {
+      throw new Error('creationApproval.approvalStatement must keep proposal application blocked');
+    }
+
+    return {
+      decisionId,
+      status,
+      targetAuthority,
+      approvalStatement,
+      approvedAt: approval.approvedAt
+        ? normalizeIsoTimestamp(approval.approvedAt, 'creationApproval.approvedAt')
+        : null,
+    };
+  }
+
+  function normalizeProposalRecordVerificationPlan(value) {
+    const verificationPlan = value && typeof value === 'object' ? value : null;
+
+    if (!verificationPlan) {
+      throw new Error('verificationPlan is required');
+    }
+
+    return {
+      commands: normalizeRequiredStringArray(verificationPlan.commands, 'verificationPlan.commands'),
+      expectedSignals: normalizeRequiredStringArray(
+        verificationPlan.expectedSignals,
+        'verificationPlan.expectedSignals',
+      ),
+      failureStopCondition: normalizeRequiredString(
+        verificationPlan.failureStopCondition,
+        'verificationPlan.failureStopCondition',
+      ),
+      focusedSmokes: Array.isArray(verificationPlan.focusedSmokes)
+        ? normalizeRequiredStringArray(
+            verificationPlan.focusedSmokes,
+            'verificationPlan.focusedSmokes',
+          )
+        : [],
+      aggregateChecks: Array.isArray(verificationPlan.aggregateChecks)
+        ? normalizeRequiredStringArray(
+            verificationPlan.aggregateChecks,
+            'verificationPlan.aggregateChecks',
+          )
+        : [],
+      manualReviewNotes: normalizeOptionalString(verificationPlan.manualReviewNotes),
+    };
+  }
+
+  function normalizeProposalRecordBlockedActions(value) {
+    const requestedActions = Array.isArray(value)
+      ? normalizeRequiredStringArray(value, 'blockedActions')
+      : [];
+    const actionSet = new Set([...proposalRecordDefaultBlockedActions, ...requestedActions]);
+
+    return proposalRecordDefaultBlockedActions
+      .filter((action) => actionSet.has(action))
+      .concat(requestedActions.filter((action) => !proposalRecordDefaultBlockedActions.includes(action)));
+  }
+
+  function createProposalRecord(input = {}) {
+    const state = store.loadState();
+    const project = assertProject(input.projectId, state);
+    const task = input.taskId ? assertTask(input.taskId, state) : null;
+    const creationApproval = normalizeProposalRecordCreationApproval(input.creationApproval);
+    const now = input.now
+      ? normalizeIsoTimestamp(input.now, 'now')
+      : new Date().toISOString();
+    const proposalType = normalizeRequiredString(input.proposalType, 'proposalType');
+    const riskClass = normalizeRequiredString(input.riskClass, 'riskClass');
+    const expiresAt = input.expiresAt
+      ? normalizeIsoTimestamp(input.expiresAt, 'expiresAt')
+      : defaultProposalRecordExpiry(now);
+    const approvalRefs = normalizeRequiredStringArray(input.approvalRefs, 'approvalRefs');
+    const blockedActions = normalizeProposalRecordBlockedActions(input.blockedActions);
+    const id = nextProposalRecordId(state);
+
+    if (task && task.projectId !== project.id) {
+      throw new Error(`Task ${task.id} is not linked to project ${project.id}`);
+    }
+
+    if (!proposalRecordTypes.has(proposalType)) {
+      throw new Error(`Unsupported proposalType: ${proposalType}`);
+    }
+
+    if (!proposalRecordRiskClasses.has(riskClass)) {
+      throw new Error(`Unsupported riskClass: ${riskClass}`);
+    }
+
+    if (!approvalRefs.includes(creationApproval.decisionId)) {
+      throw new Error('approvalRefs must include creationApproval.decisionId');
+    }
+
+    state.proposalRecords[id] = {
+      proposalId: id,
+      projectId: project.id,
+      taskId: task?.id || null,
+      title: normalizeRequiredString(input.title, 'title'),
+      proposalType,
+      status: PROPOSAL_RECORD_STATUS.CREATED,
+      createdAt: now,
+      updatedAt: now,
+      expiresAt,
+      sourceClaimIds: normalizeRequiredStringArray(input.sourceClaimIds, 'sourceClaimIds'),
+      evidenceRefs: normalizeRequiredStringArray(input.evidenceRefs, 'evidenceRefs'),
+      negativeEvidenceRefs: normalizeRequiredStringArray(
+        input.negativeEvidenceRefs,
+        'negativeEvidenceRefs',
+      ),
+      reviewerRefs: normalizeRequiredStringArray(input.reviewerRefs, 'reviewerRefs'),
+      approvalRefs,
+      affectedFiles: normalizeRepoRelativePaths(input.affectedFiles, 'affectedFiles'),
+      riskClass,
+      approvalGate: {
+        gateId: creationApproval.decisionId,
+        requiredBefore: 'proposal-record-creation',
+        requiredActor: 'operator',
+        approvalPhrase: creationApproval.approvalStatement,
+        decisionLogRef: normalizeOptionalString(input.approvalGate?.decisionLogRef),
+        taskLedgerRef: normalizeOptionalString(input.approvalGate?.taskLedgerRef),
+        blockedActions,
+      },
+      reviewQuestion: normalizeRequiredString(input.reviewQuestion, 'reviewQuestion'),
+      verificationPlan: normalizeProposalRecordVerificationPlan(input.verificationPlan),
+      blockedActions,
+      applyAllowed: false,
+      nonApprovalStatement:
+        input.nonApprovalStatement ||
+        'Proposal record creation is not proposal application approval and does not authorize provider calls, memory persistence, source mutation, commit, or push.',
+      creationApproval,
+    };
+
+    store.saveState(state);
+
+    return state.proposalRecords[id];
+  }
+
+  function getProposalRecord(proposalId) {
+    const state = store.loadState();
+    return assertProposalRecord(proposalId, state);
+  }
+
+  function listProposalRecords(input = {}) {
+    const state = store.loadState();
+    let proposalRecords = Object.values(state.proposalRecords);
+
+    if (input.projectId) {
+      proposalRecords = proposalRecords.filter((record) => record.projectId === input.projectId);
+    }
+
+    if (input.taskId) {
+      proposalRecords = proposalRecords.filter((record) => record.taskId === input.taskId);
+    }
+
+    if (input.status) {
+      proposalRecords = proposalRecords.filter((record) => record.status === input.status);
+    }
+
+    return proposalRecords.sort(compareRecordsByCreatedDesc);
+  }
+
+  function quarantineProposalRecord(input = {}) {
+    const state = store.loadState();
+    const proposalRecord = assertProposalRecord(input.proposalId, state);
+    const now = input.now
+      ? normalizeIsoTimestamp(input.now, 'now')
+      : new Date().toISOString();
+
+    proposalRecord.status = PROPOSAL_RECORD_STATUS.QUARANTINED;
+    proposalRecord.updatedAt = now;
+    proposalRecord.quarantine = {
+      reason: normalizeRequiredString(input.reason, 'reason'),
+      quarantinedAt: now,
+    };
+    proposalRecord.applyAllowed = false;
+    store.saveState(state);
+
+    return proposalRecord;
+  }
+
   function findPendingReviewItem(taskId, state) {
     return Object.values(state.decisionInboxItems).find(
       (item) =>
@@ -2878,6 +3166,7 @@ function createRuntimeService(options = {}) {
     createLinkedTaskForMission,
     createMission,
     createProject,
+    createProposalRecord,
     createTask,
     applyRetentionConsumer,
     ensureCommitActionAllowed,
@@ -2889,6 +3178,7 @@ function createRuntimeService(options = {}) {
     getDecisionInboxItem,
     getLogs,
     getMission,
+    getProposalRecord,
     getProject,
     getRun,
     getSnapshot,
@@ -2897,8 +3187,10 @@ function createRuntimeService(options = {}) {
     previewRetentionConsumer,
     listApprovals,
     listDecisionInboxItems,
+    listProposalRecords,
     listTaskGuardSummaries,
     openReviewGate,
+    quarantineProposalRecord,
     recordArtifact,
     requestBuilderLiveMutationApproval,
     resolveReview,

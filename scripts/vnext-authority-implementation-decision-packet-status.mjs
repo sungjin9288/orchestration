@@ -117,8 +117,8 @@ assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertContainsAll(sources.packet, [
   'Original gate: `operator decision required`',
   'Accepted follow-up: `DEC-056`',
-  'Current downstream gate: `implementation decision required`',
-  'Current implementation authority: blocked',
+  'Current downstream gate: `proposal application decision required`',
+  'Current implementation authority: accepted for durable proposal record creation and persistence only',
   'Current packet status: `consumed-by-planning-only-decision`',
   'This packet does not provide that approval',
   'Proceed in this order',
@@ -128,13 +128,13 @@ assertContainsAll(sources.packet, [
 ]);
 
 assertContainsAll(sources.reviewSpec, [
-  'current downstream state to `implementation decision required`',
+  'current downstream state to `proposal application decision required`',
 ]);
 assertContainsAll(sources.implementationPlan, [
   'decisionStatus` | `approve-planning-only`',
-  'Next required decision: `approve-implementation-slice`',
+  'Runtime implementation: completed',
 ]);
-assertContainsAll(sources.decisionLog, ['### DEC-052', '### DEC-053', '### DEC-056']);
+assertContainsAll(sources.decisionLog, ['### DEC-052', '### DEC-053', '### DEC-056', '### DEC-057']);
 assertContainsAll(sources.audit, ['Completed: `authority implementation decision packet`']);
 assertContainsAll(sources.inventory, ['vNext authority implementation decision packet']);
 assertContainsAll(sources.readme, [
@@ -148,7 +148,7 @@ const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-revie
 
 assert.equal(auditStatus.ok, true);
 assert.equal(authorityReviewStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'implementation decision required');
+assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'authority implementation decision packet'),
   true,
@@ -165,6 +165,9 @@ const authority = {
   proposalApplicationAllowed: false,
   proposalRecordCreationAllowed: false,
   proposalRecordPersistenceAllowed: false,
+  proposalRecordCreationAllowedThroughApprovedRuntimeFunction: true,
+  proposalRecordPersistenceAllowedThroughApprovedRuntimeFunction: true,
+  proposalRecordUiCreateActionAllowed: false,
   sourceMutationAllowed: false,
   commitPushAllowed: false,
 };
@@ -181,7 +184,7 @@ process.stdout.write(
       doesNotPush: true,
       packet: files.packet,
       originalGate: 'operator decision required',
-      currentGate: 'implementation decision required',
+      currentGate: 'proposal application decision required',
       recommendedFirstCandidate: 'durable proposal record creation and persistence',
       decisionOptions,
       requiredDecisionFields,
@@ -193,7 +196,7 @@ process.stdout.write(
         implementationPlan: {
           registered: true,
           planningApproval: 'accepted',
-          implementationAuthority: 'blocked',
+          implementationAuthority: 'accepted for durable proposal record creation and persistence only',
         },
         authorityExpansionReview: {
           ok: authorityReviewStatus.ok,

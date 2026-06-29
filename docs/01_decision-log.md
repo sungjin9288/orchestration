@@ -314,6 +314,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Future durable proposal record implementation must stay limited to one local-first creation and persistence path, use the existing runtime `state.json` under the selected runtime root, keep `applyAllowed=false`, and prove through focused smoke that proposal application, provider calls, memory persistence, source mutation, commit, and push remain blocked. This decision approves planning only; it does not create or persist records and does not open implementation authority.
 - Needed Before: Actual implementation still needs a later `approve-implementation-slice` decision for this single authority path, accepted rollback evidence, focused smoke coverage, aggregate verification, and separate commit or push approval.
 
+### DEC-057
+- Status: `Accepted`
+- Decision: The durable proposal record creation and persistence slice is implemented only for approved local runtime records under the selected runtime root.
+- Why: The operator approved `approve-implementation-slice` for the single authority path planned in `docs/30_durable-proposal-record-implementation-plan.md`. The implementation needed to persist reviewed proposal evidence without turning record creation into proposal application, provider execution, memory persistence, source mutation, commit, or push authority.
+- Impact: `src/runtime/contracts.js`, `src/runtime/file-store.js`, and `src/runtime/runtime-service.js` now support a `proposalRecords` collection, `proposalRecord` sequence, `proposal-record-0001` ids, approved creation payload validation, required source/negative/reviewer/approval evidence, default 30-day expiry, `applyAllowed=false`, and rollback quarantine. `ui/app.js` reads saved records on the proposal review surface, but still exposes no create/apply UI action. Proposal application, proposal generation, provider calls, memory persistence, source mutation, commit, and push remain blocked.
+- Needed Before: Any proposal application or source mutation from a durable proposal record still needs a later explicit operator decision, application approval semantics, rollback evidence, focused smoke coverage, aggregate verification, and separate commit or push approval.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

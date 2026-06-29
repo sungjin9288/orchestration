@@ -39,6 +39,7 @@ function createFileStore(options = {}) {
       artifacts: state.artifacts || {},
       decisionInboxItems: state.decisionInboxItems || {},
       approvals: state.approvals || {},
+      proposalRecords: state.proposalRecords || {},
     };
 
     for (const mission of Object.values(normalizedState.missions)) {
@@ -124,6 +125,31 @@ function createFileStore(options = {}) {
         ...existingRetention,
         actionLog: Array.isArray(existingRetention.actionLog) ? existingRetention.actionLog : [],
       };
+    }
+
+    for (const proposalRecord of Object.values(normalizedState.proposalRecords)) {
+      proposalRecord.sourceClaimIds = Array.isArray(proposalRecord.sourceClaimIds)
+        ? proposalRecord.sourceClaimIds
+        : [];
+      proposalRecord.evidenceRefs = Array.isArray(proposalRecord.evidenceRefs)
+        ? proposalRecord.evidenceRefs
+        : [];
+      proposalRecord.negativeEvidenceRefs = Array.isArray(proposalRecord.negativeEvidenceRefs)
+        ? proposalRecord.negativeEvidenceRefs
+        : [];
+      proposalRecord.reviewerRefs = Array.isArray(proposalRecord.reviewerRefs)
+        ? proposalRecord.reviewerRefs
+        : [];
+      proposalRecord.approvalRefs = Array.isArray(proposalRecord.approvalRefs)
+        ? proposalRecord.approvalRefs
+        : [];
+      proposalRecord.affectedFiles = Array.isArray(proposalRecord.affectedFiles)
+        ? proposalRecord.affectedFiles
+        : [];
+      proposalRecord.blockedActions = Array.isArray(proposalRecord.blockedActions)
+        ? proposalRecord.blockedActions
+        : [];
+      proposalRecord.applyAllowed = false;
     }
 
     normalizedState.schemaVersion = emptyState.schemaVersion;

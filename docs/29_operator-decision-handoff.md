@@ -10,13 +10,13 @@ It is not an operator decision. It is not `approve-planning-only`. It is not imp
 
 - Original gate: `operator decision required`
 - Accepted follow-up: `DEC-056`
-- Current downstream gate: `implementation decision required`
+- Current downstream gate: `proposal application decision required`
 - Decision packet: `docs/27_authority-implementation-decision-packet.md`
 - Planning preview: `docs/28_durable-proposal-record-planning-preview.md`
 - Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`
 - Recommended first candidate: durable proposal record creation and persistence
 - Handoff status: `consumed-by-planning-only-decision`
-- Current implementation authority: blocked
+- Current implementation authority: accepted for durable proposal record creation and persistence only
 
 ## Decision Response Template
 
@@ -99,15 +99,16 @@ These authorities remain blocked from this handoff:
 - proposal generation
 - proposal application
 - proposal queue mutation
-- proposal record creation
-- proposal record persistence
+- proposal record creation outside the approved runtime function
+- proposal record persistence outside the approved runtime function
+- durable proposal record UI creation action
 - memory persistence
 - long-term memory store
 - raw transcript ingestion
 - cross-workspace memory
 - skill promotion
 - provider calls
-- runtime mutation from growth candidates
+- runtime mutation outside the approved proposal record creation/persistence function
 - UI action mutation from growth candidates
 - source mutation
 - commit
@@ -115,9 +116,9 @@ These authorities remain blocked from this handoff:
 
 ## Stop Conditions
 
-Stop before implementation when any of these are true:
+Stop before the next authority slice when any of these are true:
 
-- no explicit `approve-implementation-slice` exists for the accepted implementation plan
+- no explicit proposal application decision exists for created durable proposal records
 - the decision text is a shortcut instead of a fielded decision
 - more than one authority path is named
 - source evidence refs are missing
@@ -136,4 +137,4 @@ Run:
 node scripts/vnext-operator-decision-handoff-status.mjs
 ```
 
-The script must stay read-only. It verifies this handoff, the decision packet, the planning preview, the vNext development audit, README evidence, completion-gate inventory, aggregate registration, and blocked authority markers without recording an operator decision or opening implementation authority.
+The script must stay read-only. It verifies this handoff, the decision packet, the planning preview, the vNext development audit, README evidence, completion-gate inventory, aggregate registration, and blocked authority markers without recording a new operator decision or opening proposal application authority.

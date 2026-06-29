@@ -105,10 +105,10 @@ assert.match(sources.verification, /vnext-growth-dashboard-evidence-depth-status
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const currentNextDecision = {
-  id: 'implementation-decision-required',
-  slice: 'implementation decision required',
+  id: 'proposal-application-decision-required',
+  slice: 'proposal application decision required',
   reason:
-    'The read-only growth dashboard and authority review contracts are source-backed, and the durable proposal record plan has planning-only approval; implementation still needs a later approve-implementation-slice decision, rollback evidence, focused smoke, and aggregate verification.',
+    'The read-only growth dashboard and approved durable proposal record creation/persistence slice are source-backed; proposal application still needs a later explicit decision, rollback evidence, focused smoke, and aggregate verification.',
 };
 
 assert.equal(auditStatus.ok, true);

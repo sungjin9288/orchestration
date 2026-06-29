@@ -10,12 +10,12 @@ It is not `approve-planning-only`. It is not implementation approval. It does no
 
 - Original gate: `operator decision required`
 - Accepted follow-up: `DEC-056`
-- Current downstream gate: `implementation decision required`
+- Current downstream gate: `proposal application decision required`
 - Decision packet: `docs/27_authority-implementation-decision-packet.md`
 - Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`
 - Recommended first candidate: durable proposal record creation and persistence
 - Current preview status: `consumed-by-planning-only-decision`
-- Current implementation authority: blocked
+- Current implementation authority: accepted for durable proposal record creation and persistence only
 
 ## Non-Authority Boundary
 
@@ -23,12 +23,13 @@ The preview keeps these authorities blocked:
 
 - proposal generation
 - proposal application
-- proposal record creation
-- proposal record persistence
+- proposal record creation outside the approved runtime function
+- proposal record persistence outside the approved runtime function
+- durable proposal record UI creation action
 - proposal queue mutation
 - memory persistence
 - provider calls
-- runtime mutation
+- runtime mutation outside the approved proposal record creation/persistence function
 - UI action mutation
 - source mutation
 - commit
@@ -109,9 +110,9 @@ A later implementation plan should include rollback evidence for:
 
 ## Stop Conditions
 
-Stop before implementation when any of these are true:
+Stop before the next authority slice when any of these are true:
 
-- no later `approve-implementation-slice` decision exists for the accepted implementation plan
+- no later proposal application decision exists for the created durable proposal records
 - more than one authority path is included
 - storage path is unnamed
 - id policy is missing
@@ -132,4 +133,4 @@ Run:
 node scripts/vnext-durable-proposal-record-planning-preview-status.mjs
 ```
 
-The script must stay read-only. It verifies this preview, the operator decision packet, proposal review decision spec, proposal queue contract, proposal record creation readiness, vNext development audit, completion-gate inventory, README evidence, aggregate registration, and blocked authority markers without opening proposal record creation or persistence.
+The script must stay read-only. It verifies this preview, the operator decision packet, proposal review decision spec, proposal queue contract, proposal record creation readiness, vNext development audit, completion-gate inventory, README evidence, aggregate registration, and blocked authority markers without opening proposal application or UI creation actions.

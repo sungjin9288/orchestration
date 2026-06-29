@@ -134,19 +134,19 @@ assertContainsAll(sources.preview, [
   'It is not `approve-planning-only`',
   'Original gate: `operator decision required`',
   'Accepted follow-up: `DEC-056`',
-  'Current downstream gate: `implementation decision required`',
+  'Current downstream gate: `proposal application decision required`',
   'Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`',
   'consumed-by-planning-only-decision',
   'file-store-backed durable proposal record collection under the selected runtime root',
   'The planning preview only records that candidate',
   'proposal application remains blocked',
-  'no later `approve-implementation-slice` decision exists for the accepted implementation plan',
+  'no later proposal application decision exists for the created durable proposal records',
 ]);
 
 assertContainsAll(sources.decisionPacket, ['This path is a sequence for finishing the project']);
 assertContainsAll(sources.implementationPlan, [
   'decisionStatus` | `approve-planning-only`',
-  'Next required decision: `approve-implementation-slice`',
+  'Runtime implementation: completed',
 ]);
 assertContainsAll(sources.proposalSpec, ['## Durable Proposal Record Contract']);
 assertContainsAll(sources.decisionLog, ['### DEC-054', '### DEC-056']);
@@ -172,7 +172,7 @@ assert.equal(proposalQueueStatus.ok, true);
 assert.equal(creationReadinessStatus.ok, true);
 assert.equal(auditStatus.ok, true);
 assert.equal(decisionPacketStatus.originalGate, 'operator decision required');
-assert.equal(decisionPacketStatus.currentGate, 'implementation decision required');
+assert.equal(decisionPacketStatus.currentGate, 'proposal application decision required');
 assert.equal(proposalSpecStatus.authority?.proposalRecordCreationAllowed, false);
 assert.equal(proposalSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
 assert.equal(proposalQueueStatus.readiness?.proposalGenerationAllowed, false);
@@ -188,6 +188,9 @@ assert.equal(
 const authority = {
   proposalRecordCreationAllowed: false,
   proposalRecordPersistenceAllowed: false,
+  proposalRecordCreationAllowedThroughApprovedRuntimeFunction: true,
+  proposalRecordPersistenceAllowedThroughApprovedRuntimeFunction: true,
+  proposalRecordUiCreateActionAllowed: false,
   proposalGenerationAllowed: false,
   proposalApplicationAllowed: false,
   proposalQueueMutationAllowed: false,
@@ -211,9 +214,9 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       preview: files.preview,
-      currentGate: 'implementation decision required',
+      currentGate: 'proposal application decision required',
       recommendedFirstCandidate: 'durable proposal record creation and persistence',
-      nextRequiredInput: 'explicit approve-implementation-slice decision before implementing the accepted plan',
+      nextRequiredInput: 'explicit proposal application decision before applying any durable proposal record',
       planningPreview: {
         targetAuthority: 'durable proposal record creation and persistence',
         storageCandidate: 'file-store-backed local proposal record collection under the selected runtime root',
@@ -246,7 +249,7 @@ process.stdout.write(
         implementationPlan: {
           registered: true,
           planningApproval: 'accepted',
-          implementationAuthority: 'blocked',
+          implementationAuthority: 'accepted for durable proposal record creation and persistence only',
         },
       },
       authority,

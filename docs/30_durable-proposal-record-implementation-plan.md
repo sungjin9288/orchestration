@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This document records the accepted `approve-planning-only` operator decision and turns the durable proposal record candidate into an implementation plan, rollback plan, and focused smoke plan.
+This document records the accepted `approve-planning-only` operator decision, the later accepted `approve-implementation-slice` decision, and the implementation boundary for durable proposal record creation and persistence.
 
-It is not implementation approval. It does not create proposal records, persist records, apply proposals, call providers, persist memory, mutate source, commit, or push.
+It is not proposal application approval. It does not apply proposals, call providers, persist memory, mutate source, commit, or push.
 
 ## Accepted Planning-Only Decision
 
@@ -26,16 +26,17 @@ It is not implementation approval. It does not create proposal records, persist 
 ## Current Status
 
 - Planning approval: accepted
-- Implementation approval: blocked
+- Implementation approval: accepted
 - Target authority: `durable proposal record creation and persistence`
-- Next required decision: `approve-implementation-slice`
-- Current implementation authority: blocked
+- Runtime implementation: completed
+- Current implementation authority: local proposal record creation and persistence only
+- Next blocked authority: proposal application
 
 ## Implementation Plan
 
-The later implementation slice should add durable proposal record creation and persistence as one narrow local-first path.
+The implementation slice adds durable proposal record creation and persistence as one narrow local-first path.
 
-The implementation should:
+The implementation does:
 
 - extend the runtime state contract with a `proposalRecords` collection and a `proposalRecord` sequence
 - normalize missing `proposalRecords` and `proposalRecord` sequence values when existing runtime state is loaded
@@ -48,6 +49,13 @@ The implementation should:
 - copy source evidence refs, negative evidence refs, reviewer refs, approval refs, risk class, blocked actions, and verification plan into the record
 - force `applyAllowed` to `false` for every created record
 - expose records as read data only on the existing proposal review surface
+- use `proposal-record-0001` style ids
+- use `created` as the initial status
+- use the runtime clock for `createdAt` and `updatedAt`
+- use a required `expiresAt` value or the default expiry policy
+- preserve invalid local record evidence through quarantine instead of silent deletion
+
+Default expiry policy: 30 days from `createdAt` when the approved creation payload does not provide `expiresAt`.
 
 The implementation must not:
 
@@ -118,11 +126,23 @@ The later implementation slice must add focused smoke coverage proving:
 - commit and push remain blocked
 - aggregate verification includes the new focused smoke
 
+## Implementation Decision
+
+| Field | Accepted value |
+| --- | --- |
+| `decisionId` | `operator-decision-vnext-proposal-record-implementation-001` |
+| `decisionStatus` | `approve-implementation-slice` |
+| `targetAuthority` | `durable proposal record creation and persistence` |
+| `implementationPlanRefs` | `docs/30_durable-proposal-record-implementation-plan.md` |
+| `rollbackRefs` | disable creation path, restore local file-store state, quarantine invalid local records, preserve audit evidence, prove aggregate verification after rollback |
+| `focusedSmokeRefs` | creation smoke only; proposal application, provider calls, memory persistence, source mutation, commit, and push stay blocked |
+| `approvalStatement` | I approve implementation only for the durable proposal record creation and persistence slice described in docs/30_durable-proposal-record-implementation-plan.md. This does not approve proposal application, provider calls, memory persistence, source mutation, commit, or push. |
+
 ## Stop Conditions
 
-Stop before implementation when any of these are true:
+Stop before the next authority slice when any of these are true:
 
-- no later `approve-implementation-slice` decision exists
+- no later proposal application decision exists for created durable proposal records
 - the implementation decision names more than one authority path
 - the storage path is not the existing runtime `state.json`
 - id, timestamp, expiry, rollback, or smoke policy is missing
@@ -137,6 +157,8 @@ Run:
 
 ```bash
 node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs
+node scripts/smoke-durable-proposal-record-creation.mjs
+node scripts/vnext-durable-proposal-record-implementation-status.mjs
 ```
 
-The script must stay read-only. It verifies the accepted planning-only decision, this implementation plan, rollback plan, focused smoke plan, vNext development audit, completion-gate inventory, README evidence, aggregate registration, and blocked authority markers without opening implementation authority.
+The plan status script verifies the accepted planning-only decision, this implementation plan, rollback plan, focused smoke plan, vNext development audit, completion-gate inventory, README evidence, aggregate registration, and blocked authority markers. The focused smoke proves the approved runtime creation path persists one record to local `state.json`, keeps `applyAllowed=false`, blocks proposal application/provider/memory/source/commit/push authority, and preserves rollback evidence through quarantine.

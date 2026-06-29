@@ -155,11 +155,13 @@ assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 assertContainsAll(sources.plan, [
   'decisionId` | `operator-decision-vnext-proposal-record-001`',
   'decisionStatus` | `approve-planning-only`',
+  'decisionId` | `operator-decision-vnext-proposal-record-implementation-001`',
+  'decisionStatus` | `approve-implementation-slice`',
   'targetAuthority` | `durable proposal record creation and persistence`',
   'Planning approval: accepted',
-  'Implementation approval: blocked',
-  'Next required decision: `approve-implementation-slice`',
-  'Current implementation authority: blocked',
+  'Implementation approval: accepted',
+  'Runtime implementation: completed',
+  'Current implementation authority: local proposal record creation and persistence only',
   'extend the runtime state contract with a `proposalRecords` collection and a `proposalRecord` sequence',
   'persist records in the existing runtime `state.json` under the selected runtime root',
   'force `applyAllowed` to `false` for every created record',
@@ -169,18 +171,18 @@ assertContainsAll(sources.plan, [
   'memory persistence remains blocked',
   'source mutation remains blocked',
   'commit and push remain blocked',
-  'no later `approve-implementation-slice` decision exists',
+  'no later proposal application decision exists for created durable proposal records',
 ]);
 
 assertContainsAll(sources.handoff, ['I approve planning only for durable proposal record creation and persistence']);
 assertContainsAll(sources.preview, ['file-store-backed durable proposal record collection under the selected runtime root']);
 assertContainsAll(sources.decisionPacket, ['write one implementation plan for durable proposal record creation and persistence']);
 assertContainsAll(sources.proposalSpec, ['## Durable Proposal Record Contract']);
-assertContainsAll(sources.decisionLog, ['### DEC-056']);
+assertContainsAll(sources.decisionLog, ['### DEC-056', '### DEC-057']);
 assertContainsAll(sources.audit, ['Completed: `durable proposal record implementation plan`']);
 assertContainsAll(sources.inventory, ['vNext durable proposal record implementation plan']);
 assertContainsAll(sources.readme, [
-  'Durable proposal record implementation plan is planning-only',
+  'Durable proposal record creation and persistence is implemented',
   'docs/30_durable-proposal-record-implementation-plan.md',
 ]);
 assertContainsAll(sources.verification, ['vnext-durable-proposal-record-implementation-plan-status.mjs']);
@@ -196,7 +198,7 @@ assert.equal(proposalSpecStatus.ok, true);
 assert.equal(auditStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.proposalRecordCreationAllowed, false);
 assert.equal(proposalSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'implementation decision required');
+assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'durable proposal record implementation plan'),
   true,
@@ -204,9 +206,12 @@ assert.equal(
 
 const authority = {
   planningApproved: true,
-  implementationApproved: false,
+  implementationApproved: true,
   proposalRecordCreationAllowed: false,
   proposalRecordPersistenceAllowed: false,
+  proposalRecordCreationAllowedThroughApprovedRuntimeFunction: true,
+  proposalRecordPersistenceAllowedThroughApprovedRuntimeFunction: true,
+  proposalRecordUiCreateActionAllowed: false,
   proposalGenerationAllowed: false,
   proposalApplicationAllowed: false,
   proposalQueueMutationAllowed: false,
@@ -225,15 +230,15 @@ process.stdout.write(
       ok: true,
       mode: STATUS_MODE,
       schemaVersion: STATUS_SCHEMA_VERSION,
-      posture: 'planning-only-durable-proposal-record-implementation-plan',
+      posture: 'implemented-durable-proposal-record-implementation-plan',
       readOnly: true,
       doesNotCommit: true,
       doesNotPush: true,
       plan: files.plan,
       acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
       targetAuthority: 'durable proposal record creation and persistence',
-      currentGate: 'implementation decision required',
-      nextRequiredInput: 'operator-provided approve-implementation-slice decision for this single authority path',
+      currentGate: 'proposal application decision required',
+      nextRequiredInput: 'operator-provided proposal application decision for created durable proposal records',
       implementationPlan: {
         storage: 'existing runtime state.json under the selected runtime root',
         stateCollection: 'proposalRecords',

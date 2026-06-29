@@ -146,7 +146,7 @@ assertContainsAll(sources.handoff, [
   'It is not `approve-planning-only`',
   'Original gate: `operator decision required`',
   'Accepted follow-up: `DEC-056`',
-  'Current downstream gate: `implementation decision required`',
+  'Current downstream gate: `proposal application decision required`',
   'Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`',
   'Handoff status: `consumed-by-planning-only-decision`',
   'Recommended first value: `durable proposal record creation and persistence`',
@@ -154,38 +154,38 @@ assertContainsAll(sources.handoff, [
   'I approve planning only for durable proposal record creation and persistence',
   'This approval allows one implementation plan, rollback plan, and focused smoke plan',
   'does not approve implementation, proposal application, provider calls, memory persistence, source mutation, commit, or push',
-  'no explicit `approve-implementation-slice` exists for the accepted implementation plan',
+  'no explicit proposal application decision exists for created durable proposal records',
   'The script must stay read-only',
 ]);
 
 assertContainsAll(sources.decisionPacket, [
   'Original gate: `operator decision required`',
-  'Current downstream gate: `implementation decision required`',
+  'Current downstream gate: `proposal application decision required`',
   'Current packet status: `consumed-by-planning-only-decision`',
-  'Current implementation authority: blocked',
+  'Current implementation authority: accepted for durable proposal record creation and persistence only',
   'This packet does not provide that approval',
 ]);
 
 assertContainsAll(sources.planningPreview, [
   'Original gate: `operator decision required`',
-  'Current downstream gate: `implementation decision required`',
-  'no later `approve-implementation-slice` decision exists for the accepted implementation plan',
-  'Current implementation authority: blocked',
+  'Current downstream gate: `proposal application decision required`',
+  'no later proposal application decision exists for the created durable proposal records',
+  'Current implementation authority: accepted for durable proposal record creation and persistence only',
   'proposal application remains blocked',
 ]);
 
 assertContainsAll(sources.implementationPlan, [
   'decisionStatus` | `approve-planning-only`',
   'Planning approval: accepted',
-  'Implementation approval: blocked',
-  'Next required decision: `approve-implementation-slice`',
+  'Implementation approval: accepted',
+  'Runtime implementation: completed',
 ]);
 
 assertContainsAll(sources.audit, [
   'Completed: `durable proposal record planning preview`',
   'Completed: `operator decision handoff`',
   'Completed: `durable proposal record implementation plan`',
-  '1. `implementation decision required`',
+  '1. `proposal application decision required`',
 ]);
 
 assertContainsAll(sources.decisionLog, ['### DEC-055', '### DEC-056']);
@@ -205,9 +205,12 @@ assertContainsAll(sources.verification, [
 const authority = {
   handoffRecordsDecision: false,
   planningApproved: true,
-  implementationApproved: false,
+  implementationApproved: true,
   proposalRecordCreationAllowed: false,
   proposalRecordPersistenceAllowed: false,
+  proposalRecordCreationAllowedThroughApprovedRuntimeFunction: true,
+  proposalRecordPersistenceAllowedThroughApprovedRuntimeFunction: true,
+  proposalRecordUiCreateActionAllowed: false,
   proposalGenerationAllowed: false,
   proposalApplicationAllowed: false,
   proposalQueueMutationAllowed: false,
@@ -231,36 +234,36 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       handoff: files.handoff,
-      currentGate: 'implementation decision required',
+      currentGate: 'proposal application decision required',
       handoffStatus: 'consumed-by-planning-only-decision',
       acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
       recommendedFirstCandidate: 'durable proposal record creation and persistence',
       decisionOptions,
       invalidShortcutsRejected: invalidShortcuts,
       nextRequiredInput:
-        'operator-provided approve-implementation-slice decision with required implementation refs',
+        'operator-provided proposal application decision for created durable proposal records',
       upstreamEvidence: {
         decisionPacket: {
           registered: true,
           originalGate: 'operator decision required',
-          currentGate: 'implementation decision required',
-          implementationAuthority: 'blocked',
+          currentGate: 'proposal application decision required',
+          implementationAuthority: 'accepted for durable proposal record creation and persistence only',
         },
         planningPreview: {
           registered: true,
           originalGate: 'operator decision required',
-          currentGate: 'implementation decision required',
-          implementationAuthority: 'blocked',
+          currentGate: 'proposal application decision required',
+          implementationAuthority: 'accepted for durable proposal record creation and persistence only',
           proposalApplication: 'blocked',
         },
         implementationPlan: {
           registered: true,
           planningApproval: 'accepted',
-          implementationAuthority: 'blocked',
+          implementationAuthority: 'accepted for durable proposal record creation and persistence only',
         },
         vnextAudit: {
           registered: true,
-          nextSlice: 'implementation decision required',
+          nextSlice: 'proposal application decision required',
         },
       },
       authority,

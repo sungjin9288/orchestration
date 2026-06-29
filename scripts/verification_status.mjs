@@ -257,6 +257,16 @@ const informationalChecks = [
     purpose: 'vNext durable proposal record implementation plan records accepted planning-only approval, implementation plan, rollback plan, focused smoke plan, and record contract without opening implementation, record creation, persistence, proposal application, provider, memory, source mutation, commit, or push authority',
   },
   {
+    id: 'durable-proposal-record-creation-smoke',
+    script: 'scripts/smoke-durable-proposal-record-creation.mjs',
+    purpose: 'Durable proposal record creation requires approved implementation payload evidence, persists to local state.json, keeps applyAllowed=false, and leaves proposal application, provider, memory, source mutation, commit, and push blocked',
+  },
+  {
+    id: 'vnext-durable-proposal-record-implementation-status',
+    script: 'scripts/vnext-durable-proposal-record-implementation-status.mjs',
+    purpose: 'vNext durable proposal record implementation source-checks the runtime contract, file-store normalization, service API, read-only UI ledger, focused smoke, and aggregate registration for the approved creation/persistence slice',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

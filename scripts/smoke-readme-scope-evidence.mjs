@@ -64,7 +64,7 @@ assert.match(readme, /제안 검토 게이트/);
 assert.match(readme, /create\/persist durable proposal records/);
 assert.match(readme, /Proposal review is not proposal approval/);
 assert.match(readme, /DEC-048/);
-assert.match(readme, /Durable proposal record creation remains blocked/);
+assert.match(readme, /Durable proposal record creation and persistence are implemented only/);
 assert.match(readme, /Long-term memory is readiness only/);
 assert.match(readme, /DEC-049/);
 assert.match(readme, /raw transcript ingestion/);

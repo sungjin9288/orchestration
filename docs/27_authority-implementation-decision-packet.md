@@ -10,11 +10,11 @@ It does not approve implementation. It does not create proposal records, persist
 
 - Original gate: `operator decision required`
 - Accepted follow-up: `DEC-056`
-- Current downstream gate: `implementation decision required`
+- Current downstream gate: `proposal application decision required`
 - Source review: `docs/26_authority-expansion-review-spec.md`
 - Current recommended first candidate: durable proposal record creation and persistence
 - Current packet status: `consumed-by-planning-only-decision`
-- Current implementation authority: blocked
+- Current implementation authority: accepted for durable proposal record creation and persistence only
 
 ## Decision Options
 
@@ -77,19 +77,20 @@ This path is a sequence for finishing the project. It is not approval to start i
 
 ## Still Blocked
 
-These authorities remain blocked until a later accepted implementation decision explicitly opens one narrower path:
+These authorities remain blocked until a later accepted decision explicitly opens one narrower path:
 
 - proposal generation
 - proposal application
-- proposal record creation
-- proposal record persistence
+- proposal record creation outside the approved runtime function
+- proposal record persistence outside the approved runtime function
+- durable proposal record UI creation action
 - memory persistence
 - long-term memory store
 - raw transcript ingestion
 - cross-workspace memory
 - skill promotion
 - provider calls from growth or memory surfaces
-- runtime mutation from growth candidates
+- runtime mutation outside the approved proposal record creation/persistence function
 - UI action mutation from growth candidates
 - source mutation
 - commit
@@ -97,7 +98,7 @@ These authorities remain blocked until a later accepted implementation decision 
 
 ## Stop Conditions
 
-Stop before implementation when any of these are true:
+Stop before the next authority slice when any of these are true:
 
 - more than one `targetAuthority` is requested
 - `targetSurface` is missing

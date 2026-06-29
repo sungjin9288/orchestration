@@ -287,8 +287,8 @@ const GROWTH_AUTHORITY_BOUNDARY = Object.freeze({
   sourceMutationAllowed: false,
 });
 const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object.freeze([
-  '제안 기록 생성은 별도 승인 결정이 필요합니다',
-  'id, 상태, 시각, 원천, 증거 참조가 먼저 정의되어야 합니다',
+  '생성은 승인된 implementation slice 함수로만 가능합니다',
+  'id, 상태, 시각, 원천, 증거 참조를 runtime state에 남깁니다',
   '이 검토 게이트는 제안 승인과 분리됩니다',
   '장기 기억 전에 redaction, export, expiry 규칙이 필요합니다',
 ]);
@@ -3279,6 +3279,7 @@ function getActivePayload() {
         artifacts: {},
         decisionInboxItems: {},
         approvals: {},
+        proposalRecords: {},
       },
     }
   );
@@ -3296,6 +3297,7 @@ function getDerived() {
   const artifacts = Object.values(snapshot.artifacts).sort(sortByCreatedDesc);
   const inboxItems = Object.values(snapshot.decisionInboxItems).sort(sortByCreatedDesc);
   const approvals = Object.values(snapshot.approvals).sort(sortByCreatedDesc);
+  const proposalRecords = Object.values(snapshot.proposalRecords || {}).sort(sortByCreatedDesc);
 
   const activeProject = snapshot.activeProjectId
     ? snapshot.projects[snapshot.activeProjectId] || null
@@ -3331,6 +3333,9 @@ function getDerived() {
   const projectApprovals = activeProject
     ? approvals.filter((approval) => approval.projectId === activeProject.id)
     : [];
+  const projectProposalRecords = activeProject
+    ? proposalRecords.filter((proposalRecord) => proposalRecord.projectId === activeProject.id)
+    : [];
 
   const taskMap = new Map(projectTasks.map((task) => [task.id, task]));
   const missionMap = new Map(projectMissions.map((mission) => [mission.id, mission]));
@@ -3356,6 +3361,7 @@ function getDerived() {
     artifacts: projectArtifacts,
     inboxItems: projectInboxItems,
     approvals: projectApprovals,
+    proposalRecords: projectProposalRecords,
     taskMap,
     runMap,
     artifactMap,
@@ -11951,6 +11957,7 @@ function getGrowthLearningSnapshot(data, context) {
     data.artifacts.length + data.runs.length + data.approvals.length + data.inboxItems.length;
   const candidates = getGrowthEvidenceCandidates({ failedRuns, reviewArtifacts, blockedTasks });
   const candidateCount = reviewArtifacts.length + failedRuns.length + blockedTasks.length;
+  const proposalRecords = (data.proposalRecords || []).slice(0, 5);
   const selectedEvidence =
     context.selectedArtifact?.id ||
     context.selectedRun?.id ||
@@ -11967,6 +11974,7 @@ function getGrowthLearningSnapshot(data, context) {
     reviewArtifacts,
     blockedTasks,
     candidates,
+    proposalRecords,
     failurePatternGroups: getGrowthFailurePatternGroups({ failedRuns, reviewArtifacts, blockedTasks }),
     regressionComparison: getGrowthRegressionComparison({ failedRuns, completedRuns }),
     rollbackEvidenceLinks: getGrowthRollbackEvidenceLinks(data.artifacts),
@@ -11974,6 +11982,57 @@ function getGrowthLearningSnapshot(data, context) {
     status: candidateCount > 0 ? '개선 후보 있음' : '후보 대기',
     statusTone: candidateCount > 0 ? 'accent' : 'neutral',
   };
+}
+
+function renderDurableProposalRecordLedger(growth) {
+  if (!growth.proposalRecords.length) {
+    return `
+      <div class="growth-candidate-empty" data-durable-proposal-record-ledger="empty">
+        <strong>저장된 제안 기록 없음</strong>
+        <span>승인된 생성 함수가 기록을 만들면 이 영역에 읽기 전용으로 표시됩니다.</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div
+      class="growth-candidate-list"
+      data-durable-proposal-record-ledger="read-only"
+      data-proposal-application-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalApplicationAllowed}"
+      data-source-mutation-allowed="${GROWTH_AUTHORITY_BOUNDARY.sourceMutationAllowed}"
+    >
+      ${growth.proposalRecords
+        .map(
+          (proposalRecord) => `
+            <details class="growth-candidate-card" open>
+              <summary class="growth-candidate-summary">
+                <span class="growth-candidate-rank">${escapeHtml(proposalRecord.proposalId)}</span>
+                <span class="growth-candidate-main">
+                  <strong>${escapeHtml(proposalRecord.title)}</strong>
+                  <em>${escapeHtml(`${proposalRecord.proposalType} · ${proposalRecord.status}`)}</em>
+                </span>
+                ${createToken(proposalRecord.riskClass || 'risk 미지정', 'neutral')}
+              </summary>
+              <div class="growth-candidate-detail">
+                <p>${escapeHtml(proposalRecord.nonApprovalStatement || '제안 기록은 적용 승인과 분리됩니다.')}</p>
+                <div class="growth-candidate-detail-grid">
+                  <span>만료: ${escapeHtml(proposalRecord.expiresAt || '미지정')}</span>
+                  <span>근거: ${escapeHtml((proposalRecord.evidenceRefs || []).join(', ') || '대기')}</span>
+                  <span>부정 근거: ${escapeHtml((proposalRecord.negativeEvidenceRefs || []).join(', ') || '대기')}</span>
+                  <span>검토: ${escapeHtml((proposalRecord.reviewerRefs || []).join(', ') || '대기')}</span>
+                </div>
+                <div class="growth-candidate-blocked-actions" aria-label="계속 차단된 제안 기록 액션">
+                  ${(proposalRecord.blockedActions || [])
+                    .map((action) => createToken(action, 'warning'))
+                    .join('')}
+                </div>
+              </div>
+            </details>
+          `,
+        )
+        .join('')}
+    </div>
+  `;
 }
 
 function getPersonalizationSnapshot(data, context) {
@@ -12305,6 +12364,7 @@ function renderIntelligenceOverview(data, context) {
         ${renderGrowthDashboardEvidenceDepth(growth)}
         ${renderGrowthCandidateDrilldown(growth)}
         ${renderGrowthProposalReviewPreview(growth)}
+        ${renderDurableProposalRecordLedger(growth)}
         <div class="intelligence-boundary-strip" aria-label="차단된 성장 권한">
           ${createToken(`차단 권한:${blockedAuthorityCount}개`, 'warning')}
           ${createToken('provider 호출:false', 'neutral')}

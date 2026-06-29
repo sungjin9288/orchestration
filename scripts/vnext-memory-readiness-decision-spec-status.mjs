@@ -141,7 +141,7 @@ assert.match(sources.audit, /Completed: `memory readiness decision spec`/);
 assert.match(sources.audit, /docs\/25_memory-readiness-decision-spec\.md/);
 assert.match(sources.audit, /Completed: `growth dashboard evidence depth`/);
 assert.match(sources.audit, /Completed: `operator-approved authority expansion review`/);
-assert.match(sources.audit, /`implementation decision required`/);
+assert.match(sources.audit, /`proposal application decision required`/);
 assert.match(sources.inventory, /vNext memory readiness decision spec/);
 assert.match(sources.readme, /Long-term memory is readiness only/);
 assert.match(sources.readme, /docs\/25_memory-readiness-decision-spec\.md/);
@@ -157,11 +157,11 @@ const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const currentNextSlice = {
-  id: 'implementation-decision-required',
-  slice: 'implementation decision required',
+  id: 'proposal-application-decision-required',
+  slice: 'proposal application decision required',
   command: 'node scripts/vnext-memory-readiness-decision-spec-status.mjs',
   reason:
-    'Proposal, memory, growth dashboard, and authority review contracts are source-backed, and durable proposal record planning-only approval is recorded; opening implementation, persistence, providers, or source mutation still requires a later accepted implementation decision.',
+    'Proposal, memory, growth dashboard, authority review, and durable proposal record creation/persistence are source-backed; applying proposals still requires a later accepted application decision.',
 };
 
 assert.equal(auditStatus.ok, true);

@@ -211,9 +211,47 @@ const RELEASE_ACTION = {
   RELEASE_READY: 'release-ready',
 };
 
+const PROPOSAL_RECORD_STATUS = {
+  CREATED: 'created',
+  QUARANTINED: 'quarantined',
+};
+
+const PROPOSAL_RECORD_TYPE = {
+  DOCUMENTATION: 'documentation',
+  GATEWAY_ROUTING: 'gateway-routing',
+  RUNTIME_CONTRACT: 'runtime-contract',
+  SKILL_MEMORY: 'skill-memory',
+  SMOKE_GUARD: 'smoke-guard',
+  UI_COPY: 'ui-copy',
+};
+
+const PROPOSAL_RECORD_RISK_CLASS = {
+  ARCHITECTURE_SENSITIVE: 'architecture-sensitive',
+  LOW: 'low',
+  RUNTIME_SENSITIVE: 'runtime-sensitive',
+};
+
+const PROPOSAL_RECORD_BLOCKED_ACTION = {
+  COMMIT: 'commit',
+  MEMORY_PERSISTENCE: 'memory-persistence',
+  PROPOSAL_APPLICATION: 'proposal-application',
+  PROVIDER_CALL: 'provider-call',
+  PUSH: 'push',
+  SOURCE_MUTATION: 'source-mutation',
+};
+
+const PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS = Object.freeze([
+  PROPOSAL_RECORD_BLOCKED_ACTION.PROPOSAL_APPLICATION,
+  PROPOSAL_RECORD_BLOCKED_ACTION.PROVIDER_CALL,
+  PROPOSAL_RECORD_BLOCKED_ACTION.MEMORY_PERSISTENCE,
+  PROPOSAL_RECORD_BLOCKED_ACTION.SOURCE_MUTATION,
+  PROPOSAL_RECORD_BLOCKED_ACTION.COMMIT,
+  PROPOSAL_RECORD_BLOCKED_ACTION.PUSH,
+]);
+
 function createEmptyState() {
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     activeProjectId: null,
     selectedMissionId: null,
     sequences: {
@@ -225,6 +263,7 @@ function createEmptyState() {
       artifact: 0,
       decisionInboxItem: 0,
       approval: 0,
+      proposalRecord: 0,
     },
     missions: {},
     councilSessions: {},
@@ -234,6 +273,7 @@ function createEmptyState() {
     artifacts: {},
     decisionInboxItems: {},
     approvals: {},
+    proposalRecords: {},
   };
 }
 
@@ -253,6 +293,11 @@ module.exports = {
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,
   PROVIDER_READINESS,
+  PROPOSAL_RECORD_BLOCKED_ACTION,
+  PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS,
+  PROPOSAL_RECORD_RISK_CLASS,
+  PROPOSAL_RECORD_STATUS,
+  PROPOSAL_RECORD_TYPE,
   RETENTION_CONSUMER_ACTION,
   RETENTION_CONSUMER_DISPOSITION,
   RETENTION_CONSUMER_STATUS,

@@ -124,6 +124,10 @@ src/runtime/file-store.js
   plan for local durable proposal record creation and persistence, but they do not approve
   implementation, create records, persist records, apply proposals, call providers, persist memory,
   mutate source, commit, or push.
+- Durable proposal record creation and persistence is implemented: `DEC-057` adds the approved
+  local runtime path for `proposalRecords` in the selected `state.json`. Created records keep
+  `applyAllowed=false`; proposal application, provider calls, memory persistence, source mutation,
+  commit, and push remain blocked.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -239,7 +243,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 846 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 847 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 649 UI smoke files
 ```
@@ -255,6 +259,8 @@ node scripts/vnext-authority-implementation-decision-packet-status.mjs
 node scripts/vnext-durable-proposal-record-planning-preview-status.mjs
 node scripts/vnext-operator-decision-handoff-status.mjs
 node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs
+node scripts/smoke-durable-proposal-record-creation.mjs
+node scripts/vnext-durable-proposal-record-implementation-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -289,17 +295,23 @@ Current verification evidence from this README refresh:
   implementation, persistence, provider, memory, source mutation, commit, or push authority.
 - `node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs`: accepted
   planning-only decision, implementation plan, rollback plan, focused smoke plan, and record contract
-  stay planning-only and do not open implementation, record creation, persistence, proposal
-  application, provider, memory, source mutation, commit, or push authority.
+  remain source-checked as the planning artifact.
+- `node scripts/smoke-durable-proposal-record-creation.mjs`: approved runtime creation requires an
+  implementation approval payload and source, negative, reviewer, and approval refs; the created
+  record persists to local `state.json` with `proposal-record-0001`, `applyAllowed=false`, blocked
+  application/provider/memory/source/commit/push actions, and rollback quarantine evidence.
+- `node scripts/vnext-durable-proposal-record-implementation-status.mjs`: source-checks the runtime
+  contract, file-store normalization, service API, read-only UI ledger, focused smoke, and aggregate
+  registration for the approved creation/persistence slice.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `150/150`, total `151/151`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `152/152`, total `153/153`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
-  durable proposal record implementation plan checks.
+  durable proposal record implementation plan and implementation checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
@@ -330,21 +342,17 @@ Playwright CLI:
 - Growth evidence and personalization are shell-level views only. Candidate drilldown and the proposal
   review preview are not proof of model learning, long-term memory, durable proposal record creation,
   autonomous proposal application, source mutation, commit, push, or external automation.
-- Durable proposal record creation remains blocked even though
-  `docs/24_proposal-review-decision-spec.md` defines the review contract and
-  `docs/30_durable-proposal-record-implementation-plan.md` now records the planning-only
-  implementation plan. A later implementation decision and focused smoke coverage are still required
-  before assigning durable ids or timestamps, persisting records, approving proposal application,
-  mutating source, committing, or pushing.
+- Durable proposal record creation and persistence are implemented only for approved local runtime
+  records under `proposalRecords` in the selected `state.json`. This does not approve proposal
+  application, provider calls, memory persistence, source mutation, commit, or push.
 - Long-term memory storage remains blocked until an accepted decision defines memory item schema,
   source/evidence refs, workspace applicability, raw transcript exclusion, redaction, export, expiry,
   deletion, human review, and focused smoke coverage for unchanged provider/source/commit/push
   boundaries.
-- Authority expansion review remains a review contract only. Even though
-  `docs/26_authority-expansion-review-spec.md` recommends durable proposal record creation and
-  persistence as the most reviewable first candidate, implementation still requires explicit
-  `approve-implementation-slice`, rollback evidence, focused smoke coverage, and aggregate
-  verification.
+- Authority expansion review remains a review contract. `DEC-057` implements the approved durable
+  proposal record creation/persistence slice, but proposal application, memory persistence, provider
+  calls, source mutation, commit, and push still require a later explicit decision, rollback evidence,
+  focused smoke coverage, and aggregate verification.
 - Durable proposal record planning preview is consumed by the accepted planning-only decision.
   `docs/28_durable-proposal-record-planning-preview.md` does not create or persist records, assign
   ids or timestamps, mutate queues, apply proposals, call providers, persist memory, mutate source,
