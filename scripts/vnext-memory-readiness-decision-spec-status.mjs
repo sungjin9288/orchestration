@@ -182,7 +182,9 @@ const sourceEvidence = {
 assertSourceEvidence(memoryReadinessDecisionSpecSources, sourceEvidence);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
+const proposalReviewDecisionSpecStatus = runStatus(
+  'scripts/vnext-proposal-review-decision-spec-status.mjs',
+);
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationDecisionSlice =
@@ -197,8 +199,8 @@ const proposalApplicationImplementationDecision = {
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
-assert.equal(proposalSpecStatus.ok, true);
-assert.equal(proposalSpecStatus.authority?.memoryPersistenceAllowed, false);
+assert.equal(proposalReviewDecisionSpecStatus.ok, true);
+assert.equal(proposalReviewDecisionSpecStatus.authority?.memoryPersistenceAllowed, false);
 
 const memoryReadinessAuthorityBoundary = {
   memoryPersistenceAllowed: false,
@@ -252,8 +254,9 @@ process.stdout.write(
           nextSlice: vnextDevelopmentAuditNextSlice,
         },
         proposalDecisionSpec: {
-          ok: proposalSpecStatus.ok,
-          memoryPersistenceAllowed: proposalSpecStatus.authority?.memoryPersistenceAllowed,
+          ok: proposalReviewDecisionSpecStatus.ok,
+          memoryPersistenceAllowed:
+            proposalReviewDecisionSpecStatus.authority?.memoryPersistenceAllowed,
         },
       },
       nextRecommendedSlice: proposalApplicationImplementationDecision,
