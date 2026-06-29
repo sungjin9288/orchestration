@@ -106,6 +106,12 @@ function assertContainsAll(source, expectedValues) {
   }
 }
 
+function assertSourceEvidence(sourcesByName, evidenceBySource) {
+  for (const [sourceName, expectedValues] of Object.entries(evidenceBySource)) {
+    assertContainsAll(sourcesByName[sourceName], expectedValues);
+  }
+}
+
 function assertContainsBacktickedAll(source, expectedValues) {
   for (const expectedValue of expectedValues) {
     assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
@@ -182,9 +188,7 @@ const sourceEvidence = {
   verification: ['vnext-proposal-application-operator-decision-handoff-status.mjs'],
 };
 
-for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
-  assertContainsAll(sources[sourceName], expectedValues);
-}
+assertSourceEvidence(sources, sourceEvidence);
 
 const packetStatus = runStatus('scripts/vnext-proposal-application-decision-packet-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
