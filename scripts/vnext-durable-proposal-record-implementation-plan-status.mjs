@@ -200,6 +200,7 @@ const handoffStatus = runStatus('scripts/vnext-operator-decision-handoff-status.
 const planningPreviewStatus = runStatus('scripts/vnext-durable-proposal-record-planning-preview-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 
 assert.equal(handoffStatus.ok, true);
 assert.equal(planningPreviewStatus.ok, true);
@@ -207,7 +208,7 @@ assert.equal(proposalSpecStatus.ok, true);
 assert.equal(auditStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.proposalRecordCreationAllowed, false);
 assert.equal(proposalSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application implementation decision required');
+assert.equal(auditNextSlice, 'proposal application implementation decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'durable proposal record implementation plan'),
   true,
@@ -271,7 +272,7 @@ process.stdout.write(
         },
         vnextAudit: {
           ok: auditStatus.ok,
-          nextSlice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
+          nextSlice: auditNextSlice,
         },
       },
       authority,

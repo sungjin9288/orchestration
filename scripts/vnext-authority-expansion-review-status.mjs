@@ -188,12 +188,13 @@ const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const growthDashboardStatus = runStatus('scripts/vnext-growth-dashboard-evidence-depth-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const memorySpecStatus = runStatus('scripts/vnext-memory-readiness-decision-spec-status.mjs');
+const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 
 assert.equal(auditStatus.ok, true);
 assert.equal(growthDashboardStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(memorySpecStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application implementation decision required');
+assert.equal(auditNextSlice, 'proposal application implementation decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'operator-approved authority expansion review'),
   true,
@@ -228,7 +229,7 @@ process.stdout.write(
       upstreamStatus: {
         vnextAudit: {
           ok: auditStatus.ok,
-          nextSlice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
+          nextSlice: auditNextSlice,
         },
         growthDashboardEvidenceDepth: {
           ok: growthDashboardStatus.ok,

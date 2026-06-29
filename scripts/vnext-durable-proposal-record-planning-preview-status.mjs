@@ -174,6 +174,7 @@ const creationReadinessStatus = runStatus(
   'scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
 );
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 
 assert.equal(decisionPacketStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
@@ -253,7 +254,7 @@ process.stdout.write(
         },
         vnextAudit: {
           ok: auditStatus.ok,
-          nextSlice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
+          nextSlice: auditNextSlice,
         },
         implementationPlan: {
           registered: true,

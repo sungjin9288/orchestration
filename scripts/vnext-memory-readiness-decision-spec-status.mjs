@@ -240,7 +240,7 @@ process.stdout.write(
       upstreamStatus: {
         vnextAudit: {
           ok: auditStatus.ok,
-          nextSlice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
+          nextSlice: auditNextSlice,
         },
         proposalDecisionSpec: {
           ok: proposalSpecStatus.ok,

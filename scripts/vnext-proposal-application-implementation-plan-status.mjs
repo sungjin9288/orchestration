@@ -208,6 +208,7 @@ const handoffStatus = runStatus('scripts/vnext-proposal-application-operator-dec
 const packetStatus = runStatus('scripts/vnext-proposal-application-decision-packet-status.mjs');
 const implementationStatus = runStatus('scripts/vnext-durable-proposal-record-implementation-status.mjs');
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 
 assert.equal(handoffStatus.ok, true);
 assert.equal(packetStatus.ok, true);
@@ -218,7 +219,7 @@ assert.equal(packetStatus.currentGate, 'proposal application implementation deci
 assert.equal(packetStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(handoffStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(implementationStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application implementation decision required');
+assert.equal(auditNextSlice, 'proposal application implementation decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'proposal application implementation plan'),
   true,
@@ -259,7 +260,7 @@ const upstreamStatus = {
   },
   vnextAudit: {
     ok: auditStatus.ok,
-    nextSlice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
+    nextSlice: auditNextSlice,
   },
 };
 

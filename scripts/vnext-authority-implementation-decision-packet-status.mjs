@@ -152,10 +152,11 @@ assertSourceEvidence(sources, sourceEvidence);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-review-status.mjs');
+const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 
 assert.equal(auditStatus.ok, true);
 assert.equal(authorityReviewStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application implementation decision required');
+assert.equal(auditNextSlice, 'proposal application implementation decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'authority implementation decision packet'),
   true,
@@ -198,7 +199,7 @@ process.stdout.write(
       upstreamStatus: {
         vnextAudit: {
           ok: auditStatus.ok,
-          nextSlice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
+          nextSlice: auditNextSlice,
         },
         implementationPlan: {
           registered: true,
