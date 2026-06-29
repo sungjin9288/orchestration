@@ -137,7 +137,7 @@ for (const section of proposalReviewSpecSections) {
 assertContainsBacktickedAll(proposalReviewDecisionSpecSources.spec, proposalReviewRecordFields);
 assertDoesNotMatchAny(proposalReviewDecisionSpecSources.app, forbiddenAuthorityPatterns);
 
-const sourceEvidence = {
+const proposalReviewDecisionSpecSourceEvidence = {
   spec: proposalReviewApprovalSemantics,
   app: blockedAuthorityMarkers,
   decisionLog: [
@@ -160,7 +160,10 @@ const sourceEvidence = {
   verification: ['vnext-proposal-review-decision-spec-status.mjs'],
 };
 
-assertSourceEvidence(proposalReviewDecisionSpecSources, sourceEvidence);
+assertSourceEvidence(
+  proposalReviewDecisionSpecSources,
+  proposalReviewDecisionSpecSourceEvidence,
+);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =

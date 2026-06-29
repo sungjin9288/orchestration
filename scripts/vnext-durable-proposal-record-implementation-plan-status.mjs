@@ -169,7 +169,7 @@ assertContainsBacktickedAll(
 );
 assertDoesNotMatchAny(durableProposalRecordImplementationPlanSources.app, forbiddenActionPatterns);
 
-const sourceEvidence = {
+const durableProposalRecordImplementationPlanSourceEvidence = {
   plan: [
     'decisionId` | `operator-decision-vnext-proposal-record-001`',
     'decisionStatus` | `approve-planning-only`',
@@ -206,7 +206,10 @@ const sourceEvidence = {
   verification: ['vnext-durable-proposal-record-implementation-plan-status.mjs'],
 };
 
-assertSourceEvidence(durableProposalRecordImplementationPlanSources, sourceEvidence);
+assertSourceEvidence(
+  durableProposalRecordImplementationPlanSources,
+  durableProposalRecordImplementationPlanSourceEvidence,
+);
 
 const proposalRecordOperatorHandoffStatus = runStatus(
   'scripts/vnext-operator-decision-handoff-status.mjs',

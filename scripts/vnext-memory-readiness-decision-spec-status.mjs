@@ -149,7 +149,7 @@ for (const section of memoryReadinessSpecSections) {
 assertContainsBacktickedAll(memoryReadinessDecisionSpecSources.spec, memoryReadinessItemFields);
 assertDoesNotMatchAny(memoryReadinessDecisionSpecSources.app, forbiddenAuthorityPatterns);
 
-const sourceEvidence = {
+const memoryReadinessDecisionSpecSourceEvidence = {
   spec: memoryReadinessReviewSemantics,
   app: blockedAuthorityMarkers,
   decisionLog: [
@@ -179,7 +179,10 @@ const sourceEvidence = {
   verification: ['vnext-memory-readiness-decision-spec-status.mjs'],
 };
 
-assertSourceEvidence(memoryReadinessDecisionSpecSources, sourceEvidence);
+assertSourceEvidence(
+  memoryReadinessDecisionSpecSources,
+  memoryReadinessDecisionSpecSourceEvidence,
+);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalReviewDecisionSpecStatus = runStatus(
