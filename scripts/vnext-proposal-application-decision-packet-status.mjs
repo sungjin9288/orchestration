@@ -193,20 +193,23 @@ const sourceEvidence = {
 
 assertSourceEvidence(proposalApplicationDecisionPacketSources, sourceEvidence);
 
-const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const implementationStatus = runStatus('scripts/vnext-durable-proposal-record-implementation-status.mjs');
-const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const vnextDevelopmentAuditNextSlice =
+  vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationGate = 'proposal application implementation decision required';
 
-assert.equal(auditStatus.ok, true);
+assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(implementationStatus.ok, true);
 assert.equal(
-  auditStatus.implemented?.some((entry) => entry.area === 'proposal application decision packet'),
+  vnextDevelopmentAuditStatus.implemented?.some(
+    (entry) => entry.area === 'proposal application decision packet',
+  ),
   true,
 );
-assert.equal(auditNextSlice, proposalApplicationImplementationGate);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationGate);
 assert.equal(proposalSpecStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(implementationStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(
@@ -258,8 +261,8 @@ process.stdout.write(
           proposalApplicationAllowed: implementationStatus.authority?.proposalApplicationAllowed,
         },
         vnextAudit: {
-          ok: auditStatus.ok,
-          nextSlice: auditNextSlice,
+          ok: vnextDevelopmentAuditStatus.ok,
+          nextSlice: vnextDevelopmentAuditNextSlice,
         },
       },
       authority: proposalApplicationAuthorityBoundary,

@@ -205,20 +205,23 @@ assertSourceEvidence(proposalApplicationOperatorHandoffSources, sourceEvidence);
 const packetStatus = runStatus('scripts/vnext-proposal-application-decision-packet-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const implementationStatus = runStatus('scripts/vnext-durable-proposal-record-implementation-status.mjs');
-const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditNextSlice =
+  vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationGate = 'proposal application implementation decision required';
 
 assert.equal(packetStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(implementationStatus.ok, true);
-assert.equal(auditStatus.ok, true);
+assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(packetStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(proposalSpecStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(implementationStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(auditNextSlice, proposalApplicationImplementationGate);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationGate);
 assert.equal(
-  auditStatus.implemented?.some((entry) => entry.area === 'proposal application operator decision handoff'),
+  vnextDevelopmentAuditStatus.implemented?.some(
+    (entry) => entry.area === 'proposal application operator decision handoff',
+  ),
   true,
 );
 
@@ -252,8 +255,8 @@ const proposalApplicationOperatorHandoffUpstreamStatus = {
     proposalApplicationAllowed: implementationStatus.authority?.proposalApplicationAllowed,
   },
   vnextAudit: {
-    ok: auditStatus.ok,
-    nextSlice: auditNextSlice,
+    ok: vnextDevelopmentAuditStatus.ok,
+    nextSlice: vnextDevelopmentAuditNextSlice,
   },
 };
 
