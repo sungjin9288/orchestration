@@ -133,7 +133,7 @@ function assertDoesNotMatchAny(source, forbiddenPatterns) {
   }
 }
 
-const sources = Object.fromEntries(
+const proposalRecordOperatorHandoffSources = Object.fromEntries(
   Object.entries(proposalRecordOperatorHandoffFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -141,12 +141,21 @@ const sources = Object.fromEntries(
 );
 
 for (const section of requiredHandoffSections) {
-  assert.match(sources.handoff, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
+  assert.match(
+    proposalRecordOperatorHandoffSources.handoff,
+    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
+  );
 }
 
-assertContainsBacktickedAll(sources.handoff, proposalRecordDecisionRequiredFields);
-assertContainsBacktickedAll(sources.handoff, proposalRecordDecisionOptions);
-assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
+assertContainsBacktickedAll(
+  proposalRecordOperatorHandoffSources.handoff,
+  proposalRecordDecisionRequiredFields,
+);
+assertContainsBacktickedAll(
+  proposalRecordOperatorHandoffSources.handoff,
+  proposalRecordDecisionOptions,
+);
+assertDoesNotMatchAny(proposalRecordOperatorHandoffSources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
   handoff: [
@@ -208,7 +217,7 @@ const sourceEvidence = {
   ],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(proposalRecordOperatorHandoffSources, sourceEvidence);
 
 const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';

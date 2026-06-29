@@ -146,7 +146,7 @@ function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
-const sources = Object.fromEntries(
+const authorityExpansionReviewSources = Object.fromEntries(
   Object.entries(authorityExpansionReviewFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -154,11 +154,14 @@ const sources = Object.fromEntries(
 );
 
 for (const section of requiredSpecSections) {
-  assert.match(sources.spec, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
+  assert.match(
+    authorityExpansionReviewSources.spec,
+    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
+  );
 }
 
-assertContainsBacktickedAll(sources.spec, requiredRequestFields);
-assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
+assertContainsBacktickedAll(authorityExpansionReviewSources.spec, requiredRequestFields);
+assertDoesNotMatchAny(authorityExpansionReviewSources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
   spec: reviewCandidates,
@@ -185,7 +188,7 @@ const sourceEvidence = {
   verification: ['vnext-authority-expansion-review-status.mjs'],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(authorityExpansionReviewSources, sourceEvidence);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const growthDashboardStatus = runStatus('scripts/vnext-growth-dashboard-evidence-depth-status.mjs');

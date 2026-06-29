@@ -108,7 +108,7 @@ function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
-const sources = Object.fromEntries(
+const proposalRecordDecisionPacketSources = Object.fromEntries(
   Object.entries(proposalRecordDecisionPacketFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -116,11 +116,20 @@ const sources = Object.fromEntries(
 );
 
 for (const section of requiredPacketSections) {
-  assert.match(sources.packet, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
+  assert.match(
+    proposalRecordDecisionPacketSources.packet,
+    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
+  );
 }
 
-assertContainsBacktickedAll(sources.packet, proposalRecordDecisionRequiredFields);
-assertContainsBacktickedAll(sources.packet, proposalRecordDecisionOptions);
+assertContainsBacktickedAll(
+  proposalRecordDecisionPacketSources.packet,
+  proposalRecordDecisionRequiredFields,
+);
+assertContainsBacktickedAll(
+  proposalRecordDecisionPacketSources.packet,
+  proposalRecordDecisionOptions,
+);
 
 const sourceEvidence = {
   packet: [
@@ -151,7 +160,7 @@ const sourceEvidence = {
   verification: ['vnext-authority-implementation-decision-packet-status.mjs'],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(proposalRecordDecisionPacketSources, sourceEvidence);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-review-status.mjs');
