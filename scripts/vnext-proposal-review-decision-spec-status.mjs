@@ -120,7 +120,7 @@ function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
-const sources = Object.fromEntries(
+const proposalReviewDecisionSpecSources = Object.fromEntries(
   Object.entries(proposalReviewDecisionSpecFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -128,11 +128,14 @@ const sources = Object.fromEntries(
 );
 
 for (const section of requiredSpecSections) {
-  assert.match(sources.spec, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
+  assert.match(
+    proposalReviewDecisionSpecSources.spec,
+    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
+  );
 }
 
-assertContainsBacktickedAll(sources.spec, requiredRecordFields);
-assertDoesNotMatchAny(sources.app, forbiddenAuthorityPatterns);
+assertContainsBacktickedAll(proposalReviewDecisionSpecSources.spec, requiredRecordFields);
+assertDoesNotMatchAny(proposalReviewDecisionSpecSources.app, forbiddenAuthorityPatterns);
 
 const sourceEvidence = {
   spec: approvalSemantics,
@@ -157,7 +160,7 @@ const sourceEvidence = {
   verification: ['vnext-proposal-review-decision-spec-status.mjs'],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(proposalReviewDecisionSpecSources, sourceEvidence);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;

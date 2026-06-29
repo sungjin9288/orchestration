@@ -78,7 +78,7 @@ function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
-const sources = Object.fromEntries(
+const vnextDevelopmentAuditSources = Object.fromEntries(
   Object.entries(vnextDevelopmentAuditFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -401,7 +401,7 @@ const sourceEvidence = {
   },
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(vnextDevelopmentAuditSources, sourceEvidence);
 
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
 const reflection = runStatus('scripts/growth-reflection-evaluator.mjs');

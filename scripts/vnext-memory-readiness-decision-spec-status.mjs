@@ -132,7 +132,7 @@ function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
-const sources = Object.fromEntries(
+const memoryReadinessDecisionSpecSources = Object.fromEntries(
   Object.entries(memoryReadinessDecisionSpecFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -140,11 +140,14 @@ const sources = Object.fromEntries(
 );
 
 for (const section of requiredSpecSections) {
-  assert.match(sources.spec, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
+  assert.match(
+    memoryReadinessDecisionSpecSources.spec,
+    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
+  );
 }
 
-assertContainsBacktickedAll(sources.spec, requiredMemoryFields);
-assertDoesNotMatchAny(sources.app, forbiddenAuthorityPatterns);
+assertContainsBacktickedAll(memoryReadinessDecisionSpecSources.spec, requiredMemoryFields);
+assertDoesNotMatchAny(memoryReadinessDecisionSpecSources.app, forbiddenAuthorityPatterns);
 
 const sourceEvidence = {
   spec: reviewSemantics,
@@ -176,7 +179,7 @@ const sourceEvidence = {
   verification: ['vnext-memory-readiness-decision-spec-status.mjs'],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(memoryReadinessDecisionSpecSources, sourceEvidence);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');

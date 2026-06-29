@@ -81,7 +81,7 @@ function assertSourceEvidence(sourcesByName, evidenceBySource) {
   }
 }
 
-const sources = Object.fromEntries(
+const growthDashboardEvidenceDepthSources = Object.fromEntries(
   Object.entries(growthDashboardEvidenceDepthFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -125,9 +125,9 @@ const sourceEvidence = {
   verification: [/vnext-growth-dashboard-evidence-depth-status\.mjs/],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(growthDashboardEvidenceDepthSources, sourceEvidence);
 
-assertDoesNotMatchAny(sources.app, forbiddenActions);
+assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.app, forbiddenActions);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
