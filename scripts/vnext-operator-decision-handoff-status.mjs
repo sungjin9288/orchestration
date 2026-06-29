@@ -211,7 +211,7 @@ const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
 const proposalApplicationImplementationDecisionSlice =
   'proposal application implementation decision required';
-const recommendedFirstCandidate = 'durable proposal record creation and persistence';
+const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
 const authority = {
   handoffRecordsDecision: false,
@@ -248,7 +248,7 @@ process.stdout.write(
       currentGate: proposalApplicationDecisionGate,
       handoffStatus: 'consumed-by-planning-only-decision',
       acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
-      recommendedFirstCandidate,
+      recommendedFirstCandidate: durableProposalRecordCreationCandidate,
       decisionOptions,
       invalidShortcutsRejected: invalidShortcuts,
       nextRequiredInput:

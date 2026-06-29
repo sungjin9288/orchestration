@@ -177,7 +177,7 @@ const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
-const recommendedFirstCandidate = 'durable proposal record creation and persistence';
+const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
 assert.equal(decisionPacketStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
@@ -228,7 +228,7 @@ process.stdout.write(
       doesNotPush: true,
       preview: files.preview,
       currentGate: proposalApplicationDecisionGate,
-      recommendedFirstCandidate,
+      recommendedFirstCandidate: durableProposalRecordCreationCandidate,
       nextRequiredInput: 'explicit proposal application decision before applying any durable proposal record',
       planningPreview: {
         targetAuthority: 'durable proposal record creation and persistence',

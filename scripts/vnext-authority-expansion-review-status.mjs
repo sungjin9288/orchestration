@@ -191,7 +191,7 @@ const memorySpecStatus = runStatus('scripts/vnext-memory-readiness-decision-spec
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationDecisionSlice =
   'proposal application implementation decision required';
-const recommendedFirstCandidate = 'durable proposal record creation and persistence';
+const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
 assert.equal(auditStatus.ok, true);
 assert.equal(growthDashboardStatus.ok, true);
@@ -227,7 +227,7 @@ process.stdout.write(
       posture: 'read-only-authority-expansion-review',
       spec: files.spec,
       candidates: reviewCandidates,
-      recommendedFirstCandidate,
+      recommendedFirstCandidate: durableProposalRecordCreationCandidate,
       nextRequiredInput: 'explicit proposal application decision, focused smoke, rollback evidence, and aggregate verification before proposal application opens',
       upstreamStatus: {
         vnextAudit: {

@@ -157,7 +157,7 @@ const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
 const proposalApplicationImplementationDecisionSlice =
   'proposal application implementation decision required';
-const recommendedFirstCandidate = 'durable proposal record creation and persistence';
+const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
 assert.equal(auditStatus.ok, true);
 assert.equal(authorityReviewStatus.ok, true);
@@ -198,7 +198,7 @@ process.stdout.write(
       packet: files.packet,
       originalGate: operatorDecisionGate,
       currentGate: proposalApplicationDecisionGate,
-      recommendedFirstCandidate,
+      recommendedFirstCandidate: durableProposalRecordCreationCandidate,
       decisionOptions,
       requiredDecisionFields,
       upstreamStatus: {
