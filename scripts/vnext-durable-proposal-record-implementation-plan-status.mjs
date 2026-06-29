@@ -201,6 +201,7 @@ const planningPreviewStatus = runStatus('scripts/vnext-durable-proposal-record-p
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const currentGate = 'proposal application decision required';
 
 assert.equal(handoffStatus.ok, true);
 assert.equal(planningPreviewStatus.ok, true);
@@ -247,7 +248,7 @@ process.stdout.write(
       plan: files.plan,
       acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
       targetAuthority: 'durable proposal record creation and persistence',
-      currentGate: 'proposal application decision required',
+      currentGate,
       nextRequiredInput: 'operator-provided proposal application decision for created durable proposal records',
       implementationPlan: {
         storage: 'existing runtime state.json under the selected runtime root',

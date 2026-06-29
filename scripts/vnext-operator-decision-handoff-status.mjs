@@ -207,6 +207,10 @@ const sourceEvidence = {
 
 assertSourceEvidence(sources, sourceEvidence);
 
+const originalGate = 'operator decision required';
+const currentGate = 'proposal application decision required';
+const nextSlice = 'proposal application implementation decision required';
+
 const authority = {
   handoffRecordsDecision: false,
   planningApproved: true,
@@ -239,7 +243,7 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       handoff: files.handoff,
-      currentGate: 'proposal application decision required',
+      currentGate,
       handoffStatus: 'consumed-by-planning-only-decision',
       acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
       recommendedFirstCandidate: 'durable proposal record creation and persistence',
@@ -250,14 +254,14 @@ process.stdout.write(
       upstreamEvidence: {
         decisionPacket: {
           registered: true,
-          originalGate: 'operator decision required',
-          currentGate: 'proposal application decision required',
+          originalGate,
+          currentGate,
           implementationAuthority: 'accepted for durable proposal record creation and persistence only',
         },
         planningPreview: {
           registered: true,
-          originalGate: 'operator decision required',
-          currentGate: 'proposal application decision required',
+          originalGate,
+          currentGate,
           implementationAuthority: 'accepted for durable proposal record creation and persistence only',
           proposalApplication: 'blocked',
         },
@@ -268,7 +272,7 @@ process.stdout.write(
         },
         vnextAudit: {
           registered: true,
-          nextSlice: 'proposal application implementation decision required',
+          nextSlice,
         },
       },
       authority,

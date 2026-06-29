@@ -153,6 +153,8 @@ assertSourceEvidence(sources, sourceEvidence);
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-review-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const originalGate = 'operator decision required';
+const currentGate = 'proposal application decision required';
 
 assert.equal(auditStatus.ok, true);
 assert.equal(authorityReviewStatus.ok, true);
@@ -191,8 +193,8 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       packet: files.packet,
-      originalGate: 'operator decision required',
-      currentGate: 'proposal application decision required',
+      originalGate,
+      currentGate,
       recommendedFirstCandidate: 'durable proposal record creation and persistence',
       decisionOptions,
       requiredDecisionFields,
