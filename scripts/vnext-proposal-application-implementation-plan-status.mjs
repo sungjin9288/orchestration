@@ -16,7 +16,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const proposalApplicationImplementationPlanFiles = {
   plan: 'docs/33_proposal-application-implementation-plan.md',
   handoff: 'docs/32_proposal-application-operator-decision-handoff.md',
   decisionPacket: 'docs/31_proposal-application-decision-packet.md',
@@ -141,7 +141,10 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(proposalApplicationImplementationPlanFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 for (const section of requiredPlanSections) {
@@ -275,7 +278,7 @@ process.stdout.write(
       readOnly: true,
       doesNotCommit: true,
       doesNotPush: true,
-      plan: files.plan,
+      plan: proposalApplicationImplementationPlanFiles.plan,
       acceptedDecisionId: 'operator-decision-vnext-proposal-application-001',
       targetAuthority: 'proposal application planning for existing durable proposal records',
       currentGate: proposalApplicationImplementationGate,

@@ -16,7 +16,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const proposalApplicationImplementationDecisionHandoffFiles = {
   handoff: 'docs/34_proposal-application-implementation-decision-handoff.md',
   plan: 'docs/33_proposal-application-implementation-plan.md',
   planningHandoff: 'docs/32_proposal-application-operator-decision-handoff.md',
@@ -130,7 +130,9 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(proposalApplicationImplementationDecisionHandoffFiles).map(
+    ([name, relativePath]) => [name, readFile(relativePath)],
+  ),
 );
 
 for (const section of requiredSections) {

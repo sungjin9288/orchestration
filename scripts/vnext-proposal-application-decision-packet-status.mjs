@@ -16,7 +16,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const proposalApplicationDecisionPacketFiles = {
   packet: 'docs/31_proposal-application-decision-packet.md',
   proposalSpec: 'docs/24_proposal-review-decision-spec.md',
   implementationPlan: 'docs/30_durable-proposal-record-implementation-plan.md',
@@ -126,7 +126,10 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(proposalApplicationDecisionPacketFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 for (const section of requiredPacketSections) {
@@ -228,7 +231,7 @@ process.stdout.write(
       readOnly: true,
       doesNotCommit: true,
       doesNotPush: true,
-      packet: files.packet,
+      packet: proposalApplicationDecisionPacketFiles.packet,
       currentGate: proposalApplicationImplementationGate,
       nextRequiredInput:
         'operator-provided application implementation decision for exactly one durable proposal record application path',

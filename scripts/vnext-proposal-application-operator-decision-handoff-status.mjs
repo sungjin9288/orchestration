@@ -16,7 +16,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const proposalApplicationOperatorHandoffFiles = {
   handoff: 'docs/32_proposal-application-operator-decision-handoff.md',
   decisionPacket: 'docs/31_proposal-application-decision-packet.md',
   applicationPlan: 'docs/33_proposal-application-implementation-plan.md',
@@ -129,7 +129,10 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(proposalApplicationOperatorHandoffFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 for (const section of requiredSections) {
@@ -255,7 +258,7 @@ process.stdout.write(
       readOnly: true,
       doesNotCommit: true,
       doesNotPush: true,
-      handoff: files.handoff,
+      handoff: proposalApplicationOperatorHandoffFiles.handoff,
       currentGate: proposalApplicationImplementationGate,
       nextRequiredInput:
         'operator-provided application implementation decision for exactly one durable proposal record application path',
