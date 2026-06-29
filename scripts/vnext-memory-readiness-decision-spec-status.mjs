@@ -156,14 +156,16 @@ assert.match(sources.verification, /vnext-memory-readiness-decision-spec-status\
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const nextSliceIds = {
-  'operator-approved authority expansion review': 'operator-approved-authority-expansion-review',
-  'explicit authority implementation decision required': 'explicit-authority-implementation-decision-required',
-  'operator decision required': 'operator-decision-required',
+const currentNextSlice = {
+  id: 'operator-decision-required',
+  slice: 'operator decision required',
+  command: 'node scripts/vnext-memory-readiness-decision-spec-status.mjs',
+  reason:
+    'Proposal, memory, growth dashboard, and authority review contracts are now source-backed; opening persistence, providers, or source mutation requires a later accepted decision, explicit approval, and a new plan.',
 };
 
 assert.equal(auditStatus.ok, true);
-assert.ok(Object.hasOwn(nextSliceIds, auditNextSlice));
+assert.equal(auditNextSlice, currentNextSlice.slice);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.memoryPersistenceAllowed, false);
 
@@ -223,13 +225,7 @@ process.stdout.write(
           memoryPersistenceAllowed: proposalSpecStatus.authority?.memoryPersistenceAllowed,
         },
       },
-      nextRecommendedSlice: {
-        id: nextSliceIds[auditNextSlice],
-        slice: auditNextSlice,
-        command: 'node scripts/vnext-memory-readiness-decision-spec-status.mjs',
-        reason:
-          'Proposal, memory, growth dashboard, and authority review contracts are now source-backed; opening persistence, providers, or source mutation requires a later accepted decision, explicit approval, and a new plan.',
-      },
+      nextRecommendedSlice: currentNextSlice,
       authority,
     },
     null,

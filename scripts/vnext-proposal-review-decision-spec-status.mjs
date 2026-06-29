@@ -134,17 +134,17 @@ assert.match(sources.readme, /docs\/24_proposal-review-decision-spec\.md/);
 assert.match(sources.verification, /vnext-proposal-review-decision-spec-status\.mjs/);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice || 'memory readiness decision spec';
-const nextSliceIds = {
-  'memory readiness decision spec': 'memory-readiness-decision-spec',
-  'growth dashboard evidence depth': 'growth-dashboard-evidence-depth',
-  'operator-approved authority expansion review': 'operator-approved-authority-expansion-review',
-  'explicit authority implementation decision required': 'explicit-authority-implementation-decision-required',
-  'operator decision required': 'operator-decision-required',
+const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const currentNextSlice = {
+  id: 'operator-decision-required',
+  slice: 'operator decision required',
+  command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',
+  reason:
+    'Proposal review has a source-backed decision spec; the vNext audit owns the current next slice while proposal creation and application authority remain blocked.',
 };
 
 assert.equal(auditStatus.ok, true);
-assert.ok(Object.hasOwn(nextSliceIds, auditNextSlice));
+assert.equal(auditNextSlice, currentNextSlice.slice);
 
 const proposalQueue = runStatus('scripts/growth-proposal-queue-status.mjs');
 const creationReadiness = runStatus(
@@ -220,13 +220,7 @@ process.stdout.write(
           dryRunOnly: creationReadiness.readiness?.dryRunOnly,
         },
       },
-      nextRecommendedSlice: {
-        id: nextSliceIds[auditNextSlice],
-        slice: auditNextSlice,
-        command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',
-        reason:
-          'Proposal review has a source-backed decision spec; the vNext audit owns the current next slice while proposal creation and application authority remain blocked.',
-      },
+      nextRecommendedSlice: currentNextSlice,
       authority,
     },
     null,
