@@ -129,21 +129,27 @@ function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
-const sources = Object.fromEntries(
+const proposalApplicationImplementationDecisionHandoffSources = Object.fromEntries(
   Object.entries(proposalApplicationImplementationDecisionHandoffFiles).map(
     ([name, relativePath]) => [name, readFile(relativePath)],
   ),
 );
 
 for (const section of requiredSections) {
-  assert.match(sources.handoff, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
+  assert.match(
+    proposalApplicationImplementationDecisionHandoffSources.handoff,
+    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
+  );
 }
 
 assertContainsBacktickedAll(
-  sources.handoff,
+  proposalApplicationImplementationDecisionHandoffSources.handoff,
   proposalApplicationImplementationDecisionRequiredFields,
 );
-assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
+assertDoesNotMatchAny(
+  proposalApplicationImplementationDecisionHandoffSources.app,
+  forbiddenActionPatterns,
+);
 
 const sourceEvidence = {
   handoff: [
@@ -195,7 +201,7 @@ const sourceEvidence = {
   verification: ['vnext-proposal-application-implementation-decision-handoff-status.mjs'],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(proposalApplicationImplementationDecisionHandoffSources, sourceEvidence);
 
 const applicationPlanStatus = runStatus('scripts/vnext-proposal-application-implementation-plan-status.mjs');
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');

@@ -128,7 +128,7 @@ function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
-const sources = Object.fromEntries(
+const proposalApplicationOperatorHandoffSources = Object.fromEntries(
   Object.entries(proposalApplicationOperatorHandoffFiles).map(([name, relativePath]) => [
     name,
     readFile(relativePath),
@@ -136,12 +136,21 @@ const sources = Object.fromEntries(
 );
 
 for (const section of requiredSections) {
-  assert.match(sources.handoff, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
+  assert.match(
+    proposalApplicationOperatorHandoffSources.handoff,
+    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
+  );
 }
 
-assertContainsBacktickedAll(sources.handoff, proposalApplicationDecisionRequiredFields);
-assertContainsBacktickedAll(sources.handoff, proposalApplicationDecisionOptions);
-assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
+assertContainsBacktickedAll(
+  proposalApplicationOperatorHandoffSources.handoff,
+  proposalApplicationDecisionRequiredFields,
+);
+assertContainsBacktickedAll(
+  proposalApplicationOperatorHandoffSources.handoff,
+  proposalApplicationDecisionOptions,
+);
+assertDoesNotMatchAny(proposalApplicationOperatorHandoffSources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
   handoff: [
@@ -191,7 +200,7 @@ const sourceEvidence = {
   verification: ['vnext-proposal-application-operator-decision-handoff-status.mjs'],
 };
 
-assertSourceEvidence(sources, sourceEvidence);
+assertSourceEvidence(proposalApplicationOperatorHandoffSources, sourceEvidence);
 
 const packetStatus = runStatus('scripts/vnext-proposal-application-decision-packet-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
