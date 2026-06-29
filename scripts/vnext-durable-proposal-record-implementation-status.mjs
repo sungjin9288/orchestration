@@ -109,12 +109,17 @@ assertDoesNotMatchAny(durableProposalRecordImplementationStatusSources.app, [
   /data-action="apply-proposal"/,
 ]);
 
-const smokeStatus = runJson('scripts/smoke-durable-proposal-record-creation.mjs');
-assert.equal(smokeStatus.ok, true);
-assert.equal(smokeStatus.proposalRecord.proposalId, 'proposal-record-0001');
-assert.equal(smokeStatus.proposalRecord.persisted, true);
-assert.equal(smokeStatus.proposalRecord.applyAllowed, false);
-assert.deepEqual(smokeStatus.proposalRecord.blockedActions, [
+const durableProposalRecordCreationSmokeStatus = runJson(
+  'scripts/smoke-durable-proposal-record-creation.mjs',
+);
+const durableProposalRecordCreationSmokeRecord =
+  durableProposalRecordCreationSmokeStatus.proposalRecord;
+
+assert.equal(durableProposalRecordCreationSmokeStatus.ok, true);
+assert.equal(durableProposalRecordCreationSmokeRecord.proposalId, 'proposal-record-0001');
+assert.equal(durableProposalRecordCreationSmokeRecord.persisted, true);
+assert.equal(durableProposalRecordCreationSmokeRecord.applyAllowed, false);
+assert.deepEqual(durableProposalRecordCreationSmokeRecord.blockedActions, [
   'proposal-application',
   'provider-call',
   'memory-persistence',
@@ -122,7 +127,10 @@ assert.deepEqual(smokeStatus.proposalRecord.blockedActions, [
   'commit',
   'push',
 ]);
-assert.equal(smokeStatus.proposalRecord.statusAfterRollbackQuarantine, 'quarantined');
+assert.equal(
+  durableProposalRecordCreationSmokeRecord.statusAfterRollbackQuarantine,
+  'quarantined',
+);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -135,12 +143,12 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       focusedSmoke: {
-        ok: smokeStatus.ok,
-        proposalId: smokeStatus.proposalRecord.proposalId,
-        persisted: smokeStatus.proposalRecord.persisted,
-        applyAllowed: smokeStatus.proposalRecord.applyAllowed,
+        ok: durableProposalRecordCreationSmokeStatus.ok,
+        proposalId: durableProposalRecordCreationSmokeRecord.proposalId,
+        persisted: durableProposalRecordCreationSmokeRecord.persisted,
+        applyAllowed: durableProposalRecordCreationSmokeRecord.applyAllowed,
         statusAfterRollbackQuarantine:
-          smokeStatus.proposalRecord.statusAfterRollbackQuarantine,
+          durableProposalRecordCreationSmokeRecord.statusAfterRollbackQuarantine,
       },
       authority: {
         proposalRecordCreationAllowedThroughApprovedRuntimeFunction: true,
