@@ -157,7 +157,7 @@ assertContainsBacktickedAll(
 );
 assertDoesNotMatchAny(proposalRecordOperatorHandoffSources.app, forbiddenActionPatterns);
 
-const sourceEvidence = {
+const proposalRecordOperatorHandoffSourceEvidence = {
   handoff: [
     ...proposalRecordDecisionInvalidShortcuts,
     'It is not an operator decision',
@@ -217,7 +217,7 @@ const sourceEvidence = {
   ],
 };
 
-assertSourceEvidence(proposalRecordOperatorHandoffSources, sourceEvidence);
+assertSourceEvidence(proposalRecordOperatorHandoffSources, proposalRecordOperatorHandoffSourceEvidence);
 
 const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';

@@ -131,7 +131,7 @@ assertContainsBacktickedAll(
   proposalRecordDecisionOptions,
 );
 
-const sourceEvidence = {
+const proposalRecordDecisionPacketSourceEvidence = {
   packet: [
     'Original gate: `operator decision required`',
     'Accepted follow-up: `DEC-056`',
@@ -160,7 +160,7 @@ const sourceEvidence = {
   verification: ['vnext-authority-implementation-decision-packet-status.mjs'],
 };
 
-assertSourceEvidence(proposalRecordDecisionPacketSources, sourceEvidence);
+assertSourceEvidence(proposalRecordDecisionPacketSources, proposalRecordDecisionPacketSourceEvidence);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const authorityExpansionReviewStatus = runStatus(

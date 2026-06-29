@@ -166,7 +166,7 @@ assertContainsBacktickedAll(
 );
 assertDoesNotMatchAny(authorityExpansionReviewSources.app, forbiddenActionPatterns);
 
-const sourceEvidence = {
+const authorityExpansionReviewSourceEvidence = {
   spec: reviewCandidates,
   app: authorityExpansionReviewBlockedAuthorityMarkers,
   decisionLog: [
@@ -191,7 +191,7 @@ const sourceEvidence = {
   verification: ['vnext-authority-expansion-review-status.mjs'],
 };
 
-assertSourceEvidence(authorityExpansionReviewSources, sourceEvidence);
+assertSourceEvidence(authorityExpansionReviewSources, authorityExpansionReviewSourceEvidence);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const growthDashboardEvidenceDepthStatus = runStatus(

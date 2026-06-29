@@ -144,7 +144,7 @@ assertContainsBacktickedAll(
 );
 assertDoesNotMatchAny(durableProposalRecordPlanningPreviewSources.app, forbiddenActionPatterns);
 
-const sourceEvidence = {
+const durableProposalPlanningPreviewSourceEvidence = {
   preview: [
     'It is not `approve-planning-only`',
     'Original gate: `operator decision required`',
@@ -174,7 +174,7 @@ const sourceEvidence = {
   verification: ['vnext-durable-proposal-record-planning-preview-status.mjs'],
 };
 
-assertSourceEvidence(durableProposalRecordPlanningPreviewSources, sourceEvidence);
+assertSourceEvidence(durableProposalRecordPlanningPreviewSources, durableProposalPlanningPreviewSourceEvidence);
 
 const proposalRecordDecisionPacketStatus = runStatus(
   'scripts/vnext-authority-implementation-decision-packet-status.mjs',
