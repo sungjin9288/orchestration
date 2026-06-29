@@ -150,7 +150,7 @@ assert.match(sources.decisionLog, /### DEC-052/);
 assert.match(sources.decisionLog, /docs\/26_authority-expansion-review-spec\.md/);
 assert.match(sources.decisionLog, /Review acceptance can only feed the next explicit decision/);
 assert.match(sources.audit, /Completed: `operator-approved authority expansion review`/);
-assert.match(sources.audit, /`operator decision required`/);
+assert.match(sources.audit, /`implementation decision required`/);
 assert.match(sources.inventory, /vNext authority expansion review/);
 assert.match(sources.readme, /Authority expansion review is not implementation approval/);
 assert.match(sources.readme, /docs\/26_authority-expansion-review-spec\.md/);
@@ -168,7 +168,7 @@ assert.equal(auditStatus.ok, true);
 assert.equal(growthDashboardStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(memorySpecStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'operator decision required');
+assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'implementation decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'operator-approved authority expansion review'),
   true,
@@ -199,7 +199,7 @@ process.stdout.write(
       spec: files.spec,
       candidates: reviewCandidates,
       recommendedFirstCandidate: 'durable proposal record creation and persistence',
-      nextRequiredInput: 'explicit operator decision, accepted implementation plan, rollback plan, and focused smoke before any authority opens',
+      nextRequiredInput: 'explicit implementation decision, focused smoke, rollback evidence, and aggregate verification before any authority opens',
       upstreamStatus: {
         vnextAudit: {
           ok: auditStatus.ok,

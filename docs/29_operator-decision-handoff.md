@@ -2,17 +2,20 @@
 
 ## Purpose
 
-This handoff gives the operator a copy-ready decision template for the current `operator decision required` gate.
+This handoff gives the operator a copy-ready decision template for the `operator decision required` gate.
 
 It is not an operator decision. It is not `approve-planning-only`. It is not implementation approval. It does not create proposal records, persist records, mutate queues, call providers, persist memory, mutate source, commit, or push.
 
 ## Current Gate
 
-- Current gate: `operator decision required`
+- Original gate: `operator decision required`
+- Accepted follow-up: `DEC-056`
+- Current downstream gate: `implementation decision required`
 - Decision packet: `docs/27_authority-implementation-decision-packet.md`
 - Planning preview: `docs/28_durable-proposal-record-planning-preview.md`
+- Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`
 - Recommended first candidate: durable proposal record creation and persistence
-- Handoff status: `ready-for-operator-input`
+- Handoff status: `consumed-by-planning-only-decision`
 - Current implementation authority: blocked
 
 ## Decision Response Template
@@ -114,7 +117,7 @@ These authorities remain blocked from this handoff:
 
 Stop before implementation when any of these are true:
 
-- no explicit `approve-planning-only` or stronger accepted operator decision exists
+- no explicit `approve-implementation-slice` exists for the accepted implementation plan
 - the decision text is a shortcut instead of a fielded decision
 - more than one authority path is named
 - source evidence refs are missing

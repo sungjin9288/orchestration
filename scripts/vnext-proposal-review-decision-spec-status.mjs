@@ -136,11 +136,11 @@ assert.match(sources.verification, /vnext-proposal-review-decision-spec-status\.
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const currentNextSlice = {
-  id: 'operator-decision-required',
-  slice: 'operator decision required',
+  id: 'implementation-decision-required',
+  slice: 'implementation decision required',
   command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',
   reason:
-    'Proposal review has a source-backed decision spec; the vNext audit owns the current next slice while proposal creation and application authority remain blocked.',
+    'Proposal review has a source-backed decision spec, and the durable proposal record implementation plan has planning-only approval; record creation and application authority remain blocked until approve-implementation-slice.',
 };
 
 assert.equal(auditStatus.ok, true);

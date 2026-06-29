@@ -2,16 +2,18 @@
 
 ## Purpose
 
-This packet turns the current `operator decision required` gate into a concrete decision input.
+This packet turns the `operator decision required` gate into a concrete decision input.
 
 It does not approve implementation. It does not create proposal records, persist memory, call providers, mutate source, commit, or push. It only states what the operator must decide before a later implementation slice can open exactly one authority path.
 
 ## Current Decision State
 
-- Current gate: `operator decision required`
+- Original gate: `operator decision required`
+- Accepted follow-up: `DEC-056`
+- Current downstream gate: `implementation decision required`
 - Source review: `docs/26_authority-expansion-review-spec.md`
 - Current recommended first candidate: durable proposal record creation and persistence
-- Current packet status: `ready-for-operator-decision`
+- Current packet status: `consumed-by-planning-only-decision`
 - Current implementation authority: blocked
 
 ## Decision Options

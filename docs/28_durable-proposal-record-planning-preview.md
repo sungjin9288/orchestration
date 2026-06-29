@@ -8,10 +8,13 @@ It is not `approve-planning-only`. It is not implementation approval. It does no
 
 ## Current Status
 
-- Current gate: `operator decision required`
+- Original gate: `operator decision required`
+- Accepted follow-up: `DEC-056`
+- Current downstream gate: `implementation decision required`
 - Decision packet: `docs/27_authority-implementation-decision-packet.md`
+- Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`
 - Recommended first candidate: durable proposal record creation and persistence
-- Current preview status: `ready-for-planning-review`
+- Current preview status: `consumed-by-planning-only-decision`
 - Current implementation authority: blocked
 
 ## Non-Authority Boundary
@@ -108,7 +111,7 @@ A later implementation plan should include rollback evidence for:
 
 Stop before implementation when any of these are true:
 
-- no explicit `approve-planning-only` or stronger accepted decision exists
+- no later `approve-implementation-slice` decision exists for the accepted implementation plan
 - more than one authority path is included
 - storage path is unnamed
 - id policy is missing

@@ -19,6 +19,7 @@ requireNoCliArgs(process.argv.slice(2), {
 const files = {
   packet: 'docs/27_authority-implementation-decision-packet.md',
   reviewSpec: 'docs/26_authority-expansion-review-spec.md',
+  implementationPlan: 'docs/30_durable-proposal-record-implementation-plan.md',
   audit: 'docs/23_vnext-development-audit.md',
   decisionLog: 'docs/01_decision-log.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -114,8 +115,11 @@ assertContainsBacktickedAll(sources.packet, decisionOptions);
 assertContainsAll(sources.app, blockedAuthorityMarkers);
 
 assertContainsAll(sources.packet, [
-  'Current gate: `operator decision required`',
+  'Original gate: `operator decision required`',
+  'Accepted follow-up: `DEC-056`',
+  'Current downstream gate: `implementation decision required`',
   'Current implementation authority: blocked',
+  'Current packet status: `consumed-by-planning-only-decision`',
   'This packet does not provide that approval',
   'Proceed in this order',
   'write one implementation plan for durable proposal record creation and persistence',
@@ -123,8 +127,14 @@ assertContainsAll(sources.packet, [
   'commit or push is requested without a separate explicit approval',
 ]);
 
-assertContainsAll(sources.reviewSpec, ['The current state remains `operator decision required`']);
-assertContainsAll(sources.decisionLog, ['### DEC-052', '### DEC-053']);
+assertContainsAll(sources.reviewSpec, [
+  'current downstream state to `implementation decision required`',
+]);
+assertContainsAll(sources.implementationPlan, [
+  'decisionStatus` | `approve-planning-only`',
+  'Next required decision: `approve-implementation-slice`',
+]);
+assertContainsAll(sources.decisionLog, ['### DEC-052', '### DEC-053', '### DEC-056']);
 assertContainsAll(sources.audit, ['Completed: `authority implementation decision packet`']);
 assertContainsAll(sources.inventory, ['vNext authority implementation decision packet']);
 assertContainsAll(sources.readme, [
@@ -138,7 +148,7 @@ const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-revie
 
 assert.equal(auditStatus.ok, true);
 assert.equal(authorityReviewStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'operator decision required');
+assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'implementation decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'authority implementation decision packet'),
   true,
@@ -170,7 +180,8 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       packet: files.packet,
-      currentGate: 'operator decision required',
+      originalGate: 'operator decision required',
+      currentGate: 'implementation decision required',
       recommendedFirstCandidate: 'durable proposal record creation and persistence',
       decisionOptions,
       requiredDecisionFields,
@@ -178,6 +189,11 @@ process.stdout.write(
         vnextAudit: {
           ok: auditStatus.ok,
           nextSlice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
+        },
+        implementationPlan: {
+          registered: true,
+          planningApproval: 'accepted',
+          implementationAuthority: 'blocked',
         },
         authorityExpansionReview: {
           ok: authorityReviewStatus.ok,

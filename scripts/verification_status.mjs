@@ -252,6 +252,11 @@ const informationalChecks = [
     purpose: 'vNext operator decision handoff defines copy-ready decision fields, valid statements, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop conditions without recording a decision or opening planning, implementation, persistence, provider, memory, source mutation, commit, or push authority',
   },
   {
+    id: 'vnext-durable-proposal-record-implementation-plan-status',
+    script: 'scripts/vnext-durable-proposal-record-implementation-plan-status.mjs',
+    purpose: 'vNext durable proposal record implementation plan records accepted planning-only approval, implementation plan, rollback plan, focused smoke plan, and record contract without opening implementation, record creation, persistence, proposal application, provider, memory, source mutation, commit, or push authority',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

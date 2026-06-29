@@ -71,7 +71,7 @@ A future authority expansion request must define at least these fields before im
 
 The safest first future candidate is durable proposal record creation and persistence, because proposal review, proposal queue handoff, and proposal record readiness already have the most mature source-backed contracts.
 
-That recommendation is not approval. It only names the most reviewable first implementation slice if the operator later chooses to open one. The current state remains `operator decision required`.
+That recommendation is not approval. It only names the most reviewable first implementation slice. The accepted planning-only decision in `DEC-056` moved the current downstream state to `implementation decision required`.
 
 ## Approval Semantics
 

@@ -15,6 +15,7 @@ The current product posture is:
 - operator decision packet: read-only decision input defined; it does not approve implementation
 - durable proposal record planning preview: read-only planning input defined; it is not planning approval and does not create or persist records
 - operator decision handoff: read-only decision template defined; it is not an operator decision
+- durable proposal record implementation plan: planning-only approval accepted and implementation plan defined; implementation authority, record creation, and record persistence remain blocked
 
 ## Current Evidence
 
@@ -29,7 +30,8 @@ The current product posture is:
 | Authority expansion review | Implemented as a read-only review contract. It defines request fields, separated readiness/planning/implementation/application gates, rollback refs, and stop conditions, but it does not open implementation authority. | `docs/01_decision-log.md#DEC-052`, `docs/26_authority-expansion-review-spec.md`, `scripts/vnext-authority-expansion-review-status.mjs` |
 | Authority implementation decision packet | Implemented as a read-only operator decision input. It lists decision outcomes, required decision fields, still-blocked authority, stop conditions, rollback refs, and focused smoke refs, but it does not approve implementation. | `docs/01_decision-log.md#DEC-053`, `docs/27_authority-implementation-decision-packet.md`, `scripts/vnext-authority-implementation-decision-packet-status.mjs` |
 | Durable proposal record planning preview | Implemented as a read-only planning preview. It turns the recommended first candidate into a concrete record-shape, storage, focused-smoke, rollback, and stop-condition input, but it is not `approve-planning-only`, implementation approval, creation, persistence, application, provider, memory, source mutation, commit, or push authority. | `docs/01_decision-log.md#DEC-054`, `docs/28_durable-proposal-record-planning-preview.md`, `scripts/vnext-durable-proposal-record-planning-preview-status.mjs` |
-| Operator decision handoff | Implemented as a read-only decision template. It gives the operator valid statement shapes, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop conditions, but it does not record an operator decision or approve planning, implementation, record creation, persistence, application, memory, provider, source mutation, commit, or push. | `docs/01_decision-log.md#DEC-055`, `docs/29_operator-decision-handoff.md`, `scripts/vnext-operator-decision-handoff-status.mjs` |
+| Operator decision handoff | Implemented as a read-only decision template and consumed by the accepted planning-only decision. It preserves valid statement shapes, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop conditions without approving implementation, record creation, persistence, application, memory, provider, source mutation, commit, or push. | `docs/01_decision-log.md#DEC-055`, `docs/29_operator-decision-handoff.md`, `scripts/vnext-operator-decision-handoff-status.mjs` |
+| Durable proposal record implementation plan | Implemented as a planning-only artifact after accepted `approve-planning-only`. It records the implementation plan, rollback plan, and focused smoke plan for durable proposal record creation and persistence, but it does not approve implementation, create records, persist records, apply proposals, call providers, persist memory, mutate source, commit, or push. | `docs/01_decision-log.md#DEC-056`, `docs/30_durable-proposal-record-implementation-plan.md`, `scripts/vnext-durable-proposal-record-implementation-plan-status.mjs` |
 
 ## Development Plan
 
@@ -55,10 +57,13 @@ Completed: `durable proposal record planning preview`
 `docs/28_durable-proposal-record-planning-preview.md` turns the recommended first candidate into a concrete read-only planning input. It names the proposal record shape, local-first storage candidate, focused smoke preview, rollback preview, and stop conditions for a later plan. It is not planning approval and does not create proposal records, persist records, mutate queues, apply proposals, persist memory, call providers, mutate source, commit, or push.
 
 Completed: `operator decision handoff`
-`docs/29_operator-decision-handoff.md` gives the operator a copy-ready decision template for the current `operator decision required` gate. It lists required decision fields, valid statement shapes, invalid shortcuts, minimum planning-only acceptance criteria, still-blocked authority, and stop conditions. It is not an operator decision and does not approve planning, implementation, proposal record creation, persistence, application, memory, provider calls, source mutation, commit, or push.
+`docs/29_operator-decision-handoff.md` gave the operator a copy-ready decision template for the `operator decision required` gate. It lists required decision fields, valid statement shapes, invalid shortcuts, minimum planning-only acceptance criteria, still-blocked authority, and stop conditions. It is not implementation approval and does not approve implementation, proposal record creation, persistence, application, memory, provider calls, source mutation, commit, or push.
 
-1. `operator decision required`
-   Choose whether a later implementation slice should open exactly one authority path. The current recommended first candidate is durable proposal record creation and persistence, but it still requires explicit operator approval, an accepted implementation plan, rollback plan, and focused smoke coverage before any write, provider, source mutation, commit, or push behavior changes.
+Completed: `durable proposal record implementation plan`
+`docs/30_durable-proposal-record-implementation-plan.md` records the accepted `approve-planning-only` decision and defines the implementation plan, rollback plan, and focused smoke plan for the recommended durable proposal record creation and persistence path. It is planning-only and does not approve implementation, proposal record creation, proposal record persistence, proposal application, provider calls, memory persistence, source mutation, commit, or push.
+
+1. `implementation decision required`
+   Choose whether the planned durable proposal record creation and persistence slice may be implemented. The current plan is limited to local-first record creation and persistence in the selected runtime root. It still requires explicit `approve-implementation-slice`, focused smoke coverage, rollback evidence, and aggregate verification before any record creation or persistence behavior changes.
 
 ## Authority Boundary
 
@@ -88,6 +93,7 @@ node scripts/vnext-authority-expansion-review-status.mjs
 node scripts/vnext-authority-implementation-decision-packet-status.mjs
 node scripts/vnext-durable-proposal-record-planning-preview-status.mjs
 node scripts/vnext-operator-decision-handoff-status.mjs
+node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs
 ```
 
-The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, and operator decision handoff. They must remain read-only.
+The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, and durable proposal record implementation plan. They must remain read-only.

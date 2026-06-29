@@ -19,6 +19,7 @@ const files = {
   handoff: 'docs/29_operator-decision-handoff.md',
   decisionPacket: 'docs/27_authority-implementation-decision-packet.md',
   planningPreview: 'docs/28_durable-proposal-record-planning-preview.md',
+  implementationPlan: 'docs/30_durable-proposal-record-implementation-plan.md',
   audit: 'docs/23_vnext-development-audit.md',
   decisionLog: 'docs/01_decision-log.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -143,36 +144,51 @@ assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 assertContainsAll(sources.handoff, [
   'It is not an operator decision',
   'It is not `approve-planning-only`',
-  'Current gate: `operator decision required`',
-  'Handoff status: `ready-for-operator-input`',
+  'Original gate: `operator decision required`',
+  'Accepted follow-up: `DEC-056`',
+  'Current downstream gate: `implementation decision required`',
+  'Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`',
+  'Handoff status: `consumed-by-planning-only-decision`',
   'Recommended first value: `durable proposal record creation and persistence`',
   'implementationPlanRefs` | Empty until `approve-planning-only` exists',
   'I approve planning only for durable proposal record creation and persistence',
   'This approval allows one implementation plan, rollback plan, and focused smoke plan',
   'does not approve implementation, proposal application, provider calls, memory persistence, source mutation, commit, or push',
-  'no explicit `approve-planning-only` or stronger accepted operator decision exists',
+  'no explicit `approve-implementation-slice` exists for the accepted implementation plan',
   'The script must stay read-only',
 ]);
 
 assertContainsAll(sources.decisionPacket, [
-  'Current gate: `operator decision required`',
+  'Original gate: `operator decision required`',
+  'Current downstream gate: `implementation decision required`',
+  'Current packet status: `consumed-by-planning-only-decision`',
   'Current implementation authority: blocked',
   'This packet does not provide that approval',
 ]);
 
 assertContainsAll(sources.planningPreview, [
-  'no explicit `approve-planning-only` or stronger accepted decision exists',
+  'Original gate: `operator decision required`',
+  'Current downstream gate: `implementation decision required`',
+  'no later `approve-implementation-slice` decision exists for the accepted implementation plan',
   'Current implementation authority: blocked',
   'proposal application remains blocked',
 ]);
 
-assertContainsAll(sources.audit, [
-  '1. `operator decision required`',
-  'Completed: `durable proposal record planning preview`',
-  'Completed: `operator decision handoff`',
+assertContainsAll(sources.implementationPlan, [
+  'decisionStatus` | `approve-planning-only`',
+  'Planning approval: accepted',
+  'Implementation approval: blocked',
+  'Next required decision: `approve-implementation-slice`',
 ]);
 
-assertContainsAll(sources.decisionLog, ['### DEC-055']);
+assertContainsAll(sources.audit, [
+  'Completed: `durable proposal record planning preview`',
+  'Completed: `operator decision handoff`',
+  'Completed: `durable proposal record implementation plan`',
+  '1. `implementation decision required`',
+]);
+
+assertContainsAll(sources.decisionLog, ['### DEC-055', '### DEC-056']);
 assertContainsAll(sources.inventory, ['vNext operator decision handoff']);
 assertContainsAll(sources.readme, [
   'Operator decision handoff is not approval',
@@ -182,12 +198,13 @@ assertContainsAll(sources.verification, [
   'vnext-operator-decision-handoff-status.mjs',
   'vnext-authority-implementation-decision-packet-status.mjs',
   'vnext-durable-proposal-record-planning-preview-status.mjs',
+  'vnext-durable-proposal-record-implementation-plan-status.mjs',
   'vnext-development-audit-status.mjs',
 ]);
 
 const authority = {
-  operatorDecisionRecorded: false,
-  planningApproved: false,
+  handoffRecordsDecision: false,
+  planningApproved: true,
   implementationApproved: false,
   proposalRecordCreationAllowed: false,
   proposalRecordPersistenceAllowed: false,
@@ -214,28 +231,36 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       handoff: files.handoff,
-      currentGate: 'operator decision required',
-      handoffStatus: 'ready-for-operator-input',
+      currentGate: 'implementation decision required',
+      handoffStatus: 'consumed-by-planning-only-decision',
+      acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
       recommendedFirstCandidate: 'durable proposal record creation and persistence',
       decisionOptions,
       invalidShortcutsRejected: invalidShortcuts,
       nextRequiredInput:
-        'operator-provided approve-planning-only, approve-implementation-slice, request-more-evidence, reject, or defer decision with required fields',
+        'operator-provided approve-implementation-slice decision with required implementation refs',
       upstreamEvidence: {
         decisionPacket: {
           registered: true,
-          currentGate: 'operator decision required',
+          originalGate: 'operator decision required',
+          currentGate: 'implementation decision required',
           implementationAuthority: 'blocked',
         },
         planningPreview: {
           registered: true,
-          currentGate: 'operator decision required',
+          originalGate: 'operator decision required',
+          currentGate: 'implementation decision required',
           implementationAuthority: 'blocked',
           proposalApplication: 'blocked',
         },
+        implementationPlan: {
+          registered: true,
+          planningApproval: 'accepted',
+          implementationAuthority: 'blocked',
+        },
         vnextAudit: {
           registered: true,
-          nextSlice: 'operator decision required',
+          nextSlice: 'implementation decision required',
         },
       },
       authority,
