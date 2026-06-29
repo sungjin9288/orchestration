@@ -130,33 +130,38 @@ assertContainsBacktickedAll(sources.preview, requiredRecordFields);
 assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
-assertContainsAll(sources.preview, [
-  'It is not `approve-planning-only`',
-  'Original gate: `operator decision required`',
-  'Accepted follow-up: `DEC-056`',
-  'Current downstream gate: `proposal application decision required`',
-  'Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`',
-  'consumed-by-planning-only-decision',
-  'file-store-backed durable proposal record collection under the selected runtime root',
-  'The planning preview only records that candidate',
-  'proposal application remains blocked',
-  'no later proposal application decision exists for the created durable proposal records',
-]);
+const sourceEvidence = {
+  preview: [
+    'It is not `approve-planning-only`',
+    'Original gate: `operator decision required`',
+    'Accepted follow-up: `DEC-056`',
+    'Current downstream gate: `proposal application decision required`',
+    'Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`',
+    'consumed-by-planning-only-decision',
+    'file-store-backed durable proposal record collection under the selected runtime root',
+    'The planning preview only records that candidate',
+    'proposal application remains blocked',
+    'no later proposal application decision exists for the created durable proposal records',
+  ],
+  decisionPacket: ['This path is a sequence for finishing the project'],
+  implementationPlan: [
+    'decisionStatus` | `approve-planning-only`',
+    'Runtime implementation: completed',
+  ],
+  proposalSpec: ['## Durable Proposal Record Contract'],
+  decisionLog: ['### DEC-054', '### DEC-056'],
+  audit: ['Completed: `durable proposal record planning preview`'],
+  inventory: ['vNext durable proposal record planning preview'],
+  readme: [
+    'Durable proposal record planning preview is not planning approval',
+    'docs/28_durable-proposal-record-planning-preview.md',
+  ],
+  verification: ['vnext-durable-proposal-record-planning-preview-status.mjs'],
+};
 
-assertContainsAll(sources.decisionPacket, ['This path is a sequence for finishing the project']);
-assertContainsAll(sources.implementationPlan, [
-  'decisionStatus` | `approve-planning-only`',
-  'Runtime implementation: completed',
-]);
-assertContainsAll(sources.proposalSpec, ['## Durable Proposal Record Contract']);
-assertContainsAll(sources.decisionLog, ['### DEC-054', '### DEC-056']);
-assertContainsAll(sources.audit, ['Completed: `durable proposal record planning preview`']);
-assertContainsAll(sources.inventory, ['vNext durable proposal record planning preview']);
-assertContainsAll(sources.readme, [
-  'Durable proposal record planning preview is not planning approval',
-  'docs/28_durable-proposal-record-planning-preview.md',
-]);
-assertContainsAll(sources.verification, ['vnext-durable-proposal-record-planning-preview-status.mjs']);
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
+}
 
 const decisionPacketStatus = runStatus('scripts/vnext-authority-implementation-decision-packet-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
