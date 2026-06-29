@@ -210,6 +210,7 @@ assertSourceEvidence(sources, sourceEvidence);
 const originalGate = 'operator decision required';
 const currentGate = 'proposal application decision required';
 const nextSlice = 'proposal application implementation decision required';
+const recommendedFirstCandidate = 'durable proposal record creation and persistence';
 
 const authority = {
   handoffRecordsDecision: false,
@@ -246,7 +247,7 @@ process.stdout.write(
       currentGate,
       handoffStatus: 'consumed-by-planning-only-decision',
       acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
-      recommendedFirstCandidate: 'durable proposal record creation and persistence',
+      recommendedFirstCandidate,
       decisionOptions,
       invalidShortcutsRejected: invalidShortcuts,
       nextRequiredInput:

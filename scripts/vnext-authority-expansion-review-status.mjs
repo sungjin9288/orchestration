@@ -189,12 +189,14 @@ const growthDashboardStatus = runStatus('scripts/vnext-growth-dashboard-evidence
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const memorySpecStatus = runStatus('scripts/vnext-memory-readiness-decision-spec-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const nextSlice = 'proposal application implementation decision required';
+const recommendedFirstCandidate = 'durable proposal record creation and persistence';
 
 assert.equal(auditStatus.ok, true);
 assert.equal(growthDashboardStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(memorySpecStatus.ok, true);
-assert.equal(auditNextSlice, 'proposal application implementation decision required');
+assert.equal(auditNextSlice, nextSlice);
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'operator-approved authority expansion review'),
   true,
@@ -224,7 +226,7 @@ process.stdout.write(
       posture: 'read-only-authority-expansion-review',
       spec: files.spec,
       candidates: reviewCandidates,
-      recommendedFirstCandidate: 'durable proposal record creation and persistence',
+      recommendedFirstCandidate,
       nextRequiredInput: 'explicit proposal application decision, focused smoke, rollback evidence, and aggregate verification before proposal application opens',
       upstreamStatus: {
         vnextAudit: {
