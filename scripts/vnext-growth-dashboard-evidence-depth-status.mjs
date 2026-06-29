@@ -63,44 +63,64 @@ function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
+function assertMatchesAll(source, expectedPatterns) {
+  for (const expectedPattern of expectedPatterns) {
+    assert.match(source, expectedPattern);
+  }
+}
+
+function assertDoesNotMatchAny(source, forbiddenPatterns) {
+  for (const forbiddenPattern of forbiddenPatterns) {
+    assert.doesNotMatch(source, forbiddenPattern);
+  }
+}
+
 const sources = Object.fromEntries(
   Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
 );
 
-assert.match(sources.app, /function getGrowthFailurePatternGroups\(\{ failedRuns, reviewArtifacts, blockedTasks \}\)/);
-assert.match(sources.app, /function getGrowthRegressionComparison\(\{ failedRuns, completedRuns \}\)/);
-assert.match(sources.app, /function getGrowthRollbackEvidenceLinks\(artifacts\)/);
-assert.match(sources.app, /function renderGrowthDashboardEvidenceDepth\(growth\)/);
-assert.match(sources.app, /data-growth-dashboard-evidence-depth="read-only"/);
-assert.match(sources.app, /data-failure-pattern-groups="true"/);
-assert.match(sources.app, /data-regression-comparison="read-only"/);
-assert.match(sources.app, /data-rollback-evidence-links="true"/);
-assert.match(sources.app, /data-growth-dashboard-action-allowed="false"/);
-assert.match(sources.app, /실패 묶음, 회귀 비교, 되돌림 근거를 함께 봅니다/);
-assert.match(sources.app, /되돌림 근거 링크/);
+const escapedAuthorityMarkers = blockedAuthorityMarkers.map(
+  (marker) => new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+);
 
-for (const marker of blockedAuthorityMarkers) {
-  assert.match(sources.app, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+const sourceEvidence = {
+  app: [
+    /function getGrowthFailurePatternGroups\(\{ failedRuns, reviewArtifacts, blockedTasks \}\)/,
+    /function getGrowthRegressionComparison\(\{ failedRuns, completedRuns \}\)/,
+    /function getGrowthRollbackEvidenceLinks\(artifacts\)/,
+    /function renderGrowthDashboardEvidenceDepth\(growth\)/,
+    /data-growth-dashboard-evidence-depth="read-only"/,
+    /data-failure-pattern-groups="true"/,
+    /data-regression-comparison="read-only"/,
+    /data-rollback-evidence-links="true"/,
+    /data-growth-dashboard-action-allowed="false"/,
+    /실패 묶음, 회귀 비교, 되돌림 근거를 함께 봅니다/,
+    /되돌림 근거 링크/,
+    ...escapedAuthorityMarkers,
+  ],
+  styles: [
+    /\.growth-dashboard-depth/,
+    /\.growth-pattern-grid/,
+    /\.growth-regression-row/,
+    /\.growth-rollback-list/,
+    /\.growth-rollback-chip/,
+  ],
+  uiSmoke: [
+    /data-growth-dashboard-evidence-depth="read-only"/,
+    /data-regression-comparison="read-only"/,
+    /data-rollback-evidence-links="true"/,
+  ],
+  readme: [/grouped failure patterns/, /regression comparison/, /rollback evidence links/],
+  audit: [/Completed: `growth dashboard evidence depth`/],
+  inventory: [/vNext growth dashboard evidence depth/],
+  verification: [/vnext-growth-dashboard-evidence-depth-status\.mjs/],
+};
+
+for (const [sourceName, expectedPatterns] of Object.entries(sourceEvidence)) {
+  assertMatchesAll(sources[sourceName], expectedPatterns);
 }
 
-for (const action of forbiddenActions) {
-  assert.doesNotMatch(sources.app, action);
-}
-
-assert.match(sources.styles, /\.growth-dashboard-depth/);
-assert.match(sources.styles, /\.growth-pattern-grid/);
-assert.match(sources.styles, /\.growth-regression-row/);
-assert.match(sources.styles, /\.growth-rollback-list/);
-assert.match(sources.styles, /\.growth-rollback-chip/);
-assert.match(sources.uiSmoke, /data-growth-dashboard-evidence-depth="read-only"/);
-assert.match(sources.uiSmoke, /data-regression-comparison="read-only"/);
-assert.match(sources.uiSmoke, /data-rollback-evidence-links="true"/);
-assert.match(sources.readme, /grouped failure patterns/);
-assert.match(sources.readme, /regression comparison/);
-assert.match(sources.readme, /rollback evidence links/);
-assert.match(sources.audit, /Completed: `growth dashboard evidence depth`/);
-assert.match(sources.inventory, /vNext growth dashboard evidence depth/);
-assert.match(sources.verification, /vnext-growth-dashboard-evidence-depth-status\.mjs/);
+assertDoesNotMatchAny(sources.app, forbiddenActions);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
