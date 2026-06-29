@@ -15,7 +15,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const vnextDevelopmentAuditFiles = {
   readme: 'README.md',
   design: 'DESIGN.md',
   referenceAudit: 'docs/reference/vnext-reference-driven-ui-audit.md',
@@ -79,7 +79,10 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(vnextDevelopmentAuditFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 const referenceSignals = [

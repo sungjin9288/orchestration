@@ -16,7 +16,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const memoryReadinessDecisionSpecFiles = {
   spec: 'docs/25_memory-readiness-decision-spec.md',
   audit: 'docs/23_vnext-development-audit.md',
   decisionLog: 'docs/01_decision-log.md',
@@ -133,7 +133,10 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(memoryReadinessDecisionSpecFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 for (const section of requiredSpecSections) {
@@ -216,7 +219,7 @@ process.stdout.write(
       mode: STATUS_MODE,
       schemaVersion: STATUS_SCHEMA_VERSION,
       posture: 'read-only-memory-readiness-decision-spec',
-      spec: files.spec,
+      spec: memoryReadinessDecisionSpecFiles.spec,
       requiredSections: requiredSpecSections,
       requiredMemoryFields,
       reviewSemantics,

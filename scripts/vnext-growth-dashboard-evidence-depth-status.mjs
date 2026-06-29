@@ -15,7 +15,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const growthDashboardEvidenceDepthFiles = {
   readme: 'README.md',
   audit: 'docs/23_vnext-development-audit.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -82,7 +82,10 @@ function assertSourceEvidence(sourcesByName, evidenceBySource) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(growthDashboardEvidenceDepthFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 const escapedAuthorityMarkers = blockedAuthorityMarkers.map(

@@ -16,7 +16,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const proposalReviewDecisionSpecFiles = {
   spec: 'docs/24_proposal-review-decision-spec.md',
   audit: 'docs/23_vnext-development-audit.md',
   decisionLog: 'docs/01_decision-log.md',
@@ -121,7 +121,10 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(proposalReviewDecisionSpecFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 for (const section of requiredSpecSections) {
@@ -212,7 +215,7 @@ process.stdout.write(
       mode: STATUS_MODE,
       schemaVersion: STATUS_SCHEMA_VERSION,
       posture: 'read-only-proposal-review-decision-spec',
-      spec: files.spec,
+      spec: proposalReviewDecisionSpecFiles.spec,
       requiredSections: requiredSpecSections,
       requiredRecordFields,
       approvalSemantics,
