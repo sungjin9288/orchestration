@@ -151,7 +151,7 @@ assertDoesNotMatchAny(
   forbiddenActionPatterns,
 );
 
-const sourceEvidence = {
+const proposalApplicationImplementationDecisionHandoffSourceEvidence = {
   handoff: [
     ...proposalApplicationImplementationDecisionInvalidShortcuts,
     'It is not an operator decision',
@@ -201,7 +201,10 @@ const sourceEvidence = {
   verification: ['vnext-proposal-application-implementation-decision-handoff-status.mjs'],
 };
 
-assertSourceEvidence(proposalApplicationImplementationDecisionHandoffSources, sourceEvidence);
+assertSourceEvidence(
+  proposalApplicationImplementationDecisionHandoffSources,
+  proposalApplicationImplementationDecisionHandoffSourceEvidence,
+);
 
 const proposalApplicationImplementationPlanStatus = runStatus(
   'scripts/vnext-proposal-application-implementation-plan-status.mjs',

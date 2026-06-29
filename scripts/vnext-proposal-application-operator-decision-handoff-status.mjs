@@ -152,7 +152,7 @@ assertContainsBacktickedAll(
 );
 assertDoesNotMatchAny(proposalApplicationOperatorHandoffSources.app, forbiddenActionPatterns);
 
-const sourceEvidence = {
+const proposalApplicationOperatorHandoffSourceEvidence = {
   handoff: [
     'Current gate: `proposal application implementation decision required`',
     'Decision packet: `docs/31_proposal-application-decision-packet.md`',
@@ -200,7 +200,10 @@ const sourceEvidence = {
   verification: ['vnext-proposal-application-operator-decision-handoff-status.mjs'],
 };
 
-assertSourceEvidence(proposalApplicationOperatorHandoffSources, sourceEvidence);
+assertSourceEvidence(
+  proposalApplicationOperatorHandoffSources,
+  proposalApplicationOperatorHandoffSourceEvidence,
+);
 
 const proposalApplicationDecisionPacketStatus = runStatus(
   'scripts/vnext-proposal-application-decision-packet-status.mjs',

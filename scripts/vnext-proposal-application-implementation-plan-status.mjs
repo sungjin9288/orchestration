@@ -164,7 +164,7 @@ assertContainsBacktickedAll(
 );
 assertDoesNotMatchAny(proposalApplicationImplementationPlanSources.app, forbiddenActionPatterns);
 
-const sourceEvidence = {
+const proposalApplicationImplementationPlanSourceEvidence = {
   plan: [
     'decisionId` | `operator-decision-vnext-proposal-application-001`',
     'decisionStatus` | `approve-application-planning-only`',
@@ -214,7 +214,10 @@ const sourceEvidence = {
   verification: ['vnext-proposal-application-implementation-plan-status.mjs'],
 };
 
-assertSourceEvidence(proposalApplicationImplementationPlanSources, sourceEvidence);
+assertSourceEvidence(
+  proposalApplicationImplementationPlanSources,
+  proposalApplicationImplementationPlanSourceEvidence,
+);
 
 const proposalApplicationOperatorHandoffStatus = runStatus(
   'scripts/vnext-proposal-application-operator-decision-handoff-status.mjs',

@@ -149,7 +149,7 @@ assertContainsBacktickedAll(
 );
 assertDoesNotMatchAny(proposalApplicationDecisionPacketSources.app, forbiddenActionPatterns);
 
-const sourceEvidence = {
+const proposalApplicationDecisionPacketSourceEvidence = {
   packet: [
     'Original gate: `proposal application decision required`',
     'Source implementation: `DEC-057`',
@@ -191,7 +191,10 @@ const sourceEvidence = {
   verification: ['vnext-proposal-application-decision-packet-status.mjs'],
 };
 
-assertSourceEvidence(proposalApplicationDecisionPacketSources, sourceEvidence);
+assertSourceEvidence(
+  proposalApplicationDecisionPacketSources,
+  proposalApplicationDecisionPacketSourceEvidence,
+);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalReviewDecisionSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
