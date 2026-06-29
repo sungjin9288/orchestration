@@ -43,7 +43,7 @@ const requiredSections = [
   '## Verification',
 ];
 
-const requiredDecisionFields = [
+const proposalApplicationDecisionRequiredFields = [
   'decisionId',
   'decisionStatus',
   'targetAuthority',
@@ -58,7 +58,7 @@ const requiredDecisionFields = [
   'approvalStatement',
 ];
 
-const decisionOptions = [
+const proposalApplicationDecisionOptions = [
   'approve-application-planning-only',
   'approve-application-implementation-slice',
   'request-more-evidence',
@@ -136,8 +136,8 @@ for (const section of requiredSections) {
   assert.match(sources.handoff, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-assertContainsBacktickedAll(sources.handoff, requiredDecisionFields);
-assertContainsBacktickedAll(sources.handoff, decisionOptions);
+assertContainsBacktickedAll(sources.handoff, proposalApplicationDecisionRequiredFields);
+assertContainsBacktickedAll(sources.handoff, proposalApplicationDecisionOptions);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
@@ -259,8 +259,8 @@ process.stdout.write(
       currentGate: proposalApplicationImplementationGate,
       nextRequiredInput:
         'operator-provided application implementation decision for exactly one durable proposal record application path',
-      decisionOptions,
-      requiredDecisionFields,
+      decisionOptions: proposalApplicationDecisionOptions,
+      requiredDecisionFields: proposalApplicationDecisionRequiredFields,
       upstreamStatus,
       authority,
     },

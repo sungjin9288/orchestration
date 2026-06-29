@@ -40,7 +40,7 @@ const requiredHandoffSections = [
   '## Verification',
 ];
 
-const requiredDecisionFields = [
+const proposalRecordDecisionRequiredFields = [
   'decisionId',
   'decisionStatus',
   'targetAuthority',
@@ -55,7 +55,7 @@ const requiredDecisionFields = [
   'approvalStatement',
 ];
 
-const decisionOptions = [
+const proposalRecordDecisionOptions = [
   'approve-planning-only',
   'approve-implementation-slice',
   'request-more-evidence',
@@ -141,8 +141,8 @@ for (const section of requiredHandoffSections) {
   assert.match(sources.handoff, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-assertContainsBacktickedAll(sources.handoff, requiredDecisionFields);
-assertContainsBacktickedAll(sources.handoff, decisionOptions);
+assertContainsBacktickedAll(sources.handoff, proposalRecordDecisionRequiredFields);
+assertContainsBacktickedAll(sources.handoff, proposalRecordDecisionOptions);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
@@ -249,7 +249,7 @@ process.stdout.write(
       handoffStatus: 'consumed-by-planning-only-decision',
       acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
       recommendedFirstCandidate: durableProposalRecordCreationCandidate,
-      decisionOptions,
+      decisionOptions: proposalRecordDecisionOptions,
       invalidShortcutsRejected: invalidShortcuts,
       nextRequiredInput:
         'operator-provided proposal application decision for created durable proposal records',

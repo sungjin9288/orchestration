@@ -40,7 +40,7 @@ const requiredPacketSections = [
   '## Verification',
 ];
 
-const requiredDecisionFields = [
+const proposalRecordDecisionRequiredFields = [
   'decisionId',
   'decisionStatus',
   'targetAuthority',
@@ -55,7 +55,7 @@ const requiredDecisionFields = [
   'approvalStatement',
 ];
 
-const decisionOptions = [
+const proposalRecordDecisionOptions = [
   'approve-planning-only',
   'approve-implementation-slice',
   'request-more-evidence',
@@ -116,8 +116,8 @@ for (const section of requiredPacketSections) {
   assert.match(sources.packet, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-assertContainsBacktickedAll(sources.packet, requiredDecisionFields);
-assertContainsBacktickedAll(sources.packet, decisionOptions);
+assertContainsBacktickedAll(sources.packet, proposalRecordDecisionRequiredFields);
+assertContainsBacktickedAll(sources.packet, proposalRecordDecisionOptions);
 
 const sourceEvidence = {
   packet: [
@@ -199,8 +199,8 @@ process.stdout.write(
       originalGate: operatorDecisionGate,
       currentGate: proposalApplicationDecisionGate,
       recommendedFirstCandidate: durableProposalRecordCreationCandidate,
-      decisionOptions,
-      requiredDecisionFields,
+      decisionOptions: proposalRecordDecisionOptions,
+      requiredDecisionFields: proposalRecordDecisionRequiredFields,
       upstreamStatus: {
         vnextAudit: {
           ok: auditStatus.ok,
