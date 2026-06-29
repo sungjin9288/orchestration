@@ -63,13 +63,13 @@ function assertMatchesAll(source, expectedPatterns) {
   }
 }
 
-function assertSourceEvidence(sourceEvidence) {
-  for (const [sourceName, evidence] of Object.entries(sourceEvidence)) {
+function assertSourceEvidence(sourcesByName, evidenceBySource) {
+  for (const [sourceName, evidence] of Object.entries(evidenceBySource)) {
     if (evidence.contains) {
-      assertContainsAll(sources[sourceName], evidence.contains);
+      assertContainsAll(sourcesByName[sourceName], evidence.contains);
     }
     if (evidence.matches) {
-      assertMatchesAll(sources[sourceName], evidence.matches);
+      assertMatchesAll(sourcesByName[sourceName], evidence.matches);
     }
   }
 }
@@ -398,7 +398,7 @@ const sourceEvidence = {
   },
 };
 
-assertSourceEvidence(sourceEvidence);
+assertSourceEvidence(sources, sourceEvidence);
 
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
 const reflection = runStatus('scripts/growth-reflection-evaluator.mjs');
