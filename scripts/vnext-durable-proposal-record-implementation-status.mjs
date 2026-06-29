@@ -36,6 +36,12 @@ function assertDoesNotMatchAny(source, forbiddenPatterns) {
   }
 }
 
+function assertSourceEvidence(sourcesByName, evidenceBySource) {
+  for (const [sourceName, expectedPatterns] of Object.entries(evidenceBySource)) {
+    assertMatchesAll(sourcesByName[sourceName], expectedPatterns);
+  }
+}
+
 const files = {
   contracts: 'src/runtime/contracts.js',
   fileStore: 'src/runtime/file-store.js',
@@ -93,9 +99,7 @@ const sourceEvidence = {
   ],
 };
 
-for (const [sourceName, expectedPatterns] of Object.entries(sourceEvidence)) {
-  assertMatchesAll(sources[sourceName], expectedPatterns);
-}
+assertSourceEvidence(sources, sourceEvidence);
 
 assertDoesNotMatchAny(sources.app, [
   /data-action="create-proposal-record"/,

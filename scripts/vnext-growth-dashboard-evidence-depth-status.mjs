@@ -75,6 +75,12 @@ function assertDoesNotMatchAny(source, forbiddenPatterns) {
   }
 }
 
+function assertSourceEvidence(sourcesByName, evidenceBySource) {
+  for (const [sourceName, expectedPatterns] of Object.entries(evidenceBySource)) {
+    assertMatchesAll(sourcesByName[sourceName], expectedPatterns);
+  }
+}
+
 const sources = Object.fromEntries(
   Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
 );
@@ -116,9 +122,7 @@ const sourceEvidence = {
   verification: [/vnext-growth-dashboard-evidence-depth-status\.mjs/],
 };
 
-for (const [sourceName, expectedPatterns] of Object.entries(sourceEvidence)) {
-  assertMatchesAll(sources[sourceName], expectedPatterns);
-}
+assertSourceEvidence(sources, sourceEvidence);
 
 assertDoesNotMatchAny(sources.app, forbiddenActions);
 
