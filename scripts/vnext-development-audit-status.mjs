@@ -208,189 +208,197 @@ const sourceEvidence = {
     ],
     matches: [/^# vNext Development Audit/m],
   },
+  proposalDecisionSpec: {
+    contains: [
+      '## Durable Proposal Record Contract',
+      '## Approval Semantics',
+      '## Expiry And Supersession',
+      'Review-readiness evidence is not approval',
+    ],
+    matches: [/^# Proposal Review Decision Spec/m],
+  },
+  memoryDecisionSpec: {
+    contains: [
+      '## Memory Item Contract',
+      '## Source And Redaction Rules',
+      '## Expiry And Deletion',
+      'Local personalization is not memory',
+    ],
+    matches: [/^# Memory Readiness Decision Spec/m],
+  },
+  authorityExpansionSpec: {
+    contains: [
+      '## Review Request Contract',
+      '## Review Candidates',
+      'Durable proposal record creation and persistence',
+      'Memory persistence',
+      'Provider calls from growth surfaces',
+      'Source mutation from accepted improvement candidates',
+      '## Approval Semantics',
+      '## Implementation Prerequisites',
+      'current downstream state to `proposal application decision required`',
+      'Review acceptance can only feed the next explicit decision',
+    ],
+    matches: [/^# Authority Expansion Review Spec/m],
+  },
+  authorityDecisionPacket: {
+    contains: [
+      '## Required Operator Decision',
+      'Original gate: `operator decision required`',
+      'Current downstream gate: `proposal application decision required`',
+      'Current packet status: `consumed-by-planning-only-decision`',
+      'Current implementation authority: accepted for durable proposal record creation and persistence only',
+      'This packet does not provide that approval',
+    ],
+    matches: [/^# Authority Implementation Decision Packet/m],
+  },
+  proposalRecordPlanningPreview: {
+    contains: [
+      'It is not `approve-planning-only`',
+      'Original gate: `operator decision required`',
+      'Current downstream gate: `proposal application decision required`',
+      'Current preview status: `consumed-by-planning-only-decision`',
+      'file-store-backed durable proposal record collection',
+      'proposal application remains blocked',
+      'no later proposal application decision exists for the created durable proposal records',
+    ],
+    matches: [/^# Durable Proposal Record Planning Preview/m],
+  },
+  operatorDecisionHandoff: {
+    contains: [
+      'It is not an operator decision',
+      'Handoff status: `consumed-by-planning-only-decision`',
+      '## Valid Decision Statements',
+      '## Invalid Shortcuts',
+      '## Minimum Planning-Only Acceptance',
+      'I approve planning only for durable proposal record creation and persistence',
+      'does not approve implementation, proposal application, provider calls, memory persistence, source mutation, commit, or push',
+    ],
+    matches: [/^# Operator Decision Handoff/m],
+  },
+  proposalApplicationDecisionPacket: {
+    contains: [
+      'Original gate: `proposal application decision required`',
+      'Source implementation: `DEC-057`',
+      'Current packet status: `consumed-by-application-planning-only-decision`',
+      'Current application authority: planning only',
+      'It is not proposal application approval',
+      'approve-application-planning-only',
+      'approve-application-implementation-slice',
+      'creation approval and application approval are collapsed into one approval',
+      'application approval and source mutation approval are collapsed into one approval',
+    ],
+    matches: [/^# Proposal Application Decision Packet/m],
+  },
+  proposalApplicationOperatorHandoff: {
+    contains: [
+      'Current gate: `proposal application implementation decision required`',
+      'Decision packet: `docs/31_proposal-application-decision-packet.md`',
+      'Handoff status: `consumed-by-application-planning-only-decision`',
+      'It is not an operator decision',
+      'It is not proposal application approval',
+      'approve-application-planning-only',
+      'approve-application-implementation-slice',
+      'durable proposal record creation approval as application approval',
+    ],
+    matches: [/^# Proposal Application Operator Decision Handoff/m],
+  },
+  proposalApplicationImplementationPlan: {
+    contains: [
+      'decisionId` | `operator-decision-vnext-proposal-application-001`',
+      'decisionStatus` | `approve-application-planning-only`',
+      'Planning approval: accepted',
+      'Implementation approval: blocked',
+      'Current downstream gate: `proposal application implementation decision required`',
+      'sourceMutationAllowed` | Always `false` for the first application attempt slice.',
+      'providerCallsAllowed` | Always `false`.',
+      'memoryPersistenceAllowed` | Always `false`.',
+      'commitAllowed` | Always `false`.',
+      'pushAllowed` | Always `false`.',
+      'no later `approve-application-implementation-slice` decision exists',
+    ],
+    matches: [/^# Proposal Application Implementation Plan/m],
+  },
+  proposalApplicationImplementationDecisionHandoff: {
+    contains: [
+      'It is not an operator decision',
+      'Current gate: `proposal application implementation decision required`',
+      'Handoff status: `decision-input-only`',
+      'decisionStatus=approve-application-implementation-slice',
+      'decisionStatus=reject-application-implementation',
+      'targetAuthority=proposal application implementation for one audit-only attempt path on existing durable proposal records',
+      'applicationPath=record one inert application attempt for an existing durable proposal record without source mutation',
+      'This does not approve proposal generation, source mutation, provider calls, memory persistence, commit, or push.',
+    ],
+    matches: [/^# Proposal Application Implementation Decision Handoff/m],
+  },
+  proposalRecordImplementationPlan: {
+    contains: [
+      'decisionStatus` | `approve-planning-only`',
+      'Planning approval: accepted',
+      'Implementation approval: accepted',
+      'Runtime implementation: completed',
+      'Default expiry policy: 30 days from `createdAt`',
+      'extend the runtime state contract with a `proposalRecords` collection and a `proposalRecord` sequence',
+      'persist records in the existing runtime `state.json` under the selected runtime root',
+      'record creation fails without explicit creation approval',
+      'proposal application remains blocked',
+      'provider calls remain blocked',
+      'memory persistence remains blocked',
+      'source mutation remains blocked',
+      'commit and push remain blocked',
+    ],
+    matches: [/^# Durable Proposal Record Implementation Plan/m],
+  },
+  uiSmoke: {
+    contains: [
+      'data-growth-learning-surface="read-only"',
+      'data-personalization-scope="local-only"',
+      'data-growth-dashboard-evidence-depth="read-only"',
+      'data-regression-comparison="read-only"',
+      'data-rollback-evidence-links="true"',
+      'doesNotMatch(appJs, /data-action="persist-growth-memory"',
+      'doesNotMatch(appJs, /data-action="import-local-personalization"',
+    ],
+  },
+  verification: {
+    contains: [
+      'smoke-ui-slice-649.mjs',
+      'vnext-development-audit-status.mjs',
+      'vnext-memory-readiness-decision-spec-status.mjs',
+      'vnext-growth-dashboard-evidence-depth-status.mjs',
+      'vnext-authority-expansion-review-status.mjs',
+      'vnext-authority-implementation-decision-packet-status.mjs',
+      'vnext-durable-proposal-record-planning-preview-status.mjs',
+      'vnext-operator-decision-handoff-status.mjs',
+      'vnext-durable-proposal-record-implementation-plan-status.mjs',
+      'smoke-durable-proposal-record-creation.mjs',
+      'vnext-durable-proposal-record-implementation-status.mjs',
+      'vnext-proposal-application-decision-packet-status.mjs',
+      'vnext-proposal-application-operator-decision-handoff-status.mjs',
+      'vnext-proposal-application-implementation-plan-status.mjs',
+      'vnext-proposal-application-implementation-decision-handoff-status.mjs',
+    ],
+  },
+  inventory: {
+    contains: [
+      'vNext development audit',
+      'vNext memory readiness decision spec',
+      'vNext growth dashboard evidence depth',
+      'vNext authority expansion review',
+      'vNext authority implementation decision packet',
+      'vNext durable proposal record planning preview',
+      'vNext operator decision handoff',
+      'vNext durable proposal record implementation plan',
+      'vNext proposal application decision packet',
+      'vNext proposal application operator decision handoff',
+      'vNext proposal application implementation plan',
+      'vNext proposal application implementation decision handoff',
+    ],
+  },
 };
 
 assertSourceEvidence(sourceEvidence);
-
-assertContainsAll(sources.proposalDecisionSpec, [
-  '## Durable Proposal Record Contract',
-  '## Approval Semantics',
-  '## Expiry And Supersession',
-  'Review-readiness evidence is not approval',
-]);
-assertMatchesAll(sources.proposalDecisionSpec, [/^# Proposal Review Decision Spec/m]);
-
-assertContainsAll(sources.memoryDecisionSpec, [
-  '## Memory Item Contract',
-  '## Source And Redaction Rules',
-  '## Expiry And Deletion',
-  'Local personalization is not memory',
-]);
-assertMatchesAll(sources.memoryDecisionSpec, [/^# Memory Readiness Decision Spec/m]);
-
-assertContainsAll(sources.authorityExpansionSpec, [
-  '## Review Request Contract',
-  '## Review Candidates',
-  'Durable proposal record creation and persistence',
-  'Memory persistence',
-  'Provider calls from growth surfaces',
-  'Source mutation from accepted improvement candidates',
-  '## Approval Semantics',
-  '## Implementation Prerequisites',
-  'current downstream state to `proposal application decision required`',
-  'Review acceptance can only feed the next explicit decision',
-]);
-assertMatchesAll(sources.authorityExpansionSpec, [/^# Authority Expansion Review Spec/m]);
-
-assertContainsAll(sources.authorityDecisionPacket, [
-  '## Required Operator Decision',
-  'Original gate: `operator decision required`',
-  'Current downstream gate: `proposal application decision required`',
-  'Current packet status: `consumed-by-planning-only-decision`',
-  'Current implementation authority: accepted for durable proposal record creation and persistence only',
-  'This packet does not provide that approval',
-]);
-assertMatchesAll(sources.authorityDecisionPacket, [/^# Authority Implementation Decision Packet/m]);
-
-assertContainsAll(sources.proposalRecordPlanningPreview, [
-  'It is not `approve-planning-only`',
-  'Original gate: `operator decision required`',
-  'Current downstream gate: `proposal application decision required`',
-  'Current preview status: `consumed-by-planning-only-decision`',
-  'file-store-backed durable proposal record collection',
-  'proposal application remains blocked',
-  'no later proposal application decision exists for the created durable proposal records',
-]);
-assertMatchesAll(sources.proposalRecordPlanningPreview, [/^# Durable Proposal Record Planning Preview/m]);
-
-assertContainsAll(sources.operatorDecisionHandoff, [
-  'It is not an operator decision',
-  'Handoff status: `consumed-by-planning-only-decision`',
-  '## Valid Decision Statements',
-  '## Invalid Shortcuts',
-  '## Minimum Planning-Only Acceptance',
-  'I approve planning only for durable proposal record creation and persistence',
-  'does not approve implementation, proposal application, provider calls, memory persistence, source mutation, commit, or push',
-]);
-assertMatchesAll(sources.operatorDecisionHandoff, [/^# Operator Decision Handoff/m]);
-
-assertContainsAll(sources.proposalApplicationDecisionPacket, [
-  'Original gate: `proposal application decision required`',
-  'Source implementation: `DEC-057`',
-  'Current packet status: `consumed-by-application-planning-only-decision`',
-  'Current application authority: planning only',
-  'It is not proposal application approval',
-  'approve-application-planning-only',
-  'approve-application-implementation-slice',
-  'creation approval and application approval are collapsed into one approval',
-  'application approval and source mutation approval are collapsed into one approval',
-]);
-assertMatchesAll(sources.proposalApplicationDecisionPacket, [/^# Proposal Application Decision Packet/m]);
-
-assertContainsAll(sources.proposalApplicationOperatorHandoff, [
-  'Current gate: `proposal application implementation decision required`',
-  'Decision packet: `docs/31_proposal-application-decision-packet.md`',
-  'Handoff status: `consumed-by-application-planning-only-decision`',
-  'It is not an operator decision',
-  'It is not proposal application approval',
-  'approve-application-planning-only',
-  'approve-application-implementation-slice',
-  'durable proposal record creation approval as application approval',
-]);
-assertMatchesAll(sources.proposalApplicationOperatorHandoff, [
-  /^# Proposal Application Operator Decision Handoff/m,
-]);
-
-assertContainsAll(sources.proposalApplicationImplementationPlan, [
-  'decisionId` | `operator-decision-vnext-proposal-application-001`',
-  'decisionStatus` | `approve-application-planning-only`',
-  'Planning approval: accepted',
-  'Implementation approval: blocked',
-  'Current downstream gate: `proposal application implementation decision required`',
-  'sourceMutationAllowed` | Always `false` for the first application attempt slice.',
-  'providerCallsAllowed` | Always `false`.',
-  'memoryPersistenceAllowed` | Always `false`.',
-  'commitAllowed` | Always `false`.',
-  'pushAllowed` | Always `false`.',
-  'no later `approve-application-implementation-slice` decision exists',
-]);
-assertMatchesAll(sources.proposalApplicationImplementationPlan, [
-  /^# Proposal Application Implementation Plan/m,
-]);
-
-assertContainsAll(sources.proposalApplicationImplementationDecisionHandoff, [
-  'It is not an operator decision',
-  'Current gate: `proposal application implementation decision required`',
-  'Handoff status: `decision-input-only`',
-  'decisionStatus=approve-application-implementation-slice',
-  'decisionStatus=reject-application-implementation',
-  'targetAuthority=proposal application implementation for one audit-only attempt path on existing durable proposal records',
-  'applicationPath=record one inert application attempt for an existing durable proposal record without source mutation',
-  'This does not approve proposal generation, source mutation, provider calls, memory persistence, commit, or push.',
-]);
-assertMatchesAll(sources.proposalApplicationImplementationDecisionHandoff, [
-  /^# Proposal Application Implementation Decision Handoff/m,
-]);
-
-assertContainsAll(sources.proposalRecordImplementationPlan, [
-  'decisionStatus` | `approve-planning-only`',
-  'Planning approval: accepted',
-  'Implementation approval: accepted',
-  'Runtime implementation: completed',
-  'Default expiry policy: 30 days from `createdAt`',
-  'extend the runtime state contract with a `proposalRecords` collection and a `proposalRecord` sequence',
-  'persist records in the existing runtime `state.json` under the selected runtime root',
-  'record creation fails without explicit creation approval',
-  'proposal application remains blocked',
-  'provider calls remain blocked',
-  'memory persistence remains blocked',
-  'source mutation remains blocked',
-  'commit and push remain blocked',
-]);
-assertMatchesAll(sources.proposalRecordImplementationPlan, [
-  /^# Durable Proposal Record Implementation Plan/m,
-]);
-
-assertContainsAll(sources.uiSmoke, [
-  'data-growth-learning-surface="read-only"',
-  'data-personalization-scope="local-only"',
-  'data-growth-dashboard-evidence-depth="read-only"',
-  'data-regression-comparison="read-only"',
-  'data-rollback-evidence-links="true"',
-  'doesNotMatch(appJs, /data-action="persist-growth-memory"',
-  'doesNotMatch(appJs, /data-action="import-local-personalization"',
-]);
-assertContainsAll(sources.verification, [
-  'smoke-ui-slice-649.mjs',
-  'vnext-development-audit-status.mjs',
-  'vnext-memory-readiness-decision-spec-status.mjs',
-  'vnext-growth-dashboard-evidence-depth-status.mjs',
-  'vnext-authority-expansion-review-status.mjs',
-  'vnext-authority-implementation-decision-packet-status.mjs',
-  'vnext-durable-proposal-record-planning-preview-status.mjs',
-  'vnext-operator-decision-handoff-status.mjs',
-  'vnext-durable-proposal-record-implementation-plan-status.mjs',
-  'smoke-durable-proposal-record-creation.mjs',
-  'vnext-durable-proposal-record-implementation-status.mjs',
-  'vnext-proposal-application-decision-packet-status.mjs',
-  'vnext-proposal-application-operator-decision-handoff-status.mjs',
-  'vnext-proposal-application-implementation-plan-status.mjs',
-  'vnext-proposal-application-implementation-decision-handoff-status.mjs',
-]);
-assertContainsAll(sources.inventory, [
-  'vNext development audit',
-  'vNext memory readiness decision spec',
-  'vNext growth dashboard evidence depth',
-  'vNext authority expansion review',
-  'vNext authority implementation decision packet',
-  'vNext durable proposal record planning preview',
-  'vNext operator decision handoff',
-  'vNext durable proposal record implementation plan',
-  'vNext proposal application decision packet',
-  'vNext proposal application operator decision handoff',
-  'vNext proposal application implementation plan',
-  'vNext proposal application implementation decision handoff',
-]);
 
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
 const reflection = runStatus('scripts/growth-reflection-evaluator.mjs');
