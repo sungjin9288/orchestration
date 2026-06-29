@@ -141,66 +141,67 @@ assertContainsAll(sources.handoff, invalidShortcuts);
 assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
-assertContainsAll(sources.handoff, [
-  'It is not an operator decision',
-  'It is not `approve-planning-only`',
-  'Original gate: `operator decision required`',
-  'Accepted follow-up: `DEC-056`',
-  'Current downstream gate: `proposal application decision required`',
-  'Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`',
-  'Handoff status: `consumed-by-planning-only-decision`',
-  'Recommended first value: `durable proposal record creation and persistence`',
-  'implementationPlanRefs` | Empty until `approve-planning-only` exists',
-  'I approve planning only for durable proposal record creation and persistence',
-  'This approval allows one implementation plan, rollback plan, and focused smoke plan',
-  'does not approve implementation, proposal application, provider calls, memory persistence, source mutation, commit, or push',
-  'no explicit proposal application decision exists for created durable proposal records',
-  'The script must stay read-only',
-]);
+const sourceEvidence = {
+  handoff: [
+    'It is not an operator decision',
+    'It is not `approve-planning-only`',
+    'Original gate: `operator decision required`',
+    'Accepted follow-up: `DEC-056`',
+    'Current downstream gate: `proposal application decision required`',
+    'Implementation plan: `docs/30_durable-proposal-record-implementation-plan.md`',
+    'Handoff status: `consumed-by-planning-only-decision`',
+    'Recommended first value: `durable proposal record creation and persistence`',
+    'implementationPlanRefs` | Empty until `approve-planning-only` exists',
+    'I approve planning only for durable proposal record creation and persistence',
+    'This approval allows one implementation plan, rollback plan, and focused smoke plan',
+    'does not approve implementation, proposal application, provider calls, memory persistence, source mutation, commit, or push',
+    'no explicit proposal application decision exists for created durable proposal records',
+    'The script must stay read-only',
+  ],
+  decisionPacket: [
+    'Original gate: `operator decision required`',
+    'Current downstream gate: `proposal application decision required`',
+    'Current packet status: `consumed-by-planning-only-decision`',
+    'Current implementation authority: accepted for durable proposal record creation and persistence only',
+    'This packet does not provide that approval',
+  ],
+  planningPreview: [
+    'Original gate: `operator decision required`',
+    'Current downstream gate: `proposal application decision required`',
+    'no later proposal application decision exists for the created durable proposal records',
+    'Current implementation authority: accepted for durable proposal record creation and persistence only',
+    'proposal application remains blocked',
+  ],
+  implementationPlan: [
+    'decisionStatus` | `approve-planning-only`',
+    'Planning approval: accepted',
+    'Implementation approval: accepted',
+    'Runtime implementation: completed',
+  ],
+  audit: [
+    'Completed: `durable proposal record planning preview`',
+    'Completed: `operator decision handoff`',
+    'Completed: `durable proposal record implementation plan`',
+    '1. `proposal application implementation decision required`',
+  ],
+  decisionLog: ['### DEC-055', '### DEC-056'],
+  inventory: ['vNext operator decision handoff'],
+  readme: [
+    'Operator decision handoff is not approval',
+    'docs/29_operator-decision-handoff.md',
+  ],
+  verification: [
+    'vnext-operator-decision-handoff-status.mjs',
+    'vnext-authority-implementation-decision-packet-status.mjs',
+    'vnext-durable-proposal-record-planning-preview-status.mjs',
+    'vnext-durable-proposal-record-implementation-plan-status.mjs',
+    'vnext-development-audit-status.mjs',
+  ],
+};
 
-assertContainsAll(sources.decisionPacket, [
-  'Original gate: `operator decision required`',
-  'Current downstream gate: `proposal application decision required`',
-  'Current packet status: `consumed-by-planning-only-decision`',
-  'Current implementation authority: accepted for durable proposal record creation and persistence only',
-  'This packet does not provide that approval',
-]);
-
-assertContainsAll(sources.planningPreview, [
-  'Original gate: `operator decision required`',
-  'Current downstream gate: `proposal application decision required`',
-  'no later proposal application decision exists for the created durable proposal records',
-  'Current implementation authority: accepted for durable proposal record creation and persistence only',
-  'proposal application remains blocked',
-]);
-
-assertContainsAll(sources.implementationPlan, [
-  'decisionStatus` | `approve-planning-only`',
-  'Planning approval: accepted',
-  'Implementation approval: accepted',
-  'Runtime implementation: completed',
-]);
-
-assertContainsAll(sources.audit, [
-  'Completed: `durable proposal record planning preview`',
-  'Completed: `operator decision handoff`',
-  'Completed: `durable proposal record implementation plan`',
-  '1. `proposal application implementation decision required`',
-]);
-
-assertContainsAll(sources.decisionLog, ['### DEC-055', '### DEC-056']);
-assertContainsAll(sources.inventory, ['vNext operator decision handoff']);
-assertContainsAll(sources.readme, [
-  'Operator decision handoff is not approval',
-  'docs/29_operator-decision-handoff.md',
-]);
-assertContainsAll(sources.verification, [
-  'vnext-operator-decision-handoff-status.mjs',
-  'vnext-authority-implementation-decision-packet-status.mjs',
-  'vnext-durable-proposal-record-planning-preview-status.mjs',
-  'vnext-durable-proposal-record-implementation-plan-status.mjs',
-  'vnext-development-audit-status.mjs',
-]);
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
+}
 
 const authority = {
   handoffRecordsDecision: false,
