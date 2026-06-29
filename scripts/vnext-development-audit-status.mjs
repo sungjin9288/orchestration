@@ -20,6 +20,7 @@ const files = {
   design: 'DESIGN.md',
   referenceAudit: 'docs/reference/vnext-reference-driven-ui-audit.md',
   vnextAudit: 'docs/23_vnext-development-audit.md',
+  proposalDecisionSpec: 'docs/24_proposal-review-decision-spec.md',
   decisionLog: 'docs/01_decision-log.md',
   growthPlan: 'docs/18_growth-gateway-vnext.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -83,12 +84,19 @@ assert.match(sources.app, /data-action="copy-local-personalization-review"/);
 assert.match(sources.app, /data-memory-readiness-gate="blocked"/);
 assert.match(sources.decisionLog, /### DEC-048/);
 assert.match(sources.decisionLog, /### DEC-049/);
+assert.match(sources.decisionLog, /### DEC-050/);
 assert.match(sources.readme, /Read-only growth evidence/);
 assert.match(sources.readme, /Local-only personalization/);
 assert.match(sources.vnextAudit, /^# vNext Development Audit/m);
 assert.match(sources.vnextAudit, /local-only personalization portability/);
+assert.match(sources.vnextAudit, /Completed: `proposal review decision spec`/);
 assert.match(sources.vnextAudit, /durable proposal record creation or persistence/);
 assert.match(sources.vnextAudit, /commit or push/);
+assert.match(sources.proposalDecisionSpec, /^# Proposal Review Decision Spec/m);
+assert.match(sources.proposalDecisionSpec, /## Durable Proposal Record Contract/);
+assert.match(sources.proposalDecisionSpec, /## Approval Semantics/);
+assert.match(sources.proposalDecisionSpec, /## Expiry And Supersession/);
+assert.match(sources.proposalDecisionSpec, /Review-readiness evidence is not approval/);
 assert.match(sources.uiSmoke, /data-growth-learning-surface="read-only"/);
 assert.match(sources.uiSmoke, /data-personalization-scope="local-only"/);
 assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="persist-growth-memory"/);
@@ -128,6 +136,11 @@ const implemented = [
     status: 'implemented-local-only-copy-review',
   },
   {
+    area: 'proposal review decision spec',
+    evidence: ['docs/24_proposal-review-decision-spec.md', 'docs/01_decision-log.md#DEC-048', 'docs/01_decision-log.md#DEC-050'],
+    status: 'documented-read-only',
+  },
+  {
     area: 'completion and README evidence',
     evidence: ['scripts/smoke-readme-scope-evidence.mjs', 'scripts/verification_status.mjs'],
     status: 'verified',
@@ -149,20 +162,13 @@ const blocked = [
 const recommendedDevelopmentPlan = [
   {
     priority: 1,
-    slice: 'proposal review decision spec',
-    scope:
-      'Define the durable proposal record schema, approval semantics, source refs, evidence refs, reviewer refs, and expiry rules before opening record creation.',
-    gate: 'Requires a new accepted decision before any creation or persistence action appears.',
-  },
-  {
-    priority: 2,
     slice: 'memory readiness decision spec',
     scope:
       'Define memory item schema, source boundaries, redaction, export, expiry, deletion, and skill-promotion review before enabling long-term memory.',
     gate: 'Requires focused smoke proving raw transcript ingestion and cross-workspace memory remain blocked until approval.',
   },
   {
-    priority: 3,
+    priority: 2,
     slice: 'growth dashboard evidence depth',
     scope:
       'Expand read-only Growth Evidence Ledger views with grouped failure patterns, regression comparisons, and rollback evidence links.',

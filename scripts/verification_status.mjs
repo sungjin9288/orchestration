@@ -217,6 +217,11 @@ const informationalChecks = [
     purpose: 'vNext design, growth learning, personalization, proposal, and memory development plan stays grounded in current source evidence without opening blocked authority',
   },
   {
+    id: 'vnext-proposal-review-decision-spec-status',
+    script: 'scripts/vnext-proposal-review-decision-spec-status.mjs',
+    purpose: 'vNext proposal review decision spec defines durable proposal record schema, approval separation, expiry, and stop conditions without opening record creation, persistence, approval, application, source mutation, commit, or push authority',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

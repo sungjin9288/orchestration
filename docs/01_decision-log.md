@@ -265,6 +265,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `ui/app.js` must expose long-term memory store, raw transcript ingestion, cross-workspace memory, and skill promotion as source-checkable `false` markers. README, reference audit, vNext plan, and focused smokes must describe the memory gate as blocked readiness, not learning persistence. Browser `localStorage` preferences remain convenience state and are not runtime memory.
 - Needed Before: A future memory store needs an accepted storage decision, memory item schema with source refs and evidence refs, workspace/applicability rules, redaction policy, export format, expiry/deletion policy, human review semantics, and focused smoke proving provider calls, raw transcript ingestion, memory persistence, source mutation, commit, and push remain blocked until explicit approval.
 
+### DEC-050
+- Status: `Accepted`
+- Decision: The vNext proposal review decision spec is defined in `docs/24_proposal-review-decision-spec.md` as a read-only contract for future durable proposal records.
+- Why: `DEC-048` blocked durable proposal record creation until schema, approval semantics, source refs, evidence refs, reviewer refs, expiry, and stop conditions were explicit. The product now needs that contract to guide a later implementation slice without turning the current blocked proposal-review preview into record creation, approval, application, or persistence.
+- Impact: Future proposal record work must preserve the required fields, separated review/create/apply gates, expiry and supersession rules, and stop conditions in `docs/24_proposal-review-decision-spec.md`. A review acceptance can only feed the next explicit decision. It must not approve record creation, proposal application, source mutation, commit, or push. `ui/app.js` must keep proposal generation, proposal application, proposal record creation, proposal record persistence, provider calls, memory persistence, source mutation, commit, and push blocked until a later accepted implementation decision opens a narrower path.
+- Needed Before: A future proposal record creation slice still needs implementation code, focused smoke coverage, task-ledger evidence, and aggregate verification proving record creation is gated and proposal application remains blocked.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

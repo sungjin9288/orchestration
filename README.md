@@ -84,8 +84,10 @@ src/runtime/file-store.js
   questions, and a blocked proposal-review preview, but they do not persist memory, generate/apply
   proposals, create or persist durable proposal records, call providers, mutate source, commit, or push.
 - Proposal review is not proposal approval: `DEC-048` keeps durable proposal record creation,
-  proposal record persistence, and long-term memory blocked until schema, approval semantics,
-  redaction, export, expiry, and focused smoke evidence exist.
+  proposal record persistence, and long-term memory blocked. `DEC-050` and
+  `docs/24_proposal-review-decision-spec.md` now define the current read-only schema, separated
+  review/create/apply gates, expiry, supersession, and stop conditions before any creation path can
+  open.
 - Personalization is local convenience only: recent desks, evidence density, preferred project hints,
   and preference reset/set controls live in browser storage and are surfaced as shortcuts or prefilled
   context, not automatic execution.
@@ -263,9 +265,11 @@ Playwright CLI:
 - Growth evidence and personalization are shell-level views only. Candidate drilldown and the proposal
   review preview are not proof of model learning, long-term memory, durable proposal record creation,
   autonomous proposal application, source mutation, commit, push, or external automation.
-- Durable proposal record creation remains blocked until an accepted decision defines record schema,
-  separate human approval semantics, source/evidence refs, redaction, export, expiry, and focused
-  smoke coverage for the unchanged provider, memory, source, commit, and push boundaries.
+- Durable proposal record creation remains blocked even though
+  `docs/24_proposal-review-decision-spec.md` now defines the review contract. A later
+  implementation decision and focused smoke coverage are still required before assigning durable
+  ids or timestamps, persisting records, approving proposal application, mutating source,
+  committing, or pushing.
 - Long-term memory storage remains blocked until an accepted decision defines memory item schema,
   source/evidence refs, workspace applicability, raw transcript exclusion, redaction, export, expiry,
   deletion, human review, and focused smoke coverage for unchanged provider/source/commit/push

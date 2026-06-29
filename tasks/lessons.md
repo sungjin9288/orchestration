@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- Durable proposal record work needs a top-level decision spec before more read-only status-chain hops. The useful boundary is not another green review state, but explicit separation between proposal review, record creation approval, and proposal application approval, with expiry and stop conditions visible before persistence opens.
 - When a newest short-alias finalization review is already green, re-apply both review-ready and acceptance-ready overrides after the finalization-ready fallback. Otherwise engine/reflection can stop at a stale review lane even though review and acceptance direct statuses are green.
 - Browser preference portability should start as a copyable review packet, not import/apply. That gives operators handoff evidence while keeping localStorage convenience separate from runtime memory, long-term memory, provider calls, source mutation, commit, and push authority.
 - Planning audit scripts should verify their own source docs and aggregate registration before being used as development direction. Otherwise a useful read-only audit can drift as an untracked helper instead of becoming durable completion evidence.
