@@ -12,6 +12,7 @@ The current product posture is:
 - durable proposal records: read-only decision spec defined; creation and persistence remain blocked
 - long-term memory: read-only decision spec defined; persistence, raw transcript ingestion, cross-workspace memory, and skill promotion remain blocked
 - authority expansion: read-only review spec defined; implementation approval and all blocked authorities remain blocked
+- operator decision packet: read-only decision input defined; it does not approve implementation
 
 ## Current Evidence
 
@@ -24,6 +25,7 @@ The current product posture is:
 | Personalization | Implemented as local browser preference only: recent surfaces, evidence density, preferred project hint, copyable preference review, and reset controls. | `ui/app.js`, `README.md`, `docs/01_decision-log.md#DEC-049`, `scripts/smoke-ui-slice-649.mjs` |
 | Long-term memory | Not implemented by design. The future decision spec is defined, but the UI still does not persist memory, ingest raw transcripts, globalize memory across workspaces, promote skills, call providers, mutate source, commit, or push. | `docs/01_decision-log.md#DEC-049`, `docs/01_decision-log.md#DEC-051`, `docs/25_memory-readiness-decision-spec.md`, `ui/app.js`, `scripts/smoke-ui-slice-649.mjs`, `scripts/vnext-memory-readiness-decision-spec-status.mjs` |
 | Authority expansion review | Implemented as a read-only review contract. It defines request fields, separated readiness/planning/implementation/application gates, rollback refs, and stop conditions, but it does not open implementation authority. | `docs/01_decision-log.md#DEC-052`, `docs/26_authority-expansion-review-spec.md`, `scripts/vnext-authority-expansion-review-status.mjs` |
+| Authority implementation decision packet | Implemented as a read-only operator decision input. It lists decision outcomes, required decision fields, still-blocked authority, stop conditions, rollback refs, and focused smoke refs, but it does not approve implementation. | `docs/01_decision-log.md#DEC-053`, `docs/27_authority-implementation-decision-packet.md`, `scripts/vnext-authority-implementation-decision-packet-status.mjs` |
 
 ## Development Plan
 
@@ -41,6 +43,9 @@ The Growth Evidence Ledger now shows grouped failure patterns, current-snapshot 
 
 Completed: `operator-approved authority expansion review`
 `docs/26_authority-expansion-review-spec.md` defines the shared read-only review contract for future durable proposal records, memory persistence, provider calls, or source mutation. It records required request fields, candidate authority paths, separated approval gates, stop conditions, rollback refs, and verification requirements. It does not approve implementation or open any authority.
+
+Completed: `authority implementation decision packet`
+`docs/27_authority-implementation-decision-packet.md` turns the current `operator decision required` gate into a concrete read-only decision input. It names decision outcomes, required fields, the recommended first candidate, stop conditions, still-blocked authority, rollback refs, focused smoke refs, and aggregate verification requirements. It does not approve planning, implementation, application, provider calls, persistence, source mutation, commit, or push.
 
 1. `operator decision required`
    Choose whether a later implementation slice should open exactly one authority path. The current recommended first candidate is durable proposal record creation and persistence, but it still requires explicit operator approval, an accepted implementation plan, rollback plan, and focused smoke coverage before any write, provider, source mutation, commit, or push behavior changes.
@@ -70,6 +75,7 @@ node scripts/vnext-proposal-review-decision-spec-status.mjs
 node scripts/vnext-memory-readiness-decision-spec-status.mjs
 node scripts/vnext-growth-dashboard-evidence-depth-status.mjs
 node scripts/vnext-authority-expansion-review-status.mjs
+node scripts/vnext-authority-implementation-decision-packet-status.mjs
 ```
 
-The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, and authority-expansion review contract. They must remain read-only.
+The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, and authority implementation decision packet. They must remain read-only.

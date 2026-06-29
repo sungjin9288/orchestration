@@ -237,6 +237,11 @@ const informationalChecks = [
     purpose: 'vNext authority expansion review defines the shared read-only request contract, candidate authority paths, separated approvals, stop conditions, rollback requirements, and focused smoke requirements before any proposal, memory, provider, source mutation, commit, or push authority can open',
   },
   {
+    id: 'vnext-authority-implementation-decision-packet-status',
+    script: 'scripts/vnext-authority-implementation-decision-packet-status.mjs',
+    purpose: 'vNext authority implementation decision packet defines operator decision outcomes, required decision fields, still-blocked authority, rollback refs, focused smoke refs, and aggregate verification refs before any authority-opening implementation can be considered',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

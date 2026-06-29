@@ -104,6 +104,10 @@ src/runtime/file-store.js
   separated readiness/planning/implementation/application gates, stop conditions, rollback refs,
   and verification requirements before a later approved slice can open any durable proposal,
   memory, provider, source mutation, commit, or push authority.
+- Authority implementation decision packet is decision input only: `DEC-053` and
+  `docs/27_authority-implementation-decision-packet.md` list the operator decision outcomes,
+  required fields, still-blocked authority, rollback refs, focused smoke refs, and aggregate
+  verification ref needed before a later implementation plan can open exactly one authority path.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -231,6 +235,7 @@ node scripts/smoke-ui-slice-649.mjs
 node scripts/vnext-growth-dashboard-evidence-depth-status.mjs
 node scripts/vnext-memory-readiness-decision-spec-status.mjs
 node scripts/vnext-authority-expansion-review-status.mjs
+node scripts/vnext-authority-implementation-decision-packet-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -252,13 +257,17 @@ Current verification evidence from this README refresh:
 - `node scripts/vnext-authority-expansion-review-status.mjs`: authority expansion request fields,
   candidate authority paths, approval separation, stop conditions, rollback refs, and focused smoke
   requirements stay read-only.
+- `node scripts/vnext-authority-implementation-decision-packet-status.mjs`: operator decision
+  outcomes, required decision fields, recommended first candidate, still-blocked authority, rollback
+  refs, focused smoke refs, and aggregate verification ref stay read-only.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `146/146`, total `147/147`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `147/147`, total `148/148`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
-  read-only growth dashboard evidence depth, and authority expansion review checks.
+  read-only growth dashboard evidence depth, authority expansion review, and authority implementation
+  decision packet checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.

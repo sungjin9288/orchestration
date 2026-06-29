@@ -23,6 +23,7 @@ const files = {
   proposalDecisionSpec: 'docs/24_proposal-review-decision-spec.md',
   memoryDecisionSpec: 'docs/25_memory-readiness-decision-spec.md',
   authorityExpansionSpec: 'docs/26_authority-expansion-review-spec.md',
+  authorityDecisionPacket: 'docs/27_authority-implementation-decision-packet.md',
   decisionLog: 'docs/01_decision-log.md',
   growthPlan: 'docs/18_growth-gateway-vnext.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -95,6 +96,7 @@ assert.match(sources.decisionLog, /### DEC-049/);
 assert.match(sources.decisionLog, /### DEC-050/);
 assert.match(sources.decisionLog, /### DEC-051/);
 assert.match(sources.decisionLog, /### DEC-052/);
+assert.match(sources.decisionLog, /### DEC-053/);
 assert.match(sources.readme, /Read-only growth evidence/);
 assert.match(sources.readme, /grouped failure patterns/);
 assert.match(sources.readme, /regression comparison/);
@@ -103,6 +105,8 @@ assert.match(sources.readme, /Local-only personalization/);
 assert.match(sources.readme, /docs\/25_memory-readiness-decision-spec\.md/);
 assert.match(sources.readme, /Authority expansion review is not implementation approval/);
 assert.match(sources.readme, /docs\/26_authority-expansion-review-spec\.md/);
+assert.match(sources.readme, /Authority implementation decision packet is decision input only/);
+assert.match(sources.readme, /docs\/27_authority-implementation-decision-packet\.md/);
 assert.match(sources.vnextAudit, /^# vNext Development Audit/m);
 assert.match(sources.vnextAudit, /local-only personalization portability/);
 assert.match(sources.vnextAudit, /Completed: `proposal review decision spec`/);
@@ -116,6 +120,7 @@ assert.match(sources.proposalDecisionSpec, /Review-readiness evidence is not app
 assert.match(sources.vnextAudit, /Completed: `memory readiness decision spec`/);
 assert.match(sources.vnextAudit, /Completed: `growth dashboard evidence depth`/);
 assert.match(sources.vnextAudit, /Completed: `operator-approved authority expansion review`/);
+assert.match(sources.vnextAudit, /Completed: `authority implementation decision packet`/);
 assert.match(sources.memoryDecisionSpec, /^# Memory Readiness Decision Spec/m);
 assert.match(sources.memoryDecisionSpec, /## Memory Item Contract/);
 assert.match(sources.memoryDecisionSpec, /## Source And Redaction Rules/);
@@ -132,6 +137,11 @@ assert.match(sources.authorityExpansionSpec, /## Approval Semantics/);
 assert.match(sources.authorityExpansionSpec, /## Implementation Prerequisites/);
 assert.match(sources.authorityExpansionSpec, /The current state remains `operator decision required`/);
 assert.match(sources.authorityExpansionSpec, /Review acceptance can only feed the next explicit decision/);
+assert.match(sources.authorityDecisionPacket, /^# Authority Implementation Decision Packet/m);
+assert.match(sources.authorityDecisionPacket, /## Required Operator Decision/);
+assert.match(sources.authorityDecisionPacket, /Current gate: `operator decision required`/);
+assert.match(sources.authorityDecisionPacket, /Current implementation authority: blocked/);
+assert.match(sources.authorityDecisionPacket, /This packet does not provide that approval/);
 assert.match(sources.uiSmoke, /data-growth-learning-surface="read-only"/);
 assert.match(sources.uiSmoke, /data-personalization-scope="local-only"/);
 assert.match(sources.uiSmoke, /data-growth-dashboard-evidence-depth="read-only"/);
@@ -144,10 +154,12 @@ assert.match(sources.verification, /vnext-development-audit-status\.mjs/);
 assert.match(sources.verification, /vnext-memory-readiness-decision-spec-status\.mjs/);
 assert.match(sources.verification, /vnext-growth-dashboard-evidence-depth-status\.mjs/);
 assert.match(sources.verification, /vnext-authority-expansion-review-status\.mjs/);
+assert.match(sources.verification, /vnext-authority-implementation-decision-packet-status\.mjs/);
 assert.match(sources.inventory, /vNext development audit/);
 assert.match(sources.inventory, /vNext memory readiness decision spec/);
 assert.match(sources.inventory, /vNext growth dashboard evidence depth/);
 assert.match(sources.inventory, /vNext authority expansion review/);
+assert.match(sources.inventory, /vNext authority implementation decision packet/);
 
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
 const reflection = runStatus('scripts/growth-reflection-evaluator.mjs');
@@ -197,6 +209,15 @@ const implemented = [
   {
     area: 'operator-approved authority expansion review',
     evidence: ['docs/26_authority-expansion-review-spec.md', 'docs/01_decision-log.md#DEC-052', 'scripts/vnext-authority-expansion-review-status.mjs'],
+    status: 'documented-read-only',
+  },
+  {
+    area: 'authority implementation decision packet',
+    evidence: [
+      'docs/27_authority-implementation-decision-packet.md',
+      'docs/01_decision-log.md#DEC-053',
+      'scripts/vnext-authority-implementation-decision-packet-status.mjs',
+    ],
     status: 'documented-read-only',
   },
   {

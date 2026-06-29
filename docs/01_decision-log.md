@@ -286,6 +286,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Future authority expansion work must preserve the request fields, separated readiness/planning/implementation/application gates, stop conditions, rollback requirements, and verification requirements in `docs/26_authority-expansion-review-spec.md`. Review acceptance can only feed the next explicit decision. It must not open proposal generation/application, proposal record creation/persistence, memory persistence, provider calls, source mutation, commit, or push by itself.
 - Needed Before: Any future authority-opening slice still needs a later accepted implementation decision naming the exact authority, target surface, approval payload, implementation plan, rollback plan, focused smoke coverage, aggregate verification, and authorities that remain blocked.
 
+### DEC-053
+- Status: `Accepted`
+- Decision: The vNext authority implementation decision packet is defined in `docs/27_authority-implementation-decision-packet.md` as a read-only operator input for the current `operator decision required` gate.
+- Why: `DEC-052` fixed the shared review boundary, but the next human decision still needed one compact packet that separates planning-only approval, implementation-slice approval, rejection, deferral, and request-more-evidence outcomes before any authority-opening implementation can be considered.
+- Impact: Future authority-opening work must use the packet's required decision fields, single-target-authority rule, still-blocked authority list, rollback refs, focused smoke refs, and aggregate verification ref. The packet is not implementation approval and must not create proposal records, persist memory, call providers, mutate source, commit, or push.
+- Needed Before: Any future implementation still needs an explicit operator decision choosing one outcome, a later accepted implementation plan for exactly one authority path, rollback evidence, focused smoke coverage, aggregate verification, and separate approval before commit or push.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
