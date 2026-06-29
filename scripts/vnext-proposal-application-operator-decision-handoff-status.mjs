@@ -66,7 +66,7 @@ const proposalApplicationDecisionOptions = [
   'defer',
 ];
 
-const blockedAuthorityMarkers = [
+const proposalApplicationOperatorHandoffBlockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
@@ -196,7 +196,7 @@ const proposalApplicationOperatorHandoffSourceEvidence = {
     'docs/32_proposal-application-operator-decision-handoff.md',
     'Proposal application implementation plan is planning-only evidence',
   ],
-  app: blockedAuthorityMarkers,
+  app: proposalApplicationOperatorHandoffBlockedAuthorityMarkers,
   verification: ['vnext-proposal-application-operator-decision-handoff-status.mjs'],
 };
 

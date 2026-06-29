@@ -78,7 +78,7 @@ const proposalApplicationAttemptFields = [
   'nonApprovalStatement',
 ];
 
-const blockedAuthorityMarkers = [
+const proposalApplicationImplementationPlanBlockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
@@ -210,7 +210,7 @@ const proposalApplicationImplementationPlanSourceEvidence = {
     'Proposal application implementation plan is planning-only evidence',
     'docs/33_proposal-application-implementation-plan.md',
   ],
-  app: blockedAuthorityMarkers,
+  app: proposalApplicationImplementationPlanBlockedAuthorityMarkers,
   verification: ['vnext-proposal-application-implementation-plan-status.mjs'],
 };
 

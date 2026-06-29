@@ -69,7 +69,7 @@ const proposalApplicationImplementationDecisionInvalidShortcuts = [
   'ship it',
 ];
 
-const blockedAuthorityMarkers = [
+const proposalApplicationImplementationDecisionHandoffBlockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
   'longTermMemoryStoreAllowed: false',
@@ -197,7 +197,7 @@ const proposalApplicationImplementationDecisionHandoffSourceEvidence = {
     'Proposal application implementation decision handoff is not approval',
     'docs/34_proposal-application-implementation-decision-handoff.md',
   ],
-  app: blockedAuthorityMarkers,
+  app: proposalApplicationImplementationDecisionHandoffBlockedAuthorityMarkers,
   verification: ['vnext-proposal-application-implementation-decision-handoff-status.mjs'],
 };
 
