@@ -207,7 +207,7 @@ const sourceEvidence = {
 
 assertSourceEvidence(sources, sourceEvidence);
 
-const originalGate = 'operator decision required';
+const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
 const proposalApplicationImplementationDecisionSlice =
   'proposal application implementation decision required';
@@ -256,13 +256,13 @@ process.stdout.write(
       upstreamEvidence: {
         decisionPacket: {
           registered: true,
-          originalGate,
+          originalGate: operatorDecisionGate,
           currentGate: proposalApplicationDecisionGate,
           implementationAuthority: 'accepted for durable proposal record creation and persistence only',
         },
         planningPreview: {
           registered: true,
-          originalGate,
+          originalGate: operatorDecisionGate,
           currentGate: proposalApplicationDecisionGate,
           implementationAuthority: 'accepted for durable proposal record creation and persistence only',
           proposalApplication: 'blocked',

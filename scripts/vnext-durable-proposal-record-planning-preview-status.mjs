@@ -175,7 +175,7 @@ const creationReadinessStatus = runStatus(
 );
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const originalGate = 'operator decision required';
+const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
 const recommendedFirstCandidate = 'durable proposal record creation and persistence';
 
@@ -184,7 +184,7 @@ assert.equal(proposalSpecStatus.ok, true);
 assert.equal(proposalQueueStatus.ok, true);
 assert.equal(creationReadinessStatus.ok, true);
 assert.equal(auditStatus.ok, true);
-assert.equal(decisionPacketStatus.originalGate, originalGate);
+assert.equal(decisionPacketStatus.originalGate, operatorDecisionGate);
 assert.equal(decisionPacketStatus.currentGate, proposalApplicationDecisionGate);
 assert.equal(proposalSpecStatus.authority?.proposalRecordCreationAllowed, false);
 assert.equal(proposalSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
