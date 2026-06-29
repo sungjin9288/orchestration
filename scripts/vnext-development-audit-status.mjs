@@ -109,7 +109,7 @@ const blockedAuthorityMarkers = [
   'commitPushAllowed: false',
 ];
 
-const sourceEvidence = {
+const vnextDevelopmentAuditSourceEvidence = {
   referenceAudit: {
     contains: referenceSignals,
   },
@@ -401,7 +401,7 @@ const sourceEvidence = {
   },
 };
 
-assertSourceEvidence(vnextDevelopmentAuditSources, sourceEvidence);
+assertSourceEvidence(vnextDevelopmentAuditSources, vnextDevelopmentAuditSourceEvidence);
 
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
 const reflection = runStatus('scripts/growth-reflection-evaluator.mjs');

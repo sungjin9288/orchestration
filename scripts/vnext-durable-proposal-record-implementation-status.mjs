@@ -61,7 +61,7 @@ const durableProposalRecordImplementationStatusSources = Object.fromEntries(
   ]),
 );
 
-const sourceEvidence = {
+const durableProposalRecordImplementationStatusSourceEvidence = {
   contracts: [
     /schemaVersion: 5/,
     /proposalRecord: 0/,
@@ -102,7 +102,10 @@ const sourceEvidence = {
   ],
 };
 
-assertSourceEvidence(durableProposalRecordImplementationStatusSources, sourceEvidence);
+assertSourceEvidence(
+  durableProposalRecordImplementationStatusSources,
+  durableProposalRecordImplementationStatusSourceEvidence,
+);
 
 assertDoesNotMatchAny(durableProposalRecordImplementationStatusSources.app, [
   /data-action="create-proposal-record"/,

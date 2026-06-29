@@ -92,7 +92,7 @@ const escapedAuthorityMarkers = blockedAuthorityMarkers.map(
   (marker) => new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
 );
 
-const sourceEvidence = {
+const growthDashboardEvidenceDepthSourceEvidence = {
   app: [
     /function getGrowthFailurePatternGroups\(\{ failedRuns, reviewArtifacts, blockedTasks \}\)/,
     /function getGrowthRegressionComparison\(\{ failedRuns, completedRuns \}\)/,
@@ -125,7 +125,10 @@ const sourceEvidence = {
   verification: [/vnext-growth-dashboard-evidence-depth-status\.mjs/],
 };
 
-assertSourceEvidence(growthDashboardEvidenceDepthSources, sourceEvidence);
+assertSourceEvidence(
+  growthDashboardEvidenceDepthSources,
+  growthDashboardEvidenceDepthSourceEvidence,
+);
 
 assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.app, forbiddenActions);
 
