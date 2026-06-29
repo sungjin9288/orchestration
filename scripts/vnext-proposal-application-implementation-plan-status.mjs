@@ -244,7 +244,7 @@ const proposalApplicationAuthorityBoundary = {
   pushAllowed: false,
 };
 
-const upstreamStatus = {
+const proposalApplicationImplementationPlanUpstreamStatus = {
   proposalApplicationOperatorHandoff: {
     ok: handoffStatus.ok,
     currentGate: handoffStatus.currentGate,
@@ -290,7 +290,7 @@ process.stdout.write(
         commitAllowed: false,
         pushAllowed: false,
       },
-      upstreamStatus,
+      upstreamStatus: proposalApplicationImplementationPlanUpstreamStatus,
       authority: proposalApplicationAuthorityBoundary,
     },
     null,

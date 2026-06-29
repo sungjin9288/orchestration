@@ -226,7 +226,7 @@ const proposalApplicationAuthorityBoundary = {
   pushAllowed: false,
 };
 
-const upstreamStatus = {
+const proposalApplicationOperatorHandoffUpstreamStatus = {
   proposalApplicationDecisionPacket: {
     ok: packetStatus.ok,
     proposalApplicationAllowed: packetStatus.authority?.proposalApplicationAllowed,
@@ -261,7 +261,7 @@ process.stdout.write(
         'operator-provided application implementation decision for exactly one durable proposal record application path',
       decisionOptions: proposalApplicationDecisionOptions,
       requiredDecisionFields: proposalApplicationDecisionRequiredFields,
-      upstreamStatus,
+      upstreamStatus: proposalApplicationOperatorHandoffUpstreamStatus,
       authority: proposalApplicationAuthorityBoundary,
     },
     null,
