@@ -131,6 +131,10 @@ src/runtime/file-store.js
   `docs/31_proposal-application-decision-packet.md` define application decision options, required
   fields, application boundary, stop conditions, still-blocked authority, rollback refs, focused
   smoke refs, and aggregate verification refs before any durable proposal record can be applied.
+- Proposal application operator decision handoff is not approval: `DEC-059` and
+  `docs/32_proposal-application-operator-decision-handoff.md` provide copy-ready application
+  planning and implementation statement shapes, invalid shortcuts, minimum acceptance criteria,
+  still-blocked authority, and stop conditions without opening application authority.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -265,6 +269,7 @@ node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs
 node scripts/smoke-durable-proposal-record-creation.mjs
 node scripts/vnext-durable-proposal-record-implementation-status.mjs
 node scripts/vnext-proposal-application-decision-packet-status.mjs
+node scripts/vnext-proposal-application-operator-decision-handoff-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -311,16 +316,20 @@ Current verification evidence from this README refresh:
   proposal application decision packet, required application decision fields, still-blocked
   application/provider/memory/source/commit/push authority, upstream proposal review spec, and
   durable proposal record implementation evidence.
+- `node scripts/vnext-proposal-application-operator-decision-handoff-status.mjs`: source-checks the
+  copy-ready application decision handoff, valid planning/implementation statement shapes, invalid
+  shortcuts, minimum acceptance criteria, still-blocked authority, upstream application decision
+  packet, and durable proposal record implementation evidence.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `153/153`, total `154/154`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `154/154`, total `155/155`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
-  durable proposal record implementation plan, implementation, and proposal application decision
-  packet checks.
+  durable proposal record implementation plan, implementation, proposal application decision packet,
+  and proposal application operator decision handoff checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
@@ -357,6 +366,9 @@ Playwright CLI:
 - Proposal application remains decision-gated. `docs/31_proposal-application-decision-packet.md`
   is read-only input and does not apply records, generate proposals, call providers, persist memory,
   mutate source, commit, or push.
+- `docs/32_proposal-application-operator-decision-handoff.md` is copy-ready decision text only. It
+  does not record an operator decision, apply records, mutate source, call providers, persist memory,
+  commit, or push.
 - Long-term memory storage remains blocked until an accepted decision defines memory item schema,
   source/evidence refs, workspace applicability, raw transcript exclusion, redaction, export, expiry,
   deletion, human review, and focused smoke coverage for unchanged provider/source/commit/push

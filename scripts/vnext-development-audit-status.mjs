@@ -28,6 +28,7 @@ const files = {
   operatorDecisionHandoff: 'docs/29_operator-decision-handoff.md',
   proposalRecordImplementationPlan: 'docs/30_durable-proposal-record-implementation-plan.md',
   proposalApplicationDecisionPacket: 'docs/31_proposal-application-decision-packet.md',
+  proposalApplicationOperatorHandoff: 'docs/32_proposal-application-operator-decision-handoff.md',
   proposalRecordImplementationStatus: 'scripts/vnext-durable-proposal-record-implementation-status.mjs',
   proposalRecordCreationSmoke: 'scripts/smoke-durable-proposal-record-creation.mjs',
   decisionLog: 'docs/01_decision-log.md',
@@ -120,6 +121,7 @@ assertContainsAll(sources.decisionLog, [
   '### DEC-056',
   '### DEC-057',
   '### DEC-058',
+  '### DEC-059',
 ]);
 assertContainsAll(sources.readme, [
   'Read-only growth evidence',
@@ -141,6 +143,8 @@ assertContainsAll(sources.readme, [
   'docs/30_durable-proposal-record-implementation-plan.md',
   'Proposal application decision packet is decision input only',
   'docs/31_proposal-application-decision-packet.md',
+  'Proposal application operator decision handoff is not approval',
+  'docs/32_proposal-application-operator-decision-handoff.md',
 ]);
 assertContainsAll(sources.vnextAudit, [
   'local-only personalization portability',
@@ -156,6 +160,7 @@ assertContainsAll(sources.vnextAudit, [
   'Completed: `durable proposal record implementation plan`',
   'Completed: `durable proposal record implementation`',
   'Completed: `proposal application decision packet`',
+  'Completed: `proposal application operator decision handoff`',
   '1. `proposal application planning decision required`',
 ]);
 assertMatchesAll(sources.vnextAudit, [/^# vNext Development Audit/m]);
@@ -235,6 +240,20 @@ assertContainsAll(sources.proposalApplicationDecisionPacket, [
 ]);
 assertMatchesAll(sources.proposalApplicationDecisionPacket, [/^# Proposal Application Decision Packet/m]);
 
+assertContainsAll(sources.proposalApplicationOperatorHandoff, [
+  'Current gate: `proposal application planning decision required`',
+  'Decision packet: `docs/31_proposal-application-decision-packet.md`',
+  'Handoff status: `decision-template-only`',
+  'It is not an operator decision',
+  'It is not proposal application approval',
+  'approve-application-planning-only',
+  'approve-application-implementation-slice',
+  'durable proposal record creation approval as application approval',
+]);
+assertMatchesAll(sources.proposalApplicationOperatorHandoff, [
+  /^# Proposal Application Operator Decision Handoff/m,
+]);
+
 assertContainsAll(sources.proposalRecordImplementationPlan, [
   'decisionStatus` | `approve-planning-only`',
   'Planning approval: accepted',
@@ -276,6 +295,7 @@ assertContainsAll(sources.verification, [
   'smoke-durable-proposal-record-creation.mjs',
   'vnext-durable-proposal-record-implementation-status.mjs',
   'vnext-proposal-application-decision-packet-status.mjs',
+  'vnext-proposal-application-operator-decision-handoff-status.mjs',
 ]);
 assertContainsAll(sources.inventory, [
   'vNext development audit',
@@ -287,6 +307,7 @@ assertContainsAll(sources.inventory, [
   'vNext operator decision handoff',
   'vNext durable proposal record implementation plan',
   'vNext proposal application decision packet',
+  'vNext proposal application operator decision handoff',
 ]);
 
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
@@ -396,6 +417,15 @@ const implemented = [
       'scripts/vnext-proposal-application-decision-packet-status.mjs',
     ],
     status: 'documented-read-only-decision-input',
+  },
+  {
+    area: 'proposal application operator decision handoff',
+    evidence: [
+      'docs/32_proposal-application-operator-decision-handoff.md',
+      'docs/01_decision-log.md#DEC-059',
+      'scripts/vnext-proposal-application-operator-decision-handoff-status.mjs',
+    ],
+    status: 'documented-read-only-decision-template',
   },
   {
     area: 'completion and README evidence',

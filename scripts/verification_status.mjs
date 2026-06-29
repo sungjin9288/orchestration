@@ -272,6 +272,11 @@ const informationalChecks = [
     purpose: 'vNext proposal application decision packet defines application decision outcomes, required decision fields, application boundary, still-blocked authority, rollback refs, focused smoke refs, and aggregate verification refs before any durable proposal record can be applied',
   },
   {
+    id: 'vnext-proposal-application-operator-decision-handoff-status',
+    script: 'scripts/vnext-proposal-application-operator-decision-handoff-status.mjs',
+    purpose: 'vNext proposal application operator decision handoff defines copy-ready application planning and implementation statement shapes, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions without recording a decision or opening proposal application, provider, memory, source mutation, commit, or push authority',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

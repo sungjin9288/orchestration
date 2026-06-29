@@ -17,6 +17,7 @@ The current product posture is:
 - operator decision handoff: read-only decision template defined; it is not an operator decision
 - durable proposal record implementation plan: planning-only approval accepted, implementation approval accepted, and local runtime creation/persistence implemented without proposal application authority
 - proposal application decision packet: read-only decision input defined; it does not approve application
+- proposal application operator decision handoff: read-only decision template defined; it does not approve application
 
 ## Current Evidence
 
@@ -34,6 +35,7 @@ The current product posture is:
 | Operator decision handoff | Implemented as a read-only decision template and consumed by the accepted planning-only decision. It preserves valid statement shapes, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop conditions without approving implementation, record creation, persistence, application, memory, provider, source mutation, commit, or push. | `docs/01_decision-log.md#DEC-055`, `docs/29_operator-decision-handoff.md`, `scripts/vnext-operator-decision-handoff-status.mjs` |
 | Durable proposal record implementation | Implemented as an approved local runtime slice. It stores durable proposal records in `state.json`, uses stable `proposal-record-0001` ids, requires creation approval evidence, keeps `applyAllowed=false`, exposes records as read-only UI data, and keeps proposal application, provider calls, memory persistence, source mutation, commit, and push blocked. | `docs/01_decision-log.md#DEC-056`, `docs/01_decision-log.md#DEC-057`, `docs/30_durable-proposal-record-implementation-plan.md`, `src/runtime/contracts.js`, `src/runtime/file-store.js`, `src/runtime/runtime-service.js`, `scripts/smoke-durable-proposal-record-creation.mjs`, `scripts/vnext-durable-proposal-record-implementation-status.mjs` |
 | Proposal application decision packet | Implemented as a read-only decision input. It names the valid application decision outcomes, required fields, application boundary, still-blocked authority, stop conditions, and verification refs before any durable proposal record can be applied. | `docs/01_decision-log.md#DEC-058`, `docs/31_proposal-application-decision-packet.md`, `scripts/vnext-proposal-application-decision-packet-status.mjs` |
+| Proposal application operator decision handoff | Implemented as a read-only decision template. It gives copy-ready application planning and implementation statement shapes, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions without recording a decision or opening application authority. | `docs/01_decision-log.md#DEC-059`, `docs/32_proposal-application-operator-decision-handoff.md`, `scripts/vnext-proposal-application-operator-decision-handoff-status.mjs` |
 
 ## Development Plan
 
@@ -70,8 +72,11 @@ Completed: `durable proposal record implementation`
 Completed: `proposal application decision packet`
 `docs/31_proposal-application-decision-packet.md` turns the current proposal application gate into read-only decision input. It separates application planning, application implementation, source mutation approval, commit approval, and push approval while keeping proposal generation/application, provider calls, memory persistence, source mutation, commit, and push blocked.
 
+Completed: `proposal application operator decision handoff`
+`docs/32_proposal-application-operator-decision-handoff.md` gives the operator copy-ready statement shapes for application planning, application implementation, request-more-evidence, reject, and defer outcomes. It is not an operator decision and does not approve proposal application, source mutation, provider calls, memory persistence, commit, or push.
+
 1. `proposal application planning decision required`
-   Choose whether a later slice should plan or implement proposal application semantics for existing durable proposal records. The current packet is decision input only; it does not generate proposals, apply proposals, mutate source, call providers, persist memory, commit, or push.
+   Choose whether a later slice should plan or implement proposal application semantics for existing durable proposal records. The current packet and handoff are decision input only; they do not generate proposals, apply proposals, mutate source, call providers, persist memory, commit, or push.
 
 ## Authority Boundary
 
@@ -105,6 +110,7 @@ node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs
 node scripts/smoke-durable-proposal-record-creation.mjs
 node scripts/vnext-durable-proposal-record-implementation-status.mjs
 node scripts/vnext-proposal-application-decision-packet-status.mjs
+node scripts/vnext-proposal-application-operator-decision-handoff-status.mjs
 ```
 
-The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, the approved durable proposal record creation/persistence smoke, and the proposal application decision packet.
+The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, the approved durable proposal record creation/persistence smoke, the proposal application decision packet, and the proposal application operator decision handoff.

@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- Application decision handoffs should be copy-ready but inert. They can show exact planning and implementation statement shapes, but they must not record a decision, imply source mutation, or merge application approval with provider, memory, commit, or push approval.
 - After durable proposal record creation/persistence lands, add a separate application decision packet before any application work. Creation approval, application planning, application implementation, source mutation, commit, and push need separately named authority, evidence refs, rollback refs, focused smoke refs, and still-blocked authority.
 - When durable proposal record creation is approved, keep creation/persistence separate from application. The runtime can assign ids, timestamps, expiry, and local `state.json` records only through an approved creation payload, while UI creation actions, proposal application, provider calls, memory persistence, source mutation, commit, and push remain separate gates.
 - Operator decision handoffs should reject shortcut approvals explicitly. A copy-ready template can make the next human decision faster, and phrases such as `continue`, `do everything`, `approve all`, or `implement vNext` can express continuation intent, but they must not open planning or implementation authority unless the fielded decision states the exact outcome, target authority, evidence refs, rollback refs, smoke refs, and still-blocked authorities.

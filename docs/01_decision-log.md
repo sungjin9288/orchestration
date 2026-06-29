@@ -328,6 +328,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/31_proposal-application-decision-packet.md` defines decision options, required fields, application boundary, still-blocked authority, stop conditions, and verification for the next proposal application decision. `scripts/vnext-proposal-application-decision-packet-status.mjs` pins that this is decision input only and does not create a proposal application path. Runtime, UI, provider, memory, source mutation, commit, and push behavior remain unchanged.
 - Needed Before: Any proposal application implementation still needs an explicit `approve-application-planning-only` or `approve-application-implementation-slice` path as appropriate, source and negative evidence refs, rollback refs, focused smoke refs, aggregate verification, and separate approval for source mutation, commit, or push when those actions are involved.
 
+### DEC-059
+- Status: `Accepted`
+- Decision: Proposal application planning now has a read-only, copy-ready operator decision handoff.
+- Why: `DEC-058` defined the application decision packet, but the next human response still needs a fielded shape that rejects shortcuts such as `continue`, `apply all proposals`, or `approve all`. The handoff makes the next decision easier without becoming the decision itself.
+- Impact: `docs/32_proposal-application-operator-decision-handoff.md` defines valid application planning and implementation statement shapes, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions. `scripts/vnext-proposal-application-operator-decision-handoff-status.mjs` verifies the handoff remains read-only and that proposal application, provider calls, memory persistence, source mutation, commit, and push stay blocked.
+- Needed Before: Any proposal application planning or implementation still needs the operator to provide a fielded decision using the handoff values, followed by accepted rollback evidence, focused smoke coverage, aggregate verification, and separate approval for source mutation, commit, or push when those actions are involved.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
