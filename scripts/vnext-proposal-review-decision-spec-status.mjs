@@ -158,16 +158,17 @@ assertSourceEvidence(sources, sourceEvidence);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const nextSlice = 'proposal application implementation decision required';
 const currentNextSlice = {
   id: 'proposal-application-implementation-decision-required',
-  slice: 'proposal application implementation decision required',
+  slice: nextSlice,
   command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',
   reason:
     'Proposal review has a source-backed decision spec, durable proposal record creation/persistence is implemented only for local records, and proposal application planning-only evidence is recorded; implementation authority remains blocked until a later explicit decision.',
 };
 
 assert.equal(auditStatus.ok, true);
-assert.equal(auditNextSlice, currentNextSlice.slice);
+assert.equal(auditNextSlice, nextSlice);
 
 const proposalQueue = runStatus('scripts/growth-proposal-queue-status.mjs');
 const creationReadiness = runStatus(

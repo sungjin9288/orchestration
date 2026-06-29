@@ -557,7 +557,7 @@ const blocked = [
 const recommendedDevelopmentPlan = [
   {
     priority: 1,
-    slice: 'proposal application implementation decision required',
+    slice: nextGrowthSlice,
     scope:
       'Choose whether a later slice should implement exactly one audit-only application attempt path for existing durable proposal records.',
     gate: 'Requires explicit proposal application implementation authority, focused smoke coverage, rollback evidence, and aggregate verification before any proposal can apply itself or mutate source.',

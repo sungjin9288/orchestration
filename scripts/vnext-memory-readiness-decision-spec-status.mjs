@@ -178,16 +178,17 @@ assertSourceEvidence(sources, sourceEvidence);
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const nextSlice = 'proposal application implementation decision required';
 const currentNextSlice = {
   id: 'proposal-application-implementation-decision-required',
-  slice: 'proposal application implementation decision required',
+  slice: nextSlice,
   command: 'node scripts/vnext-memory-readiness-decision-spec-status.mjs',
   reason:
     'Proposal, memory, growth dashboard, authority review, durable proposal record creation/persistence, and application planning-only evidence are source-backed; applying proposals still requires a later accepted implementation decision.',
 };
 
 assert.equal(auditStatus.ok, true);
-assert.equal(auditNextSlice, currentNextSlice.slice);
+assert.equal(auditNextSlice, nextSlice);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.memoryPersistenceAllowed, false);
 
