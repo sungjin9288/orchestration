@@ -210,7 +210,7 @@ assert.equal(
   true,
 );
 
-const authority = {
+const proposalApplicationAuthorityBoundary = {
   proposalApplicationAllowed: false,
   proposalGenerationAllowed: false,
   proposalQueueMutationAllowed: false,
@@ -262,7 +262,7 @@ process.stdout.write(
       decisionOptions: proposalApplicationDecisionOptions,
       requiredDecisionFields: proposalApplicationDecisionRequiredFields,
       upstreamStatus,
-      authority,
+      authority: proposalApplicationAuthorityBoundary,
     },
     null,
     2,

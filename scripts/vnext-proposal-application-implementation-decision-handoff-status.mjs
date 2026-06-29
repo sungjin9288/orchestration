@@ -211,7 +211,7 @@ assert.equal(
   true,
 );
 
-const authority = {
+const proposalApplicationAuthorityBoundary = {
   handoffRecordsDecision: false,
   implementationApproved: false,
   proposalApplicationAllowed: false,
@@ -257,7 +257,7 @@ process.stdout.write(
           nextSlice: auditNextSlice,
         },
       },
-      authority,
+      authority: proposalApplicationAuthorityBoundary,
     },
     null,
     2,

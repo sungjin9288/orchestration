@@ -202,7 +202,7 @@ assert.equal(
   true,
 );
 
-const authority = {
+const proposalApplicationAuthorityBoundary = {
   proposalApplicationAllowed: false,
   proposalGenerationAllowed: false,
   proposalQueueMutationAllowed: false,
@@ -250,7 +250,7 @@ process.stdout.write(
           nextSlice: auditNextSlice,
         },
       },
-      authority,
+      authority: proposalApplicationAuthorityBoundary,
     },
     null,
     2,
