@@ -31,7 +31,7 @@ const proposalApplicationImplementationDecisionHandoffFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const requiredSections = [
+const proposalApplicationImplementationDecisionHandoffSections = [
   '## Purpose',
   '## Current Gate',
   '## Source Evidence',
@@ -135,7 +135,7 @@ const proposalApplicationImplementationDecisionHandoffSources = Object.fromEntri
   ),
 );
 
-for (const section of requiredSections) {
+for (const section of proposalApplicationImplementationDecisionHandoffSections) {
   assert.match(
     proposalApplicationImplementationDecisionHandoffSources.handoff,
     new RegExp(`^${escapeRegExp(section)}$`, 'm'),

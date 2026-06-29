@@ -30,7 +30,7 @@ const proposalApplicationImplementationPlanFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const requiredPlanSections = [
+const proposalApplicationImplementationPlanSections = [
   '## Purpose',
   '## Accepted Planning-Only Decision',
   '## Current Status',
@@ -147,7 +147,7 @@ const proposalApplicationImplementationPlanSources = Object.fromEntries(
   ]),
 );
 
-for (const section of requiredPlanSections) {
+for (const section of proposalApplicationImplementationPlanSections) {
   assert.match(
     proposalApplicationImplementationPlanSources.plan,
     new RegExp(`^${escapeRegExp(section)}$`, 'm'),
