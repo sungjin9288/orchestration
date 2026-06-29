@@ -38,7 +38,7 @@ const requiredSpecSections = [
   '## Verification',
 ];
 
-const requiredRecordFields = [
+const proposalReviewRecordFields = [
   'id',
   'status',
   'createdAt',
@@ -134,7 +134,7 @@ for (const section of requiredSpecSections) {
   );
 }
 
-assertContainsBacktickedAll(proposalReviewDecisionSpecSources.spec, requiredRecordFields);
+assertContainsBacktickedAll(proposalReviewDecisionSpecSources.spec, proposalReviewRecordFields);
 assertDoesNotMatchAny(proposalReviewDecisionSpecSources.app, forbiddenAuthorityPatterns);
 
 const sourceEvidence = {
@@ -221,7 +221,7 @@ process.stdout.write(
       posture: 'read-only-proposal-review-decision-spec',
       spec: proposalReviewDecisionSpecFiles.spec,
       requiredSections: requiredSpecSections,
-      requiredRecordFields,
+      requiredRecordFields: proposalReviewRecordFields,
       approvalSemantics,
       stopConditions: [
         'missing sourceFindingId',

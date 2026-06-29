@@ -57,7 +57,7 @@ const proposalRecordImplementationDecisionRequiredFields = [
   'approvalStatement',
 ];
 
-const requiredRecordFields = [
+const durableProposalImplementationPlanRecordFields = [
   'proposalId',
   'title',
   'proposalType',
@@ -165,7 +165,7 @@ assertContainsBacktickedAll(
 );
 assertContainsBacktickedAll(
   durableProposalRecordImplementationPlanSources.plan,
-  requiredRecordFields,
+  durableProposalImplementationPlanRecordFields,
 );
 assertDoesNotMatchAny(durableProposalRecordImplementationPlanSources.app, forbiddenActionPatterns);
 

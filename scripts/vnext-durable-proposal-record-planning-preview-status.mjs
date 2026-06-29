@@ -42,7 +42,7 @@ const requiredPreviewSections = [
   '## Verification',
 ];
 
-const requiredRecordFields = [
+const durableProposalPlanningPreviewRecordFields = [
   'proposalId',
   'title',
   'proposalType',
@@ -138,7 +138,10 @@ for (const section of requiredPreviewSections) {
   );
 }
 
-assertContainsBacktickedAll(durableProposalRecordPlanningPreviewSources.preview, requiredRecordFields);
+assertContainsBacktickedAll(
+  durableProposalRecordPlanningPreviewSources.preview,
+  durableProposalPlanningPreviewRecordFields,
+);
 assertDoesNotMatchAny(durableProposalRecordPlanningPreviewSources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
