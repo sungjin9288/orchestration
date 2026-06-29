@@ -167,7 +167,7 @@ assert.equal(
   true,
 );
 
-const authority = {
+const authorityBoundary = {
   providerCallsAllowed: false,
   memoryPersistenceAllowed: false,
   longTermMemoryStoreAllowed: false,
@@ -216,7 +216,7 @@ process.stdout.write(
           posture: authorityReviewStatus.posture,
         },
       },
-      authority,
+      authority: authorityBoundary,
     },
     null,
     2,

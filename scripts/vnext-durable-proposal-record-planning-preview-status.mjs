@@ -198,7 +198,7 @@ assert.equal(
   true,
 );
 
-const authority = {
+const authorityBoundary = {
   proposalRecordCreationAllowed: false,
   proposalRecordPersistenceAllowed: false,
   proposalRecordCreationAllowedThroughApprovedRuntimeFunction: true,
@@ -265,7 +265,7 @@ process.stdout.write(
           implementationAuthority: 'accepted for durable proposal record creation and persistence only',
         },
       },
-      authority,
+      authority: authorityBoundary,
     },
     null,
     2,
