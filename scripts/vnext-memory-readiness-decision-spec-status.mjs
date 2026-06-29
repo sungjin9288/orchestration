@@ -27,7 +27,7 @@ const memoryReadinessDecisionSpecFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const requiredSpecSections = [
+const memoryReadinessSpecSections = [
   '## Purpose',
   '## Current Status',
   '## Non-Authority Boundary',
@@ -139,7 +139,7 @@ const memoryReadinessDecisionSpecSources = Object.fromEntries(
   ]),
 );
 
-for (const section of requiredSpecSections) {
+for (const section of memoryReadinessSpecSections) {
   assert.match(
     memoryReadinessDecisionSpecSources.spec,
     new RegExp(`^${escapeRegExp(section)}$`, 'm'),
@@ -226,7 +226,7 @@ process.stdout.write(
       schemaVersion: STATUS_SCHEMA_VERSION,
       posture: 'read-only-memory-readiness-decision-spec',
       spec: memoryReadinessDecisionSpecFiles.spec,
-      requiredSections: requiredSpecSections,
+      requiredSections: memoryReadinessSpecSections,
       requiredMemoryFields,
       reviewSemantics,
       stopConditions: [

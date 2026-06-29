@@ -27,7 +27,7 @@ const authorityExpansionReviewFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const requiredSpecSections = [
+const authorityExpansionSpecSections = [
   '## Purpose',
   '## Current Status',
   '## Non-Authority Boundary',
@@ -153,7 +153,7 @@ const authorityExpansionReviewSources = Object.fromEntries(
   ]),
 );
 
-for (const section of requiredSpecSections) {
+for (const section of authorityExpansionSpecSections) {
   assert.match(
     authorityExpansionReviewSources.spec,
     new RegExp(`^${escapeRegExp(section)}$`, 'm'),

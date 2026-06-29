@@ -26,7 +26,7 @@ const proposalReviewDecisionSpecFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const requiredSpecSections = [
+const proposalReviewSpecSections = [
   '## Purpose',
   '## Current Status',
   '## Non-Authority Boundary',
@@ -127,7 +127,7 @@ const proposalReviewDecisionSpecSources = Object.fromEntries(
   ]),
 );
 
-for (const section of requiredSpecSections) {
+for (const section of proposalReviewSpecSections) {
   assert.match(
     proposalReviewDecisionSpecSources.spec,
     new RegExp(`^${escapeRegExp(section)}$`, 'm'),
@@ -220,7 +220,7 @@ process.stdout.write(
       schemaVersion: STATUS_SCHEMA_VERSION,
       posture: 'read-only-proposal-review-decision-spec',
       spec: proposalReviewDecisionSpecFiles.spec,
-      requiredSections: requiredSpecSections,
+      requiredSections: proposalReviewSpecSections,
       requiredRecordFields: proposalReviewRecordFields,
       approvalSemantics,
       stopConditions: [
