@@ -217,7 +217,7 @@ assert.equal(
   true,
 );
 
-const authority = {
+const durableProposalRecordImplementationAuthorityBoundary = {
   planningApproved: true,
   implementationApproved: true,
   proposalRecordCreationAllowed: false,
@@ -278,7 +278,7 @@ process.stdout.write(
           nextSlice: auditNextSlice,
         },
       },
-      authority,
+      authority: durableProposalRecordImplementationAuthorityBoundary,
     },
     null,
     2,
