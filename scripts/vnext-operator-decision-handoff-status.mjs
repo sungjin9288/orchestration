@@ -63,7 +63,7 @@ const proposalRecordDecisionOptions = [
   'defer',
 ];
 
-const invalidShortcuts = [
+const proposalRecordDecisionInvalidShortcuts = [
   'continue',
   'proceed',
   'do everything',
@@ -147,7 +147,7 @@ assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
   handoff: [
-    ...invalidShortcuts,
+    ...proposalRecordDecisionInvalidShortcuts,
     'It is not an operator decision',
     'It is not `approve-planning-only`',
     'Original gate: `operator decision required`',
@@ -250,7 +250,7 @@ process.stdout.write(
       acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
       recommendedFirstCandidate: durableProposalRecordCreationCandidate,
       decisionOptions: proposalRecordDecisionOptions,
-      invalidShortcutsRejected: invalidShortcuts,
+      invalidShortcutsRejected: proposalRecordDecisionInvalidShortcuts,
       nextRequiredInput:
         'operator-provided proposal application decision for created durable proposal records',
       upstreamEvidence: {

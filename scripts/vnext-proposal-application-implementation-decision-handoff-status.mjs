@@ -60,7 +60,7 @@ const proposalApplicationImplementationDecisionRequiredFields = [
   'approvalStatement',
 ];
 
-const invalidShortcuts = [
+const proposalApplicationImplementationDecisionInvalidShortcuts = [
   'continue',
   'do everything',
   'approve all',
@@ -145,7 +145,7 @@ assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
   handoff: [
-    ...invalidShortcuts,
+    ...proposalApplicationImplementationDecisionInvalidShortcuts,
     'It is not an operator decision',
     'Current gate: `proposal application implementation decision required`',
     'Handoff status: `decision-input-only`',
@@ -242,7 +242,7 @@ process.stdout.write(
       currentGate: proposalApplicationImplementationGate,
       handoffStatus: 'decision-input-only',
       requiredDecisionFields: proposalApplicationImplementationDecisionRequiredFields,
-      invalidShortcutsRejected: invalidShortcuts,
+      invalidShortcutsRejected: proposalApplicationImplementationDecisionInvalidShortcuts,
       nextRequiredInput:
         'operator-provided approve-application-implementation-slice or reject-application-implementation decision',
       upstreamStatus: {
