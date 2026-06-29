@@ -211,8 +211,9 @@ assertSourceEvidence(durableProposalRecordImplementationPlanSources, sourceEvide
 const handoffStatus = runStatus('scripts/vnext-operator-decision-handoff-status.mjs');
 const planningPreviewStatus = runStatus('scripts/vnext-durable-proposal-record-planning-preview-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
-const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditNextSlice =
+  vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationDecisionGate = 'proposal application decision required';
 const proposalApplicationImplementationDecisionSlice =
   'proposal application implementation decision required';
@@ -220,12 +221,14 @@ const proposalApplicationImplementationDecisionSlice =
 assert.equal(handoffStatus.ok, true);
 assert.equal(planningPreviewStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
-assert.equal(auditStatus.ok, true);
+assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.proposalRecordCreationAllowed, false);
 assert.equal(proposalSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
-assert.equal(auditNextSlice, proposalApplicationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
 assert.equal(
-  auditStatus.implemented?.some((entry) => entry.area === 'durable proposal record implementation plan'),
+  vnextDevelopmentAuditStatus.implemented?.some(
+    (entry) => entry.area === 'durable proposal record implementation plan',
+  ),
   true,
 );
 
@@ -286,8 +289,8 @@ process.stdout.write(
           proposalRecordPersistenceAllowed: proposalSpecStatus.authority?.proposalRecordPersistenceAllowed,
         },
         vnextAudit: {
-          ok: auditStatus.ok,
-          nextSlice: auditNextSlice,
+          ok: vnextDevelopmentAuditStatus.ok,
+          nextSlice: vnextDevelopmentAuditNextSlice,
         },
       },
       authority: durableProposalRecordImplementationAuthorityBoundary,

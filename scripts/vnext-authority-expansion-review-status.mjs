@@ -190,22 +190,25 @@ const sourceEvidence = {
 
 assertSourceEvidence(authorityExpansionReviewSources, sourceEvidence);
 
-const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const growthDashboardStatus = runStatus('scripts/vnext-growth-dashboard-evidence-depth-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
 const memorySpecStatus = runStatus('scripts/vnext-memory-readiness-decision-spec-status.mjs');
-const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const vnextDevelopmentAuditNextSlice =
+  vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationDecisionSlice =
   'proposal application implementation decision required';
 const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
-assert.equal(auditStatus.ok, true);
+assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(growthDashboardStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(memorySpecStatus.ok, true);
-assert.equal(auditNextSlice, proposalApplicationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
 assert.equal(
-  auditStatus.implemented?.some((entry) => entry.area === 'operator-approved authority expansion review'),
+  vnextDevelopmentAuditStatus.implemented?.some(
+    (entry) => entry.area === 'operator-approved authority expansion review',
+  ),
   true,
 );
 
@@ -237,8 +240,8 @@ process.stdout.write(
       nextRequiredInput: 'explicit proposal application decision, focused smoke, rollback evidence, and aggregate verification before proposal application opens',
       upstreamStatus: {
         vnextAudit: {
-          ok: auditStatus.ok,
-          nextSlice: auditNextSlice,
+          ok: vnextDevelopmentAuditStatus.ok,
+          nextSlice: vnextDevelopmentAuditNextSlice,
         },
         growthDashboardEvidenceDepth: {
           ok: growthDashboardStatus.ok,

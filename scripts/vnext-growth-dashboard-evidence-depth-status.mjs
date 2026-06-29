@@ -129,8 +129,9 @@ assertSourceEvidence(growthDashboardEvidenceDepthSources, sourceEvidence);
 
 assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.app, forbiddenActions);
 
-const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditNextSlice =
+  vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationDecisionSlice =
   'proposal application implementation decision required';
 const proposalApplicationImplementationDecision = {
@@ -140,12 +141,14 @@ const proposalApplicationImplementationDecision = {
     'The read-only growth dashboard, approved durable proposal record creation/persistence slice, and planning-only application plan are source-backed; proposal application implementation still needs a later explicit decision, rollback evidence, focused smoke, and aggregate verification.',
 };
 
-assert.equal(auditStatus.ok, true);
+assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(
-  auditStatus.implemented?.some((entry) => entry.area === 'growth dashboard evidence depth'),
+  vnextDevelopmentAuditStatus.implemented?.some(
+    (entry) => entry.area === 'growth dashboard evidence depth',
+  ),
   true,
 );
-assert.equal(auditNextSlice, proposalApplicationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
 
 process.stdout.write(
   `${JSON.stringify(

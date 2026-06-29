@@ -179,8 +179,9 @@ const proposalQueueStatus = runStatus('scripts/growth-proposal-queue-status.mjs'
 const creationReadinessStatus = runStatus(
   'scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
 );
-const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditNextSlice =
+  vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
 const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
@@ -189,7 +190,7 @@ assert.equal(decisionPacketStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(proposalQueueStatus.ok, true);
 assert.equal(creationReadinessStatus.ok, true);
-assert.equal(auditStatus.ok, true);
+assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(decisionPacketStatus.originalGate, operatorDecisionGate);
 assert.equal(decisionPacketStatus.currentGate, proposalApplicationDecisionGate);
 assert.equal(proposalSpecStatus.authority?.proposalRecordCreationAllowed, false);
@@ -200,7 +201,9 @@ assert.equal(creationReadinessStatus.readiness?.proposalRecordCreationAllowed, f
 assert.equal(creationReadinessStatus.readiness?.proposalRecordPersistenceAllowed, false);
 assert.equal(creationReadinessStatus.readiness?.implementationAllowed, false);
 assert.equal(
-  auditStatus.implemented?.some((entry) => entry.area === 'durable proposal record planning preview'),
+  vnextDevelopmentAuditStatus.implemented?.some(
+    (entry) => entry.area === 'durable proposal record planning preview',
+  ),
   true,
 );
 
@@ -262,8 +265,8 @@ process.stdout.write(
           implementationAllowed: creationReadinessStatus.readiness?.implementationAllowed,
         },
         vnextAudit: {
-          ok: auditStatus.ok,
-          nextSlice: auditNextSlice,
+          ok: vnextDevelopmentAuditStatus.ok,
+          nextSlice: vnextDevelopmentAuditNextSlice,
         },
         implementationPlan: {
           registered: true,

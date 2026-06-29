@@ -181,9 +181,10 @@ const sourceEvidence = {
 
 assertSourceEvidence(memoryReadinessDecisionSpecSources, sourceEvidence);
 
-const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
-const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
+const vnextDevelopmentAuditNextSlice =
+  vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationDecisionSlice =
   'proposal application implementation decision required';
 const proposalApplicationImplementationDecision = {
@@ -194,8 +195,8 @@ const proposalApplicationImplementationDecision = {
     'Proposal, memory, growth dashboard, authority review, durable proposal record creation/persistence, and application planning-only evidence are source-backed; applying proposals still requires a later accepted implementation decision.',
 };
 
-assert.equal(auditStatus.ok, true);
-assert.equal(auditNextSlice, proposalApplicationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditStatus.ok, true);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.memoryPersistenceAllowed, false);
 
@@ -247,8 +248,8 @@ process.stdout.write(
       ],
       upstreamStatus: {
         vnextAudit: {
-          ok: auditStatus.ok,
-          nextSlice: auditNextSlice,
+          ok: vnextDevelopmentAuditStatus.ok,
+          nextSlice: vnextDevelopmentAuditNextSlice,
         },
         proposalDecisionSpec: {
           ok: proposalSpecStatus.ok,
