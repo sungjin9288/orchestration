@@ -59,7 +59,7 @@ const memoryReadinessItemFields = [
   'nonPersistenceStatement',
 ];
 
-const reviewSemantics = [
+const memoryReadinessReviewSemantics = [
   'Readiness review',
   'Storage approval',
   'Export approval',
@@ -150,7 +150,7 @@ assertContainsBacktickedAll(memoryReadinessDecisionSpecSources.spec, memoryReadi
 assertDoesNotMatchAny(memoryReadinessDecisionSpecSources.app, forbiddenAuthorityPatterns);
 
 const sourceEvidence = {
-  spec: reviewSemantics,
+  spec: memoryReadinessReviewSemantics,
   app: blockedAuthorityMarkers,
   decisionLog: [
     '### DEC-049',
@@ -228,7 +228,7 @@ process.stdout.write(
       spec: memoryReadinessDecisionSpecFiles.spec,
       requiredSections: memoryReadinessSpecSections,
       requiredMemoryFields: memoryReadinessItemFields,
-      reviewSemantics,
+      reviewSemantics: memoryReadinessReviewSemantics,
       stopConditions: [
         'missing sourceRefs',
         'missing evidenceRefs',

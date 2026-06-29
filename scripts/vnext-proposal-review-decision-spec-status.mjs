@@ -55,7 +55,7 @@ const proposalReviewRecordFields = [
   'nonApprovalStatement',
 ];
 
-const approvalSemantics = [
+const proposalReviewApprovalSemantics = [
   'Review gate',
   'Creation approval',
   'Application approval',
@@ -138,7 +138,7 @@ assertContainsBacktickedAll(proposalReviewDecisionSpecSources.spec, proposalRevi
 assertDoesNotMatchAny(proposalReviewDecisionSpecSources.app, forbiddenAuthorityPatterns);
 
 const sourceEvidence = {
-  spec: approvalSemantics,
+  spec: proposalReviewApprovalSemantics,
   app: blockedAuthorityMarkers,
   decisionLog: [
     '### DEC-048',
@@ -222,7 +222,7 @@ process.stdout.write(
       spec: proposalReviewDecisionSpecFiles.spec,
       requiredSections: proposalReviewSpecSections,
       requiredRecordFields: proposalReviewRecordFields,
-      approvalSemantics,
+      approvalSemantics: proposalReviewApprovalSemantics,
       stopConditions: [
         'missing sourceFindingId',
         'missing sourceEvidenceRefs',
