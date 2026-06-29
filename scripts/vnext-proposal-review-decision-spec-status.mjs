@@ -92,6 +92,24 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function assertContainsAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
+  }
+}
+
+function assertContainsBacktickedAll(source, expectedValues) {
+  for (const expectedValue of expectedValues) {
+    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
+  }
+}
+
+function assertDoesNotMatchAny(source, patterns) {
+  for (const pattern of patterns) {
+    assert.doesNotMatch(source, pattern);
+  }
+}
+
 function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
@@ -104,34 +122,35 @@ for (const section of requiredSpecSections) {
   assert.match(sources.spec, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
 }
 
-for (const field of requiredRecordFields) {
-  assert.match(sources.spec, new RegExp(`\\\`${escapeRegExp(field)}\\\``));
-}
+assertContainsBacktickedAll(sources.spec, requiredRecordFields);
+assertContainsAll(sources.spec, approvalSemantics);
+assertContainsAll(sources.app, blockedAuthorityMarkers);
+assertDoesNotMatchAny(sources.app, forbiddenAuthorityPatterns);
 
-for (const semantic of approvalSemantics) {
-  assert.match(sources.spec, new RegExp(escapeRegExp(semantic)));
-}
+const sourceEvidence = {
+  decisionLog: [
+    '### DEC-048',
+    '### DEC-050',
+    'docs/24_proposal-review-decision-spec.md',
+    'schema with `id`, `status`, timestamps, source refs, evidence refs, and reviewer/approval refs',
+    'separate human approval semantics for record creation and application',
+  ],
+  audit: [
+    'Completed: `proposal review decision spec`',
+    'docs/24_proposal-review-decision-spec.md',
+    '`memory readiness decision spec`',
+  ],
+  inventory: ['vNext proposal review decision spec'],
+  readme: [
+    'Proposal review is not proposal approval',
+    'docs/24_proposal-review-decision-spec.md',
+  ],
+  verification: ['vnext-proposal-review-decision-spec-status.mjs'],
+};
 
-for (const marker of blockedAuthorityMarkers) {
-  assert.match(sources.app, new RegExp(escapeRegExp(marker)));
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
 }
-
-for (const pattern of forbiddenAuthorityPatterns) {
-  assert.doesNotMatch(sources.app, pattern);
-}
-
-assert.match(sources.decisionLog, /### DEC-048/);
-assert.match(sources.decisionLog, /### DEC-050/);
-assert.match(sources.decisionLog, /docs\/24_proposal-review-decision-spec\.md/);
-assert.match(sources.decisionLog, /schema with `id`, `status`, timestamps, source refs, evidence refs, and reviewer\/approval refs/);
-assert.match(sources.decisionLog, /separate human approval semantics for record creation and application/);
-assert.match(sources.audit, /Completed: `proposal review decision spec`/);
-assert.match(sources.audit, /docs\/24_proposal-review-decision-spec\.md/);
-assert.match(sources.audit, /`memory readiness decision spec`/);
-assert.match(sources.inventory, /vNext proposal review decision spec/);
-assert.match(sources.readme, /Proposal review is not proposal approval/);
-assert.match(sources.readme, /docs\/24_proposal-review-decision-spec\.md/);
-assert.match(sources.verification, /vnext-proposal-review-decision-spec-status\.mjs/);
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const auditNextSlice = auditStatus.recommendedDevelopmentPlan?.[0]?.slice;
