@@ -16,7 +16,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const proposalRecordDecisionPacketFiles = {
   packet: 'docs/27_authority-implementation-decision-packet.md',
   reviewSpec: 'docs/26_authority-expansion-review-spec.md',
   implementationPlan: 'docs/30_durable-proposal-record-implementation-plan.md',
@@ -109,7 +109,10 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(proposalRecordDecisionPacketFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 for (const section of requiredPacketSections) {
@@ -195,7 +198,7 @@ process.stdout.write(
       readOnly: true,
       doesNotCommit: true,
       doesNotPush: true,
-      packet: files.packet,
+      packet: proposalRecordDecisionPacketFiles.packet,
       originalGate: operatorDecisionGate,
       currentGate: proposalApplicationDecisionGate,
       recommendedFirstCandidate: durableProposalRecordCreationCandidate,

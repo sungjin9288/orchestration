@@ -15,7 +15,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const proposalRecordOperatorHandoffFiles = {
   handoff: 'docs/29_operator-decision-handoff.md',
   decisionPacket: 'docs/27_authority-implementation-decision-packet.md',
   planningPreview: 'docs/28_durable-proposal-record-planning-preview.md',
@@ -134,7 +134,10 @@ function assertDoesNotMatchAny(source, forbiddenPatterns) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(proposalRecordOperatorHandoffFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 for (const section of requiredHandoffSections) {
@@ -244,7 +247,7 @@ process.stdout.write(
       readOnly: true,
       doesNotCommit: true,
       doesNotPush: true,
-      handoff: files.handoff,
+      handoff: proposalRecordOperatorHandoffFiles.handoff,
       currentGate: proposalApplicationDecisionGate,
       handoffStatus: 'consumed-by-planning-only-decision',
       acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',

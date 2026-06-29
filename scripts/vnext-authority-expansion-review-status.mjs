@@ -16,7 +16,7 @@ requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
 
-const files = {
+const authorityExpansionReviewFiles = {
   spec: 'docs/26_authority-expansion-review-spec.md',
   audit: 'docs/23_vnext-development-audit.md',
   decisionLog: 'docs/01_decision-log.md',
@@ -147,7 +147,10 @@ function runStatus(script) {
 }
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
+  Object.entries(authorityExpansionReviewFiles).map(([name, relativePath]) => [
+    name,
+    readFile(relativePath),
+  ]),
 );
 
 for (const section of requiredSpecSections) {
@@ -225,7 +228,7 @@ process.stdout.write(
       mode: STATUS_MODE,
       schemaVersion: STATUS_SCHEMA_VERSION,
       posture: 'read-only-authority-expansion-review',
-      spec: files.spec,
+      spec: authorityExpansionReviewFiles.spec,
       candidates: reviewCandidates,
       recommendedFirstCandidate: durableProposalRecordCreationCandidate,
       nextRequiredInput: 'explicit proposal application decision, focused smoke, rollback evidence, and aggregate verification before proposal application opens',
