@@ -132,45 +132,50 @@ assertContainsBacktickedAll(sources.packet, decisionOptions);
 assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
-assertContainsAll(sources.packet, [
-  'Original gate: `proposal application decision required`',
-  'Source implementation: `DEC-057`',
-  'Current packet status: `consumed-by-application-planning-only-decision`',
-  'Current application authority: planning only',
-  'This packet turns the current `proposal application decision required` gate into a concrete decision input',
-  'It is not proposal application approval',
-  'creation approval and application approval are collapsed into one approval',
-  'application approval and source mutation approval are collapsed into one approval',
-  'commit or push is requested without a separate explicit approval',
-]);
+const sourceEvidence = {
+  packet: [
+    'Original gate: `proposal application decision required`',
+    'Source implementation: `DEC-057`',
+    'Current packet status: `consumed-by-application-planning-only-decision`',
+    'Current application authority: planning only',
+    'This packet turns the current `proposal application decision required` gate into a concrete decision input',
+    'It is not proposal application approval',
+    'creation approval and application approval are collapsed into one approval',
+    'application approval and source mutation approval are collapsed into one approval',
+    'commit or push is requested without a separate explicit approval',
+  ],
+  proposalSpec: [
+    'Creation approval',
+    'Application approval',
+    'missing explicit application approval',
+  ],
+  implementationPlan: [
+    'Runtime implementation: completed',
+    'Next blocked authority: proposal application',
+  ],
+  applicationPlan: [
+    'decisionId` | `operator-decision-vnext-proposal-application-001`',
+    'decisionStatus` | `approve-application-planning-only`',
+    'Current downstream gate: `proposal application implementation decision required`',
+  ],
+  decisionLog: ['### DEC-057', '### DEC-058', '### DEC-060'],
+  audit: [
+    'Completed: `proposal application decision packet`',
+    'Completed: `proposal application implementation plan`',
+    '1. `proposal application implementation decision required`',
+  ],
+  inventory: ['vNext proposal application decision packet'],
+  readme: [
+    'Proposal application decision packet is decision input only',
+    'docs/31_proposal-application-decision-packet.md',
+    'Proposal application implementation plan is planning-only evidence',
+  ],
+  verification: ['vnext-proposal-application-decision-packet-status.mjs'],
+};
 
-assertContainsAll(sources.proposalSpec, [
-  'Creation approval',
-  'Application approval',
-  'missing explicit application approval',
-]);
-assertContainsAll(sources.implementationPlan, [
-  'Runtime implementation: completed',
-  'Next blocked authority: proposal application',
-]);
-assertContainsAll(sources.applicationPlan, [
-  'decisionId` | `operator-decision-vnext-proposal-application-001`',
-  'decisionStatus` | `approve-application-planning-only`',
-  'Current downstream gate: `proposal application implementation decision required`',
-]);
-assertContainsAll(sources.decisionLog, ['### DEC-057', '### DEC-058', '### DEC-060']);
-assertContainsAll(sources.audit, [
-  'Completed: `proposal application decision packet`',
-  'Completed: `proposal application implementation plan`',
-  '1. `proposal application implementation decision required`',
-]);
-assertContainsAll(sources.inventory, ['vNext proposal application decision packet']);
-assertContainsAll(sources.readme, [
-  'Proposal application decision packet is decision input only',
-  'docs/31_proposal-application-decision-packet.md',
-  'Proposal application implementation plan is planning-only evidence',
-]);
-assertContainsAll(sources.verification, ['vnext-proposal-application-decision-packet-status.mjs']);
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
+}
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const proposalSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
