@@ -222,6 +222,11 @@ const informationalChecks = [
     purpose: 'vNext proposal review decision spec defines durable proposal record schema, approval separation, expiry, and stop conditions without opening record creation, persistence, approval, application, source mutation, commit, or push authority',
   },
   {
+    id: 'vnext-memory-readiness-decision-spec-status',
+    script: 'scripts/vnext-memory-readiness-decision-spec-status.mjs',
+    purpose: 'vNext memory readiness decision spec defines durable memory schema, source and redaction rules, review gates, export, expiry, deletion, and stop conditions without opening memory persistence, raw transcript ingestion, cross-workspace memory, skill promotion, provider calls, source mutation, commit, or push authority',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

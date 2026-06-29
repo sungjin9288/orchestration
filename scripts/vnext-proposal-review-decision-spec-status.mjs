@@ -135,7 +135,11 @@ assert.match(sources.verification, /vnext-proposal-review-decision-spec-status\.
 
 const auditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 assert.equal(auditStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'memory readiness decision spec');
+assert.ok(
+  ['memory readiness decision spec', 'growth dashboard evidence depth'].includes(
+    auditStatus.recommendedDevelopmentPlan?.[0]?.slice,
+  ),
+);
 
 const proposalQueue = runStatus('scripts/growth-proposal-queue-status.mjs');
 const creationReadiness = runStatus(
@@ -212,11 +216,14 @@ process.stdout.write(
         },
       },
       nextRecommendedSlice: {
-        id: 'memory-readiness-decision-spec',
-        slice: 'memory readiness decision spec',
+        id:
+          auditStatus.recommendedDevelopmentPlan?.[0]?.slice === 'growth dashboard evidence depth'
+            ? 'growth-dashboard-evidence-depth'
+            : 'memory-readiness-decision-spec',
+        slice: auditStatus.recommendedDevelopmentPlan?.[0]?.slice || 'memory readiness decision spec',
         command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',
         reason:
-          'Proposal review now has a source-backed decision spec; long-term memory still needs its own schema, source, redaction, export, expiry, deletion, and review boundary before persistence can open.',
+          'Proposal review has a source-backed decision spec; the vNext audit owns the current next slice while proposal creation and application authority remain blocked.',
       },
       authority,
     },

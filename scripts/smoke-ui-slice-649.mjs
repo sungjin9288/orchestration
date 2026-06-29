@@ -127,6 +127,13 @@ assert.doesNotMatch(appJs, /data-action="create-proposal-record"/);
 assert.doesNotMatch(appJs, /data-action="mutate-growth-source"/);
 assert.doesNotMatch(appJs, /data-action="import-local-personalization"/);
 assert.doesNotMatch(appJs, /data-action="apply-local-personalization-packet"/);
+assert.doesNotMatch(appJs, /data-action="persist-memory"/);
+assert.doesNotMatch(appJs, /data-action="store-long-term-memory"/);
+assert.doesNotMatch(appJs, /data-action="ingest-raw-transcript"/);
+assert.doesNotMatch(appJs, /data-action="enable-cross-workspace-memory"/);
+assert.doesNotMatch(appJs, /data-action="promote-memory-skill"/);
+assert.doesNotMatch(appJs, /data-action="promote-skill"/);
+assert.doesNotMatch(appJs, /data-action="create-memory-record"/);
 
 assert.match(uiQaStatus, /smoke-ui-slice-649\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-649\.mjs/);

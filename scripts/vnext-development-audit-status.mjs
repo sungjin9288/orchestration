@@ -21,6 +21,7 @@ const files = {
   referenceAudit: 'docs/reference/vnext-reference-driven-ui-audit.md',
   vnextAudit: 'docs/23_vnext-development-audit.md',
   proposalDecisionSpec: 'docs/24_proposal-review-decision-spec.md',
+  memoryDecisionSpec: 'docs/25_memory-readiness-decision-spec.md',
   decisionLog: 'docs/01_decision-log.md',
   growthPlan: 'docs/18_growth-gateway-vnext.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -85,8 +86,10 @@ assert.match(sources.app, /data-memory-readiness-gate="blocked"/);
 assert.match(sources.decisionLog, /### DEC-048/);
 assert.match(sources.decisionLog, /### DEC-049/);
 assert.match(sources.decisionLog, /### DEC-050/);
+assert.match(sources.decisionLog, /### DEC-051/);
 assert.match(sources.readme, /Read-only growth evidence/);
 assert.match(sources.readme, /Local-only personalization/);
+assert.match(sources.readme, /docs\/25_memory-readiness-decision-spec\.md/);
 assert.match(sources.vnextAudit, /^# vNext Development Audit/m);
 assert.match(sources.vnextAudit, /local-only personalization portability/);
 assert.match(sources.vnextAudit, /Completed: `proposal review decision spec`/);
@@ -97,13 +100,21 @@ assert.match(sources.proposalDecisionSpec, /## Durable Proposal Record Contract/
 assert.match(sources.proposalDecisionSpec, /## Approval Semantics/);
 assert.match(sources.proposalDecisionSpec, /## Expiry And Supersession/);
 assert.match(sources.proposalDecisionSpec, /Review-readiness evidence is not approval/);
+assert.match(sources.vnextAudit, /Completed: `memory readiness decision spec`/);
+assert.match(sources.memoryDecisionSpec, /^# Memory Readiness Decision Spec/m);
+assert.match(sources.memoryDecisionSpec, /## Memory Item Contract/);
+assert.match(sources.memoryDecisionSpec, /## Source And Redaction Rules/);
+assert.match(sources.memoryDecisionSpec, /## Expiry And Deletion/);
+assert.match(sources.memoryDecisionSpec, /Local personalization is not memory/);
 assert.match(sources.uiSmoke, /data-growth-learning-surface="read-only"/);
 assert.match(sources.uiSmoke, /data-personalization-scope="local-only"/);
 assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="persist-growth-memory"/);
 assert.match(sources.uiSmoke, /doesNotMatch\(appJs, \/data-action="import-local-personalization"/);
 assert.match(sources.verification, /smoke-ui-slice-649\.mjs/);
 assert.match(sources.verification, /vnext-development-audit-status\.mjs/);
+assert.match(sources.verification, /vnext-memory-readiness-decision-spec-status\.mjs/);
 assert.match(sources.inventory, /vNext development audit/);
+assert.match(sources.inventory, /vNext memory readiness decision spec/);
 
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
 const reflection = runStatus('scripts/growth-reflection-evaluator.mjs');
@@ -141,6 +152,11 @@ const implemented = [
     status: 'documented-read-only',
   },
   {
+    area: 'memory readiness decision spec',
+    evidence: ['docs/25_memory-readiness-decision-spec.md', 'docs/01_decision-log.md#DEC-049', 'docs/01_decision-log.md#DEC-051'],
+    status: 'documented-read-only',
+  },
+  {
     area: 'completion and README evidence',
     evidence: ['scripts/smoke-readme-scope-evidence.mjs', 'scripts/verification_status.mjs'],
     status: 'verified',
@@ -162,13 +178,6 @@ const blocked = [
 const recommendedDevelopmentPlan = [
   {
     priority: 1,
-    slice: 'memory readiness decision spec',
-    scope:
-      'Define memory item schema, source boundaries, redaction, export, expiry, deletion, and skill-promotion review before enabling long-term memory.',
-    gate: 'Requires focused smoke proving raw transcript ingestion and cross-workspace memory remain blocked until approval.',
-  },
-  {
-    priority: 2,
     slice: 'growth dashboard evidence depth',
     scope:
       'Expand read-only Growth Evidence Ledger views with grouped failure patterns, regression comparisons, and rollback evidence links.',

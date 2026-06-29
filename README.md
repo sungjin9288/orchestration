@@ -93,7 +93,10 @@ src/runtime/file-store.js
   context, not automatic execution.
 - Long-term memory is readiness only: `DEC-049` keeps raw transcript ingestion, durable memory
   persistence, cross-workspace memory, and skill promotion blocked until schema, source refs,
-  redaction, export, expiry, human review, and focused smoke evidence exist.
+  redaction, export, expiry, human review, and focused smoke evidence exist. `DEC-051` and
+  `docs/25_memory-readiness-decision-spec.md` now define the current read-only memory item schema,
+  source/redaction rules, export/deletion gates, expiry, and stop conditions before any persistence
+  path can open.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -218,6 +221,7 @@ Representative verification commands:
 
 ```bash
 node scripts/smoke-ui-slice-649.mjs
+node scripts/vnext-memory-readiness-decision-spec-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -229,12 +233,15 @@ Current verification evidence from this README refresh:
 - `node scripts/smoke-ui-slice-649.mjs`: reference-driven shell markers, read-only growth candidate
   drilldown, blocked proposal-review preview, local-only personalization settings, and blocked
   provider/memory/proposal-record/source/proposal/commit/push authority.
+- `node scripts/vnext-memory-readiness-decision-spec-status.mjs`: memory item contract, source and
+  redaction rules, review gates, export, expiry, deletion, and blocked memory/provider/source/commit
+  authority.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`; informational count includes the README
-  source-evidence smoke.
+- `node scripts/verification_status.mjs`: required `1/1`, informational `144/144`, total `145/145`;
+  the aggregate includes the README source-evidence smoke and vNext memory readiness decision spec.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
