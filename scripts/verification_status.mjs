@@ -212,6 +212,11 @@ const informationalChecks = [
     purpose: 'README public-facing setup, testing, scope, route, env, and limitation claims stay backed by current source and measured smoke counts',
   },
   {
+    id: 'vnext-development-audit-status',
+    script: 'scripts/vnext-development-audit-status.mjs',
+    purpose: 'vNext design, growth learning, personalization, proposal, and memory development plan stays grounded in current source evidence without opening blocked authority',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

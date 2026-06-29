@@ -163,8 +163,13 @@ Already complete for the current repo baseline:
 - approval before commit and review before done
 - Hermes-style internal harness composition
 - dogfood evidence lifecycle and cleanup gates
+- reference-driven shell, read-only growth evidence, and local-only personalization status in `docs/23_vnext-development-audit.md`
 
 Not complete yet as a real continuous-learning engine:
+
+The bullets below are incomplete as authority-opening capabilities. Several of them now exist as
+read-only shell or status evidence, but they must not be treated as durable memory, proposal
+creation, proposal application, provider execution, source mutation, commit, or push authority.
 
 - persistent local memory store with explicit ingest/export/redaction boundaries
 - typed growth evidence schema for claims, negative evidence, field deltas, projections, and
