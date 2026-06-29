@@ -2,7 +2,9 @@
 
 ## direction resets
 
+- Operator decision handoffs should reject shortcut approvals. Phrases such as `continue`, `do everything`, or `approve all` can express continuation intent, but they should not open planning or implementation authority unless the fielded decision states the exact outcome, target authority, evidence refs, rollback refs, smoke refs, and still-blocked authority.
 - Durable proposal record planning previews must stay separate from approval. A useful preview can name record shape, storage candidate, smoke coverage, rollback, and stop conditions, but it should not assign ids, stamp timestamps, persist records, mutate queues, or imply `approve-planning-only`.
+- Operator decision handoffs should reject shortcut language explicitly. A copy-ready template helps the next human decision move faster, but words like `continue`, `approve all`, or `implement vNext` must remain invalid until the required decision fields and still-blocked authorities are named.
 - When the current gate is a human decision, add a read-only decision packet before implementation. The packet should list outcomes, required fields, rollback, focused smoke, aggregate verification, and still-blocked authority without becoming approval itself.
 - Once a vNext audit advances to a terminal operator gate, downstream status scripts should assert that exact current gate instead of keeping old intermediate route aliases. Historical compatibility inside a current-state verifier makes the next required decision harder to see.
 - Authority expansion reviews should end in an explicit operator decision, not silently choose the next mutation path. A review can recommend the most reviewable first candidate, but durable proposal records, memory persistence, provider calls, source mutation, commit, and push still need a later accepted implementation plan and focused smoke.

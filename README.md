@@ -113,6 +113,11 @@ src/runtime/file-store.js
   storage candidate, focused smoke preview, rollback preview, and stop conditions for the
   recommended first candidate, but they do not approve planning, create or persist records, apply
   proposals, persist memory, call providers, mutate source, commit, or push.
+- Operator decision handoff is not approval: `DEC-055` and
+  `docs/29_operator-decision-handoff.md` provide the copy-ready decision fields, valid statement
+  shapes, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop
+  conditions for the next human decision, but they do not record a decision or approve planning,
+  implementation, persistence, provider calls, memory, source mutation, commit, or push.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -242,6 +247,7 @@ node scripts/vnext-memory-readiness-decision-spec-status.mjs
 node scripts/vnext-authority-expansion-review-status.mjs
 node scripts/vnext-authority-implementation-decision-packet-status.mjs
 node scripts/vnext-durable-proposal-record-planning-preview-status.mjs
+node scripts/vnext-operator-decision-handoff-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -270,14 +276,18 @@ Current verification evidence from this README refresh:
   shape, local-first storage candidate, focused smoke preview, rollback preview, and stop conditions
   stay planning input only and do not open record creation, persistence, proposal application,
   provider, memory, source mutation, commit, or push authority.
+- `node scripts/vnext-operator-decision-handoff-status.mjs`: operator decision fields, valid
+  statements, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop
+  conditions stay copy-ready handoff only and do not record a decision or open planning,
+  implementation, persistence, provider, memory, source mutation, commit, or push authority.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `148/148`, total `149/149`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `149/149`, total `150/150`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
-  decision packet plus durable proposal record planning preview checks.
+  decision packet plus durable proposal record planning preview and operator decision handoff checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
@@ -325,6 +335,11 @@ Playwright CLI:
   does not create or persist records, assign ids or timestamps, mutate queues, apply proposals, call
   providers, persist memory, mutate source, commit, or push; actual implementation still needs
   explicit operator approval and a later accepted implementation plan.
+- Operator decision handoff remains a template only. `docs/29_operator-decision-handoff.md` gives
+  the exact fields and valid statement shapes for the next human decision, but ambiguous shortcuts
+  such as `continue`, `approve all`, or `implement vNext` still do not open planning,
+  implementation, proposal application, memory, provider, source mutation, commit, or push
+  authority.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider

@@ -25,6 +25,7 @@ const files = {
   authorityExpansionSpec: 'docs/26_authority-expansion-review-spec.md',
   authorityDecisionPacket: 'docs/27_authority-implementation-decision-packet.md',
   proposalRecordPlanningPreview: 'docs/28_durable-proposal-record-planning-preview.md',
+  operatorDecisionHandoff: 'docs/29_operator-decision-handoff.md',
   decisionLog: 'docs/01_decision-log.md',
   growthPlan: 'docs/18_growth-gateway-vnext.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -99,6 +100,7 @@ assert.match(sources.decisionLog, /### DEC-051/);
 assert.match(sources.decisionLog, /### DEC-052/);
 assert.match(sources.decisionLog, /### DEC-053/);
 assert.match(sources.decisionLog, /### DEC-054/);
+assert.match(sources.decisionLog, /### DEC-055/);
 assert.match(sources.readme, /Read-only growth evidence/);
 assert.match(sources.readme, /grouped failure patterns/);
 assert.match(sources.readme, /regression comparison/);
@@ -111,6 +113,8 @@ assert.match(sources.readme, /Authority implementation decision packet is decisi
 assert.match(sources.readme, /docs\/27_authority-implementation-decision-packet\.md/);
 assert.match(sources.readme, /Durable proposal record planning preview is not planning approval/);
 assert.match(sources.readme, /docs\/28_durable-proposal-record-planning-preview\.md/);
+assert.match(sources.readme, /Operator decision handoff is not approval/);
+assert.match(sources.readme, /docs\/29_operator-decision-handoff\.md/);
 assert.match(sources.vnextAudit, /^# vNext Development Audit/m);
 assert.match(sources.vnextAudit, /local-only personalization portability/);
 assert.match(sources.vnextAudit, /Completed: `proposal review decision spec`/);
@@ -126,6 +130,7 @@ assert.match(sources.vnextAudit, /Completed: `growth dashboard evidence depth`/)
 assert.match(sources.vnextAudit, /Completed: `operator-approved authority expansion review`/);
 assert.match(sources.vnextAudit, /Completed: `authority implementation decision packet`/);
 assert.match(sources.vnextAudit, /Completed: `durable proposal record planning preview`/);
+assert.match(sources.vnextAudit, /Completed: `operator decision handoff`/);
 assert.match(sources.memoryDecisionSpec, /^# Memory Readiness Decision Spec/m);
 assert.match(sources.memoryDecisionSpec, /## Memory Item Contract/);
 assert.match(sources.memoryDecisionSpec, /## Source And Redaction Rules/);
@@ -153,6 +158,14 @@ assert.match(sources.proposalRecordPlanningPreview, /Current gate: `operator dec
 assert.match(sources.proposalRecordPlanningPreview, /file-store-backed durable proposal record collection/);
 assert.match(sources.proposalRecordPlanningPreview, /proposal application remains blocked/);
 assert.match(sources.proposalRecordPlanningPreview, /no explicit `approve-planning-only` or stronger accepted decision exists/);
+assert.match(sources.operatorDecisionHandoff, /^# Operator Decision Handoff/m);
+assert.match(sources.operatorDecisionHandoff, /It is not an operator decision/);
+assert.match(sources.operatorDecisionHandoff, /Handoff status: `ready-for-operator-input`/);
+assert.match(sources.operatorDecisionHandoff, /## Valid Decision Statements/);
+assert.match(sources.operatorDecisionHandoff, /## Invalid Shortcuts/);
+assert.match(sources.operatorDecisionHandoff, /## Minimum Planning-Only Acceptance/);
+assert.match(sources.operatorDecisionHandoff, /I approve planning only for durable proposal record creation and persistence/);
+assert.match(sources.operatorDecisionHandoff, /does not approve implementation, proposal application, provider calls, memory persistence, source mutation, commit, or push/);
 assert.match(sources.uiSmoke, /data-growth-learning-surface="read-only"/);
 assert.match(sources.uiSmoke, /data-personalization-scope="local-only"/);
 assert.match(sources.uiSmoke, /data-growth-dashboard-evidence-depth="read-only"/);
@@ -167,12 +180,14 @@ assert.match(sources.verification, /vnext-growth-dashboard-evidence-depth-status
 assert.match(sources.verification, /vnext-authority-expansion-review-status\.mjs/);
 assert.match(sources.verification, /vnext-authority-implementation-decision-packet-status\.mjs/);
 assert.match(sources.verification, /vnext-durable-proposal-record-planning-preview-status\.mjs/);
+assert.match(sources.verification, /vnext-operator-decision-handoff-status\.mjs/);
 assert.match(sources.inventory, /vNext development audit/);
 assert.match(sources.inventory, /vNext memory readiness decision spec/);
 assert.match(sources.inventory, /vNext growth dashboard evidence depth/);
 assert.match(sources.inventory, /vNext authority expansion review/);
 assert.match(sources.inventory, /vNext authority implementation decision packet/);
 assert.match(sources.inventory, /vNext durable proposal record planning preview/);
+assert.match(sources.inventory, /vNext operator decision handoff/);
 
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
 const reflection = runStatus('scripts/growth-reflection-evaluator.mjs');
@@ -241,6 +256,15 @@ const implemented = [
       'scripts/vnext-durable-proposal-record-planning-preview-status.mjs',
     ],
     status: 'documented-read-only-planning-input',
+  },
+  {
+    area: 'operator decision handoff',
+    evidence: [
+      'docs/29_operator-decision-handoff.md',
+      'docs/01_decision-log.md#DEC-055',
+      'scripts/vnext-operator-decision-handoff-status.mjs',
+    ],
+    status: 'documented-read-only-decision-template',
   },
   {
     area: 'completion and README evidence',

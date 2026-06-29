@@ -300,6 +300,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: Future proposal record planning must preserve the preview's single-authority scope, record shape, local-first storage candidate, focused smoke preview, rollback preview, and stop conditions. This preview is not `approve-planning-only`, implementation approval, record creation, record persistence, proposal application, memory persistence, provider calls, source mutation, commit, or push.
 - Needed Before: Actual implementation still needs explicit operator approval through `approve-planning-only` or a stronger accepted decision, a later accepted implementation plan, focused smoke coverage, aggregate verification, rollback evidence, and separate commit or push approval.
 
+### DEC-055
+- Status: `Accepted`
+- Decision: The vNext operator decision handoff is defined in `docs/29_operator-decision-handoff.md` as a read-only, copy-ready decision template for the current `operator decision required` gate.
+- Why: The repo now has a decision packet and planning preview, but the next human action still needs a fielded response shape that separates valid outcomes from ambiguous shortcuts such as `continue`, `approve all`, or `implement vNext`.
+- Impact: Future operator decisions must use the required fields, decision options, invalid shortcut rules, minimum planning-only acceptance criteria, still-blocked authority list, and stop conditions in `docs/29_operator-decision-handoff.md`. The handoff is not an operator decision and must not approve planning, approve implementation, create or persist records, apply proposals, persist memory, call providers, mutate source, commit, or push.
+- Needed Before: Any future plan or implementation still needs the operator to provide an explicit decision using the handoff fields, followed by a later accepted implementation plan, focused smoke coverage, aggregate verification, rollback evidence, and separate commit or push approval.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

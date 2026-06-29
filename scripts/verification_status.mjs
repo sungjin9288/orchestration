@@ -247,6 +247,11 @@ const informationalChecks = [
     purpose: 'vNext durable proposal record planning preview defines record shape, local storage candidate, focused smoke preview, rollback preview, and stop conditions as read-only planning input without opening creation, persistence, proposal application, provider, memory, source mutation, commit, or push authority',
   },
   {
+    id: 'vnext-operator-decision-handoff-status',
+    script: 'scripts/vnext-operator-decision-handoff-status.mjs',
+    purpose: 'vNext operator decision handoff defines copy-ready decision fields, valid statements, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop conditions without recording a decision or opening planning, implementation, persistence, provider, memory, source mutation, commit, or push authority',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',
