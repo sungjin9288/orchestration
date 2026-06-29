@@ -63,6 +63,17 @@ function assertMatchesAll(source, expectedPatterns) {
   }
 }
 
+function assertSourceEvidence(sourceEvidence) {
+  for (const [sourceName, evidence] of Object.entries(sourceEvidence)) {
+    if (evidence.contains) {
+      assertContainsAll(sources[sourceName], evidence.contains);
+    }
+    if (evidence.matches) {
+      assertMatchesAll(sources[sourceName], evidence.matches);
+    }
+  }
+}
+
 function runStatus(script) {
   return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
@@ -71,7 +82,15 @@ const sources = Object.fromEntries(
   Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
 );
 
-const referenceSignals = ['Linear', 'LangSmith Studio', 'Retool', 'Dify', 'n8n HITL', 'Zapier', 'NN/g 2026 UX'];
+const referenceSignals = [
+  'Linear',
+  'LangSmith Studio',
+  'Retool',
+  'Dify',
+  'n8n HITL',
+  'Zapier',
+  'NN/g 2026 UX',
+];
 const blockedAuthorityMarkers = [
   'providerCallsAllowed: false',
   'memoryPersistenceAllowed: false',
@@ -87,94 +106,111 @@ const blockedAuthorityMarkers = [
   'commitPushAllowed: false',
 ];
 
-assertContainsAll(sources.referenceAudit, referenceSignals);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
+const sourceEvidence = {
+  referenceAudit: {
+    contains: referenceSignals,
+  },
+  design: {
+    contains: ['warm enterprise surfaces', 'Mission / Council / Execution / Deliverables'],
+  },
+  styles: {
+    contains: ['--bg-top: #f4efe6', '.intelligence-overview'],
+  },
+  app: {
+    contains: [
+      ...blockedAuthorityMarkers,
+      'data-growth-learning-surface="read-only"',
+      'data-personalization-scope="local-only"',
+      'function renderGrowthCandidateDrilldown(growth)',
+      'function renderGrowthDashboardEvidenceDepth(growth)',
+      'data-growth-dashboard-evidence-depth="read-only"',
+      'data-failure-pattern-groups="true"',
+      'data-regression-comparison="read-only"',
+      'data-rollback-evidence-links="true"',
+      'data-growth-dashboard-action-allowed="false"',
+      'function renderGrowthProposalReviewPreview(growth)',
+      'function renderPersonalizationSettings(personalization, data)',
+      "const UI_PREFERENCE_STORAGE_KEY = 'orchestration.ui-preferences.v1'",
+      "const UI_PREFERENCE_PACKET_SCHEMA = 'orchestration.ui-preferences.portable-review.v1'",
+      'function getPortableUiPreferenceReview()',
+      'runtimeMutationAllowed: false',
+      'data-local-personalization-portability="copy-review-only"',
+      'data-action="copy-local-personalization-review"',
+      'data-memory-readiness-gate="blocked"',
+    ],
+  },
+  decisionLog: {
+    contains: [
+      '### DEC-048',
+      '### DEC-049',
+      '### DEC-050',
+      '### DEC-051',
+      '### DEC-052',
+      '### DEC-053',
+      '### DEC-054',
+      '### DEC-055',
+      '### DEC-056',
+      '### DEC-057',
+      '### DEC-058',
+      '### DEC-059',
+      '### DEC-060',
+      '### DEC-061',
+    ],
+  },
+  readme: {
+    contains: [
+      'Read-only growth evidence',
+      'grouped failure patterns',
+      'regression comparison',
+      'rollback evidence links',
+      'Local-only personalization',
+      'docs/25_memory-readiness-decision-spec.md',
+      'Authority expansion review is not implementation approval',
+      'docs/26_authority-expansion-review-spec.md',
+      'Authority implementation decision packet is decision input only',
+      'docs/27_authority-implementation-decision-packet.md',
+      'Durable proposal record planning preview is not planning approval',
+      'docs/28_durable-proposal-record-planning-preview.md',
+      'Operator decision handoff is not approval',
+      'docs/29_operator-decision-handoff.md',
+      'Durable proposal record implementation plan is consumed decision evidence',
+      'Durable proposal record creation and persistence is implemented',
+      'docs/30_durable-proposal-record-implementation-plan.md',
+      'Proposal application decision packet is decision input only',
+      'docs/31_proposal-application-decision-packet.md',
+      'Proposal application operator decision handoff is not approval',
+      'docs/32_proposal-application-operator-decision-handoff.md',
+      'Proposal application implementation plan is planning-only evidence',
+      'docs/33_proposal-application-implementation-plan.md',
+      'Proposal application implementation decision handoff is not approval',
+      'docs/34_proposal-application-implementation-decision-handoff.md',
+    ],
+  },
+  vnextAudit: {
+    contains: [
+      'local-only personalization portability',
+      'Completed: `proposal review decision spec`',
+      'durable proposal records',
+      'commit or push',
+      'Completed: `memory readiness decision spec`',
+      'Completed: `growth dashboard evidence depth`',
+      'Completed: `operator-approved authority expansion review`',
+      'Completed: `authority implementation decision packet`',
+      'Completed: `durable proposal record planning preview`',
+      'Completed: `operator decision handoff`',
+      'Completed: `durable proposal record implementation plan`',
+      'Completed: `durable proposal record implementation`',
+      'Completed: `proposal application decision packet`',
+      'Completed: `proposal application operator decision handoff`',
+      'Completed: `proposal application implementation plan`',
+      'Completed: `proposal application implementation decision handoff`',
+      '1. `proposal application implementation decision required`',
+    ],
+    matches: [/^# vNext Development Audit/m],
+  },
+};
 
-assertContainsAll(sources.design, ['warm enterprise surfaces', 'Mission / Council / Execution / Deliverables']);
-assertContainsAll(sources.styles, ['--bg-top: #f4efe6', '.intelligence-overview']);
-assertContainsAll(sources.app, [
-  'data-growth-learning-surface="read-only"',
-  'data-personalization-scope="local-only"',
-  'function renderGrowthCandidateDrilldown(growth)',
-  'function renderGrowthDashboardEvidenceDepth(growth)',
-  'data-growth-dashboard-evidence-depth="read-only"',
-  'data-failure-pattern-groups="true"',
-  'data-regression-comparison="read-only"',
-  'data-rollback-evidence-links="true"',
-  'data-growth-dashboard-action-allowed="false"',
-  'function renderGrowthProposalReviewPreview(growth)',
-  'function renderPersonalizationSettings(personalization, data)',
-  "const UI_PREFERENCE_STORAGE_KEY = 'orchestration.ui-preferences.v1'",
-  "const UI_PREFERENCE_PACKET_SCHEMA = 'orchestration.ui-preferences.portable-review.v1'",
-  'function getPortableUiPreferenceReview()',
-  'runtimeMutationAllowed: false',
-  'data-local-personalization-portability="copy-review-only"',
-  'data-action="copy-local-personalization-review"',
-  'data-memory-readiness-gate="blocked"',
-]);
-assertContainsAll(sources.decisionLog, [
-  '### DEC-048',
-  '### DEC-049',
-  '### DEC-050',
-  '### DEC-051',
-  '### DEC-052',
-  '### DEC-053',
-  '### DEC-054',
-  '### DEC-055',
-  '### DEC-056',
-  '### DEC-057',
-  '### DEC-058',
-  '### DEC-059',
-  '### DEC-060',
-  '### DEC-061',
-]);
-assertContainsAll(sources.readme, [
-  'Read-only growth evidence',
-  'grouped failure patterns',
-  'regression comparison',
-  'rollback evidence links',
-  'Local-only personalization',
-  'docs/25_memory-readiness-decision-spec.md',
-  'Authority expansion review is not implementation approval',
-  'docs/26_authority-expansion-review-spec.md',
-  'Authority implementation decision packet is decision input only',
-  'docs/27_authority-implementation-decision-packet.md',
-  'Durable proposal record planning preview is not planning approval',
-  'docs/28_durable-proposal-record-planning-preview.md',
-  'Operator decision handoff is not approval',
-  'docs/29_operator-decision-handoff.md',
-  'Durable proposal record implementation plan is consumed decision evidence',
-  'Durable proposal record creation and persistence is implemented',
-  'docs/30_durable-proposal-record-implementation-plan.md',
-  'Proposal application decision packet is decision input only',
-  'docs/31_proposal-application-decision-packet.md',
-  'Proposal application operator decision handoff is not approval',
-  'docs/32_proposal-application-operator-decision-handoff.md',
-  'Proposal application implementation plan is planning-only evidence',
-  'docs/33_proposal-application-implementation-plan.md',
-  'Proposal application implementation decision handoff is not approval',
-  'docs/34_proposal-application-implementation-decision-handoff.md',
-]);
-assertContainsAll(sources.vnextAudit, [
-  'local-only personalization portability',
-  'Completed: `proposal review decision spec`',
-  'durable proposal records',
-  'commit or push',
-  'Completed: `memory readiness decision spec`',
-  'Completed: `growth dashboard evidence depth`',
-  'Completed: `operator-approved authority expansion review`',
-  'Completed: `authority implementation decision packet`',
-  'Completed: `durable proposal record planning preview`',
-  'Completed: `operator decision handoff`',
-  'Completed: `durable proposal record implementation plan`',
-  'Completed: `durable proposal record implementation`',
-  'Completed: `proposal application decision packet`',
-  'Completed: `proposal application operator decision handoff`',
-  'Completed: `proposal application implementation plan`',
-  'Completed: `proposal application implementation decision handoff`',
-  '1. `proposal application implementation decision required`',
-]);
-assertMatchesAll(sources.vnextAudit, [/^# vNext Development Audit/m]);
+assertSourceEvidence(sourceEvidence);
 
 assertContainsAll(sources.proposalDecisionSpec, [
   '## Durable Proposal Record Contract',
