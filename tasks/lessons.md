@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Smoke scripts that reset fixed runtime paths must run sequentially. `smoke-durable-proposal-record-creation.mjs` uses `var/runtime-durable-proposal-record-creation`, so parallel status scripts that transitively call it can collide on `state.json` and create false `proposal-record-0002` or partial JSON failures.
+- Proposal application planning-only approval should produce an implementation plan, rollback plan, and focused smoke plan, not an application implementation. The packet and handoff become consumed evidence, the next gate moves to `proposal application implementation decision required`, and source mutation, provider calls, memory persistence, commit, and push remain separate approvals.
 - Application decision handoffs should be copy-ready but inert. They can show exact planning and implementation statement shapes, but they must not record a decision, imply source mutation, or merge application approval with provider, memory, commit, or push approval.
 - After durable proposal record creation/persistence lands, add a separate application decision packet before any application work. Creation approval, application planning, application implementation, source mutation, commit, and push need separately named authority, evidence refs, rollback refs, focused smoke refs, and still-blocked authority.
 - When durable proposal record creation is approved, keep creation/persistence separate from application. The runtime can assign ids, timestamps, expiry, and local `state.json` records only through an approved creation payload, while UI creation actions, proposal application, provider calls, memory persistence, source mutation, commit, and push remain separate gates.

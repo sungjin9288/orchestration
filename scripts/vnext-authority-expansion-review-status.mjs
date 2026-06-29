@@ -150,7 +150,7 @@ assert.match(sources.decisionLog, /### DEC-052/);
 assert.match(sources.decisionLog, /docs\/26_authority-expansion-review-spec\.md/);
 assert.match(sources.decisionLog, /Review acceptance can only feed the next explicit decision/);
 assert.match(sources.audit, /Completed: `operator-approved authority expansion review`/);
-assert.match(sources.audit, /`proposal application planning decision required`/);
+assert.match(sources.audit, /`proposal application implementation decision required`/);
 assert.match(sources.inventory, /vNext authority expansion review/);
 assert.match(sources.readme, /Authority expansion review is not implementation approval/);
 assert.match(sources.readme, /docs\/26_authority-expansion-review-spec\.md/);
@@ -168,7 +168,7 @@ assert.equal(auditStatus.ok, true);
 assert.equal(growthDashboardStatus.ok, true);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(memorySpecStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application planning decision required');
+assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application implementation decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'operator-approved authority expansion review'),
   true,

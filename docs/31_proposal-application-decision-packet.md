@@ -10,9 +10,9 @@ It is not proposal application approval. It does not apply proposals, generate p
 
 - Original gate: `proposal application decision required`
 - Source implementation: `DEC-057`
-- Current packet status: `decision-input-only`
+- Current packet status: `consumed-by-application-planning-only-decision`
 - Current implementation authority: durable proposal record creation and persistence only
-- Current application authority: blocked
+- Current application authority: planning only
 - Current UI authority: read-only durable proposal record ledger only
 
 ## Decision Options
@@ -48,7 +48,7 @@ A valid application-opening decision must name all of these fields:
 
 ## Application Boundary
 
-The first later application plan, if approved, must stay narrower than "apply proposals".
+The first later application plan is now recorded in `docs/33_proposal-application-implementation-plan.md`. It stays narrower than "apply proposals".
 
 It must define:
 
@@ -108,4 +108,4 @@ Run:
 node scripts/vnext-proposal-application-decision-packet-status.mjs
 ```
 
-The script must stay read-only. It verifies this packet, the proposal review decision spec, the durable proposal record implementation evidence, the vNext development audit, README evidence, completion-gate inventory, aggregate registration, and blocked authority markers without recording an operator decision or opening proposal application authority.
+The script must stay read-only. It verifies this consumed packet, the accepted planning-only application decision evidence, the proposal review decision spec, the durable proposal record implementation evidence, the vNext development audit, README evidence, completion-gate inventory, aggregate registration, and blocked authority markers without opening proposal application implementation authority.

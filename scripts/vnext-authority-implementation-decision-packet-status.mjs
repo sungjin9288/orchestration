@@ -148,7 +148,7 @@ const authorityReviewStatus = runStatus('scripts/vnext-authority-expansion-revie
 
 assert.equal(auditStatus.ok, true);
 assert.equal(authorityReviewStatus.ok, true);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application planning decision required');
+assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application implementation decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'authority implementation decision packet'),
   true,

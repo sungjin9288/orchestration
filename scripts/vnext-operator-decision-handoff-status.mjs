@@ -185,7 +185,7 @@ assertContainsAll(sources.audit, [
   'Completed: `durable proposal record planning preview`',
   'Completed: `operator decision handoff`',
   'Completed: `durable proposal record implementation plan`',
-  '1. `proposal application planning decision required`',
+  '1. `proposal application implementation decision required`',
 ]);
 
 assertContainsAll(sources.decisionLog, ['### DEC-055', '### DEC-056']);
@@ -263,7 +263,7 @@ process.stdout.write(
         },
         vnextAudit: {
           registered: true,
-          nextSlice: 'proposal application planning decision required',
+          nextSlice: 'proposal application implementation decision required',
         },
       },
       authority,

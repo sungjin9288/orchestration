@@ -198,7 +198,7 @@ assert.equal(proposalSpecStatus.ok, true);
 assert.equal(auditStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.proposalRecordCreationAllowed, false);
 assert.equal(proposalSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application planning decision required');
+assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application implementation decision required');
 assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'durable proposal record implementation plan'),
   true,

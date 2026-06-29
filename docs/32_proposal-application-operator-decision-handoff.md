@@ -9,12 +9,12 @@ It is not an operator decision. It is not proposal application approval. It is n
 ## Current Gate
 
 - Original application gate: `proposal application decision required`
-- Current gate: `proposal application planning decision required`
+- Current gate: `proposal application implementation decision required`
 - Decision packet: `docs/31_proposal-application-decision-packet.md`
 - Source implementation: `DEC-057`
-- Handoff status: `decision-template-only`
+- Handoff status: `consumed-by-application-planning-only-decision`
 - Current creation authority: durable proposal record creation and persistence only through the approved runtime function
-- Current application authority: blocked
+- Current application authority: planning only
 - Current source mutation authority: blocked
 - Current commit and push authority: blocked
 
@@ -39,7 +39,7 @@ Use this shape when the operator chooses the next outcome:
 
 ## Valid Decision Statements
 
-These are valid statement shapes. The operator must choose and fill one; this document does not choose for them.
+These are valid statement shapes. The operator chose the planning-only shape in `operator-decision-vnext-proposal-application-001`; implementation still needs a later fielded decision.
 
 ### Application Planning Only
 
@@ -159,4 +159,4 @@ Run:
 node scripts/vnext-proposal-application-operator-decision-handoff-status.mjs
 ```
 
-The script must stay read-only. It verifies this handoff, the proposal application decision packet, the proposal review decision spec, durable proposal record implementation evidence, vNext development audit, README evidence, completion-gate inventory, aggregate registration, and blocked authority markers without recording an operator decision or opening proposal application authority.
+The script must stay read-only. It verifies this consumed handoff, the accepted planning-only application decision evidence, the proposal application decision packet, the proposal review decision spec, durable proposal record implementation evidence, vNext development audit, README evidence, completion-gate inventory, aggregate registration, and blocked authority markers without opening proposal application implementation authority.

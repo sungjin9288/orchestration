@@ -20,6 +20,7 @@ const files = {
   packet: 'docs/31_proposal-application-decision-packet.md',
   proposalSpec: 'docs/24_proposal-review-decision-spec.md',
   implementationPlan: 'docs/30_durable-proposal-record-implementation-plan.md',
+  applicationPlan: 'docs/33_proposal-application-implementation-plan.md',
   audit: 'docs/23_vnext-development-audit.md',
   decisionLog: 'docs/01_decision-log.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -134,8 +135,8 @@ assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 assertContainsAll(sources.packet, [
   'Original gate: `proposal application decision required`',
   'Source implementation: `DEC-057`',
-  'Current packet status: `decision-input-only`',
-  'Current application authority: blocked',
+  'Current packet status: `consumed-by-application-planning-only-decision`',
+  'Current application authority: planning only',
   'This packet turns the current `proposal application decision required` gate into a concrete decision input',
   'It is not proposal application approval',
   'creation approval and application approval are collapsed into one approval',
@@ -152,15 +153,22 @@ assertContainsAll(sources.implementationPlan, [
   'Runtime implementation: completed',
   'Next blocked authority: proposal application',
 ]);
-assertContainsAll(sources.decisionLog, ['### DEC-057', '### DEC-058']);
+assertContainsAll(sources.applicationPlan, [
+  'decisionId` | `operator-decision-vnext-proposal-application-001`',
+  'decisionStatus` | `approve-application-planning-only`',
+  'Current downstream gate: `proposal application implementation decision required`',
+]);
+assertContainsAll(sources.decisionLog, ['### DEC-057', '### DEC-058', '### DEC-060']);
 assertContainsAll(sources.audit, [
   'Completed: `proposal application decision packet`',
-  '1. `proposal application planning decision required`',
+  'Completed: `proposal application implementation plan`',
+  '1. `proposal application implementation decision required`',
 ]);
 assertContainsAll(sources.inventory, ['vNext proposal application decision packet']);
 assertContainsAll(sources.readme, [
   'Proposal application decision packet is decision input only',
   'docs/31_proposal-application-decision-packet.md',
+  'Proposal application implementation plan is planning-only evidence',
 ]);
 assertContainsAll(sources.verification, ['vnext-proposal-application-decision-packet-status.mjs']);
 
@@ -175,7 +183,7 @@ assert.equal(
   auditStatus.implemented?.some((entry) => entry.area === 'proposal application decision packet'),
   true,
 );
-assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application planning decision required');
+assert.equal(auditStatus.recommendedDevelopmentPlan?.[0]?.slice, 'proposal application implementation decision required');
 assert.equal(proposalSpecStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(implementationStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(
@@ -210,9 +218,9 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       packet: files.packet,
-      currentGate: 'proposal application planning decision required',
+      currentGate: 'proposal application implementation decision required',
       nextRequiredInput:
-        'operator-provided application planning or implementation decision for existing durable proposal records',
+        'operator-provided application implementation decision for exactly one durable proposal record application path',
       decisionOptions,
       requiredDecisionFields,
       upstreamStatus: {

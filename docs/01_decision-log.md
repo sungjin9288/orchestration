@@ -335,6 +335,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/32_proposal-application-operator-decision-handoff.md` defines valid application planning and implementation statement shapes, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions. `scripts/vnext-proposal-application-operator-decision-handoff-status.mjs` verifies the handoff remains read-only and that proposal application, provider calls, memory persistence, source mutation, commit, and push stay blocked.
 - Needed Before: Any proposal application planning or implementation still needs the operator to provide a fielded decision using the handoff values, followed by accepted rollback evidence, focused smoke coverage, aggregate verification, and separate approval for source mutation, commit, or push when those actions are involved.
 
+### DEC-060
+- Status: `Accepted`
+- Decision: Proposal application planning-only approval is accepted for existing durable proposal records.
+- Why: The operator provided the full fielded `approve-application-planning-only` decision for `proposal application planning for existing durable proposal records`. The repo now needs one application plan, rollback plan, and focused smoke plan before any implementation decision can be reviewed.
+- Impact: `docs/33_proposal-application-implementation-plan.md` records the accepted planning-only decision, the audit-only application attempt plan, rollback plan, focused smoke plan, application contract, and stop conditions. This decision consumes `docs/31_proposal-application-decision-packet.md` and `docs/32_proposal-application-operator-decision-handoff.md` as planning evidence, but it does not approve proposal application implementation, proposal generation, provider calls, memory persistence, source mutation, commit, or push.
+- Needed Before: Actual application implementation still needs a later explicit `approve-application-implementation-slice` decision naming exactly one application path, accepted rollback evidence, focused smoke coverage, aggregate verification, and separate approval before source mutation, commit, or push.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
