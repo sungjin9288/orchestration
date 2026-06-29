@@ -149,7 +149,6 @@ for (const section of requiredPlanSections) {
 
 assertContainsBacktickedAll(sources.plan, requiredDecisionFields);
 assertContainsBacktickedAll(sources.plan, requiredRecordFields);
-assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
 const sourceEvidence = {
@@ -185,6 +184,7 @@ const sourceEvidence = {
     'Durable proposal record creation and persistence is implemented',
     'docs/30_durable-proposal-record-implementation-plan.md',
   ],
+  app: blockedAuthorityMarkers,
   verification: ['vnext-durable-proposal-record-implementation-plan-status.mjs'],
 };
 
