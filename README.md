@@ -141,6 +141,11 @@ src/runtime/file-store.js
   `approve-application-planning-only` decision, audit-only application attempt plan, rollback plan,
   focused smoke plan, and implementation prerequisites, but they do not approve proposal
   application implementation, provider calls, memory persistence, source mutation, commit, or push.
+- Proposal application implementation decision handoff is not approval: `DEC-061` and
+  `docs/34_proposal-application-implementation-decision-handoff.md` provide copy-ready approval and
+  rejection statement shapes for exactly one audit-only application attempt path. The handoff does
+  not record an implementation decision or open proposal generation, source mutation, provider
+  calls, memory persistence, commit, or push.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -277,6 +282,7 @@ node scripts/vnext-durable-proposal-record-implementation-status.mjs
 node scripts/vnext-proposal-application-decision-packet-status.mjs
 node scripts/vnext-proposal-application-operator-decision-handoff-status.mjs
 node scripts/vnext-proposal-application-implementation-plan-status.mjs
+node scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -332,17 +338,21 @@ Current verification evidence from this README refresh:
   accepted planning-only application decision, audit-only application attempt plan, rollback plan,
   focused smoke plan, implementation prerequisites, still-blocked authority, upstream application
   packet/handoff evidence, and aggregate registration.
+- `node scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs`: source-checks
+  the copy-ready implementation approval and rejection statement shapes, invalid shortcuts, minimum
+  acceptance criteria, still-blocked authority, upstream planning evidence, and aggregate
+  registration without recording an implementation decision.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `155/155`, total `156/156`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `156/156`, total `157/157`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
   durable proposal record implementation plan, implementation, proposal application decision packet,
-  proposal application operator decision handoff, and proposal application implementation plan
-  checks.
+  proposal application operator decision handoff, proposal application implementation plan, and
+  proposal application implementation decision handoff checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
@@ -406,6 +416,10 @@ Playwright CLI:
   `docs/33_proposal-application-implementation-plan.md` records the audit-only application attempt
   plan and focused smoke plan; it does not apply proposals, mutate source, call providers, persist
   memory, commit, or push.
+- Proposal application implementation decision handoff is read-only input.
+  `docs/34_proposal-application-implementation-decision-handoff.md` defines approval and rejection
+  statement shapes, but it does not record an implementation decision or open proposal application
+  implementation, source mutation, provider calls, memory persistence, commit, or push.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider

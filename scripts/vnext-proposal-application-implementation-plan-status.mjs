@@ -147,55 +147,58 @@ assertContainsBacktickedAll(sources.plan, requiredAttemptFields);
 assertContainsAll(sources.app, blockedAuthorityMarkers);
 assertDoesNotMatchAny(sources.app, forbiddenActionPatterns);
 
-assertContainsAll(sources.plan, [
-  'decisionId` | `operator-decision-vnext-proposal-application-001`',
-  'decisionStatus` | `approve-application-planning-only`',
-  'targetAuthority` | `proposal application planning for existing durable proposal records`',
-  'Planning approval: accepted',
-  'Implementation approval: blocked',
-  'Current downstream gate: `proposal application implementation decision required`',
-  'accept only existing records from the approved local runtime `proposalRecords` collection',
-  'require an explicit application approval payload separate from the creation approval payload',
-  'keep the first application path documentation-only and audit-only unless a later implementation decision names a narrower mutation path',
-  'sourceMutationAllowed` | Always `false` for the first application attempt slice.',
-  'providerCallsAllowed` | Always `false`.',
-  'memoryPersistenceAllowed` | Always `false`.',
-  'commitAllowed` | Always `false`.',
-  'pushAllowed` | Always `false`.',
-  'application planning is accepted but implementation remains blocked until a later decision',
-  'no later `approve-application-implementation-slice` decision exists',
-]);
+const sourceEvidence = {
+  plan: [
+    'decisionId` | `operator-decision-vnext-proposal-application-001`',
+    'decisionStatus` | `approve-application-planning-only`',
+    'targetAuthority` | `proposal application planning for existing durable proposal records`',
+    'Planning approval: accepted',
+    'Implementation approval: blocked',
+    'Current downstream gate: `proposal application implementation decision required`',
+    'accept only existing records from the approved local runtime `proposalRecords` collection',
+    'require an explicit application approval payload separate from the creation approval payload',
+    'keep the first application path documentation-only and audit-only unless a later implementation decision names a narrower mutation path',
+    'sourceMutationAllowed` | Always `false` for the first application attempt slice.',
+    'providerCallsAllowed` | Always `false`.',
+    'memoryPersistenceAllowed` | Always `false`.',
+    'commitAllowed` | Always `false`.',
+    'pushAllowed` | Always `false`.',
+    'application planning is accepted but implementation remains blocked until a later decision',
+    'no later `approve-application-implementation-slice` decision exists',
+  ],
+  handoff: [
+    'Handoff status: `consumed-by-application-planning-only-decision`',
+    'Current gate: `proposal application implementation decision required`',
+  ],
+  decisionPacket: [
+    'Current packet status: `consumed-by-application-planning-only-decision`',
+    'Current application authority: planning only',
+  ],
+  proposalSpec: [
+    'Creation approval',
+    'Application approval',
+    'missing explicit application approval',
+  ],
+  durableImplementationPlan: [
+    'Runtime implementation: completed',
+    'Next blocked authority: proposal application',
+  ],
+  decisionLog: ['### DEC-058', '### DEC-059', '### DEC-060'],
+  audit: [
+    'Completed: `proposal application implementation plan`',
+    '1. `proposal application implementation decision required`',
+  ],
+  inventory: ['vNext proposal application implementation plan'],
+  readme: [
+    'Proposal application implementation plan is planning-only evidence',
+    'docs/33_proposal-application-implementation-plan.md',
+  ],
+  verification: ['vnext-proposal-application-implementation-plan-status.mjs'],
+};
 
-assertContainsAll(sources.handoff, [
-  'Handoff status: `consumed-by-application-planning-only-decision`',
-  'Current gate: `proposal application implementation decision required`',
-]);
-assertContainsAll(sources.decisionPacket, [
-  'Current packet status: `consumed-by-application-planning-only-decision`',
-  'Current application authority: planning only',
-]);
-assertContainsAll(sources.proposalSpec, [
-  'Creation approval',
-  'Application approval',
-  'missing explicit application approval',
-]);
-assertContainsAll(sources.durableImplementationPlan, [
-  'Runtime implementation: completed',
-  'Next blocked authority: proposal application',
-]);
-assertContainsAll(sources.decisionLog, ['### DEC-058', '### DEC-059', '### DEC-060']);
-assertContainsAll(sources.audit, [
-  'Completed: `proposal application implementation plan`',
-  '1. `proposal application implementation decision required`',
-]);
-assertContainsAll(sources.inventory, ['vNext proposal application implementation plan']);
-assertContainsAll(sources.readme, [
-  'Proposal application implementation plan is planning-only evidence',
-  'docs/33_proposal-application-implementation-plan.md',
-]);
-assertContainsAll(sources.verification, [
-  'vnext-proposal-application-implementation-plan-status.mjs',
-]);
+for (const [sourceName, expectedValues] of Object.entries(sourceEvidence)) {
+  assertContainsAll(sources[sourceName], expectedValues);
+}
 
 const handoffStatus = runStatus('scripts/vnext-proposal-application-operator-decision-handoff-status.mjs');
 const packetStatus = runStatus('scripts/vnext-proposal-application-decision-packet-status.mjs');

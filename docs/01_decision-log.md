@@ -342,6 +342,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/33_proposal-application-implementation-plan.md` records the accepted planning-only decision, the audit-only application attempt plan, rollback plan, focused smoke plan, application contract, and stop conditions. This decision consumes `docs/31_proposal-application-decision-packet.md` and `docs/32_proposal-application-operator-decision-handoff.md` as planning evidence, but it does not approve proposal application implementation, proposal generation, provider calls, memory persistence, source mutation, commit, or push.
 - Needed Before: Actual application implementation still needs a later explicit `approve-application-implementation-slice` decision naming exactly one application path, accepted rollback evidence, focused smoke coverage, aggregate verification, and separate approval before source mutation, commit, or push.
 
+### DEC-061
+- Status: `Accepted`
+- Decision: Proposal application implementation decision handoff is documented as read-only input for the current implementation decision gate.
+- Why: The accepted planning-only decision produced an application plan, but implementation remains blocked until the operator provides either an explicit `approve-application-implementation-slice` decision or a rejection. A copy-ready handoff reduces ambiguity without opening implementation authority.
+- Impact: `docs/34_proposal-application-implementation-decision-handoff.md` defines the valid implementation decision shape, rejection shape, invalid shortcuts, minimum acceptance criteria, still-blocked authorities, stop conditions, and verification command. It is not an operator decision and does not approve proposal application implementation, proposal generation, provider calls, memory persistence, source mutation, commit, or push.
+- Needed Before: Actual application implementation still requires a later fielded operator decision that names exactly one audit-only application attempt path, rollback refs, focused smoke refs, aggregate verification, and the authorities that remain blocked.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

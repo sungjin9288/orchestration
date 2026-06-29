@@ -19,6 +19,7 @@ The current product posture is:
 - proposal application decision packet: read-only decision input defined; it does not approve application
 - proposal application operator decision handoff: planning-only decision consumed; it does not approve implementation
 - proposal application implementation plan: planning-only approval accepted; implementation approval remains blocked
+- proposal application implementation decision handoff: read-only decision input defined; it does not approve implementation
 
 ## Current Evidence
 
@@ -38,6 +39,7 @@ The current product posture is:
 | Proposal application decision packet | Implemented as a read-only decision input. It names the valid application decision outcomes, required fields, application boundary, still-blocked authority, stop conditions, and verification refs before any durable proposal record can be applied. | `docs/01_decision-log.md#DEC-058`, `docs/31_proposal-application-decision-packet.md`, `scripts/vnext-proposal-application-decision-packet-status.mjs` |
 | Proposal application operator decision handoff | Implemented as a read-only decision template and consumed by the accepted application planning-only decision. It preserves copy-ready application planning and implementation statement shapes, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions without opening implementation authority. | `docs/01_decision-log.md#DEC-059`, `docs/32_proposal-application-operator-decision-handoff.md`, `scripts/vnext-proposal-application-operator-decision-handoff-status.mjs` |
 | Proposal application implementation plan | Implemented as a planning-only artifact. It records `operator-decision-vnext-proposal-application-001`, defines the audit-only application attempt plan, rollback plan, focused smoke plan, implementation prerequisites, and stop conditions while keeping application implementation, source mutation, provider calls, memory persistence, commit, and push blocked. | `docs/01_decision-log.md#DEC-060`, `docs/33_proposal-application-implementation-plan.md`, `scripts/vnext-proposal-application-implementation-plan-status.mjs` |
+| Proposal application implementation decision handoff | Implemented as a read-only decision input. It defines the copy-ready implementation approval shape, rejection shape, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions while keeping implementation, source mutation, provider calls, memory persistence, commit, and push blocked. | `docs/01_decision-log.md#DEC-061`, `docs/34_proposal-application-implementation-decision-handoff.md`, `scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs` |
 
 ## Development Plan
 
@@ -80,6 +82,9 @@ Completed: `proposal application operator decision handoff`
 Completed: `proposal application implementation plan`
 `docs/33_proposal-application-implementation-plan.md` records the accepted `approve-application-planning-only` decision and defines the first application plan, rollback plan, and focused smoke plan for existing durable proposal records. It is planning-only and does not approve application implementation, source mutation, provider calls, memory persistence, commit, or push.
 
+Completed: `proposal application implementation decision handoff`
+`docs/34_proposal-application-implementation-decision-handoff.md` gives the operator copy-ready statement shapes for approving or rejecting exactly one audit-only application attempt path. It is decision input only and does not approve proposal application implementation, source mutation, provider calls, memory persistence, commit, or push.
+
 1. `proposal application implementation decision required`
    Choose whether a later slice should implement exactly one audit-only application attempt path for existing durable proposal records. The current plan is planning-only; it does not apply proposals, mutate source, call providers, persist memory, commit, or push.
 
@@ -117,6 +122,7 @@ node scripts/vnext-durable-proposal-record-implementation-status.mjs
 node scripts/vnext-proposal-application-decision-packet-status.mjs
 node scripts/vnext-proposal-application-operator-decision-handoff-status.mjs
 node scripts/vnext-proposal-application-implementation-plan-status.mjs
+node scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs
 ```
 
-The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, the approved durable proposal record creation/persistence smoke, the proposal application decision packet, the proposal application operator decision handoff, and the proposal application implementation plan.
+The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, the approved durable proposal record creation/persistence smoke, the proposal application decision packet, the proposal application operator decision handoff, the proposal application implementation plan, and the proposal application implementation decision handoff.

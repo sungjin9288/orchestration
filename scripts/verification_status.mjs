@@ -282,6 +282,11 @@ const informationalChecks = [
     purpose: 'vNext proposal application implementation plan records accepted planning-only approval, audit-only application attempt plan, rollback plan, focused smoke plan, and implementation prerequisites without opening proposal application implementation, provider, memory, source mutation, commit, or push authority',
   },
   {
+    id: 'vnext-proposal-application-implementation-decision-handoff-status',
+    script: 'scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs',
+    purpose: 'vNext proposal application implementation decision handoff defines copy-ready approval and rejection statement shapes, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions without recording a decision or opening proposal application implementation, provider, memory, source mutation, commit, or push authority',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',
