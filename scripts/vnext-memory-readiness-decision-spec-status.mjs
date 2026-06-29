@@ -193,7 +193,7 @@ assert.equal(auditNextSlice, proposalApplicationImplementationDecisionSlice);
 assert.equal(proposalSpecStatus.ok, true);
 assert.equal(proposalSpecStatus.authority?.memoryPersistenceAllowed, false);
 
-const authority = {
+const memoryReadinessAuthorityBoundary = {
   memoryPersistenceAllowed: false,
   longTermMemoryStoreAllowed: false,
   rawTranscriptIngestionAllowed: false,
@@ -250,7 +250,7 @@ process.stdout.write(
         },
       },
       nextRecommendedSlice: proposalApplicationImplementationDecision,
-      authority,
+      authority: memoryReadinessAuthorityBoundary,
     },
     null,
     2,

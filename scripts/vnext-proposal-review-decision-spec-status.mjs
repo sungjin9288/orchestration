@@ -190,7 +190,7 @@ assert.equal(creationReadiness.readiness?.proposalQueueMutationAllowed, false);
 assert.equal(creationReadiness.readiness?.implementationAllowed, false);
 assert.equal(creationReadiness.readiness?.dryRunOnly, true);
 
-const authority = {
+const proposalReviewAuthorityBoundary = {
   proposalRecordCreationAllowed: false,
   proposalRecordPersistenceAllowed: false,
   proposalApprovalAllowed: false,
@@ -246,7 +246,7 @@ process.stdout.write(
         },
       },
       nextRecommendedSlice: proposalApplicationImplementationDecision,
-      authority,
+      authority: proposalReviewAuthorityBoundary,
     },
     null,
     2,
