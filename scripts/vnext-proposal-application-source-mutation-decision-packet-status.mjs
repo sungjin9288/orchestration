@@ -10,6 +10,7 @@ import {
   proposalApplicationSourceMutationDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionSlice,
   proposalApplicationSourceMutationFieldedDecisionSlice,
+  proposalApplicationSourceMutationForbiddenActionPatterns,
   proposalApplicationSourceMutationOperatorHandoffSlice,
 } from './vnext-status-constants.mjs';
 
@@ -52,17 +53,6 @@ const sourceMutationDecisionOptions = [
   'request-more-evidence',
   'reject',
   'defer',
-];
-
-const forbiddenActionPatterns = [
-  /data-action="apply-proposal"/,
-  /data-action="approve-proposal"/,
-  /data-action="generate-growth-proposal"/,
-  /data-action="mutate-growth-source"/,
-  /data-action="persist-growth-memory"/,
-  /proposalApplicationAllowed: true/,
-  /proposalGenerationAllowed: true/,
-  /sourceMutationAllowed: true/,
 ];
 
 function readFile(relativePath) {
@@ -119,7 +109,10 @@ assertContainsBacktickedAll(
   sourceMutationDecisionPacketSources.packet,
   proposalApplicationSourceMutationDecisionRequiredFields,
 );
-assertDoesNotMatchAny(sourceMutationDecisionPacketSources.app, forbiddenActionPatterns);
+assertDoesNotMatchAny(
+  sourceMutationDecisionPacketSources.app,
+  proposalApplicationSourceMutationForbiddenActionPatterns,
+);
 
 const sourceMutationDecisionPacketSourceEvidence = {
   packet: [

@@ -45,6 +45,17 @@ export const proposalApplicationSourceMutationBlockedAuthorityMarkers = [
   'commitPushAllowed: false',
 ];
 
+export const proposalApplicationSourceMutationForbiddenActionPatterns = [
+  /data-action="apply-proposal"/,
+  /data-action="approve-proposal"/,
+  /data-action="generate-growth-proposal"/,
+  /data-action="mutate-growth-source"/,
+  /data-action="persist-growth-memory"/,
+  /proposalApplicationAllowed: true/,
+  /proposalGenerationAllowed: true/,
+  /sourceMutationAllowed: true/,
+];
+
 export const operatorDecisionGate = 'operator decision required';
 
 export const proposalApplicationDecisionGate = 'proposal application decision required';

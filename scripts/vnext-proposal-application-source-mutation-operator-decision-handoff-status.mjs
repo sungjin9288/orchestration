@@ -9,6 +9,7 @@ import {
   proposalApplicationSourceMutationFieldedDecisionSlice,
   proposalApplicationSourceMutationFieldedDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionRequiredFields,
+  proposalApplicationSourceMutationForbiddenActionPatterns,
   proposalApplicationSourceMutationOperatorHandoffSlice,
 } from './vnext-status-constants.mjs';
 
@@ -65,17 +66,6 @@ const sourceMutationOperatorDecisionInvalidShortcuts = [
   'ship it',
 ];
 
-const forbiddenActionPatterns = [
-  /data-action="apply-proposal"/,
-  /data-action="approve-proposal"/,
-  /data-action="generate-growth-proposal"/,
-  /data-action="mutate-growth-source"/,
-  /data-action="persist-growth-memory"/,
-  /proposalApplicationAllowed: true/,
-  /proposalGenerationAllowed: true/,
-  /sourceMutationAllowed: true/,
-];
-
 function readFile(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
@@ -130,7 +120,10 @@ assertContainsBacktickedAll(
   sourceMutationOperatorHandoffSources.handoff,
   proposalApplicationSourceMutationDecisionRequiredFields,
 );
-assertDoesNotMatchAny(sourceMutationOperatorHandoffSources.app, forbiddenActionPatterns);
+assertDoesNotMatchAny(
+  sourceMutationOperatorHandoffSources.app,
+  proposalApplicationSourceMutationForbiddenActionPatterns,
+);
 
 const sourceMutationOperatorHandoffSourceEvidence = {
   handoff: [
