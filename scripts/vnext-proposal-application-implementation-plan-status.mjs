@@ -259,7 +259,7 @@ assert.equal(
   true,
 );
 
-const proposalApplicationAuthorityBoundary = {
+const proposalApplicationImplementationPlanAuthorityBoundary = {
   planningApproved: true,
   implementationApproved: false,
   proposalApplicationAllowed: false,
@@ -326,7 +326,7 @@ process.stdout.write(
         pushAllowed: false,
       },
       upstreamStatus: proposalApplicationImplementationPlanUpstreamStatus,
-      authority: proposalApplicationAuthorityBoundary,
+      authority: proposalApplicationImplementationPlanAuthorityBoundary,
     },
     null,
     2,

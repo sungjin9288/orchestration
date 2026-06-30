@@ -3,6 +3,7 @@
 ## direction resets
 
 - Proposal application implementation decision handoffs should be copy-ready and inert. After planning-only approval, the useful next artifact is an approval/rejection template for exactly one audit-only application attempt path; it must not record approval or imply proposal generation, source mutation, provider calls, memory persistence, commit, or push.
+- Proposal application authority boundaries should keep their local surface name when several status scripts share the same shape. `proposalApplicationImplementationPlanAuthorityBoundary` and `proposalApplicationOperatorHandoffAuthorityBoundary` tell reviewers which gate they are reading without changing the emitted `authority` payload.
 - Evidence source maps should name the thing they prove, not only the verifier route. `applicationAttemptEvidenceSources` reads cleaner than a generic `sources` binding while still keeping each source file's assertion local.
 - Repeated emitted decision ids should be named when they connect consumed handoff and implementation-plan status payloads. Keep quoted source-evidence checks local, but do not duplicate the payload id that reviewers use to trace authority.
 - Repeated `nextRequiredInput` payload values are contract text, not incidental prose. If multiple status scripts emit the same next input, keep it in one named constant and leave only source-evidence quote checks local to each verifier.

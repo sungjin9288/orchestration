@@ -232,7 +232,7 @@ assert.equal(
   true,
 );
 
-const proposalApplicationAuthorityBoundary = {
+const proposalApplicationImplementationDecisionHandoffAuthorityBoundary = {
   handoffRecordsDecision: false,
   implementationApproved: false,
   proposalApplicationAllowed: false,
@@ -280,7 +280,7 @@ process.stdout.write(
           nextSlice: vnextDevelopmentAuditNextSlice,
         },
       },
-      authority: proposalApplicationAuthorityBoundary,
+      authority: proposalApplicationImplementationDecisionHandoffAuthorityBoundary,
     },
     null,
     2,

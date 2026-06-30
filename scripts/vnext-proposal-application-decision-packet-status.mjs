@@ -226,7 +226,7 @@ assert.equal(
   true,
 );
 
-const proposalApplicationAuthorityBoundary = {
+const proposalApplicationDecisionPacketAuthorityBoundary = {
   proposalApplicationAllowed: false,
   proposalGenerationAllowed: false,
   proposalQueueMutationAllowed: false,
@@ -276,7 +276,7 @@ process.stdout.write(
           nextSlice: vnextDevelopmentAuditNextSlice,
         },
       },
-      authority: proposalApplicationAuthorityBoundary,
+      authority: proposalApplicationDecisionPacketAuthorityBoundary,
     },
     null,
     2,
