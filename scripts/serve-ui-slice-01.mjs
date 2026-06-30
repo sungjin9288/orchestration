@@ -2129,6 +2129,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/preference-config.js') {
+    await serveStaticAsset(response, 'preference-config.js');
+    return;
+  }
+
   if (url.pathname === '/company-config.js') {
     await serveStaticAsset(response, 'company-config.js');
     return;

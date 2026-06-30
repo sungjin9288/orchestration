@@ -11,6 +11,7 @@ const readmePath = path.join(repoRoot, 'README.md');
 const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_status.mjs');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const preferenceConfigPath = path.join(repoRoot, 'ui', 'preference-config.js');
 const referenceAuditPath = path.join(repoRoot, 'docs', 'reference', 'vnext-reference-driven-ui-audit.md');
 const contractsPath = path.join(repoRoot, 'src', 'runtime', 'contracts.js');
 const knowledgeWorkPackPath = path.join(repoRoot, 'packs', 'knowledge-work', 'pack.md');
@@ -23,6 +24,7 @@ const readme = fs.readFileSync(readmePath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const preferenceConfig = fs.readFileSync(preferenceConfigPath, 'utf8');
 const referenceAudit = fs.readFileSync(referenceAuditPath, 'utf8');
 const contracts = fs.readFileSync(contractsPath, 'utf8');
 const knowledgeWorkPack = fs.readFileSync(knowledgeWorkPackPath, 'utf8');
@@ -206,7 +208,8 @@ assert.match(appJs, /data-raw-transcript-ingestion-allowed="\$\{GROWTH_AUTHORITY
 assert.match(appJs, /data-cross-workspace-memory-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.crossWorkspaceMemoryAllowed\}"/);
 assert.match(appJs, /data-skill-promotion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.skillPromotionAllowed\}"/);
 assert.match(appJs, />지식 작업 \(knowledge-work\)<\/option>/);
-assert.match(appJs, /const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
+assert.match(appJs, /from '\.\/preference-config\.js'/);
+assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
 assert.match(appJs, /const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
 assert.match(contracts, /KNOWLEDGE_WORK: 'knowledge-work'/);
 assert.match(

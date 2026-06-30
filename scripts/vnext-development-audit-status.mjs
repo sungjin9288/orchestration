@@ -55,6 +55,7 @@ const vnextDevelopmentAuditFiles = {
   growthPlan: 'docs/18_growth-gateway-vnext.md',
   inventory: 'docs/22_completion-gate-inventory.md',
   app: 'ui/app.js',
+  preferenceConfig: 'ui/preference-config.js',
   styles: 'ui/styles.css',
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
   verification: 'scripts/verification_status.mjs',
@@ -152,8 +153,7 @@ const vnextDevelopmentAuditSourceEvidence = {
       'data-growth-dashboard-action-allowed="false"',
       'function renderGrowthProposalReviewPreview(growth)',
       'function renderPersonalizationSettings(personalization, data)',
-      "const UI_PREFERENCE_STORAGE_KEY = 'orchestration.ui-preferences.v1'",
-      "const UI_PREFERENCE_PACKET_SCHEMA = 'orchestration.ui-preferences.portable-review.v1'",
+      "from './preference-config.js'",
       'function getPortableUiPreferenceReview()',
       'runtimeMutationAllowed: false',
       'data-local-personalization-portability="copy-review-only"',
@@ -161,6 +161,13 @@ const vnextDevelopmentAuditSourceEvidence = {
       'data-memory-readiness-gate="blocked"',
       'data-proposal-application-attempt-ledger',
       'data-proposal-application-attempts-count',
+    ],
+  },
+  preferenceConfig: {
+    contains: [
+      "export const UI_PREFERENCE_STORAGE_KEY = 'orchestration.ui-preferences.v1'",
+      "export const UI_PREFERENCE_PACKET_SCHEMA = 'orchestration.ui-preferences.portable-review.v1'",
+      'export function normalizeUiPreferences(entry = {})',
     ],
   },
   decisionLog: {
