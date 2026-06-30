@@ -6,6 +6,8 @@
 
 - Historical decision-spec verifiers still need current downstream gate payloads. When a planning-only decision consumes an older gate, update any emitted `nextRecommendedSlice` helper to the new implementation decision gate instead of only asserting the audit route.
 
+- Read-only dashboard status payloads can also carry stale next-decision helpers. After a gate is consumed, check `nextRecommendedDecision` fields as well as `nextRecommendedSlice` fields so UI-adjacent evidence surfaces do not point operators back to an already-consumed decision.
+
 - Source mutation planning-only approval should advance the live gate to implementation decision review, not to source mutation execution. The packet and handoff become consumed planning evidence, the plan may allow `sourceMutationPlanningAllowed=true`, but `sourceMutationImplementationAllowed`, actual `sourceMutationAllowed`, provider calls, memory persistence, proposal generation, commit, and push must remain false until a later fielded implementation decision names exact files, baseline proof, diff preview, rollback refs, and focused smoke.
 
 - Markdown section assertion and repo-file map reading are generic verifier mechanics. Once adjacent status scripts share that shape, move the regex and file-bundle assembly behind helpers while keeping each verifier's section list and evidence map local.

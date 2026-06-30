@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
-  createProposalApplicationSourceMutationDecision,
+  createProposalApplicationSourceMutationImplementationDecision,
   proposalApplicationSourceMutationImplementationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
@@ -140,10 +140,11 @@ assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.app, forbiddenActions)
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationSourceMutationDecision = createProposalApplicationSourceMutationDecision({
-  reason:
-    'The read-only growth dashboard, approved durable proposal record creation/persistence slice, and audit-only application attempt are source-backed; real proposal application and source mutation still need a later explicit decision, rollback evidence, focused smoke, and aggregate verification.',
-});
+const proposalApplicationSourceMutationImplementationDecision =
+  createProposalApplicationSourceMutationImplementationDecision({
+    reason:
+      'The read-only growth dashboard, approved durable proposal record creation/persistence slice, audit-only application attempt, and source mutation planning are source-backed; source mutation implementation still needs a later explicit decision, rollback evidence, focused smoke, and aggregate verification.',
+  });
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(
@@ -176,7 +177,7 @@ process.stdout.write(
         sourceMutationAllowed: false,
         commitPushAllowed: false,
       },
-      nextRecommendedDecision: proposalApplicationSourceMutationDecision,
+      nextRecommendedDecision: proposalApplicationSourceMutationImplementationDecision,
     },
     null,
     2,
