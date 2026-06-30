@@ -32,6 +32,7 @@ const proposalApplicationImplementationDecisionHandoffFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -201,7 +202,8 @@ const proposalApplicationImplementationDecisionHandoffSourceEvidence = {
     'Proposal application implementation decision handoff is not approval',
     'docs/34_proposal-application-implementation-decision-handoff.md',
   ],
-  app: proposalApplicationImplementationDecisionHandoffBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: proposalApplicationImplementationDecisionHandoffBlockedAuthorityMarkers,
   verification: ['vnext-proposal-application-implementation-decision-handoff-status.mjs'],
 };
 

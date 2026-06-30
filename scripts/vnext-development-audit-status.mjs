@@ -55,6 +55,7 @@ const vnextDevelopmentAuditFiles = {
   growthPlan: 'docs/18_growth-gateway-vnext.md',
   inventory: 'docs/22_completion-gate-inventory.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   preferenceConfig: 'ui/preference-config.js',
   styles: 'ui/styles.css',
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
@@ -141,7 +142,7 @@ const vnextDevelopmentAuditSourceEvidence = {
   },
   app: {
     contains: [
-      ...vnextDevelopmentAuditBlockedAuthorityMarkers,
+      "from './growth-config.js'",
       'data-growth-learning-surface="read-only"',
       'data-personalization-scope="local-only"',
       'function renderGrowthCandidateDrilldown(growth)',
@@ -161,6 +162,14 @@ const vnextDevelopmentAuditSourceEvidence = {
       'data-memory-readiness-gate="blocked"',
       'data-proposal-application-attempt-ledger',
       'data-proposal-application-attempts-count',
+    ],
+  },
+  growthConfig: {
+    contains: [
+      ...vnextDevelopmentAuditBlockedAuthorityMarkers,
+      'export const GROWTH_AUTHORITY_BOUNDARY = Object.freeze({',
+      'export const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object.freeze([',
+      'export const MEMORY_STORE_OPEN_REQUIREMENTS = Object.freeze([',
     ],
   },
   preferenceConfig: {

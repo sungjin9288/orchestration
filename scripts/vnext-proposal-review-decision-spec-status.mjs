@@ -33,6 +33,7 @@ const proposalReviewDecisionSpecFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -108,7 +109,8 @@ assertDoesNotMatchAny(proposalReviewDecisionSpecSources.app, forbiddenAuthorityP
 
 const proposalReviewDecisionSpecSourceEvidence = {
   spec: proposalReviewApprovalSemantics,
-  app: proposalReviewDecisionSpecBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: proposalReviewDecisionSpecBlockedAuthorityMarkers,
   decisionLog: [
     '### DEC-048',
     '### DEC-050',

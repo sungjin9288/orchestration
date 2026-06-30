@@ -43,6 +43,7 @@ const sourceMutationDecisionPacketFiles = {
   readme: 'README.md',
   verification: 'scripts/verification_status.mjs',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
 };
 
 const sourceMutationDecisionPacketSections = [
@@ -123,7 +124,8 @@ const sourceMutationDecisionPacketSourceEvidence = {
     'docs/38_proposal-application-source-mutation-planning-plan.md',
   ],
   verification: ['vnext-proposal-application-source-mutation-decision-packet-status.mjs'],
-  app: proposalApplicationSourceMutationBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: proposalApplicationSourceMutationBlockedAuthorityMarkers,
 };
 
 assertSourceEvidence(

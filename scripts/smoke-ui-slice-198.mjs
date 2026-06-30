@@ -81,6 +81,8 @@ async function main() {
     const appJs = await appJsResponse.text();
     const packConfigResponse = await fetch(`${baseUrl}/pack-config.js`);
     const packConfig = await packConfigResponse.text();
+    const growthConfigResponse = await fetch(`${baseUrl}/growth-config.js`);
+    const growthConfig = await growthConfigResponse.text();
     const preferenceConfigResponse = await fetch(`${baseUrl}/preference-config.js`);
     const preferenceConfig = await preferenceConfigResponse.text();
     const companyConfigResponse = await fetch(`${baseUrl}/company-config.js`);
@@ -90,15 +92,19 @@ async function main() {
 
     assert.equal(appJsResponse.status, 200);
     assert.equal(packConfigResponse.status, 200);
+    assert.equal(growthConfigResponse.status, 200);
     assert.equal(preferenceConfigResponse.status, 200);
     assert.equal(companyConfigResponse.status, 200);
     assert.equal(surfaceConfigResponse.status, 200);
     assert.match(appJs, /from '\.\/company-config\.js'/);
+    assert.match(appJs, /from '\.\/growth-config\.js'/);
     assert.match(appJs, /from '\.\/pack-config\.js'/);
     assert.match(appJs, /from '\.\/preference-config\.js'/);
     assert.match(appJs, /from '\.\/surface-config\.js'/);
     assert.match(companyConfig, /export const COMPANY_ROLE_OPTIONS = \[/);
     assert.match(companyConfig, /export function normalizeCompanyMember\(entry, index = 0\) \{/);
+    assert.match(growthConfig, /export const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
+    assert.match(growthConfig, /export const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object\.freeze\(\[/);
     assert.match(packConfig, /export const PACK_DISPLAY_NAMES = \{/);
     assert.match(packConfig, /export const KNOWLEDGE_WORK_DELIVERABLES = \{/);
     assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);

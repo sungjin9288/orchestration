@@ -34,6 +34,7 @@ const durableProposalRecordImplementationPlanFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -209,7 +210,8 @@ const durableProposalRecordImplementationPlanSourceEvidence = {
     'Durable proposal record creation and persistence is implemented',
     'docs/30_durable-proposal-record-implementation-plan.md',
   ],
-  app: durableProposalRecordImplementationPlanBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: durableProposalRecordImplementationPlanBlockedAuthorityMarkers,
   verification: ['vnext-durable-proposal-record-implementation-plan-status.mjs'],
 };
 

@@ -24,6 +24,7 @@ const growthDashboardEvidenceDepthFiles = {
   audit: 'docs/23_vnext-development-audit.md',
   inventory: 'docs/22_completion-gate-inventory.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   styles: 'ui/styles.css',
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
   verification: 'scripts/verification_status.mjs',
@@ -110,8 +111,8 @@ const growthDashboardEvidenceDepthSourceEvidence = {
     /data-growth-dashboard-action-allowed="false"/,
     /실패 묶음, 회귀 비교, 되돌림 근거를 함께 봅니다/,
     /되돌림 근거 링크/,
-    ...growthDashboardEvidenceDepthEscapedAuthorityMarkers,
   ],
+  growthConfig: growthDashboardEvidenceDepthEscapedAuthorityMarkers,
   styles: [
     /\.growth-dashboard-depth/,
     /\.growth-pattern-grid/,

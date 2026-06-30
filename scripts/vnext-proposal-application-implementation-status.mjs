@@ -46,6 +46,7 @@ const applicationAttemptEvidenceSources = {
   app: readFile('ui/app.js'),
   contracts: readFile('src/runtime/contracts.js'),
   decisionLog: readFile('docs/01_decision-log.md'),
+  growthConfig: readFile('ui/growth-config.js'),
   implementationDoc: readFile('docs/35_proposal-application-implementation.md'),
   inventory: readFile('docs/22_completion-gate-inventory.md'),
   fileStore: readFile('src/runtime/file-store.js'),
@@ -75,10 +76,13 @@ assertMatchesAll(applicationAttemptEvidenceSources.runtimeService, [
   /function quarantineProposalApplicationAttempt\(input = \{\}\)/,
 ]);
 assertMatchesAll(applicationAttemptEvidenceSources.app, [
-  /proposalApplicationAttemptCreationAllowed: false/,
-  /proposalApplicationAttemptPersistenceAllowed: false/,
+  /from '\.\/growth-config\.js'/,
   /data-proposal-application-attempt-ledger="(?:empty\/)?read-only"/,
   /data-proposal-application-attempts-count/,
+]);
+assertMatchesAll(applicationAttemptEvidenceSources.growthConfig, [
+  /proposalApplicationAttemptCreationAllowed: false/,
+  /proposalApplicationAttemptPersistenceAllowed: false/,
 ]);
 assertMatchesAll(applicationAttemptEvidenceSources.decisionLog, [
   /### DEC-062/,

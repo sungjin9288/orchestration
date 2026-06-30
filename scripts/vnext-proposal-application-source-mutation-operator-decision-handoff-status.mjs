@@ -48,6 +48,7 @@ const sourceMutationOperatorHandoffFiles = {
   readme: 'README.md',
   verification: 'scripts/verification_status.mjs',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
 };
 
 const sourceMutationOperatorHandoffSections = [
@@ -168,7 +169,8 @@ const sourceMutationOperatorHandoffSourceEvidence = {
     'docs/38_proposal-application-source-mutation-planning-plan.md',
   ],
   verification: ['vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs'],
-  app: proposalApplicationSourceMutationBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: proposalApplicationSourceMutationBlockedAuthorityMarkers,
 };
 
 assertSourceEvidence(

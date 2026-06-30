@@ -31,6 +31,7 @@ const proposalRecordDecisionPacketFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -162,7 +163,8 @@ const proposalRecordDecisionPacketSourceEvidence = {
     'Authority implementation decision packet is decision input only',
     'docs/27_authority-implementation-decision-packet.md',
   ],
-  app: proposalRecordDecisionPacketBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: proposalRecordDecisionPacketBlockedAuthorityMarkers,
   verification: ['vnext-authority-implementation-decision-packet-status.mjs'],
 };
 

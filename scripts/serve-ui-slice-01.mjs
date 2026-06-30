@@ -2129,6 +2129,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/growth-config.js') {
+    await serveStaticAsset(response, 'growth-config.js');
+    return;
+  }
+
   if (url.pathname === '/preference-config.js') {
     await serveStaticAsset(response, 'preference-config.js');
     return;

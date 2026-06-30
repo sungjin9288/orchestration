@@ -34,6 +34,7 @@ const proposalApplicationImplementationPlanFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -217,7 +218,8 @@ const proposalApplicationImplementationPlanSourceEvidence = {
     'Proposal application implementation plan is planning-only evidence',
     'docs/33_proposal-application-implementation-plan.md',
   ],
-  app: proposalApplicationImplementationPlanBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: proposalApplicationImplementationPlanBlockedAuthorityMarkers,
   verification: ['vnext-proposal-application-implementation-plan-status.mjs'],
 };
 

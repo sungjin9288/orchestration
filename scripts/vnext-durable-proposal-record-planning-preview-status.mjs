@@ -31,6 +31,7 @@ const durableProposalRecordPlanningPreviewFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -175,7 +176,8 @@ const durableProposalPlanningPreviewSourceEvidence = {
     'Durable proposal record planning preview is not planning approval',
     'docs/28_durable-proposal-record-planning-preview.md',
   ],
-  app: durableProposalPlanningPreviewBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: durableProposalPlanningPreviewBlockedAuthorityMarkers,
   verification: ['vnext-durable-proposal-record-planning-preview-status.mjs'],
 };
 

@@ -43,6 +43,7 @@ const sourceMutationPlanningPlanFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -142,7 +143,8 @@ const sourceMutationPlanningPlanSourceEvidence = {
     'Proposal application source mutation planning plan is planning-only evidence',
     'docs/38_proposal-application-source-mutation-planning-plan.md',
   ],
-  app: proposalApplicationSourceMutationBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: proposalApplicationSourceMutationBlockedAuthorityMarkers,
   verification: ['vnext-proposal-application-source-mutation-planning-plan-status.mjs'],
 };
 

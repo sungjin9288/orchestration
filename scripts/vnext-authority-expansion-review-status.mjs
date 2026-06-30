@@ -27,6 +27,7 @@ const authorityExpansionReviewFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
   verification: 'scripts/verification_status.mjs',
 };
@@ -172,7 +173,8 @@ assertDoesNotMatchAny(authorityExpansionReviewSources.app, forbiddenActionPatter
 
 const authorityExpansionReviewSourceEvidence = {
   spec: reviewCandidates,
-  app: authorityExpansionReviewBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: authorityExpansionReviewBlockedAuthorityMarkers,
   decisionLog: [
     '### DEC-052',
     'docs/26_authority-expansion-review-spec.md',

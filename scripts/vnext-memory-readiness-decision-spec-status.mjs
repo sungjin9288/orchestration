@@ -33,6 +33,7 @@ const memoryReadinessDecisionSpecFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
   verification: 'scripts/verification_status.mjs',
 };
@@ -120,7 +121,8 @@ assertDoesNotMatchAny(memoryReadinessDecisionSpecSources.app, forbiddenAuthority
 
 const memoryReadinessDecisionSpecSourceEvidence = {
   spec: memoryReadinessReviewSemantics,
-  app: memoryReadinessDecisionSpecBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: memoryReadinessDecisionSpecBlockedAuthorityMarkers,
   decisionLog: [
     '### DEC-049',
     '### DEC-051',

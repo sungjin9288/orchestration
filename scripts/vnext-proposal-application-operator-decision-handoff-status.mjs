@@ -32,6 +32,7 @@ const proposalApplicationOperatorHandoffFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   app: 'ui/app.js',
+  growthConfig: 'ui/growth-config.js',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -201,7 +202,8 @@ const proposalApplicationOperatorHandoffSourceEvidence = {
     'docs/32_proposal-application-operator-decision-handoff.md',
     'Proposal application implementation plan is planning-only evidence',
   ],
-  app: proposalApplicationOperatorHandoffBlockedAuthorityMarkers,
+  app: ["from './growth-config.js'"],
+  growthConfig: proposalApplicationOperatorHandoffBlockedAuthorityMarkers,
   verification: ['vnext-proposal-application-operator-decision-handoff-status.mjs'],
 };
 
