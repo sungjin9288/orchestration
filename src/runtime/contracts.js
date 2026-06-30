@@ -249,6 +249,20 @@ const PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS = Object.freeze([
   PROPOSAL_RECORD_BLOCKED_ACTION.PUSH,
 ]);
 
+const PROPOSAL_APPLICATION_ATTEMPT_STATUS = {
+  PLANNED: 'planned',
+  QUARANTINED: 'quarantined',
+};
+
+const PROPOSAL_APPLICATION_ATTEMPT_DEFAULT_BLOCKED_ACTIONS = Object.freeze([
+  'proposal-generation',
+  PROPOSAL_RECORD_BLOCKED_ACTION.PROVIDER_CALL,
+  PROPOSAL_RECORD_BLOCKED_ACTION.MEMORY_PERSISTENCE,
+  PROPOSAL_RECORD_BLOCKED_ACTION.SOURCE_MUTATION,
+  PROPOSAL_RECORD_BLOCKED_ACTION.COMMIT,
+  PROPOSAL_RECORD_BLOCKED_ACTION.PUSH,
+]);
+
 function createEmptyState() {
   return {
     schemaVersion: 5,
@@ -264,6 +278,7 @@ function createEmptyState() {
       decisionInboxItem: 0,
       approval: 0,
       proposalRecord: 0,
+      proposalApplicationAttempt: 0,
     },
     missions: {},
     councilSessions: {},
@@ -274,6 +289,7 @@ function createEmptyState() {
     decisionInboxItems: {},
     approvals: {},
     proposalRecords: {},
+    proposalApplicationAttempts: {},
   };
 }
 
@@ -293,6 +309,8 @@ module.exports = {
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,
   PROVIDER_READINESS,
+  PROPOSAL_APPLICATION_ATTEMPT_DEFAULT_BLOCKED_ACTIONS,
+  PROPOSAL_APPLICATION_ATTEMPT_STATUS,
   PROPOSAL_RECORD_BLOCKED_ACTION,
   PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS,
   PROPOSAL_RECORD_RISK_CLASS,

@@ -30,7 +30,7 @@ const durableProposalRecordImplementationPlanFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const requiredPlanSections = [
+const durableProposalRecordImplementationPlanSections = [
   '## Purpose',
   '## Accepted Planning-Only Decision',
   '## Current Status',
@@ -152,7 +152,7 @@ const durableProposalRecordImplementationPlanSources = Object.fromEntries(
   ]),
 );
 
-for (const section of requiredPlanSections) {
+for (const section of durableProposalRecordImplementationPlanSections) {
   assert.match(
     durableProposalRecordImplementationPlanSources.plan,
     new RegExp(`^${escapeRegExp(section)}$`, 'm'),

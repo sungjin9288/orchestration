@@ -16,6 +16,8 @@ const {
   PACKS,
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,
+  PROPOSAL_APPLICATION_ATTEMPT_DEFAULT_BLOCKED_ACTIONS,
+  PROPOSAL_APPLICATION_ATTEMPT_STATUS,
   PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS,
   PROPOSAL_RECORD_RISK_CLASS,
   PROPOSAL_RECORD_STATUS,
@@ -36,6 +38,9 @@ function createRuntimeService(options = {}) {
   const proposalRecordTypes = new Set(Object.values(PROPOSAL_RECORD_TYPE));
   const proposalRecordRiskClasses = new Set(Object.values(PROPOSAL_RECORD_RISK_CLASS));
   const proposalRecordDefaultBlockedActions = [...PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS];
+  const proposalApplicationAttemptDefaultBlockedActions = [
+    ...PROPOSAL_APPLICATION_ATTEMPT_DEFAULT_BLOCKED_ACTIONS,
+  ];
 
   function nextId(state, entity) {
     state.sequences[entity] += 1;
@@ -45,6 +50,13 @@ function createRuntimeService(options = {}) {
   function nextProposalRecordId(state) {
     state.sequences.proposalRecord += 1;
     return `proposal-record-${String(state.sequences.proposalRecord).padStart(4, '0')}`;
+  }
+
+  function nextProposalApplicationAttemptId(state) {
+    state.sequences.proposalApplicationAttempt += 1;
+    return `proposal-application-attempt-${String(
+      state.sequences.proposalApplicationAttempt,
+    ).padStart(4, '0')}`;
   }
 
   function normalizeOptionalString(value) {
@@ -327,6 +339,16 @@ function createRuntimeService(options = {}) {
     }
 
     return proposalRecord;
+  }
+
+  function assertProposalApplicationAttempt(applicationAttemptId, state) {
+    const proposalApplicationAttempt = state.proposalApplicationAttempts[applicationAttemptId];
+
+    if (!proposalApplicationAttempt) {
+      throw new Error(`Proposal application attempt not found: ${applicationAttemptId}`);
+    }
+
+    return proposalApplicationAttempt;
   }
 
   function isCommitAction(action) {
@@ -1795,6 +1817,147 @@ function createRuntimeService(options = {}) {
       .concat(requestedActions.filter((action) => !proposalRecordDefaultBlockedActions.includes(action)));
   }
 
+  function normalizeProposalApplicationApproval(input) {
+    const approval = input && typeof input === 'object' ? input : null;
+
+    if (!approval) {
+      throw new Error('applicationApproval is required');
+    }
+
+    const decisionId = normalizeRequiredString(
+      approval.decisionId,
+      'applicationApproval.decisionId',
+    );
+    const decisionStatus = normalizeRequiredString(
+      approval.decisionStatus,
+      'applicationApproval.decisionStatus',
+    );
+    const status = normalizeOptionalString(approval.status) || APPROVAL_STATUS.APPROVED;
+    const targetAuthority = normalizeRequiredString(
+      approval.targetAuthority,
+      'applicationApproval.targetAuthority',
+    );
+    const approvalStatement = normalizeRequiredString(
+      approval.approvalStatement,
+      'applicationApproval.approvalStatement',
+    );
+
+    if (status !== APPROVAL_STATUS.APPROVED) {
+      throw new Error('applicationApproval.status must be approved');
+    }
+
+    if (decisionStatus !== 'approve-application-implementation-slice') {
+      throw new Error(
+        'applicationApproval.decisionStatus must be approve-application-implementation-slice',
+      );
+    }
+
+    if (
+      targetAuthority !==
+      'proposal application implementation for one audit-only attempt path on existing durable proposal records'
+    ) {
+      throw new Error(
+        'applicationApproval.targetAuthority must approve the audit-only proposal application attempt path',
+      );
+    }
+
+    if (!/approve implementation only/i.test(approvalStatement)) {
+      throw new Error('applicationApproval.approvalStatement must approve implementation only');
+    }
+
+    for (const blockedAuthority of [
+      'proposal generation',
+      'provider calls',
+      'memory persistence',
+      'source mutation',
+      'commit',
+      'push',
+    ]) {
+      const blockedAuthorityPattern = new RegExp(
+        `does not approve[\\s\\S]*${blockedAuthority}`,
+        'i',
+      );
+
+      if (!blockedAuthorityPattern.test(approvalStatement)) {
+        throw new Error(
+          `applicationApproval.approvalStatement must keep ${blockedAuthority} blocked`,
+        );
+      }
+    }
+
+    return {
+      decisionId,
+      decisionStatus,
+      status,
+      targetAuthority,
+      approvalStatement,
+      approvedAt: approval.approvedAt
+        ? normalizeIsoTimestamp(approval.approvedAt, 'applicationApproval.approvedAt')
+        : null,
+    };
+  }
+
+  function normalizeProposalApplicationAttemptBlockedActions(value) {
+    const requestedActions = Array.isArray(value)
+      ? normalizeRequiredStringArray(value, 'blockedActions')
+      : [];
+    const actionSet = new Set([
+      ...proposalApplicationAttemptDefaultBlockedActions,
+      ...requestedActions,
+    ]);
+
+    return proposalApplicationAttemptDefaultBlockedActions
+      .filter((action) => actionSet.has(action))
+      .concat(
+        requestedActions.filter(
+          (action) => !proposalApplicationAttemptDefaultBlockedActions.includes(action),
+        ),
+      );
+  }
+
+  function assertProposalRecordCanReceiveApplicationAttempt(proposalRecord, now) {
+    if (proposalRecord.status !== PROPOSAL_RECORD_STATUS.CREATED) {
+      throw new Error('proposalRecord.status must be created');
+    }
+
+    if (proposalRecord.applyAllowed !== false) {
+      throw new Error('proposalRecord.applyAllowed must remain false');
+    }
+
+    if (!proposalRecord.expiresAt || Date.parse(proposalRecord.expiresAt) <= Date.parse(now)) {
+      throw new Error('proposalRecord must not be expired');
+    }
+
+    for (const [fieldName, value] of Object.entries({
+      sourceClaimIds: proposalRecord.sourceClaimIds,
+      evidenceRefs: proposalRecord.evidenceRefs,
+      negativeEvidenceRefs: proposalRecord.negativeEvidenceRefs,
+      reviewerRefs: proposalRecord.reviewerRefs,
+      approvalRefs: proposalRecord.approvalRefs,
+      affectedFiles: proposalRecord.affectedFiles,
+      blockedActions: proposalRecord.blockedActions,
+    })) {
+      if (!Array.isArray(value) || value.length === 0) {
+        throw new Error(`proposalRecord.${fieldName} must be a non-empty array`);
+      }
+    }
+
+    if (
+      !proposalRecord.verificationPlan ||
+      !Array.isArray(proposalRecord.verificationPlan.commands) ||
+      proposalRecord.verificationPlan.commands.length === 0
+    ) {
+      throw new Error('proposalRecord.verificationPlan.commands must be a non-empty array');
+    }
+
+    if (
+      Array.isArray(proposalRecord.applicationAttemptIds) &&
+      proposalRecord.applicationAttemptIds.length > 0
+    ) {
+      throw new Error('proposalRecord already has an application attempt');
+    }
+  }
+
   function createProposalRecord(input = {}) {
     const state = store.loadState();
     const project = assertProject(input.projectId, state);
@@ -1913,6 +2076,144 @@ function createRuntimeService(options = {}) {
     store.saveState(state);
 
     return proposalRecord;
+  }
+
+  function createProposalApplicationAttempt(input = {}) {
+    const state = store.loadState();
+    const proposalRecord = assertProposalRecord(input.proposalId, state);
+    const project = assertProject(proposalRecord.projectId, state);
+    const task = proposalRecord.taskId ? assertTask(proposalRecord.taskId, state) : null;
+    const applicationApproval = normalizeProposalApplicationApproval(input.applicationApproval);
+    const now = input.now
+      ? normalizeIsoTimestamp(input.now, 'now')
+      : new Date().toISOString();
+    const applicationApprovalRefs = normalizeRequiredStringArray(
+      input.applicationApprovalRefs,
+      'applicationApprovalRefs',
+    );
+    const sourceEvidenceRefs = normalizeRequiredStringArray(
+      input.sourceEvidenceRefs,
+      'sourceEvidenceRefs',
+    );
+    const negativeEvidenceRefs = normalizeRequiredStringArray(
+      input.negativeEvidenceRefs,
+      'negativeEvidenceRefs',
+    );
+    const rollbackRefs = normalizeRequiredStringArray(input.rollbackRefs, 'rollbackRefs');
+    const focusedSmokeRefs = normalizeRequiredStringArray(
+      input.focusedSmokeRefs,
+      'focusedSmokeRefs',
+    );
+    const blockedActions = normalizeProposalApplicationAttemptBlockedActions(input.blockedActions);
+    const id = nextProposalApplicationAttemptId(state);
+
+    assertProposalRecordCanReceiveApplicationAttempt(proposalRecord, now);
+
+    if (!applicationApprovalRefs.includes(applicationApproval.decisionId)) {
+      throw new Error('applicationApprovalRefs must include applicationApproval.decisionId');
+    }
+
+    if (proposalRecord.approvalRefs.includes(applicationApproval.decisionId)) {
+      throw new Error('applicationApproval must be separate from creation approval');
+    }
+
+    state.proposalApplicationAttempts[id] = {
+      applicationAttemptId: id,
+      proposalId: proposalRecord.proposalId,
+      projectId: project.id,
+      taskId: task?.id || null,
+      status: PROPOSAL_APPLICATION_ATTEMPT_STATUS.PLANNED,
+      createdAt: now,
+      updatedAt: now,
+      applicationApprovalRefs,
+      sourceEvidenceRefs,
+      negativeEvidenceRefs,
+      rollbackRefs,
+      focusedSmokeRefs,
+      blockedActions,
+      proposalGenerationAllowed: false,
+      providerCallsAllowed: false,
+      memoryPersistenceAllowed: false,
+      sourceMutationAllowed: false,
+      commitAllowed: false,
+      pushAllowed: false,
+      nonApprovalStatement:
+        input.nonApprovalStatement ||
+        'This audit-only proposal application attempt records operator intent and does not authorize proposal generation, provider calls, memory persistence, source mutation, commit, or push.',
+      applicationApproval,
+    };
+
+    proposalRecord.applicationAttemptIds = [
+      ...new Set([...(proposalRecord.applicationAttemptIds || []), id]),
+    ];
+    proposalRecord.updatedAt = now;
+    proposalRecord.applyAllowed = false;
+    store.saveState(state);
+
+    return state.proposalApplicationAttempts[id];
+  }
+
+  function getProposalApplicationAttempt(applicationAttemptId) {
+    const state = store.loadState();
+    return assertProposalApplicationAttempt(applicationAttemptId, state);
+  }
+
+  function listProposalApplicationAttempts(input = {}) {
+    const state = store.loadState();
+    let proposalApplicationAttempts = Object.values(state.proposalApplicationAttempts);
+
+    if (input.projectId) {
+      proposalApplicationAttempts = proposalApplicationAttempts.filter(
+        (attempt) => attempt.projectId === input.projectId,
+      );
+    }
+
+    if (input.taskId) {
+      proposalApplicationAttempts = proposalApplicationAttempts.filter(
+        (attempt) => attempt.taskId === input.taskId,
+      );
+    }
+
+    if (input.proposalId) {
+      proposalApplicationAttempts = proposalApplicationAttempts.filter(
+        (attempt) => attempt.proposalId === input.proposalId,
+      );
+    }
+
+    if (input.status) {
+      proposalApplicationAttempts = proposalApplicationAttempts.filter(
+        (attempt) => attempt.status === input.status,
+      );
+    }
+
+    return proposalApplicationAttempts.sort(compareRecordsByCreatedDesc);
+  }
+
+  function quarantineProposalApplicationAttempt(input = {}) {
+    const state = store.loadState();
+    const proposalApplicationAttempt = assertProposalApplicationAttempt(
+      input.applicationAttemptId,
+      state,
+    );
+    const now = input.now
+      ? normalizeIsoTimestamp(input.now, 'now')
+      : new Date().toISOString();
+
+    proposalApplicationAttempt.status = PROPOSAL_APPLICATION_ATTEMPT_STATUS.QUARANTINED;
+    proposalApplicationAttempt.updatedAt = now;
+    proposalApplicationAttempt.quarantine = {
+      reason: normalizeRequiredString(input.reason, 'reason'),
+      quarantinedAt: now,
+    };
+    proposalApplicationAttempt.proposalGenerationAllowed = false;
+    proposalApplicationAttempt.providerCallsAllowed = false;
+    proposalApplicationAttempt.memoryPersistenceAllowed = false;
+    proposalApplicationAttempt.sourceMutationAllowed = false;
+    proposalApplicationAttempt.commitAllowed = false;
+    proposalApplicationAttempt.pushAllowed = false;
+    store.saveState(state);
+
+    return proposalApplicationAttempt;
   }
 
   function findPendingReviewItem(taskId, state) {
@@ -3165,6 +3466,7 @@ function createRuntimeService(options = {}) {
     createDecisionInboxItem,
     createLinkedTaskForMission,
     createMission,
+    createProposalApplicationAttempt,
     createProject,
     createProposalRecord,
     createTask,
@@ -3178,6 +3480,7 @@ function createRuntimeService(options = {}) {
     getDecisionInboxItem,
     getLogs,
     getMission,
+    getProposalApplicationAttempt,
     getProposalRecord,
     getProject,
     getRun,
@@ -3187,9 +3490,11 @@ function createRuntimeService(options = {}) {
     previewRetentionConsumer,
     listApprovals,
     listDecisionInboxItems,
+    listProposalApplicationAttempts,
     listProposalRecords,
     listTaskGuardSummaries,
     openReviewGate,
+    quarantineProposalApplicationAttempt,
     quarantineProposalRecord,
     recordArtifact,
     requestBuilderLiveMutationApproval,

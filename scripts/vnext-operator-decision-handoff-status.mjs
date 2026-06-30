@@ -28,7 +28,7 @@ const proposalRecordOperatorHandoffFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const requiredHandoffSections = [
+const proposalRecordOperatorHandoffSections = [
   '## Purpose',
   '## Current Gate',
   '## Decision Response Template',
@@ -140,7 +140,7 @@ const proposalRecordOperatorHandoffSources = Object.fromEntries(
   ]),
 );
 
-for (const section of requiredHandoffSections) {
+for (const section of proposalRecordOperatorHandoffSections) {
   assert.match(
     proposalRecordOperatorHandoffSources.handoff,
     new RegExp(`^${escapeRegExp(section)}$`, 'm'),

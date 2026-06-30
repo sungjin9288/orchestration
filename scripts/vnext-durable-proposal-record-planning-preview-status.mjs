@@ -29,7 +29,7 @@ const durableProposalRecordPlanningPreviewFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const requiredPreviewSections = [
+const durableProposalPlanningPreviewSections = [
   '## Purpose',
   '## Current Status',
   '## Non-Authority Boundary',
@@ -131,7 +131,7 @@ const durableProposalRecordPlanningPreviewSources = Object.fromEntries(
   ]),
 );
 
-for (const section of requiredPreviewSections) {
+for (const section of durableProposalPlanningPreviewSections) {
   assert.match(
     durableProposalRecordPlanningPreviewSources.preview,
     new RegExp(`^${escapeRegExp(section)}$`, 'm'),

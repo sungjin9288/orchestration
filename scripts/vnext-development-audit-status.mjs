@@ -32,8 +32,12 @@ const vnextDevelopmentAuditFiles = {
   proposalApplicationImplementationPlan: 'docs/33_proposal-application-implementation-plan.md',
   proposalApplicationImplementationDecisionHandoff:
     'docs/34_proposal-application-implementation-decision-handoff.md',
+  proposalApplicationImplementationDoc: 'docs/35_proposal-application-implementation.md',
   proposalRecordImplementationStatus: 'scripts/vnext-durable-proposal-record-implementation-status.mjs',
   proposalRecordCreationSmoke: 'scripts/smoke-durable-proposal-record-creation.mjs',
+  proposalApplicationAttemptSmoke: 'scripts/smoke-proposal-application-attempt-creation.mjs',
+  proposalApplicationImplementationStatus:
+    'scripts/vnext-proposal-application-implementation-status.mjs',
   decisionLog: 'docs/01_decision-log.md',
   growthPlan: 'docs/18_growth-gateway-vnext.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -105,6 +109,8 @@ const vnextDevelopmentAuditBlockedAuthorityMarkers = [
   'proposalApplicationAllowed: false',
   'proposalRecordCreationAllowed: false',
   'proposalRecordPersistenceAllowed: false',
+  'proposalApplicationAttemptCreationAllowed: false',
+  'proposalApplicationAttemptPersistenceAllowed: false',
   'sourceMutationAllowed: false',
   'commitPushAllowed: false',
 ];
@@ -140,6 +146,8 @@ const vnextDevelopmentAuditSourceEvidence = {
       'data-local-personalization-portability="copy-review-only"',
       'data-action="copy-local-personalization-review"',
       'data-memory-readiness-gate="blocked"',
+      'data-proposal-application-attempt-ledger',
+      'data-proposal-application-attempts-count',
     ],
   },
   decisionLog: {
@@ -158,6 +166,7 @@ const vnextDevelopmentAuditSourceEvidence = {
       '### DEC-059',
       '### DEC-060',
       '### DEC-061',
+      '### DEC-062',
     ],
   },
   readme: {
@@ -187,6 +196,8 @@ const vnextDevelopmentAuditSourceEvidence = {
       'docs/33_proposal-application-implementation-plan.md',
       'Proposal application implementation decision handoff is not approval',
       'docs/34_proposal-application-implementation-decision-handoff.md',
+      'Proposal application audit-only attempt is implemented',
+      'docs/35_proposal-application-implementation.md',
     ],
   },
   vnextAudit: {
@@ -207,6 +218,9 @@ const vnextDevelopmentAuditSourceEvidence = {
       'Completed: `proposal application operator decision handoff`',
       'Completed: `proposal application implementation plan`',
       'Completed: `proposal application implementation decision handoff`',
+      'Completed: `proposal application implementation`',
+      'proposal application implementation: audit-only attempt creation is implemented',
+      'proposal application source mutation',
       '1. `proposal application implementation decision required`',
     ],
     matches: [/^# vNext Development Audit/m],
@@ -335,6 +349,16 @@ const vnextDevelopmentAuditSourceEvidence = {
     ],
     matches: [/^# Proposal Application Implementation Decision Handoff/m],
   },
+  proposalApplicationImplementationDoc: {
+    contains: [
+      'Implementation approval: accepted',
+      'Runtime implementation: completed',
+      'record one inert application attempt',
+      'proposalApplicationAttempts',
+      'Proposal source mutation remains a separate authority decision',
+    ],
+    matches: [/^# Proposal Application Implementation/m],
+  },
   proposalRecordImplementationPlan: {
     contains: [
       'decisionStatus` | `approve-planning-only`',
@@ -381,6 +405,8 @@ const vnextDevelopmentAuditSourceEvidence = {
       'vnext-proposal-application-operator-decision-handoff-status.mjs',
       'vnext-proposal-application-implementation-plan-status.mjs',
       'vnext-proposal-application-implementation-decision-handoff-status.mjs',
+      'smoke-proposal-application-attempt-creation.mjs',
+      'vnext-proposal-application-implementation-status.mjs',
     ],
   },
   inventory: {
@@ -397,6 +423,7 @@ const vnextDevelopmentAuditSourceEvidence = {
       'vNext proposal application operator decision handoff',
       'vNext proposal application implementation plan',
       'vNext proposal application implementation decision handoff',
+      'vNext proposal application implementation',
     ],
   },
 };
@@ -539,6 +566,19 @@ const implemented = [
     status: 'documented-read-only-decision-input',
   },
   {
+    area: 'proposal application implementation',
+    evidence: [
+      'docs/35_proposal-application-implementation.md',
+      'docs/01_decision-log.md#DEC-062',
+      'src/runtime/contracts.js',
+      'src/runtime/file-store.js',
+      'src/runtime/runtime-service.js',
+      'scripts/smoke-proposal-application-attempt-creation.mjs',
+      'scripts/vnext-proposal-application-implementation-status.mjs',
+    ],
+    status: 'implemented-audit-only-application-attempt',
+  },
+  {
     area: 'completion and README evidence',
     evidence: ['scripts/smoke-readme-scope-evidence.mjs', 'scripts/verification_status.mjs'],
     status: 'verified',
@@ -553,6 +593,7 @@ const blocked = [
   'cross-workspace memory',
   'skill promotion',
   'provider calls from growth learning surfaces',
+  'proposal application source mutation',
   'runtime, UI, or source mutation from growth candidates',
   'commit or push from growth candidates',
 ];
@@ -562,8 +603,8 @@ const recommendedDevelopmentPlan = [
     priority: 1,
     slice: nextGrowthSlice,
     scope:
-      'Choose whether a later slice should implement exactly one audit-only application attempt path for existing durable proposal records.',
-    gate: 'Requires explicit proposal application implementation authority, focused smoke coverage, rollback evidence, and aggregate verification before any proposal can apply itself or mutate source.',
+      'Choose whether a later slice should go beyond the implemented audit-only application attempt record.',
+    gate: 'Requires a separate authority decision, focused smoke coverage, rollback evidence, and aggregate verification before any proposal can apply itself or mutate source.',
   },
 ];
 
@@ -582,7 +623,7 @@ process.stdout.write(
         planningApproved: true,
         implementationApproved: true,
         applicationPlanningApproved: true,
-        applicationImplementationApproved: false,
+        applicationImplementationApproved: true,
         providerCallsAllowed: false,
         memoryPersistenceAllowed: false,
         longTermMemoryStoreAllowed: false,

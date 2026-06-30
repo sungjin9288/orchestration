@@ -278,6 +278,8 @@ const GROWTH_AUTHORITY_BOUNDARY = Object.freeze({
   longTermMemoryStoreAllowed: false,
   memoryPersistenceAllowed: false,
   proposalApplicationAllowed: false,
+  proposalApplicationAttemptCreationAllowed: false,
+  proposalApplicationAttemptPersistenceAllowed: false,
   proposalGenerationAllowed: false,
   proposalRecordCreationAllowed: false,
   proposalRecordPersistenceAllowed: false,
@@ -3280,6 +3282,7 @@ function getActivePayload() {
         decisionInboxItems: {},
         approvals: {},
         proposalRecords: {},
+        proposalApplicationAttempts: {},
       },
     }
   );
@@ -3298,6 +3301,9 @@ function getDerived() {
   const inboxItems = Object.values(snapshot.decisionInboxItems).sort(sortByCreatedDesc);
   const approvals = Object.values(snapshot.approvals).sort(sortByCreatedDesc);
   const proposalRecords = Object.values(snapshot.proposalRecords || {}).sort(sortByCreatedDesc);
+  const proposalApplicationAttempts = Object.values(
+    snapshot.proposalApplicationAttempts || {},
+  ).sort(sortByCreatedDesc);
 
   const activeProject = snapshot.activeProjectId
     ? snapshot.projects[snapshot.activeProjectId] || null
@@ -3336,6 +3342,9 @@ function getDerived() {
   const projectProposalRecords = activeProject
     ? proposalRecords.filter((proposalRecord) => proposalRecord.projectId === activeProject.id)
     : [];
+  const projectProposalApplicationAttempts = activeProject
+    ? proposalApplicationAttempts.filter((attempt) => attempt.projectId === activeProject.id)
+    : [];
 
   const taskMap = new Map(projectTasks.map((task) => [task.id, task]));
   const missionMap = new Map(projectMissions.map((mission) => [mission.id, mission]));
@@ -3362,6 +3371,7 @@ function getDerived() {
     inboxItems: projectInboxItems,
     approvals: projectApprovals,
     proposalRecords: projectProposalRecords,
+    proposalApplicationAttempts: projectProposalApplicationAttempts,
     taskMap,
     runMap,
     artifactMap,
@@ -11958,6 +11968,7 @@ function getGrowthLearningSnapshot(data, context) {
   const candidates = getGrowthEvidenceCandidates({ failedRuns, reviewArtifacts, blockedTasks });
   const candidateCount = reviewArtifacts.length + failedRuns.length + blockedTasks.length;
   const proposalRecords = (data.proposalRecords || []).slice(0, 5);
+  const proposalApplicationAttempts = (data.proposalApplicationAttempts || []).slice(0, 5);
   const selectedEvidence =
     context.selectedArtifact?.id ||
     context.selectedRun?.id ||
@@ -11975,6 +11986,7 @@ function getGrowthLearningSnapshot(data, context) {
     blockedTasks,
     candidates,
     proposalRecords,
+    proposalApplicationAttempts,
     failurePatternGroups: getGrowthFailurePatternGroups({ failedRuns, reviewArtifacts, blockedTasks }),
     regressionComparison: getGrowthRegressionComparison({ failedRuns, completedRuns }),
     rollbackEvidenceLinks: getGrowthRollbackEvidenceLinks(data.artifacts),
@@ -11987,7 +11999,13 @@ function getGrowthLearningSnapshot(data, context) {
 function renderDurableProposalRecordLedger(growth) {
   if (!growth.proposalRecords.length) {
     return `
-      <div class="growth-candidate-empty" data-durable-proposal-record-ledger="empty">
+      <div
+        class="growth-candidate-empty"
+        data-durable-proposal-record-ledger="empty"
+        data-proposal-application-attempt-ledger="empty/read-only"
+        data-proposal-application-attempt-creation-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalApplicationAttemptCreationAllowed}"
+        data-proposal-application-attempt-persistence-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalApplicationAttemptPersistenceAllowed}"
+      >
         <strong>저장된 제안 기록 없음</strong>
         <span>승인된 생성 함수가 기록을 만들면 이 영역에 읽기 전용으로 표시됩니다.</span>
       </div>
@@ -11999,6 +12017,10 @@ function renderDurableProposalRecordLedger(growth) {
       class="growth-candidate-list"
       data-durable-proposal-record-ledger="read-only"
       data-proposal-application-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalApplicationAllowed}"
+      data-proposal-application-attempt-ledger="read-only"
+      data-proposal-application-attempt-creation-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalApplicationAttemptCreationAllowed}"
+      data-proposal-application-attempt-persistence-allowed="${GROWTH_AUTHORITY_BOUNDARY.proposalApplicationAttemptPersistenceAllowed}"
+      data-proposal-application-attempts-count="${growth.proposalApplicationAttempts.length}"
       data-source-mutation-allowed="${GROWTH_AUTHORITY_BOUNDARY.sourceMutationAllowed}"
     >
       ${growth.proposalRecords

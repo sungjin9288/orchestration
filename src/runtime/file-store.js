@@ -40,6 +40,7 @@ function createFileStore(options = {}) {
       decisionInboxItems: state.decisionInboxItems || {},
       approvals: state.approvals || {},
       proposalRecords: state.proposalRecords || {},
+      proposalApplicationAttempts: state.proposalApplicationAttempts || {},
     };
 
     for (const mission of Object.values(normalizedState.missions)) {
@@ -143,6 +144,9 @@ function createFileStore(options = {}) {
       proposalRecord.approvalRefs = Array.isArray(proposalRecord.approvalRefs)
         ? proposalRecord.approvalRefs
         : [];
+      proposalRecord.applicationAttemptIds = Array.isArray(proposalRecord.applicationAttemptIds)
+        ? proposalRecord.applicationAttemptIds
+        : [];
       proposalRecord.affectedFiles = Array.isArray(proposalRecord.affectedFiles)
         ? proposalRecord.affectedFiles
         : [];
@@ -150,6 +154,47 @@ function createFileStore(options = {}) {
         ? proposalRecord.blockedActions
         : [];
       proposalRecord.applyAllowed = false;
+    }
+
+    for (const proposalApplicationAttempt of Object.values(
+      normalizedState.proposalApplicationAttempts,
+    )) {
+      proposalApplicationAttempt.applicationApprovalRefs = Array.isArray(
+        proposalApplicationAttempt.applicationApprovalRefs,
+      )
+        ? proposalApplicationAttempt.applicationApprovalRefs
+        : [];
+      proposalApplicationAttempt.sourceEvidenceRefs = Array.isArray(
+        proposalApplicationAttempt.sourceEvidenceRefs,
+      )
+        ? proposalApplicationAttempt.sourceEvidenceRefs
+        : [];
+      proposalApplicationAttempt.negativeEvidenceRefs = Array.isArray(
+        proposalApplicationAttempt.negativeEvidenceRefs,
+      )
+        ? proposalApplicationAttempt.negativeEvidenceRefs
+        : [];
+      proposalApplicationAttempt.rollbackRefs = Array.isArray(
+        proposalApplicationAttempt.rollbackRefs,
+      )
+        ? proposalApplicationAttempt.rollbackRefs
+        : [];
+      proposalApplicationAttempt.focusedSmokeRefs = Array.isArray(
+        proposalApplicationAttempt.focusedSmokeRefs,
+      )
+        ? proposalApplicationAttempt.focusedSmokeRefs
+        : [];
+      proposalApplicationAttempt.blockedActions = Array.isArray(
+        proposalApplicationAttempt.blockedActions,
+      )
+        ? proposalApplicationAttempt.blockedActions
+        : [];
+      proposalApplicationAttempt.proposalGenerationAllowed = false;
+      proposalApplicationAttempt.providerCallsAllowed = false;
+      proposalApplicationAttempt.memoryPersistenceAllowed = false;
+      proposalApplicationAttempt.sourceMutationAllowed = false;
+      proposalApplicationAttempt.commitAllowed = false;
+      proposalApplicationAttempt.pushAllowed = false;
     }
 
     normalizedState.schemaVersion = emptyState.schemaVersion;

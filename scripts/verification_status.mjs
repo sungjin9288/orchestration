@@ -287,6 +287,16 @@ const informationalChecks = [
     purpose: 'vNext proposal application implementation decision handoff defines copy-ready approval and rejection statement shapes, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions without recording a decision or opening proposal application implementation, provider, memory, source mutation, commit, or push authority',
   },
   {
+    id: 'proposal-application-attempt-creation-smoke',
+    script: 'scripts/smoke-proposal-application-attempt-creation.mjs',
+    purpose: 'Approved audit-only proposal application attempt creation records one inert local attempt for an existing durable proposal record while keeping proposal generation, provider, memory, source mutation, commit, and push authority blocked',
+  },
+  {
+    id: 'vnext-proposal-application-implementation-status',
+    script: 'scripts/vnext-proposal-application-implementation-status.mjs',
+    purpose: 'vNext proposal application implementation source-checks the runtime contract, file-store normalization, service API, read-only UI marker, focused smoke, and aggregate registration for the approved audit-only attempt slice',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

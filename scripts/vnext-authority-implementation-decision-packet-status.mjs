@@ -28,7 +28,7 @@ const proposalRecordDecisionPacketFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const requiredPacketSections = [
+const proposalRecordDecisionPacketSections = [
   '## Purpose',
   '## Current Decision State',
   '## Decision Options',
@@ -115,7 +115,7 @@ const proposalRecordDecisionPacketSources = Object.fromEntries(
   ]),
 );
 
-for (const section of requiredPacketSections) {
+for (const section of proposalRecordDecisionPacketSections) {
   assert.match(
     proposalRecordDecisionPacketSources.packet,
     new RegExp(`^${escapeRegExp(section)}$`, 'm'),

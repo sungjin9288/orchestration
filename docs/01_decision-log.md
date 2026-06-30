@@ -349,6 +349,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/34_proposal-application-implementation-decision-handoff.md` defines the valid implementation decision shape, rejection shape, invalid shortcuts, minimum acceptance criteria, still-blocked authorities, stop conditions, and verification command. It is not an operator decision and does not approve proposal application implementation, proposal generation, provider calls, memory persistence, source mutation, commit, or push.
 - Needed Before: Actual application implementation still requires a later fielded operator decision that names exactly one audit-only application attempt path, rollback refs, focused smoke refs, aggregate verification, and the authorities that remain blocked.
 
+### DEC-062
+- Status: `Accepted`
+- Decision: Proposal application audit-only attempt creation is implemented for existing durable proposal records.
+- Why: The operator provided the fielded `approve-application-implementation-slice` decision for one inert application attempt path and then separately approved repository source-file edits for that implementation slice. The approved path needs durable local audit evidence without opening proposal generation, source mutation, provider calls, memory persistence, commit, or push.
+- Impact: `src/runtime/contracts.js`, `src/runtime/file-store.js`, and `src/runtime/runtime-service.js` now support local `proposalApplicationAttempts` records with forced-false authority flags. `ui/app.js` exposes application attempt evidence as a read-only proposal review marker. `docs/35_proposal-application-implementation.md`, `scripts/smoke-proposal-application-attempt-creation.mjs`, and `scripts/vnext-proposal-application-implementation-status.mjs` record and verify the implementation. This decision does not approve proposal generation, provider calls, memory persistence, source mutation, commit, or push.
+- Needed Before: Any actual proposal application that mutates runtime proposal source, project source files, provider state, memory, commits, or pushes still requires a later explicit authority decision, rollback evidence, focused smoke coverage, and aggregate verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
