@@ -26,6 +26,7 @@ import {
   getExecutionDeskNext,
   getExecutionDeskStatus as getExecutionDeskStatusBase,
 } from './desk-status.js';
+import { escapeHtml, formatDate } from './formatters.js';
 import {
   KNOWLEDGE_WORK_DELIVERABLES,
   PACK_HELP_COPY,
@@ -167,29 +168,6 @@ const elements = {
   },
   navButtons: [...document.querySelectorAll('.nav-button')],
 };
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
-
-function formatDate(value) {
-  if (!value) {
-    return '기록 없음';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString();
-}
 
 function getActiveNavGroupId() {
   const activeSurfaceGroup = getNavGroupForSurface(state.surface);

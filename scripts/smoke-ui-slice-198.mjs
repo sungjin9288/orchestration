@@ -85,6 +85,8 @@ async function main() {
     const councilConfig = await councilConfigResponse.text();
     const deskStatusResponse = await fetch(`${baseUrl}/desk-status.js`);
     const deskStatus = await deskStatusResponse.text();
+    const formattersResponse = await fetch(`${baseUrl}/formatters.js`);
+    const formatters = await formattersResponse.text();
     const growthConfigResponse = await fetch(`${baseUrl}/growth-config.js`);
     const growthConfig = await growthConfigResponse.text();
     const growthLearningResponse = await fetch(`${baseUrl}/growth-learning.js`);
@@ -106,6 +108,7 @@ async function main() {
     assert.equal(packConfigResponse.status, 200);
     assert.equal(councilConfigResponse.status, 200);
     assert.equal(deskStatusResponse.status, 200);
+    assert.equal(formattersResponse.status, 200);
     assert.equal(growthConfigResponse.status, 200);
     assert.equal(growthLearningResponse.status, 200);
     assert.equal(harnessBriefLabelsResponse.status, 200);
@@ -117,6 +120,7 @@ async function main() {
     assert.match(appJs, /from '\.\/company-config\.js'/);
     assert.match(appJs, /from '\.\/council-config\.js'/);
     assert.match(appJs, /from '\.\/desk-status\.js'/);
+    assert.match(appJs, /from '\.\/formatters\.js'/);
     assert.match(appJs, /from '\.\/growth-config\.js'/);
     assert.match(appJs, /from '\.\/growth-learning\.js'/);
     assert.match(appJs, /from '\.\/harness-brief-labels\.js'/);
@@ -136,6 +140,8 @@ async function main() {
     assert.match(deskStatus, /export function getExecutionDeskStatus\(task,/);
     assert.match(deskStatus, /task\.review\?\.status === 'passed'/);
     assert.match(deskStatus, /export function getDeliverablesDeskNext\(task, artifact, pendingGateCount\)/);
+    assert.match(formatters, /export function escapeHtml\(value\) \{/);
+    assert.match(formatters, /export function formatDate\(value\) \{/);
     assert.match(growthConfig, /export const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
     assert.match(growthConfig, /export const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object\.freeze\(\[/);
     assert.match(growthLearning, /export function getGrowthLearningSnapshot\(data, context, formatters = \{\}\) \{/);
