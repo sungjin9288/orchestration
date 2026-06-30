@@ -88,15 +88,22 @@ async function main() {
 
     const appJsResponse = await fetch(`${baseUrl}/app.js`);
     const appJsSource = await appJsResponse.text();
+    const projectBootstrapResponse = await fetch(`${baseUrl}/project-bootstrap.js`);
+    const projectBootstrapSource = await projectBootstrapResponse.text();
     const serveUiSource = fs.readFileSync(
       path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs'),
       'utf8',
     );
 
-    assert.match(appJsSource, /function getProjectBootstrapState\(data\)/);
-    assert.match(appJsSource, /title: '최초 진입 준비'/);
-    assert.match(appJsSource, /title: '프로젝트 등록부'/);
+    assert.equal(projectBootstrapResponse.status, 200);
+    assert.match(appJsSource, /from '\.\/project-bootstrap\.js'/);
+    assert.match(projectBootstrapSource, /export function getProjectBootstrapState\(data\)/);
+    assert.match(projectBootstrapSource, /export function getProjectGateCopy\(data, surfaceName\)/);
+    assert.match(projectBootstrapSource, /title: '최초 진입 준비'/);
+    assert.match(projectBootstrapSource, /title: '프로젝트 등록부'/);
+    assert.match(projectBootstrapSource, /고급 운영 모드에서 프로젝트를 등록한 뒤/);
     assert.match(appJsSource, /select-project/);
+    assert.match(serveUiSource, /\/project-bootstrap\.js/);
     assert.match(serveUiSource, /\/api\/projects/);
     assert.match(serveUiSource, /\/select/);
 

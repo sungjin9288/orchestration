@@ -19,9 +19,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const artifactPreviewPath = path.join(repoRoot, 'ui', 'artifact-preview.js');
+const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
+const formattersPath = path.join(repoRoot, 'ui', 'formatters.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-191');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const artifactPreview = fs.readFileSync(artifactPreviewPath, 'utf8');
+const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
+const formatters = fs.readFileSync(formattersPath, 'utf8');
+const helperSourceByName = new Map([
+  ['escapeHtml', formatters],
+  ['formatDate', formatters],
+  ['getArtifactMeaningBadge', artifactPreview],
+  ['getArtifactPreviewBadge', artifactPreview],
+  ['getArtifactTypeDisplay', artifactPreview],
+  ['getEvidenceRailHandoffDisplay', executionLabels],
+  ['getExecutionStageDisplay', executionLabels],
+]);
 
 function extractFunction(source, name) {
   const signature = `function ${name}(`;
@@ -133,7 +148,7 @@ function loadHelpers() {
   ];
 
   for (const name of functionNames) {
-    const source = extractFunction(appJs, name);
+    const source = extractFunction(helperSourceByName.get(name) || appJs, name);
     vm.runInContext(`${source}\nglobalThis.${name} = ${name};`, context);
   }
 
@@ -394,7 +409,10 @@ try {
 
   const blockedData = buildUiData(runtime, coordinator, blockedProject.id);
   const blockedTaskRecord = blockedData.taskMap.get(blockedTask.id);
-  const blockedArtifactMeta = blockedData.artifacts[0];
+  const blockedArtifactMeta = blockedData.artifacts.find(
+    (artifact) => artifact.taskId === blockedTask.id && artifact.type === 'breakdown',
+  );
+  assert.ok(blockedArtifactMeta, 'expected breakdown artifact meta for blocked task');
   const blockedRail = getExecutionEvidenceRail(blockedTaskRecord, blockedData);
   const blockedPolicySummary = getArtifactPolicySummary(blockedArtifactMeta, blockedData);
   const blockedSnapshot = getArtifactDetailSnapshot(
@@ -438,7 +456,10 @@ try {
 
   const reviewedData = buildUiData(runtime, coordinator, reviewedProject.id);
   const reviewedTaskRecord = reviewedData.taskMap.get(reviewedTask.id);
-  const reviewedArtifactMeta = reviewedData.artifacts[0];
+  const reviewedArtifactMeta = reviewedData.artifacts.find(
+    (artifact) => artifact.taskId === reviewedTask.id && artifact.type === 'review',
+  );
+  assert.ok(reviewedArtifactMeta, 'expected review artifact meta for reviewed task');
   const reviewedRail = getExecutionEvidenceRail(reviewedTaskRecord, reviewedData);
   const reviewedPolicySummary = getArtifactPolicySummary(reviewedArtifactMeta, reviewedData);
   const reviewedSnapshot = getArtifactDetailSnapshot(

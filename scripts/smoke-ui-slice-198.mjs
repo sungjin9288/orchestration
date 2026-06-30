@@ -103,6 +103,8 @@ async function main() {
     const harnessLabels = await harnessLabelsResponse.text();
     const preferenceConfigResponse = await fetch(`${baseUrl}/preference-config.js`);
     const preferenceConfig = await preferenceConfigResponse.text();
+    const projectBootstrapResponse = await fetch(`${baseUrl}/project-bootstrap.js`);
+    const projectBootstrap = await projectBootstrapResponse.text();
     const personalizationSnapshotResponse = await fetch(`${baseUrl}/personalization-snapshot.js`);
     const personalizationSnapshot = await personalizationSnapshotResponse.text();
     const companyConfigResponse = await fetch(`${baseUrl}/company-config.js`);
@@ -125,6 +127,7 @@ async function main() {
     assert.equal(harnessBriefLabelsResponse.status, 200);
     assert.equal(harnessLabelsResponse.status, 200);
     assert.equal(preferenceConfigResponse.status, 200);
+    assert.equal(projectBootstrapResponse.status, 200);
     assert.equal(personalizationSnapshotResponse.status, 200);
     assert.equal(companyConfigResponse.status, 200);
     assert.equal(surfaceConfigResponse.status, 200);
@@ -142,11 +145,13 @@ async function main() {
     assert.match(appJs, /from '\.\/harness-labels\.js'/);
     assert.match(appJs, /from '\.\/pack-config\.js'/);
     assert.match(appJs, /from '\.\/preference-config\.js'/);
+    assert.match(appJs, /from '\.\/project-bootstrap\.js'/);
     assert.match(appJs, /from '\.\/personalization-snapshot\.js'/);
     assert.match(appJs, /from '\.\/surface-config\.js'/);
     assert.match(appJs, /from '\.\/worktree-labels\.js'/);
     assert.match(artifactPreview, /export function getArtifactMeaningBadge\(entry\) \{/);
     assert.match(artifactPreview, /export function getArtifactPreviewBadge\(entry\) \{/);
+    assert.match(artifactPreview, /export function getArtifactTypeDisplay\(type\) \{/);
     assert.match(artifactPreview, /export function getStructuredPreviewLeadCopy\(\) \{/);
     assert.match(artifactPreview, /export function getPreviewRedactionCopy\(\) \{/);
     assert.match(executionLabels, /export function getExecutionRoleDisplay\(role\) \{/);
@@ -159,6 +164,9 @@ async function main() {
     assert.match(executionLabels, /export function getDeliveryStanceDisplay\(stance\) \{/);
     assert.match(executionLabels, /export function getPackageStatusDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getProviderReadinessDisplay\(status\) \{/);
+    assert.match(executionLabels, /export function getCommitApprovalDisplayStatus\(summary\) \{/);
+    assert.match(executionLabels, /export function getCloseOutApprovalDisplayStatus\(summary\) \{/);
+    assert.match(executionLabels, /export function getApprovalActionLabel\(action\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusTone\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailHandoffDisplay\(value\) \{/);
@@ -192,9 +200,15 @@ async function main() {
     assert.match(preferenceConfig, /export function normalizeUiPreferences\(entry = \{\}\) \{/);
     assert.match(preferenceConfig, /export function getPortableUiPreferenceReview\(preferences = DEFAULT_UI_PREFERENCES\) \{/);
     assert.match(preferenceConfig, /export function getPortableUiPreferenceReviewText\(preferences = DEFAULT_UI_PREFERENCES\) \{/);
+    assert.match(projectBootstrap, /export function getProjectBootstrapState\(data\) \{/);
+    assert.match(projectBootstrap, /export function getProjectGateCopy\(data, surfaceName\) \{/);
+    assert.match(projectBootstrap, /title: '최초 진입 준비'/);
+    assert.match(projectBootstrap, /title: '프로젝트 등록부'/);
+    assert.match(projectBootstrap, /고급 운영 모드에서 프로젝트를 등록한 뒤/);
     assert.match(personalizationSnapshot, /export function getPersonalizationSnapshot\(\{/);
     assert.match(personalizationSnapshot, /pendingGateCount > 0 \? 'decision-inbox'/);
     assert.match(surfaceConfig, /export const SURFACE_IDS = \[/);
+    assert.match(surfaceConfig, /export function getSurfaceDisplayName\(surface\) \{/);
     assert.match(surfaceConfig, /export const NAV_GROUPS = \{/);
     assert.match(surfaceConfig, /export function getNavGroupForSurface\(surface\) \{/);
     assert.match(worktreeLabels, /export function formatWorktreeOptionLabel\(option\) \{/);

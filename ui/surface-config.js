@@ -20,6 +20,10 @@ export const SURFACE_DISPLAY_NAMES = {
   taskboard: '작업판',
 };
 
+export function getSurfaceDisplayName(surface) {
+  return SURFACE_DISPLAY_NAMES[surface] || surface || '현재 표면';
+}
+
 export const SURFACE_NAV_GUIDANCE = {
   artifacts: '작업 증적, 파일, 패킷 근거를 확인',
   council: '역할별 의견과 실행 권고안을 정렬',

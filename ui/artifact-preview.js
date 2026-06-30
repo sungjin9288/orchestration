@@ -34,6 +34,23 @@ export function getArtifactPreviewBadge(entry) {
   return null;
 }
 
+export function getArtifactTypeDisplay(type) {
+  if (type === 'plan') return '계획';
+  if (type === 'architecture') return '설계';
+  if (type === 'breakdown') return '분해';
+  if (type === 'preflight') return 'preflight';
+  if (type === 'change-summary') return '변경요약';
+  if (type === 'patch') return '패치';
+  if (type === 'diff') return 'diff';
+  if (type === 'review') return '리뷰';
+  if (type === 'commit-package') return '커밋패키지';
+  if (type === 'commit-result') return '커밋결과';
+  if (type === 'release-package') return '릴리스패키지';
+  if (type === 'close-out') return '종료정리';
+  if (type === 'output') return '출력';
+  return type || '알 수 없음';
+}
+
 export function getStructuredPreviewLeadCopy() {
   return '구조화 미리보기는 가능한 범위에서 제공합니다. 아래 저장된 원문이 최종 기준으로 남습니다.';
 }

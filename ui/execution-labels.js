@@ -85,6 +85,42 @@ export function getProviderReadinessDisplay(status) {
   return status || '알 수 없음';
 }
 
+export function getCommitApprovalDisplayStatus(summary) {
+  if (summary?.approvalStale) {
+    return 'stale';
+  }
+
+  return summary?.latestApprovalStatus || 'none';
+}
+
+export function getCloseOutApprovalDisplayStatus(summary) {
+  if (summary?.approvalStale) {
+    return 'stale';
+  }
+
+  return summary?.latestApprovedReleaseApprovalStatus || 'none';
+}
+
+export function getApprovalActionLabel(action) {
+  if (!action) {
+    return null;
+  }
+
+  if (action === 'builder-live-mutation') {
+    return '라이브 변경';
+  }
+
+  if (action === 'commit-intent') {
+    return '로컬 커밋';
+  }
+
+  if (action === 'release-ready') {
+    return '릴리스 패키지';
+  }
+
+  return action;
+}
+
 export function getEvidenceRailStatusDisplay(status) {
   if (status === 'complete') {
     return '인계 완료';

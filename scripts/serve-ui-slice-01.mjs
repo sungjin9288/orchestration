@@ -2184,6 +2184,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/project-bootstrap.js') {
+    await serveStaticAsset(response, 'project-bootstrap.js');
+    return;
+  }
+
   if (url.pathname === '/personalization-snapshot.js') {
     await serveStaticAsset(response, 'personalization-snapshot.js');
     return;

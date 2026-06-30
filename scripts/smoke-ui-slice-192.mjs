@@ -29,6 +29,7 @@ const inboxLabels = fs.readFileSync(inboxLabelsPath, 'utf8');
 const helperSourceByName = new Map([
   ['escapeHtml', formatters],
   ['formatDate', formatters],
+  ['getApprovalActionLabel', executionLabels],
   ['getEvidenceRailHandoffDisplay', executionLabels],
   ['getEvidenceRailStatusDisplay', executionLabels],
   ['getEvidenceRailStatusTone', executionLabels],

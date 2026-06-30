@@ -1,6 +1,7 @@
 import {
   getArtifactMeaningBadge,
   getArtifactPreviewBadge,
+  getArtifactTypeDisplay,
   getPreviewRedactionCopy,
   getRawOnlyPreviewCopy,
   getStructuredPreviewFallbackCopy,
@@ -11,6 +12,9 @@ import {
   getEvidenceRailStatusDisplay,
   getEvidenceRailStatusTone,
   getBooleanDisplay,
+  getApprovalActionLabel,
+  getCloseOutApprovalDisplayStatus,
+  getCommitApprovalDisplayStatus,
   getDeliveryStanceDisplay,
   getExecutionModeDisplay,
   getExecutionRoleDisplay,
@@ -61,6 +65,7 @@ import {
   getKnowledgeWorkDeliverableDisplayName,
   getPackDisplayName,
 } from './pack-config.js';
+import { getProjectBootstrapState, getProjectGateCopy } from './project-bootstrap.js';
 import {
   GROWTH_AUTHORITY_BOUNDARY,
   MEMORY_STORE_OPEN_REQUIREMENTS,
@@ -103,13 +108,13 @@ import {
   GROUP_WORKSPACE_META,
   NAV_GROUPS,
   NAV_GROUP_ORDER,
-  SURFACE_DISPLAY_NAMES,
   SURFACE_DOCK_METADATA,
   SURFACE_IDS,
   SURFACE_LOCATION_GUIDANCE,
   SURFACE_NAV_GUIDANCE,
   getNavGroupForSurface,
   getNavGroupLabel,
+  getSurfaceDisplayName,
 } from './surface-config.js';
 import { buildLinkedWorktreeFallbackName, formatWorktreeOptionLabel } from './worktree-labels.js';
 
@@ -2728,27 +2733,6 @@ function getDerived() {
   };
 }
 
-function getProjectBootstrapState(data) {
-  if (data.projects.length === 0) {
-    return {
-      copy: '태스크 생성이나 실행 전에 첫 프로젝트를 먼저 등록합니다.',
-      title: '최초 진입 준비',
-    };
-  }
-
-  if (!data.activeProject) {
-    return {
-      copy: '태스크 생성이나 실행 전에 현재 프로젝트를 먼저 고릅니다.',
-      title: '프로젝트 선택 필요',
-    };
-  }
-
-  return {
-    copy: '프로젝트가 활성화되면 준비 경로는 닫히고, 다음 단계는 첫 태스크입니다.',
-    title: '프로젝트 등록부',
-  };
-}
-
 function getMissionStatusTone(status) {
   if (status === 'completed') {
     return 'success';
@@ -2933,23 +2917,6 @@ function getRunStatusDisplay(status) {
   return status || '알 수 없음';
 }
 
-function getArtifactTypeDisplay(type) {
-  if (type === 'plan') return '계획';
-  if (type === 'architecture') return '설계';
-  if (type === 'breakdown') return '분해';
-  if (type === 'preflight') return 'preflight';
-  if (type === 'change-summary') return '변경요약';
-  if (type === 'patch') return '패치';
-  if (type === 'diff') return 'diff';
-  if (type === 'review') return '리뷰';
-  if (type === 'commit-package') return '커밋패키지';
-  if (type === 'commit-result') return '커밋결과';
-  if (type === 'release-package') return '릴리스패키지';
-  if (type === 'close-out') return '종료정리';
-  if (type === 'output') return '출력';
-  return type || '알 수 없음';
-}
-
 function getGuardReasonDisplay(reason) {
   const normalizedReason = String(reason || '').trim();
 
@@ -2986,14 +2953,6 @@ function getAlignmentTone(status) {
   }
 
   return 'warning';
-}
-
-function getProjectGateCopy(data, surfaceName) {
-  if (data.projects.length === 0) {
-    return `고급 운영 모드에서 프로젝트를 등록한 뒤 ${surfaceName}을 엽니다.`;
-  }
-
-  return `고급 운영 모드에서 현재 프로젝트를 고른 뒤 ${surfaceName}을 엽니다.`;
 }
 
 function renderProjectGateSurface(title, copy) {
@@ -3329,26 +3288,6 @@ function getTaskApprovalSummary(task, approvals) {
     rejected: taskApprovals.filter((approval) => approval.status === 'rejected').length,
     actions: taskApprovals.map((approval) => approval.allowedNextAction).filter(Boolean),
   };
-}
-
-function getApprovalActionLabel(action) {
-  if (!action) {
-    return null;
-  }
-
-  if (action === 'builder-live-mutation') {
-    return '라이브 변경';
-  }
-
-  if (action === 'commit-intent') {
-    return '로컬 커밋';
-  }
-
-  if (action === 'release-ready') {
-    return '릴리스 패키지';
-  }
-
-  return action;
 }
 
 function describeApprovalTarget(approval, targetArtifact) {
@@ -3801,14 +3740,6 @@ function getReviewerAvailability(task, data) {
   };
 }
 
-function getCommitApprovalDisplayStatus(summary) {
-  if (summary?.approvalStale) {
-    return 'stale';
-  }
-
-  return summary?.latestApprovalStatus || 'none';
-}
-
 function getCommitPackageAvailability(task, data) {
   const summary = task ? data.derived?.commitPackageReadinessSummaries?.[task.id] || null : null;
 
@@ -3887,14 +3818,6 @@ function getReleasePackageAvailability(task, data) {
       targetPreflightRunId: null,
     },
   };
-}
-
-function getCloseOutApprovalDisplayStatus(summary) {
-  if (summary?.approvalStale) {
-    return 'stale';
-  }
-
-  return summary?.latestApprovedReleaseApprovalStatus || 'none';
 }
 
 function getCloseOutAvailability(task, data) {
@@ -8228,10 +8151,6 @@ function renderPreselectedPendingItemHint(item, approval, options = {}) {
       }
     </div>
   `;
-}
-
-function getSurfaceDisplayName(surface) {
-  return SURFACE_DISPLAY_NAMES[surface] || surface || '현재 표면';
 }
 
 function renderTaskDetailNavigationHint(task, options = {}) {

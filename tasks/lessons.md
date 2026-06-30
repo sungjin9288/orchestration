@@ -2,6 +2,18 @@
 
 ## direction resets
 
+- Approval action label splitting belongs with execution labels, not approval authority. Move only `getApprovalActionLabel` into `ui/execution-labels.js`, but keep approval lookup, bridge state, request/resolve actions, inbox routing, target artifact resolution, runtime mutation, source mutation, commit, and push paths outside the helper.
+
+- Project gate copy splitting should remain display-only. Move `getProjectGateCopy` into `ui/project-bootstrap.js`, but keep project registration, active-project selection, gated surface rendering, mutation endpoints, and task creation guards in app/server/runtime code.
+
+- Project bootstrap copy splitting should stay below project authority. Move only `getProjectBootstrapState` into `ui/project-bootstrap.js`, but keep project create/select forms, runtime service calls, mutation endpoints, task creation guards, and render lifecycle in the app shell and server/runtime paths.
+
+- Execution approval display-status helpers belong with execution labels, not the app shell. Move only `getCommitApprovalDisplayStatus` and `getCloseOutApprovalDisplayStatus` into `ui/execution-labels.js`, but keep readiness summaries, stale/current package decisions, action guards, runtime authority, source mutation, commit, and push paths in `ui/app.js` and runtime/coordinator code.
+
+- Surface display label splitting belongs with surface metadata. Move only `getSurfaceDisplayName` into `ui/surface-config.js`, but keep active surface state, nav button wiring, live status assignment, and route handling in `ui/app.js`.
+
+- Artifact type label splitting should stay below artifact rendering authority. Move only type wording into `ui/artifact-preview.js`, but keep catalog lookup, structured preview parsing, relation context, selection state, and artifact actions in `ui/app.js`.
+
 - Execution context label splitting should keep run selection and token rendering in the app shell. It is safe to move execution mode and run-relation wording into `ui/execution-labels.js`, but latest-run lookup, relation assembly, createToken calls, and execution actions must stay in `ui/app.js`.
 
 - Execution package and provider label splitting should stay display-only. Boolean wording, reviewer verdict display/tone, delivery stance, package status, and provider readiness wording can live in `ui/execution-labels.js`, but readiness summaries, package current/stale decisions, provider config, structured artifact rendering, and action guards must stay in `ui/app.js` and runtime/coordinator paths.

@@ -17,18 +17,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const artifactPreviewPath = path.join(repoRoot, 'ui', 'artifact-preview.js');
 const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
 const formattersPath = path.join(repoRoot, 'ui', 'formatters.js');
 const inboxLabelsPath = path.join(repoRoot, 'ui', 'inbox-labels.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-182');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const artifactPreview = fs.readFileSync(artifactPreviewPath, 'utf8');
 const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const formatters = fs.readFileSync(formattersPath, 'utf8');
 const inboxLabels = fs.readFileSync(inboxLabelsPath, 'utf8');
 const helperSourceByName = new Map([
+  ['getArtifactTypeDisplay', artifactPreview],
   ['escapeHtml', formatters],
   ['formatDate', formatters],
+  ['getApprovalActionLabel', executionLabels],
   ['getEvidenceRailHandoffDisplay', executionLabels],
   ['getEvidenceRailStatusDisplay', executionLabels],
   ['getEvidenceRailStatusTone', executionLabels],

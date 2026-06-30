@@ -79,6 +79,7 @@ async function main() {
     assert.match(indexHtml, /data-nav-group="ops"/);
     assert.match(appJs, /from '\.\/surface-config\.js'/);
     assert.match(surfaceConfig, /export const SURFACE_DISPLAY_NAMES = \{/);
+    assert.match(surfaceConfig, /export function getSurfaceDisplayName\(surface\) \{/);
     assert.match(surfaceConfig, /mission: '미션'/);
     assert.match(surfaceConfig, /taskboard: '작업판'/);
     assert.match(surfaceConfig, /'decision-inbox': '결정함'/);
