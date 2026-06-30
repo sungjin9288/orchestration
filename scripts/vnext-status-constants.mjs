@@ -13,9 +13,6 @@ export const proposalApplicationSourceMutationFieldedDecisionSlice =
 export const proposalApplicationSourceMutationDecisionRequiredInput =
   'operator-provided proposal application source mutation decision for exactly one source mutation planning path';
 
-export const proposalApplicationSourceMutationFieldedDecisionRequiredInput =
-  'operator-provided approve-source-mutation-planning-only, approve-source-mutation-implementation-slice, request-more-evidence, reject, or defer decision';
-
 export const proposalApplicationSourceMutationDecisionOptions = [
   'approve-source-mutation-planning-only',
   'approve-source-mutation-implementation-slice',
@@ -23,6 +20,16 @@ export const proposalApplicationSourceMutationDecisionOptions = [
   'reject',
   'defer',
 ];
+
+function formatDecisionOptionsForOperatorInput(options) {
+  const primaryOptions = options.slice(0, -1);
+  const fallbackOption = options[options.length - 1];
+
+  return `${primaryOptions.join(', ')}, or ${fallbackOption}`;
+}
+
+export const proposalApplicationSourceMutationFieldedDecisionRequiredInput =
+  `operator-provided ${formatDecisionOptionsForOperatorInput(proposalApplicationSourceMutationDecisionOptions)} decision`;
 
 export const proposalApplicationSourceMutationInvalidShortcutPhrases = [
   'continue',
