@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   proposalApplicationSourceMutationFieldedDecisionSlice,
+  proposalApplicationSourceMutationFieldedDecisionRequiredInput,
   proposalApplicationSourceMutationOperatorHandoffSlice,
 } from './vnext-status-constants.mjs';
 
@@ -277,8 +278,7 @@ process.stdout.write(
       handoff: sourceMutationOperatorHandoffFiles.handoff,
       requiredDecisionFields: sourceMutationOperatorDecisionRequiredFields,
       invalidShortcutsRejected: sourceMutationOperatorDecisionInvalidShortcuts,
-      nextRequiredInput:
-        'operator-provided approve-source-mutation-planning-only, approve-source-mutation-implementation-slice, request-more-evidence, reject, or defer decision',
+      nextRequiredInput: proposalApplicationSourceMutationFieldedDecisionRequiredInput,
       nextRecommendedSlice: proposalApplicationSourceMutationFieldedDecisionSlice,
       upstreamStatus: {
         sourceMutationDecisionPacket: {

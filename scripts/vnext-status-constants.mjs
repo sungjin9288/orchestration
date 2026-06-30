@@ -13,6 +13,9 @@ export const proposalApplicationSourceMutationFieldedDecisionSlice =
 export const proposalApplicationSourceMutationDecisionRequiredInput =
   'operator-provided proposal application source mutation decision for exactly one source mutation planning path';
 
+export const proposalApplicationSourceMutationFieldedDecisionRequiredInput =
+  'operator-provided approve-source-mutation-planning-only, approve-source-mutation-implementation-slice, request-more-evidence, reject, or defer decision';
+
 export const operatorDecisionGate = 'operator decision required';
 
 export const proposalApplicationDecisionGate = 'proposal application decision required';

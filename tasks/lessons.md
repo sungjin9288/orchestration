@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- Fielded decision input text should be named once when it is emitted as a status payload contract. Keep source-evidence quote checks local, but route the payload `nextRequiredInput` through a shared constant so follow-up handoff scripts do not drift by copying long approval option strings.
 - Source mutation operator handoffs should move the live route to a fielded decision requirement, not back to another handoff. The handoff can make planning, implementation, evidence-request, rejection, and deferral wording copy-ready while keeping source mutation planning and implementation false until the operator provides a fully fielded decision.
 - Source mutation gates should start with decision input that names the audit-only application attempt refs, exact target authority, rollback refs, focused smoke refs, and clean baseline proof before any plan or implementation can open. A source mutation decision packet is evidence for the next handoff, not source mutation approval.
 - Source mutation operator handoffs should move the live route to a fielded decision requirement, not to planning or implementation. Copy-ready statement shapes can reduce ambiguity, but they still must not record approval or imply source mutation authority.
