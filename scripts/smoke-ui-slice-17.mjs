@@ -59,9 +59,12 @@ async function main() {
     const indexHtml = await indexResponse.text();
     const appJsResponse = await fetch(`${baseUrl}/app.js`);
     const appJs = await appJsResponse.text();
+    const surfaceConfigResponse = await fetch(`${baseUrl}/surface-config.js`);
+    const surfaceConfig = await surfaceConfigResponse.text();
 
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
+    assert.equal(surfaceConfigResponse.status, 200);
     assert.match(indexHtml, /<title>Orchestration 1\.0 Workflow Control<\/title>/);
     assert.match(indexHtml, /<h1>Orchestration<\/h1>/);
     assert.match(indexHtml, /Workflow Control/);
@@ -74,10 +77,11 @@ async function main() {
     assert.match(indexHtml, /data-nav-group="workflows"/);
     assert.match(indexHtml, /data-nav-group="review"/);
     assert.match(indexHtml, /data-nav-group="ops"/);
-    assert.match(appJs, /const SURFACE_DISPLAY_NAMES = \{/);
-    assert.match(appJs, /mission: '미션'/);
-    assert.match(appJs, /taskboard: '작업판'/);
-    assert.match(appJs, /'decision-inbox': '결정함'/);
+    assert.match(appJs, /from '\.\/surface-config\.js'/);
+    assert.match(surfaceConfig, /export const SURFACE_DISPLAY_NAMES = \{/);
+    assert.match(surfaceConfig, /mission: '미션'/);
+    assert.match(surfaceConfig, /taskboard: '작업판'/);
+    assert.match(surfaceConfig, /'decision-inbox': '결정함'/);
 
     console.log(
       JSON.stringify(

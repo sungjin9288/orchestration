@@ -7,10 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const surfaceConfig = fs.readFileSync(surfaceConfigPath, 'utf8');
 
-assert.match(appJs, /const NAV_GROUP_ORDER = Object\.keys\(NAV_GROUPS\);/);
+assert.match(appJs, /from '\.\/surface-config\.js'/);
+assert.match(surfaceConfig, /export const NAV_GROUP_ORDER = Object\.keys\(NAV_GROUPS\);/);
 assert.match(appJs, /async function handleNavGroupTabKeydown\(event\) \{/);
 assert.match(appJs, /event\.target\.closest\('\[data-nav-group-tab\]'\)/);
 assert.match(appJs, /event\.key === 'ArrowRight' \|\| event\.key === 'ArrowDown'/);

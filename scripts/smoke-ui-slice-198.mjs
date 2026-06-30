@@ -81,12 +81,25 @@ async function main() {
     const appJs = await appJsResponse.text();
     const packConfigResponse = await fetch(`${baseUrl}/pack-config.js`);
     const packConfig = await packConfigResponse.text();
+    const companyConfigResponse = await fetch(`${baseUrl}/company-config.js`);
+    const companyConfig = await companyConfigResponse.text();
+    const surfaceConfigResponse = await fetch(`${baseUrl}/surface-config.js`);
+    const surfaceConfig = await surfaceConfigResponse.text();
 
     assert.equal(appJsResponse.status, 200);
     assert.equal(packConfigResponse.status, 200);
+    assert.equal(companyConfigResponse.status, 200);
+    assert.equal(surfaceConfigResponse.status, 200);
+    assert.match(appJs, /from '\.\/company-config\.js'/);
     assert.match(appJs, /from '\.\/pack-config\.js'/);
+    assert.match(appJs, /from '\.\/surface-config\.js'/);
+    assert.match(companyConfig, /export const COMPANY_ROLE_OPTIONS = \[/);
+    assert.match(companyConfig, /export function normalizeCompanyMember\(entry, index = 0\) \{/);
     assert.match(packConfig, /export const PACK_DISPLAY_NAMES = \{/);
     assert.match(packConfig, /export const KNOWLEDGE_WORK_DELIVERABLES = \{/);
+    assert.match(surfaceConfig, /export const SURFACE_IDS = \[/);
+    assert.match(surfaceConfig, /export const NAV_GROUPS = \{/);
+    assert.match(surfaceConfig, /export function getNavGroupForSurface\(surface\) \{/);
     assert.match(appJs, /name="projectPack"/);
     assert.match(appJs, /name="missionDeliverableType"/);
     assert.match(appJs, /선택한 산출물 유형으로 회의 안건이 바로 열리고/);

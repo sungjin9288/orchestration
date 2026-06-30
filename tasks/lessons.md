@@ -1306,3 +1306,5 @@
 - post-completion router가 newest finalization follow-up을 별도 override로 계산할 때는 이미 구현된 review status를 먼저 확인해야 한다. finalization-ready만 보고 override하면 direct status, docs, aggregate는 green인데 engine/reflection이 한 단계 전 review slice를 다시 추천하는 stale next-step이 생긴다.
 - smoke runner에서 여러 status script를 같은 방식으로 실행한다면 JSON 파싱과 stdout 우회 처리는 helper 하나에 모아야 한다. 각 assertion block은 어떤 상태를 검증하는지만 보여 주고, spawn/parse boilerplate가 반복되지 않아야 route expectation drift를 찾기 쉽다.
 - post-completion Growth Evidence Ledger chain은 review뿐 아니라 acceptance 단계에서도 같은 stale route가 생긴다. 이미 acceptance status가 구현되어 green이면 engine/reflection은 acceptance를 다시 추천하지 말고 finalization으로 넘어가야 한다.
+- `ui/app.js`를 쪼갤 때는 surface id, nav group, display copy, playbook metadata처럼 상태를 바꾸지 않는 값부터 별도 module로 옮기고, `state.menuGroup` reconciliation처럼 상태를 조정하는 함수는 app shell에 남기는 편이 안전하다. 이렇게 하면 import/server/smoke 계약은 작게 고정하면서 rendering lifecycle과 authority boundary는 그대로 유지할 수 있다.
+- company roster 분리도 같은 규칙을 따른다. role/desk option, default member, label helper, normalization은 config module로 옮길 수 있지만 localStorage 읽기, persistence 호출, form event 처리, render trigger는 app shell에 남겨야 개인화 편의와 runtime authority boundary가 섞이지 않는다.

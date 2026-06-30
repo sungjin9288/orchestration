@@ -8,10 +8,12 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const indexPath = path.join(repoRoot, 'ui', 'index.html');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const indexHtml = fs.readFileSync(indexPath, 'utf8');
 const appJs = fs.readFileSync(appPath, 'utf8');
+const surfaceConfig = fs.readFileSync(surfaceConfigPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(indexHtml, /<title>Orchestration 1\.0 Workflow Control<\/title>/);
@@ -31,7 +33,8 @@ assert.doesNotMatch(indexHtml, /Operations Control Plane/);
 
 assert.match(appJs, /class="nav-button-main"/);
 assert.match(appJs, /class="nav-button-count"/);
-assert.match(appJs, /const NAV_GROUPS = \{/);
+assert.match(appJs, /from '\.\/surface-config\.js'/);
+assert.match(surfaceConfig, /export const NAV_GROUPS = \{/);
 assert.match(appJs, /function handleNavGroupChange\(groupId\)/);
 assert.match(appJs, /button\.setAttribute\('aria-current', 'page'\);/);
 assert.match(appJs, /button\.removeAttribute\('aria-current'\);/);

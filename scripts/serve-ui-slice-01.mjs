@@ -2129,6 +2129,16 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/company-config.js') {
+    await serveStaticAsset(response, 'company-config.js');
+    return;
+  }
+
+  if (url.pathname === '/surface-config.js') {
+    await serveStaticAsset(response, 'surface-config.js');
+    return;
+  }
+
   text(response, 404, 'Not Found', 'text/plain; charset=utf-8');
 });
 

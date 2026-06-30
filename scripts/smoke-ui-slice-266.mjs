@@ -8,10 +8,12 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const indexPath = path.join(repoRoot, 'ui', 'index.html');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const indexHtml = fs.readFileSync(indexPath, 'utf8');
 const appJs = fs.readFileSync(appPath, 'utf8');
+const surfaceConfig = fs.readFileSync(surfaceConfigPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(indexHtml, /role="tablist"/);
@@ -19,13 +21,14 @@ assert.match(indexHtml, /data-nav-group-tab="workflows"/);
 assert.match(indexHtml, /data-nav-group-tab="review"/);
 assert.match(indexHtml, /data-nav-group-tab="ops"/);
 assert.match(indexHtml, /data-nav-group="workflows"/);
-assert.match(indexHtml, /data-nav-group="review" hidden/);
-assert.match(indexHtml, /data-nav-group="ops" hidden/);
+assert.match(indexHtml, /data-nav-group="review"[\s\S]*?hidden/);
+assert.match(indexHtml, /data-nav-group="ops"[\s\S]*?hidden/);
 
-assert.match(appJs, /const NAV_GROUPS = \{/);
-assert.match(appJs, /const SURFACE_TO_NAV_GROUP = Object\.fromEntries/);
+assert.match(appJs, /from '\.\/surface-config\.js'/);
+assert.match(surfaceConfig, /export const NAV_GROUPS = \{/);
+assert.match(surfaceConfig, /const SURFACE_TO_NAV_GROUP = Object\.fromEntries/);
 assert.match(appJs, /menuGroup: 'workflows'/);
-assert.match(appJs, /function getNavGroupForSurface\(surface\)/);
+assert.match(surfaceConfig, /export function getNavGroupForSurface\(surface\)/);
 assert.match(appJs, /function getActiveNavGroupId\(\)/);
 assert.match(appJs, /function handleNavGroupChange\(groupId\)/);
 assert.match(appJs, /const navGroupButton = event\.target\.closest\('\[data-nav-group-tab\]'\);/);
