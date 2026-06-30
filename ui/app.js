@@ -1,22 +1,12 @@
+import {
+  KNOWLEDGE_WORK_DELIVERABLES,
+  PACK_HELP_COPY,
+  getKnowledgeWorkDeliverableDisplayName,
+  getPackDisplayName,
+} from './pack-config.js';
+
 const SURFACE_IDS = ['mission', 'council', 'execution', 'deliverables', 'taskboard', 'logs', 'artifacts', 'decision-inbox'];
 const TASK_LIFECYCLE_ORDER = ['Inbox', 'In Progress', 'Review', 'Done'];
-const PACK_DISPLAY_NAMES = {
-  development: 'development',
-  'knowledge-work': 'knowledge-work',
-};
-const PACK_HELP_COPY = {
-  development:
-    '코드, 설정, 테스트, 리팩터링처럼 repo mutation이 중심인 실행 팩입니다.',
-  'knowledge-work':
-    '의사결정 메모, PRD, 실행 계획, 운영 체크리스트처럼 문서·기획·판단이 중심인 실행 팩입니다.',
-};
-const KNOWLEDGE_WORK_DELIVERABLES = {
-  checklist: '체크리스트',
-  'decision-memo': '의사결정 메모',
-  'execution-plan': '실행 계획서',
-  prd: 'PRD',
-  'research-brief': '리서치 브리프',
-};
 const SURFACE_DISPLAY_NAMES = {
   artifacts: '아티팩트',
   council: '협의회',
@@ -480,10 +470,6 @@ function formatDate(value) {
   return date.toLocaleString();
 }
 
-function getPackDisplayName(pack) {
-  return PACK_DISPLAY_NAMES[pack] || pack || 'development';
-}
-
 function getNavGroupForSurface(surface) {
   return SURFACE_TO_NAV_GROUP[surface] || 'workflows';
 }
@@ -503,10 +489,6 @@ function getActiveNavGroupId() {
 
 function getNavGroupLabel(groupId) {
   return NAV_GROUPS[groupId]?.label || NAV_GROUPS.workflows.label;
-}
-
-function getKnowledgeWorkDeliverableDisplayName(type) {
-  return KNOWLEDGE_WORK_DELIVERABLES[type] || KNOWLEDGE_WORK_DELIVERABLES['decision-memo'];
 }
 
 function normalizeCompanyMember(entry, index = 0) {

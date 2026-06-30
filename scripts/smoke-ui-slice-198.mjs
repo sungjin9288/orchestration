@@ -79,13 +79,17 @@ async function main() {
 
     const appJsResponse = await fetch(`${baseUrl}/app.js`);
     const appJs = await appJsResponse.text();
+    const packConfigResponse = await fetch(`${baseUrl}/pack-config.js`);
+    const packConfig = await packConfigResponse.text();
 
     assert.equal(appJsResponse.status, 200);
-    assert.match(appJs, /const PACK_DISPLAY_NAMES = \{/);
-    assert.match(appJs, /const KNOWLEDGE_WORK_DELIVERABLES = \{/);
+    assert.equal(packConfigResponse.status, 200);
+    assert.match(appJs, /from '\.\/pack-config\.js'/);
+    assert.match(packConfig, /export const PACK_DISPLAY_NAMES = \{/);
+    assert.match(packConfig, /export const KNOWLEDGE_WORK_DELIVERABLES = \{/);
     assert.match(appJs, /name="projectPack"/);
     assert.match(appJs, /name="missionDeliverableType"/);
-    assert.match(appJs, /선택한 산출물 유형으로 바로 참모 회의가 이어집니다\./);
+    assert.match(appJs, /선택한 산출물 유형으로 회의 안건이 바로 열리고/);
 
     const projectPayload = await postJson('/api/projects', {
       name: 'knowledge-work-ui-project',

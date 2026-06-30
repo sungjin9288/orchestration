@@ -2124,6 +2124,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/pack-config.js') {
+    await serveStaticAsset(response, 'pack-config.js');
+    return;
+  }
+
   text(response, 404, 'Not Found', 'text/plain; charset=utf-8');
 });
 

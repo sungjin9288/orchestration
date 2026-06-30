@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- UI module splitting should begin with self-contained copy/config data before moving stateful surface rendering. A tiny module such as `ui/pack-config.js` lets smoke tests prove route serving and imports without changing runtime actions or screen behavior.
+
 - Smoke aggregation should start with explicit discovery and targeted execution, not a silent "run everything" default. Require `--filter` or `--all`, use Node-native timeouts, and emit JSON so aggregate checks can register the runner without turning it into hidden runtime authority.
 
 - Code-present optional packs should be documented as explicit opt-in instead of left as contradictions against "development pack only" language. Add a decision-log entry and README smoke assertions when the runtime, UI, and pack file already expose the path.
