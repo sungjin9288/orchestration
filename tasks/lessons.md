@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Inbox label splitting should keep labels below inbox authority. Kind, status, and resolution action wording can move into `ui/inbox-labels.js`, but selection state, inbox tone, action execution, resolution routing, task flags, and runtime mutation stay in `ui/app.js` and server/runtime paths.
+
 - Evidence rail label splitting should not move checkpoint assembly. Status display, tone, and handoff wording can live in `ui/execution-labels.js`, but checkpoint ordering, blocker selection, readiness rules, and rendering stay in `ui/app.js`.
 
 - Execution label splitting should stay below execution authority. Move role/stage wording such as `getExecutionRoleDisplay` and `getExecutionStageDisplay` into a pure label module, but keep latest run selection, next-stage derivation, execution rail state, readiness semantics, evidence rail status, and actions in `ui/app.js`.

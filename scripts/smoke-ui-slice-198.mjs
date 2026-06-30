@@ -83,6 +83,8 @@ async function main() {
     const artifactPreview = await artifactPreviewResponse.text();
     const executionLabelsResponse = await fetch(`${baseUrl}/execution-labels.js`);
     const executionLabels = await executionLabelsResponse.text();
+    const inboxLabelsResponse = await fetch(`${baseUrl}/inbox-labels.js`);
+    const inboxLabels = await inboxLabelsResponse.text();
     const packConfigResponse = await fetch(`${baseUrl}/pack-config.js`);
     const packConfig = await packConfigResponse.text();
     const councilConfigResponse = await fetch(`${baseUrl}/council-config.js`);
@@ -113,6 +115,7 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.equal(artifactPreviewResponse.status, 200);
     assert.equal(executionLabelsResponse.status, 200);
+    assert.equal(inboxLabelsResponse.status, 200);
     assert.equal(packConfigResponse.status, 200);
     assert.equal(councilConfigResponse.status, 200);
     assert.equal(deskStatusResponse.status, 200);
@@ -128,6 +131,7 @@ async function main() {
     assert.equal(worktreeLabelsResponse.status, 200);
     assert.match(appJs, /from '\.\/artifact-preview\.js'/);
     assert.match(appJs, /from '\.\/execution-labels\.js'/);
+    assert.match(appJs, /from '\.\/inbox-labels\.js'/);
     assert.match(appJs, /from '\.\/company-config\.js'/);
     assert.match(appJs, /from '\.\/council-config\.js'/);
     assert.match(appJs, /from '\.\/desk-status\.js'/);
@@ -150,6 +154,9 @@ async function main() {
     assert.match(executionLabels, /export function getEvidenceRailStatusDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusTone\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailHandoffDisplay\(value\) \{/);
+    assert.match(inboxLabels, /export function getInboxKindDisplay\(kind\) \{/);
+    assert.match(inboxLabels, /export function getInboxStatusDisplay\(status\) \{/);
+    assert.match(inboxLabels, /export function getInboxResolutionActionDisplay\(action\) \{/);
     assert.match(companyConfig, /export const COMPANY_ROLE_OPTIONS = \[/);
     assert.match(companyConfig, /export function normalizeCompanyMember\(entry, index = 0\) \{/);
     assert.match(companyConfig, /export function getCompanyMembersForGroup\(members = \[\], groupId = null\) \{/);

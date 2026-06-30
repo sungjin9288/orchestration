@@ -14,6 +14,11 @@ import {
   getExecutionStageDisplay,
 } from './execution-labels.js';
 import {
+  getInboxKindDisplay,
+  getInboxResolutionActionDisplay,
+  getInboxStatusDisplay,
+} from './inbox-labels.js';
+import {
   COMPANY_DESK_OPTIONS,
   COMPANY_MEMBER_STORAGE_KEY,
   COMPANY_ROLE_OPTIONS,
@@ -2918,50 +2923,6 @@ function getRunStatusDisplay(status) {
   }
 
   return status || '알 수 없음';
-}
-
-function getInboxKindDisplay(kind) {
-  if (kind === 'approval') {
-    return '승인';
-  }
-
-  if (kind === 'decision') {
-    return '결정';
-  }
-
-  if (kind === 'review') {
-    return '리뷰';
-  }
-
-  return kind || '알 수 없음';
-}
-
-function getInboxStatusDisplay(status) {
-  if (status === 'pending') {
-    return '대기중';
-  }
-
-  if (status === 'resolved') {
-    return '해결됨';
-  }
-
-  return status || '알 수 없음';
-}
-
-function getInboxResolutionActionDisplay(action) {
-  if (action === 'approve') {
-    return '승인';
-  }
-
-  if (action === 'reject') {
-    return '반려';
-  }
-
-  if (action === 'resolve') {
-    return '해결';
-  }
-
-  return action || '알 수 없음';
 }
 
 function getBooleanDisplay(value) {

@@ -2134,6 +2134,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/inbox-labels.js') {
+    await serveStaticAsset(response, 'inbox-labels.js');
+    return;
+  }
+
   if (url.pathname === '/pack-config.js') {
     await serveStaticAsset(response, 'pack-config.js');
     return;

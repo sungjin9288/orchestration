@@ -7,19 +7,23 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const inboxLabelsPath = path.join(repoRoot, 'ui', 'inbox-labels.js');
 const executionGateStatePath = path.join(repoRoot, 'var', 'runtime-ui-slice-20', 'state.json');
 
 assert.equal(fs.existsSync(executionGateStatePath), true, 'runtime-ui-slice-20 state.json is required');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const inboxLabels = fs.readFileSync(inboxLabelsPath, 'utf8');
 const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'utf8'));
 
-assert.match(appJs, /function getInboxStatusDisplay\(status\)/);
-assert.match(appJs, /function getInboxResolutionActionDisplay\(action\)/);
+assert.match(appJs, /from '\.\/inbox-labels\.js'/);
+assert.match(inboxLabels, /export function getInboxKindDisplay\(kind\) \{/);
+assert.match(inboxLabels, /export function getInboxStatusDisplay\(status\) \{/);
+assert.match(inboxLabels, /export function getInboxResolutionActionDisplay\(action\) \{/);
 assert.match(appJs, /function renderSurfaceLeadStrip\(options = \{\}\)/);
-assert.match(appJs, /copy: '현재 실행 기록과 다음 확인을 빠르게 훑습니다\.'/);
-assert.match(appJs, /copy: '현재 증적과 연결 근거를 확인합니다\.'/);
-assert.match(appJs, /copy: '현재 안건과 다음 처리를 판단합니다\.'/);
+assert.match(appJs, /copy: '아래 deck은 현재 실행 기록과 다음 확인만 먼저 요약하고, 원문 확인은 오른쪽 상세로 넘깁니다\.'/);
+assert.match(appJs, /copy: '아래 deck은 현재 증적과 다음 확인만 먼저 요약하고, 구조 미리보기와 원문은 오른쪽 상세로 넘깁니다\.'/);
+assert.match(appJs, /copy: '아래 deck은 현재 안건과 다음 처리만 먼저 요약하고, 실제 선택과 처리 버튼은 바로 아래에서 이어갑니다\.'/);
 assert.match(appJs, /실행 프로바이더/);
 assert.match(appJs, /프로바이더 업데이트/);
 assert.match(appJs, /선택된 실행 기록 없음/);
