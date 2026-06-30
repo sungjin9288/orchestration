@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Worktree helper splitting should keep labels separate from authority. It is safe to move option label and fallback-name helpers into `ui/worktree-labels.js`, but linked-worktree detection, task `worktreeRef` mutation, active-project switching, and release/close-out guard semantics must stay in the app shell and server/runtime paths.
+
 - Generic UI formatting helpers should split only after higher-level status and tone helpers are already stable. Move tiny utilities such as `escapeHtml` and `formatDate` into a shared formatter module, but keep domain labels, state selection, rendering, and action handlers in `ui/app.js` unless a later slice proves a cleaner domain boundary.
 
 - UI display-helper splitting should move only pure wording/tone/status decisions into modules. For desk status, inject existing display formatters and keep selected task/artifact/gate lookup in `ui/app.js`; for harness output brief labels, keep output brief formatting, clipboard actions, rerun/copy handlers, and status mutation in the app shell so the split stays behavior-preserving.

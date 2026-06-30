@@ -2184,6 +2184,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/worktree-labels.js') {
+    await serveStaticAsset(response, 'worktree-labels.js');
+    return;
+  }
+
   text(response, 404, 'Not Found', 'text/plain; charset=utf-8');
 });
 

@@ -103,6 +103,8 @@ async function main() {
     const companyConfig = await companyConfigResponse.text();
     const surfaceConfigResponse = await fetch(`${baseUrl}/surface-config.js`);
     const surfaceConfig = await surfaceConfigResponse.text();
+    const worktreeLabelsResponse = await fetch(`${baseUrl}/worktree-labels.js`);
+    const worktreeLabels = await worktreeLabelsResponse.text();
 
     assert.equal(appJsResponse.status, 200);
     assert.equal(packConfigResponse.status, 200);
@@ -117,6 +119,7 @@ async function main() {
     assert.equal(personalizationSnapshotResponse.status, 200);
     assert.equal(companyConfigResponse.status, 200);
     assert.equal(surfaceConfigResponse.status, 200);
+    assert.equal(worktreeLabelsResponse.status, 200);
     assert.match(appJs, /from '\.\/company-config\.js'/);
     assert.match(appJs, /from '\.\/council-config\.js'/);
     assert.match(appJs, /from '\.\/desk-status\.js'/);
@@ -129,6 +132,7 @@ async function main() {
     assert.match(appJs, /from '\.\/preference-config\.js'/);
     assert.match(appJs, /from '\.\/personalization-snapshot\.js'/);
     assert.match(appJs, /from '\.\/surface-config\.js'/);
+    assert.match(appJs, /from '\.\/worktree-labels\.js'/);
     assert.match(companyConfig, /export const COMPANY_ROLE_OPTIONS = \[/);
     assert.match(companyConfig, /export function normalizeCompanyMember\(entry, index = 0\) \{/);
     assert.match(companyConfig, /export function getCompanyMembersForGroup\(members = \[\], groupId = null\) \{/);
@@ -159,6 +163,8 @@ async function main() {
     assert.match(surfaceConfig, /export const SURFACE_IDS = \[/);
     assert.match(surfaceConfig, /export const NAV_GROUPS = \{/);
     assert.match(surfaceConfig, /export function getNavGroupForSurface\(surface\) \{/);
+    assert.match(worktreeLabels, /export function formatWorktreeOptionLabel\(option\) \{/);
+    assert.match(worktreeLabels, /export function buildLinkedWorktreeFallbackName\(option\) \{/);
     assert.match(appJs, /name="projectPack"/);
     assert.match(appJs, /name="missionDeliverableType"/);
     assert.match(appJs, /선택한 산출물 유형으로 회의 안건이 바로 열리고/);

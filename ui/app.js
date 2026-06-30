@@ -82,6 +82,7 @@ import {
   getNavGroupForSurface,
   getNavGroupLabel,
 } from './surface-config.js';
+import { buildLinkedWorktreeFallbackName, formatWorktreeOptionLabel } from './worktree-labels.js';
 
 const TASK_LIFECYCLE_ORDER = ['Inbox', 'In Progress', 'Review', 'Done'];
 const state = {
@@ -311,16 +312,6 @@ function rememberSurfaceVisit(surface) {
     },
   };
   persistUiPreferences();
-}
-
-function formatWorktreeOptionLabel(option) {
-  const parts = [option.branch || 'detached', option.path];
-
-  if (option.isCurrentProjectPath) {
-    parts.push('현재 프로젝트 경로');
-  }
-
-  return parts.join(' · ');
 }
 
 function sortByCreatedDesc(left, right) {
@@ -3307,14 +3298,6 @@ function renderViewportHandoffStrip(options = {}) {
 
 function getActiveProjectLinkedWorktreesState(data) {
   return data.derived.activeProjectLinkedWorktrees || createEmptyDerivedState().activeProjectLinkedWorktrees;
-}
-
-function buildLinkedWorktreeFallbackName(option) {
-  const pathParts = String(option?.path || '')
-    .split('/')
-    .filter(Boolean);
-
-  return option?.branch || pathParts[pathParts.length - 1] || '연결-워크트리';
 }
 
 function buildTaskWorktreeRelation(task, activeProjectLinkedWorktrees) {
