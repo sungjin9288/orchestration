@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- Decision option lists that are emitted as status payloads should have one contract name before they are reused in source-evidence checks. Keep option order visible through `proposalApplicationSourceMutationDecisionOptions` so packet output and source assertions cannot drift.
 - Shared forbidden action regexes should have one contract name when multiple verifiers reject the same UI actions and authority-true markers. That keeps negative checks aligned while leaving each verifier's source-evidence map local and readable.
 - Shared UI blocked-authority markers should have one contract name when multiple verifiers assert the same app source evidence. Keep forbidden action regexes local if they are verifier-specific, but route identical marker lists through a shared constant.
 - Required field lists that are emitted by multiple status payloads should live under one contract name. Reusing `proposalApplicationSourceMutationDecisionRequiredFields` keeps packet and handoff verifiers aligned while preserving each verifier's local source-evidence checks.

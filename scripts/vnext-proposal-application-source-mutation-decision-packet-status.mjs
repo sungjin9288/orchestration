@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   proposalApplicationSourceMutationBlockedAuthorityMarkers,
+  proposalApplicationSourceMutationDecisionOptions,
   proposalApplicationSourceMutationDecisionRequiredFields,
   proposalApplicationSourceMutationDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionSlice,
@@ -45,14 +46,6 @@ const sourceMutationDecisionPacketSections = [
   '## Still Blocked',
   '## Stop Conditions',
   '## Verification',
-];
-
-const sourceMutationDecisionOptions = [
-  'approve-source-mutation-planning-only',
-  'approve-source-mutation-implementation-slice',
-  'request-more-evidence',
-  'reject',
-  'defer',
 ];
 
 function readFile(relativePath) {
@@ -121,7 +114,7 @@ const sourceMutationDecisionPacketSourceEvidence = {
     'Current packet status: `decision-input-only`',
     'Current proposal application authority: audit-only attempt records only',
     'Current source mutation authority: blocked',
-    ...sourceMutationDecisionOptions,
+    ...proposalApplicationSourceMutationDecisionOptions,
     'durable proposal record approval, application attempt approval, and source mutation approval are collapsed into one approval',
     'source mutation is requested without clean baseline proof, exact target-file scope, dry-run evidence, rollback proof, and focused smoke coverage',
     'node scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs',
@@ -192,7 +185,7 @@ process.stdout.write(
       currentGate: proposalApplicationSourceMutationDecisionSlice,
       nextRequiredInput: proposalApplicationSourceMutationDecisionRequiredInput,
       nextRecommendedSlice: proposalApplicationSourceMutationOperatorHandoffSlice,
-      decisionOptions: sourceMutationDecisionOptions,
+      decisionOptions: proposalApplicationSourceMutationDecisionOptions,
       requiredDecisionFields: proposalApplicationSourceMutationDecisionRequiredFields,
       upstreamStatus: {
         applicationImplementation: {

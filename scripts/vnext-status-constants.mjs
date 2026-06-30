@@ -16,6 +16,14 @@ export const proposalApplicationSourceMutationDecisionRequiredInput =
 export const proposalApplicationSourceMutationFieldedDecisionRequiredInput =
   'operator-provided approve-source-mutation-planning-only, approve-source-mutation-implementation-slice, request-more-evidence, reject, or defer decision';
 
+export const proposalApplicationSourceMutationDecisionOptions = [
+  'approve-source-mutation-planning-only',
+  'approve-source-mutation-implementation-slice',
+  'request-more-evidence',
+  'reject',
+  'defer',
+];
+
 export const proposalApplicationSourceMutationDecisionRequiredFields = [
   'decisionId',
   'decisionStatus',
