@@ -82,6 +82,27 @@ export const proposalApplicationSourceMutationForbiddenActionPatterns = [
   /sourceMutationAllowed: true/,
 ];
 
+export function createProposalApplicationSourceMutationBlockedAuthorityBoundary(
+  extraAuthority = {},
+) {
+  return {
+    ...extraAuthority,
+    sourceMutationPlanningAllowed: false,
+    sourceMutationImplementationAllowed: false,
+    proposalApplicationAllowed: false,
+    proposalGenerationAllowed: false,
+    proposalQueueMutationAllowed: false,
+    providerCallsAllowed: false,
+    memoryPersistenceAllowed: false,
+    longTermMemoryStoreAllowed: false,
+    rawTranscriptIngestionAllowed: false,
+    crossWorkspaceMemoryAllowed: false,
+    skillPromotionAllowed: false,
+    commitAllowed: false,
+    pushAllowed: false,
+  };
+}
+
 export const operatorDecisionGate = 'operator decision required';
 
 export const proposalApplicationDecisionGate = 'proposal application decision required';

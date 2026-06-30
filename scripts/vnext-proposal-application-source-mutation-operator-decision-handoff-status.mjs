@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
+  createProposalApplicationSourceMutationBlockedAuthorityBoundary,
   proposalApplicationSourceMutationBlockedAuthorityMarkers,
   proposalApplicationSourceMutationFieldedDecisionSlice,
   proposalApplicationSourceMutationFieldedDecisionRequiredInput,
@@ -32,6 +33,7 @@ const sourceMutationOperatorHandoffFiles = {
   applicationImplementationStatus: 'scripts/vnext-proposal-application-implementation-status.mjs',
   sourceMutationDecisionPacketStatus:
     'scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs',
+  statusConstants: 'scripts/vnext-status-constants.mjs',
   decisionLog: 'docs/01_decision-log.md',
   audit: 'docs/23_vnext-development-audit.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -155,8 +157,17 @@ const sourceMutationOperatorHandoffSourceEvidence = {
   ],
   sourceMutationDecisionPacketStatus: [
     'posture: \'read-only-proposal-application-source-mutation-decision-packet\'',
+    'createProposalApplicationSourceMutationBlockedAuthorityBoundary',
+  ],
+  statusConstants: [
     'sourceMutationImplementationAllowed: false',
     'sourceMutationPlanningAllowed: false',
+    'proposalApplicationAllowed: false',
+    'proposalGenerationAllowed: false',
+    'providerCallsAllowed: false',
+    'memoryPersistenceAllowed: false',
+    'commitAllowed: false',
+    'pushAllowed: false',
   ],
   decisionLog: [
     '### DEC-064',
@@ -202,22 +213,10 @@ assert.equal(
 );
 assert.equal(vnextAuditStatus.nextGrowthSlice, proposalApplicationSourceMutationFieldedDecisionSlice);
 
-const sourceMutationOperatorHandoffAuthorityBoundary = {
-  handoffRecordsDecision: false,
-  sourceMutationPlanningAllowed: false,
-  sourceMutationImplementationAllowed: false,
-  proposalApplicationAllowed: false,
-  proposalGenerationAllowed: false,
-  proposalQueueMutationAllowed: false,
-  providerCallsAllowed: false,
-  memoryPersistenceAllowed: false,
-  longTermMemoryStoreAllowed: false,
-  rawTranscriptIngestionAllowed: false,
-  crossWorkspaceMemoryAllowed: false,
-  skillPromotionAllowed: false,
-  commitAllowed: false,
-  pushAllowed: false,
-};
+const sourceMutationOperatorHandoffAuthorityBoundary =
+  createProposalApplicationSourceMutationBlockedAuthorityBoundary({
+    handoffRecordsDecision: false,
+  });
 
 process.stdout.write(
   `${JSON.stringify(

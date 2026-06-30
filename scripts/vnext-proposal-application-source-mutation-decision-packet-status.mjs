@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
+  createProposalApplicationSourceMutationBlockedAuthorityBoundary,
   proposalApplicationSourceMutationBlockedAuthorityMarkers,
   proposalApplicationSourceMutationDecisionOptions,
   proposalApplicationSourceMutationDecisionRequiredFields,
@@ -155,21 +156,8 @@ assert.equal(applicationImplementationStatus.authority?.sourceMutationAllowed, f
 assert.equal(vnextAuditStatus.recommendedDevelopmentPlan?.[0]?.slice, proposalApplicationSourceMutationFieldedDecisionSlice);
 assert.equal(vnextAuditStatus.nextGrowthSlice, proposalApplicationSourceMutationFieldedDecisionSlice);
 
-const sourceMutationDecisionPacketAuthorityBoundary = {
-  sourceMutationPlanningAllowed: false,
-  sourceMutationImplementationAllowed: false,
-  proposalApplicationAllowed: false,
-  proposalGenerationAllowed: false,
-  proposalQueueMutationAllowed: false,
-  providerCallsAllowed: false,
-  memoryPersistenceAllowed: false,
-  longTermMemoryStoreAllowed: false,
-  rawTranscriptIngestionAllowed: false,
-  crossWorkspaceMemoryAllowed: false,
-  skillPromotionAllowed: false,
-  commitAllowed: false,
-  pushAllowed: false,
-};
+const sourceMutationDecisionPacketAuthorityBoundary =
+  createProposalApplicationSourceMutationBlockedAuthorityBoundary();
 
 process.stdout.write(
   `${JSON.stringify(
