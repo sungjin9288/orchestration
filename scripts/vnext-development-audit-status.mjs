@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+import { proposalApplicationSourceMutationDecisionSlice } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -437,7 +438,7 @@ const proposalReadiness = runStatus('scripts/growth-evidence-ledger-proposal-rea
 const growthEngineNextSlice = growthEngine.nextRecommendedSlice?.id || null;
 const reflectionNextSlice = reflection.nextRecommendedSlice?.id || null;
 const proposalQueueHandoff = proposalReadiness.nextRecommendedSlice?.id || null;
-const nextGrowthSlice = 'proposal application source mutation decision required';
+const nextGrowthSlice = proposalApplicationSourceMutationDecisionSlice;
 
 assert.equal(growthEngine.ok, true);
 assert.equal(reflection.ok, true);

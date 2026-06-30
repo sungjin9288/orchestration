@@ -4,6 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+import {
+  createProposalApplicationSourceMutationDecision,
+  proposalApplicationSourceMutationDecisionSlice,
+} from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -136,14 +140,10 @@ assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.app, forbiddenActions)
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationSourceMutationDecisionSlice =
-  'proposal application source mutation decision required';
-const proposalApplicationSourceMutationDecision = {
-  id: 'proposal-application-source-mutation-decision-required',
-  slice: proposalApplicationSourceMutationDecisionSlice,
+const proposalApplicationSourceMutationDecision = createProposalApplicationSourceMutationDecision({
   reason:
     'The read-only growth dashboard, approved durable proposal record creation/persistence slice, and audit-only application attempt are source-backed; real proposal application and source mutation still need a later explicit decision, rollback evidence, focused smoke, and aggregate verification.',
-};
+});
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(

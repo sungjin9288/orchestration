@@ -4,6 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+import {
+  createProposalApplicationSourceMutationDecision,
+  proposalApplicationSourceMutationDecisionSlice,
+} from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -168,15 +172,11 @@ assertSourceEvidence(
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationSourceMutationDecisionSlice =
-  'proposal application source mutation decision required';
-const proposalApplicationSourceMutationDecision = {
-  id: 'proposal-application-source-mutation-decision-required',
-  slice: proposalApplicationSourceMutationDecisionSlice,
+const proposalApplicationSourceMutationDecision = createProposalApplicationSourceMutationDecision({
   command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',
   reason:
     'Proposal review, durable proposal record creation/persistence, and audit-only application attempt evidence are source-backed; real proposal application and source mutation still require a later explicit decision.',
-};
+});
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
