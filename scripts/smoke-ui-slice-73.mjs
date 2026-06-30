@@ -21,6 +21,9 @@ const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'u
 assert.match(appJs, /from '\.\/execution-labels\.js'/);
 assert.match(executionLabels, /export function getExecutionRoleDisplay\(role\) \{/);
 assert.match(executionLabels, /export function getExecutionStageDisplay\(stage\) \{/);
+assert.match(executionLabels, /export function getEvidenceRailStatusDisplay\(status\) \{/);
+assert.match(executionLabels, /export function getEvidenceRailStatusTone\(status\) \{/);
+assert.match(executionLabels, /export function getEvidenceRailHandoffDisplay\(value\) \{/);
 assert.match(appJs, /function renderExecutionCommandDeck\(options = \{\}\)/);
 assert.match(appJs, /<h2>안건 등록대장<\/h2>/);
 assert.match(appJs, /신규 안건 등록/);

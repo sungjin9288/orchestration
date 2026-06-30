@@ -147,6 +147,9 @@ async function main() {
     assert.match(artifactPreview, /export function getPreviewRedactionCopy\(\) \{/);
     assert.match(executionLabels, /export function getExecutionRoleDisplay\(role\) \{/);
     assert.match(executionLabels, /export function getExecutionStageDisplay\(stage\) \{/);
+    assert.match(executionLabels, /export function getEvidenceRailStatusDisplay\(status\) \{/);
+    assert.match(executionLabels, /export function getEvidenceRailStatusTone\(status\) \{/);
+    assert.match(executionLabels, /export function getEvidenceRailHandoffDisplay\(value\) \{/);
     assert.match(companyConfig, /export const COMPANY_ROLE_OPTIONS = \[/);
     assert.match(companyConfig, /export function normalizeCompanyMember\(entry, index = 0\) \{/);
     assert.match(companyConfig, /export function getCompanyMembersForGroup\(members = \[\], groupId = null\) \{/);

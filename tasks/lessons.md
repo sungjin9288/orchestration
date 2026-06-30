@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Evidence rail label splitting should not move checkpoint assembly. Status display, tone, and handoff wording can live in `ui/execution-labels.js`, but checkpoint ordering, blocker selection, readiness rules, and rendering stay in `ui/app.js`.
+
 - Execution label splitting should stay below execution authority. Move role/stage wording such as `getExecutionRoleDisplay` and `getExecutionStageDisplay` into a pure label module, but keep latest run selection, next-stage derivation, execution rail state, readiness semantics, evidence rail status, and actions in `ui/app.js`.
 
 - Artifact preview helper splitting should move only copy and badge decisions into a pure module. Keep catalog lookup, structured preview rendering, raw artifact source blocks, redaction behavior, stored-content source-of-truth semantics, and all runtime actions in `ui/app.js` until a later slice proves a tighter rendering boundary.

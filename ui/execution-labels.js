@@ -26,3 +26,67 @@ export function getExecutionStageDisplay(stage) {
   if (stage === 'close-out') return '종료 정리';
   return stage || '알 수 없음';
 }
+
+export function getEvidenceRailStatusDisplay(status) {
+  if (status === 'complete') {
+    return '인계 완료';
+  }
+
+  if (status === 'current') {
+    return '현재 담당';
+  }
+
+  if (status === 'blocked') {
+    return '보류';
+  }
+
+  return '대기';
+}
+
+export function getEvidenceRailStatusTone(status) {
+  if (status === 'complete') {
+    return 'success';
+  }
+
+  if (status === 'current') {
+    return 'accent';
+  }
+
+  if (status === 'blocked') {
+    return 'danger';
+  }
+
+  return 'neutral';
+}
+
+export function getEvidenceRailHandoffDisplay(value) {
+  const normalized = String(value || '').trim();
+
+  if (!normalized) {
+    return '없음';
+  }
+
+  const directMap = {
+    Strategist: 'Strategist',
+    Architect: 'Architect',
+    Decomposer: 'Decomposer',
+    Maker: 'Maker',
+    Critic: 'Critic',
+    architect: 'Architect',
+    builder: 'Maker',
+    'builder-live-mutation': '라이브 변경',
+    'builder-live-mutation approval': '라이브 변경 승인',
+    'builder-preflight': 'Maker',
+    'close-out': '종료 정리',
+    'commit-intent': '커밋 승인',
+    'commit-package': '커밋 패키지',
+    'execution cell creation': '실행 셀 생성',
+    'human gate': '사람 게이트',
+    'release-package': '릴리스 패키지',
+    'release-ready': '릴리스 승인',
+    reviewer: 'Critic',
+    'task-breaker': 'Decomposer',
+  };
+
+  return directMap[normalized] || normalized;
+}
