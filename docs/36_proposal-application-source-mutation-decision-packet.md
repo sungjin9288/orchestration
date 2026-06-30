@@ -10,8 +10,10 @@ It is not source mutation approval. It does not apply proposals, generate propos
 
 - Original gate: `proposal application source mutation decision required`
 - Source implementation: `DEC-062`
-- Current packet status: `decision-input-only`
+- Current packet status: `consumed-by-source-mutation-planning-only-decision`
 - Current proposal application authority: audit-only attempt records only
+- Current source mutation planning authority: planning only
+- Current source mutation implementation authority: blocked
 - Current source mutation authority: blocked
 - Current provider, memory, commit, and push authority: blocked
 
@@ -62,7 +64,7 @@ The first source mutation plan must define:
 - how rollback restores local file state, preserves audit evidence, and quarantines failed attempts
 - which focused smoke proves the exact allowed path
 
-The first source mutation plan must not combine multiple proposal types or source targets unless a later decision explicitly names that broader scope.
+The first source mutation plan is now recorded in `docs/38_proposal-application-source-mutation-planning-plan.md`. That planning artifact still must not combine multiple proposal types or source targets unless a later decision explicitly names that broader scope.
 
 ## Still Blocked
 

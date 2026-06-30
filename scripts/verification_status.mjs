@@ -299,12 +299,17 @@ const informationalChecks = [
   {
     id: 'vnext-proposal-application-source-mutation-decision-packet-status',
     script: 'scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs',
-    purpose: 'vNext proposal application source mutation decision packet defines source mutation decision outcomes, required decision fields, application attempt refs, rollback refs, focused smoke refs, and stop conditions before any source mutation planning or implementation can open',
+    purpose: 'vNext proposal application source mutation decision packet is consumed planning evidence with required decision fields, application attempt refs, rollback refs, focused smoke refs, and stop conditions preserved before implementation can open',
   },
   {
     id: 'vnext-proposal-application-source-mutation-operator-decision-handoff-status',
     script: 'scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs',
-    purpose: 'vNext proposal application source mutation operator decision handoff defines copy-ready planning, implementation, evidence-request, rejection, and deferral statement shapes without recording a decision or opening source mutation, provider, memory, commit, or push authority',
+    purpose: 'vNext proposal application source mutation operator decision handoff is consumed planning evidence while implementation, evidence-request, rejection, and deferral statement shapes remain source-checked without opening source mutation implementation, provider, memory, commit, or push authority',
+  },
+  {
+    id: 'vnext-proposal-application-source-mutation-planning-plan-status',
+    script: 'scripts/vnext-proposal-application-source-mutation-planning-plan-status.mjs',
+    purpose: 'vNext proposal application source mutation planning plan records accepted planning-only approval, mutation plan, rollback plan, focused smoke plan, and implementation prerequisites without opening source mutation implementation, provider calls, memory persistence, proposal generation, commit, or push authority',
   },
   {
     id: 'lifecycle-supporting-boundary',

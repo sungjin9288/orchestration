@@ -8,11 +8,13 @@ It is not an operator decision. It does not approve source mutation planning or 
 
 ## Current Gate
 
-- Current gate: `proposal application source mutation operator handoff required`
-- Handoff status: `decision-input-only`
+- Current gate: `proposal application source mutation implementation decision required`
+- Handoff status: `consumed-by-source-mutation-planning-only-decision`
 - Decision packet: `docs/36_proposal-application-source-mutation-decision-packet.md`
 - Application attempt evidence: `docs/35_proposal-application-implementation.md`
 - Current proposal application authority: audit-only attempt records only
+- Current source mutation planning authority: planning only
+- Current source mutation implementation authority: blocked
 - Current source mutation authority: blocked
 - Current provider, memory, commit, and push authority: blocked
 

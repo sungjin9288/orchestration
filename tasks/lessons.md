@@ -2,6 +2,10 @@
 
 ## direction resets
 
+- Source mutation planning-only approval should advance the live gate to implementation decision review, not to source mutation execution. The packet and handoff become consumed planning evidence, the plan may allow `sourceMutationPlanningAllowed=true`, but `sourceMutationImplementationAllowed`, actual `sourceMutationAllowed`, provider calls, memory persistence, proposal generation, commit, and push must remain false until a later fielded implementation decision names exact files, baseline proof, diff preview, rollback refs, and focused smoke.
+
+- Markdown section assertion and repo-file map reading are generic verifier mechanics. Once adjacent status scripts share that shape, move the regex and file-bundle assembly behind helpers while keeping each verifier's section list and evidence map local.
+
 - Repeated status assertion mechanics should move behind a small helper once neighboring verifiers share the same file-reading, source-evidence, backtick, negative-match, and child-status patterns. Keep the evidence maps local, but do not make every verifier restate the same assertion plumbing.
 
 - Repeated blocked authority payloads should be created through one helper while keeping each verifier's surface-specific boundary variable name. Source-evidence checks should follow the fields to the helper source instead of forcing duplicated false literals back into every status script.

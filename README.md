@@ -150,15 +150,21 @@ src/runtime/file-store.js
   `docs/35_proposal-application-implementation.md` add one approved local runtime path that records
   inert application attempt evidence under `proposalApplicationAttempts`. It does not generate
   proposals, call providers, persist memory, mutate source, commit, or push.
-- Proposal application source mutation decision packet is decision input only: `DEC-063` and
+- Proposal application source mutation decision packet is consumed planning evidence: `DEC-063` and
   `docs/36_proposal-application-source-mutation-decision-packet.md` define source mutation decision
   outcomes, required fields, application attempt refs, rollback refs, focused smoke refs, and stop
-  conditions before any source mutation planning or implementation can open.
-- Proposal application source mutation operator handoff is not approval: `DEC-064` and
+  conditions. The accepted planning-only decision consumes this packet as evidence, but it still
+  does not open source mutation implementation, provider calls, memory persistence, commit, or push.
+- Proposal application source mutation operator handoff is consumed planning evidence: `DEC-064` and
   `docs/37_proposal-application-source-mutation-operator-decision-handoff.md` provide copy-ready
   source mutation planning, implementation, evidence-request, rejection, and deferral statement
-  shapes. The handoff does not record a decision or open source mutation planning,
-  implementation, provider calls, memory persistence, commit, or push.
+  shapes. The accepted planning-only decision consumes this handoff as evidence, but it still does
+  not open source mutation implementation, provider calls, memory persistence, commit, or push.
+- Proposal application source mutation planning plan is planning-only evidence: `DEC-065` and
+  `docs/38_proposal-application-source-mutation-planning-plan.md` record the accepted
+  `approve-source-mutation-planning-only` decision, one mutation plan, rollback plan, focused smoke
+  plan, and implementation prerequisites, but they do not approve source mutation implementation,
+  proposal generation, provider calls, memory persistence, commit, or push.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -299,6 +305,8 @@ node scripts/vnext-proposal-application-implementation-decision-handoff-status.m
 node scripts/smoke-proposal-application-attempt-creation.mjs
 node scripts/vnext-proposal-application-implementation-status.mjs
 node scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs
+node scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs
+node scripts/vnext-proposal-application-source-mutation-planning-plan-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -369,25 +377,28 @@ Current verification evidence from this README refresh:
 - `node scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs`: source-checks
   the read-only source mutation decision packet, required operator fields, application-attempt
   dependency, rollback refs, focused smoke refs, stop conditions, and still-blocked
-  provider/memory/source/commit/push authority before any source mutation planning can open.
+  provider/memory/source/commit/push authority as consumed planning-only evidence.
 - `node scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs`:
   source-checks the copy-ready source mutation operator handoff, valid decision shapes, invalid
   shortcuts, minimum acceptance criteria, stop conditions, and still-blocked
-  provider/memory/source/commit/push authority before any fielded source mutation decision can open
-  planning or implementation.
+  provider/memory/source/commit/push authority as consumed planning-only evidence.
+- `node scripts/vnext-proposal-application-source-mutation-planning-plan-status.mjs`: source-checks
+  the accepted source mutation planning-only decision, mutation plan, rollback plan, focused smoke
+  plan, implementation decision requirement, and still-blocked provider/memory/source/commit/push
+  authority before any source mutation implementation can open.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `160/160`, total `161/161`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `161/161`, total `162/162`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
   durable proposal record implementation plan, implementation, proposal application decision packet,
   proposal application operator decision handoff, proposal application implementation plan, and
   proposal application implementation decision handoff, proposal application attempt creation smoke,
-  proposal application implementation status, source mutation decision packet, and source mutation
-  operator handoff checks.
+  proposal application implementation status, source mutation decision packet, source mutation
+  operator handoff, and source mutation planning plan checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
@@ -465,8 +476,12 @@ Playwright CLI:
   providers, persist memory, commit, or push.
 - Proposal application source mutation operator handoff remains decision input only.
   `docs/37_proposal-application-source-mutation-operator-decision-handoff.md` gives the operator
-  copy-ready decision wording, but it does not approve source mutation planning, source mutation
-  implementation, provider calls, memory persistence, commit, or push.
+  copy-ready decision wording and is now consumed by the planning-only decision, but it does not
+  approve source mutation implementation, provider calls, memory persistence, commit, or push.
+- Proposal application source mutation planning is planning-only.
+  `docs/38_proposal-application-source-mutation-planning-plan.md` records the accepted planning
+  decision, mutation plan, rollback plan, and focused smoke plan, but it does not mutate source,
+  call providers, persist memory, generate proposals, commit, or push.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider

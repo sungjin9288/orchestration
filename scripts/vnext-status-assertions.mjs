@@ -7,8 +7,23 @@ export function readRepoFile(repoRoot, relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
 
+export function readRepoFiles(repoRoot, filesByName) {
+  return Object.fromEntries(
+    Object.entries(filesByName).map(([name, relativePath]) => [
+      name,
+      readRepoFile(repoRoot, relativePath),
+    ]),
+  );
+}
+
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function assertMarkdownSections(source, sections) {
+  for (const section of sections) {
+    assert.match(source, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
+  }
 }
 
 function assertContainsAll(source, expectedValues) {

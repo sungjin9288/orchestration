@@ -7,8 +7,20 @@ export const proposalApplicationSourceMutationDecisionSlice =
 export const proposalApplicationSourceMutationOperatorHandoffSlice =
   'proposal application source mutation operator handoff required';
 
-export const proposalApplicationSourceMutationFieldedDecisionSlice =
-  'proposal application source mutation fielded decision required';
+export const proposalApplicationSourceMutationPlanningPlanSlice =
+  'proposal application source mutation planning plan';
+
+export const proposalApplicationSourceMutationImplementationDecisionSlice =
+  'proposal application source mutation implementation decision required';
+
+export const proposalApplicationSourceMutationPlanningDecisionId =
+  'operator-decision-vnext-proposal-source-mutation-001';
+
+export const proposalApplicationSourceMutationPlanningTargetAuthority =
+  'proposal application source mutation planning for one audit-only application attempt path';
+
+export const proposalApplicationSourceMutationImplementationDecisionRequiredInput =
+  'operator-provided source mutation implementation decision for exactly one accepted mutation plan';
 
 export const proposalApplicationSourceMutationDecisionRequiredInput =
   'operator-provided proposal application source mutation decision for exactly one source mutation planning path';
@@ -100,6 +112,15 @@ export function createProposalApplicationSourceMutationBlockedAuthorityBoundary(
     skillPromotionAllowed: false,
     commitAllowed: false,
     pushAllowed: false,
+  };
+}
+
+export function createProposalApplicationSourceMutationPlanningOnlyAuthorityBoundary(
+  extraAuthority = {},
+) {
+  return {
+    ...createProposalApplicationSourceMutationBlockedAuthorityBoundary(extraAuthority),
+    sourceMutationPlanningAllowed: true,
   };
 }
 
