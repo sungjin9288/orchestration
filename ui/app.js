@@ -13,6 +13,7 @@ import {
   getEvidenceRailStatusTone,
   getBooleanDisplay,
   getApprovalActionLabel,
+  getApprovalTone,
   getCloseOutApprovalDisplayStatus,
   getCommitApprovalDisplayStatus,
   getDeliveryStanceDisplay,
@@ -7269,18 +7270,6 @@ function getReviewTone(status) {
 
 function getRunTone(status) {
   return status === 'running' ? 'warning' : 'success';
-}
-
-function getApprovalTone(status) {
-  if (status === 'approved') {
-    return 'success';
-  }
-
-  if (status === 'rejected') {
-    return 'danger';
-  }
-
-  return 'warning';
 }
 
 function getApprovalDisplayTone(status) {

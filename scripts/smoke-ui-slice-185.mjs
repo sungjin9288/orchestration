@@ -27,6 +27,7 @@ const formatters = fs.readFileSync(formattersPath, 'utf8');
 const helperSourceByName = new Map([
   ['escapeHtml', formatters],
   ['getApprovalActionLabel', executionLabels],
+  ['getApprovalTone', executionLabels],
   ['getEvidenceRailHandoffDisplay', executionLabels],
   ['getEvidenceRailStatusDisplay', executionLabels],
   ['getEvidenceRailStatusTone', executionLabels],

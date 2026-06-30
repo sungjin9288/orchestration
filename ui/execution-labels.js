@@ -121,6 +121,18 @@ export function getApprovalActionLabel(action) {
   return action;
 }
 
+export function getApprovalTone(status) {
+  if (status === 'approved') {
+    return 'success';
+  }
+
+  if (status === 'rejected') {
+    return 'danger';
+  }
+
+  return 'warning';
+}
+
 export function getEvidenceRailStatusDisplay(status) {
   if (status === 'complete') {
     return '인계 완료';

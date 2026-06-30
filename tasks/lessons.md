@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Approval tone splitting should stay below approval authority. Move only `getApprovalTone` into `ui/execution-labels.js`, but keep approval status calculation, bridge state, request/resolve actions, inbox routing, target artifact resolution, runtime mutation, source mutation, commit, and push paths outside the helper.
+
 - Approval action label splitting belongs with execution labels, not approval authority. Move only `getApprovalActionLabel` into `ui/execution-labels.js`, but keep approval lookup, bridge state, request/resolve actions, inbox routing, target artifact resolution, runtime mutation, source mutation, commit, and push paths outside the helper.
 
 - Project gate copy splitting should remain display-only. Move `getProjectGateCopy` into `ui/project-bootstrap.js`, but keep project registration, active-project selection, gated surface rendering, mutation endpoints, and task creation guards in app/server/runtime code.

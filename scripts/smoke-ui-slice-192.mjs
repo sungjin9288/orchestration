@@ -30,6 +30,7 @@ const helperSourceByName = new Map([
   ['escapeHtml', formatters],
   ['formatDate', formatters],
   ['getApprovalActionLabel', executionLabels],
+  ['getApprovalTone', executionLabels],
   ['getEvidenceRailHandoffDisplay', executionLabels],
   ['getEvidenceRailStatusDisplay', executionLabels],
   ['getEvidenceRailStatusTone', executionLabels],
