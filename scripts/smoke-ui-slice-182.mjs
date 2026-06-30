@@ -37,8 +37,12 @@ const helperSourceByName = new Map([
   ['getEvidenceRailStatusDisplay', executionLabels],
   ['getEvidenceRailStatusTone', executionLabels],
   ['getExecutionStageDisplay', executionLabels],
+  ['getMissionStatusDisplay', executionLabels],
+  ['getMissionStatusTone', executionLabels],
   ['getReviewTone', executionLabels],
   ['getTaskLifecycleTone', executionLabels],
+  ['getAlignmentTone', executionLabels],
+  ['getAlignmentStatusDisplay', executionLabels],
   ['getInboxKindDisplay', inboxLabels],
   ['getInboxStatusDisplay', inboxLabels],
 ]);

@@ -172,6 +172,12 @@ async function main() {
     assert.match(executionLabels, /export function getRunTone\(status\) \{/);
     assert.match(executionLabels, /export function getReviewTone\(status\) \{/);
     assert.match(executionLabels, /export function getTaskLifecycleTone\(state\) \{/);
+    assert.match(executionLabels, /export function getAlignmentTone\(status\) \{/);
+    assert.match(executionLabels, /export function getAlignmentStatusDisplay\(status\) \{/);
+    assert.match(executionLabels, /export function getMissionStatusDisplay\(status\) \{/);
+    assert.match(executionLabels, /export function getMissionStatusTone\(status\) \{/);
+    assert.match(executionLabels, /export function getCouncilStatusDisplay\(status\) \{/);
+    assert.match(executionLabels, /export function getCouncilStatusTone\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusTone\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailHandoffDisplay\(value\) \{/);

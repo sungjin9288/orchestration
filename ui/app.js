@@ -18,9 +18,15 @@ import {
   getCloseOutApprovalDisplayStatus,
   getCommitApprovalDisplayStatus,
   getDeliveryStanceDisplay,
+  getAlignmentStatusDisplay,
+  getAlignmentTone,
+  getCouncilStatusDisplay,
+  getCouncilStatusTone,
   getExecutionModeDisplay,
   getExecutionRoleDisplay,
   getExecutionStageDisplay,
+  getMissionStatusDisplay,
+  getMissionStatusTone,
   getPackageStatusDisplay,
   getProviderReadinessDisplay,
   getReviewTone,
@@ -2738,82 +2744,6 @@ function getDerived() {
   };
 }
 
-function getMissionStatusTone(status) {
-  if (status === 'completed') {
-    return 'success';
-  }
-
-  if (status === 'blocked') {
-    return 'danger';
-  }
-
-  if (status === 'aligning') {
-    return 'warning';
-  }
-
-  if (status === 'executing') {
-    return 'accent';
-  }
-
-  if (status === 'aligned') {
-    return 'success';
-  }
-
-  return 'neutral';
-}
-
-function getMissionStatusDisplay(status) {
-  if (status === 'aligning') {
-    return '정렬 중';
-  }
-
-  if (status === 'aligned') {
-    return '정렬 완료';
-  }
-
-  if (status === 'executing') {
-    return '실행 중';
-  }
-
-  if (status === 'completed') {
-    return '완료';
-  }
-
-  if (status === 'blocked') {
-    return '차단';
-  }
-
-  if (status === 'draft') {
-    return '초안';
-  }
-
-  return status || '알 수 없음';
-}
-
-function getCouncilStatusTone(status) {
-  if (status === 'approved') {
-    return 'success';
-  }
-
-  if (status === 'pending-alignment') {
-    return 'warning';
-  }
-
-  return 'neutral';
-}
-
-function getCouncilStatusDisplay(status) {
-  if (status === 'pending-alignment') {
-    return '정렬 대기';
-  }
-
-  if (status === 'approved') {
-    return '승인됨';
-  }
-
-  return status || '알 수 없음';
-}
-
 function getTaskLifecycleDisplay(state) {
   if (state === 'Inbox') {
     return '받은함';
@@ -2832,18 +2762,6 @@ function getTaskLifecycleDisplay(state) {
   }
 
   return state || '알 수 없음';
-}
-
-function getAlignmentStatusDisplay(status) {
-  if (status === 'approved') {
-    return '승인됨';
-  }
-
-  if (status === 'pending') {
-    return '대기';
-  }
-
-  return status || '알 수 없음';
 }
 
 function getReviewStatusDisplay(status) {
@@ -2934,14 +2852,6 @@ function getGuardReasonDisplay(reason) {
   }
 
   return normalizedReason;
-}
-
-function getAlignmentTone(status) {
-  if (status === 'approved') {
-    return 'success';
-  }
-
-  return 'warning';
 }
 
 function renderProjectGateSurface(title, copy) {
