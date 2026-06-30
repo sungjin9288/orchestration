@@ -4,7 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
-import { proposalApplicationSourceMutationDecisionSlice } from './vnext-status-constants.mjs';
+import {
+  proposalApplicationImplementationDecisionGate,
+  proposalApplicationSourceMutationDecisionSlice,
+} from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -204,7 +207,6 @@ const durableProposalRecordImplementationStatus = runStatus(
 );
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationImplementationGate = 'proposal application implementation decision required';
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(proposalReviewDecisionSpecStatus.ok, true);
 assert.equal(durableProposalRecordImplementationStatus.ok, true);
@@ -250,7 +252,7 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       packet: proposalApplicationDecisionPacketFiles.packet,
-      currentGate: proposalApplicationImplementationGate,
+      currentGate: proposalApplicationImplementationDecisionGate,
       nextRequiredInput:
         'operator-provided application implementation decision for exactly one durable proposal record application path',
       decisionOptions: proposalApplicationDecisionOptions,

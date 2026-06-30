@@ -4,7 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
-import { proposalApplicationSourceMutationDecisionSlice } from './vnext-status-constants.mjs';
+import {
+  proposalApplicationImplementationDecisionGate,
+  proposalApplicationSourceMutationDecisionSlice,
+} from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -232,13 +235,18 @@ const durableProposalRecordImplementationStatus = runStatus(
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationImplementationGate = 'proposal application implementation decision required';
 assert.equal(proposalApplicationOperatorHandoffStatus.ok, true);
 assert.equal(proposalApplicationDecisionPacketStatus.ok, true);
 assert.equal(durableProposalRecordImplementationStatus.ok, true);
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(proposalApplicationOperatorHandoffStatus.currentGate, proposalApplicationImplementationGate);
-assert.equal(proposalApplicationDecisionPacketStatus.currentGate, proposalApplicationImplementationGate);
+assert.equal(
+  proposalApplicationOperatorHandoffStatus.currentGate,
+  proposalApplicationImplementationDecisionGate,
+);
+assert.equal(
+  proposalApplicationDecisionPacketStatus.currentGate,
+  proposalApplicationImplementationDecisionGate,
+);
 assert.equal(proposalApplicationDecisionPacketStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(proposalApplicationOperatorHandoffStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed, false);
@@ -305,7 +313,7 @@ process.stdout.write(
       plan: proposalApplicationImplementationPlanFiles.plan,
       acceptedDecisionId: 'operator-decision-vnext-proposal-application-001',
       targetAuthority: 'proposal application planning for existing durable proposal records',
-      currentGate: proposalApplicationImplementationGate,
+      currentGate: proposalApplicationImplementationDecisionGate,
       nextRequiredInput:
         'operator-provided application implementation decision for exactly one durable proposal record application path',
       applicationPlan: {
