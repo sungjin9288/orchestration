@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
+  proposalApplicationSourceMutationBlockedAuthorityMarkers,
   proposalApplicationSourceMutationFieldedDecisionSlice,
   proposalApplicationSourceMutationFieldedDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionRequiredFields,
@@ -62,19 +63,6 @@ const sourceMutationOperatorDecisionInvalidShortcuts = [
   'apply the proposal',
   'mutate source',
   'ship it',
-];
-
-const blockedAuthorityMarkers = [
-  'providerCallsAllowed: false',
-  'memoryPersistenceAllowed: false',
-  'longTermMemoryStoreAllowed: false',
-  'rawTranscriptIngestionAllowed: false',
-  'crossWorkspaceMemoryAllowed: false',
-  'skillPromotionAllowed: false',
-  'proposalGenerationAllowed: false',
-  'proposalApplicationAllowed: false',
-  'sourceMutationAllowed: false',
-  'commitPushAllowed: false',
 ];
 
 const forbiddenActionPatterns = [
@@ -201,7 +189,7 @@ const sourceMutationOperatorHandoffSourceEvidence = {
     'docs/37_proposal-application-source-mutation-operator-decision-handoff.md',
   ],
   verification: ['vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs'],
-  app: blockedAuthorityMarkers,
+  app: proposalApplicationSourceMutationBlockedAuthorityMarkers,
 };
 
 assertSourceEvidence(

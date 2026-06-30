@@ -32,6 +32,19 @@ export const proposalApplicationSourceMutationDecisionRequiredFields = [
   'approvalStatement',
 ];
 
+export const proposalApplicationSourceMutationBlockedAuthorityMarkers = [
+  'providerCallsAllowed: false',
+  'memoryPersistenceAllowed: false',
+  'longTermMemoryStoreAllowed: false',
+  'rawTranscriptIngestionAllowed: false',
+  'crossWorkspaceMemoryAllowed: false',
+  'skillPromotionAllowed: false',
+  'proposalGenerationAllowed: false',
+  'proposalApplicationAllowed: false',
+  'sourceMutationAllowed: false',
+  'commitPushAllowed: false',
+];
+
 export const operatorDecisionGate = 'operator decision required';
 
 export const proposalApplicationDecisionGate = 'proposal application decision required';

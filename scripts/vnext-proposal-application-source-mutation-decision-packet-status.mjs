@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
+  proposalApplicationSourceMutationBlockedAuthorityMarkers,
   proposalApplicationSourceMutationDecisionRequiredFields,
   proposalApplicationSourceMutationDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionSlice,
@@ -51,19 +52,6 @@ const sourceMutationDecisionOptions = [
   'request-more-evidence',
   'reject',
   'defer',
-];
-
-const blockedAuthorityMarkers = [
-  'providerCallsAllowed: false',
-  'memoryPersistenceAllowed: false',
-  'longTermMemoryStoreAllowed: false',
-  'rawTranscriptIngestionAllowed: false',
-  'crossWorkspaceMemoryAllowed: false',
-  'skillPromotionAllowed: false',
-  'proposalGenerationAllowed: false',
-  'proposalApplicationAllowed: false',
-  'sourceMutationAllowed: false',
-  'commitPushAllowed: false',
 ];
 
 const forbiddenActionPatterns = [
@@ -162,7 +150,7 @@ const sourceMutationDecisionPacketSourceEvidence = {
     'docs/36_proposal-application-source-mutation-decision-packet.md',
   ],
   verification: ['vnext-proposal-application-source-mutation-decision-packet-status.mjs'],
-  app: blockedAuthorityMarkers,
+  app: proposalApplicationSourceMutationBlockedAuthorityMarkers,
 };
 
 assertSourceEvidence(
