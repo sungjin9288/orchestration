@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   proposalApplicationImplementationDecisionGate,
+  proposalApplicationImplementationDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
@@ -314,8 +315,7 @@ process.stdout.write(
       acceptedDecisionId: 'operator-decision-vnext-proposal-application-001',
       targetAuthority: 'proposal application planning for existing durable proposal records',
       currentGate: proposalApplicationImplementationDecisionGate,
-      nextRequiredInput:
-        'operator-provided application implementation decision for exactly one durable proposal record application path',
+      nextRequiredInput: proposalApplicationImplementationDecisionRequiredInput,
       applicationPlan: {
         source: 'existing durable proposal records',
         firstPath: 'audit-only application attempt',

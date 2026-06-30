@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
+  durableProposalRecordCreationCandidate,
   operatorDecisionGate,
   proposalApplicationDecisionGate,
 } from './vnext-status-constants.mjs';
@@ -193,8 +194,6 @@ const proposalRecordCreationReadinessStatus = runStatus(
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
-
 assert.equal(proposalRecordDecisionPacketStatus.ok, true);
 assert.equal(proposalReviewDecisionSpecStatus.ok, true);
 assert.equal(growthProposalQueueStatus.ok, true);
@@ -255,7 +254,7 @@ process.stdout.write(
       recommendedFirstCandidate: durableProposalRecordCreationCandidate,
       nextRequiredInput: 'explicit proposal application decision before applying any durable proposal record',
       planningPreview: {
-        targetAuthority: 'durable proposal record creation and persistence',
+        targetAuthority: durableProposalRecordCreationCandidate,
         storageCandidate: 'file-store-backed local proposal record collection under the selected runtime root',
         firstSliceOnly: true,
         proposalApplicationSeparated: true,

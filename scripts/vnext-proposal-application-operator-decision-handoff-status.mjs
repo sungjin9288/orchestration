@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   proposalApplicationImplementationDecisionGate,
+  proposalApplicationImplementationDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
@@ -284,8 +285,7 @@ process.stdout.write(
       doesNotPush: true,
       handoff: proposalApplicationOperatorHandoffFiles.handoff,
       currentGate: proposalApplicationImplementationDecisionGate,
-      nextRequiredInput:
-        'operator-provided application implementation decision for exactly one durable proposal record application path',
+      nextRequiredInput: proposalApplicationImplementationDecisionRequiredInput,
       decisionOptions: proposalApplicationDecisionOptions,
       requiredDecisionFields: proposalApplicationDecisionRequiredFields,
       upstreamStatus: proposalApplicationOperatorHandoffUpstreamStatus,

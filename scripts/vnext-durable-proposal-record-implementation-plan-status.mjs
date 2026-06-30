@@ -5,7 +5,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
+  durableProposalRecordCreationCandidate,
+  durableProposalRecordDecisionId,
   proposalApplicationDecisionGate,
+  proposalApplicationDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
@@ -272,10 +275,10 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       plan: durableProposalRecordImplementationPlanFiles.plan,
-      acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
-      targetAuthority: 'durable proposal record creation and persistence',
+      acceptedDecisionId: durableProposalRecordDecisionId,
+      targetAuthority: durableProposalRecordCreationCandidate,
       currentGate: proposalApplicationDecisionGate,
-      nextRequiredInput: 'operator-provided proposal application decision for created durable proposal records',
+      nextRequiredInput: proposalApplicationDecisionRequiredInput,
       implementationPlan: {
         storage: 'existing runtime state.json under the selected runtime root',
         stateCollection: 'proposalRecords',

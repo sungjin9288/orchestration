@@ -4,8 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
+  durableProposalRecordCreationCandidate,
+  durableProposalRecordDecisionId,
   operatorDecisionGate,
   proposalApplicationDecisionGate,
+  proposalApplicationDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
@@ -224,8 +227,6 @@ const proposalRecordOperatorHandoffSourceEvidence = {
 
 assertSourceEvidence(proposalRecordOperatorHandoffSources, proposalRecordOperatorHandoffSourceEvidence);
 
-const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
-
 const proposalRecordOperatorHandoffAuthorityBoundary = {
   handoffRecordsDecision: false,
   planningApproved: true,
@@ -260,12 +261,11 @@ process.stdout.write(
       handoff: proposalRecordOperatorHandoffFiles.handoff,
       currentGate: proposalApplicationDecisionGate,
       handoffStatus: 'consumed-by-planning-only-decision',
-      acceptedDecisionId: 'operator-decision-vnext-proposal-record-001',
+      acceptedDecisionId: durableProposalRecordDecisionId,
       recommendedFirstCandidate: durableProposalRecordCreationCandidate,
       decisionOptions: proposalRecordDecisionOptions,
       invalidShortcutsRejected: proposalRecordDecisionInvalidShortcuts,
-      nextRequiredInput:
-        'operator-provided proposal application decision for created durable proposal records',
+      nextRequiredInput: proposalApplicationDecisionRequiredInput,
       upstreamEvidence: {
         decisionPacket: {
           registered: true,

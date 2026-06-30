@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
+  durableProposalRecordCreationCandidate,
   operatorDecisionGate,
   proposalApplicationDecisionGate,
   proposalApplicationSourceMutationDecisionSlice,
@@ -173,8 +174,6 @@ const authorityExpansionReviewStatus = runStatus(
 );
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
-
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(authorityExpansionReviewStatus.ok, true);
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
