@@ -12,6 +12,7 @@ const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_status.mjs');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const growthConfigPath = path.join(repoRoot, 'ui', 'growth-config.js');
+const growthLearningPath = path.join(repoRoot, 'ui', 'growth-learning.js');
 const preferenceConfigPath = path.join(repoRoot, 'ui', 'preference-config.js');
 const referenceAuditPath = path.join(repoRoot, 'docs', 'reference', 'vnext-reference-driven-ui-audit.md');
 const contractsPath = path.join(repoRoot, 'src', 'runtime', 'contracts.js');
@@ -26,6 +27,7 @@ const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const growthConfig = fs.readFileSync(growthConfigPath, 'utf8');
+const growthLearning = fs.readFileSync(growthLearningPath, 'utf8');
 const preferenceConfig = fs.readFileSync(preferenceConfigPath, 'utf8');
 const referenceAudit = fs.readFileSync(referenceAuditPath, 'utf8');
 const contracts = fs.readFileSync(contractsPath, 'utf8');
@@ -211,10 +213,12 @@ assert.match(appJs, /data-cross-workspace-memory-allowed="\$\{GROWTH_AUTHORITY_B
 assert.match(appJs, /data-skill-promotion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.skillPromotionAllowed\}"/);
 assert.match(appJs, />지식 작업 \(knowledge-work\)<\/option>/);
 assert.match(appJs, /from '\.\/growth-config\.js'/);
+assert.match(appJs, /from '\.\/growth-learning\.js'/);
 assert.match(appJs, /from '\.\/preference-config\.js'/);
 assert.match(growthConfig, /export const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
 assert.match(growthConfig, /proposalRecordCreationAllowed: false/);
 assert.match(growthConfig, /sourceMutationAllowed: false/);
+assert.match(growthLearning, /export function getGrowthLearningSnapshot\(data, context, formatters = \{\}\) \{/);
 assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
 assert.match(contracts, /KNOWLEDGE_WORK: 'knowledge-work'/);
 assert.match(

@@ -1,3 +1,5 @@
+import { getNavGroupForSurface, getNavGroupLabel } from './surface-config.js';
+
 export const COMPANY_MEMBER_STORAGE_KEY = 'orchestration.company-members.v1';
 
 export const COMPANY_ROLE_OPTIONS = [
@@ -102,4 +104,39 @@ export function getCompanyRoleLabel(role) {
 
 export function getCompanyDeskLabel(surface) {
   return COMPANY_DESK_OPTIONS.find((option) => option.surface === surface)?.label || 'Execution Desk';
+}
+
+export function getCompanyMembersForGroup(members = [], groupId = null) {
+  const groupOrder = ['workflows', 'review', 'ops'];
+  const visibleMembers = groupId
+    ? members.filter((member) => getNavGroupForSurface(member.surface) === groupId)
+    : members;
+
+  return [...visibleMembers].sort((left, right) => {
+    const leftGroupIndex = groupOrder.indexOf(getNavGroupForSurface(left.surface));
+    const rightGroupIndex = groupOrder.indexOf(getNavGroupForSurface(right.surface));
+
+    if (leftGroupIndex !== rightGroupIndex) {
+      return leftGroupIndex - rightGroupIndex;
+    }
+
+    const leftDesk = getCompanyDeskLabel(left.surface);
+    const rightDesk = getCompanyDeskLabel(right.surface);
+
+    if (leftDesk !== rightDesk) {
+      return leftDesk.localeCompare(rightDesk, 'ko');
+    }
+
+    return left.name.localeCompare(right.name, 'ko');
+  });
+}
+
+export function getOpsEditorGroupLabel(activeGroupId = 'all') {
+  return activeGroupId === 'all' ? '전체 회사' : getNavGroupLabel(activeGroupId);
+}
+
+export function getOpsEditorMembers(members = [], activeGroupId = 'all') {
+  return activeGroupId === 'all'
+    ? getCompanyMembersForGroup(members)
+    : getCompanyMembersForGroup(members, activeGroupId);
 }

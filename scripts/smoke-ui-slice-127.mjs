@@ -22,7 +22,7 @@ assert.match(styles, /\.briefing-steps \{[\s\S]*display:\s*grid;[\s\S]*grid-temp
 assert.match(styles, /\.briefing-step \{[\s\S]*position:\s*relative;[\s\S]*padding:\s*10px 12px;[\s\S]*border-radius:\s*18px;/);
 assert.match(styles, /\.briefing-step-active \{[\s\S]*transform:\s*translateY\(-1px\);/);
 assert.match(styles, /\.briefing-step-complete::before \{/);
-assert.match(styles, /\.surface-entry-frame \.charter-card,\s*\.surface-entry-frame \.charter-flow-step,\s*\.surface-entry-frame \.briefing-step,\s*\.surface-entry-frame \.boardroom-table,\s*\.surface-entry-frame \.boardroom-seat \{/);
+assert.match(styles, /\.surface-entry-frame \.viewport-handoff-card,\s*\.surface-entry-frame \.charter-card,\s*\.surface-entry-frame \.charter-flow-step,\s*\.surface-entry-frame \.charter-signal-chip,\s*\.surface-entry-frame \.briefing-step,\s*\.surface-entry-frame \.boardroom-table,\s*\.surface-entry-frame \.boardroom-seat \{/);
 
 console.log(
   JSON.stringify(

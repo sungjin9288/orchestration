@@ -56,6 +56,7 @@ const vnextDevelopmentAuditFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   app: 'ui/app.js',
   growthConfig: 'ui/growth-config.js',
+  growthLearning: 'ui/growth-learning.js',
   preferenceConfig: 'ui/preference-config.js',
   styles: 'ui/styles.css',
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
@@ -143,6 +144,7 @@ const vnextDevelopmentAuditSourceEvidence = {
   app: {
     contains: [
       "from './growth-config.js'",
+      "from './growth-learning.js'",
       'data-growth-learning-surface="read-only"',
       'data-personalization-scope="local-only"',
       'function renderGrowthCandidateDrilldown(growth)',
@@ -170,6 +172,18 @@ const vnextDevelopmentAuditSourceEvidence = {
       'export const GROWTH_AUTHORITY_BOUNDARY = Object.freeze({',
       'export const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object.freeze([',
       'export const MEMORY_STORE_OPEN_REQUIREMENTS = Object.freeze([',
+    ],
+  },
+  growthLearning: {
+    contains: [
+      'export function getGrowthEvidenceCandidates',
+      'export function getGrowthFailurePatternGroups({ failedRuns, reviewArtifacts, blockedTasks })',
+      'export function getGrowthRegressionComparison({ failedRuns, completedRuns })',
+      'export function getGrowthLearningSnapshot(data, context, formatters = {})',
+      'proposal generation',
+      'memory persistence',
+      'source mutation',
+      'commit/push',
     ],
   },
   preferenceConfig: {

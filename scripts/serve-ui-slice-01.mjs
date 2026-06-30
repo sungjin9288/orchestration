@@ -2129,8 +2129,18 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/council-config.js') {
+    await serveStaticAsset(response, 'council-config.js');
+    return;
+  }
+
   if (url.pathname === '/growth-config.js') {
     await serveStaticAsset(response, 'growth-config.js');
+    return;
+  }
+
+  if (url.pathname === '/growth-learning.js') {
+    await serveStaticAsset(response, 'growth-learning.js');
     return;
   }
 

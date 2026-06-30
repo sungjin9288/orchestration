@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const growthConfigPath = path.join(repoRoot, 'ui', 'growth-config.js');
+const growthLearningPath = path.join(repoRoot, 'ui', 'growth-learning.js');
 const preferenceConfigPath = path.join(repoRoot, 'ui', 'preference-config.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const auditPath = path.join(repoRoot, 'docs', 'reference', 'vnext-reference-driven-ui-audit.md');
@@ -17,6 +18,7 @@ const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_stat
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 const growthConfig = fs.readFileSync(growthConfigPath, 'utf8');
+const growthLearning = fs.readFileSync(growthLearningPath, 'utf8');
 const preferenceConfig = fs.readFileSync(preferenceConfigPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const audit = fs.readFileSync(auditPath, 'utf8');
@@ -51,6 +53,7 @@ assert.match(decisionLog, /workspace\/applicability rules, redaction policy, exp
 assert.match(appJs, /from '\.\/preference-config\.js'/);
 assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
 assert.match(appJs, /from '\.\/growth-config\.js'/);
+assert.match(appJs, /from '\.\/growth-learning\.js'/);
 assert.match(growthConfig, /export const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
 assert.match(growthConfig, /providerCallsAllowed: false/);
 assert.match(growthConfig, /memoryPersistenceAllowed: false/);
@@ -73,6 +76,12 @@ assert.match(growthConfig, /export const MEMORY_STORE_OPEN_REQUIREMENTS = Object
 assert.match(growthConfig, /원문 transcript 수집은 금지 상태로 둡니다/);
 assert.match(growthConfig, /민감정보 제거, 내보내기, 만료 규칙이 먼저 있어야 합니다/);
 assert.match(growthConfig, /스킬 승격은 별도 리뷰와 검증 명령이 필요합니다/);
+assert.match(growthLearning, /const GROWTH_CANDIDATE_BLOCKED_ACTIONS = Object\.freeze\(\[/);
+assert.match(growthLearning, /export function getGrowthEvidenceCandidates/);
+assert.match(growthLearning, /export function getGrowthFailurePatternGroups\(\{ failedRuns, reviewArtifacts, blockedTasks \}\)/);
+assert.match(growthLearning, /export function getGrowthRegressionComparison\(\{ failedRuns, completedRuns \}\)/);
+assert.match(growthLearning, /export function getGrowthRollbackEvidenceLinks/);
+assert.match(growthLearning, /export function getGrowthLearningSnapshot\(data, context, formatters = \{\}\) \{/);
 assert.match(appJs, /function renderIntelligenceOverview\(data, context\)/);
 assert.match(appJs, /data-growth-learning-surface="read-only"/);
 assert.match(appJs, /data-personalization-scope="local-only"/);

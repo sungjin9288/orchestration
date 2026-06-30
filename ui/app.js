@@ -4,12 +4,21 @@ import {
   COMPANY_ROLE_OPTIONS,
   DEFAULT_COMPANY_MEMBERS,
   OPS_EDITOR_GROUP_DEFAULTS,
+  getCompanyMembersForGroup,
   getCompanyDeskLabel,
   getCompanyRoleLabel,
+  getOpsEditorGroupLabel,
+  getOpsEditorMembers,
   hasCompanyDesk,
   hasCompanyRole,
   normalizeCompanyMember,
 } from './company-config.js';
+import {
+  COUNCIL_CAST_METADATA,
+  COUNCIL_CAST_ORDER,
+  ORCHESTRATION_FLOW_STEPS,
+  ORCHESTRATION_RULES,
+} from './council-config.js';
 import {
   KNOWLEDGE_WORK_DELIVERABLES,
   PACK_HELP_COPY,
@@ -21,6 +30,7 @@ import {
   MEMORY_STORE_OPEN_REQUIREMENTS,
   PROPOSAL_RECORD_OPEN_REQUIREMENTS,
 } from './growth-config.js';
+import { getGrowthLearningSnapshot } from './growth-learning.js';
 import {
   DEFAULT_UI_PREFERENCES,
   EVIDENCE_DENSITY_OPTIONS,
@@ -294,110 +304,6 @@ function rememberSurfaceVisit(surface) {
   };
   persistUiPreferences();
 }
-
-const COUNCIL_CAST_ORDER = ['Conductor', 'Strategist', 'Architect', 'Decomposer'];
-const ORCHESTRATION_FLOW_STEPS = [
-  {
-    id: 'intake',
-    label: '안건 접수',
-    owner: '운영자 · 안건 흐름',
-    surface: 'mission',
-    summary: '현재 안건 판단과 다음 이동을 시작합니다.',
-  },
-  {
-    id: 'council',
-    label: '참모 회의',
-    owner: '회의 리드 + 참여 역할',
-    surface: 'council',
-    summary: '각 역할이 같은 안건을 함께 읽고 방향을 정리합니다.',
-  },
-  {
-    id: 'execution',
-    label: '작업 지시',
-    owner: '실행 역할 · 실행 흐름',
-    surface: 'execution',
-    summary: '현재 작업 지시와 다음 실행을 정리합니다.',
-  },
-  {
-    id: 'deliverables',
-    label: '결과 보고',
-    owner: '결과 보고 · 보고 흐름',
-    surface: 'deliverables',
-    summary: '현재 보고 판단과 다음 행동을 확인합니다.',
-  },
-];
-const ORCHESTRATION_RULES = [
-  '프로젝트 지정 후 실행',
-  '리뷰 후 완료',
-  '승인 후 커밋',
-  '한정된 실행 유지',
-];
-const COUNCIL_CAST_METADATA = {
-  Conductor: {
-    archetype: '정렬 책임',
-    avatarLabel: '리드 아바타',
-    avatarMood: '중앙 판단판을 보며 최종 방향을 고정합니다.',
-    avatarStyle: 'lead',
-    commandLine: '현재 결론과 다음 인계 판단을 한 지점에서 정리합니다.',
-    deskLabel: '중앙 판단 데스크',
-    deskProp: '최종 판단판 · 승인 묶음',
-    displayName: '리드',
-    mark: 'CN',
-    officeLine: '최종 방향과 인계 승인을 보는 자리',
-    orderLabel: '역할 순서 1',
-    previewLine: '정렬 상태와 다음 인계 판단을 한 지점에서 확인합니다.',
-    rank: '회의 리드',
-    tone: 'accent',
-  },
-  Strategist: {
-    archetype: '목표 정리',
-    avatarLabel: '전략 아바타',
-    avatarMood: '우선순위 표와 목표 문장을 동시에 정리합니다.',
-    avatarStyle: 'strategist',
-    commandLine: '목표 해석과 범위 조정을 맡는 전략 역할입니다.',
-    deskLabel: '전략 판단 데스크',
-    deskProp: '우선순위 표 · 전략 메모',
-    displayName: '전략',
-    mark: 'ST',
-    officeLine: '목표와 우선순위를 다듬는 자리',
-    orderLabel: '역할 순서 2',
-    previewLine: '원하는 결과와 범위를 더 분명하게 정리합니다.',
-    rank: '전략 역할',
-    tone: 'success',
-  },
-  Architect: {
-    archetype: '경계 보호',
-    avatarLabel: '설계 아바타',
-    avatarMood: '경계 도면을 펼친 채 파급 범위를 봉인합니다.',
-    avatarStyle: 'architect',
-    commandLine: '설계 파급을 줄이고 시스템 경계를 지키는 역할입니다.',
-    deskLabel: '설계 검토 데스크',
-    deskProp: '경계 도면 · 구조 메모',
-    displayName: '설계',
-    mark: 'AR',
-    officeLine: '구조 리스크와 경계를 지키는 자리',
-    orderLabel: '역할 순서 3',
-    previewLine: '의미론 경계를 지키고 파급 범위를 작게 유지합니다.',
-    rank: '설계 역할',
-    tone: 'warning',
-  },
-  Decomposer: {
-    archetype: '첫 실행 단위',
-    avatarLabel: '실행 아바타',
-    avatarMood: '첫 실행 셀과 체크포인트를 짧게 편성합니다.',
-    avatarStyle: 'decomposer',
-    commandLine: '첫 실행 단위를 정리하고 바로 인계 가능한 수준으로 나눕니다.',
-    deskLabel: '실행 편성 데스크',
-    deskProp: '체크포인트 표 · 실행 큐',
-    displayName: '실행',
-    mark: 'DC',
-    officeLine: '첫 실행 셀과 체크포인트를 편성하는 자리',
-    orderLabel: '역할 순서 4',
-    previewLine: '의도를 바로 넘길 수 있는 첫 실행 단위로 나눕니다.',
-    rank: '실행 역할',
-    tone: 'neutral',
-  },
-};
 
 function formatWorktreeOptionLabel(option) {
   const parts = [option.branch || 'detached', option.path];
@@ -11204,7 +11110,7 @@ function renderCompanyDirectory(data) {
   const groupedMembers = Object.keys(NAV_GROUPS).map((groupId) => ({
     groupId,
     label: getNavGroupLabel(groupId),
-    members: getCompanyMembersForGroup(groupId),
+    members: getCompanyMembersForGroup(state.companyMembers, groupId),
   }));
 
   elements.companyDirectorySummary.innerHTML = `
@@ -11318,31 +11224,6 @@ function renderWorkspaceHeader(data, context) {
   document.body.dataset.navGroup = activeGroupId;
 }
 
-function getCompanyMembersForGroup(groupId = null) {
-  const groupOrder = ['workflows', 'review', 'ops'];
-  const members = groupId
-    ? state.companyMembers.filter((member) => getNavGroupForSurface(member.surface) === groupId)
-    : state.companyMembers;
-
-  return [...members].sort((left, right) => {
-    const leftGroupIndex = groupOrder.indexOf(getNavGroupForSurface(left.surface));
-    const rightGroupIndex = groupOrder.indexOf(getNavGroupForSurface(right.surface));
-
-    if (leftGroupIndex !== rightGroupIndex) {
-      return leftGroupIndex - rightGroupIndex;
-    }
-
-    const leftDesk = getCompanyDeskLabel(left.surface);
-    const rightDesk = getCompanyDeskLabel(right.surface);
-
-    if (leftDesk !== rightDesk) {
-      return leftDesk.localeCompare(rightDesk, 'ko');
-    }
-
-    return left.name.localeCompare(right.name, 'ko');
-  });
-}
-
 function renderCompanyRosterList(members, emptyCopy = '배정된 인력이 아직 없습니다.') {
   if (!Array.isArray(members) || members.length === 0) {
     return `<p class="company-roster-empty">${escapeHtml(emptyCopy)}</p>`;
@@ -11397,206 +11278,6 @@ function renderControlOverviewSignalStrip(items) {
         .join('')}
     </div>
   `;
-}
-
-function createGrowthCandidate({
-  id,
-  type,
-  title,
-  sourceId,
-  sourceSurface,
-  reason,
-  reviewerQuestion,
-  severity,
-  severityLabel,
-  confidence,
-  confidenceLabel,
-  typeLabel,
-}) {
-  return {
-    id,
-    type,
-    typeLabel,
-    title,
-    sourceId,
-    sourceSurface,
-    reason,
-    reviewerQuestion,
-    severity,
-    severityLabel,
-    confidence,
-    confidenceLabel,
-    proposedNextStep: '사람 리뷰가 제안 기록으로 넘길지 결정합니다.',
-    blockedActions: [
-      'proposal generation',
-      'proposal application',
-      'memory persistence',
-      'source mutation',
-      'commit/push',
-    ],
-  };
-}
-
-function getGrowthEvidenceCandidates({ failedRuns, reviewArtifacts, blockedTasks }) {
-  const reviewCandidates = reviewArtifacts.slice(0, 4).map((artifact) =>
-    createGrowthCandidate({
-      id: `review:${artifact.id}`,
-      type: 'review-evidence',
-      typeLabel: '검토 증거',
-      title: artifact.title || artifact.name || '검토 증거',
-      sourceId: artifact.id,
-      sourceSurface: 'artifacts',
-      reason: '검토 결과는 반복되는 품질 기준, 누락된 검증, 승인 전 보완점을 가장 직접적으로 드러냅니다.',
-      reviewerQuestion: '이 검토 지적을 다음 실행 전 점검 항목이나 보호 규칙으로 올려야 하는가?',
-      severity: 'medium',
-      severityLabel: '중간',
-      confidence: 'artifact-backed',
-      confidenceLabel: 'artifact 기반',
-    }),
-  );
-  const failedRunCandidates = failedRuns.slice(0, 4).map((run) =>
-    createGrowthCandidate({
-      id: `run:${run.id}`,
-      type: 'failed-run',
-      typeLabel: '실패한 실행',
-      title: `${getRunStatusDisplay(run.status)} · ${run.role || run.kind || '실행'}`,
-      sourceId: run.id,
-      sourceSurface: 'logs',
-      reason: '실패한 실행은 복구 경로, 사전 점검 조건, 사용자 안내가 부족한 지점을 보여 줍니다.',
-      reviewerQuestion: '이 실패를 줄이려면 어떤 사전 확인, 되돌림 안내, 또는 작업자 안내가 필요한가?',
-      severity: 'high',
-      severityLabel: '높음',
-      confidence: 'runtime-backed',
-      confidenceLabel: 'runtime 기반',
-    }),
-  );
-  const blockedTaskCandidates = blockedTasks.slice(0, 4).map((task) =>
-    createGrowthCandidate({
-      id: `task:${task.id}`,
-      type: 'blocked-task',
-      typeLabel: '차단된 작업',
-      title: task.title || '차단된 작업',
-      sourceId: task.id,
-      sourceSurface: 'taskboard',
-      reason: '차단된 작업은 승인, 결정, 증거 인계가 충분히 명확한지 확인할 수 있는 신호입니다.',
-      reviewerQuestion: '작업자가 이 gate를 해소하기 위해 필요한 증거와 다음 위치를 한눈에 볼 수 있는가?',
-      severity: task.flags?.blocked ? 'high' : 'medium',
-      severityLabel: task.flags?.blocked ? '높음' : '중간',
-      confidence: 'state-backed',
-      confidenceLabel: 'state 기반',
-    }),
-  );
-
-  return [...reviewCandidates, ...failedRunCandidates, ...blockedTaskCandidates].slice(0, 6);
-}
-
-function getGrowthFailurePatternGroups({ failedRuns, reviewArtifacts, blockedTasks }) {
-  return [
-    {
-      id: 'runtime-failures',
-      label: '실행 실패',
-      count: failedRuns.length,
-      surface: 'logs',
-      evidenceRefs: failedRuns.slice(0, 3).map((run) => run.id),
-      reviewPrompt: '실패 전 사전 조건이나 복구 안내가 충분했는지 봅니다.',
-    },
-    {
-      id: 'review-findings',
-      label: '리뷰 보완',
-      count: reviewArtifacts.length,
-      surface: 'artifacts',
-      evidenceRefs: reviewArtifacts.slice(0, 3).map((artifact) => artifact.id),
-      reviewPrompt: '반복되는 품질 기준을 다음 리뷰 체크로 올릴지 봅니다.',
-    },
-    {
-      id: 'blocked-gates',
-      label: '게이트 대기',
-      count: blockedTasks.length,
-      surface: 'decision-inbox',
-      evidenceRefs: blockedTasks.slice(0, 3).map((task) => task.id),
-      reviewPrompt: '작업자가 승인·결정·증거 위치를 한눈에 찾는지 봅니다.',
-    },
-  ];
-}
-
-function getGrowthRegressionComparison({ failedRuns, completedRuns }) {
-  const latestFailed = failedRuns[0] || null;
-  const latestCompleted = completedRuns[0] || null;
-
-  return {
-    failedCount: failedRuns.length,
-    completedCount: completedRuns.length,
-    latestFailedRef: latestFailed?.id || '실패 없음',
-    latestCompletedRef: latestCompleted?.id || '완료 없음',
-    summary:
-      failedRuns.length > 0
-        ? '최근 실패 경로를 완료 경로와 나란히 보고 회귀 가능성을 리뷰합니다.'
-        : '현재 snapshot에서는 실패 실행이 없어 완료 경로만 기준으로 봅니다.',
-  };
-}
-
-function getGrowthRollbackEvidenceLinks(artifacts) {
-  const rollbackTypes = new Set([
-    'patch',
-    'diff',
-    'change-summary',
-    'review',
-    'commit-package',
-    'commit-result',
-    'release-package',
-    'close-out',
-  ]);
-
-  return artifacts
-    .filter((artifact) => rollbackTypes.has(artifact.type))
-    .sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')))
-    .slice(0, 4)
-    .map((artifact) => ({
-      id: artifact.id,
-      type: getArtifactTypeDisplay(artifact.type),
-      surface: 'artifacts',
-      taskId: artifact.taskId || 'task 미지정',
-    }));
-}
-
-function getGrowthLearningSnapshot(data, context) {
-  const failedRuns = data.runs.filter((run) => run.status === 'failed' || run.status === 'error');
-  const completedRuns = data.runs.filter((run) => run.status === 'completed');
-  const reviewArtifacts = data.artifacts.filter((artifact) => artifact.type === 'review');
-  const blockedTasks = data.tasks.filter(
-    (task) => task.flags?.blocked || task.flags?.waitingApproval || task.flags?.waitingDecision,
-  );
-  const evidenceCount =
-    data.artifacts.length + data.runs.length + data.approvals.length + data.inboxItems.length;
-  const candidates = getGrowthEvidenceCandidates({ failedRuns, reviewArtifacts, blockedTasks });
-  const candidateCount = reviewArtifacts.length + failedRuns.length + blockedTasks.length;
-  const proposalRecords = (data.proposalRecords || []).slice(0, 5);
-  const proposalApplicationAttempts = (data.proposalApplicationAttempts || []).slice(0, 5);
-  const selectedEvidence =
-    context.selectedArtifact?.id ||
-    context.selectedRun?.id ||
-    context.selectedInboxItem?.id ||
-    context.activeTask?.id ||
-    context.selectedMission?.id ||
-    '근거 대기';
-
-  return {
-    candidateCount,
-    evidenceCount,
-    failedRuns,
-    completedRuns,
-    reviewArtifacts,
-    blockedTasks,
-    candidates,
-    proposalRecords,
-    proposalApplicationAttempts,
-    failurePatternGroups: getGrowthFailurePatternGroups({ failedRuns, reviewArtifacts, blockedTasks }),
-    regressionComparison: getGrowthRegressionComparison({ failedRuns, completedRuns }),
-    rollbackEvidenceLinks: getGrowthRollbackEvidenceLinks(data.artifacts),
-    selectedEvidence,
-    status: candidateCount > 0 ? '개선 후보 있음' : '후보 대기',
-    statusTone: candidateCount > 0 ? 'accent' : 'neutral',
-  };
 }
 
 function renderDurableProposalRecordLedger(growth) {
@@ -11946,7 +11627,10 @@ function renderPersonalizationSettings(personalization, data) {
 }
 
 function renderIntelligenceOverview(data, context) {
-  const growth = getGrowthLearningSnapshot(data, context);
+  const growth = getGrowthLearningSnapshot(data, context, {
+    getArtifactTypeDisplay,
+    getRunStatusDisplay,
+  });
   const personalization = getPersonalizationSnapshot(data, context);
   const blockedAuthorityCount = Object.values(GROWTH_AUTHORITY_BOUNDARY).filter((allowed) => allowed === false).length;
 
@@ -12494,7 +12178,7 @@ function renderWorkflowsOverview(data, context, activeGroupId) {
   }));
   const focus = getControlOverviewFocus(context);
   const check = getControlOverviewCheck(state.surface, context, data);
-  const workflowMembers = getCompanyMembersForGroup(activeGroupId);
+  const workflowMembers = getCompanyMembersForGroup(state.companyMembers, activeGroupId);
   const activeDeskLabel = getSurfaceDisplayName(state.surface);
   const selectedMission = context.selectedMission;
   const selectedCouncil = context.selectedCouncil;
@@ -12647,7 +12331,7 @@ function renderReviewOverview(data, context, activeGroupId) {
   const selectedPacket = context.selectedArtifact?.id || context.selectedRun?.id || context.selectedInboxItem?.id || '선택 대기';
   const openEvidenceCount = data.artifacts.length;
   const openLogCount = data.runs.length;
-  const reviewMembers = getCompanyMembersForGroup(activeGroupId);
+  const reviewMembers = getCompanyMembersForGroup(state.companyMembers, activeGroupId);
   const pendingReviewCount = data.inboxItems.filter((item) => item.status === 'pending').length;
   const packetKind = context.selectedArtifact?.type
     ? getArtifactTypeDisplay(context.selectedArtifact.type)
@@ -12852,20 +12536,6 @@ function renderOpsEditorSteps() {
   `;
 }
 
-function getOpsEditorGroupLabel(activeGroupId = 'all') {
-  if (activeGroupId === 'all') {
-    return '전체 회사';
-  }
-
-  return getNavGroupLabel(activeGroupId);
-}
-
-function getOpsEditorMembers(activeGroupId = 'all') {
-  return activeGroupId === 'all'
-    ? getCompanyMembersForGroup()
-    : getCompanyMembersForGroup(activeGroupId);
-}
-
 function renderOpsEditorScopeTabs(activeGroupId = 'all') {
   const options = [
     { id: 'all', label: '전체' },
@@ -12918,13 +12588,13 @@ function renderOpsOverview(data, context, activeGroupId) {
   const harnessBrief = getHarnessConsumerBrief(data);
   const editorGroupId = state.opsEditorGroup || 'all';
   const editorGroupLabel = getOpsEditorGroupLabel(editorGroupId);
-  const editorMembers = getOpsEditorMembers(editorGroupId);
+  const editorMembers = getOpsEditorMembers(state.companyMembers, editorGroupId);
   const editorRoleCount = new Set(editorMembers.map((member) => member.role)).size;
   const editorDeskCount = new Set(editorMembers.map((member) => member.surface)).size;
   const groupedMembers = Object.keys(NAV_GROUPS).map((groupId) => ({
     groupId,
     label: getNavGroupLabel(groupId),
-    members: getCompanyMembersForGroup(groupId),
+    members: getCompanyMembersForGroup(state.companyMembers, groupId),
   }));
 
   return `

@@ -25,6 +25,7 @@ const growthDashboardEvidenceDepthFiles = {
   inventory: 'docs/22_completion-gate-inventory.md',
   app: 'ui/app.js',
   growthConfig: 'ui/growth-config.js',
+  growthLearning: 'ui/growth-learning.js',
   styles: 'ui/styles.css',
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
   verification: 'scripts/verification_status.mjs',
@@ -100,9 +101,7 @@ const growthDashboardEvidenceDepthEscapedAuthorityMarkers =
 
 const growthDashboardEvidenceDepthSourceEvidence = {
   app: [
-    /function getGrowthFailurePatternGroups\(\{ failedRuns, reviewArtifacts, blockedTasks \}\)/,
-    /function getGrowthRegressionComparison\(\{ failedRuns, completedRuns \}\)/,
-    /function getGrowthRollbackEvidenceLinks\(artifacts\)/,
+    /from '\.\/growth-learning\.js'/,
     /function renderGrowthDashboardEvidenceDepth\(growth\)/,
     /data-growth-dashboard-evidence-depth="read-only"/,
     /data-failure-pattern-groups="true"/,
@@ -111,6 +110,12 @@ const growthDashboardEvidenceDepthSourceEvidence = {
     /data-growth-dashboard-action-allowed="false"/,
     /실패 묶음, 회귀 비교, 되돌림 근거를 함께 봅니다/,
     /되돌림 근거 링크/,
+  ],
+  growthLearning: [
+    /export function getGrowthFailurePatternGroups\(\{ failedRuns, reviewArtifacts, blockedTasks \}\)/,
+    /export function getGrowthRegressionComparison\(\{ failedRuns, completedRuns \}\)/,
+    /export function getGrowthRollbackEvidenceLinks/,
+    /const ROLLBACK_ARTIFACT_TYPES = new Set\(\[/,
   ],
   growthConfig: growthDashboardEvidenceDepthEscapedAuthorityMarkers,
   styles: [
