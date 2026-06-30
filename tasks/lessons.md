@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Execution context label splitting should keep run selection and token rendering in the app shell. It is safe to move execution mode and run-relation wording into `ui/execution-labels.js`, but latest-run lookup, relation assembly, createToken calls, and execution actions must stay in `ui/app.js`.
+
 - Inbox label splitting should keep labels below inbox authority. Kind, status, and resolution action wording can move into `ui/inbox-labels.js`, but selection state, inbox tone, action execution, resolution routing, task flags, and runtime mutation stay in `ui/app.js` and server/runtime paths.
 
 - Evidence rail label splitting should not move checkpoint assembly. Status display, tone, and handoff wording can live in `ui/execution-labels.js`, but checkpoint ordering, blocker selection, readiness rules, and rendering stay in `ui/app.js`.

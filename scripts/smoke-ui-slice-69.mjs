@@ -7,17 +7,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
 const executionGateStatePath = path.join(repoRoot, 'var', 'runtime-ui-slice-20', 'state.json');
 
 assert.equal(fs.existsSync(executionGateStatePath), true, 'runtime-ui-slice-20 state.json is required');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'utf8'));
 
 assert.match(appJs, /function getPackageStatusDisplay\(status\)/);
 assert.match(appJs, /function getGuardReasonDisplay\(reason\)/);
 assert.match(appJs, /function getProviderReadinessDisplay\(status\)/);
-assert.match(appJs, /function getRunRelationLabelDisplay\(label\)/);
+assert.match(appJs, /getRunRelationLabelDisplay,/);
+assert.match(executionLabels, /export function getExecutionModeDisplay\(mode\) \{/);
+assert.match(executionLabels, /export function getRunRelationLabelDisplay\(label\) \{/);
 assert.match(appJs, /정렬된 하위 작업/);
 assert.match(appJs, /체크포인트별 기대 아티팩트/);
 assert.match(appJs, /검토한 증거/);

@@ -151,6 +151,8 @@ async function main() {
     assert.match(artifactPreview, /export function getPreviewRedactionCopy\(\) \{/);
     assert.match(executionLabels, /export function getExecutionRoleDisplay\(role\) \{/);
     assert.match(executionLabels, /export function getExecutionStageDisplay\(stage\) \{/);
+    assert.match(executionLabels, /export function getExecutionModeDisplay\(mode\) \{/);
+    assert.match(executionLabels, /export function getRunRelationLabelDisplay\(label\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusTone\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailHandoffDisplay\(value\) \{/);

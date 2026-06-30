@@ -27,6 +27,24 @@ export function getExecutionStageDisplay(stage) {
   return stage || '알 수 없음';
 }
 
+export function getExecutionModeDisplay(mode) {
+  if (mode === 'live-mutation') return '라이브변경';
+  if (mode === 'commit-package') return '커밋패키지';
+  if (mode === 'release-package') return '릴리스패키지';
+  if (mode === 'close-out') return '종료정리';
+  return mode || '알 수 없음';
+}
+
+export function getRunRelationLabelDisplay(label) {
+  if (label === 'commit-executor run') return '커밋실행 기록';
+  if (label === 'commit-packager run') return '커밋패키저 실행 기록';
+  if (label === 'reviewer run') return '리뷰어 실행 기록';
+  if (label === 'release-packager run') return '릴리스패키저 실행 기록';
+  if (label === 'close-out run') return '종료정리 실행 기록';
+  if (label === 'run') return '실행 기록';
+  return label || '실행 기록';
+}
+
 export function getEvidenceRailStatusDisplay(status) {
   if (status === 'complete') {
     return '인계 완료';
