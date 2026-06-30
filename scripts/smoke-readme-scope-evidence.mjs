@@ -67,6 +67,11 @@ assert.match(readme, /DEC-048/);
 assert.match(readme, /Durable proposal record creation and persistence are implemented only/);
 assert.match(readme, /Proposal application source mutation decision packet is decision input only/);
 assert.match(readme, /docs\/36_proposal-application-source-mutation-decision-packet\.md/);
+assert.match(readme, /Proposal application source mutation operator handoff is not approval/);
+assert.match(
+  readme,
+  /docs\/37_proposal-application-source-mutation-operator-decision-handoff\.md/,
+);
 assert.match(readme, /Long-term memory is readiness only/);
 assert.match(readme, /DEC-049/);
 assert.match(readme, /raw transcript ingestion/);
@@ -153,6 +158,10 @@ assert.match(verificationStatus, /smoke-ui-slice-649\.mjs/);
 assert.match(
   verificationStatus,
   /vnext-proposal-application-source-mutation-decision-packet-status\.mjs/,
+);
+assert.match(
+  verificationStatus,
+  /vnext-proposal-application-source-mutation-operator-decision-handoff-status\.mjs/,
 );
 assert.match(appJs, /data-growth-learning-surface="read-only"/);
 assert.match(appJs, /data-personalization-scope="local-only"/);

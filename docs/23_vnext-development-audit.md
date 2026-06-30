@@ -22,6 +22,7 @@ The current product posture is:
 - proposal application implementation decision handoff: consumed by the accepted audit-only implementation decision
 - proposal application implementation: audit-only attempt creation is implemented; proposal generation, source mutation, provider calls, memory persistence, commit, and push remain blocked
 - proposal application source mutation decision packet: read-only decision input defined; it does not approve planning, implementation, provider calls, memory persistence, source mutation, commit, or push
+- proposal application source mutation operator handoff: read-only decision input defined; it does not record a decision or approve planning, implementation, provider calls, memory persistence, source mutation, commit, or push
 
 ## Current Evidence
 
@@ -44,6 +45,7 @@ The current product posture is:
 | Proposal application implementation decision handoff | Implemented as a read-only decision input. It defines the copy-ready implementation approval shape, rejection shape, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions while keeping implementation, source mutation, provider calls, memory persistence, commit, and push blocked. | `docs/01_decision-log.md#DEC-061`, `docs/34_proposal-application-implementation-decision-handoff.md`, `scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs` |
 | Proposal application implementation | Implemented as an approved audit-only local runtime slice. It records one inert application attempt in `proposalApplicationAttempts`, links it to an existing durable proposal record, keeps all application/source/provider/memory/commit/push authority false, and proves rollback quarantine without applying a proposal. | `docs/01_decision-log.md#DEC-062`, `docs/35_proposal-application-implementation.md`, `src/runtime/contracts.js`, `src/runtime/file-store.js`, `src/runtime/runtime-service.js`, `scripts/smoke-proposal-application-attempt-creation.mjs`, `scripts/vnext-proposal-application-implementation-status.mjs` |
 | Proposal application source mutation decision packet | Implemented as read-only decision input. It names valid source mutation decision outcomes, required fields, application-attempt dependency, rollback refs, focused smoke refs, and stop conditions before any source mutation plan or implementation can open. | `docs/01_decision-log.md#DEC-063`, `docs/36_proposal-application-source-mutation-decision-packet.md`, `scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs` |
+| Proposal application source mutation operator handoff | Implemented as read-only decision input. It gives copy-ready planning-only, implementation-slice, evidence-request, rejection, and deferral statement shapes while keeping source mutation planning and implementation blocked. | `docs/01_decision-log.md#DEC-064`, `docs/37_proposal-application-source-mutation-operator-decision-handoff.md`, `scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs` |
 
 ## Development Plan
 
@@ -95,8 +97,11 @@ Completed: `proposal application implementation`
 Completed: `proposal application source mutation decision packet`
 `docs/36_proposal-application-source-mutation-decision-packet.md` turns the current source mutation gate into read-only operator decision input. It separates source mutation planning, source mutation implementation, provider approval, memory approval, commit approval, and push approval while keeping all source mutation authority blocked.
 
-1. `proposal application source mutation operator handoff required`
-   Give the operator a copy-ready fielded decision shape for source mutation planning, implementation, rejection, deferral, or evidence requests. The current implementation records local attempt evidence only; it does not apply proposals, mutate source, call providers, persist memory, commit, or push.
+Completed: `proposal application source mutation operator handoff`
+`docs/37_proposal-application-source-mutation-operator-decision-handoff.md` gives the operator copy-ready statement shapes for source mutation planning-only approval, implementation-slice approval, evidence requests, rejection, and deferral. It is decision input only and does not record a decision, apply proposals, mutate source, call providers, persist memory, commit, or push.
+
+1. `proposal application source mutation fielded decision required`
+   The operator must provide a fielded source mutation decision before planning or implementation can open. The current implementation records local attempt evidence only; it does not apply proposals, mutate source, call providers, persist memory, commit, or push.
 
 ## Authority Boundary
 
@@ -137,6 +142,7 @@ node scripts/vnext-proposal-application-implementation-decision-handoff-status.m
 node scripts/smoke-proposal-application-attempt-creation.mjs
 node scripts/vnext-proposal-application-implementation-status.mjs
 node scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs
+node scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs
 ```
 
-The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, the approved durable proposal record creation/persistence smoke, the proposal application decision packet, the proposal application operator decision handoff, the proposal application implementation plan, the proposal application implementation decision handoff, the approved audit-only proposal application attempt implementation, and the source mutation decision packet.
+The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, growth engine recommendation, reflection recommendation, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, the approved durable proposal record creation/persistence smoke, the proposal application decision packet, the proposal application operator decision handoff, the proposal application implementation plan, the proposal application implementation decision handoff, the approved audit-only proposal application attempt implementation, the source mutation decision packet, and the source mutation operator handoff.

@@ -8,7 +8,7 @@ import {
   durableProposalRecordCreationCandidate,
   operatorDecisionGate,
   proposalApplicationDecisionGate,
-  proposalApplicationSourceMutationOperatorHandoffSlice,
+  proposalApplicationSourceMutationFieldedDecisionSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -176,7 +176,7 @@ const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(authorityExpansionReviewStatus.ok, true);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationOperatorHandoffSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationFieldedDecisionSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'authority implementation decision packet',

@@ -9,7 +9,7 @@ import {
   proposalApplicationImplementationDecisionRequiredInput,
   proposalApplicationPlanningDecisionId,
   proposalApplicationPlanningTargetAuthority,
-  proposalApplicationSourceMutationOperatorHandoffSlice,
+  proposalApplicationSourceMutationFieldedDecisionSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -210,7 +210,7 @@ const proposalApplicationImplementationPlanSourceEvidence = {
   decisionLog: ['### DEC-058', '### DEC-059', '### DEC-060'],
   audit: [
     'Completed: `proposal application implementation plan`',
-    '1. `proposal application source mutation operator handoff required`',
+    '1. `proposal application source mutation fielded decision required`',
   ],
   inventory: ['vNext proposal application implementation plan'],
   readme: [
@@ -253,7 +253,7 @@ assert.equal(
 assert.equal(proposalApplicationDecisionPacketStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(proposalApplicationOperatorHandoffStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationOperatorHandoffSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationFieldedDecisionSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'proposal application implementation plan',

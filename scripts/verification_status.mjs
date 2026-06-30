@@ -302,6 +302,11 @@ const informationalChecks = [
     purpose: 'vNext proposal application source mutation decision packet defines source mutation decision outcomes, required decision fields, application attempt refs, rollback refs, focused smoke refs, and stop conditions before any source mutation planning or implementation can open',
   },
   {
+    id: 'vnext-proposal-application-source-mutation-operator-decision-handoff-status',
+    script: 'scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs',
+    purpose: 'vNext proposal application source mutation operator decision handoff defines copy-ready planning, implementation, evidence-request, rejection, and deferral statement shapes without recording a decision or opening source mutation, provider, memory, commit, or push authority',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

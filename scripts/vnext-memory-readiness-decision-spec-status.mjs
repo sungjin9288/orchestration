@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   createProposalApplicationSourceMutationDecision,
-  proposalApplicationSourceMutationOperatorHandoffSlice,
+  proposalApplicationSourceMutationFieldedDecisionSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -168,7 +168,7 @@ const memoryReadinessDecisionSpecSourceEvidence = {
     'docs/25_memory-readiness-decision-spec.md',
     'Completed: `growth dashboard evidence depth`',
     'Completed: `operator-approved authority expansion review`',
-    '`proposal application source mutation operator handoff required`',
+    '`proposal application source mutation fielded decision required`',
   ],
   inventory: ['vNext memory readiness decision spec'],
   readme: ['Long-term memory is readiness only', 'docs/25_memory-readiness-decision-spec.md'],
@@ -201,7 +201,7 @@ const proposalApplicationSourceMutationDecision = createProposalApplicationSourc
 });
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationOperatorHandoffSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationFieldedDecisionSlice);
 assert.equal(proposalReviewDecisionSpecStatus.ok, true);
 assert.equal(proposalReviewDecisionSpecStatus.authority?.memoryPersistenceAllowed, false);
 

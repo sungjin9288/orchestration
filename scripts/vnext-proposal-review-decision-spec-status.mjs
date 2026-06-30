@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   createProposalApplicationSourceMutationDecision,
-  proposalApplicationSourceMutationOperatorHandoffSlice,
+  proposalApplicationSourceMutationFieldedDecisionSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -179,7 +179,7 @@ const proposalApplicationSourceMutationDecision = createProposalApplicationSourc
 });
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationOperatorHandoffSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationFieldedDecisionSlice);
 
 const proposalQueue = runStatus('scripts/growth-proposal-queue-status.mjs');
 const creationReadiness = runStatus(

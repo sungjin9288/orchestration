@@ -154,6 +154,11 @@ src/runtime/file-store.js
   `docs/36_proposal-application-source-mutation-decision-packet.md` define source mutation decision
   outcomes, required fields, application attempt refs, rollback refs, focused smoke refs, and stop
   conditions before any source mutation planning or implementation can open.
+- Proposal application source mutation operator handoff is not approval: `DEC-064` and
+  `docs/37_proposal-application-source-mutation-operator-decision-handoff.md` provide copy-ready
+  source mutation planning, implementation, evidence-request, rejection, and deferral statement
+  shapes. The handoff does not record a decision or open source mutation planning,
+  implementation, provider calls, memory persistence, commit, or push.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -365,18 +370,24 @@ Current verification evidence from this README refresh:
   the read-only source mutation decision packet, required operator fields, application-attempt
   dependency, rollback refs, focused smoke refs, stop conditions, and still-blocked
   provider/memory/source/commit/push authority before any source mutation planning can open.
+- `node scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs`:
+  source-checks the copy-ready source mutation operator handoff, valid decision shapes, invalid
+  shortcuts, minimum acceptance criteria, stop conditions, and still-blocked
+  provider/memory/source/commit/push authority before any fielded source mutation decision can open
+  planning or implementation.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `158/158`, total `159/159`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `160/160`, total `161/161`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
   durable proposal record implementation plan, implementation, proposal application decision packet,
   proposal application operator decision handoff, proposal application implementation plan, and
   proposal application implementation decision handoff, proposal application attempt creation smoke,
-  and proposal application implementation status checks.
+  proposal application implementation status, source mutation decision packet, and source mutation
+  operator handoff checks.
 - `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
   Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
   duplicate guards.
@@ -452,6 +463,10 @@ Playwright CLI:
   `docs/36_proposal-application-source-mutation-decision-packet.md` is read-only input for a later
   source mutation decision. It does not plan source mutation, implement source mutation, call
   providers, persist memory, commit, or push.
+- Proposal application source mutation operator handoff remains decision input only.
+  `docs/37_proposal-application-source-mutation-operator-decision-handoff.md` gives the operator
+  copy-ready decision wording, but it does not approve source mutation planning, source mutation
+  implementation, provider calls, memory persistence, commit, or push.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider

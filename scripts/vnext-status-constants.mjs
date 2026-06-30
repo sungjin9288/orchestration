@@ -7,6 +7,9 @@ export const proposalApplicationSourceMutationDecisionSlice =
 export const proposalApplicationSourceMutationOperatorHandoffSlice =
   'proposal application source mutation operator handoff required';
 
+export const proposalApplicationSourceMutationFieldedDecisionSlice =
+  'proposal application source mutation fielded decision required';
+
 export const proposalApplicationSourceMutationDecisionRequiredInput =
   'operator-provided proposal application source mutation decision for exactly one source mutation planning path';
 

@@ -363,6 +363,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/36_proposal-application-source-mutation-decision-packet.md` defines decision options, required fields, source mutation boundary, still-blocked authorities, stop conditions, and verification for the next proposal application source mutation decision. `scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs` pins that this is decision input only. Runtime, UI, provider, memory, source mutation, commit, and push behavior remain unchanged.
 - Needed Before: Any source mutation planning or implementation still needs a later fielded operator decision, source and negative evidence refs, application attempt refs, mutation plan refs, rollback refs, focused smoke refs, aggregate verification, and separate approval for provider calls, memory persistence, commit, or push when those actions are involved.
 
+### DEC-064
+- Status: `Accepted`
+- Decision: Proposal application source mutation operator handoff is documented as read-only decision input.
+- Why: The source mutation decision packet defines the required decision fields, but the operator still needs a copy-ready handoff that separates planning-only approval, implementation-slice approval, evidence requests, rejection, and deferral without opening source mutation authority.
+- Impact: `docs/37_proposal-application-source-mutation-operator-decision-handoff.md` defines valid source mutation planning and implementation statement shapes, invalid shortcuts, minimum acceptance criteria, still-blocked authorities, stop conditions, and verification. `scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs` verifies the handoff remains read-only and moves the live route to a fielded source mutation decision requirement. Runtime, UI, provider, memory, source mutation, commit, and push behavior remain unchanged.
+- Needed Before: Any source mutation planning or implementation still requires a later fielded operator decision naming exactly one path, application attempt refs, rollback refs, focused smoke refs, aggregate verification, and the authorities that remain blocked.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.
