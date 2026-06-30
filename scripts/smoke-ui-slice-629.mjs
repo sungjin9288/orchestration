@@ -7,13 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
-assert.match(appJs, /function getHarnessExecutionBriefCopyActionLabel\(execution\)/);
-assert.match(appJs, /execution\?\.actionMode === 'policy-report' \? '리포트 요약 복사' : '요약 복사'/);
-assert.match(appJs, /function getHarnessExecutionBriefCopyStatusLabel\(execution\)/);
-assert.match(appJs, /execution\?\.actionMode === 'policy-report' \? '리포트 요약' : '출력 요약'/);
+assert.match(harnessLabels, /export function getHarnessExecutionBriefCopyActionLabel\(execution\) \{/);
+assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '리포트 요약 복사' : '요약 복사'/);
+assert.match(harnessLabels, /export function getHarnessExecutionBriefCopyStatusLabel\(execution\) \{/);
+assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '리포트 요약' : '출력 요약'/);
 assert.match(appJs, /handoffs\.push\(getHarnessExecutionBriefCopyActionLabel\(execution\)\)/);
 assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\)\)\}"/);
 assert.match(appJs, /getHarnessExecutionBriefCopyActionLabel\(visibleHarnessExecutionResult\)/);

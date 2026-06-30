@@ -7,15 +7,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
-assert.match(appJs, /function getHarnessExecutionPathHandoffLabel\(execution\)/);
-assert.match(appJs, /const hasInputPath = Boolean\(execution\?\.resolvedInputPath \|\| execution\?\.inputPath\)/);
-assert.match(appJs, /const hasOutputPath = Boolean\(execution\?\.resolvedOutputPath \|\| execution\?\.outputPath\)/);
-assert.match(appJs, /return `입력\/\$\{getHarnessExecutionOutputPathActionLabel\(execution\)\}`/);
-assert.match(appJs, /return '입력 경로'/);
-assert.match(appJs, /return getHarnessExecutionOutputPathActionLabel\(execution\)/);
+assert.match(harnessLabels, /export function getHarnessExecutionPathHandoffLabel\(execution\) \{/);
+assert.match(harnessLabels, /const hasInputPath = Boolean\(execution\?\.resolvedInputPath \|\| execution\?\.inputPath\)/);
+assert.match(harnessLabels, /const hasOutputPath = Boolean\(execution\?\.resolvedOutputPath \|\| execution\?\.outputPath\)/);
+assert.match(harnessLabels, /return `입력\/\$\{getHarnessExecutionOutputPathActionLabel\(execution\)\}`/);
+assert.match(harnessLabels, /return '입력 경로'/);
+assert.match(harnessLabels, /return getHarnessExecutionOutputPathActionLabel\(execution\)/);
 assert.match(appJs, /const pathHandoffLabel = getHarnessExecutionPathHandoffLabel\(execution\)/);
 assert.match(appJs, /handoffs\.push\(pathHandoffLabel\)/);
 assert.doesNotMatch(appJs, /handoffs\.push\('경로'\)/);

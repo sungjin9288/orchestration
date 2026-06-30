@@ -7,11 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
-assert.match(appJs, /function getHarnessExecutionRerunActionLabel\(execution\)/);
-assert.match(appJs, /execution\?\.actionMode === 'policy-report' \? '같은 경로 정책 리포트' : '같은 경로 재실행'/);
+assert.match(harnessLabels, /export function getHarnessExecutionRerunActionLabel\(execution\) \{/);
+assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '같은 경로 정책 리포트' : '같은 경로 재실행'/);
 assert.match(appJs, /getHarnessExecutionRerunActionLabel\(visibleHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionRerunActionLabel\(hiddenHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionRerunActionLabel\(execution\)/);

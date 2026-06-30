@@ -20,6 +20,8 @@ assert.match(appJs, /getOpsEditorMembers\(state\.companyMembers, editorGroupId\)
 assert.match(companyConfig, /export function getOpsEditorGroupLabel\(activeGroupId = 'all'\) \{/);
 assert.match(companyConfig, /export function getOpsEditorMembers\(members = \[\], activeGroupId = 'all'\) \{/);
 assert.match(companyConfig, /export function getCompanyMembersForGroup\(members = \[\], groupId = null\) \{/);
+assert.match(companyConfig, /export function getCompanyDirectorySummary\(members = \[\]\) \{/);
+assert.match(appJs, /getCompanyDirectorySummary\(state\.companyMembers\)/);
 assert.match(appJs, /data-action="set-ops-editor-group"/);
 assert.match(appJs, /범위/);
 assert.match(appJs, /인력/);

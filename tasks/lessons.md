@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness execution wording should split as pure labels before moving result rendering. Keep mode-derived labels in `ui/harness-labels.js`, but leave handoff assembly, output brief payloads, policy report copy, route handlers, clipboard status, and rerun actions in the app shell so authority and execution behavior stay unchanged.
+
 - UI module splitting should begin with self-contained copy/config data before moving stateful surface rendering. A tiny module such as `ui/pack-config.js` lets smoke tests prove route serving and imports without changing runtime actions or screen behavior.
 
 - Local-only personalization split should keep persistence and actions in the app shell while moving only read-only snapshot derivation into a pure module. Pass current preferences, active project, project map, pending gate count, current surface, and surface guidance into the helper so browser localStorage, copy/reset actions, memory persistence, provider calls, source mutation, commit, and push authority remain unchanged.
@@ -1316,3 +1318,4 @@
 - Council shell 분리에서는 role order, flow step, rule copy, cast metadata처럼 화면의 정적 의미만 config module로 옮기고, fallback 조립, compact mode 판단, active step 계산, render function은 app shell에 남기는 편이 안전하다. 이렇게 해야 회의형 UI의 의도는 읽기 쉬워지면서 surface state와 execution authority는 움직이지 않는다.
 - Company helper 분리에서는 roster 정렬, group label, editor member selection처럼 state를 인자로 받는 순수 helper만 config module로 옮기고, `state.companyMembers` 소유권, form draft, localStorage persistence, mutation action은 app shell에 남겨야 한다. 이렇게 하면 회사형 shell의 읽기 흐름은 단순해지면서 사용자 편집 상태와 runtime 권한은 움직이지 않는다.
 - Personalization snapshot 분리에서는 추천 surface, preferred project, visit count 같은 계산만 state를 인자로 받는 순수 helper로 옮기고, localStorage read/write, body dataset sync, copy-review packet, disabled action state는 app shell에 남겨야 한다. 이렇게 해야 local-only 편의가 durable memory persistence나 runtime mutation으로 오해되지 않는다.
+- Harness label 분리에서는 policy-report/result 문구, hide/show label, output/path label처럼 실행 상태를 바꾸지 않는 표시 문구만 module로 옮기고, result selection, hidden state, clipboard action, rerun request는 app shell에 남겨야 한다. source-contract smoke도 helper 본문은 새 module에서 확인하되 UI 사용 지점은 app에서 계속 확인해야 검증이 약해지지 않는다.

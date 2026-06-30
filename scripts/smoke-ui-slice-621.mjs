@@ -7,11 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
-assert.match(appJs, /function getHarnessExecutionOutputLabel\(execution\)/);
-assert.match(appJs, /execution\?\.actionMode === 'policy-report' \? '출력 예정' : '출력'/);
+assert.match(harnessLabels, /export function getHarnessExecutionOutputLabel\(execution\) \{/);
+assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '출력 예정' : '출력'/);
 assert.match(appJs, /\$\{getHarnessExecutionOutputLabel\(execution\)\}: \$\{outputPath\}/);
 assert.match(appJs, /getHarnessExecutionOutputLabel\(visibleHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionOutputLabel\(hiddenHarnessExecutionResult\)/);

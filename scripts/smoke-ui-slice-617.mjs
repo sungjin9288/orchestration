@@ -7,10 +7,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
-assert.match(appJs, /function getHarnessExecutionModeLabel\(execution\)/);
+assert.match(harnessLabels, /export function getHarnessExecutionModeLabel\(execution\) \{/);
 assert.match(appJs, /data-harness-execution-mode-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-mode-summary="true"/);
 assert.match(appJs, /getHarnessExecutionModeLabel\(visibleHarnessExecutionResult\)/);

@@ -2144,6 +2144,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/harness-labels.js') {
+    await serveStaticAsset(response, 'harness-labels.js');
+    return;
+  }
+
   if (url.pathname === '/preference-config.js') {
     await serveStaticAsset(response, 'preference-config.js');
     return;

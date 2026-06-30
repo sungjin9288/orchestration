@@ -131,6 +131,21 @@ export function getCompanyMembersForGroup(members = [], groupId = null) {
   });
 }
 
+export function getCompanyDirectorySummary(members = []) {
+  const counts = {
+    ops: 0,
+    review: 0,
+    workflows: 0,
+  };
+
+  for (const member of members) {
+    const groupId = getNavGroupForSurface(member.surface);
+    counts[groupId] += 1;
+  }
+
+  return counts;
+}
+
 export function getOpsEditorGroupLabel(activeGroupId = 'all') {
   return activeGroupId === 'all' ? '전체 회사' : getNavGroupLabel(activeGroupId);
 }

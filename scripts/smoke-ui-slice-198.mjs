@@ -87,6 +87,8 @@ async function main() {
     const growthConfig = await growthConfigResponse.text();
     const growthLearningResponse = await fetch(`${baseUrl}/growth-learning.js`);
     const growthLearning = await growthLearningResponse.text();
+    const harnessLabelsResponse = await fetch(`${baseUrl}/harness-labels.js`);
+    const harnessLabels = await harnessLabelsResponse.text();
     const preferenceConfigResponse = await fetch(`${baseUrl}/preference-config.js`);
     const preferenceConfig = await preferenceConfigResponse.text();
     const personalizationSnapshotResponse = await fetch(`${baseUrl}/personalization-snapshot.js`);
@@ -101,6 +103,7 @@ async function main() {
     assert.equal(councilConfigResponse.status, 200);
     assert.equal(growthConfigResponse.status, 200);
     assert.equal(growthLearningResponse.status, 200);
+    assert.equal(harnessLabelsResponse.status, 200);
     assert.equal(preferenceConfigResponse.status, 200);
     assert.equal(personalizationSnapshotResponse.status, 200);
     assert.equal(companyConfigResponse.status, 200);
@@ -109,6 +112,7 @@ async function main() {
     assert.match(appJs, /from '\.\/council-config\.js'/);
     assert.match(appJs, /from '\.\/growth-config\.js'/);
     assert.match(appJs, /from '\.\/growth-learning\.js'/);
+    assert.match(appJs, /from '\.\/harness-labels\.js'/);
     assert.match(appJs, /from '\.\/pack-config\.js'/);
     assert.match(appJs, /from '\.\/preference-config\.js'/);
     assert.match(appJs, /from '\.\/personalization-snapshot\.js'/);
@@ -116,6 +120,7 @@ async function main() {
     assert.match(companyConfig, /export const COMPANY_ROLE_OPTIONS = \[/);
     assert.match(companyConfig, /export function normalizeCompanyMember\(entry, index = 0\) \{/);
     assert.match(companyConfig, /export function getCompanyMembersForGroup\(members = \[\], groupId = null\) \{/);
+    assert.match(companyConfig, /export function getCompanyDirectorySummary\(members = \[\]\) \{/);
     assert.match(companyConfig, /export function getOpsEditorGroupLabel\(activeGroupId = 'all'\) \{/);
     assert.match(councilConfig, /export const COUNCIL_CAST_ORDER = \['Conductor', 'Strategist', 'Architect', 'Decomposer'\];/);
     assert.match(councilConfig, /export const ORCHESTRATION_FLOW_STEPS = \[/);
@@ -124,6 +129,8 @@ async function main() {
     assert.match(growthConfig, /export const PROPOSAL_RECORD_OPEN_REQUIREMENTS = Object\.freeze\(\[/);
     assert.match(growthLearning, /export function getGrowthLearningSnapshot\(data, context, formatters = \{\}\) \{/);
     assert.match(growthLearning, /export function getGrowthEvidenceCandidates/);
+    assert.match(harnessLabels, /export function getHarnessExecutionModeLabel\(execution\) \{/);
+    assert.match(harnessLabels, /export function getHarnessExecutionOutputLabel\(execution\) \{/);
     assert.match(packConfig, /export const PACK_DISPLAY_NAMES = \{/);
     assert.match(packConfig, /export const KNOWLEDGE_WORK_DELIVERABLES = \{/);
     assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);

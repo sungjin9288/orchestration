@@ -7,18 +7,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
-assert.match(appJs, /function getHarnessExecutionOutputPathActionLabel\(execution\)/);
-assert.match(appJs, /execution\?\.actionMode === 'policy-report' \? '출력 예정 경로' : '출력 경로'/);
+assert.match(harnessLabels, /export function getHarnessExecutionOutputPathActionLabel\(execution\) \{/);
+assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '출력 예정 경로' : '출력 경로'/);
 assert.match(appJs, /getHarnessExecutionOutputPathActionLabel\(visibleHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionOutputPathActionLabel\(hiddenHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionOutputPathActionLabel\(execution\)/);
 assert.match(appJs, /data-action="copy-harness-output-path"/);
 assert.match(appJs, /data-harness-output-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-copy="true"/);
-assert.match(appJs, /출력 예정 경로/);
+assert.match(harnessLabels, /출력 예정 경로/);
 
 console.log(
   JSON.stringify(

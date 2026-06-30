@@ -4,6 +4,7 @@ import {
   COMPANY_ROLE_OPTIONS,
   DEFAULT_COMPANY_MEMBERS,
   OPS_EDITOR_GROUP_DEFAULTS,
+  getCompanyDirectorySummary,
   getCompanyMembersForGroup,
   getCompanyDeskLabel,
   getCompanyRoleLabel,
@@ -31,6 +32,20 @@ import {
   PROPOSAL_RECORD_OPEN_REQUIREMENTS,
 } from './growth-config.js';
 import { getGrowthLearningSnapshot } from './growth-learning.js';
+import {
+  getHarnessExecutionBriefActionLabel,
+  getHarnessExecutionBriefCopyActionLabel,
+  getHarnessExecutionBriefCopyStatusLabel,
+  getHarnessExecutionBriefCopyTitle,
+  getHarnessExecutionHideActionLabel,
+  getHarnessExecutionModeLabel,
+  getHarnessExecutionOutputLabel,
+  getHarnessExecutionOutputPathActionLabel,
+  getHarnessExecutionPathHandoffLabel,
+  getHarnessExecutionRerunActionLabel,
+  getHarnessExecutionResultTitle,
+  getHarnessExecutionShowActionLabel,
+} from './harness-labels.js';
 import {
   DEFAULT_UI_PREFERENCES,
   EVIDENCE_DENSITY_OPTIONS,
@@ -1643,67 +1658,6 @@ function formatHarnessPolicyReportForCopy(payload) {
   ]
     .filter(Boolean)
     .join('\n');
-}
-
-function getHarnessExecutionModeLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '정책 리포트' : '실행 결과';
-}
-
-function getHarnessExecutionResultTitle(execution) {
-  return execution?.actionMode === 'policy-report' ? '최근 정책 리포트' : '최근 실행 결과';
-}
-
-function getHarnessExecutionHideActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '리포트 숨기기' : '결과 숨기기';
-}
-
-function getHarnessExecutionShowActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '리포트 다시 보기' : '결과 다시 보기';
-}
-
-function getHarnessExecutionBriefActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '리포트 요약' : '출력 요약';
-}
-
-function getHarnessExecutionBriefCopyActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '리포트 요약 복사' : '요약 복사';
-}
-
-function getHarnessExecutionBriefCopyStatusLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '리포트 요약' : '출력 요약';
-}
-
-function getHarnessExecutionBriefCopyTitle(execution) {
-  return `하네스 ${getHarnessExecutionBriefCopyStatusLabel(execution)}`;
-}
-
-function getHarnessExecutionOutputLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '출력 예정' : '출력';
-}
-
-function getHarnessExecutionOutputPathActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '출력 예정 경로' : '출력 경로';
-}
-
-function getHarnessExecutionRerunActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '같은 경로 정책 리포트' : '같은 경로 재실행';
-}
-
-function getHarnessExecutionPathHandoffLabel(execution) {
-  const hasInputPath = Boolean(execution?.resolvedInputPath || execution?.inputPath);
-  const hasOutputPath = Boolean(execution?.resolvedOutputPath || execution?.outputPath);
-
-  if (hasInputPath && hasOutputPath) {
-    return `입력/${getHarnessExecutionOutputPathActionLabel(execution)}`;
-  }
-  if (hasInputPath) {
-    return '입력 경로';
-  }
-  if (hasOutputPath) {
-    return getHarnessExecutionOutputPathActionLabel(execution);
-  }
-
-  return '';
 }
 
 function getHarnessExecutionHandoffLabel(execution) {
@@ -11084,21 +11038,6 @@ function getCompanyFloorBoardEntries(data, navGroupId) {
   return entries.filter((entry) => NAV_GROUPS[resolvedGroupId].surfaces.includes(entry.surface));
 }
 
-function getCompanyDirectorySummary() {
-  const counts = {
-    ops: 0,
-    review: 0,
-    workflows: 0,
-  };
-
-  for (const member of state.companyMembers) {
-    const groupId = getNavGroupForSurface(member.surface);
-    counts[groupId] += 1;
-  }
-
-  return counts;
-}
-
 function renderCompanyDirectory(data) {
   if (!elements.companyDirectoryShell || !elements.companyDirectorySummary) {
     return;
@@ -11106,7 +11045,7 @@ function renderCompanyDirectory(data) {
 
   const activeGroupId = getActiveNavGroupId();
   const activeGroupLabel = getNavGroupLabel(activeGroupId);
-  const counts = getCompanyDirectorySummary();
+  const counts = getCompanyDirectorySummary(state.companyMembers);
   const members = [...state.companyMembers];
   const groupedMembers = Object.keys(NAV_GROUPS).map((groupId) => ({
     groupId,
@@ -12567,7 +12506,7 @@ function renderOpsCreatePreview() {
 }
 
 function renderOpsOverview(data, context, activeGroupId) {
-  const counts = getCompanyDirectorySummary();
+  const counts = getCompanyDirectorySummary(state.companyMembers);
   const activeProject = data.activeProject;
   const focus = getControlOverviewFocus(context);
   const check = getControlOverviewCheck(state.surface, context, data);

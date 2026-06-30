@@ -7,11 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
-assert.match(appJs, /function getHarnessExecutionBriefCopyTitle\(execution\)/);
-assert.match(appJs, /return `하네스 \$\{getHarnessExecutionBriefCopyStatusLabel\(execution\)\}`/);
+assert.match(harnessLabels, /export function getHarnessExecutionBriefCopyTitle\(execution\) \{/);
+assert.match(harnessLabels, /return `하네스 \$\{getHarnessExecutionBriefCopyStatusLabel\(execution\)\}`/);
 assert.match(appJs, /function formatHarnessOutputBriefForCopy\(outputBrief, execution\)/);
 assert.match(appJs, /getHarnessExecutionBriefCopyTitle\(execution\)/);
 assert.match(

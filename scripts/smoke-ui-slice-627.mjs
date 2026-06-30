@@ -7,13 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
-assert.match(appJs, /function getHarnessExecutionHideActionLabel\(execution\)/);
-assert.match(appJs, /execution\?\.actionMode === 'policy-report' \? '리포트 숨기기' : '결과 숨기기'/);
-assert.match(appJs, /function getHarnessExecutionShowActionLabel\(execution\)/);
-assert.match(appJs, /execution\?\.actionMode === 'policy-report' \? '리포트 다시 보기' : '결과 다시 보기'/);
+assert.match(harnessLabels, /export function getHarnessExecutionHideActionLabel\(execution\) \{/);
+assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '리포트 숨기기' : '결과 숨기기'/);
+assert.match(harnessLabels, /export function getHarnessExecutionShowActionLabel\(execution\) \{/);
+assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '리포트 다시 보기' : '결과 다시 보기'/);
 assert.match(appJs, /getHarnessExecutionHideActionLabel\(visibleHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionShowActionLabel\(hiddenHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionShowActionLabel\(execution\)/);
