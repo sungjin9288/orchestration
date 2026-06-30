@@ -81,6 +81,8 @@ async function main() {
     const appJs = await appJsResponse.text();
     const artifactPreviewResponse = await fetch(`${baseUrl}/artifact-preview.js`);
     const artifactPreview = await artifactPreviewResponse.text();
+    const executionLabelsResponse = await fetch(`${baseUrl}/execution-labels.js`);
+    const executionLabels = await executionLabelsResponse.text();
     const packConfigResponse = await fetch(`${baseUrl}/pack-config.js`);
     const packConfig = await packConfigResponse.text();
     const councilConfigResponse = await fetch(`${baseUrl}/council-config.js`);
@@ -110,6 +112,7 @@ async function main() {
 
     assert.equal(appJsResponse.status, 200);
     assert.equal(artifactPreviewResponse.status, 200);
+    assert.equal(executionLabelsResponse.status, 200);
     assert.equal(packConfigResponse.status, 200);
     assert.equal(councilConfigResponse.status, 200);
     assert.equal(deskStatusResponse.status, 200);
@@ -124,6 +127,7 @@ async function main() {
     assert.equal(surfaceConfigResponse.status, 200);
     assert.equal(worktreeLabelsResponse.status, 200);
     assert.match(appJs, /from '\.\/artifact-preview\.js'/);
+    assert.match(appJs, /from '\.\/execution-labels\.js'/);
     assert.match(appJs, /from '\.\/company-config\.js'/);
     assert.match(appJs, /from '\.\/council-config\.js'/);
     assert.match(appJs, /from '\.\/desk-status\.js'/);
@@ -141,6 +145,8 @@ async function main() {
     assert.match(artifactPreview, /export function getArtifactPreviewBadge\(entry\) \{/);
     assert.match(artifactPreview, /export function getStructuredPreviewLeadCopy\(\) \{/);
     assert.match(artifactPreview, /export function getPreviewRedactionCopy\(\) \{/);
+    assert.match(executionLabels, /export function getExecutionRoleDisplay\(role\) \{/);
+    assert.match(executionLabels, /export function getExecutionStageDisplay\(stage\) \{/);
     assert.match(companyConfig, /export const COMPANY_ROLE_OPTIONS = \[/);
     assert.match(companyConfig, /export function normalizeCompanyMember\(entry, index = 0\) \{/);
     assert.match(companyConfig, /export function getCompanyMembersForGroup\(members = \[\], groupId = null\) \{/);

@@ -7,17 +7,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const executionGateStatePath = path.join(repoRoot, 'var', 'runtime-ui-slice-20', 'state.json');
 
 assert.equal(fs.existsSync(executionGateStatePath), true, 'runtime-ui-slice-20 state.json is required');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'utf8'));
 
-assert.match(appJs, /function getExecutionRoleDisplay\(role\)/);
-assert.match(appJs, /function getExecutionStageDisplay\(stage\)/);
+assert.match(appJs, /from '\.\/execution-labels\.js'/);
+assert.match(executionLabels, /export function getExecutionRoleDisplay\(role\) \{/);
+assert.match(executionLabels, /export function getExecutionStageDisplay\(stage\) \{/);
 assert.match(appJs, /function renderExecutionCommandDeck\(options = \{\}\)/);
 assert.match(appJs, /<h2>안건 등록대장<\/h2>/);
 assert.match(appJs, /신규 안건 등록/);

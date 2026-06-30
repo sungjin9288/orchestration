@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Execution label splitting should stay below execution authority. Move role/stage wording such as `getExecutionRoleDisplay` and `getExecutionStageDisplay` into a pure label module, but keep latest run selection, next-stage derivation, execution rail state, readiness semantics, evidence rail status, and actions in `ui/app.js`.
+
 - Artifact preview helper splitting should move only copy and badge decisions into a pure module. Keep catalog lookup, structured preview rendering, raw artifact source blocks, redaction behavior, stored-content source-of-truth semantics, and all runtime actions in `ui/app.js` until a later slice proves a tighter rendering boundary.
 
 - Portable local preference review helpers should stay copy-only and state-free. Move packet construction and text formatting into `ui/preference-config.js`, but keep localStorage persistence, preference mutation, rendering actions, imports/apply, memory persistence, provider calls, source mutation, commit, and push authority outside that helper boundary.
