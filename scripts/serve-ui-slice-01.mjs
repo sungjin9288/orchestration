@@ -2134,6 +2134,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/desk-status.js') {
+    await serveStaticAsset(response, 'desk-status.js');
+    return;
+  }
+
   if (url.pathname === '/growth-config.js') {
     await serveStaticAsset(response, 'growth-config.js');
     return;
@@ -2141,6 +2146,11 @@ const server = createServer(async (request, response) => {
 
   if (url.pathname === '/growth-learning.js') {
     await serveStaticAsset(response, 'growth-learning.js');
+    return;
+  }
+
+  if (url.pathname === '/harness-brief-labels.js') {
+    await serveStaticAsset(response, 'harness-brief-labels.js');
     return;
   }
 

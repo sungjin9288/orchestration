@@ -13,22 +13,26 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessBriefLabelsPath = path.join(repoRoot, 'ui', 'harness-brief-labels.js');
 const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-295');
 const port = 4595;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessBriefLabels = fs.readFileSync(harnessBriefLabelsPath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 
 assert.match(serveUi, /const harnessConsumerBriefScript = path\.join\(repoRoot, 'scripts', 'harness-consumer-brief\.mjs'\);/);
 assert.match(serveUi, /mode === 'harness-consumer-brief'/);
 assert.match(serveUi, /harnessConsumerBrief,/);
+assert.match(serveUi, /url\.pathname === '\/harness-brief-labels\.js'/);
 
 assert.match(appJs, /function getHarnessConsumerBrief\(data\)/);
-assert.match(appJs, /function getHarnessBriefSignalValue\(brief\)/);
+assert.match(appJs, /from '\.\/harness-brief-labels\.js'/);
+assert.match(harnessBriefLabels, /export function getHarnessBriefSignalValue\(brief\) \{/);
 assert.match(appJs, /label: '하네스'/);
-assert.match(appJs, /return `\$\{brief\.primaryHarnessId\} · \$\{brief\.actionLabel \|\| 'No action'\}`;/);
+assert.match(harnessBriefLabels, /return `\$\{brief\.primaryHarnessId\} · \$\{brief\.actionLabel \|\| 'No action'\}`;/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

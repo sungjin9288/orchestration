@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- UI display-helper splitting should move only pure wording/tone/status decisions into modules. For desk status, inject existing display formatters and keep selected task/artifact/gate lookup in `ui/app.js`; for harness output brief labels, keep output brief formatting, clipboard actions, rerun/copy handlers, and status mutation in the app shell so the split stays behavior-preserving.
+
 - Harness execution wording should split as pure labels before moving result rendering. Keep mode-derived labels in `ui/harness-labels.js`, but leave handoff assembly, output brief payloads, policy report copy, route handlers, clipboard status, and rerun actions in the app shell so authority and execution behavior stay unchanged.
 
 - UI module splitting should begin with self-contained copy/config data before moving stateful surface rendering. A tiny module such as `ui/pack-config.js` lets smoke tests prove route serving and imports without changing runtime actions or screen behavior.

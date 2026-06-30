@@ -21,6 +21,12 @@ import {
   ORCHESTRATION_RULES,
 } from './council-config.js';
 import {
+  getDeliverablesDeskNext,
+  getDeliverablesDeskStatus as getDeliverablesDeskStatusBase,
+  getExecutionDeskNext,
+  getExecutionDeskStatus as getExecutionDeskStatusBase,
+} from './desk-status.js';
+import {
   KNOWLEDGE_WORK_DELIVERABLES,
   PACK_HELP_COPY,
   getKnowledgeWorkDeliverableDisplayName,
@@ -32,6 +38,14 @@ import {
   PROPOSAL_RECORD_OPEN_REQUIREMENTS,
 } from './growth-config.js';
 import { getGrowthLearningSnapshot } from './growth-learning.js';
+import {
+  getHarnessBriefActionTone,
+  getHarnessBriefHostStateLabel,
+  getHarnessBriefSignalValue,
+  getHarnessOperatorActionLabel,
+  getHarnessOperatorActionTone,
+  getHarnessOutputBriefTypeLabel,
+} from './harness-brief-labels.js';
 import {
   getHarnessExecutionBriefActionLabel,
   getHarnessExecutionBriefCopyActionLabel,
@@ -1722,18 +1736,6 @@ function getHarnessOutputBriefResult(execution) {
   return state.lastHarnessOutputBriefResult.outputBrief || null;
 }
 
-function getHarnessOutputBriefTypeLabel(type) {
-  const labels = {
-    command: 'command',
-    context: 'context',
-    fail: 'fail',
-    pass: 'pass',
-    warn: 'warn',
-  };
-
-  return labels[type] || type || 'context';
-}
-
 function renderHarnessOutputBriefSummary(execution) {
   const outputBrief = getHarnessOutputBriefResult(execution);
 
@@ -1799,102 +1801,6 @@ function formatHarnessOutputBriefForCopy(outputBrief, execution) {
   );
 
   return [...header, ...lineText].join('\n');
-}
-
-function getHarnessBriefSignalValue(brief) {
-  if (!brief?.primaryHarnessId) {
-    return '대표 하네스 없음';
-  }
-
-  return `${brief.primaryHarnessId} · ${brief.actionLabel || 'No action'}`;
-}
-
-function getHarnessBriefActionTone(brief) {
-  if (!brief?.primaryHarnessId) {
-    return 'neutral';
-  }
-
-  if (brief.currentHostState === 'runnable') {
-    return 'success';
-  }
-
-  if (brief.currentHostState === 'setup-required') {
-    return 'warning';
-  }
-
-  if (brief.actionLabel === 'Keep blocked') {
-    return 'danger';
-  }
-
-  return 'neutral';
-}
-
-function getHarnessBriefHostStateLabel(brief) {
-  if (!brief?.currentHostState) {
-    return '상태 없음';
-  }
-
-  if (brief.currentHostState === 'runnable') {
-    return '즉시 실행 가능';
-  }
-
-  if (brief.currentHostState === 'setup-required') {
-    return '설치 검토 필요';
-  }
-
-  if (brief.currentHostState === 'deferred') {
-    return '후속 검토';
-  }
-
-  if (brief.currentHostState === 'blocked') {
-    return '정책 차단';
-  }
-
-  return brief.currentHostState;
-}
-
-function getHarnessOperatorActionLabel(operatorAction) {
-  if (!operatorAction?.kind) {
-    return '액션 없음';
-  }
-
-  if (operatorAction.kind === 'repo-native-run') {
-    return 'Repo-native run';
-  }
-
-  if (operatorAction.kind === 'install-review') {
-    return 'Install review';
-  }
-
-  if (operatorAction.kind === 'deferred') {
-    return 'Deferred';
-  }
-
-  if (operatorAction.kind === 'blocked') {
-    return 'Policy blocked';
-  }
-
-  return operatorAction.kind;
-}
-
-function getHarnessOperatorActionTone(operatorAction) {
-  if (!operatorAction?.kind || operatorAction.kind === 'none') {
-    return 'neutral';
-  }
-
-  if (operatorAction.kind === 'repo-native-run') {
-    return 'success';
-  }
-
-  if (operatorAction.kind === 'install-review' || operatorAction.kind === 'deferred') {
-    return 'warning';
-  }
-
-  if (operatorAction.kind === 'blocked') {
-    return 'danger';
-  }
-
-  return 'neutral';
 }
 
 function renderHarnessExecutionActionShelf(statusPayload) {
@@ -10844,71 +10750,14 @@ function getSurfaceDockCount(data, surface) {
 }
 
 function getExecutionDeskStatus(task) {
-  if (!task) {
-    return '셀 준비 전';
-  }
-
-  if (task.flags?.blocked) {
-    return '차단';
-  }
-
-  if (task.flags?.waitingApproval) {
-    return '승인 대기';
-  }
-
-  if (task.flags?.waitingDecision) {
-    return '결정 대기';
-  }
-
-  return getTaskLifecycleDisplay(task.lifecycleState);
-}
-
-function getExecutionDeskNext(task) {
-  if (!task) {
-    return '실행 셀 생성';
-  }
-
-  if (task.flags?.waitingApproval) {
-    return '승인선 처리';
-  }
-
-  if (task.flags?.waitingDecision) {
-    return '결정함 처리';
-  }
-
-  if (task.review?.status === 'passed') {
-    return '결과 패킷 전달';
-  }
-
-  return '작업 지시 계속';
+  return getExecutionDeskStatusBase(task, { getTaskLifecycleDisplay });
 }
 
 function getDeliverablesDeskStatus(task, artifact) {
-  if (artifact) {
-    return `${getArtifactTypeDisplay(artifact.type)} 패킷`;
-  }
-
-  if (task?.review?.status) {
-    return `리뷰 ${getReviewStatusDisplay(task.review.status)}`;
-  }
-
-  return '패킷 대기';
-}
-
-function getDeliverablesDeskNext(task, artifact, pendingGateCount) {
-  if (!task && !artifact) {
-    return '결과 패킷 생성';
-  }
-
-  if (pendingGateCount > 0) {
-    return '승인선 확인';
-  }
-
-  if (task?.review?.status === 'passed' || artifact) {
-    return '종료 보고 확인';
-  }
-
-  return '리뷰 라인 정리';
+  return getDeliverablesDeskStatusBase(task, {
+    getArtifactTypeDisplay,
+    getReviewStatusDisplay,
+  });
 }
 
 function getCompanyFloorBoardEntries(data, navGroupId) {
