@@ -10,9 +10,15 @@ import {
   getEvidenceRailHandoffDisplay,
   getEvidenceRailStatusDisplay,
   getEvidenceRailStatusTone,
+  getBooleanDisplay,
+  getDeliveryStanceDisplay,
   getExecutionModeDisplay,
   getExecutionRoleDisplay,
   getExecutionStageDisplay,
+  getPackageStatusDisplay,
+  getProviderReadinessDisplay,
+  getReviewerVerdictDisplay,
+  getReviewerVerdictTone,
   getRunRelationLabelDisplay,
 } from './execution-labels.js';
 import {
@@ -2927,10 +2933,6 @@ function getRunStatusDisplay(status) {
   return status || '알 수 없음';
 }
 
-function getBooleanDisplay(value) {
-  return value ? '예' : '아니오';
-}
-
 function getArtifactTypeDisplay(type) {
   if (type === 'plan') return '계획';
   if (type === 'architecture') return '설계';
@@ -2946,35 +2948,6 @@ function getArtifactTypeDisplay(type) {
   if (type === 'close-out') return '종료정리';
   if (type === 'output') return '출력';
   return type || '알 수 없음';
-}
-
-function getReviewerVerdictDisplay(verdict) {
-  if (verdict === 'pass') return '통과';
-  if (verdict === 'fail') return '실패';
-  if (verdict === 'changes_requested') return '수정요청';
-  return verdict || '알 수 없음';
-}
-
-function getDeliveryStanceDisplay(stance) {
-  if (stance === 'local-demo-only') return '로컬데모전용';
-  if (stance === 'local-only') return '로컬전용';
-  return stance || '알 수 없음';
-}
-
-function getPackageStatusDisplay(status) {
-  if (status === 'current') return '현재';
-  if (status === 'stale') return '오래됨';
-  if (status === 'latest') return '최신';
-  if (status === 'missing') return '없음';
-  return status || '알 수 없음';
-}
-
-function getProviderReadinessDisplay(status) {
-  if (status === 'ready') return '준비됨';
-  if (status === 'not-configured') return '미설정';
-  if (status === 'error') return '오류';
-  if (status === 'unknown') return '알 수 없음';
-  return status || '알 수 없음';
 }
 
 function getGuardReasonDisplay(reason) {
@@ -7369,22 +7342,6 @@ function getReviewTone(status) {
   }
 
   return 'warning';
-}
-
-function getReviewerVerdictTone(verdict) {
-  if (verdict === 'pass') {
-    return 'success';
-  }
-
-  if (verdict === 'fail') {
-    return 'danger';
-  }
-
-  if (verdict === 'changes_requested') {
-    return 'warning';
-  }
-
-  return 'neutral';
 }
 
 function getRunTone(status) {

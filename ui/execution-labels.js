@@ -45,6 +45,46 @@ export function getRunRelationLabelDisplay(label) {
   return label || '실행 기록';
 }
 
+export function getBooleanDisplay(value) {
+  return value ? '예' : '아니오';
+}
+
+export function getReviewerVerdictDisplay(verdict) {
+  if (verdict === 'pass') return '통과';
+  if (verdict === 'fail') return '실패';
+  if (verdict === 'changes_requested') return '수정요청';
+  return verdict || '알 수 없음';
+}
+
+export function getReviewerVerdictTone(verdict) {
+  if (verdict === 'pass') return 'success';
+  if (verdict === 'fail') return 'danger';
+  if (verdict === 'changes_requested') return 'warning';
+  return 'neutral';
+}
+
+export function getDeliveryStanceDisplay(stance) {
+  if (stance === 'local-demo-only') return '로컬데모전용';
+  if (stance === 'local-only') return '로컬전용';
+  return stance || '알 수 없음';
+}
+
+export function getPackageStatusDisplay(status) {
+  if (status === 'current') return '현재';
+  if (status === 'stale') return '오래됨';
+  if (status === 'latest') return '최신';
+  if (status === 'missing') return '없음';
+  return status || '알 수 없음';
+}
+
+export function getProviderReadinessDisplay(status) {
+  if (status === 'ready') return '준비됨';
+  if (status === 'not-configured') return '미설정';
+  if (status === 'error') return '오류';
+  if (status === 'unknown') return '알 수 없음';
+  return status || '알 수 없음';
+}
+
 export function getEvidenceRailStatusDisplay(status) {
   if (status === 'complete') {
     return '인계 완료';

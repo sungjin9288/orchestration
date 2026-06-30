@@ -16,12 +16,16 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'utf8'));
 
-assert.match(appJs, /function getPackageStatusDisplay\(status\)/);
 assert.match(appJs, /function getGuardReasonDisplay\(reason\)/);
-assert.match(appJs, /function getProviderReadinessDisplay\(status\)/);
 assert.match(appJs, /getRunRelationLabelDisplay,/);
 assert.match(executionLabels, /export function getExecutionModeDisplay\(mode\) \{/);
 assert.match(executionLabels, /export function getRunRelationLabelDisplay\(label\) \{/);
+assert.match(executionLabels, /export function getBooleanDisplay\(value\) \{/);
+assert.match(executionLabels, /export function getReviewerVerdictDisplay\(verdict\) \{/);
+assert.match(executionLabels, /export function getReviewerVerdictTone\(verdict\) \{/);
+assert.match(executionLabels, /export function getDeliveryStanceDisplay\(stance\) \{/);
+assert.match(executionLabels, /export function getPackageStatusDisplay\(status\) \{/);
+assert.match(executionLabels, /export function getProviderReadinessDisplay\(status\) \{/);
 assert.match(appJs, /정렬된 하위 작업/);
 assert.match(appJs, /체크포인트별 기대 아티팩트/);
 assert.match(appJs, /검토한 증거/);

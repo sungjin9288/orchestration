@@ -153,6 +153,12 @@ async function main() {
     assert.match(executionLabels, /export function getExecutionStageDisplay\(stage\) \{/);
     assert.match(executionLabels, /export function getExecutionModeDisplay\(mode\) \{/);
     assert.match(executionLabels, /export function getRunRelationLabelDisplay\(label\) \{/);
+    assert.match(executionLabels, /export function getBooleanDisplay\(value\) \{/);
+    assert.match(executionLabels, /export function getReviewerVerdictDisplay\(verdict\) \{/);
+    assert.match(executionLabels, /export function getReviewerVerdictTone\(verdict\) \{/);
+    assert.match(executionLabels, /export function getDeliveryStanceDisplay\(stance\) \{/);
+    assert.match(executionLabels, /export function getPackageStatusDisplay\(status\) \{/);
+    assert.match(executionLabels, /export function getProviderReadinessDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusTone\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailHandoffDisplay\(value\) \{/);
