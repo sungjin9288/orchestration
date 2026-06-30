@@ -42,7 +42,7 @@ function assertAuthorityIsBlocked(authority) {
   }
 }
 
-const sources = {
+const applicationAttemptEvidenceSources = {
   app: readFile('ui/app.js'),
   contracts: readFile('src/runtime/contracts.js'),
   decisionLog: readFile('docs/01_decision-log.md'),
@@ -54,19 +54,19 @@ const sources = {
   verification: readFile('scripts/verification_status.mjs'),
 };
 
-assertMatchesAll(sources.contracts, [
+assertMatchesAll(applicationAttemptEvidenceSources.contracts, [
   /PROPOSAL_APPLICATION_ATTEMPT_STATUS/,
   /PROPOSAL_APPLICATION_ATTEMPT_DEFAULT_BLOCKED_ACTIONS/,
   /proposalApplicationAttempt: 0/,
   /proposalApplicationAttempts: \{\}/,
 ]);
-assertMatchesAll(sources.fileStore, [
+assertMatchesAll(applicationAttemptEvidenceSources.fileStore, [
   /proposalApplicationAttempts: state\.proposalApplicationAttempts \|\| \{\}/,
   /proposalRecord\.applicationAttemptIds/,
   /proposalApplicationAttempt\.sourceMutationAllowed = false/,
   /proposalApplicationAttempt\.pushAllowed = false/,
 ]);
-assertMatchesAll(sources.runtimeService, [
+assertMatchesAll(applicationAttemptEvidenceSources.runtimeService, [
   /function createProposalApplicationAttempt\(input = \{\}\)/,
   /function normalizeProposalApplicationApproval\(input\)/,
   /applicationApproval\.decisionStatus must be approve-application-implementation-slice/,
@@ -74,22 +74,31 @@ assertMatchesAll(sources.runtimeService, [
   /applicationApproval must be separate from creation approval/,
   /function quarantineProposalApplicationAttempt\(input = \{\}\)/,
 ]);
-assertMatchesAll(sources.app, [
+assertMatchesAll(applicationAttemptEvidenceSources.app, [
   /proposalApplicationAttemptCreationAllowed: false/,
   /proposalApplicationAttemptPersistenceAllowed: false/,
   /data-proposal-application-attempt-ledger="(?:empty\/)?read-only"/,
   /data-proposal-application-attempts-count/,
 ]);
-assertMatchesAll(sources.decisionLog, [/### DEC-062/, /approve-application-implementation-slice/]);
-assertMatchesAll(sources.implementationDoc, [
+assertMatchesAll(applicationAttemptEvidenceSources.decisionLog, [
+  /### DEC-062/,
+  /approve-application-implementation-slice/,
+]);
+assertMatchesAll(applicationAttemptEvidenceSources.implementationDoc, [
   /Implementation approval: accepted/,
   /Runtime implementation: completed/,
   /record one inert application attempt/,
   /source mutation remains blocked/i,
 ]);
-assert.match(sources.readme, /Proposal application audit-only attempt is implemented/);
-assert.match(sources.inventory, /vNext proposal application implementation/);
-assertMatchesAll(sources.verification, [
+assert.match(
+  applicationAttemptEvidenceSources.readme,
+  /Proposal application audit-only attempt is implemented/,
+);
+assert.match(
+  applicationAttemptEvidenceSources.inventory,
+  /vNext proposal application implementation/,
+);
+assertMatchesAll(applicationAttemptEvidenceSources.verification, [
   /smoke-proposal-application-attempt-creation\.mjs/,
   /vnext-proposal-application-implementation-status\.mjs/,
 ]);
