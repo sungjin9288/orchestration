@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Smoke aggregation should start with explicit discovery and targeted execution, not a silent "run everything" default. Require `--filter` or `--all`, use Node-native timeouts, and emit JSON so aggregate checks can register the runner without turning it into hidden runtime authority.
+
 - Code-present optional packs should be documented as explicit opt-in instead of left as contradictions against "development pack only" language. Add a decision-log entry and README smoke assertions when the runtime, UI, and pack file already expose the path.
 
 - Decision-spec status scripts should reuse the same source-reading and assertion helpers once their shape matches. Keep policy-specific field lists and evidence maps local, but do not repeat file-read, section-heading, backtick, negative-action, and child-status plumbing in every verifier.

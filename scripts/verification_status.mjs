@@ -67,6 +67,11 @@ const requiredChecks = [
 
 const informationalChecks = [
   {
+    id: 'smoke-runner-status',
+    script: 'scripts/smoke-runner-status.mjs',
+    purpose: 'Smoke runner lists available smoke scripts and requires explicit --filter or --all before execution',
+  },
+  {
     id: 'openspace-wiring',
     script: 'scripts/smoke-openspace-slice-01.mjs',
     purpose: 'OpenSpace wiring and local skill discovery stay connected to the repo without treating host execute_task timeout as a runtime blocker',

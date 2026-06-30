@@ -284,9 +284,18 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 848 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 849 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 649 UI smoke files
+```
+
+For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
+script by accident:
+
+```bash
+node scripts/run-smoke.mjs --list
+node scripts/run-smoke.mjs --filter smoke-readme-scope-evidence
+node scripts/run-smoke.mjs --all --fail-fast
 ```
 
 Representative verification commands:

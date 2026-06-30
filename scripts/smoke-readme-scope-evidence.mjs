@@ -112,6 +112,9 @@ assert.match(readme, /output\/playwright\/vnext-mobile\.png/);
 assert.match(readme, new RegExp(`${smokeFileCount} smoke files`));
 assert.match(readme, new RegExp(`${qaSliceFileCount} QA slice files`));
 assert.match(readme, new RegExp(`${uiSmokeFileCount} UI smoke files`));
+assert.match(readme, /node scripts\/run-smoke\.mjs --list/);
+assert.match(readme, /node scripts\/run-smoke\.mjs --filter smoke-readme-scope-evidence/);
+assert.match(readme, /node scripts\/run-smoke\.mjs --all --fail-fast/);
 assert.doesNotMatch(readme, /838\s+\(smoke-slice/);
 
 const forbiddenClaimPatterns = [
@@ -179,6 +182,7 @@ assert.match(readme, /`OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS`/);
 assert.match(readme, /`OPENAI_RESPONSES_RETRY_DELAY_MS`/);
 assert.match(verificationStatus, /smoke-readme-scope-evidence\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-649\.mjs/);
+assert.match(verificationStatus, /smoke-runner-status\.mjs/);
 assert.match(verificationStatus, /knowledge-work-pack/);
 assert.match(
   verificationStatus,
