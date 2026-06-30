@@ -9,6 +9,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const growthConfigPath = path.join(repoRoot, 'ui', 'growth-config.js');
 const growthLearningPath = path.join(repoRoot, 'ui', 'growth-learning.js');
+const personalizationSnapshotPath = path.join(repoRoot, 'ui', 'personalization-snapshot.js');
 const preferenceConfigPath = path.join(repoRoot, 'ui', 'preference-config.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const auditPath = path.join(repoRoot, 'docs', 'reference', 'vnext-reference-driven-ui-audit.md');
@@ -19,6 +20,7 @@ const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_stat
 const appJs = fs.readFileSync(appPath, 'utf8');
 const growthConfig = fs.readFileSync(growthConfigPath, 'utf8');
 const growthLearning = fs.readFileSync(growthLearningPath, 'utf8');
+const personalizationSnapshot = fs.readFileSync(personalizationSnapshotPath, 'utf8');
 const preferenceConfig = fs.readFileSync(preferenceConfigPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const audit = fs.readFileSync(auditPath, 'utf8');
@@ -51,7 +53,11 @@ assert.match(decisionLog, /must not persist memory, ingest raw transcripts, glob
 assert.match(decisionLog, /workspace\/applicability rules, redaction policy, export format, expiry\/deletion policy/);
 
 assert.match(appJs, /from '\.\/preference-config\.js'/);
+assert.match(appJs, /from '\.\/personalization-snapshot\.js'/);
 assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
+assert.match(personalizationSnapshot, /export function getPersonalizationSnapshot\(\{/);
+assert.match(personalizationSnapshot, /pendingGateCount > 0 \? 'decision-inbox'/);
+assert.match(personalizationSnapshot, /surfaceLocationGuidance\[currentSurface\]\?\.targetSurface \|\| 'mission'/);
 assert.match(appJs, /from '\.\/growth-config\.js'/);
 assert.match(appJs, /from '\.\/growth-learning\.js'/);
 assert.match(growthConfig, /export const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);

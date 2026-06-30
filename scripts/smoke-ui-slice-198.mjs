@@ -89,6 +89,8 @@ async function main() {
     const growthLearning = await growthLearningResponse.text();
     const preferenceConfigResponse = await fetch(`${baseUrl}/preference-config.js`);
     const preferenceConfig = await preferenceConfigResponse.text();
+    const personalizationSnapshotResponse = await fetch(`${baseUrl}/personalization-snapshot.js`);
+    const personalizationSnapshot = await personalizationSnapshotResponse.text();
     const companyConfigResponse = await fetch(`${baseUrl}/company-config.js`);
     const companyConfig = await companyConfigResponse.text();
     const surfaceConfigResponse = await fetch(`${baseUrl}/surface-config.js`);
@@ -100,6 +102,7 @@ async function main() {
     assert.equal(growthConfigResponse.status, 200);
     assert.equal(growthLearningResponse.status, 200);
     assert.equal(preferenceConfigResponse.status, 200);
+    assert.equal(personalizationSnapshotResponse.status, 200);
     assert.equal(companyConfigResponse.status, 200);
     assert.equal(surfaceConfigResponse.status, 200);
     assert.match(appJs, /from '\.\/company-config\.js'/);
@@ -108,6 +111,7 @@ async function main() {
     assert.match(appJs, /from '\.\/growth-learning\.js'/);
     assert.match(appJs, /from '\.\/pack-config\.js'/);
     assert.match(appJs, /from '\.\/preference-config\.js'/);
+    assert.match(appJs, /from '\.\/personalization-snapshot\.js'/);
     assert.match(appJs, /from '\.\/surface-config\.js'/);
     assert.match(companyConfig, /export const COMPANY_ROLE_OPTIONS = \[/);
     assert.match(companyConfig, /export function normalizeCompanyMember\(entry, index = 0\) \{/);
@@ -124,6 +128,8 @@ async function main() {
     assert.match(packConfig, /export const KNOWLEDGE_WORK_DELIVERABLES = \{/);
     assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
     assert.match(preferenceConfig, /export function normalizeUiPreferences\(entry = \{\}\) \{/);
+    assert.match(personalizationSnapshot, /export function getPersonalizationSnapshot\(\{/);
+    assert.match(personalizationSnapshot, /pendingGateCount > 0 \? 'decision-inbox'/);
     assert.match(surfaceConfig, /export const SURFACE_IDS = \[/);
     assert.match(surfaceConfig, /export const NAV_GROUPS = \{/);
     assert.match(surfaceConfig, /export function getNavGroupForSurface\(surface\) \{/);

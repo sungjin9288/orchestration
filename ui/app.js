@@ -38,6 +38,7 @@ import {
   UI_PREFERENCE_STORAGE_KEY,
   normalizeUiPreferences,
 } from './preference-config.js';
+import { getPersonalizationSnapshot } from './personalization-snapshot.js';
 import {
   GROUP_PLAYBOOK_META,
   GROUP_WORKSPACE_META,
@@ -11341,28 +11342,6 @@ function renderDurableProposalRecordLedger(growth) {
   `;
 }
 
-function getPersonalizationSnapshot(data, context) {
-  const preferences = normalizeUiPreferences(state.uiPreferences);
-  const preferredProject =
-    preferences.preferredProjectId && data.snapshot.projects?.[preferences.preferredProjectId]
-      ? data.snapshot.projects[preferences.preferredProjectId]
-      : data.activeProject;
-  const recentSurfaces = preferences.recentSurfaces.filter((surface) => SURFACE_IDS.includes(surface));
-  const frequentSurface = Object.entries(preferences.surfaceCounts).sort((left, right) => right[1] - left[1])[0]?.[0] || null;
-  const suggestedSurface =
-    context.pendingGateCount > 0
-      ? 'decision-inbox'
-      : frequentSurface || recentSurfaces[0] || SURFACE_LOCATION_GUIDANCE[state.surface]?.targetSurface || 'mission';
-
-  return {
-    density: preferences.evidenceDensity,
-    preferredProject,
-    recentSurfaces,
-    suggestedSurface,
-    visitCount: preferences.surfaceCounts[suggestedSurface] || 0,
-  };
-}
-
 function renderEvidenceDensityControls(currentDensity) {
   return `
     <div class="preference-toggle-group" role="group" aria-label="증적 밀도 설정">
@@ -11631,7 +11610,14 @@ function renderIntelligenceOverview(data, context) {
     getArtifactTypeDisplay,
     getRunStatusDisplay,
   });
-  const personalization = getPersonalizationSnapshot(data, context);
+  const personalization = getPersonalizationSnapshot({
+    activeProject: data.activeProject,
+    currentSurface: state.surface,
+    pendingGateCount: context.pendingGateCount,
+    preferences: state.uiPreferences,
+    projects: data.snapshot.projects,
+    surfaceLocationGuidance: SURFACE_LOCATION_GUIDANCE,
+  });
   const blockedAuthorityCount = Object.values(GROWTH_AUTHORITY_BOUNDARY).filter((allowed) => allowed === false).length;
 
   return `

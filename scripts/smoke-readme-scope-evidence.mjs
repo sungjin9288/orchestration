@@ -13,6 +13,7 @@ const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_stat
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const growthConfigPath = path.join(repoRoot, 'ui', 'growth-config.js');
 const growthLearningPath = path.join(repoRoot, 'ui', 'growth-learning.js');
+const personalizationSnapshotPath = path.join(repoRoot, 'ui', 'personalization-snapshot.js');
 const preferenceConfigPath = path.join(repoRoot, 'ui', 'preference-config.js');
 const referenceAuditPath = path.join(repoRoot, 'docs', 'reference', 'vnext-reference-driven-ui-audit.md');
 const contractsPath = path.join(repoRoot, 'src', 'runtime', 'contracts.js');
@@ -28,6 +29,7 @@ const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const growthConfig = fs.readFileSync(growthConfigPath, 'utf8');
 const growthLearning = fs.readFileSync(growthLearningPath, 'utf8');
+const personalizationSnapshot = fs.readFileSync(personalizationSnapshotPath, 'utf8');
 const preferenceConfig = fs.readFileSync(preferenceConfigPath, 'utf8');
 const referenceAudit = fs.readFileSync(referenceAuditPath, 'utf8');
 const contracts = fs.readFileSync(contractsPath, 'utf8');
@@ -215,10 +217,12 @@ assert.match(appJs, />지식 작업 \(knowledge-work\)<\/option>/);
 assert.match(appJs, /from '\.\/growth-config\.js'/);
 assert.match(appJs, /from '\.\/growth-learning\.js'/);
 assert.match(appJs, /from '\.\/preference-config\.js'/);
+assert.match(appJs, /from '\.\/personalization-snapshot\.js'/);
 assert.match(growthConfig, /export const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
 assert.match(growthConfig, /proposalRecordCreationAllowed: false/);
 assert.match(growthConfig, /sourceMutationAllowed: false/);
 assert.match(growthLearning, /export function getGrowthLearningSnapshot\(data, context, formatters = \{\}\) \{/);
+assert.match(personalizationSnapshot, /export function getPersonalizationSnapshot\(\{/);
 assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
 assert.match(contracts, /KNOWLEDGE_WORK: 'knowledge-work'/);
 assert.match(

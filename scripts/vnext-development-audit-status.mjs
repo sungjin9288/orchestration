@@ -57,6 +57,7 @@ const vnextDevelopmentAuditFiles = {
   app: 'ui/app.js',
   growthConfig: 'ui/growth-config.js',
   growthLearning: 'ui/growth-learning.js',
+  personalizationSnapshot: 'ui/personalization-snapshot.js',
   preferenceConfig: 'ui/preference-config.js',
   styles: 'ui/styles.css',
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
@@ -145,6 +146,7 @@ const vnextDevelopmentAuditSourceEvidence = {
     contains: [
       "from './growth-config.js'",
       "from './growth-learning.js'",
+      "from './personalization-snapshot.js'",
       'data-growth-learning-surface="read-only"',
       'data-personalization-scope="local-only"',
       'function renderGrowthCandidateDrilldown(growth)',
@@ -157,7 +159,6 @@ const vnextDevelopmentAuditSourceEvidence = {
       'function renderGrowthProposalReviewPreview(growth)',
       'function renderPersonalizationSettings(personalization, data)',
       "from './preference-config.js'",
-      'function getPortableUiPreferenceReview()',
       'runtimeMutationAllowed: false',
       'data-local-personalization-portability="copy-review-only"',
       'data-action="copy-local-personalization-review"',
@@ -184,6 +185,14 @@ const vnextDevelopmentAuditSourceEvidence = {
       'memory persistence',
       'source mutation',
       'commit/push',
+    ],
+  },
+  personalizationSnapshot: {
+    contains: [
+      'export function getPersonalizationSnapshot({',
+      "pendingGateCount > 0 ? 'decision-inbox'",
+      "surfaceLocationGuidance[currentSurface]?.targetSurface || 'mission'",
+      'normalizeUiPreferences(preferences)',
     ],
   },
   preferenceConfig: {
