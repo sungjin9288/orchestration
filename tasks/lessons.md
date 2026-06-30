@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- Invalid shortcut phrase lists that are emitted as verifier payloads should be named once before they are reused as source-evidence checks. Keep the rejection wording visible through `proposalApplicationSourceMutationInvalidShortcutPhrases` so handoff output and document assertions cannot drift.
 - Decision option lists that are emitted as status payloads should have one contract name before they are reused in source-evidence checks. Keep option order visible through `proposalApplicationSourceMutationDecisionOptions` so packet output and source assertions cannot drift.
 - Shared forbidden action regexes should have one contract name when multiple verifiers reject the same UI actions and authority-true markers. That keeps negative checks aligned while leaving each verifier's source-evidence map local and readable.
 - Shared UI blocked-authority markers should have one contract name when multiple verifiers assert the same app source evidence. Keep forbidden action regexes local if they are verifier-specific, but route identical marker lists through a shared constant.

@@ -24,6 +24,17 @@ export const proposalApplicationSourceMutationDecisionOptions = [
   'defer',
 ];
 
+export const proposalApplicationSourceMutationInvalidShortcutPhrases = [
+  'continue',
+  'proceed',
+  'do everything',
+  'approve all',
+  'implement vNext',
+  'apply the proposal',
+  'mutate source',
+  'ship it',
+];
+
 export const proposalApplicationSourceMutationDecisionRequiredFields = [
   'decisionId',
   'decisionStatus',

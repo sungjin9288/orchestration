@@ -10,6 +10,7 @@ import {
   proposalApplicationSourceMutationFieldedDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionRequiredFields,
   proposalApplicationSourceMutationForbiddenActionPatterns,
+  proposalApplicationSourceMutationInvalidShortcutPhrases,
   proposalApplicationSourceMutationOperatorHandoffSlice,
 } from './vnext-status-constants.mjs';
 
@@ -53,17 +54,6 @@ const sourceMutationOperatorHandoffSections = [
   '## Still Blocked',
   '## Stop Conditions',
   '## Verification',
-];
-
-const sourceMutationOperatorDecisionInvalidShortcuts = [
-  'continue',
-  'proceed',
-  'do everything',
-  'approve all',
-  'implement vNext',
-  'apply the proposal',
-  'mutate source',
-  'ship it',
 ];
 
 function readFile(relativePath) {
@@ -127,7 +117,7 @@ assertDoesNotMatchAny(
 
 const sourceMutationOperatorHandoffSourceEvidence = {
   handoff: [
-    ...sourceMutationOperatorDecisionInvalidShortcuts,
+    ...proposalApplicationSourceMutationInvalidShortcutPhrases,
     'It is not an operator decision',
     'Current gate: `proposal application source mutation operator handoff required`',
     'Handoff status: `decision-input-only`',
@@ -243,7 +233,7 @@ process.stdout.write(
       handoffStatus: 'decision-input-only',
       handoff: sourceMutationOperatorHandoffFiles.handoff,
       requiredDecisionFields: proposalApplicationSourceMutationDecisionRequiredFields,
-      invalidShortcutsRejected: sourceMutationOperatorDecisionInvalidShortcuts,
+      invalidShortcutsRejected: proposalApplicationSourceMutationInvalidShortcutPhrases,
       nextRequiredInput: proposalApplicationSourceMutationFieldedDecisionRequiredInput,
       nextRecommendedSlice: proposalApplicationSourceMutationFieldedDecisionSlice,
       upstreamStatus: {
