@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Repeated status assertion mechanics should move behind a small helper once neighboring verifiers share the same file-reading, source-evidence, backtick, negative-match, and child-status patterns. Keep the evidence maps local, but do not make every verifier restate the same assertion plumbing.
+
 - Repeated blocked authority payloads should be created through one helper while keeping each verifier's surface-specific boundary variable name. Source-evidence checks should follow the fields to the helper source instead of forcing duplicated false literals back into every status script.
 - Emitted input text should be derived from the option list when the same option order is already a named status contract. Formatting `proposalApplicationSourceMutationFieldedDecisionRequiredInput` from `proposalApplicationSourceMutationDecisionOptions` keeps the operator phrase readable while preventing a second hand-written list from drifting.
 - Invalid shortcut phrase lists that are emitted as verifier payloads should be named once before they are reused as source-evidence checks. Keep the rejection wording visible through `proposalApplicationSourceMutationInvalidShortcutPhrases` so handoff output and document assertions cannot drift.
