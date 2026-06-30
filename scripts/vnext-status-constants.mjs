@@ -160,3 +160,15 @@ export function createProposalApplicationSourceMutationDecision({
     ...(reason ? { reason } : {}),
   };
 }
+
+export function createProposalApplicationSourceMutationImplementationDecision({
+  command = null,
+  reason,
+} = {}) {
+  return {
+    id: 'proposal-application-source-mutation-implementation-decision-required',
+    slice: proposalApplicationSourceMutationImplementationDecisionSlice,
+    ...(command ? { command } : {}),
+    ...(reason ? { reason } : {}),
+  };
+}

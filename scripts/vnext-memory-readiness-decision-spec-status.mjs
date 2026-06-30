@@ -1,11 +1,17 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
-  createProposalApplicationSourceMutationDecision,
+  assertContainsBacktickedAll,
+  assertDoesNotMatchAny,
+  assertMarkdownSections,
+  assertSourceEvidence,
+  readRepoFiles,
+  runStatus,
+} from './vnext-status-assertions.mjs';
+import {
+  createProposalApplicationSourceMutationImplementationDecision,
   proposalApplicationSourceMutationImplementationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
@@ -100,56 +106,15 @@ const forbiddenAuthorityPatterns = [
   /skillPromotionAllowed: true/,
 ];
 
-function readFile(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function assertContainsAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
-  }
-}
-
-function assertSourceEvidence(sourcesByName, evidenceBySource) {
-  for (const [sourceName, expectedValues] of Object.entries(evidenceBySource)) {
-    assertContainsAll(sourcesByName[sourceName], expectedValues);
-  }
-}
-
-function assertContainsBacktickedAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
-  }
-}
-
-function assertDoesNotMatchAny(source, patterns) {
-  for (const pattern of patterns) {
-    assert.doesNotMatch(source, pattern);
-  }
-}
-
-function runStatus(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
-}
-
-const memoryReadinessDecisionSpecSources = Object.fromEntries(
-  Object.entries(memoryReadinessDecisionSpecFiles).map(([name, relativePath]) => [
-    name,
-    readFile(relativePath),
-  ]),
+const memoryReadinessDecisionSpecSources = readRepoFiles(
+  repoRoot,
+  memoryReadinessDecisionSpecFiles,
 );
 
-for (const section of memoryReadinessSpecSections) {
-  assert.match(
-    memoryReadinessDecisionSpecSources.spec,
-    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
-  );
-}
-
+assertMarkdownSections(
+  memoryReadinessDecisionSpecSources.spec,
+  memoryReadinessSpecSections,
+);
 assertContainsBacktickedAll(memoryReadinessDecisionSpecSources.spec, memoryReadinessItemFields);
 assertDoesNotMatchAny(memoryReadinessDecisionSpecSources.app, forbiddenAuthorityPatterns);
 
@@ -188,17 +153,22 @@ assertSourceEvidence(
   memoryReadinessDecisionSpecSourceEvidence,
 );
 
-const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus(
+  repoRoot,
+  'scripts/vnext-development-audit-status.mjs',
+);
 const proposalReviewDecisionSpecStatus = runStatus(
+  repoRoot,
   'scripts/vnext-proposal-review-decision-spec-status.mjs',
 );
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationSourceMutationDecision = createProposalApplicationSourceMutationDecision({
+const proposalApplicationSourceMutationImplementationDecision =
+  createProposalApplicationSourceMutationImplementationDecision({
   command: 'node scripts/vnext-memory-readiness-decision-spec-status.mjs',
   reason:
-    'Proposal, memory, growth dashboard, authority review, durable proposal record creation/persistence, and audit-only application attempt evidence are source-backed; applying proposals or mutating source still requires a later accepted decision.',
-});
+    'Proposal, memory, growth dashboard, authority review, durable proposal record creation/persistence, audit-only application attempt evidence, and source mutation planning are source-backed; source mutation implementation still requires a later accepted decision.',
+  });
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationImplementationDecisionSlice);
@@ -262,7 +232,7 @@ process.stdout.write(
             proposalReviewDecisionSpecStatus.authority?.memoryPersistenceAllowed,
         },
       },
-      nextRecommendedSlice: proposalApplicationSourceMutationDecision,
+      nextRecommendedSlice: proposalApplicationSourceMutationImplementationDecision,
       authority: memoryReadinessAuthorityBoundary,
     },
     null,

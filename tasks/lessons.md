@@ -2,6 +2,10 @@
 
 ## direction resets
 
+- Decision-spec status scripts should reuse the same source-reading and assertion helpers once their shape matches. Keep policy-specific field lists and evidence maps local, but do not repeat file-read, section-heading, backtick, negative-action, and child-status plumbing in every verifier.
+
+- Historical decision-spec verifiers still need current downstream gate payloads. When a planning-only decision consumes an older gate, update any emitted `nextRecommendedSlice` helper to the new implementation decision gate instead of only asserting the audit route.
+
 - Source mutation planning-only approval should advance the live gate to implementation decision review, not to source mutation execution. The packet and handoff become consumed planning evidence, the plan may allow `sourceMutationPlanningAllowed=true`, but `sourceMutationImplementationAllowed`, actual `sourceMutationAllowed`, provider calls, memory persistence, proposal generation, commit, and push must remain false until a later fielded implementation decision names exact files, baseline proof, diff preview, rollback refs, and focused smoke.
 
 - Markdown section assertion and repo-file map reading are generic verifier mechanics. Once adjacent status scripts share that shape, move the regex and file-bundle assembly behind helpers while keeping each verifier's section list and evidence map local.

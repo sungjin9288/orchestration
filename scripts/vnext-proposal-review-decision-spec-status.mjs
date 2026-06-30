@@ -1,11 +1,17 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
-  createProposalApplicationSourceMutationDecision,
+  assertContainsBacktickedAll,
+  assertDoesNotMatchAny,
+  assertMarkdownSections,
+  assertSourceEvidence,
+  readRepoFiles,
+  runStatus,
+} from './vnext-status-assertions.mjs';
+import {
+  createProposalApplicationSourceMutationImplementationDecision,
   proposalApplicationSourceMutationImplementationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
@@ -88,56 +94,15 @@ const forbiddenAuthorityPatterns = [
   /proposalApplicationAllowed: true/,
 ];
 
-function readFile(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function assertContainsAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
-  }
-}
-
-function assertSourceEvidence(sourcesByName, evidenceBySource) {
-  for (const [sourceName, expectedValues] of Object.entries(evidenceBySource)) {
-    assertContainsAll(sourcesByName[sourceName], expectedValues);
-  }
-}
-
-function assertContainsBacktickedAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
-  }
-}
-
-function assertDoesNotMatchAny(source, patterns) {
-  for (const pattern of patterns) {
-    assert.doesNotMatch(source, pattern);
-  }
-}
-
-function runStatus(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
-}
-
-const proposalReviewDecisionSpecSources = Object.fromEntries(
-  Object.entries(proposalReviewDecisionSpecFiles).map(([name, relativePath]) => [
-    name,
-    readFile(relativePath),
-  ]),
+const proposalReviewDecisionSpecSources = readRepoFiles(
+  repoRoot,
+  proposalReviewDecisionSpecFiles,
 );
 
-for (const section of proposalReviewSpecSections) {
-  assert.match(
-    proposalReviewDecisionSpecSources.spec,
-    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
-  );
-}
-
+assertMarkdownSections(
+  proposalReviewDecisionSpecSources.spec,
+  proposalReviewSpecSections,
+);
 assertContainsBacktickedAll(proposalReviewDecisionSpecSources.spec, proposalReviewRecordFields);
 assertDoesNotMatchAny(proposalReviewDecisionSpecSources.app, forbiddenAuthorityPatterns);
 
@@ -169,20 +134,25 @@ assertSourceEvidence(
   proposalReviewDecisionSpecSourceEvidence,
 );
 
-const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus(
+  repoRoot,
+  'scripts/vnext-development-audit-status.mjs',
+);
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationSourceMutationDecision = createProposalApplicationSourceMutationDecision({
+const proposalApplicationSourceMutationImplementationDecision =
+  createProposalApplicationSourceMutationImplementationDecision({
   command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',
   reason:
-    'Proposal review, durable proposal record creation/persistence, and audit-only application attempt evidence are source-backed; real proposal application and source mutation still require a later explicit decision.',
-});
+    'Proposal review, durable proposal record creation/persistence, audit-only application attempt evidence, and source mutation planning are source-backed; source mutation implementation still requires a later explicit decision.',
+  });
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationImplementationDecisionSlice);
 
-const proposalQueue = runStatus('scripts/growth-proposal-queue-status.mjs');
+const proposalQueue = runStatus(repoRoot, 'scripts/growth-proposal-queue-status.mjs');
 const creationReadiness = runStatus(
+  repoRoot,
   'scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
 );
 
@@ -255,7 +225,7 @@ process.stdout.write(
           dryRunOnly: creationReadiness.readiness?.dryRunOnly,
         },
       },
-      nextRecommendedSlice: proposalApplicationSourceMutationDecision,
+      nextRecommendedSlice: proposalApplicationSourceMutationImplementationDecision,
       authority: proposalReviewAuthorityBoundary,
     },
     null,
