@@ -13,6 +13,7 @@ import {
   getEvidenceRailStatusTone,
   getBooleanDisplay,
   getApprovalActionLabel,
+  getApprovalDisplayTone,
   getApprovalTone,
   getCloseOutApprovalDisplayStatus,
   getCommitApprovalDisplayStatus,
@@ -22,9 +23,12 @@ import {
   getExecutionStageDisplay,
   getPackageStatusDisplay,
   getProviderReadinessDisplay,
+  getReviewTone,
   getReviewerVerdictDisplay,
   getReviewerVerdictTone,
+  getRunTone,
   getRunRelationLabelDisplay,
+  getTaskLifecycleTone,
 } from './execution-labels.js';
 import {
   getInboxKindDisplay,
@@ -2828,22 +2832,6 @@ function getTaskLifecycleDisplay(state) {
   }
 
   return state || '알 수 없음';
-}
-
-function getTaskLifecycleTone(state) {
-  if (state === 'Done') {
-    return 'success';
-  }
-
-  if (state === 'Review') {
-    return 'accent';
-  }
-
-  if (state === 'In Progress') {
-    return 'warning';
-  }
-
-  return 'neutral';
 }
 
 function getAlignmentStatusDisplay(status) {
@@ -7254,42 +7242,6 @@ function getArtifactPolicySummary(artifact, data) {
   }
 
   return `${meaningBadge.label}. ${previewBadge.label}.`;
-}
-
-function getReviewTone(status) {
-  if (status === 'passed') {
-    return 'success';
-  }
-
-  if (status === 'changes_requested') {
-    return 'danger';
-  }
-
-  return 'warning';
-}
-
-function getRunTone(status) {
-  return status === 'running' ? 'warning' : 'success';
-}
-
-function getApprovalDisplayTone(status) {
-  if (status === 'approved') {
-    return 'success';
-  }
-
-  if (status === 'rejected') {
-    return 'danger';
-  }
-
-  if (status === 'stale') {
-    return 'warning';
-  }
-
-  if (status === 'pending') {
-    return 'accent';
-  }
-
-  return 'neutral';
 }
 
 function getCommitPackageArtifactForTask(task, data, summary = null) {

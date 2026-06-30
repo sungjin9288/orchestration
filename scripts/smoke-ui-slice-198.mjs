@@ -168,6 +168,10 @@ async function main() {
     assert.match(executionLabels, /export function getCloseOutApprovalDisplayStatus\(summary\) \{/);
     assert.match(executionLabels, /export function getApprovalActionLabel\(action\) \{/);
     assert.match(executionLabels, /export function getApprovalTone\(status\) \{/);
+    assert.match(executionLabels, /export function getApprovalDisplayTone\(status\) \{/);
+    assert.match(executionLabels, /export function getRunTone\(status\) \{/);
+    assert.match(executionLabels, /export function getReviewTone\(status\) \{/);
+    assert.match(executionLabels, /export function getTaskLifecycleTone\(state\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusTone\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailHandoffDisplay\(value\) \{/);

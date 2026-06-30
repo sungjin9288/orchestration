@@ -36,6 +36,7 @@ const helperSourceByName = new Map([
   ['getArtifactTypeDisplay', artifactPreview],
   ['getEvidenceRailHandoffDisplay', executionLabels],
   ['getExecutionStageDisplay', executionLabels],
+  ['getReviewTone', executionLabels],
 ]);
 
 function extractFunction(source, name) {

@@ -2,6 +2,14 @@
 
 ## direction resets
 
+- Task lifecycle tone splitting should stay display-only. Move only `getTaskLifecycleTone` into `ui/execution-labels.js`, but keep lifecycle state changes, task selection, execution actions, runtime mutation, source mutation, commit, and push paths outside the helper.
+
+- Review tone splitting should stay display-only. Move only `getReviewTone` into `ui/execution-labels.js`, but keep review status calculation, review resolution, approval bridge state, execution actions, runtime mutation, source mutation, commit, and push paths outside the helper.
+
+- Run tone splitting should stay display-only. Move only `getRunTone` into `ui/execution-labels.js`, but keep run selection, relation context, artifact bundles, execution actions, runtime mutation, source mutation, commit, and push paths outside the helper.
+
+- Approval display tone splitting should stay display-only. Move only `getApprovalDisplayTone` into `ui/execution-labels.js`, but keep commit/release readiness summaries, stale/current approval decisions, action guards, runtime mutation, source mutation, commit, and push paths outside the helper.
+
 - Approval tone splitting should stay below approval authority. Move only `getApprovalTone` into `ui/execution-labels.js`, but keep approval status calculation, bridge state, request/resolve actions, inbox routing, target artifact resolution, runtime mutation, source mutation, commit, and push paths outside the helper.
 
 - Approval action label splitting belongs with execution labels, not approval authority. Move only `getApprovalActionLabel` into `ui/execution-labels.js`, but keep approval lookup, bridge state, request/resolve actions, inbox routing, target artifact resolution, runtime mutation, source mutation, commit, and push paths outside the helper.

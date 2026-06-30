@@ -133,6 +133,58 @@ export function getApprovalTone(status) {
   return 'warning';
 }
 
+export function getApprovalDisplayTone(status) {
+  if (status === 'approved') {
+    return 'success';
+  }
+
+  if (status === 'rejected') {
+    return 'danger';
+  }
+
+  if (status === 'stale') {
+    return 'warning';
+  }
+
+  if (status === 'pending') {
+    return 'accent';
+  }
+
+  return 'neutral';
+}
+
+export function getRunTone(status) {
+  return status === 'running' ? 'warning' : 'success';
+}
+
+export function getReviewTone(status) {
+  if (status === 'passed') {
+    return 'success';
+  }
+
+  if (status === 'changes_requested') {
+    return 'danger';
+  }
+
+  return 'warning';
+}
+
+export function getTaskLifecycleTone(state) {
+  if (state === 'Done') {
+    return 'success';
+  }
+
+  if (state === 'Review') {
+    return 'accent';
+  }
+
+  if (state === 'In Progress') {
+    return 'warning';
+  }
+
+  return 'neutral';
+}
+
 export function getEvidenceRailStatusDisplay(status) {
   if (status === 'complete') {
     return '인계 완료';

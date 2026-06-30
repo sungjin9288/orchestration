@@ -17,16 +17,30 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
+const formattersPath = path.join(repoRoot, 'ui', 'formatters.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-190');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
+const formatters = fs.readFileSync(formattersPath, 'utf8');
+const helperSourceByName = new Map([
+  ['escapeHtml', formatters],
+  ['formatDate', formatters],
+  ['getEvidenceRailHandoffDisplay', executionLabels],
+  ['getExecutionStageDisplay', executionLabels],
+  ['getReviewTone', executionLabels],
+  ['getRunTone', executionLabels],
+]);
 
 function extractFunction(source, name) {
-  const signature = `function ${name}(`;
-  const start = source.indexOf(signature);
+  const signatures = [`function ${name}(`, `export function ${name}(`];
+  const start = signatures
+    .map((signature) => source.indexOf(signature))
+    .find((index) => index !== -1) ?? -1;
 
   if (start === -1) {
-    throw new Error(`Function ${name} was not found in ui/app.js`);
+    throw new Error(`Function ${name} was not found`);
   }
 
   const paramsStart = source.indexOf('(', start);
@@ -80,7 +94,7 @@ function extractFunction(source, name) {
       depth -= 1;
 
       if (depth === 0) {
-        return source.slice(start, index + 1);
+        return source.slice(start, index + 1).replace(/^export\s+/, '');
       }
     }
   }
@@ -126,7 +140,7 @@ function loadHelpers() {
   ];
 
   for (const name of functionNames) {
-    const source = extractFunction(appJs, name);
+    const source = extractFunction(helperSourceByName.get(name) || appJs, name);
     vm.runInContext(`${source}\nglobalThis.${name} = ${name};`, context);
   }
 
