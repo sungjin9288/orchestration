@@ -224,8 +224,8 @@ const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-s
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationDecisionGate = 'proposal application decision required';
-const proposalApplicationImplementationDecisionSlice =
-  'proposal application implementation decision required';
+const proposalApplicationSourceMutationDecisionSlice =
+  'proposal application source mutation decision required';
 
 assert.equal(proposalRecordOperatorHandoffStatus.ok, true);
 assert.equal(durableProposalRecordPlanningPreviewStatus.ok, true);
@@ -233,7 +233,7 @@ assert.equal(proposalReviewDecisionSpecStatus.ok, true);
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalRecordCreationAllowed, false);
 assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'durable proposal record implementation plan',

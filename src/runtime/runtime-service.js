@@ -41,6 +41,18 @@ function createRuntimeService(options = {}) {
   const proposalApplicationAttemptDefaultBlockedActions = [
     ...PROPOSAL_APPLICATION_ATTEMPT_DEFAULT_BLOCKED_ACTIONS,
   ];
+  const proposalApplicationAttemptApprovalStatus =
+    'approve-application-implementation-slice';
+  const proposalApplicationAttemptTargetAuthority =
+    'proposal application implementation for one audit-only attempt path on existing durable proposal records';
+  const proposalApplicationAttemptStillBlockedAuthorities = [
+    'proposal generation',
+    'provider calls',
+    'memory persistence',
+    'source mutation',
+    'commit',
+    'push',
+  ];
 
   function nextId(state, entity) {
     state.sequences[entity] += 1;
@@ -1846,16 +1858,13 @@ function createRuntimeService(options = {}) {
       throw new Error('applicationApproval.status must be approved');
     }
 
-    if (decisionStatus !== 'approve-application-implementation-slice') {
+    if (decisionStatus !== proposalApplicationAttemptApprovalStatus) {
       throw new Error(
         'applicationApproval.decisionStatus must be approve-application-implementation-slice',
       );
     }
 
-    if (
-      targetAuthority !==
-      'proposal application implementation for one audit-only attempt path on existing durable proposal records'
-    ) {
+    if (targetAuthority !== proposalApplicationAttemptTargetAuthority) {
       throw new Error(
         'applicationApproval.targetAuthority must approve the audit-only proposal application attempt path',
       );
@@ -1865,14 +1874,7 @@ function createRuntimeService(options = {}) {
       throw new Error('applicationApproval.approvalStatement must approve implementation only');
     }
 
-    for (const blockedAuthority of [
-      'proposal generation',
-      'provider calls',
-      'memory persistence',
-      'source mutation',
-      'commit',
-      'push',
-    ]) {
+    for (const blockedAuthority of proposalApplicationAttemptStillBlockedAuthorities) {
       const blockedAuthorityPattern = new RegExp(
         `does not approve[\\s\\S]*${blockedAuthority}`,
         'i',
@@ -2104,7 +2106,8 @@ function createRuntimeService(options = {}) {
       input.focusedSmokeRefs,
       'focusedSmokeRefs',
     );
-    const blockedActions = normalizeProposalApplicationAttemptBlockedActions(input.blockedActions);
+    const proposalApplicationAttemptBlockedActions =
+      normalizeProposalApplicationAttemptBlockedActions(input.blockedActions);
     const id = nextProposalApplicationAttemptId(state);
 
     assertProposalRecordCanReceiveApplicationAttempt(proposalRecord, now);
@@ -2130,7 +2133,7 @@ function createRuntimeService(options = {}) {
       negativeEvidenceRefs,
       rollbackRefs,
       focusedSmokeRefs,
-      blockedActions,
+      blockedActions: proposalApplicationAttemptBlockedActions,
       proposalGenerationAllowed: false,
       providerCallsAllowed: false,
       memoryPersistenceAllowed: false,

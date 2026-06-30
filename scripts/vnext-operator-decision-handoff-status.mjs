@@ -199,7 +199,7 @@ const proposalRecordOperatorHandoffSourceEvidence = {
     'Completed: `durable proposal record planning preview`',
     'Completed: `operator decision handoff`',
     'Completed: `durable proposal record implementation plan`',
-    '1. `proposal application implementation decision required`',
+    '1. `proposal application source mutation decision required`',
   ],
   decisionLog: ['### DEC-055', '### DEC-056'],
   inventory: ['vNext operator decision handoff'],
@@ -221,8 +221,8 @@ assertSourceEvidence(proposalRecordOperatorHandoffSources, proposalRecordOperato
 
 const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
-const proposalApplicationImplementationDecisionSlice =
-  'proposal application implementation decision required';
+const proposalApplicationSourceMutationDecisionSlice =
+  'proposal application source mutation decision required';
 const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
 const proposalRecordOperatorHandoffAuthorityBoundary = {
@@ -286,7 +286,7 @@ process.stdout.write(
         },
         vnextAudit: {
           registered: true,
-          nextSlice: proposalApplicationImplementationDecisionSlice,
+          nextSlice: proposalApplicationSourceMutationDecisionSlice,
         },
       },
       authority: proposalRecordOperatorHandoffAuthorityBoundary,

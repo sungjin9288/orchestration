@@ -203,7 +203,7 @@ const proposalApplicationImplementationPlanSourceEvidence = {
   decisionLog: ['### DEC-058', '### DEC-059', '### DEC-060'],
   audit: [
     'Completed: `proposal application implementation plan`',
-    '1. `proposal application implementation decision required`',
+    '1. `proposal application source mutation decision required`',
   ],
   inventory: ['vNext proposal application implementation plan'],
   readme: [
@@ -232,6 +232,8 @@ const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-s
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationGate = 'proposal application implementation decision required';
+const proposalApplicationSourceMutationDecisionSlice =
+  'proposal application source mutation decision required';
 
 assert.equal(proposalApplicationOperatorHandoffStatus.ok, true);
 assert.equal(proposalApplicationDecisionPacketStatus.ok, true);
@@ -242,7 +244,7 @@ assert.equal(proposalApplicationDecisionPacketStatus.currentGate, proposalApplic
 assert.equal(proposalApplicationDecisionPacketStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(proposalApplicationOperatorHandoffStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationGate);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'proposal application implementation plan',

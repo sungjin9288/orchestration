@@ -168,18 +168,18 @@ assertSourceEvidence(
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationImplementationDecisionSlice =
-  'proposal application implementation decision required';
-const proposalApplicationImplementationDecision = {
-  id: 'proposal-application-implementation-decision-required',
-  slice: proposalApplicationImplementationDecisionSlice,
+const proposalApplicationSourceMutationDecisionSlice =
+  'proposal application source mutation decision required';
+const proposalApplicationSourceMutationDecision = {
+  id: 'proposal-application-source-mutation-decision-required',
+  slice: proposalApplicationSourceMutationDecisionSlice,
   command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',
   reason:
-    'Proposal review has a source-backed decision spec, durable proposal record creation/persistence is implemented only for local records, and proposal application planning-only evidence is recorded; implementation authority remains blocked until a later explicit decision.',
+    'Proposal review, durable proposal record creation/persistence, and audit-only application attempt evidence are source-backed; real proposal application and source mutation still require a later explicit decision.',
 };
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
 
 const proposalQueue = runStatus('scripts/growth-proposal-queue-status.mjs');
 const creationReadiness = runStatus(
@@ -255,7 +255,7 @@ process.stdout.write(
           dryRunOnly: creationReadiness.readiness?.dryRunOnly,
         },
       },
-      nextRecommendedSlice: proposalApplicationImplementationDecision,
+      nextRecommendedSlice: proposalApplicationSourceMutationDecision,
       authority: proposalReviewAuthorityBoundary,
     },
     null,

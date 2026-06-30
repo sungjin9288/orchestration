@@ -8,6 +8,22 @@ const { createRuntimeService } = runtimeServiceModule;
 
 const runtimeRoot = path.join(process.cwd(), 'var', 'runtime-proposal-application-attempt');
 const projectRoot = path.join(process.cwd(), 'var', 'proposal-application-attempt-project');
+const proposalApplicationAttemptBlockedActions = [
+  'proposal-generation',
+  'provider-call',
+  'memory-persistence',
+  'source-mutation',
+  'commit',
+  'push',
+];
+const proposalApplicationAttemptAuthorityFlags = [
+  'proposalGenerationAllowed',
+  'providerCallsAllowed',
+  'memoryPersistenceAllowed',
+  'sourceMutationAllowed',
+  'commitAllowed',
+  'pushAllowed',
+];
 
 fs.rmSync(runtimeRoot, { force: true, recursive: true, maxRetries: 10, retryDelay: 50 });
 fs.rmSync(projectRoot, { force: true, recursive: true, maxRetries: 10, retryDelay: 50 });
@@ -186,23 +202,9 @@ const state = JSON.parse(fs.readFileSync(path.join(runtimeRoot, 'state.json'), '
 
 assert.equal(applicationAttempt.applicationAttemptId, 'proposal-application-attempt-0001');
 assert.equal(persistedAttempt.status, 'planned');
-assert.deepEqual(persistedAttempt.blockedActions, [
-  'proposal-generation',
-  'provider-call',
-  'memory-persistence',
-  'source-mutation',
-  'commit',
-  'push',
-]);
+assert.deepEqual(persistedAttempt.blockedActions, proposalApplicationAttemptBlockedActions);
 
-for (const authorityFlag of [
-  'proposalGenerationAllowed',
-  'providerCallsAllowed',
-  'memoryPersistenceAllowed',
-  'sourceMutationAllowed',
-  'commitAllowed',
-  'pushAllowed',
-]) {
+for (const authorityFlag of proposalApplicationAttemptAuthorityFlags) {
   assert.equal(persistedAttempt[authorityFlag], false);
 }
 

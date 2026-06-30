@@ -221,7 +221,7 @@ const vnextDevelopmentAuditSourceEvidence = {
       'Completed: `proposal application implementation`',
       'proposal application implementation: audit-only attempt creation is implemented',
       'proposal application source mutation',
-      '1. `proposal application implementation decision required`',
+      '1. `proposal application source mutation decision required`',
     ],
     matches: [/^# vNext Development Audit/m],
   },
@@ -437,7 +437,7 @@ const proposalReadiness = runStatus('scripts/growth-evidence-ledger-proposal-rea
 const growthEngineNextSlice = growthEngine.nextRecommendedSlice?.id || null;
 const reflectionNextSlice = reflection.nextRecommendedSlice?.id || null;
 const proposalQueueHandoff = proposalReadiness.nextRecommendedSlice?.id || null;
-const nextGrowthSlice = 'proposal application implementation decision required';
+const nextGrowthSlice = 'proposal application source mutation decision required';
 
 assert.equal(growthEngine.ok, true);
 assert.equal(reflection.ok, true);
@@ -603,7 +603,7 @@ const recommendedDevelopmentPlan = [
     priority: 1,
     slice: nextGrowthSlice,
     scope:
-      'Choose whether a later slice should go beyond the implemented audit-only application attempt record.',
+      'Choose whether a later slice should move beyond the implemented audit-only application attempt record into real proposal application or source mutation.',
     gate: 'Requires a separate authority decision, focused smoke coverage, rollback evidence, and aggregate verification before any proposal can apply itself or mutate source.',
   },
 ];

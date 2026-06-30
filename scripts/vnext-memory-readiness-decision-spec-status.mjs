@@ -164,7 +164,7 @@ const memoryReadinessDecisionSpecSourceEvidence = {
     'docs/25_memory-readiness-decision-spec.md',
     'Completed: `growth dashboard evidence depth`',
     'Completed: `operator-approved authority expansion review`',
-    '`proposal application implementation decision required`',
+    '`proposal application source mutation decision required`',
   ],
   inventory: ['vNext memory readiness decision spec'],
   readme: ['Long-term memory is readiness only', 'docs/25_memory-readiness-decision-spec.md'],
@@ -190,18 +190,18 @@ const proposalReviewDecisionSpecStatus = runStatus(
 );
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationImplementationDecisionSlice =
-  'proposal application implementation decision required';
-const proposalApplicationImplementationDecision = {
-  id: 'proposal-application-implementation-decision-required',
-  slice: proposalApplicationImplementationDecisionSlice,
+const proposalApplicationSourceMutationDecisionSlice =
+  'proposal application source mutation decision required';
+const proposalApplicationSourceMutationDecision = {
+  id: 'proposal-application-source-mutation-decision-required',
+  slice: proposalApplicationSourceMutationDecisionSlice,
   command: 'node scripts/vnext-memory-readiness-decision-spec-status.mjs',
   reason:
-    'Proposal, memory, growth dashboard, authority review, durable proposal record creation/persistence, and application planning-only evidence are source-backed; applying proposals still requires a later accepted implementation decision.',
+    'Proposal, memory, growth dashboard, authority review, durable proposal record creation/persistence, and audit-only application attempt evidence are source-backed; applying proposals or mutating source still requires a later accepted decision.',
 };
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
 assert.equal(proposalReviewDecisionSpecStatus.ok, true);
 assert.equal(proposalReviewDecisionSpecStatus.authority?.memoryPersistenceAllowed, false);
 
@@ -262,7 +262,7 @@ process.stdout.write(
             proposalReviewDecisionSpecStatus.authority?.memoryPersistenceAllowed,
         },
       },
-      nextRecommendedSlice: proposalApplicationImplementationDecision,
+      nextRecommendedSlice: proposalApplicationSourceMutationDecision,
       authority: memoryReadinessAuthorityBoundary,
     },
     null,

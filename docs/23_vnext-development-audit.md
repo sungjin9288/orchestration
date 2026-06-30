@@ -90,8 +90,8 @@ Completed: `proposal application implementation decision handoff`
 Completed: `proposal application implementation`
 `src/runtime/contracts.js`, `src/runtime/file-store.js`, and `src/runtime/runtime-service.js` implement the approved audit-only proposal application attempt path. `scripts/smoke-proposal-application-attempt-creation.mjs` proves approval-required attempt creation, existing-record validation, local `state.json` persistence under `proposalApplicationAttempts`, forced-false authority flags, and rollback quarantine evidence. It does not generate proposals, mutate source, call providers, persist memory, commit, or push.
 
-1. `proposal application implementation decision required`
-   Choose whether a later slice should go beyond the implemented audit-only attempt record. The current implementation records local attempt evidence only; it does not apply proposals, mutate source, call providers, persist memory, commit, or push.
+1. `proposal application source mutation decision required`
+   Choose whether a later slice should move beyond the implemented audit-only attempt record into real proposal application or source mutation. The current implementation records local attempt evidence only; it does not apply proposals, mutate source, call providers, persist memory, commit, or push.
 
 ## Authority Boundary
 

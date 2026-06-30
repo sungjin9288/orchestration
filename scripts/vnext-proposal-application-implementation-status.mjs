@@ -11,7 +11,7 @@ const repoRoot = path.resolve(__dirname, '..');
 
 const STATUS_MODE = 'vnext-proposal-application-implementation-status';
 const STATUS_SCHEMA_VERSION = '1.0.0';
-const blockedActions = [
+const proposalApplicationAttemptBlockedActions = [
   'proposal-generation',
   'provider-call',
   'memory-persistence',
@@ -101,7 +101,7 @@ assert.equal(smokeStatus.ok, true);
 assert.equal(attempt.applicationAttemptId, 'proposal-application-attempt-0001');
 assert.equal(attempt.persisted, true);
 assert.equal(attempt.status, 'planned');
-assert.deepEqual(attempt.blockedActions, blockedActions);
+assert.deepEqual(attempt.blockedActions, proposalApplicationAttemptBlockedActions);
 assertAuthorityIsBlocked(attempt.authority);
 assert.equal(attempt.statusAfterRollbackQuarantine, 'quarantined');
 

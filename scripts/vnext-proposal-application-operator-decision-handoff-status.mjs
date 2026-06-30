@@ -188,7 +188,7 @@ const proposalApplicationOperatorHandoffSourceEvidence = {
   audit: [
     'Completed: `proposal application operator decision handoff`',
     'Completed: `proposal application implementation plan`',
-    '1. `proposal application implementation decision required`',
+    '1. `proposal application source mutation decision required`',
   ],
   inventory: ['vNext proposal application operator decision handoff'],
   readme: [
@@ -216,6 +216,8 @@ const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-s
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const proposalApplicationImplementationGate = 'proposal application implementation decision required';
+const proposalApplicationSourceMutationDecisionSlice =
+  'proposal application source mutation decision required';
 
 assert.equal(proposalApplicationDecisionPacketStatus.ok, true);
 assert.equal(proposalReviewDecisionSpecStatus.ok, true);
@@ -224,7 +226,7 @@ assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(proposalApplicationDecisionPacketStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationGate);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'proposal application operator decision handoff',

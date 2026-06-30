@@ -136,13 +136,13 @@ assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.app, forbiddenActions)
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationImplementationDecisionSlice =
-  'proposal application implementation decision required';
-const proposalApplicationImplementationDecision = {
-  id: 'proposal-application-implementation-decision-required',
-  slice: proposalApplicationImplementationDecisionSlice,
+const proposalApplicationSourceMutationDecisionSlice =
+  'proposal application source mutation decision required';
+const proposalApplicationSourceMutationDecision = {
+  id: 'proposal-application-source-mutation-decision-required',
+  slice: proposalApplicationSourceMutationDecisionSlice,
   reason:
-    'The read-only growth dashboard, approved durable proposal record creation/persistence slice, and planning-only application plan are source-backed; proposal application implementation still needs a later explicit decision, rollback evidence, focused smoke, and aggregate verification.',
+    'The read-only growth dashboard, approved durable proposal record creation/persistence slice, and audit-only application attempt are source-backed; real proposal application and source mutation still need a later explicit decision, rollback evidence, focused smoke, and aggregate verification.',
 };
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
@@ -152,7 +152,7 @@ assert.equal(
   ),
   true,
 );
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -176,7 +176,7 @@ process.stdout.write(
         sourceMutationAllowed: false,
         commitPushAllowed: false,
       },
-      nextRecommendedDecision: proposalApplicationImplementationDecision,
+      nextRecommendedDecision: proposalApplicationSourceMutationDecision,
     },
     null,
     2,

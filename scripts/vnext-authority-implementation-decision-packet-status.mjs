@@ -170,13 +170,13 @@ const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 const operatorDecisionGate = 'operator decision required';
 const proposalApplicationDecisionGate = 'proposal application decision required';
-const proposalApplicationImplementationDecisionSlice =
-  'proposal application implementation decision required';
+const proposalApplicationSourceMutationDecisionSlice =
+  'proposal application source mutation decision required';
 const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(authorityExpansionReviewStatus.ok, true);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'authority implementation decision packet',

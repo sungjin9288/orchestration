@@ -176,7 +176,7 @@ const authorityExpansionReviewSourceEvidence = {
   ],
   audit: [
     'Completed: `operator-approved authority expansion review`',
-    '`proposal application implementation decision required`',
+    '`proposal application source mutation decision required`',
   ],
   inventory: ['vNext authority expansion review'],
   readme: [
@@ -205,15 +205,15 @@ const memoryReadinessDecisionSpecStatus = runStatus(
 );
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationImplementationDecisionSlice =
-  'proposal application implementation decision required';
+const proposalApplicationSourceMutationDecisionSlice =
+  'proposal application source mutation decision required';
 const durableProposalRecordCreationCandidate = 'durable proposal record creation and persistence';
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(growthDashboardEvidenceDepthStatus.ok, true);
 assert.equal(proposalReviewDecisionSpecStatus.ok, true);
 assert.equal(memoryReadinessDecisionSpecStatus.ok, true);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'operator-approved authority expansion review',
