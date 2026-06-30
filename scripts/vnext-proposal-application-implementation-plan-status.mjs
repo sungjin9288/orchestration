@@ -7,7 +7,9 @@ import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   proposalApplicationImplementationDecisionGate,
   proposalApplicationImplementationDecisionRequiredInput,
-  proposalApplicationSourceMutationDecisionSlice,
+  proposalApplicationPlanningDecisionId,
+  proposalApplicationPlanningTargetAuthority,
+  proposalApplicationSourceMutationOperatorHandoffSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -208,7 +210,7 @@ const proposalApplicationImplementationPlanSourceEvidence = {
   decisionLog: ['### DEC-058', '### DEC-059', '### DEC-060'],
   audit: [
     'Completed: `proposal application implementation plan`',
-    '1. `proposal application source mutation decision required`',
+    '1. `proposal application source mutation operator handoff required`',
   ],
   inventory: ['vNext proposal application implementation plan'],
   readme: [
@@ -251,7 +253,7 @@ assert.equal(
 assert.equal(proposalApplicationDecisionPacketStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(proposalApplicationOperatorHandoffStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationOperatorHandoffSlice);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'proposal application implementation plan',
@@ -312,8 +314,8 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       plan: proposalApplicationImplementationPlanFiles.plan,
-      acceptedDecisionId: 'operator-decision-vnext-proposal-application-001',
-      targetAuthority: 'proposal application planning for existing durable proposal records',
+      acceptedDecisionId: proposalApplicationPlanningDecisionId,
+      targetAuthority: proposalApplicationPlanningTargetAuthority,
       currentGate: proposalApplicationImplementationDecisionGate,
       nextRequiredInput: proposalApplicationImplementationDecisionRequiredInput,
       applicationPlan: {

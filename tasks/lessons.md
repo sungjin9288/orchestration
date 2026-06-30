@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- Source mutation gates should start with decision input that names the audit-only application attempt refs, exact target authority, rollback refs, focused smoke refs, and clean baseline proof before any plan or implementation can open. A source mutation decision packet is evidence for the next handoff, not source mutation approval.
 - Proposal application implementation decision handoffs should be copy-ready and inert. After planning-only approval, the useful next artifact is an approval/rejection template for exactly one audit-only application attempt path; it must not record approval or imply proposal generation, source mutation, provider calls, memory persistence, commit, or push.
 - Proposal application authority boundaries should keep their local surface name when several status scripts share the same shape. `proposalApplicationImplementationPlanAuthorityBoundary` and `proposalApplicationOperatorHandoffAuthorityBoundary` tell reviewers which gate they are reading without changing the emitted `authority` payload.
 - Evidence source maps should name the thing they prove, not only the verifier route. `applicationAttemptEvidenceSources` reads cleaner than a generic `sources` binding while still keeping each source file's assertion local.

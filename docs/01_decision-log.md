@@ -356,6 +356,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `src/runtime/contracts.js`, `src/runtime/file-store.js`, and `src/runtime/runtime-service.js` now support local `proposalApplicationAttempts` records with forced-false authority flags. `ui/app.js` exposes application attempt evidence as a read-only proposal review marker. `docs/35_proposal-application-implementation.md`, `scripts/smoke-proposal-application-attempt-creation.mjs`, and `scripts/vnext-proposal-application-implementation-status.mjs` record and verify the implementation. This decision does not approve proposal generation, provider calls, memory persistence, source mutation, commit, or push.
 - Needed Before: Any actual proposal application that mutates runtime proposal source, project source files, provider state, memory, commits, or pushes still requires a later explicit authority decision, rollback evidence, focused smoke coverage, and aggregate verification.
 
+### DEC-063
+- Status: `Accepted`
+- Decision: Proposal application source mutation now stops at a read-only decision packet before any planning or implementation authority can open.
+- Why: The implemented audit-only application attempt records operator intent, but moving from that evidence into source mutation would change project files and could imply provider calls, memory persistence, commit, or push. The next gate needs a fielded operator decision that separates application evidence, source mutation planning, source mutation implementation, provider approval, memory approval, commit approval, and push approval.
+- Impact: `docs/36_proposal-application-source-mutation-decision-packet.md` defines decision options, required fields, source mutation boundary, still-blocked authorities, stop conditions, and verification for the next proposal application source mutation decision. `scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs` pins that this is decision input only. Runtime, UI, provider, memory, source mutation, commit, and push behavior remain unchanged.
+- Needed Before: Any source mutation planning or implementation still needs a later fielded operator decision, source and negative evidence refs, application attempt refs, mutation plan refs, rollback refs, focused smoke refs, aggregate verification, and separate approval for provider calls, memory persistence, commit, or push when those actions are involved.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

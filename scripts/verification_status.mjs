@@ -297,6 +297,11 @@ const informationalChecks = [
     purpose: 'vNext proposal application implementation source-checks the runtime contract, file-store normalization, service API, read-only UI marker, focused smoke, and aggregate registration for the approved audit-only attempt slice',
   },
   {
+    id: 'vnext-proposal-application-source-mutation-decision-packet-status',
+    script: 'scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs',
+    purpose: 'vNext proposal application source mutation decision packet defines source mutation decision outcomes, required decision fields, application attempt refs, rollback refs, focused smoke refs, and stop conditions before any source mutation planning or implementation can open',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
-import { proposalApplicationSourceMutationDecisionSlice } from './vnext-status-constants.mjs';
+import { proposalApplicationSourceMutationOperatorHandoffSlice } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,11 +34,15 @@ const vnextDevelopmentAuditFiles = {
   proposalApplicationImplementationDecisionHandoff:
     'docs/34_proposal-application-implementation-decision-handoff.md',
   proposalApplicationImplementationDoc: 'docs/35_proposal-application-implementation.md',
+  proposalApplicationSourceMutationDecisionPacket:
+    'docs/36_proposal-application-source-mutation-decision-packet.md',
   proposalRecordImplementationStatus: 'scripts/vnext-durable-proposal-record-implementation-status.mjs',
   proposalRecordCreationSmoke: 'scripts/smoke-durable-proposal-record-creation.mjs',
   proposalApplicationAttemptSmoke: 'scripts/smoke-proposal-application-attempt-creation.mjs',
   proposalApplicationImplementationStatus:
     'scripts/vnext-proposal-application-implementation-status.mjs',
+  proposalApplicationSourceMutationDecisionPacketStatus:
+    'scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs',
   decisionLog: 'docs/01_decision-log.md',
   growthPlan: 'docs/18_growth-gateway-vnext.md',
   inventory: 'docs/22_completion-gate-inventory.md',
@@ -168,6 +172,7 @@ const vnextDevelopmentAuditSourceEvidence = {
       '### DEC-060',
       '### DEC-061',
       '### DEC-062',
+      '### DEC-063',
     ],
   },
   readme: {
@@ -199,6 +204,8 @@ const vnextDevelopmentAuditSourceEvidence = {
       'docs/34_proposal-application-implementation-decision-handoff.md',
       'Proposal application audit-only attempt is implemented',
       'docs/35_proposal-application-implementation.md',
+      'Proposal application source mutation decision packet is decision input only',
+      'docs/36_proposal-application-source-mutation-decision-packet.md',
     ],
   },
   vnextAudit: {
@@ -220,9 +227,10 @@ const vnextDevelopmentAuditSourceEvidence = {
       'Completed: `proposal application implementation plan`',
       'Completed: `proposal application implementation decision handoff`',
       'Completed: `proposal application implementation`',
+      'Completed: `proposal application source mutation decision packet`',
       'proposal application implementation: audit-only attempt creation is implemented',
       'proposal application source mutation',
-      '1. `proposal application source mutation decision required`',
+      '1. `proposal application source mutation operator handoff required`',
     ],
     matches: [/^# vNext Development Audit/m],
   },
@@ -360,6 +368,20 @@ const vnextDevelopmentAuditSourceEvidence = {
     ],
     matches: [/^# Proposal Application Implementation/m],
   },
+  proposalApplicationSourceMutationDecisionPacket: {
+    contains: [
+      'Original gate: `proposal application source mutation decision required`',
+      'Current packet status: `decision-input-only`',
+      'Current proposal application authority: audit-only attempt records only',
+      'Current source mutation authority: blocked',
+      'approve-source-mutation-planning-only',
+      'approve-source-mutation-implementation-slice',
+      'applicationAttemptRefs',
+      'mutationPlanRefs',
+      'It is not source mutation approval',
+    ],
+    matches: [/^# Proposal Application Source Mutation Decision Packet/m],
+  },
   proposalRecordImplementationPlan: {
     contains: [
       'decisionStatus` | `approve-planning-only`',
@@ -408,6 +430,7 @@ const vnextDevelopmentAuditSourceEvidence = {
       'vnext-proposal-application-implementation-decision-handoff-status.mjs',
       'smoke-proposal-application-attempt-creation.mjs',
       'vnext-proposal-application-implementation-status.mjs',
+      'vnext-proposal-application-source-mutation-decision-packet-status.mjs',
     ],
   },
   inventory: {
@@ -425,6 +448,7 @@ const vnextDevelopmentAuditSourceEvidence = {
       'vNext proposal application implementation plan',
       'vNext proposal application implementation decision handoff',
       'vNext proposal application implementation',
+      'vNext proposal application source mutation decision packet',
     ],
   },
 };
@@ -438,7 +462,7 @@ const proposalReadiness = runStatus('scripts/growth-evidence-ledger-proposal-rea
 const growthEngineNextSlice = growthEngine.nextRecommendedSlice?.id || null;
 const reflectionNextSlice = reflection.nextRecommendedSlice?.id || null;
 const proposalQueueHandoff = proposalReadiness.nextRecommendedSlice?.id || null;
-const nextGrowthSlice = proposalApplicationSourceMutationDecisionSlice;
+const nextGrowthSlice = proposalApplicationSourceMutationOperatorHandoffSlice;
 
 assert.equal(growthEngine.ok, true);
 assert.equal(reflection.ok, true);
@@ -580,6 +604,15 @@ const implemented = [
     status: 'implemented-audit-only-application-attempt',
   },
   {
+    area: 'proposal application source mutation decision packet',
+    evidence: [
+      'docs/36_proposal-application-source-mutation-decision-packet.md',
+      'docs/01_decision-log.md#DEC-063',
+      'scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs',
+    ],
+    status: 'documented-read-only-decision-input',
+  },
+  {
     area: 'completion and README evidence',
     evidence: ['scripts/smoke-readme-scope-evidence.mjs', 'scripts/verification_status.mjs'],
     status: 'verified',
@@ -604,8 +637,8 @@ const recommendedDevelopmentPlan = [
     priority: 1,
     slice: nextGrowthSlice,
     scope:
-      'Choose whether a later slice should move beyond the implemented audit-only application attempt record into real proposal application or source mutation.',
-    gate: 'Requires a separate authority decision, focused smoke coverage, rollback evidence, and aggregate verification before any proposal can apply itself or mutate source.',
+      'Prepare a copy-ready operator handoff for source mutation planning or rejection without opening source mutation authority.',
+    gate: 'Requires a later fielded source mutation decision, focused smoke coverage, rollback evidence, and aggregate verification before any proposal can mutate source.',
   },
 ];
 

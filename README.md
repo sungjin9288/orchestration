@@ -150,6 +150,10 @@ src/runtime/file-store.js
   `docs/35_proposal-application-implementation.md` add one approved local runtime path that records
   inert application attempt evidence under `proposalApplicationAttempts`. It does not generate
   proposals, call providers, persist memory, mutate source, commit, or push.
+- Proposal application source mutation decision packet is decision input only: `DEC-063` and
+  `docs/36_proposal-application-source-mutation-decision-packet.md` define source mutation decision
+  outcomes, required fields, application attempt refs, rollback refs, focused smoke refs, and stop
+  conditions before any source mutation planning or implementation can open.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -289,6 +293,7 @@ node scripts/vnext-proposal-application-implementation-plan-status.mjs
 node scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs
 node scripts/smoke-proposal-application-attempt-creation.mjs
 node scripts/vnext-proposal-application-implementation-status.mjs
+node scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -356,6 +361,10 @@ Current verification evidence from this README refresh:
 - `node scripts/vnext-proposal-application-implementation-status.mjs`: source-checks the runtime
   contract, file-store normalization, service API, read-only UI marker, implementation doc, focused
   smoke, and aggregate registration for the approved audit-only application attempt slice.
+- `node scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs`: source-checks
+  the read-only source mutation decision packet, required operator fields, application-attempt
+  dependency, rollback refs, focused smoke refs, stop conditions, and still-blocked
+  provider/memory/source/commit/push authority before any source mutation planning can open.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
@@ -439,6 +448,10 @@ Playwright CLI:
   `docs/35_proposal-application-implementation.md` records the approved inert local attempt path, but
   it does not generate proposals, mutate proposal source, call providers, persist memory, mutate
   project source files, commit, or push.
+- Proposal application source mutation remains decision-gated.
+  `docs/36_proposal-application-source-mutation-decision-packet.md` is read-only input for a later
+  source mutation decision. It does not plan source mutation, implement source mutation, call
+  providers, persist memory, commit, or push.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider

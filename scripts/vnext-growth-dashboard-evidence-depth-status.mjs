@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   createProposalApplicationSourceMutationDecision,
-  proposalApplicationSourceMutationDecisionSlice,
+  proposalApplicationSourceMutationOperatorHandoffSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -152,7 +152,7 @@ assert.equal(
   ),
   true,
 );
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationDecisionSlice);
+assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationOperatorHandoffSlice);
 
 process.stdout.write(
   `${JSON.stringify(
