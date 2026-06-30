@@ -19,7 +19,7 @@ This document defines the current implemented baseline, architecture boundary, a
 - enforce `approval before commit`
 - prefer thin vertical slices over broad platform scaffolding
 - do not silently change architecture without updating the decision log
-- keep `v1 scope = development pack only`
+- keep `v1 scope = development pack only`; `DEC-066` records the code-present `knowledge-work` pack as explicit opt-in, non-default, and not a broader pack marketplace
 
 ## Reference Position
 `claw-empire` is a reference for runtime/control-plane patterns and selective product-shell cues. Reuse the useful ideas around `project`, `task`, `worktree`, `logs`, `reports`, `APIs`, `AGENTS`, bootstrap, command-center density, visible AI cast, and meeting-oriented flow. `OpenHarness` is a reference for harness robustness: explicit tool loops, retry/backoff, skill/plugin boundaries, memory/session handling, permission rules, approval dialogs, and delegation lifecycle. `docs/19_agentway-harness-concept-review.md` adds the local AgentWay PDF concept pass: keep Orchestration closer to explicit control-layer authority, avoid prompt-stacking as context governance, and treat verification, recovery, and tool permission boundaries as first-class harness contracts. `docs/20_loop-engineering-concept-review.md` adds the Loop Engineering concept pass: model future work as closed-loop `Discover -> Plan -> Execute -> Verify -> Iterate` flows with explicit stop conditions, evidence, and human gates before any open-loop automation. Do not fork pixel-office gameplay, budget/HR/company-management simulation, generic agent-platform breadth, messenger posture, prompt-stacking context strategy, open-loop autonomy, or platform assumptions.
@@ -36,6 +36,7 @@ This document defines the current implemented baseline, architecture boundary, a
 - artifact capture and linkage
 - decision, review, and approval gates
 - `development` pack support
+- explicit opt-in `knowledge-work` pack support for bounded non-coding deliverables without changing the default v1 workflow
 
 ### Outside v1
 - general team workspace model
@@ -43,7 +44,7 @@ This document defines the current implemented baseline, architecture boundary, a
 - ranking and gamification systems
 - generic OAuth platform layer
 - multi-provider-first orchestration
-- non-development packs
+- additional non-development packs beyond the explicit opt-in `knowledge-work` path
 
 ## Source Of Truth
 
@@ -197,7 +198,7 @@ Required minimum:
 The following changes require an explicit decision log update before implementation:
 
 - changing the primary UI surfaces
-- expanding beyond `development pack only`
+- expanding beyond the default `development` workflow or the explicit opt-in `knowledge-work` boundary
 - weakening `project_path`, review, or approval gates
 - changing provider strategy
 - adding budget/HR/org-management simulation, messenger-first, or multi-provider-first features
@@ -331,7 +332,7 @@ The following changes require an explicit decision log update before implementat
 - ranking or gamification
 - generalized OAuth
 - provider matrix
-- non-development packs
+- additional non-development packs beyond the explicit opt-in `knowledge-work` path
 
 ## V1 Freeze Exit Criteria
 - required docs and tasks reflect the current implemented shipped default plus the current planner-through-reviewer live boundary without widening scope
@@ -392,6 +393,6 @@ The following changes require an explicit decision log update before implementat
 - [ ] does the slice preserve local-first behavior
 - [ ] does it keep single-user-first assumptions
 - [ ] does it improve ops visibility
-- [ ] does it preserve `development pack only`
+- [ ] does it preserve the default `development` workflow and keep `knowledge-work` explicit opt-in
 - [ ] does it respect review and approval gates
 - [ ] does it avoid architecture drift from the decision log

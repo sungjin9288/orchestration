@@ -26,6 +26,7 @@ and approvals.
 | Local-only personalization | Recent desks, evidence density, preferred project hints, copyable preference review, preference reset/set controls, and a blocked long-term memory readiness gate stay local-only; browser `localStorage` under `orchestration.ui-preferences.v1` only changes shell convenience and the review packet is not an import/apply path. |
 | Authority expansion review | `docs/26_authority-expansion-review-spec.md` records the shared read-only request contract for future durable proposal records, memory persistence, provider calls, or source mutation; it does not approve implementation or open any authority. |
 | Development pack loop | The implemented pack flow is documented in `packs/development/pack.md`: planner, architect, task-breaker, builder preflight, builder live mutation, reviewer, commit-package, local commit, release-package, close-out. |
+| Opt-in knowledge-work pack | `packs/knowledge-work/pack.md` defines an explicit opt-in path for bounded non-coding deliverables such as decision memos, plans, checklists, and research briefs; it does not replace the `development` pack or open a pack marketplace. |
 | Review and approval gates | Review-before-done and approval-before-commit/release follow-up are enforced through runtime/coordinator state and surfaced in Decision Inbox. |
 | Local artifact store | Runtime state and artifacts are persisted through `src/runtime/file-store.js`; no external database is required. |
 | Provider boundary | `local-stub` is the default. `openai-responses` exists as an explicit opt-in adapter for planner-through-reviewer roles. |
@@ -72,7 +73,10 @@ src/runtime/file-store.js
 
 - `local-first / single-user-first / ops-first`: repo files and local state define the workflow;
   team workspace, OAuth, messenger, ranking, and org-management semantics are out of scope.
-- `development` pack only: v1 is intentionally narrow and does not implement a pack marketplace.
+- `development` pack remains the default v1 workflow: v1 is intentionally narrow and does not
+  implement a pack marketplace. `DEC-066` records the code-present `knowledge-work` pack as an
+  explicit opt-in path for bounded non-coding deliverables; it does not replace the `development`
+  pack.
 - `project_path` before execution: every execution must be tied to an explicit local project path.
 - Review before done: task completion depends on review evidence, not just a successful run.
 - Approval before commit and release follow-up: commit-package and release-package prepare approval
@@ -482,10 +486,16 @@ Playwright CLI:
   `docs/38_proposal-application-source-mutation-planning-plan.md` records the accepted planning
   decision, mutation plan, rollback plan, and focused smoke plan, but it does not mutate source,
   call providers, persist memory, generate proposals, commit, or push.
+- The `knowledge-work` pack is explicit opt-in for bounded non-coding deliverables under `DEC-066`
+  and has a
+  required synthetic smoke in `scripts/verification_status.mjs`, but it does not replace the
+  `development` pack, become the default v1 workflow, or approve release, provider, memory, source
+  mutation, commit, or push behavior beyond the same review and approval gates.
 - The shipped local release path is local-demo-only: no push, publish, merge, or external release
   automation is executed by release-package or close-out.
 - Multi-user workspace, OAuth, messenger-first workflows, ranking, HR/org-management, provider
-  marketplace, and non-development packs are outside v1 scope.
+  marketplace, and additional non-development packs beyond the explicit opt-in `knowledge-work`
+  path are outside v1 scope.
 - The screenshot and screencast evidence are local artifacts, not proof of an accessible hosted app.
 - Verification counts are measured file counts or command results; this README avoids unsupported
   performance, cost, accuracy, automation-rate, or adoption metrics.

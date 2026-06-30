@@ -17,6 +17,7 @@ Most agent products optimize for spectacle, chat, or provider breadth before the
 - `single-user-first`: the first user is one operator managing their own work, not a team workspace
 - `ops-first`: status, blockers, logs, artifacts, decisions, and approvals matter more than decorative UI
 - `v1 scope = development pack only`
+- `DEC-066` records the code-present `knowledge-work` pack as explicit opt-in for bounded non-coding deliverables; it does not replace the `development` pack, become the default v1 workflow, or open a pack marketplace
 - `claw-empire` is a runtime/control-plane and product-shell reference, not a wholesale product or architecture fork
 - `OpenHarness` is a harness/governance reference for tool-use loops, skills, memory, permissions, and delegation, not a generalized platform-breadth target
 
@@ -40,6 +41,7 @@ An individual operator or internal champion building or maintaining software loc
 ## V1 Scope
 ### In Scope
 - `development` pack only
+- the explicit opt-in `knowledge-work` pack may exist as a bounded non-coding artifact workflow, but it is not the default v1 workflow and does not widen the pack marketplace boundary
 - project registration and selection with required `project_path`
 - first-run bootstrap through the `Taskboard` project registry
 - thin-slice task lifecycle with `Inbox -> In Progress -> Review -> Done`
@@ -62,7 +64,7 @@ An individual operator or internal champion building or maintaining software loc
 - ranking, XP, leaderboard, or gamification layers
 - generalized OAuth platform work
 - multi-provider-first execution strategy
-- broad pack marketplace or non-development packs
+- broad pack marketplace or additional non-development packs beyond the explicit opt-in `knowledge-work` path
 
 ## Primary UI
 V1 has four first-class surfaces:

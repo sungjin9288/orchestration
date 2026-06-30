@@ -19,7 +19,7 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Status: `Accepted`
 - Decision: `v1 scope = development pack only`.
 - Why: A single pack keeps the first release narrow enough to verify end to end.
-- Impact: Non-development packs and generalized pack expansion are deferred.
+- Impact: Non-development packs and generalized pack expansion are deferred unless a later accepted decision records an explicit non-default path. `DEC-066` records `knowledge-work` as that code-present opt-in path without replacing the default `development` workflow.
 
 ### DEC-003
 - Status: `Accepted`
@@ -376,6 +376,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: The operator provided the full fielded `approve-source-mutation-planning-only` decision for `proposal application source mutation planning for one audit-only application attempt path`. The repo now needs one mutation plan, rollback plan, and focused smoke plan before any implementation decision can be reviewed.
 - Impact: `docs/38_proposal-application-source-mutation-planning-plan.md` records the accepted planning-only decision, mutation plan, rollback plan, focused smoke plan, source mutation contract, and implementation prerequisites. This decision consumes `docs/36_proposal-application-source-mutation-decision-packet.md` and `docs/37_proposal-application-source-mutation-operator-decision-handoff.md` as planning evidence, but it does not approve source mutation implementation, proposal generation, provider calls, memory persistence, commit, or push.
 - Needed Before: Actual source mutation implementation still needs a later explicit `approve-source-mutation-implementation-slice` decision naming exactly one accepted mutation plan, target files or surfaces, clean baseline proof, diff preview evidence, accepted rollback refs, focused smoke coverage, aggregate verification, and separate approval before provider calls, memory persistence, commit, or push.
+
+### DEC-066
+- Status: `Accepted`
+- Decision: The code-present `knowledge-work` pack is explicit opt-in and non-default, while the frozen v1 baseline remains centered on the `development` pack.
+- Why: The repository includes `packs/knowledge-work/pack.md`, runtime pack constants, UI selection, coordinator references, and smoke coverage for bounded non-coding deliverables. Leaving docs at a plain "development pack only" statement makes the code-present pack look like scope drift instead of an explicit, non-default path.
+- Impact: `AGENTS.md`, `docs/00_master-brief.md`, `docs/03_architecture-roadmap-v1.md`, and README must describe `knowledge-work` as opt-in support for bounded artifacts such as decision memos, plans, checklists, and research briefs. This decision does not replace the default `development` workflow, create a pack marketplace, add further non-development packs, weaken review or approval gates, call providers, persist memory, mutate source, commit, or push.
+- Needed Before: Any additional pack, default workflow change, marketplace behavior, or broader non-development expansion still requires a later explicit decision and verification plan.
 
 ### DEC-045
 - Status: `Accepted`

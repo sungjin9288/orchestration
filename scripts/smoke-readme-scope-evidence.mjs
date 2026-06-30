@@ -12,12 +12,24 @@ const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_status.mjs');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const referenceAuditPath = path.join(repoRoot, 'docs', 'reference', 'vnext-reference-driven-ui-audit.md');
+const contractsPath = path.join(repoRoot, 'src', 'runtime', 'contracts.js');
+const knowledgeWorkPackPath = path.join(repoRoot, 'packs', 'knowledge-work', 'pack.md');
+const masterBriefPath = path.join(repoRoot, 'docs', '00_master-brief.md');
+const decisionLogPath = path.join(repoRoot, 'docs', '01_decision-log.md');
+const architectureRoadmapPath = path.join(repoRoot, 'docs', '03_architecture-roadmap-v1.md');
+const agentsPath = path.join(repoRoot, 'AGENTS.md');
 
 const readme = fs.readFileSync(readmePath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const referenceAudit = fs.readFileSync(referenceAuditPath, 'utf8');
+const contracts = fs.readFileSync(contractsPath, 'utf8');
+const knowledgeWorkPack = fs.readFileSync(knowledgeWorkPackPath, 'utf8');
+const masterBrief = fs.readFileSync(masterBriefPath, 'utf8');
+const decisionLog = fs.readFileSync(decisionLogPath, 'utf8');
+const architectureRoadmap = fs.readFileSync(architectureRoadmapPath, 'utf8');
+const agents = fs.readFileSync(agentsPath, 'utf8');
 
 function countScripts(predicate) {
   return fs.readdirSync(path.join(repoRoot, 'scripts')).filter(predicate).length;
@@ -58,6 +70,13 @@ assert.match(readme, /"plannerArtifactId": "artifact-0001"/);
 assert.match(readme, /Reference-driven operator shell/);
 assert.match(readme, /Read-only growth evidence/);
 assert.match(readme, /Local-only personalization/);
+assert.match(readme, /Opt-in knowledge-work pack/);
+assert.match(readme, /`knowledge-work` pack is explicit opt-in/);
+assert.match(readme, /does not replace the `development` pack/);
+assert.match(
+  readme,
+  /additional non-development packs beyond the explicit opt-in `knowledge-work`/,
+);
 assert.match(readme, /성장 증거 원장/);
 assert.match(readme, /개선 후보 대기열/);
 assert.match(readme, /제안 검토 게이트/);
@@ -160,6 +179,7 @@ assert.match(readme, /`OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS`/);
 assert.match(readme, /`OPENAI_RESPONSES_RETRY_DELAY_MS`/);
 assert.match(verificationStatus, /smoke-readme-scope-evidence\.mjs/);
 assert.match(verificationStatus, /smoke-ui-slice-649\.mjs/);
+assert.match(verificationStatus, /knowledge-work-pack/);
 assert.match(
   verificationStatus,
   /vnext-proposal-application-source-mutation-decision-packet-status\.mjs/,
@@ -181,8 +201,34 @@ assert.match(appJs, /data-memory-readiness-gate="blocked"/);
 assert.match(appJs, /data-raw-transcript-ingestion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.rawTranscriptIngestionAllowed\}"/);
 assert.match(appJs, /data-cross-workspace-memory-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.crossWorkspaceMemoryAllowed\}"/);
 assert.match(appJs, /data-skill-promotion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.skillPromotionAllowed\}"/);
+assert.match(appJs, />지식 작업 \(knowledge-work\)<\/option>/);
 assert.match(appJs, /const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
 assert.match(appJs, /const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
+assert.match(contracts, /KNOWLEDGE_WORK: 'knowledge-work'/);
+assert.match(
+  knowledgeWorkPack,
+  /`knowledge-work` is an explicit opt-in pack\. It does not replace the `development` pack\./,
+);
+assert.match(
+  masterBrief,
+  /`DEC-066` records the code-present `knowledge-work` pack as explicit opt-in/,
+);
+assert.match(
+  decisionLog,
+  /`DEC-066` records `knowledge-work` as that code-present opt-in path/,
+);
+assert.match(
+  decisionLog,
+  /The code-present `knowledge-work` pack is explicit opt-in and non-default/,
+);
+assert.match(
+  architectureRoadmap,
+  /`DEC-066` records the code-present `knowledge-work` pack as explicit opt-in, non-default/,
+);
+assert.match(
+  agents,
+  /`DEC-066` records the code-present `knowledge-work` pack as explicit opt-in and non-default/,
+);
 assert.match(referenceAudit, /Linear/);
 assert.match(referenceAudit, /LangSmith Studio/);
 assert.match(referenceAudit, /Retool/);

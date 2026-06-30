@@ -38,7 +38,7 @@ Build Orchestration 1.0 as a local-first, single-user-first, ops-first control p
 ## Non-negotiable Rules
 - local-first, single-user-first, ops-first
 - source of truth for policy/contracts is repo files
-- v1 scope = development pack only
+- v1 scope = development pack only; `DEC-066` records the code-present `knowledge-work` pack as explicit opt-in and non-default, without changing the frozen v1 baseline or opening a pack marketplace
 - company/ERP-style shell, visible AI roles, meeting flow, and workday framing are allowed when they preserve execution gates, advanced-ops authority, and local-first operation
 - do not introduce messenger-first, ranking, OAuth, multi-provider-first, budget/HR/org-management, or multiplayer workspace semantics
 - project_path is required before any execution

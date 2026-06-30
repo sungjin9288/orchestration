@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Code-present optional packs should be documented as explicit opt-in instead of left as contradictions against "development pack only" language. Add a decision-log entry and README smoke assertions when the runtime, UI, and pack file already expose the path.
+
 - Decision-spec status scripts should reuse the same source-reading and assertion helpers once their shape matches. Keep policy-specific field lists and evidence maps local, but do not repeat file-read, section-heading, backtick, negative-action, and child-status plumbing in every verifier.
 
 - Historical decision-spec verifiers still need current downstream gate payloads. When a planning-only decision consumes an older gate, update any emitted `nextRecommendedSlice` helper to the new implementation decision gate instead of only asserting the audit route.
