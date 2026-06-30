@@ -148,7 +148,7 @@ assertContainsBacktickedAll(
 );
 assertDoesNotMatchAny(sourceMutationDecisionPacketSources.app, forbiddenActionPatterns);
 
-assertSourceEvidence(sourceMutationDecisionPacketSources, {
+const sourceMutationDecisionPacketSourceEvidence = {
   packet: [
     'It is not source mutation approval',
     'Original gate: `proposal application source mutation decision required`',
@@ -178,7 +178,12 @@ assertSourceEvidence(sourceMutationDecisionPacketSources, {
   ],
   verification: ['vnext-proposal-application-source-mutation-decision-packet-status.mjs'],
   app: blockedAuthorityMarkers,
-});
+};
+
+assertSourceEvidence(
+  sourceMutationDecisionPacketSources,
+  sourceMutationDecisionPacketSourceEvidence,
+);
 
 const applicationImplementationStatus = runStatus(
   'scripts/vnext-proposal-application-implementation-status.mjs',
