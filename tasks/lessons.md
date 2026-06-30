@@ -2,6 +2,10 @@
 
 ## direction resets
 
+- Artifact preview helper splitting should move only copy and badge decisions into a pure module. Keep catalog lookup, structured preview rendering, raw artifact source blocks, redaction behavior, stored-content source-of-truth semantics, and all runtime actions in `ui/app.js` until a later slice proves a tighter rendering boundary.
+
+- Portable local preference review helpers should stay copy-only and state-free. Move packet construction and text formatting into `ui/preference-config.js`, but keep localStorage persistence, preference mutation, rendering actions, imports/apply, memory persistence, provider calls, source mutation, commit, and push authority outside that helper boundary.
+
 - Worktree helper splitting should keep labels separate from authority. It is safe to move option label and fallback-name helpers into `ui/worktree-labels.js`, but linked-worktree detection, task `worktreeRef` mutation, active-project switching, and release/close-out guard semantics must stay in the app shell and server/runtime paths.
 
 - Generic UI formatting helpers should split only after higher-level status and tone helpers are already stable. Move tiny utilities such as `escapeHtml` and `formatDate` into a shared formatter module, but keep domain labels, state selection, rendering, and action handlers in `ui/app.js` unless a later slice proves a cleaner domain boundary.

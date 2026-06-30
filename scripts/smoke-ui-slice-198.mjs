@@ -79,6 +79,8 @@ async function main() {
 
     const appJsResponse = await fetch(`${baseUrl}/app.js`);
     const appJs = await appJsResponse.text();
+    const artifactPreviewResponse = await fetch(`${baseUrl}/artifact-preview.js`);
+    const artifactPreview = await artifactPreviewResponse.text();
     const packConfigResponse = await fetch(`${baseUrl}/pack-config.js`);
     const packConfig = await packConfigResponse.text();
     const councilConfigResponse = await fetch(`${baseUrl}/council-config.js`);
@@ -107,6 +109,7 @@ async function main() {
     const worktreeLabels = await worktreeLabelsResponse.text();
 
     assert.equal(appJsResponse.status, 200);
+    assert.equal(artifactPreviewResponse.status, 200);
     assert.equal(packConfigResponse.status, 200);
     assert.equal(councilConfigResponse.status, 200);
     assert.equal(deskStatusResponse.status, 200);
@@ -120,6 +123,7 @@ async function main() {
     assert.equal(companyConfigResponse.status, 200);
     assert.equal(surfaceConfigResponse.status, 200);
     assert.equal(worktreeLabelsResponse.status, 200);
+    assert.match(appJs, /from '\.\/artifact-preview\.js'/);
     assert.match(appJs, /from '\.\/company-config\.js'/);
     assert.match(appJs, /from '\.\/council-config\.js'/);
     assert.match(appJs, /from '\.\/desk-status\.js'/);
@@ -133,6 +137,10 @@ async function main() {
     assert.match(appJs, /from '\.\/personalization-snapshot\.js'/);
     assert.match(appJs, /from '\.\/surface-config\.js'/);
     assert.match(appJs, /from '\.\/worktree-labels\.js'/);
+    assert.match(artifactPreview, /export function getArtifactMeaningBadge\(entry\) \{/);
+    assert.match(artifactPreview, /export function getArtifactPreviewBadge\(entry\) \{/);
+    assert.match(artifactPreview, /export function getStructuredPreviewLeadCopy\(\) \{/);
+    assert.match(artifactPreview, /export function getPreviewRedactionCopy\(\) \{/);
     assert.match(companyConfig, /export const COMPANY_ROLE_OPTIONS = \[/);
     assert.match(companyConfig, /export function normalizeCompanyMember\(entry, index = 0\) \{/);
     assert.match(companyConfig, /export function getCompanyMembersForGroup\(members = \[\], groupId = null\) \{/);
@@ -158,6 +166,8 @@ async function main() {
     assert.match(packConfig, /export const KNOWLEDGE_WORK_DELIVERABLES = \{/);
     assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
     assert.match(preferenceConfig, /export function normalizeUiPreferences\(entry = \{\}\) \{/);
+    assert.match(preferenceConfig, /export function getPortableUiPreferenceReview\(preferences = DEFAULT_UI_PREFERENCES\) \{/);
+    assert.match(preferenceConfig, /export function getPortableUiPreferenceReviewText\(preferences = DEFAULT_UI_PREFERENCES\) \{/);
     assert.match(personalizationSnapshot, /export function getPersonalizationSnapshot\(\{/);
     assert.match(personalizationSnapshot, /pendingGateCount > 0 \? 'decision-inbox'/);
     assert.match(surfaceConfig, /export const SURFACE_IDS = \[/);

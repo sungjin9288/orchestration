@@ -1,4 +1,12 @@
 import {
+  getArtifactMeaningBadge,
+  getArtifactPreviewBadge,
+  getPreviewRedactionCopy,
+  getRawOnlyPreviewCopy,
+  getStructuredPreviewFallbackCopy,
+  getStructuredPreviewLeadCopy,
+} from './artifact-preview.js';
+import {
   COMPANY_DESK_OPTIONS,
   COMPANY_MEMBER_STORAGE_KEY,
   COMPANY_ROLE_OPTIONS,
@@ -66,6 +74,7 @@ import {
   EVIDENCE_DENSITY_OPTIONS,
   UI_PREFERENCE_PACKET_SCHEMA,
   UI_PREFERENCE_STORAGE_KEY,
+  getPortableUiPreferenceReviewText,
   normalizeUiPreferences,
 } from './preference-config.js';
 import { getPersonalizationSnapshot } from './personalization-snapshot.js';
@@ -257,25 +266,6 @@ function persistUiPreferences() {
 function resetUiPreferences() {
   state.uiPreferences = normalizeUiPreferences(DEFAULT_UI_PREFERENCES);
   persistUiPreferences();
-}
-
-function getPortableUiPreferenceReview() {
-  return {
-    schemaVersion: UI_PREFERENCE_PACKET_SCHEMA,
-    storageKey: UI_PREFERENCE_STORAGE_KEY,
-    scope: 'browser-local-only',
-    preferences: normalizeUiPreferences(state.uiPreferences),
-    authority: {
-      memoryPersistenceAllowed: false,
-      runtimeMutationAllowed: false,
-      sourceMutationAllowed: false,
-      commitPushAllowed: false,
-    },
-  };
-}
-
-function getPortableUiPreferenceReviewText() {
-  return JSON.stringify(getPortableUiPreferenceReview(), null, 2);
 }
 
 function setPreferredProjectPreference(projectId) {
@@ -7487,42 +7477,6 @@ function getArtifactCatalogEntry(artifact, data) {
   return data.artifactCatalog[artifact.type] || null;
 }
 
-function getArtifactMeaningBadge(entry) {
-  if (!entry) {
-    return null;
-  }
-
-  if (entry.retentionTier === 'tier-a-provenance-critical') {
-    return { label: '증적 핵심', tone: 'warning' };
-  }
-
-  if (entry.retentionTier === 'tier-b-latest-centered-history-retained') {
-    return { label: '최신 우선 탐색', tone: 'accent' };
-  }
-
-  if (entry.retentionTier === 'tier-c-generic-fallback') {
-    return { label: '일반 보존', tone: 'neutral' };
-  }
-
-  return null;
-}
-
-function getArtifactPreviewBadge(entry) {
-  if (!entry) {
-    return null;
-  }
-
-  if (entry.previewMode === 'structured-with-raw-fallback') {
-    return { label: '구조화 미리보기 + 원문 대체', tone: 'success' };
-  }
-
-  if (entry.previewMode === 'raw-only') {
-    return { label: '원문만 제공', tone: 'neutral' };
-  }
-
-  return null;
-}
-
 function renderArtifactPolicyTokens(artifact, data) {
   const entry = getArtifactCatalogEntry(artifact, data);
   const meaningBadge = getArtifactMeaningBadge(entry);
@@ -7544,22 +7498,6 @@ function getArtifactPolicySummary(artifact, data) {
   }
 
   return `${meaningBadge.label}. ${previewBadge.label}.`;
-}
-
-function getStructuredPreviewLeadCopy() {
-  return '구조화 미리보기는 가능한 범위에서 제공합니다. 아래 저장된 원문이 최종 기준으로 남습니다.';
-}
-
-function getPreviewRedactionCopy() {
-  return '미리보기는 파일 업데이트 항목 안의 저장된 저장소 내용을 가립니다. 아래 저장된 원문이 최종 기준으로 남습니다.';
-}
-
-function getStructuredPreviewFallbackCopy() {
-  return '이 아티팩트 인스턴스에서는 구조화 미리보기를 만들 수 없습니다. 저장된 원문을 보여줍니다.';
-}
-
-function getRawOnlyPreviewCopy() {
-  return '현재 계약에서는 이 아티팩트 타입이 원문 전용입니다. 구조화된 뷰는 만들지 않습니다.';
 }
 
 function getReviewTone(status) {
@@ -11269,7 +11207,7 @@ function renderGrowthProposalReviewPreview(growth) {
 
 function renderPersonalizationSettings(personalization, data) {
   const activeProject = data.activeProject;
-  const portableReviewText = getPortableUiPreferenceReviewText();
+  const portableReviewText = getPortableUiPreferenceReviewText(state.uiPreferences);
 
   return `
     <div class="personalization-settings" data-local-personalization-settings="true">
@@ -18594,7 +18532,7 @@ async function copyHarnessPolicyReport(reportText) {
 
 async function copyLocalPersonalizationReview() {
   await copyTextValue({
-    value: getPortableUiPreferenceReviewText(),
+    value: getPortableUiPreferenceReviewText(state.uiPreferences),
     emptyErrorMessage: '복사할 로컬 선호 설정 묶음이 없습니다.',
     copiedMessage: () => '로컬 선호 설정 묶음을 복사했습니다.',
     unsupportedMessage: () =>

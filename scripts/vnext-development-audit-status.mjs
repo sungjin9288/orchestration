@@ -159,7 +159,7 @@ const vnextDevelopmentAuditSourceEvidence = {
       'function renderGrowthProposalReviewPreview(growth)',
       'function renderPersonalizationSettings(personalization, data)',
       "from './preference-config.js'",
-      'runtimeMutationAllowed: false',
+      'getPortableUiPreferenceReviewText(state.uiPreferences)',
       'data-local-personalization-portability="copy-review-only"',
       'data-action="copy-local-personalization-review"',
       'data-memory-readiness-gate="blocked"',
@@ -200,6 +200,8 @@ const vnextDevelopmentAuditSourceEvidence = {
       "export const UI_PREFERENCE_STORAGE_KEY = 'orchestration.ui-preferences.v1'",
       "export const UI_PREFERENCE_PACKET_SCHEMA = 'orchestration.ui-preferences.portable-review.v1'",
       'export function normalizeUiPreferences(entry = {})',
+      'export function getPortableUiPreferenceReview(preferences = DEFAULT_UI_PREFERENCES)',
+      'runtimeMutationAllowed: false',
     ],
   },
   decisionLog: {

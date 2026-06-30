@@ -36,3 +36,22 @@ export function normalizeUiPreferences(entry = {}) {
     surfaceCounts,
   };
 }
+
+export function getPortableUiPreferenceReview(preferences = DEFAULT_UI_PREFERENCES) {
+  return {
+    schemaVersion: UI_PREFERENCE_PACKET_SCHEMA,
+    storageKey: UI_PREFERENCE_STORAGE_KEY,
+    scope: 'browser-local-only',
+    preferences: normalizeUiPreferences(preferences),
+    authority: {
+      memoryPersistenceAllowed: false,
+      runtimeMutationAllowed: false,
+      sourceMutationAllowed: false,
+      commitPushAllowed: false,
+    },
+  };
+}
+
+export function getPortableUiPreferenceReviewText(preferences = DEFAULT_UI_PREFERENCES) {
+  return JSON.stringify(getPortableUiPreferenceReview(preferences), null, 2);
+}

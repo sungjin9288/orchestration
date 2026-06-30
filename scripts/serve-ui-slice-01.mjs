@@ -2124,6 +2124,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/artifact-preview.js') {
+    await serveStaticAsset(response, 'artifact-preview.js');
+    return;
+  }
+
   if (url.pathname === '/pack-config.js') {
     await serveStaticAsset(response, 'pack-config.js');
     return;
