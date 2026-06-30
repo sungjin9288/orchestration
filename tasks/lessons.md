@@ -2,6 +2,7 @@
 
 ## direction resets
 
+- Required field lists that are emitted by multiple status payloads should live under one contract name. Reusing `proposalApplicationSourceMutationDecisionRequiredFields` keeps packet and handoff verifiers aligned while preserving each verifier's local source-evidence checks.
 - Source-evidence assertion maps should be named before they are passed to verifier helpers when the map spans several source files. A named map such as `sourceMutationDecisionPacketSourceEvidence` lets the script read as evidence definition followed by assertion, instead of hiding the contract inside a function call.
 - Fielded decision input text should be named once when it is emitted as a status payload contract. Keep source-evidence quote checks local, but route the payload `nextRequiredInput` through a shared constant so follow-up handoff scripts do not drift by copying long approval option strings.
 - Source mutation operator handoffs should move the live route to a fielded decision requirement, not back to another handoff. The handoff can make planning, implementation, evidence-request, rejection, and deferral wording copy-ready while keeping source mutation planning and implementation false until the operator provides a fully fielded decision.

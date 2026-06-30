@@ -7,6 +7,7 @@ import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   proposalApplicationSourceMutationFieldedDecisionSlice,
   proposalApplicationSourceMutationFieldedDecisionRequiredInput,
+  proposalApplicationSourceMutationDecisionRequiredFields,
   proposalApplicationSourceMutationOperatorHandoffSlice,
 } from './vnext-status-constants.mjs';
 
@@ -50,22 +51,6 @@ const sourceMutationOperatorHandoffSections = [
   '## Still Blocked',
   '## Stop Conditions',
   '## Verification',
-];
-
-const sourceMutationOperatorDecisionRequiredFields = [
-  'decisionId',
-  'decisionStatus',
-  'targetAuthority',
-  'targetSurface',
-  'sourceEvidenceRefs',
-  'negativeEvidenceRefs',
-  'applicationAttemptRefs',
-  'mutationPlanRefs',
-  'rollbackRefs',
-  'focusedSmokeRefs',
-  'aggregateVerificationRef',
-  'stillBlockedAuthorities',
-  'approvalStatement',
 ];
 
 const sourceMutationOperatorDecisionInvalidShortcuts = [
@@ -155,7 +140,7 @@ for (const section of sourceMutationOperatorHandoffSections) {
 
 assertContainsBacktickedAll(
   sourceMutationOperatorHandoffSources.handoff,
-  sourceMutationOperatorDecisionRequiredFields,
+  proposalApplicationSourceMutationDecisionRequiredFields,
 );
 assertDoesNotMatchAny(sourceMutationOperatorHandoffSources.app, forbiddenActionPatterns);
 
@@ -276,7 +261,7 @@ process.stdout.write(
       currentGate: proposalApplicationSourceMutationOperatorHandoffSlice,
       handoffStatus: 'decision-input-only',
       handoff: sourceMutationOperatorHandoffFiles.handoff,
-      requiredDecisionFields: sourceMutationOperatorDecisionRequiredFields,
+      requiredDecisionFields: proposalApplicationSourceMutationDecisionRequiredFields,
       invalidShortcutsRejected: sourceMutationOperatorDecisionInvalidShortcuts,
       nextRequiredInput: proposalApplicationSourceMutationFieldedDecisionRequiredInput,
       nextRecommendedSlice: proposalApplicationSourceMutationFieldedDecisionSlice,

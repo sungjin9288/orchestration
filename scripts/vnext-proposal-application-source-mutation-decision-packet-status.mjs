@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
+  proposalApplicationSourceMutationDecisionRequiredFields,
   proposalApplicationSourceMutationDecisionRequiredInput,
   proposalApplicationSourceMutationDecisionSlice,
   proposalApplicationSourceMutationFieldedDecisionSlice,
@@ -50,22 +51,6 @@ const sourceMutationDecisionOptions = [
   'request-more-evidence',
   'reject',
   'defer',
-];
-
-const sourceMutationDecisionRequiredFields = [
-  'decisionId',
-  'decisionStatus',
-  'targetAuthority',
-  'targetSurface',
-  'sourceEvidenceRefs',
-  'negativeEvidenceRefs',
-  'applicationAttemptRefs',
-  'mutationPlanRefs',
-  'rollbackRefs',
-  'focusedSmokeRefs',
-  'aggregateVerificationRef',
-  'stillBlockedAuthorities',
-  'approvalStatement',
 ];
 
 const blockedAuthorityMarkers = [
@@ -144,7 +129,7 @@ for (const section of sourceMutationDecisionPacketSections) {
 
 assertContainsBacktickedAll(
   sourceMutationDecisionPacketSources.packet,
-  sourceMutationDecisionRequiredFields,
+  proposalApplicationSourceMutationDecisionRequiredFields,
 );
 assertDoesNotMatchAny(sourceMutationDecisionPacketSources.app, forbiddenActionPatterns);
 
@@ -227,7 +212,7 @@ process.stdout.write(
       nextRequiredInput: proposalApplicationSourceMutationDecisionRequiredInput,
       nextRecommendedSlice: proposalApplicationSourceMutationOperatorHandoffSlice,
       decisionOptions: sourceMutationDecisionOptions,
-      requiredDecisionFields: sourceMutationDecisionRequiredFields,
+      requiredDecisionFields: proposalApplicationSourceMutationDecisionRequiredFields,
       upstreamStatus: {
         applicationImplementation: {
           ok: applicationImplementationStatus.ok,

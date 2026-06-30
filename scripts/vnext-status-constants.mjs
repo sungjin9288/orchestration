@@ -16,6 +16,22 @@ export const proposalApplicationSourceMutationDecisionRequiredInput =
 export const proposalApplicationSourceMutationFieldedDecisionRequiredInput =
   'operator-provided approve-source-mutation-planning-only, approve-source-mutation-implementation-slice, request-more-evidence, reject, or defer decision';
 
+export const proposalApplicationSourceMutationDecisionRequiredFields = [
+  'decisionId',
+  'decisionStatus',
+  'targetAuthority',
+  'targetSurface',
+  'sourceEvidenceRefs',
+  'negativeEvidenceRefs',
+  'applicationAttemptRefs',
+  'mutationPlanRefs',
+  'rollbackRefs',
+  'focusedSmokeRefs',
+  'aggregateVerificationRef',
+  'stillBlockedAuthorities',
+  'approvalStatement',
+];
+
 export const operatorDecisionGate = 'operator decision required';
 
 export const proposalApplicationDecisionGate = 'proposal application decision required';
