@@ -33,6 +33,7 @@ const helperSourceByName = new Map([
   ['getExecutionStageDisplay', executionLabels],
   ['getMissionStatusDisplay', executionLabels],
   ['getMissionStatusTone', executionLabels],
+  ['getTaskLifecycleDisplay', executionLabels],
 ]);
 
 function extractFunction(source, name) {

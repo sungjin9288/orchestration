@@ -41,3 +41,19 @@ export function getInboxResolutionActionDisplay(action) {
 
   return action || '알 수 없음';
 }
+
+export function getInboxTone(item) {
+  if (item.status === 'resolved') {
+    return 'success';
+  }
+
+  if (item.blocksTask) {
+    return 'danger';
+  }
+
+  if (item.kind === 'approval') {
+    return 'accent';
+  }
+
+  return 'warning';
+}

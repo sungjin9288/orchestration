@@ -37,6 +37,7 @@ const helperSourceByName = new Map([
   ['getEvidenceRailHandoffDisplay', executionLabels],
   ['getExecutionStageDisplay', executionLabels],
   ['getReviewTone', executionLabels],
+  ['getTaskLifecycleDisplay', executionLabels],
 ]);
 
 function extractFunction(source, name) {

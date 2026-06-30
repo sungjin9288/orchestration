@@ -171,6 +171,7 @@ async function main() {
     assert.match(executionLabels, /export function getApprovalDisplayTone\(status\) \{/);
     assert.match(executionLabels, /export function getRunTone\(status\) \{/);
     assert.match(executionLabels, /export function getReviewTone\(status\) \{/);
+    assert.match(executionLabels, /export function getTaskLifecycleDisplay\(state\) \{/);
     assert.match(executionLabels, /export function getTaskLifecycleTone\(state\) \{/);
     assert.match(executionLabels, /export function getAlignmentTone\(status\) \{/);
     assert.match(executionLabels, /export function getAlignmentStatusDisplay\(status\) \{/);
@@ -184,6 +185,7 @@ async function main() {
     assert.match(inboxLabels, /export function getInboxKindDisplay\(kind\) \{/);
     assert.match(inboxLabels, /export function getInboxStatusDisplay\(status\) \{/);
     assert.match(inboxLabels, /export function getInboxResolutionActionDisplay\(action\) \{/);
+    assert.match(inboxLabels, /export function getInboxTone\(item\) \{/);
     assert.match(companyConfig, /export const COMPANY_ROLE_OPTIONS = \[/);
     assert.match(companyConfig, /export function normalizeCompanyMember\(entry, index = 0\) \{/);
     assert.match(companyConfig, /export function getCompanyMembersForGroup\(members = \[\], groupId = null\) \{/);

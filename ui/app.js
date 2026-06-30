@@ -34,12 +34,14 @@ import {
   getReviewerVerdictTone,
   getRunTone,
   getRunRelationLabelDisplay,
+  getTaskLifecycleDisplay,
   getTaskLifecycleTone,
 } from './execution-labels.js';
 import {
   getInboxKindDisplay,
   getInboxResolutionActionDisplay,
   getInboxStatusDisplay,
+  getInboxTone,
 } from './inbox-labels.js';
 import {
   COMPANY_DESK_OPTIONS,
@@ -2742,26 +2744,6 @@ function getDerived() {
     artifactMap,
     inboxItemMap,
   };
-}
-
-function getTaskLifecycleDisplay(state) {
-  if (state === 'Inbox') {
-    return '받은함';
-  }
-
-  if (state === 'In Progress') {
-    return '진행 중';
-  }
-
-  if (state === 'Review') {
-    return '리뷰';
-  }
-
-  if (state === 'Done') {
-    return '완료';
-  }
-
-  return state || '알 수 없음';
 }
 
 function getReviewStatusDisplay(status) {
@@ -7893,22 +7875,6 @@ function renderRelationStrip(context) {
       ${renderCompactList('변경 파일', context.changedFiles, 4)}
     </div>
   `;
-}
-
-function getInboxTone(item) {
-  if (item.status === 'resolved') {
-    return 'success';
-  }
-
-  if (item.blocksTask) {
-    return 'danger';
-  }
-
-  if (item.kind === 'approval') {
-    return 'accent';
-  }
-
-  return 'warning';
 }
 
 function renderReasonList(title, items) {

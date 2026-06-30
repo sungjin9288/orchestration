@@ -31,6 +31,7 @@ const helperSourceByName = new Map([
   ['getExecutionStageDisplay', executionLabels],
   ['getReviewTone', executionLabels],
   ['getRunTone', executionLabels],
+  ['getTaskLifecycleDisplay', executionLabels],
 ]);
 
 function extractFunction(source, name) {

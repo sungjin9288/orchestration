@@ -17,9 +17,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
+const formattersPath = path.join(repoRoot, 'ui', 'formatters.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-189');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
+const formatters = fs.readFileSync(formattersPath, 'utf8');
+const helperSourceByName = new Map([
+  ['escapeHtml', formatters],
+  ['getEvidenceRailHandoffDisplay', executionLabels],
+  ['getExecutionStageDisplay', executionLabels],
+  ['getTaskLifecycleDisplay', executionLabels],
+]);
 
 function extractFunction(source, name) {
   const signature = `function ${name}(`;
@@ -121,7 +131,7 @@ function loadHelpers() {
   ];
 
   for (const name of functionNames) {
-    const source = extractFunction(appJs, name);
+    const source = extractFunction(helperSourceByName.get(name) || appJs, name);
     vm.runInContext(`${source}\nglobalThis.${name} = ${name};`, context);
   }
 

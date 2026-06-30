@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const councilConfigPath = path.join(repoRoot, 'ui', 'council-config.js');
+const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const councilDraftStatePath = path.join(repoRoot, 'var', 'runtime-ui-slice-19', 'state.json');
 
@@ -15,6 +16,7 @@ assert.equal(fs.existsSync(councilDraftStatePath), true, 'runtime-ui-slice-19 st
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const councilConfig = fs.readFileSync(councilConfigPath, 'utf8');
+const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const councilDraftState = JSON.parse(fs.readFileSync(councilDraftStatePath, 'utf8'));
 const councilSession = Object.values(councilDraftState.councilSessions)[0];
@@ -33,9 +35,9 @@ assert.match(councilConfig, /displayName: '설계'/);
 assert.match(councilConfig, /displayName: '실행'/);
 assert.match(appJs, /renderCouncilCastCards\(selectedCouncilSession, \{ compact: true \}\)/);
 assert.match(appJs, /renderCouncilCastCards\(null\)/);
-assert.match(appJs, /function getMissionStatusDisplay\(status\)/);
-assert.match(appJs, /function getCouncilStatusDisplay\(status\)/);
-assert.match(appJs, /function getTaskLifecycleDisplay\(state\)/);
+assert.match(executionLabels, /export function getMissionStatusDisplay\(status\) \{/);
+assert.match(executionLabels, /export function getCouncilStatusDisplay\(status\) \{/);
+assert.match(executionLabels, /export function getTaskLifecycleDisplay\(state\) \{/);
 assert.match(appJs, /function getReviewStatusDisplay\(status\)/);
 assert.match(appJs, /function getApprovalStatusDisplay\(status\)/);
 assert.match(appJs, /getCouncilCastEntry\(entry\.role, selectedCouncilSession\)\.displayName/);

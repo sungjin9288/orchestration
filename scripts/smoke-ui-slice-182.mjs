@@ -40,11 +40,13 @@ const helperSourceByName = new Map([
   ['getMissionStatusDisplay', executionLabels],
   ['getMissionStatusTone', executionLabels],
   ['getReviewTone', executionLabels],
+  ['getTaskLifecycleDisplay', executionLabels],
   ['getTaskLifecycleTone', executionLabels],
   ['getAlignmentTone', executionLabels],
   ['getAlignmentStatusDisplay', executionLabels],
   ['getInboxKindDisplay', inboxLabels],
   ['getInboxStatusDisplay', inboxLabels],
+  ['getInboxTone', inboxLabels],
 ]);
 
 function extractFunction(source, name) {

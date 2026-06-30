@@ -2,6 +2,10 @@
 
 ## direction resets
 
+- Task lifecycle display splitting should stay display-only. Move only `getTaskLifecycleDisplay` into `ui/execution-labels.js`, but keep lifecycle state changes, task selection, execution actions, runtime mutation, source mutation, commit, and push paths outside the helper.
+
+- Inbox tone splitting should stay display-only. Move only `getInboxTone` into `ui/inbox-labels.js`, but keep inbox resolution actions, approval bridge state, task mutation, runtime mutation, source mutation, commit, and push paths outside the helper.
+
 - Alignment status display splitting should stay display-only. Move only `getAlignmentStatusDisplay` into `ui/execution-labels.js`, but keep council alignment state, mission selection, meeting actions, runtime mutation, source mutation, commit, and push paths outside the helper.
 
 - Mission and council status display splitting should stay display-only. Move only `getMissionStatusDisplay`, `getMissionStatusTone`, `getCouncilStatusDisplay`, and `getCouncilStatusTone` into `ui/execution-labels.js`, but keep mission selection, council session state, meeting actions, runtime mutation, source mutation, commit, and push paths outside the helper.

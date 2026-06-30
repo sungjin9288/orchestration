@@ -19,11 +19,13 @@ const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
 const formattersPath = path.join(repoRoot, 'ui', 'formatters.js');
+const inboxLabelsPath = path.join(repoRoot, 'ui', 'inbox-labels.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-184');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const formatters = fs.readFileSync(formattersPath, 'utf8');
+const inboxLabels = fs.readFileSync(inboxLabelsPath, 'utf8');
 const helperSourceByName = new Map([
   ['escapeHtml', formatters],
   ['getApprovalActionLabel', executionLabels],
@@ -32,6 +34,7 @@ const helperSourceByName = new Map([
   ['getEvidenceRailStatusDisplay', executionLabels],
   ['getEvidenceRailStatusTone', executionLabels],
   ['getExecutionStageDisplay', executionLabels],
+  ['getInboxTone', inboxLabels],
 ]);
 
 function extractFunction(source, name) {

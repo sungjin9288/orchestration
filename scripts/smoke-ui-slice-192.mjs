@@ -35,8 +35,10 @@ const helperSourceByName = new Map([
   ['getEvidenceRailStatusDisplay', executionLabels],
   ['getEvidenceRailStatusTone', executionLabels],
   ['getExecutionStageDisplay', executionLabels],
+  ['getTaskLifecycleDisplay', executionLabels],
   ['getInboxKindDisplay', inboxLabels],
   ['getInboxStatusDisplay', inboxLabels],
+  ['getInboxTone', inboxLabels],
 ]);
 
 function extractFunction(source, name) {

@@ -169,6 +169,26 @@ export function getReviewTone(status) {
   return 'warning';
 }
 
+export function getTaskLifecycleDisplay(state) {
+  if (state === 'Inbox') {
+    return '받은함';
+  }
+
+  if (state === 'In Progress') {
+    return '진행 중';
+  }
+
+  if (state === 'Review') {
+    return '리뷰';
+  }
+
+  if (state === 'Done') {
+    return '완료';
+  }
+
+  return state || '알 수 없음';
+}
+
 export function getTaskLifecycleTone(state) {
   if (state === 'Done') {
     return 'success';
