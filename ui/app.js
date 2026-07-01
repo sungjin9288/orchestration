@@ -1625,6 +1625,21 @@ function getHarnessOutputBriefSummaryLabels(outputBrief) {
   };
 }
 
+function getHarnessOutputBriefLineItems(outputBrief) {
+  const briefLines = Array.isArray(outputBrief.briefLines) ? outputBrief.briefLines : [];
+
+  return briefLines.map((line) => {
+    const typeLabel = getHarnessOutputBriefTypeLabel(line.type);
+    const text = line.text || '';
+
+    return {
+      typeLabel,
+      text,
+      copyText: `[${typeLabel}] ${text}`.trim(),
+    };
+  });
+}
+
 function renderHarnessOutputBriefSummary(execution) {
   const outputBrief = getHarnessOutputBriefResult(execution, state.lastHarnessOutputBriefResult);
 
@@ -1632,7 +1647,7 @@ function renderHarnessOutputBriefSummary(execution) {
     return '';
   }
 
-  const briefLines = Array.isArray(outputBrief.briefLines) ? outputBrief.briefLines : [];
+  const outputBriefLineItems = getHarnessOutputBriefLineItems(outputBrief);
   const {
     outputBriefScopeLabel,
     outputBriefSeverityLabel,
@@ -1658,13 +1673,13 @@ function renderHarnessOutputBriefSummary(execution) {
       </div>
       <div class="stack stack-compact" data-harness-output-brief-lines="true">
         ${
-          briefLines.length > 0
-            ? briefLines
+          outputBriefLineItems.length > 0
+            ? outputBriefLineItems
                 .map(
-                  (line) => `
+                  (lineItem) => `
                     <p class="detail-copy detail-copy-compact">
-                      <code>${escapeHtml(getHarnessOutputBriefTypeLabel(line.type))}</code>
-                      ${escapeHtml(line.text || '')}
+                      <code>${escapeHtml(lineItem.typeLabel)}</code>
+                      ${escapeHtml(lineItem.text)}
                     </p>
                   `,
                 )
@@ -1681,7 +1696,7 @@ function formatHarnessOutputBriefForCopy(outputBrief, execution) {
     return '';
   }
 
-  const briefLines = Array.isArray(outputBrief.briefLines) ? outputBrief.briefLines : [];
+  const outputBriefLineItems = getHarnessOutputBriefLineItems(outputBrief);
   const {
     outputBriefScopeLabel,
     outputBriefSeverityLabel,
@@ -1693,9 +1708,7 @@ function formatHarnessOutputBriefForCopy(outputBrief, execution) {
     `중요도: ${outputBriefSeverityLabel}`,
     `처리 방식: ${outputBriefProcessingLabel}`,
   ];
-  const lineText = briefLines.map(
-    (line) => `[${getHarnessOutputBriefTypeLabel(line.type)}] ${line.text || ''}`.trim(),
-  );
+  const lineText = outputBriefLineItems.map((lineItem) => lineItem.copyText);
 
   return [...header, ...lineText].join('\n');
 }

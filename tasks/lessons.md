@@ -72,7 +72,7 @@
 
 - Harness policy report copy should resolve the latest-result payload once per render path before formatting copy text. Keep policy-report parsing, hidden/history copy payloads, clipboard actions, runtime mutation, source mutation, commit, and push paths in the app shell unless a later slice proves a narrower boundary.
 
-- Harness output brief rendering should name both the local brief selector and shared summary labels before rendering or copy formatting. Keep output-brief state in `ui/app.js`, route scope/severity/processing wording through one local helper, and avoid hiding repeated selector, count, or processing-label calculations inside template strings.
+- Harness output brief rendering should name both the local brief selector, shared summary labels, and shared line items before rendering or copy formatting. Keep output-brief state in `ui/app.js`, route scope/severity/processing wording and line type/text/copy text through local helpers, and avoid hiding repeated selector, count, processing-label, or line-label calculations inside template strings.
 
 - Harness output brief selector splitting should keep `lastHarnessOutputBriefResult` and copy/render actions in `ui/app.js`; move only the execution-key match into `ui/harness-state.js`, and pass the local output brief result explicitly so route handling, clipboard state, runtime mutation, source mutation, commit, and push paths stay outside the helper.
 

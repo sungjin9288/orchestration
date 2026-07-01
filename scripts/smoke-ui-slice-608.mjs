@@ -12,14 +12,18 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /function formatHarnessOutputBriefForCopy\(outputBrief, execution\)/);
 assert.match(appJs, /function getHarnessOutputBriefSummaryLabels\(outputBrief\)/);
+assert.match(appJs, /function getHarnessOutputBriefLineItems\(outputBrief\)/);
 assert.match(appJs, /getHarnessExecutionBriefCopyTitle\(execution\)/);
 assert.match(appJs, /처리 방식:/);
 assert.match(appJs, /getHarnessOutputBriefSummaryLabels\(outputBrief\)/);
+assert.match(appJs, /const outputBriefLineItems = getHarnessOutputBriefLineItems\(outputBrief\);/);
+assert.match(appJs, /const lineText = outputBriefLineItems\.map\(\(lineItem\) => lineItem\.copyText\);/);
 assert.match(appJs, /`범위: \$\{outputBriefScopeLabel\}`/);
 assert.match(appJs, /`중요도: \$\{outputBriefSeverityLabel\}`/);
 assert.match(appJs, /`처리 방식: \$\{outputBriefProcessingLabel\}`/);
 assert.doesNotMatch(appJs, /`범위: \$\{String\(outputBrief\.input\?\.nonEmptyLineCount \|\| 0\)\} lines/);
 assert.doesNotMatch(appJs, /`처리 방식: \$\{outputBrief\.installsShellHooks \? 'hook 사용' : 'hook 없음'\}/);
+assert.doesNotMatch(appJs, /\(line\) => `\[\$\{getHarnessOutputBriefTypeLabel\(line\.type\)\}\] \$\{line\.text \|\| ''\}`\.trim\(\)/);
 assert.match(appJs, /data-action="copy-harness-output-brief"/);
 assert.match(appJs, /const visibleHarnessOutputBrief = getHarnessOutputBriefResult\(\s*visibleHarnessExecutionResult,\s*state\.lastHarnessOutputBriefResult,\s*\);/);
 assert.match(appJs, /const visibleHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel\(visibleHarnessExecutionResult\);/);
