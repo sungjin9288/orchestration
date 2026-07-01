@@ -18044,13 +18044,16 @@ async function copyHarnessExecutionPacket(packetText) {
 
 async function copyHarnessOutputBrief(briefText, label = '출력 요약') {
   const briefLabel = label || '출력 요약';
+  const emptyOutputBriefCopyMessage = `복사할 하네스 ${briefLabel}이 없습니다.`;
+  const copiedOutputBriefMessage = `하네스 ${briefLabel}을 복사했습니다.`;
+  const unsupportedOutputBriefCopyMessage =
+    `클립보드 미지원 환경입니다. 하네스 ${briefLabel}을 직접 확인하세요.`;
 
   await copyTextValue({
     value: briefText,
-    emptyErrorMessage: `복사할 하네스 ${briefLabel}이 없습니다.`,
-    copiedMessage: () => `하네스 ${briefLabel}을 복사했습니다.`,
-    unsupportedMessage: () =>
-      `클립보드 미지원 환경입니다. 하네스 ${briefLabel}을 직접 확인하세요.`,
+    emptyErrorMessage: emptyOutputBriefCopyMessage,
+    copiedMessage: () => copiedOutputBriefMessage,
+    unsupportedMessage: () => unsupportedOutputBriefCopyMessage,
   });
 }
 
