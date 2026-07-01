@@ -21,7 +21,8 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-execution-result="true"/);
-assert.match(appJs, /visibleHarnessExecutionResult\.resolvedInputPath/);
+assert.match(appJs, /const visibleHarnessInputPath = visibleHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
+assert.match(appJs, /data-input-path="\$\{escapeHtml\(visibleHarnessInputPath\)\}"/);
 assert.match(appJs, /data-harness-input-copy="true"[\s\S]*?>\s*입력 경로\s*<\/button>/);
 
 async function fetchJson(url, options = {}) {

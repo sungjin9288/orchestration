@@ -21,10 +21,10 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-execution-result="true"/);
-assert.match(appJs, /visibleHarnessExecutionResult\.resolvedOutputPath/);
+assert.match(appJs, /const visibleHarnessOutputPath = visibleHarnessExecutionResult\?\.resolvedOutputPath \|\| '';/);
 assert.match(
   appJs,
-  /visibleHarnessExecutionResult\.resolvedOutputPath[\s\S]*?data-harness-output-copy="true"[\s\S]*?>\s*출력 경로\s*<\/button>/,
+  /data-output-path="\$\{escapeHtml\(visibleHarnessOutputPath\)\}"[\s\S]*?data-harness-output-copy="true"/,
 );
 
 async function fetchJson(url, options = {}) {

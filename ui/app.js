@@ -1682,6 +1682,20 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       : null;
   const visibleHarnessExecutionKey = getHarnessExecutionResultKey(visibleHarnessExecutionResult);
   const hiddenHarnessExecutionKey = getHarnessExecutionResultKey(hiddenHarnessExecutionResult);
+  const visibleHarnessRequestId =
+    visibleHarnessExecutionResult?.requestId || visibleHarnessExecutionResult?.executionId || '';
+  const hiddenHarnessRequestId =
+    hiddenHarnessExecutionResult?.requestId || hiddenHarnessExecutionResult?.executionId || '';
+  const visibleHarnessInputSummaryPath =
+    visibleHarnessExecutionResult?.resolvedInputPath || visibleHarnessExecutionResult?.inputPath || '';
+  const visibleHarnessInputPath = visibleHarnessExecutionResult?.resolvedInputPath || '';
+  const hiddenHarnessInputPath = hiddenHarnessExecutionResult?.resolvedInputPath || '';
+  const visibleHarnessOutputPath = visibleHarnessExecutionResult?.resolvedOutputPath || '';
+  const hiddenHarnessOutputPath = hiddenHarnessExecutionResult?.resolvedOutputPath || '';
+  const visibleHarnessActionOutputPath =
+    visibleHarnessExecutionResult?.resolvedOutputPath || visibleHarnessExecutionResult?.outputPath || '';
+  const hiddenHarnessActionOutputPath =
+    hiddenHarnessExecutionResult?.resolvedOutputPath || hiddenHarnessExecutionResult?.outputPath || '';
   const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload(hiddenHarnessExecutionResult);
   const visibleHarnessPreviewText =
     visibleHarnessExecutionResult?.outputPreview || visibleHarnessExecutionResult?.stdoutPreview || '';
@@ -1841,8 +1855,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                             : ''
                         }
                         ${
-                          visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId
-                            ? createToken(`요청:${visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId}`, 'neutral')
+                          visibleHarnessRequestId
+                            ? createToken(`요청:${visibleHarnessRequestId}`, 'neutral')
                             : ''
                         }
                         ${
@@ -1856,33 +1870,33 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                             : ''
                         }
                       </div>
-                      <p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.inputPath || '')}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력: <code>${escapeHtml(visibleHarnessInputSummaryPath)}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(getHarnessExecutionModeLabel(visibleHarnessExecutionResult))}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffText(visibleHarnessExecutionResult))}</code></p>
                       ${
-                        visibleHarnessExecutionResult.resolvedOutputPath
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(visibleHarnessExecutionResult))}: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}</code></p>`
+                        visibleHarnessOutputPath
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(visibleHarnessExecutionResult))}: <code>${escapeHtml(visibleHarnessOutputPath)}</code></p>`
                           : `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(visibleHarnessExecutionResult))}: <code>표준 출력 전용</code></p>`
                       }
                       ${
-                        visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-execution-request-summary="true">요청 ID: <code>${escapeHtml(visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId)}</code></p>`
+                        visibleHarnessRequestId
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-execution-request-summary="true">요청 ID: <code>${escapeHtml(visibleHarnessRequestId)}</code></p>`
                           : ''
                       }
                       ${renderHarnessPolicyReportSummary(visibleHarnessExecutionResult)}
                       ${renderHarnessOutputBriefSummary(visibleHarnessExecutionResult)}
                       ${
-                        visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.resolvedOutputPath
+                        visibleHarnessInputPath || visibleHarnessOutputPath
                           ? `
                             <div class="form-actions form-actions-inline form-actions-compact">
                               ${
-                                visibleHarnessExecutionResult.resolvedInputPath
+                                visibleHarnessInputPath
                                   ? `
                                     <button
                                       class="secondary-button"
                                       type="button"
                                       data-action="copy-harness-input-path"
-                                      data-input-path="${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath)}"
+                                      data-input-path="${escapeHtml(visibleHarnessInputPath)}"
                                       data-harness-input-copy="true"
                                     >
                                       입력 경로
@@ -1891,8 +1905,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       class="secondary-button"
                                       type="button"
                                       data-action="reuse-harness-execution-paths"
-                                      data-input-path="${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath)}"
-                                      data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath || visibleHarnessExecutionResult.outputPath || '')}"
+                                      data-input-path="${escapeHtml(visibleHarnessInputPath)}"
+                                      data-output-path="${escapeHtml(visibleHarnessActionOutputPath)}"
                                       data-harness-result-reuse="true"
                                     >
                                       경로 채우기
@@ -1901,8 +1915,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       class="secondary-button"
                                       type="button"
                                       data-action="rerun-harness-execution-paths"
-                                      data-input-path="${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath)}"
-                                      data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath || visibleHarnessExecutionResult.outputPath || '')}"
+                                      data-input-path="${escapeHtml(visibleHarnessInputPath)}"
+                                      data-output-path="${escapeHtml(visibleHarnessActionOutputPath)}"
                                       data-policy-report="${visibleHarnessExecutionResult.actionMode === 'policy-report' ? 'true' : 'false'}"
                                       data-harness-result-rerun="true"
                                       ${state.loading || state.mutating ? 'disabled' : ''}
@@ -1913,13 +1927,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   : ''
                               }
                               ${
-                                visibleHarnessExecutionResult.resolvedOutputPath
+                                visibleHarnessOutputPath
                                   ? `
                                     <button
                                       class="secondary-button"
                                       type="button"
                                       data-action="copy-harness-output-path"
-                                      data-output-path="${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}"
+                                      data-output-path="${escapeHtml(visibleHarnessOutputPath)}"
                                       data-output-path-label="${escapeHtml(getHarnessExecutionOutputPathActionLabel(visibleHarnessExecutionResult))}"
                                       data-harness-output-copy="true"
                                     >
@@ -1929,13 +1943,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   : ''
                               }
                               ${
-                                visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId
+                                visibleHarnessRequestId
                                   ? `
                                     <button
                                       class="secondary-button"
                                       type="button"
                                       data-action="copy-harness-request-id"
-                                      data-request-id="${escapeHtml(visibleHarnessExecutionResult.requestId || visibleHarnessExecutionResult.executionId || '')}"
+                                      data-request-id="${escapeHtml(visibleHarnessRequestId)}"
                                       data-harness-request-id-copy="true"
                                     >
                                       요청 ID
@@ -2052,8 +2066,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         <strong>실행 기록</strong>
                       </div>
                       ${
-                        hiddenHarnessExecutionResult.requestId || hiddenHarnessExecutionResult.executionId
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-request-summary="true">요청 ID: <code>${escapeHtml(hiddenHarnessExecutionResult.requestId || hiddenHarnessExecutionResult.executionId)}</code></p>`
+                        hiddenHarnessRequestId
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-request-summary="true">요청 ID: <code>${escapeHtml(hiddenHarnessRequestId)}</code></p>`
                           : ''
                       }
                       ${
@@ -2064,13 +2078,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(getHarnessExecutionModeLabel(hiddenHarnessExecutionResult))}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffText(hiddenHarnessExecutionResult))}</code></p>
                       ${
-                        hiddenHarnessExecutionResult.resolvedInputPath
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
+                        hiddenHarnessInputPath
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessInputPath)}</code></p>`
                           : ''
                       }
                       ${
-                        hiddenHarnessExecutionResult.resolvedOutputPath
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult))}: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}</code></p>`
+                        hiddenHarnessOutputPath
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult))}: <code>${escapeHtml(hiddenHarnessOutputPath)}</code></p>`
                           : `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult))}: <code>표준 출력 전용</code></p>`
                       }
                     </section>
@@ -2109,13 +2123,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         ${escapeHtml(getHarnessExecutionShowActionLabel(hiddenHarnessExecutionResult))}
                       </button>
                       ${
-                        hiddenHarnessExecutionResult.resolvedInputPath
+                        hiddenHarnessInputPath
                           ? `
                             <button
                               class="secondary-button"
                               type="button"
                               data-action="copy-harness-input-path"
-                              data-input-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}"
+                              data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
                               data-harness-result-hidden-input-copy="true"
                             >
                               입력 경로
@@ -2124,8 +2138,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               class="secondary-button"
                               type="button"
                               data-action="reuse-harness-execution-paths"
-                              data-input-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}"
-                              data-output-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath || hiddenHarnessExecutionResult.outputPath || '')}"
+                              data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
+                              data-output-path="${escapeHtml(hiddenHarnessActionOutputPath)}"
                               data-harness-result-hidden-reuse="true"
                             >
                               경로 채우기
@@ -2134,8 +2148,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               class="secondary-button"
                               type="button"
                               data-action="rerun-harness-execution-paths"
-                              data-input-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}"
-                              data-output-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath || hiddenHarnessExecutionResult.outputPath || '')}"
+                              data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
+                              data-output-path="${escapeHtml(hiddenHarnessActionOutputPath)}"
                               data-policy-report="${hiddenHarnessExecutionResult.actionMode === 'policy-report' ? 'true' : 'false'}"
                               data-harness-result-hidden-rerun="true"
                               ${state.loading || state.mutating ? 'disabled' : ''}
@@ -2146,13 +2160,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                       ${
-                        hiddenHarnessExecutionResult.resolvedOutputPath
+                        hiddenHarnessOutputPath
                           ? `
                             <button
                               class="secondary-button"
                               type="button"
                               data-action="copy-harness-output-path"
-                              data-output-path="${escapeHtml(hiddenHarnessExecutionResult.resolvedOutputPath)}"
+                              data-output-path="${escapeHtml(hiddenHarnessOutputPath)}"
                               data-output-path-label="${escapeHtml(getHarnessExecutionOutputPathActionLabel(hiddenHarnessExecutionResult))}"
                               data-harness-result-hidden-output-copy="true"
                             >
@@ -2162,13 +2176,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                       ${
-                        hiddenHarnessExecutionResult.requestId || hiddenHarnessExecutionResult.executionId
+                        hiddenHarnessRequestId
                           ? `
                             <button
                               class="secondary-button"
                               type="button"
                               data-action="copy-harness-request-id"
-                              data-request-id="${escapeHtml(hiddenHarnessExecutionResult.requestId || hiddenHarnessExecutionResult.executionId || '')}"
+                              data-request-id="${escapeHtml(hiddenHarnessRequestId)}"
                               data-harness-result-hidden-request-id-copy="true"
                             >
                               요청 ID

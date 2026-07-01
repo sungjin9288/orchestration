@@ -22,8 +22,10 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-input-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-summary="true"/);
-assert.match(appJs, /hiddenHarnessExecutionResult\.resolvedInputPath/);
-assert.match(appJs, /hiddenHarnessExecutionResult\.resolvedOutputPath/);
+assert.match(appJs, /const hiddenHarnessInputPath = hiddenHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
+assert.match(appJs, /const hiddenHarnessOutputPath = hiddenHarnessExecutionResult\?\.resolvedOutputPath \|\| '';/);
+assert.match(appJs, /data-harness-result-hidden-input-summary="true">입력: <code>\$\{escapeHtml\(hiddenHarnessInputPath\)\}/);
+assert.match(appJs, /data-harness-result-hidden-output-summary="true"[\s\S]*?\$\{escapeHtml\(hiddenHarnessOutputPath\)\}/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

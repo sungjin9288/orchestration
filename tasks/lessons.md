@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness latest and hidden result path rendering should name request ids, summary paths, resolved action paths, and fallback output paths once before the template. Keep summary and action path variables separate so readability improves without widening when buttons render.
+
 - Harness history action rendering should compute the history execution key, request id, input path, and output path once inside the history render callback, then reuse those named values across register rows and action buttons. Keep history restore, reuse, rerun, output brief, runtime mutation, source mutation, commit, and push paths in `ui/app.js`.
 
 - Harness preview text handling should compute visible, hidden, and history preview text once in the render path, then reuse those named values for copy, summary, and compact preview rendering. Keep preview action handlers, hidden-result state, runtime mutation, source mutation, commit, and push paths in `ui/app.js`.

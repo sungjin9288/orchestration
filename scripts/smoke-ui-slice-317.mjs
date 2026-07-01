@@ -25,7 +25,8 @@ assert.match(appJs, /data-harness-result-reuse="true"/);
 assert.match(appJs, /function reuseHarnessExecutionPaths\(actionButton\)/);
 assert.match(appJs, /state\.harnessExecutionDraftInputPath = inputPath;/);
 assert.match(appJs, /state\.harnessExecutionDraftOutputPath = outputPath;/);
-assert.match(appJs, /data-input-path="\$\{escapeHtml\(visibleHarnessExecutionResult\.resolvedInputPath\)\}"/);
+assert.match(appJs, /const visibleHarnessInputPath = visibleHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
+assert.match(appJs, /data-input-path="\$\{escapeHtml\(visibleHarnessInputPath\)\}"/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

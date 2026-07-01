@@ -12,8 +12,8 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-execution-output-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-summary="true"/);
-assert.match(appJs, /visibleHarnessExecutionResult\.resolvedOutputPath[\s\S]*표준 출력 전용/);
-assert.match(appJs, /hiddenHarnessExecutionResult\.resolvedOutputPath[\s\S]*표준 출력 전용/);
+assert.match(appJs, /visibleHarnessOutputPath[\s\S]*표준 출력 전용/);
+assert.match(appJs, /hiddenHarnessOutputPath[\s\S]*표준 출력 전용/);
 assert.match(appJs, /getHarnessExecutionOutputLabel\(visibleHarnessExecutionResult\)[\s\S]*표준 출력 전용/);
 assert.match(appJs, /getHarnessExecutionOutputLabel\(hiddenHarnessExecutionResult\)[\s\S]*표준 출력 전용/);
 assert.match(appJs, /data-harness-execution-preview="true"/);

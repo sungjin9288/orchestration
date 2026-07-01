@@ -22,10 +22,11 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-reuse="true"/);
 assert.match(appJs, /data-action="reuse-harness-execution-paths"/);
-assert.match(appJs, /hiddenHarnessExecutionResult\.resolvedInputPath/);
+assert.match(appJs, /const hiddenHarnessInputPath = hiddenHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
+assert.match(appJs, /const hiddenHarnessActionOutputPath =\s+hiddenHarnessExecutionResult\?\.resolvedOutputPath \|\| hiddenHarnessExecutionResult\?\.outputPath \|\| '';/);
 assert.match(
   appJs,
-  /data-output-path="\$\{escapeHtml\(hiddenHarnessExecutionResult\.resolvedOutputPath \|\| hiddenHarnessExecutionResult\.outputPath \|\| ''\)\}"/,
+  /data-output-path="\$\{escapeHtml\(hiddenHarnessActionOutputPath\)\}"/,
 );
 
 async function fetchJson(url, options = {}) {

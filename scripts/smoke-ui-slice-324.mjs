@@ -22,7 +22,8 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-input-copy="true"/);
 assert.match(appJs, /data-action="copy-harness-input-path"/);
-assert.match(appJs, /hiddenHarnessExecutionResult\.resolvedInputPath/);
+assert.match(appJs, /const hiddenHarnessInputPath = hiddenHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
+assert.match(appJs, /data-input-path="\$\{escapeHtml\(hiddenHarnessInputPath\)\}"/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

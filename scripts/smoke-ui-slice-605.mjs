@@ -28,7 +28,8 @@ assert.match(serveUi, /requestId,/);
 assert.match(serveUi, /executionId: requestId/);
 assert.match(appJs, /data-harness-execution-request-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-request-summary="true"/);
-assert.match(appJs, /요청:\$\{visibleHarnessExecutionResult\.requestId \|\| visibleHarnessExecutionResult\.executionId\}/);
+assert.match(appJs, /const visibleHarnessRequestId =\s+visibleHarnessExecutionResult\?\.requestId \|\| visibleHarnessExecutionResult\?\.executionId \|\| '';/);
+assert.match(appJs, /요청:\$\{visibleHarnessRequestId\}/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
