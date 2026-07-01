@@ -15,7 +15,8 @@ assert.match(appJs, /const hiddenExecution =\s+hiddenExecutionKey && currentExec
 assert.match(appJs, /getHarnessExecutionResultKey\(hiddenExecution\)/);
 assert.match(appJs, /if \(hiddenExecution\) \{/);
 assert.match(appJs, /state\.lastHarnessExecutionResult = hiddenExecution;/);
-assert.match(appJs, /data-hidden-execution-key="\$\{escapeHtml\(getHarnessExecutionResultKey\(hiddenHarnessExecutionResult\) \|\| ''\)\}"/);
+assert.match(appJs, /const hiddenHarnessExecutionKey = getHarnessExecutionResultKey\(hiddenHarnessExecutionResult\);/);
+assert.match(appJs, /data-hidden-execution-key="\$\{escapeHtml\(hiddenHarnessExecutionKey \|\| ''\)\}"/);
 assert.match(appJs, /data-harness-result-hidden-output-brief="true"/);
 assert.match(appJs, /data-action="summarize-harness-execution-preview"/);
 assert.match(appJs, /getHarnessExecutionBriefActionLabel\(hiddenHarnessExecutionResult\)/);

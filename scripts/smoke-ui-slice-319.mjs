@@ -30,6 +30,8 @@ assert.match(harnessLabels, /export function getHarnessExecutionResultKey\(execu
 assert.match(appJs, /from '\.\/harness-state\.js'/);
 assert.match(harnessState, /export function isHarnessExecutionResultHidden\(execution, hiddenExecutionResultKey = null\) \{/);
 assert.match(appJs, /state\.hiddenHarnessExecutionResultKey,\s*\n\s+\)/);
+assert.match(appJs, /const visibleHarnessExecutionKey = getHarnessExecutionResultKey\(visibleHarnessExecutionResult\);/);
+assert.match(appJs, /const hiddenHarnessExecutionKey = getHarnessExecutionResultKey\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /data-action="hide-harness-execution-result"/);
 assert.match(appJs, /data-harness-result-hide="true"/);
 assert.match(appJs, /function hideHarnessExecutionResult\(actionButton\)/);

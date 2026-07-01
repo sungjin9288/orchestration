@@ -2,6 +2,10 @@
 
 ## direction resets
 
+- Harness execution result key handling should compute visible and hidden keys once in the render path, then reuse those named values in buttons. Keep hidden-key state mutation and action handlers in `ui/app.js`; only remove repeated key formatting from nested templates.
+
+- Hidden and history policy report copy should resolve each payload once before formatting copy text. Keep policy-report parsing and copy actions in `ui/app.js`, but avoid repeated payload reads inside nested template strings so the render path stays easy to follow.
+
 - Harness policy report copy should resolve the latest-result payload once per render path before formatting copy text. Keep policy-report parsing, hidden/history copy payloads, clipboard actions, runtime mutation, source mutation, commit, and push paths in the app shell unless a later slice proves a narrower boundary.
 
 - Harness output brief rendering should read the local brief selector once per render path, then pass that named value into copy formatting. This keeps the app-owned state boundary explicit and avoids hiding repeated selector calls inside template strings.
