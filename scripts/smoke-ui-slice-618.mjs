@@ -27,7 +27,6 @@ assert.match(appJs, /function getHarnessExecutionHandoffText\(execution\)/);
 assert.match(appJs, /getHarnessExecutionHandoffLabel\(execution, getHarnessExecutionHandoffContext\(execution\)\)/);
 assert.match(appJs, /data-harness-execution-handoff-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-handoff-summary="true"/);
-assert.match(appJs, /<span class="control-overview-register-label">핸드오프<\/span>/);
 assert.match(appJs, /const visibleHarnessHandoffText = getHarnessExecutionHandoffText\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessHandoffText = getHarnessExecutionHandoffText\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /const visibleHarnessHandoffSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">/);
@@ -42,7 +41,12 @@ assert.doesNotMatch(
 );
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>\$\{escapeHtml\(hiddenHarnessHandoffText\)\}<\/code><\/p>\s*\$\{hiddenHarnessInputSummaryMarkup\}/);
 assert.match(appJs, /const historyHarnessHandoffText = getHarnessExecutionHandoffText\(execution\);/);
-assert.match(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(historyHarnessHandoffText\)\}<\/strong>/);
+assert.match(appJs, /const historyHarnessHandoffSummaryMarkup =\s+renderHarnessHistorySummaryRow\('핸드오프', historyHarnessHandoffText\);/);
+assert.match(appJs, /\$\{historyHarnessHandoffSummaryMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /<span class="control-overview-register-label">핸드오프<\/span>\s*<strong class="control-overview-register-value">\$\{escapeHtml\(historyHarnessHandoffText\)\}<\/strong>/,
+);
 
 console.log(
   JSON.stringify(
@@ -50,7 +54,11 @@ console.log(
       ok: true,
       harnessExecutionHandoffSummary: {
         helper: 'getHarnessExecutionHandoffLabel',
-        namedValues: ['visibleHarnessHandoffSummaryMarkup', 'hiddenHarnessHandoffSummaryMarkup'],
+        namedValues: [
+          'visibleHarnessHandoffSummaryMarkup',
+          'hiddenHarnessHandoffSummaryMarkup',
+          'historyHarnessHandoffSummaryMarkup',
+        ],
         labelSources: [
           'getHarnessExecutionPathHandoffLabel',
           'getHarnessExecutionBriefActionLabel',

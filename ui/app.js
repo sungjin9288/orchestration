@@ -1825,6 +1825,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessOutputBriefSummaryMarkup = renderHarnessOutputBriefSummary(
     visibleHarnessExecutionResult,
   );
+  const renderHarnessHistorySummaryRow = (label, value) => `
+    <div class="control-overview-register-row">
+      <span class="control-overview-register-label">${escapeHtml(label)}</span>
+      <strong class="control-overview-register-value">${escapeHtml(value)}</strong>
+    </div>
+  `;
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
   const hasExecutionHistory = hasHarnessExecutionHistory(
     harnessExecutionResult,
@@ -2364,6 +2370,24 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessOutputSummaryValue =
                                 historyHarnessOutputPath || '표준 출력 전용';
                               const historyHarnessExecutedAtLabel = formatDate(execution.executedAt);
+                              const historyHarnessRequestLabel =
+                                historyHarnessRequestId || `최근 ${index + 1}`;
+                              const historyHarnessInputSummaryValue =
+                                historyHarnessInputPath || '경로 없음';
+                              const historyHarnessRequestSummaryMarkup =
+                                renderHarnessHistorySummaryRow('요청', historyHarnessRequestLabel);
+                              const historyHarnessExecutedAtSummaryMarkup =
+                                renderHarnessHistorySummaryRow('실행', historyHarnessExecutedAtLabel);
+                              const historyHarnessModeSummaryMarkup =
+                                renderHarnessHistorySummaryRow('모드', historyHarnessModeLabel);
+                              const historyHarnessHandoffSummaryMarkup =
+                                renderHarnessHistorySummaryRow('핸드오프', historyHarnessHandoffText);
+                              const historyHarnessInputSummaryMarkup =
+                                renderHarnessHistorySummaryRow('입력', historyHarnessInputSummaryValue);
+                              const historyHarnessOutputSummaryMarkup = renderHarnessHistorySummaryRow(
+                                historyHarnessOutputLabel,
+                                historyHarnessOutputSummaryValue,
+                              );
                               const historyHarnessExecutionPacketText =
                                 formatHarnessExecutionPacketForCopy(execution);
                               const historyHarnessPolicyReportCopyText = historyHarnessPolicyReportPayload
@@ -2379,30 +2403,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
                                 <div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">
                                   <div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">
-                                    <div class="control-overview-register-row">
-                                      <span class="control-overview-register-label">요청</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessRequestId || `최근 ${index + 1}`)}</strong>
-                                    </div>
-                                    <div class="control-overview-register-row">
-                                      <span class="control-overview-register-label">실행</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessExecutedAtLabel)}</strong>
-                                    </div>
-                                    <div class="control-overview-register-row">
-                                      <span class="control-overview-register-label">모드</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessModeLabel)}</strong>
-                                    </div>
-                                    <div class="control-overview-register-row">
-                                      <span class="control-overview-register-label">핸드오프</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessHandoffText)}</strong>
-                                    </div>
-                                    <div class="control-overview-register-row">
-                                      <span class="control-overview-register-label">입력</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessInputPath || '경로 없음')}</strong>
-                                    </div>
-                                    <div class="control-overview-register-row">
-                                      <span class="control-overview-register-label">${escapeHtml(historyHarnessOutputLabel)}</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessOutputSummaryValue)}</strong>
-                                    </div>
+                                    ${historyHarnessRequestSummaryMarkup}
+                                    ${historyHarnessExecutedAtSummaryMarkup}
+                                    ${historyHarnessModeSummaryMarkup}
+                                    ${historyHarnessHandoffSummaryMarkup}
+                                    ${historyHarnessInputSummaryMarkup}
+                                    ${historyHarnessOutputSummaryMarkup}
                                   </div>
                                   <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
                                     <div class="form-actions form-actions-inline form-actions-compact">

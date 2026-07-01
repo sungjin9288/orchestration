@@ -23,8 +23,15 @@ assert.match(appJs, /const visibleHarnessOutputSummaryMarkup = `<p class="detail
 assert.match(appJs, /\$\{visibleHarnessOutputSummaryMarkup\}/);
 assert.match(appJs, /const historyHarnessOutputLabel = getHarnessExecutionOutputLabel\(execution\);/);
 assert.match(appJs, /const historyHarnessOutputSummaryValue =\s+historyHarnessOutputPath \|\| '표준 출력 전용';/);
-assert.match(appJs, /<span class="control-overview-register-label">\$\{escapeHtml\(historyHarnessOutputLabel\)\}<\/span>/);
-assert.match(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(historyHarnessOutputSummaryValue\)\}<\/strong>/);
+assert.match(appJs, /const historyHarnessInputSummaryValue =\s+historyHarnessInputPath \|\| '경로 없음';/);
+assert.match(appJs, /const historyHarnessInputSummaryMarkup =\s+renderHarnessHistorySummaryRow\('입력', historyHarnessInputSummaryValue\);/);
+assert.match(appJs, /const historyHarnessOutputSummaryMarkup = renderHarnessHistorySummaryRow\(\s+historyHarnessOutputLabel,\s+historyHarnessOutputSummaryValue,\s+\);/);
+assert.match(appJs, /\$\{historyHarnessInputSummaryMarkup\}/);
+assert.match(appJs, /\$\{historyHarnessOutputSummaryMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /<span class="control-overview-register-label">\$\{escapeHtml\(historyHarnessOutputLabel\)\}<\/span>\s*<strong class="control-overview-register-value">\$\{escapeHtml\(historyHarnessOutputSummaryValue\)\}<\/strong>/,
+);
 assert.match(appJs, /data-harness-execution-output-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-summary="true"/);
 assert.match(appJs, /표준 출력 전용/);
@@ -36,6 +43,10 @@ console.log(
       harnessExecutionOutputLabel: {
         helper: 'getHarnessExecutionOutputLabel',
         labels: ['출력 예정', '출력'],
+        namedValues: [
+          'historyHarnessInputSummaryMarkup',
+          'historyHarnessOutputSummaryMarkup',
+        ],
         surfaces: ['latest-result', 'hidden-result', 'recent-history', 'packet-copy'],
       },
     },
