@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness execution history splitting should move only the register visibility predicate into `ui/harness-state.js`; keep execution history rendering, latest/hidden result state, output brief state, policy report parsing, clipboard/rerun actions, runtime mutation, source mutation, commit, and push paths in `ui/app.js`.
+
 - Hidden harness result splitting should keep the hidden key and hide/show mutations in `ui/app.js`. Move only the key comparison predicate into `ui/harness-state.js`, and pass `state.hiddenHarnessExecutionResultKey` as explicit input so browser state ownership, output brief state, policy report parsing, clipboard/rerun actions, runtime mutation, source mutation, commit, and push paths remain outside the helper.
 
 - Latest harness execution splitting should keep transient browser state owned by `ui/app.js`. Move only the candidate-selection rule into `ui/harness-state.js`, and pass `state.lastHarnessExecutionResult` as explicit input so hidden state, output brief state, policy report parsing, clipboard/rerun actions, runtime mutation, source mutation, commit, and push paths remain outside the helper.

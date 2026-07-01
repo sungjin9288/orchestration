@@ -29,6 +29,8 @@ assert.match(serveUi, /recentHarnessExecutions,/);
 assert.match(serveUi, /function rememberHarnessExecution\(harnessExecution\)/);
 assert.match(appJs, /from '\.\/harness-state\.js'/);
 assert.match(harnessState, /export function getRecentHarnessExecutions\(data, statusPayload\) \{/);
+assert.match(harnessState, /export function hasHarnessExecutionHistory\(execution, recentExecutions, statusPayload\) \{/);
+assert.match(appJs, /hasHarnessExecutionHistory\(\s*\n\s+harnessExecutionResult,\s*\n\s+recentHarnessExecutions,\s*\n\s+statusPayload,\s*\n\s+\)/);
 assert.match(appJs, /data-harness-execution-history="true"/);
 assert.match(appJs, /data-harness-execution-history-item="true"/);
 

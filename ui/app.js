@@ -119,6 +119,7 @@ import {
   getHarnessConsumerStatus,
   getLatestHarnessExecution,
   getRecentHarnessExecutions,
+  hasHarnessExecutionHistory,
   isHarnessExecutionResultHidden,
 } from './harness-state.js';
 import {
@@ -1689,9 +1690,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       ? harnessExecutionResult
       : null;
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
-  const hasExecutionHistory =
-    (harnessExecutionResult?.harnessId === statusCard?.primaryHarnessId) ||
-    recentHarnessExecutions.length > 0;
+  const hasExecutionHistory = hasHarnessExecutionHistory(
+    harnessExecutionResult,
+    recentHarnessExecutions,
+    statusPayload,
+  );
 
   if (!statusCard?.primaryHarnessId || !operatorAction?.kind || operatorAction.kind === 'none') {
     return '';
