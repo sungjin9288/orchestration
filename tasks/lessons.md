@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness hidden mode and handoff summary markup should be named before rendering. Keep label helper calls in the render path, but avoid constructing hidden mode/handoff summary `<p>` blocks directly inside the hidden result template.
+
 - Harness hidden path summary markup should be named before rendering. Keep input and output path selection in the render path, but avoid constructing hidden input/output summary `<p>` blocks directly inside the hidden result template.
 
 - Harness hidden executed-at summary markup should be named before rendering. Keep date formatting in the render path, but avoid constructing the hidden executed-at summary `<p>` block directly inside the hidden result template.

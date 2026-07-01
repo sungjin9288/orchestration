@@ -18,8 +18,11 @@ assert.match(harnessLabels, /`모드: \$\{getHarnessExecutionModeLabel\(executio
 assert.match(appJs, /<span class="control-overview-register-label">모드<\/span>/);
 assert.match(appJs, /const visibleHarnessModeLabel = getHarnessExecutionModeLabel\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessModeLabel = getHarnessExecutionModeLabel\(hiddenHarnessExecutionResult\);/);
+assert.match(appJs, /const hiddenHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">/);
+assert.match(appJs, /\$\{hiddenHarnessModeSummaryMarkup\}/);
 assert.match(appJs, /data-harness-execution-mode-summary="true">모드: <code>\$\{escapeHtml\(visibleHarnessModeLabel\)\}<\/code>/);
 assert.match(appJs, /data-harness-result-hidden-mode-summary="true">모드: <code>\$\{escapeHtml\(hiddenHarnessModeLabel\)\}<\/code>/);
+assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>\$\{escapeHtml\(hiddenHarnessModeLabel\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">/);
 assert.match(appJs, /const historyHarnessModeLabel = getHarnessExecutionModeLabel\(execution\);/);
 assert.match(appJs, /const historyHarnessExecutedAtLabel = formatDate\(execution\.executedAt\);/);
 assert.match(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(historyHarnessExecutedAtLabel\)\}<\/strong>/);
@@ -36,7 +39,11 @@ console.log(
       harnessExecutionHistoryModeRow: {
         helper: 'getHarnessExecutionModeLabel',
         labels: ['정책 리포트', '실행 결과'],
-        namedValues: ['historyHarnessExecutedAtLabel', 'historyHarnessModeLabel'],
+        namedValues: [
+          'hiddenHarnessModeSummaryMarkup',
+          'historyHarnessExecutedAtLabel',
+          'historyHarnessModeLabel',
+        ],
         preserved: ['history policy-report copy', 'history packet copy'],
       },
     },

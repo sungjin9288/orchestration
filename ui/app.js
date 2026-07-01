@@ -1748,6 +1748,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessExecutionResult?.outputPath ? 'accent' : 'neutral';
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
+  const hiddenHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>`;
+  const hiddenHarnessHandoffSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(hiddenHarnessHandoffText)}</code></p>`;
   const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
     visibleHarnessExecutionResult,
   );
@@ -2136,8 +2138,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       </div>
                       ${hiddenHarnessRequestSummaryMarkup}
                       ${hiddenHarnessExecutedAtSummaryMarkup}
-                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(hiddenHarnessHandoffText)}</code></p>
+                      ${hiddenHarnessModeSummaryMarkup}
+                      ${hiddenHarnessHandoffSummaryMarkup}
                       ${hiddenHarnessInputSummaryMarkup}
                       ${hiddenHarnessOutputSummaryMarkup}
                     </section>
