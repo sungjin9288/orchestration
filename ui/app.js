@@ -1683,6 +1683,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessExecutionKey = getHarnessExecutionResultKey(visibleHarnessExecutionResult);
   const hiddenHarnessExecutionKey = getHarnessExecutionResultKey(hiddenHarnessExecutionResult);
   const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload(hiddenHarnessExecutionResult);
+  const visibleHarnessPreviewText =
+    visibleHarnessExecutionResult?.outputPreview || visibleHarnessExecutionResult?.stdoutPreview || '';
+  const hiddenHarnessPreviewText =
+    hiddenHarnessExecutionResult?.outputPreview || hiddenHarnessExecutionResult?.stdoutPreview || '';
   const visibleHarnessOutputBrief = getHarnessOutputBriefResult(
     visibleHarnessExecutionResult,
     state.lastHarnessOutputBriefResult,
@@ -1949,13 +1953,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 패킷 복사
                               </button>
                               ${
-                                visibleHarnessExecutionResult.outputPreview || visibleHarnessExecutionResult.stdoutPreview
+                                visibleHarnessPreviewText
                                   ? `
                                     <button
                                       class="secondary-button"
                                       type="button"
                                       data-action="copy-harness-execution-preview"
-                                      data-preview-text="${escapeHtml(visibleHarnessExecutionResult.outputPreview || visibleHarnessExecutionResult.stdoutPreview || '')}"
+                                      data-preview-text="${escapeHtml(visibleHarnessPreviewText)}"
                                       data-harness-preview-copy="true"
                                     >
                                       미리보기
@@ -1965,7 +1969,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       type="button"
                                       data-action="summarize-harness-execution-preview"
                                       data-execution-key="${escapeHtml(visibleHarnessExecutionKey || '')}"
-                                      data-preview-text="${escapeHtml(visibleHarnessExecutionResult.outputPreview || visibleHarnessExecutionResult.stdoutPreview || '')}"
+                                      data-preview-text="${escapeHtml(visibleHarnessPreviewText)}"
                                       data-harness-output-brief="true"
                                       ${state.loading || state.mutating ? 'disabled' : ''}
                                     >
@@ -2197,13 +2201,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                       ${
-                        hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview
+                        hiddenHarnessPreviewText
                           ? `
                             <button
                               class="secondary-button"
                               type="button"
                               data-action="copy-harness-execution-preview"
-                              data-preview-text="${escapeHtml(hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview || '')}"
+                              data-preview-text="${escapeHtml(hiddenHarnessPreviewText)}"
                               data-harness-result-hidden-preview-copy="true"
                             >
                               미리보기
@@ -2214,7 +2218,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               data-action="summarize-harness-execution-preview"
                               data-execution-key="${escapeHtml(hiddenHarnessExecutionKey || '')}"
                               data-hidden-execution-key="${escapeHtml(hiddenHarnessExecutionKey || '')}"
-                              data-preview-text="${escapeHtml(hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview || '')}"
+                              data-preview-text="${escapeHtml(hiddenHarnessPreviewText)}"
                               data-harness-result-hidden-output-brief="true"
                               ${state.loading || state.mutating ? 'disabled' : ''}
                             >
@@ -2225,8 +2229,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       }
                     </div>
                     ${
-                      hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview
-                        ? `<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">${escapeHtml(hiddenHarnessExecutionResult.outputPreview || hiddenHarnessExecutionResult.stdoutPreview)}</pre>`
+                      hiddenHarnessPreviewText
+                        ? `<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">${escapeHtml(hiddenHarnessPreviewText)}</pre>`
                         : ''
                     }
                     </div>
@@ -2248,6 +2252,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           .map(
                             (execution, index) => {
                               const historyHarnessPolicyReportPayload = getHarnessPolicyReportPayload(execution);
+                              const historyHarnessPreviewText = execution.outputPreview || execution.stdoutPreview || '';
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2382,13 +2387,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         ${escapeHtml(getHarnessExecutionRerunActionLabel(execution))}
                                       </button>
                                       ${
-                                        execution.outputPreview || execution.stdoutPreview
+                                        historyHarnessPreviewText
                                           ? `
                                             <button
                                               class="secondary-button"
                                               type="button"
                                               data-action="copy-harness-execution-preview"
-                                              data-preview-text="${escapeHtml(execution.outputPreview || execution.stdoutPreview || '')}"
+                                              data-preview-text="${escapeHtml(historyHarnessPreviewText)}"
                                               data-harness-history-preview-copy="true"
                                             >
                                               미리보기
@@ -2399,7 +2404,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                               data-action="summarize-harness-execution-preview"
                                               data-execution-key="${escapeHtml(getHarnessExecutionResultKey(execution) || '')}"
                                               data-history-index="${String(index)}"
-                                              data-preview-text="${escapeHtml(execution.outputPreview || execution.stdoutPreview || '')}"
+                                              data-preview-text="${escapeHtml(historyHarnessPreviewText)}"
                                               data-harness-history-output-brief="true"
                                               ${state.loading || state.mutating ? 'disabled' : ''}
                                             >

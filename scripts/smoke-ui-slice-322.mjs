@@ -22,7 +22,8 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-preview-copy="true"/);
 assert.match(appJs, /data-action="copy-harness-execution-preview"/);
-assert.match(appJs, /hiddenHarnessExecutionResult\.outputPreview \|\| hiddenHarnessExecutionResult\.stdoutPreview/);
+assert.match(appJs, /const hiddenHarnessPreviewText =\s+hiddenHarnessExecutionResult\?\.outputPreview \|\| hiddenHarnessExecutionResult\?\.stdoutPreview \|\| '';/);
+assert.match(appJs, /data-preview-text="\$\{escapeHtml\(hiddenHarnessPreviewText\)\}"/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

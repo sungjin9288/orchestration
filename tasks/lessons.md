@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness preview text handling should compute visible, hidden, and history preview text once in the render path, then reuse those named values for copy, summary, and compact preview rendering. Keep preview action handlers, hidden-result state, runtime mutation, source mutation, commit, and push paths in `ui/app.js`.
+
 - Harness execution result key handling should compute visible and hidden keys once in the render path, then reuse those named values in buttons. Keep hidden-key state mutation and action handlers in `ui/app.js`; only remove repeated key formatting from nested templates.
 
 - Hidden and history policy report copy should resolve each payload once before formatting copy text. Keep policy-report parsing and copy actions in `ui/app.js`, but avoid repeated payload reads inside nested template strings so the render path stays easy to follow.
