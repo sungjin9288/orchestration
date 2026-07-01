@@ -18039,8 +18039,11 @@ function hideHarnessExecutionResult(actionButton) {
   state.error = null;
   state.hiddenHarnessExecutionResultKey = executionKey;
   render();
-  elements.refreshStatus.textContent =
-    `${getHarnessExecutionResultTitle(currentExecution)}를 숨겼습니다. 필요하면 실행 기록에서 다시 볼 수 있습니다.`;
+
+  const currentExecutionTitle = getHarnessExecutionResultTitle(currentExecution);
+  const hideHarnessExecutionCopy =
+    `${currentExecutionTitle}를 숨겼습니다. 필요하면 실행 기록에서 다시 볼 수 있습니다.`;
+  elements.refreshStatus.textContent = hideHarnessExecutionCopy;
 }
 
 function showHarnessExecutionResult(actionButton, statusPayload) {
@@ -18061,10 +18064,14 @@ function showHarnessExecutionResult(actionButton, statusPayload) {
   state.lastHarnessExecutionResult = currentExecution;
   render();
 
-  const executedAtLabel = currentExecution.executedAt
+  const currentExecutionModeLabel = getHarnessExecutionModeLabel(currentExecution);
+  const currentExecutionHarnessId = currentExecution.harnessId;
+  const currentExecutionExecutedAtLabel = currentExecution.executedAt
     ? formatDate(currentExecution.executedAt)
     : '최근 실행';
-  elements.refreshStatus.textContent = `숨긴 ${getHarnessExecutionModeLabel(currentExecution)}를 다시 표시했습니다: ${currentExecution.harnessId} · ${executedAtLabel}`;
+  const showHarnessExecutionCopy =
+    `숨긴 ${currentExecutionModeLabel}를 다시 표시했습니다: ${currentExecutionHarnessId} · ${currentExecutionExecutedAtLabel}`;
+  elements.refreshStatus.textContent = showHarnessExecutionCopy;
 }
 
 function restoreHarnessExecutionPreview(actionButton, statusPayload) {
@@ -18084,10 +18091,14 @@ function restoreHarnessExecutionPreview(actionButton, statusPayload) {
   state.lastHarnessExecutionResult = targetExecution;
   render();
 
-  const executedAtLabel = targetExecution.executedAt
+  const targetExecutionModeLabel = getHarnessExecutionModeLabel(targetExecution);
+  const targetExecutionHarnessId = targetExecution.harnessId;
+  const targetExecutionExecutedAtLabel = targetExecution.executedAt
     ? formatDate(targetExecution.executedAt)
     : '최근 실행';
-  elements.refreshStatus.textContent = `${getHarnessExecutionModeLabel(targetExecution)}를 다시 표시했습니다: ${targetExecution.harnessId} · ${executedAtLabel}`;
+  const restoreHarnessExecutionCopy =
+    `${targetExecutionModeLabel}를 다시 표시했습니다: ${targetExecutionHarnessId} · ${targetExecutionExecutedAtLabel}`;
+  elements.refreshStatus.textContent = restoreHarnessExecutionCopy;
 }
 
 async function executeHarnessOperatorAction({ inputPath, outputPath, statusPayload, pendingMessage, policyReport = false }) {
