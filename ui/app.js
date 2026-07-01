@@ -1836,9 +1836,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessHostSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(harnessHostStateLabel)}</code></p>`;
   const hiddenHarnessOperatorActionLabel = harnessOperatorActionLabel;
   const operatorActionCommand = operatorAction?.repoNativeCommand || '';
+  const operatorActionMessage = operatorAction?.message || '';
+  const operatorActionDisplayMessage =
+    operatorActionMessage || '대표 하네스 액션이 아직 준비되지 않았습니다.';
   const canRenderHarnessRunForm = Boolean(operatorActionCommand);
   const hiddenHarnessOperatorCommand = operatorActionCommand;
-  const hiddenHarnessOperatorMessage = operatorAction?.message || '';
+  const hiddenHarnessOperatorMessage = operatorActionMessage;
   const hiddenHarnessOperatorActionSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>${escapeHtml(hiddenHarnessOperatorActionLabel)}</code></p>`;
   const hiddenHarnessOperatorCommandSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>${escapeHtml(hiddenHarnessOperatorCommand)}</code></p>`;
   const hiddenHarnessOperatorMessageSummaryMarkup = hiddenHarnessOperatorMessage
@@ -1917,7 +1920,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
         </div>
         ${createToken(harnessOperatorActionLabel, harnessOperatorActionTone)}
       </div>
-      <p class="control-overview-copy">${escapeHtml(operatorAction.message || '대표 하네스 액션이 아직 준비되지 않았습니다.')}</p>
+      <p class="control-overview-copy">${escapeHtml(operatorActionDisplayMessage)}</p>
       <div class="control-overview-register">
         <div class="control-overview-register-row">
           <span class="control-overview-register-label">대표</span>

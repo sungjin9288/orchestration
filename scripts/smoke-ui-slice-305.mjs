@@ -38,14 +38,18 @@ assert.match(appJs, /const primaryHarnessId = statusCard\?\.primaryHarnessId \|\
 assert.match(appJs, /const operatorActionKind = operatorAction\?\.kind \|\| '';/);
 assert.match(appJs, /const canShowHarnessOperatorAction =\s+primaryHarnessId && operatorActionKind && operatorActionKind !== 'none';/);
 assert.match(appJs, /const operatorActionCommand = operatorAction\?\.repoNativeCommand \|\| '';/);
+assert.match(appJs, /const operatorActionMessage = operatorAction\?\.message \|\| '';/);
+assert.match(appJs, /const operatorActionDisplayMessage =\s+operatorActionMessage \|\| '대표 하네스 액션이 아직 준비되지 않았습니다\.';/);
 assert.match(appJs, /const canRenderHarnessRunForm = Boolean\(operatorActionCommand\);/);
 assert.match(appJs, /const hiddenHarnessOperatorCommand = operatorActionCommand;/);
+assert.match(appJs, /const hiddenHarnessOperatorMessage = operatorActionMessage;/);
 assert.match(appJs, /if \(!canShowHarnessOperatorAction\) \{/);
 assert.match(appJs, /const harnessConsumerStatus = getHarnessConsumerStatus\(data\);/);
 assert.match(appJs, /data-harness-execution-action="true"/);
 assert.match(appJs, /harnessExecutionResult\?\.harnessId === primaryHarnessId/);
 assert.match(appJs, /대표 하네스: <code>\$\{escapeHtml\(primaryHarnessId\)\}<\/code>/);
 assert.match(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(primaryHarnessId\)\}<\/strong>/);
+assert.match(appJs, /<p class="control-overview-copy">\$\{escapeHtml\(operatorActionDisplayMessage\)\}<\/p>/);
 assert.match(appJs, /canRenderHarnessRunForm\s+\?/);
 assert.match(appJs, /<code class="harness-run-template-command">\$\{escapeHtml\(operatorActionCommand\)\}<\/code>/);
 assert.match(appJs, /data-command="\$\{escapeHtml\(operatorActionCommand\)\}"/);
@@ -55,6 +59,7 @@ assert.doesNotMatch(
 );
 assert.doesNotMatch(appJs, /operatorAction\.repoNativeCommand\s+\?/);
 assert.doesNotMatch(appJs, /escapeHtml\(operatorAction\.repoNativeCommand\)/);
+assert.doesNotMatch(appJs, /escapeHtml\(operatorAction\.message/);
 assert.match(
   appJs,
   /\$\{renderNarrativeDeck\(\{[\s\S]*?\}\)\}\s*\n\s*\$\{renderHarnessExecutionActionShelf\(harnessConsumerStatus\)\}\s*\n\s*\$\{executionEvidenceRail\}/,

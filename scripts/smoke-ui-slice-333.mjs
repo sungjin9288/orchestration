@@ -21,10 +21,12 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-message-summary="true"/);
-assert.match(appJs, /operatorAction\.message/);
-assert.match(appJs, /const hiddenHarnessOperatorMessage = operatorAction\?\.message \|\| '';/);
+assert.match(appJs, /const operatorActionMessage = operatorAction\?\.message \|\| '';/);
+assert.match(appJs, /const operatorActionDisplayMessage =\s+operatorActionMessage \|\| '대표 하네스 액션이 아직 준비되지 않았습니다\.';/);
+assert.match(appJs, /const hiddenHarnessOperatorMessage = operatorActionMessage;/);
 assert.match(appJs, /const hiddenHarnessOperatorMessageSummaryMarkup = hiddenHarnessOperatorMessage/);
 assert.match(appJs, /\$\{hiddenHarnessOperatorMessageSummaryMarkup\}/);
+assert.doesNotMatch(appJs, /escapeHtml\(operatorAction\.message/);
 assert.doesNotMatch(appJs, /operatorAction\.message\s*\?\s*`<p class="detail-copy detail-copy-compact" data-harness-result-hidden-message-summary="true">운영 메모: \$\{escapeHtml\(operatorAction\.message\)\}<\/p>`/);
 
 async function fetchJson(url, options = {}) {
@@ -110,7 +112,12 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenMessageSummary->operatorActionMessage',
             sourceMarker: 'data-harness-result-hidden-message-summary',
             route: '/api/harness/operator-action/run',
-            namedValues: ['hiddenHarnessOperatorMessage', 'hiddenHarnessOperatorMessageSummaryMarkup'],
+            namedValues: [
+              'operatorActionMessage',
+              'operatorActionDisplayMessage',
+              'hiddenHarnessOperatorMessage',
+              'hiddenHarnessOperatorMessageSummaryMarkup',
+            ],
             messageLength: harnessConsumerStatus.operatorAction.message.length,
           },
         },
