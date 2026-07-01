@@ -22,6 +22,9 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-posture-summary="true"/);
 assert.match(appJs, /statusCard\.primaryPosture \|\| '미확인'/);
+assert.match(appJs, /const hiddenHarnessPostureSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-posture-summary="true">/);
+assert.match(appJs, /\$\{hiddenHarnessPostureSummaryMarkup\}/);
+assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-posture-summary="true">대표 정책: <code>\$\{escapeHtml\(statusCard\.primaryPosture \|\| '미확인'\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-state-summary="true">/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -106,6 +109,7 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenPostureSummary->statusCardPrimaryPosture',
             sourceMarker: 'data-harness-result-hidden-posture-summary',
             route: '/api/harness/operator-action/run',
+            namedValues: ['hiddenHarnessPostureSummaryMarkup'],
             primaryPosture: harnessConsumerStatus.statusCard.primaryPosture,
           },
         },

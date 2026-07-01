@@ -22,6 +22,9 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-host-summary="true"/);
 assert.match(appJs, /getHarnessBriefHostStateLabel\(\{ currentHostState: statusCard\.currentHostState \}\)/);
+assert.match(appJs, /const hiddenHarnessHostSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">/);
+assert.match(appJs, /\$\{hiddenHarnessHostSummaryMarkup\}/);
+assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>\$\{escapeHtml\(getHarnessBriefHostStateLabel\(\{ currentHostState: statusCard\.currentHostState \}\)\)\}<\/code><\/p>\s*<\/section>/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -106,6 +109,7 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenHostSummary->hostStateLabel',
             sourceMarker: 'data-harness-result-hidden-host-summary',
             route: '/api/harness/operator-action/run',
+            namedValues: ['hiddenHarnessHostSummaryMarkup'],
             currentHostState: harnessConsumerStatus.statusCard.currentHostState,
           },
         },
