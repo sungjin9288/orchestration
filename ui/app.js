@@ -118,6 +118,7 @@ import {
   getHarnessConsumerBrief,
   getHarnessConsumerStatus,
   getLatestHarnessExecution,
+  getHarnessOutputBriefResult,
   getRecentHarnessExecutions,
   hasHarnessExecutionHistory,
   isHarnessExecutionResultHidden,
@@ -1584,7 +1585,7 @@ function getHarnessExecutionPacketContext(execution) {
 
 function getHarnessExecutionHandoffContext(execution) {
   return {
-    hasOutputBrief: Boolean(getHarnessOutputBriefResult(execution)),
+    hasOutputBrief: Boolean(getHarnessOutputBriefResult(execution, state.lastHarnessOutputBriefResult)),
     hasPolicyReport: Boolean(getHarnessPolicyReportPayload(execution)),
   };
 }
@@ -1593,18 +1594,8 @@ function getHarnessExecutionHandoffText(execution) {
   return getHarnessExecutionHandoffLabel(execution, getHarnessExecutionHandoffContext(execution));
 }
 
-function getHarnessOutputBriefResult(execution) {
-  const executionKey = getHarnessExecutionResultKey(execution);
-
-  if (!executionKey || state.lastHarnessOutputBriefResult?.executionKey !== executionKey) {
-    return null;
-  }
-
-  return state.lastHarnessOutputBriefResult.outputBrief || null;
-}
-
 function renderHarnessOutputBriefSummary(execution) {
-  const outputBrief = getHarnessOutputBriefResult(execution);
+  const outputBrief = getHarnessOutputBriefResult(execution, state.lastHarnessOutputBriefResult);
 
   if (!outputBrief) {
     return '';
@@ -1976,13 +1967,16 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   : ''
                               }
                               ${
-                                getHarnessOutputBriefResult(visibleHarnessExecutionResult)
+                                getHarnessOutputBriefResult(
+                                  visibleHarnessExecutionResult,
+                                  state.lastHarnessOutputBriefResult,
+                                )
                                   ? `
                                     <button
                                       class="secondary-button"
                                       type="button"
                                       data-action="copy-harness-output-brief"
-                                      data-output-brief-text="${escapeHtml(formatHarnessOutputBriefForCopy(getHarnessOutputBriefResult(visibleHarnessExecutionResult), visibleHarnessExecutionResult))}"
+                                      data-output-brief-text="${escapeHtml(formatHarnessOutputBriefForCopy(getHarnessOutputBriefResult(visibleHarnessExecutionResult, state.lastHarnessOutputBriefResult), visibleHarnessExecutionResult))}"
                                       data-output-brief-label="${escapeHtml(getHarnessExecutionBriefCopyStatusLabel(visibleHarnessExecutionResult))}"
                                       data-harness-output-brief-copy="true"
                                     >

@@ -222,6 +222,7 @@ async function main() {
     assert.match(harnessState, /export function getHarnessConsumerBrief\(data\) \{/);
     assert.match(harnessState, /export function getHarnessConsumerStatus\(data\) \{/);
     assert.match(harnessState, /export function getLatestHarnessExecution\(data, statusPayload, localHarnessExecution = null\) \{/);
+    assert.match(harnessState, /export function getHarnessOutputBriefResult\(execution, localOutputBriefResult = null\) \{/);
     assert.match(harnessState, /export function getRecentHarnessExecutions\(data, statusPayload\) \{/);
     assert.match(harnessState, /export function hasHarnessExecutionHistory\(execution, recentExecutions, statusPayload\) \{/);
     assert.match(harnessState, /export function isHarnessExecutionResultHidden\(execution, hiddenExecutionResultKey = null\) \{/);

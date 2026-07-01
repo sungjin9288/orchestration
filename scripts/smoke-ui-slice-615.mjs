@@ -14,7 +14,7 @@ const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(appJs, /function formatHarnessExecutionPacketForCopy\(execution\)/);
 assert.match(appJs, /function getHarnessExecutionPacketContext\(execution\) \{/);
-assert.match(appJs, /hasOutputBrief: Boolean\(getHarnessOutputBriefResult\(execution\)\)/);
+assert.match(appJs, /hasOutputBrief: Boolean\(getHarnessOutputBriefResult\(execution, state\.lastHarnessOutputBriefResult\)\)/);
 assert.match(appJs, /hasPolicyReport: Boolean\(getHarnessPolicyReportPayload\(execution\)\)/);
 assert.match(
   harnessLabels,

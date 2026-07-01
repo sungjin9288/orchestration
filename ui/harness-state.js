@@ -56,6 +56,16 @@ export function isHarnessExecutionResultHidden(execution, hiddenExecutionResultK
   return Boolean(executionKey && hiddenExecutionResultKey && hiddenExecutionResultKey === executionKey);
 }
 
+export function getHarnessOutputBriefResult(execution, localOutputBriefResult = null) {
+  const executionKey = getHarnessExecutionResultKey(execution);
+
+  if (!executionKey || localOutputBriefResult?.executionKey !== executionKey) {
+    return null;
+  }
+
+  return localOutputBriefResult.outputBrief || null;
+}
+
 export function hasHarnessExecutionHistory(execution, recentExecutions, statusPayload) {
   const representativeHarnessId = statusPayload?.statusCard?.primaryHarnessId || null;
 

@@ -21,7 +21,7 @@ assert.match(harnessLabels, /handoffs\.push\('미리보기', getHarnessExecution
 assert.match(harnessLabels, /handoffs\.push\(getHarnessExecutionBriefCopyActionLabel\(execution\)\)/);
 assert.match(harnessLabels, /handoffs\.push\('리포트 복사'\)/);
 assert.match(appJs, /function getHarnessExecutionHandoffContext\(execution\)/);
-assert.match(appJs, /hasOutputBrief: Boolean\(getHarnessOutputBriefResult\(execution\)\)/);
+assert.match(appJs, /hasOutputBrief: Boolean\(getHarnessOutputBriefResult\(execution, state\.lastHarnessOutputBriefResult\)\)/);
 assert.match(appJs, /hasPolicyReport: Boolean\(getHarnessPolicyReportPayload\(execution\)\)/);
 assert.match(appJs, /function getHarnessExecutionHandoffText\(execution\)/);
 assert.match(appJs, /getHarnessExecutionHandoffLabel\(execution, getHarnessExecutionHandoffContext\(execution\)\)/);
