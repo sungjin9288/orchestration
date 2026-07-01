@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible helper summary markup should be named before rendering. Keep policy-report parsing and output-brief state in the render path, but avoid calling policy-report or output-brief summary render helpers directly inside the latest result template.
+
 - Harness visible run summary markup should be named before rendering. Keep visible input, mode, handoff, and output value selection in the render path, but avoid constructing visible result summary `<p>` blocks directly inside the latest result template.
 
 - Harness hidden operator context summary markup should be named before rendering. Keep operator action label, command, and message selection in the render path, but avoid constructing hidden action/command/message `<p>` blocks directly inside the hidden result template.

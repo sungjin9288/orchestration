@@ -36,6 +36,12 @@ assert.match(harnessLabels, /출력 예정/);
 assert.match(appJs, /function getHarnessPolicyReportPayload\(execution\)/);
 assert.match(appJs, /data-harness-policy-report-summary="true"/);
 assert.match(appJs, /data-harness-policy-report-guidance="true"/);
+assert.match(appJs, /const visibleHarnessPolicyReportSummaryMarkup = renderHarnessPolicyReportSummary\(\s+visibleHarnessExecutionResult,\s+\);/);
+assert.match(appJs, /\$\{visibleHarnessPolicyReportSummaryMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result="true"[\s\S]*?\$\{renderHarnessPolicyReportSummary\(visibleHarnessExecutionResult\)\}/,
+);
 assert.match(appJs, /현재 프로세스 권한으로 읽음/);
 assert.match(appJs, /const executionHarnessId = execution\.harnessId \|\| statusCard\.primaryHarnessId;/);
 assert.match(appJs, /const executionRequestId = execution\.requestId \|\| execution\.executionId \|\| '';/);

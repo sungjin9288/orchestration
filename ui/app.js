@@ -1812,6 +1812,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessPolicyReportCopyText = visibleHarnessPolicyReportPayload
     ? formatHarnessPolicyReportForCopy(visibleHarnessPolicyReportPayload)
     : '';
+  const visibleHarnessPolicyReportSummaryMarkup = renderHarnessPolicyReportSummary(
+    visibleHarnessExecutionResult,
+  );
+  const visibleHarnessOutputBriefSummaryMarkup = renderHarnessOutputBriefSummary(
+    visibleHarnessExecutionResult,
+  );
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
   const hasExecutionHistory = hasHarnessExecutionHistory(
     harnessExecutionResult,
@@ -1977,8 +1983,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${visibleHarnessHandoffSummaryMarkup}
                       ${visibleHarnessOutputSummaryMarkup}
                       ${visibleHarnessRequestSummaryMarkup}
-                      ${renderHarnessPolicyReportSummary(visibleHarnessExecutionResult)}
-                      ${renderHarnessOutputBriefSummary(visibleHarnessExecutionResult)}
+                      ${visibleHarnessPolicyReportSummaryMarkup}
+                      ${visibleHarnessOutputBriefSummaryMarkup}
                       ${
                         visibleHarnessInputPath || visibleHarnessOutputPath
                           ? `

@@ -29,6 +29,12 @@ assert.match(appJs, /lastHarnessOutputBriefResult: null/);
 assert.match(appJs, /function renderHarnessOutputBriefSummary\(execution\)/);
 assert.match(appJs, /data-harness-output-brief-summary="true"/);
 assert.match(appJs, /data-harness-output-brief-lines="true"/);
+assert.match(appJs, /const visibleHarnessOutputBriefSummaryMarkup = renderHarnessOutputBriefSummary\(\s+visibleHarnessExecutionResult,\s+\);/);
+assert.match(appJs, /\$\{visibleHarnessOutputBriefSummaryMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result="true"[\s\S]*?\$\{renderHarnessOutputBriefSummary\(visibleHarnessExecutionResult\)\}/,
+);
 assert.match(appJs, /data-action="summarize-harness-execution-preview"/);
 assert.match(appJs, /data-harness-output-brief="true"/);
 assert.match(appJs, /data-harness-history-output-brief="true"/);
