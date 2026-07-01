@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness policy-report token text should be named before rendering. Keep `policy-report` detection and no-write semantics unchanged, but avoid rendering the `정책 리포트` token as a direct literal inside `createToken`.
+
 - Harness primary and request token text should be named before rendering. Keep request-id generation and copy actions unchanged, but avoid constructing `대표:` or `요청:` token strings directly inside `createToken` calls.
 
 - Harness latest and hidden executed-at values should be named before token or summary rendering. Keep the date formatting in the app render path, but do not format dates directly inside visible-result token or hidden-summary template strings.

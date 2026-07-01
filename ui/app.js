@@ -1723,6 +1723,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessExecutionResult?.actionMode === 'policy-report' ? 'true' : 'false';
   const hiddenHarnessPolicyReportFlag =
     hiddenHarnessExecutionResult?.actionMode === 'policy-report' ? 'true' : 'false';
+  const visibleHarnessPolicyReportTokenLabel =
+    visibleHarnessPolicyReportFlag === 'true' ? '정책 리포트' : '';
   const visibleHarnessResultStateLabel =
     visibleHarnessPolicyReportFlag === 'true' ? 'no-write' : '완료';
   const visibleHarnessResultStateTone =
@@ -1918,8 +1920,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <div class="token-row token-row-compact">
                         ${createToken(visibleHarnessPrimaryTokenLabel, 'neutral')}
                         ${
-                          visibleHarnessPolicyReportFlag === 'true'
-                            ? createToken('정책 리포트', 'neutral')
+                          visibleHarnessPolicyReportTokenLabel
+                            ? createToken(visibleHarnessPolicyReportTokenLabel, 'neutral')
                             : ''
                         }
                         ${
