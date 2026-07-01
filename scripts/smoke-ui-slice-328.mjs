@@ -21,8 +21,13 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-executed-at-summary="true"/);
-assert.match(appJs, /hiddenHarnessExecutionResult\.executedAt/);
-assert.match(appJs, /formatDate\(hiddenHarnessExecutionResult\.executedAt\)/);
+assert.match(appJs, /const visibleHarnessExecutedAtLabel = visibleHarnessExecutionResult\?\.executedAt/);
+assert.match(appJs, /const hiddenHarnessExecutedAtLabel = hiddenHarnessExecutionResult\?\.executedAt/);
+assert.match(appJs, /const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel/);
+assert.match(appJs, /createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
+assert.match(appJs, /data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>\$\{escapeHtml\(hiddenHarnessExecutedAtLabel\)\}<\/code>/);
+assert.doesNotMatch(appJs, /escapeHtml\(formatDate\(hiddenHarnessExecutionResult\.executedAt\)\)/);
+assert.doesNotMatch(appJs, /createToken\(`실행:\$\{formatDate\(visibleHarnessExecutionResult\.executedAt\)\}`/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -107,6 +112,11 @@ async function main() {
           harnessExecutionHiddenRunMetadata: {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenExecutedAtSummary->localLatestExecutionPayload',
             sourceMarker: 'data-harness-result-hidden-executed-at-summary',
+            namedValues: [
+              'visibleHarnessExecutedAtLabel',
+              'hiddenHarnessExecutedAtLabel',
+              'visibleHarnessExecutedAtTokenLabel',
+            ],
             route: '/api/harness/operator-action/run',
             executedAt: latestHarnessExecution.executedAt,
           },

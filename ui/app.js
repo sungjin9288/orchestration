@@ -1700,6 +1700,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult);
   const visibleHarnessOutputSummaryValue = visibleHarnessOutputPath || '표준 출력 전용';
   const hiddenHarnessOutputSummaryValue = hiddenHarnessOutputPath || '표준 출력 전용';
+  const visibleHarnessExecutedAtLabel = visibleHarnessExecutionResult?.executedAt
+    ? formatDate(visibleHarnessExecutionResult.executedAt)
+    : '';
+  const hiddenHarnessExecutedAtLabel = hiddenHarnessExecutionResult?.executedAt
+    ? formatDate(hiddenHarnessExecutionResult.executedAt)
+    : '';
+  const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel
+    ? `실행:${visibleHarnessExecutedAtLabel}`
+    : '';
   const visibleHarnessModeLabel = getHarnessExecutionModeLabel(visibleHarnessExecutionResult);
   const hiddenHarnessModeLabel = getHarnessExecutionModeLabel(hiddenHarnessExecutionResult);
   const visibleHarnessResultTitle = getHarnessExecutionResultTitle(visibleHarnessExecutionResult);
@@ -1914,8 +1923,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         }
                         ${createToken(visibleHarnessOutputChannelLabel, visibleHarnessOutputChannelTone)}
                         ${
-                          visibleHarnessExecutionResult.executedAt
-                            ? createToken(`실행:${formatDate(visibleHarnessExecutionResult.executedAt)}`, 'neutral')
+                          visibleHarnessExecutedAtTokenLabel
+                            ? createToken(visibleHarnessExecutedAtTokenLabel, 'neutral')
                             : ''
                         }
                       </div>
@@ -2114,8 +2123,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                       ${
-                        hiddenHarnessExecutionResult.executedAt
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(formatDate(hiddenHarnessExecutionResult.executedAt))}</code></p>`
+                        hiddenHarnessExecutedAtLabel
+                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(hiddenHarnessExecutedAtLabel)}</code></p>`
                           : ''
                       }
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>

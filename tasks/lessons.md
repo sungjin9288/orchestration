@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness latest and hidden executed-at values should be named before token or summary rendering. Keep the date formatting in the app render path, but do not format dates directly inside visible-result token or hidden-summary template strings.
+
 - Harness history row date values should be named before rendering. Keep date formatting in the app render path, but do not call `formatDate` directly inside history-row template strings.
 
 - Harness output-channel tokens should name the label and tone before rendering. Keep stdout versus output-file detection in `ui/app.js`, but avoid branching directly inside `createToken` calls.
