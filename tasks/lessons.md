@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness primary and request token text should be named before rendering. Keep request-id generation and copy actions unchanged, but avoid constructing `대표:` or `요청:` token strings directly inside `createToken` calls.
+
 - Harness latest and hidden executed-at values should be named before token or summary rendering. Keep the date formatting in the app render path, but do not format dates directly inside visible-result token or hidden-summary template strings.
 
 - Harness history row date values should be named before rendering. Keep date formatting in the app render path, but do not call `formatDate` directly inside history-row template strings.

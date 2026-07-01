@@ -1706,6 +1706,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessExecutedAtLabel = hiddenHarnessExecutionResult?.executedAt
     ? formatDate(hiddenHarnessExecutionResult.executedAt)
     : '';
+  const visibleHarnessPrimaryTokenLabel = visibleHarnessExecutionResult?.harnessId
+    ? `대표:${visibleHarnessExecutionResult.harnessId}`
+    : '';
+  const visibleHarnessRequestTokenLabel = visibleHarnessRequestId
+    ? `요청:${visibleHarnessRequestId}`
+    : '';
   const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel
     ? `실행:${visibleHarnessExecutedAtLabel}`
     : '';
@@ -1910,15 +1916,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         ${createToken(visibleHarnessResultStateLabel, visibleHarnessResultStateTone)}
                       </div>
                       <div class="token-row token-row-compact">
-                        ${createToken(`대표:${visibleHarnessExecutionResult.harnessId}`, 'neutral')}
+                        ${createToken(visibleHarnessPrimaryTokenLabel, 'neutral')}
                         ${
                           visibleHarnessPolicyReportFlag === 'true'
                             ? createToken('정책 리포트', 'neutral')
                             : ''
                         }
                         ${
-                          visibleHarnessRequestId
-                            ? createToken(`요청:${visibleHarnessRequestId}`, 'neutral')
+                          visibleHarnessRequestTokenLabel
+                            ? createToken(visibleHarnessRequestTokenLabel, 'neutral')
                             : ''
                         }
                         ${createToken(visibleHarnessOutputChannelLabel, visibleHarnessOutputChannelTone)}
