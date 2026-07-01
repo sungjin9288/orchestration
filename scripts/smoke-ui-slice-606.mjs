@@ -43,14 +43,20 @@ assert.doesNotMatch(
   /data-harness-execution-result="true"[\s\S]*?\$\{renderHarnessPolicyReportSummary\(visibleHarnessExecutionResult\)\}/,
 );
 assert.match(appJs, /현재 프로세스 권한으로 읽음/);
-assert.match(appJs, /const executionHarnessId = execution\.harnessId \|\| statusCard\.primaryHarnessId;/);
-assert.match(appJs, /const executionRequestId = execution\.requestId \|\| execution\.executionId \|\| '';/);
+assert.match(appJs, /function getHarnessExecutionOutputCopy\(execution\) \{/);
+assert.match(appJs, /function getHarnessExecutionCompletionCopy\(\{ execution, fallbackHarnessId \}\) \{/);
+assert.match(appJs, /const executionHarnessId = execution\?\.harnessId \|\| fallbackHarnessId;/);
+assert.match(appJs, /const executionRequestId = execution\?\.requestId \|\| execution\?\.executionId \|\| '';/);
 assert.match(appJs, /const executionRequestCopy = executionRequestId \? `요청: \$\{executionRequestId\}\. ` : '';/);
-assert.match(appJs, /const executionIsPolicyReport = execution\.actionMode === 'policy-report';/);
-assert.match(appJs, /const policyReportOutputCopy = execution\.stdoutPreview/);
-assert.match(appJs, /const executionCompletionCopy = executionIsPolicyReport/);
+assert.match(appJs, /const executionOutputCopy = getHarnessExecutionOutputCopy\(execution\);/);
+assert.match(appJs, /const executionIsPolicyReport = execution\?\.actionMode === 'policy-report';/);
+assert.match(appJs, /const executionCompletionLead = executionIsPolicyReport/);
+assert.match(appJs, /const executionCompletionOutputCopy =\s+executionIsPolicyReport && execution\?\.stdoutPreview/);
+assert.match(appJs, /const executionCompletionCopy = getHarnessExecutionCompletionCopy\(\{\s+execution,\s+fallbackHarnessId: statusCard\.primaryHarnessId,/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = executionCompletionCopy;/);
 assert.doesNotMatch(appJs, /execution\.actionMode === 'policy-report'\s+\?\s+`하네스 \$\{execution\.harnessId/);
+assert.doesNotMatch(appJs, /const executionOutputCopy = execution\.resolvedOutputPath\s+\?/);
+assert.doesNotMatch(appJs, /const policyReportOutputCopy = execution\.stdoutPreview/);
 assert.match(serveUi, /stdoutPreview: stdout \? stdout\.slice\(0, policyReport \? 1600 : 400\) : null/);
 
 async function fetchJson(url, options = {}) {

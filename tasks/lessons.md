@@ -38,7 +38,7 @@
 
 - Harness visibility status messages should be assembled from named title, mode, harness id, executed-at, and final copy values before assigning refresh status text. Keep hide/show/restore state mutation unchanged, but avoid putting helper calls directly inside operator-facing status strings.
 
-- Harness operator action completion messages should be assembled from named request, output, policy-report, and final copy values before assigning refresh status text. Keep the route execution and state mutation unchanged, but do not hide operator-facing completion wording inside nested ternaries.
+- Harness operator action completion messages should be assembled through named output and completion-copy helpers before assigning refresh status text. Keep route execution, state mutation, request-id handling, and policy-report no-write behavior unchanged, but do not hide operator-facing completion wording inside nested ternaries.
 
 - Harness result titles, state tokens, and policy-report rerun flags should be named once before result templates use them. Keep `actionMode === 'policy-report'` checks in a small render-path group so latest, hidden, and history buttons do not reopen the same branch.
 
