@@ -1,3 +1,5 @@
+import { getHarnessExecutionResultKey } from './harness-labels.js';
+
 export function getHarnessConsumerBrief(data) {
   const payload = data?.derived?.harnessConsumerBrief;
 
@@ -46,6 +48,12 @@ export function getLatestHarnessExecution(data, statusPayload, localHarnessExecu
   }
 
   return null;
+}
+
+export function isHarnessExecutionResultHidden(execution, hiddenExecutionResultKey = null) {
+  const executionKey = getHarnessExecutionResultKey(execution);
+
+  return Boolean(executionKey && hiddenExecutionResultKey && hiddenExecutionResultKey === executionKey);
 }
 
 export function getRecentHarnessExecutions(data, statusPayload) {

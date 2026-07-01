@@ -223,6 +223,7 @@ async function main() {
     assert.match(harnessState, /export function getHarnessConsumerStatus\(data\) \{/);
     assert.match(harnessState, /export function getLatestHarnessExecution\(data, statusPayload, localHarnessExecution = null\) \{/);
     assert.match(harnessState, /export function getRecentHarnessExecutions\(data, statusPayload\) \{/);
+    assert.match(harnessState, /export function isHarnessExecutionResultHidden\(execution, hiddenExecutionResultKey = null\) \{/);
     assert.match(packConfig, /export const PACK_DISPLAY_NAMES = \{/);
     assert.match(packConfig, /export const KNOWLEDGE_WORK_DELIVERABLES = \{/);
     assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);

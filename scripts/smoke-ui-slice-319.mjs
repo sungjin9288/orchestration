@@ -15,17 +15,21 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
+const harnessStatePath = path.join(repoRoot, 'ui', 'harness-state.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-319');
 const port = 4620;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
+const harnessState = fs.readFileSync(harnessStatePath, 'utf8');
 
 assert.match(appJs, /hiddenHarnessExecutionResultKey: null,/);
 assert.match(appJs, /from '\.\/harness-labels\.js'/);
 assert.match(harnessLabels, /export function getHarnessExecutionResultKey\(execution\) \{/);
-assert.match(appJs, /function isHarnessExecutionResultHidden\(execution\)/);
+assert.match(appJs, /from '\.\/harness-state\.js'/);
+assert.match(harnessState, /export function isHarnessExecutionResultHidden\(execution, hiddenExecutionResultKey = null\) \{/);
+assert.match(appJs, /state\.hiddenHarnessExecutionResultKey,\s*\n\s+\)/);
 assert.match(appJs, /data-action="hide-harness-execution-result"/);
 assert.match(appJs, /data-harness-result-hide="true"/);
 assert.match(appJs, /function hideHarnessExecutionResult\(actionButton\)/);

@@ -119,6 +119,7 @@ import {
   getHarnessConsumerStatus,
   getLatestHarnessExecution,
   getRecentHarnessExecutions,
+  isHarnessExecutionResultHidden,
 } from './harness-state.js';
 import {
   DEFAULT_UI_PREFERENCES,
@@ -1505,16 +1506,6 @@ function getProviderExecutionSummary(project, data) {
   return data.derived.providerExecutionSummaries?.[project.id] || null;
 }
 
-function isHarnessExecutionResultHidden(execution) {
-  const executionKey = getHarnessExecutionResultKey(execution);
-
-  return Boolean(
-    executionKey &&
-      state.hiddenHarnessExecutionResultKey &&
-      state.hiddenHarnessExecutionResultKey === executionKey,
-  );
-}
-
 function getHarnessPolicyReportPayload(execution) {
   if (execution?.actionMode !== 'policy-report' || !execution.stdoutPreview) {
     return null;
@@ -1687,7 +1678,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     statusPayload,
     state.lastHarnessExecutionResult,
   );
-  const visibleHarnessExecutionResult = isHarnessExecutionResultHidden(harnessExecutionResult)
+  const visibleHarnessExecutionResult = isHarnessExecutionResultHidden(
+    harnessExecutionResult,
+    state.hiddenHarnessExecutionResultKey,
+  )
     ? null
     : harnessExecutionResult;
   const hiddenHarnessExecutionResult =

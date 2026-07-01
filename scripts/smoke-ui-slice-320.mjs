@@ -14,18 +14,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-320');
 const port = 4621;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(appJs, /data-action="show-harness-execution-result"/);
 assert.match(appJs, /data-harness-result-show="true"/);
 assert.match(appJs, /function showHarnessExecutionResult\(actionButton, statusPayload\)/);
 assert.match(appJs, /state\.hiddenHarnessExecutionResultKey = null;/);
 assert.match(appJs, /data-harness-execution-result-hidden="true"/);
-assert.match(appJs, /결과 다시 보기/);
+assert.match(appJs, /getHarnessExecutionShowActionLabel\(hiddenHarnessExecutionResult\)/);
+assert.match(harnessLabels, /return execution\?\.actionMode === 'policy-report' \? '리포트 다시 보기' : '결과 다시 보기';/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

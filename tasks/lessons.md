@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Hidden harness result splitting should keep the hidden key and hide/show mutations in `ui/app.js`. Move only the key comparison predicate into `ui/harness-state.js`, and pass `state.hiddenHarnessExecutionResultKey` as explicit input so browser state ownership, output brief state, policy report parsing, clipboard/rerun actions, runtime mutation, source mutation, commit, and push paths remain outside the helper.
+
 - Latest harness execution splitting should keep transient browser state owned by `ui/app.js`. Move only the candidate-selection rule into `ui/harness-state.js`, and pass `state.lastHarnessExecutionResult` as explicit input so hidden state, output brief state, policy report parsing, clipboard/rerun actions, runtime mutation, source mutation, commit, and push paths remain outside the helper.
 
 - Harness consumer state splitting should move only derived payload readers and recent-execution filtering into `ui/harness-state.js`; keep derived snapshot production, latest execution selection, hidden result state, execution action rendering, clipboard/rerun handlers, runtime authority, provider calls, source mutation, commit, and push behavior in the app/server shell unless a later slice proves a narrower authority boundary.
