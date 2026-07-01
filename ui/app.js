@@ -1702,6 +1702,16 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessOutputSummaryValue = hiddenHarnessOutputPath || '표준 출력 전용';
   const visibleHarnessModeLabel = getHarnessExecutionModeLabel(visibleHarnessExecutionResult);
   const hiddenHarnessModeLabel = getHarnessExecutionModeLabel(hiddenHarnessExecutionResult);
+  const visibleHarnessResultTitle = getHarnessExecutionResultTitle(visibleHarnessExecutionResult);
+  const hiddenHarnessResultTitle = getHarnessExecutionResultTitle(hiddenHarnessExecutionResult);
+  const visibleHarnessPolicyReportFlag =
+    visibleHarnessExecutionResult?.actionMode === 'policy-report' ? 'true' : 'false';
+  const hiddenHarnessPolicyReportFlag =
+    hiddenHarnessExecutionResult?.actionMode === 'policy-report' ? 'true' : 'false';
+  const visibleHarnessResultStateLabel =
+    visibleHarnessPolicyReportFlag === 'true' ? 'no-write' : '완료';
+  const visibleHarnessResultStateTone =
+    visibleHarnessPolicyReportFlag === 'true' ? 'neutral' : 'success';
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
   const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
@@ -1883,13 +1893,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                   <section class="relation-strip relation-strip-compact" data-harness-execution-result="true">
                     <div class="harness-execution-result-packet" data-harness-execution-result-packet="true">
                       <div class="card-title-row card-title-row-tight">
-                        <strong>${escapeHtml(getHarnessExecutionResultTitle(visibleHarnessExecutionResult))}</strong>
-                        ${createToken(visibleHarnessExecutionResult.actionMode === 'policy-report' ? 'no-write' : '완료', visibleHarnessExecutionResult.actionMode === 'policy-report' ? 'neutral' : 'success')}
+                        <strong>${escapeHtml(visibleHarnessResultTitle)}</strong>
+                        ${createToken(visibleHarnessResultStateLabel, visibleHarnessResultStateTone)}
                       </div>
                       <div class="token-row token-row-compact">
                         ${createToken(`대표:${visibleHarnessExecutionResult.harnessId}`, 'neutral')}
                         ${
-                          visibleHarnessExecutionResult.actionMode === 'policy-report'
+                          visibleHarnessPolicyReportFlag === 'true'
                             ? createToken('정책 리포트', 'neutral')
                             : ''
                         }
@@ -1952,7 +1962,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       data-action="rerun-harness-execution-paths"
                                       data-input-path="${escapeHtml(visibleHarnessInputPath)}"
                                       data-output-path="${escapeHtml(visibleHarnessActionOutputPath)}"
-                                      data-policy-report="${visibleHarnessExecutionResult.actionMode === 'policy-report' ? 'true' : 'false'}"
+                                      data-policy-report="${visibleHarnessPolicyReportFlag}"
                                       data-harness-result-rerun="true"
                                       ${state.loading || state.mutating ? 'disabled' : ''}
                                     >
@@ -2090,7 +2100,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       data-harness-execution-result-hidden-packet="true"
                     >
                     <div class="card-title-row card-title-row-tight">
-                      <strong>${escapeHtml(getHarnessExecutionResultTitle(hiddenHarnessExecutionResult))}가 숨겨져 있습니다</strong>
+                      <strong>${escapeHtml(hiddenHarnessResultTitle)}가 숨겨져 있습니다</strong>
                       ${createToken('숨김', 'neutral')}
                     </div>
                     <p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 ${escapeHtml(hiddenHarnessModeLabel)}를 다시 표시할 수 있습니다.</p>
@@ -2179,7 +2189,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               data-action="rerun-harness-execution-paths"
                               data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
                               data-output-path="${escapeHtml(hiddenHarnessActionOutputPath)}"
-                              data-policy-report="${hiddenHarnessExecutionResult.actionMode === 'policy-report' ? 'true' : 'false'}"
+                              data-policy-report="${hiddenHarnessPolicyReportFlag}"
                               data-harness-result-hidden-rerun="true"
                               ${state.loading || state.mutating ? 'disabled' : ''}
                             >
@@ -2315,6 +2325,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessShowActionLabel = getHarnessExecutionShowActionLabel(execution);
                               const historyHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(execution);
                               const historyHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(execution);
+                              const historyHarnessPolicyReportFlag =
+                                execution.actionMode === 'policy-report' ? 'true' : 'false';
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2442,7 +2454,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         data-action="rerun-harness-execution-paths"
                                         data-input-path="${escapeHtml(historyHarnessInputPath)}"
                                         data-output-path="${escapeHtml(historyHarnessOutputPath)}"
-                                        data-policy-report="${execution.actionMode === 'policy-report' ? 'true' : 'false'}"
+                                        data-policy-report="${historyHarnessPolicyReportFlag}"
                                         data-harness-history-rerun="true"
                                         ${state.loading || state.mutating ? 'disabled' : ''}
                                       >

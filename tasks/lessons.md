@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness result titles, state tokens, and policy-report rerun flags should be named once before result templates use them. Keep `actionMode === 'policy-report'` checks in a small render-path group so latest, hidden, and history buttons do not reopen the same branch.
+
 - Harness visible preview rendering should reuse the same preview text value that copy and summary actions use. Keep `outputPreview || stdoutPreview` selection in one render-path variable so the preview block does not re-open a second fallback branch.
 
 - Harness policy report copy text should be computed once before visible, hidden, and history report copy buttons use it. Keep parsed policy-report payload selection in `ui/app.js` and keep the formatter in the label module, but avoid formatter calls inside button attributes.
