@@ -18299,8 +18299,10 @@ async function executeHarnessOperatorAction({ inputPath, outputPath, statusPaylo
   state.harnessExecutionDraftInputPath = inputPath;
   state.harnessExecutionDraftOutputPath = outputPath;
   state.mutating = true;
-  elements.refreshStatus.textContent =
-    pendingMessage || `하네스 ${statusCard.primaryHarnessId} 실행을 시작하는 중…`;
+  const defaultExecutionPendingMessage =
+    `하네스 ${statusCard.primaryHarnessId} 실행을 시작하는 중…`;
+  const executionPendingMessage = pendingMessage || defaultExecutionPendingMessage;
+  elements.refreshStatus.textContent = executionPendingMessage;
   render();
 
   try {

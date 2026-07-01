@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness operator execution pending messages should be named before `refreshStatus` writes. Keep the execution route and policy-report/rerun handoffs in `ui/app.js`, but keep pending copy selection separate from mutation setup and completion copy assembly.
+
 - Harness preview and visibility status messages should be named before `refreshStatus` writes. Keep summary, hide, show, and restore mutations in `ui/app.js`, but avoid mixing operator-facing status copy with state mutation or route handoff steps.
 
 - Harness visibility status messages should share one named display stamp before copy assembly. Keep hide/show/restore state mutation in `ui/app.js`, but avoid rebuilding mode, harness id, and executed-at text separately in show and restore handlers.
