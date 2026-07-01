@@ -26,8 +26,9 @@ assert.match(appJs, /async function rerunHarnessExecutionPaths\(actionButton\)/)
 assert.match(appJs, /await executeHarnessOperatorAction\(\{/);
 assert.match(
   appJs,
-  /pendingMessage: statusCard\?\.primaryHarnessId[\s\S]*\? `하네스 \$\{statusCard\.primaryHarnessId\}의 최근 실행 경로를 다시 실행하는 중…`[\s\S]*: '미확인 하네스의 최근 실행 경로를 다시 실행하는 중…',/,
+  /const rerunHarnessPendingMessage =\s+`\$\{rerunHarnessSubjectCopy\}의 최근 실행 경로를 \$\{rerunHarnessModeCopy\}하는 중…`;/,
 );
+assert.match(appJs, /pendingMessage: rerunHarnessPendingMessage/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

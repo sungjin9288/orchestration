@@ -20,8 +20,10 @@ const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 
-assert.match(appJs, /하네스 \$\{statusCard\.primaryHarnessId\}의 실행 기록을 비우는 중…/);
-assert.match(appJs, /하네스 \$\{statusCard\.primaryHarnessId\}의 실행 기록을 비웠습니다\./);
+assert.match(appJs, /const clearHistoryPendingMessage = `하네스 \$\{statusCard\.primaryHarnessId\}의 실행 기록을 비우는 중…`;/);
+assert.match(appJs, /const clearHistoryDoneMessage = `하네스 \$\{statusCard\.primaryHarnessId\}의 실행 기록을 비웠습니다\.`;/);
+assert.match(appJs, /elements\.refreshStatus\.textContent = clearHistoryPendingMessage;/);
+assert.match(appJs, /elements\.refreshStatus\.textContent = clearHistoryDoneMessage;/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

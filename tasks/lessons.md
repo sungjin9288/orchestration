@@ -76,6 +76,8 @@
 
 - Harness clipboard status handlers should name empty, copied, and unsupported messages before passing handlers into `copyTextValue`. Keep clipboard behavior in `ui/app.js`, but avoid hiding operator-facing status copy for command templates, request IDs, previews, packets, input paths, output paths, output briefs, policy reports, or local personalization review packets inside inline callback template strings.
 
+- Harness execution history status messages should be named before writing `refreshStatus` or passing rerun pending copy into execution helpers. Keep clear-history, path reuse, and rerun mutations in `ui/app.js`, but avoid burying operator-facing history status strings directly in assignments or helper call arguments.
+
 - Harness output brief selector splitting should keep `lastHarnessOutputBriefResult` and copy/render actions in `ui/app.js`; move only the execution-key match into `ui/harness-state.js`, and pass the local output brief result explicitly so route handling, clipboard state, runtime mutation, source mutation, commit, and push paths stay outside the helper.
 
 - Harness execution history splitting should move only the register visibility predicate into `ui/harness-state.js`; keep execution history rendering, latest/hidden result state, output brief state, policy report parsing, clipboard/rerun actions, runtime mutation, source mutation, commit, and push paths in `ui/app.js`.

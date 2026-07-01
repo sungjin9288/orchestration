@@ -18371,7 +18371,9 @@ async function clearHarnessExecutionHistory(statusPayload) {
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId}의 실행 기록을 비우는 중…`;
+  const clearHistoryPendingMessage = `하네스 ${statusCard.primaryHarnessId}의 실행 기록을 비우는 중…`;
+  const clearHistoryDoneMessage = `하네스 ${statusCard.primaryHarnessId}의 실행 기록을 비웠습니다.`;
+  elements.refreshStatus.textContent = clearHistoryPendingMessage;
   render();
 
   try {
@@ -18384,7 +18386,7 @@ async function clearHarnessExecutionHistory(statusPayload) {
     state.hiddenHarnessExecutionResultKey = null;
     state.lastHarnessExecutionResult = null;
     render();
-    elements.refreshStatus.textContent = `하네스 ${statusCard.primaryHarnessId}의 실행 기록을 비웠습니다.`;
+    elements.refreshStatus.textContent = clearHistoryDoneMessage;
   } finally {
     state.mutating = false;
     render();
@@ -18401,7 +18403,8 @@ function reuseHarnessExecutionPaths(actionButton) {
 
   state.harnessExecutionDraftInputPath = inputPath;
   state.harnessExecutionDraftOutputPath = outputPath;
-  elements.refreshStatus.textContent = `최근 실행 경로를 폼에 다시 채웠습니다: ${inputPath}`;
+  const reusePathsMessage = `최근 실행 경로를 폼에 다시 채웠습니다: ${inputPath}`;
+  elements.refreshStatus.textContent = reusePathsMessage;
   render();
 }
 
@@ -18415,6 +18418,8 @@ async function rerunHarnessExecutionPaths(actionButton) {
     ? `하네스 ${statusCard.primaryHarnessId}`
     : '미확인 하네스';
   const rerunHarnessModeCopy = policyReport ? '정책 리포트로 다시 확인' : '다시 실행';
+  const rerunHarnessPendingMessage =
+    `${rerunHarnessSubjectCopy}의 최근 실행 경로를 ${rerunHarnessModeCopy}하는 중…`;
 
   if (!inputPath) {
     throw new Error('재실행할 입력 경로가 없습니다.');
@@ -18425,7 +18430,7 @@ async function rerunHarnessExecutionPaths(actionButton) {
     outputPath,
     statusPayload,
     policyReport,
-    pendingMessage: `${rerunHarnessSubjectCopy}의 최근 실행 경로를 ${rerunHarnessModeCopy}하는 중…`,
+    pendingMessage: rerunHarnessPendingMessage,
   });
 }
 
