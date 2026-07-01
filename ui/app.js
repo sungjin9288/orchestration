@@ -1732,16 +1732,20 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessModeLabel = getHarnessExecutionModeLabel(hiddenHarnessExecutionResult);
   const visibleHarnessResultTitle = getHarnessExecutionResultTitle(visibleHarnessExecutionResult);
   const hiddenHarnessResultTitle = getHarnessExecutionResultTitle(hiddenHarnessExecutionResult);
-  const visibleHarnessPolicyReportFlag =
-    visibleHarnessExecutionResult?.actionMode === 'policy-report' ? 'true' : 'false';
-  const hiddenHarnessPolicyReportFlag =
-    hiddenHarnessExecutionResult?.actionMode === 'policy-report' ? 'true' : 'false';
+  const visibleHarnessIsPolicyReport =
+    visibleHarnessExecutionResult?.actionMode === 'policy-report';
+  const hiddenHarnessIsPolicyReport =
+    hiddenHarnessExecutionResult?.actionMode === 'policy-report';
+  const visibleHarnessPolicyReportDataValue =
+    getHarnessPolicyReportDataValue(visibleHarnessIsPolicyReport);
+  const hiddenHarnessPolicyReportDataValue =
+    getHarnessPolicyReportDataValue(hiddenHarnessIsPolicyReport);
   const visibleHarnessPolicyReportTokenLabel =
-    visibleHarnessPolicyReportFlag === 'true' ? '정책 리포트' : '';
+    visibleHarnessIsPolicyReport ? '정책 리포트' : '';
   const visibleHarnessResultStateLabel =
-    visibleHarnessPolicyReportFlag === 'true' ? 'no-write' : '완료';
+    visibleHarnessIsPolicyReport ? 'no-write' : '완료';
   const visibleHarnessResultStateTone =
-    visibleHarnessPolicyReportFlag === 'true' ? 'neutral' : 'success';
+    visibleHarnessIsPolicyReport ? 'neutral' : 'success';
   const visibleHarnessOutputChannelLabel =
     visibleHarnessExecutionResult?.outputPath ? '출력 파일' : '표준 출력';
   const visibleHarnessOutputChannelTone =
@@ -2030,7 +2034,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       data-action="rerun-harness-execution-paths"
                                       data-input-path="${escapeHtml(visibleHarnessInputPath)}"
                                       data-output-path="${escapeHtml(visibleHarnessActionOutputPath)}"
-                                      data-policy-report="${visibleHarnessPolicyReportFlag}"
+                                      data-policy-report="${visibleHarnessPolicyReportDataValue}"
                                       data-harness-result-rerun="true"
                                       ${state.loading || state.mutating ? 'disabled' : ''}
                                     >
@@ -2241,7 +2245,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               data-action="rerun-harness-execution-paths"
                               data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
                               data-output-path="${escapeHtml(hiddenHarnessActionOutputPath)}"
-                              data-policy-report="${hiddenHarnessPolicyReportFlag}"
+                              data-policy-report="${hiddenHarnessPolicyReportDataValue}"
                               data-harness-result-hidden-rerun="true"
                               ${state.loading || state.mutating ? 'disabled' : ''}
                             >
@@ -2396,8 +2400,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessShowActionLabel = getHarnessExecutionShowActionLabel(execution);
                               const historyHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(execution);
                               const historyHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(execution);
-                              const historyHarnessPolicyReportFlag =
-                                execution.actionMode === 'policy-report' ? 'true' : 'false';
+                              const historyHarnessIsPolicyReport =
+                                execution.actionMode === 'policy-report';
+                              const historyHarnessPolicyReportDataValue =
+                                getHarnessPolicyReportDataValue(historyHarnessIsPolicyReport);
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2507,7 +2513,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         data-action="rerun-harness-execution-paths"
                                         data-input-path="${escapeHtml(historyHarnessInputPath)}"
                                         data-output-path="${escapeHtml(historyHarnessOutputPath)}"
-                                        data-policy-report="${historyHarnessPolicyReportFlag}"
+                                        data-policy-report="${historyHarnessPolicyReportDataValue}"
                                         data-harness-history-rerun="true"
                                         ${state.loading || state.mutating ? 'disabled' : ''}
                                       >
@@ -18107,6 +18113,10 @@ function getHarnessExecutionDisplayStamp(execution) {
   return `${modeLabel}: ${harnessId} · ${executedAtLabel}`;
 }
 
+function getHarnessPolicyReportDataValue(isPolicyReport) {
+  return isPolicyReport ? 'true' : 'false';
+}
+
 function showHarnessExecutionResult(actionButton, statusPayload) {
   const executionKey = String(actionButton?.dataset.executionKey || '').trim();
   const currentExecution = getLatestHarnessExecution(
@@ -18315,6 +18325,10 @@ async function rerunHarnessExecutionPaths(actionButton) {
   const policyReport = actionButton?.dataset.policyReport === 'true';
   const statusPayload = getHarnessConsumerStatus(getDerived());
   const statusCard = statusPayload?.statusCard || null;
+  const rerunHarnessSubjectCopy = statusCard?.primaryHarnessId
+    ? `하네스 ${statusCard.primaryHarnessId}`
+    : '미확인 하네스';
+  const rerunHarnessModeCopy = policyReport ? '정책 리포트로 다시 확인' : '다시 실행';
 
   if (!inputPath) {
     throw new Error('재실행할 입력 경로가 없습니다.');
@@ -18325,9 +18339,7 @@ async function rerunHarnessExecutionPaths(actionButton) {
     outputPath,
     statusPayload,
     policyReport,
-    pendingMessage: statusCard?.primaryHarnessId
-      ? `하네스 ${statusCard.primaryHarnessId}의 최근 실행 경로를 ${policyReport ? '정책 리포트로 다시 확인' : '다시 실행'}하는 중…`
-      : `미확인 하네스의 최근 실행 경로를 ${policyReport ? '정책 리포트로 다시 확인' : '다시 실행'}하는 중…`,
+    pendingMessage: `${rerunHarnessSubjectCopy}의 최근 실행 경로를 ${rerunHarnessModeCopy}하는 중…`,
   });
 }
 

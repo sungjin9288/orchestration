@@ -20,15 +20,25 @@ assert.match(appJs, /\$\{escapeHtml\(visibleHarnessRerunActionLabel\)\}/);
 assert.match(appJs, /\$\{escapeHtml\(hiddenHarnessRerunActionLabel\)\}/);
 assert.match(appJs, /const historyHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel\(execution\);/);
 assert.match(appJs, /\$\{escapeHtml\(historyHarnessRerunActionLabel\)\}/);
-assert.match(appJs, /const visibleHarnessPolicyReportFlag =\s+visibleHarnessExecutionResult\?\.actionMode === 'policy-report' \? 'true' : 'false';/);
-assert.match(appJs, /const hiddenHarnessPolicyReportFlag =\s+hiddenHarnessExecutionResult\?\.actionMode === 'policy-report' \? 'true' : 'false';/);
-assert.match(appJs, /const historyHarnessPolicyReportFlag =\s+execution\.actionMode === 'policy-report' \? 'true' : 'false';/);
-assert.match(appJs, /data-policy-report="\$\{visibleHarnessPolicyReportFlag\}"/);
-assert.match(appJs, /data-policy-report="\$\{hiddenHarnessPolicyReportFlag\}"/);
-assert.match(appJs, /data-policy-report="\$\{historyHarnessPolicyReportFlag\}"/);
+assert.match(appJs, /function getHarnessPolicyReportDataValue\(isPolicyReport\) \{/);
+assert.match(appJs, /return isPolicyReport \? 'true' : 'false';/);
+assert.match(appJs, /const visibleHarnessIsPolicyReport =\s+visibleHarnessExecutionResult\?\.actionMode === 'policy-report';/);
+assert.match(appJs, /const hiddenHarnessIsPolicyReport =\s+hiddenHarnessExecutionResult\?\.actionMode === 'policy-report';/);
+assert.match(appJs, /const visibleHarnessPolicyReportDataValue =\s+getHarnessPolicyReportDataValue\(visibleHarnessIsPolicyReport\);/);
+assert.match(appJs, /const hiddenHarnessPolicyReportDataValue =\s+getHarnessPolicyReportDataValue\(hiddenHarnessIsPolicyReport\);/);
+assert.match(appJs, /const historyHarnessIsPolicyReport =\s+execution\.actionMode === 'policy-report';/);
+assert.match(appJs, /const historyHarnessPolicyReportDataValue =\s+getHarnessPolicyReportDataValue\(historyHarnessIsPolicyReport\);/);
+assert.match(appJs, /data-policy-report="\$\{visibleHarnessPolicyReportDataValue\}"/);
+assert.match(appJs, /data-policy-report="\$\{hiddenHarnessPolicyReportDataValue\}"/);
+assert.match(appJs, /data-policy-report="\$\{historyHarnessPolicyReportDataValue\}"/);
 assert.match(appJs, /const policyReport = actionButton\?\.dataset\.policyReport === 'true'/);
+assert.match(appJs, /const rerunHarnessSubjectCopy = statusCard\?\.primaryHarnessId/);
+assert.match(appJs, /const rerunHarnessModeCopy = policyReport \? '정책 리포트로 다시 확인' : '다시 실행';/);
+assert.match(appJs, /pendingMessage: `\$\{rerunHarnessSubjectCopy\}의 최근 실행 경로를 \$\{rerunHarnessModeCopy\}하는 중…`/);
 assert.match(appJs, /policyReport,/);
-assert.match(appJs, /정책 리포트로 다시 확인/);
+assert.doesNotMatch(appJs, /const visibleHarnessPolicyReportFlag =/);
+assert.doesNotMatch(appJs, /const hiddenHarnessPolicyReportFlag =/);
+assert.doesNotMatch(appJs, /const historyHarnessPolicyReportFlag =/);
 
 console.log(
   JSON.stringify(
@@ -37,10 +47,10 @@ console.log(
       harnessExecutionPolicyReportRerun: {
         helper: 'getHarnessExecutionRerunActionLabel',
         preservesPolicyReport: true,
-        policyReportFlagValues: [
-          'visibleHarnessPolicyReportFlag',
-          'hiddenHarnessPolicyReportFlag',
-          'historyHarnessPolicyReportFlag',
+        policyReportDataValues: [
+          'visibleHarnessPolicyReportDataValue',
+          'hiddenHarnessPolicyReportDataValue',
+          'historyHarnessPolicyReportDataValue',
         ],
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],
       },
