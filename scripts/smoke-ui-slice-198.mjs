@@ -101,6 +101,8 @@ async function main() {
     const harnessBriefLabels = await harnessBriefLabelsResponse.text();
     const harnessLabelsResponse = await fetch(`${baseUrl}/harness-labels.js`);
     const harnessLabels = await harnessLabelsResponse.text();
+    const harnessStateResponse = await fetch(`${baseUrl}/harness-state.js`);
+    const harnessState = await harnessStateResponse.text();
     const preferenceConfigResponse = await fetch(`${baseUrl}/preference-config.js`);
     const preferenceConfig = await preferenceConfigResponse.text();
     const projectBootstrapResponse = await fetch(`${baseUrl}/project-bootstrap.js`);
@@ -126,6 +128,7 @@ async function main() {
     assert.equal(growthLearningResponse.status, 200);
     assert.equal(harnessBriefLabelsResponse.status, 200);
     assert.equal(harnessLabelsResponse.status, 200);
+    assert.equal(harnessStateResponse.status, 200);
     assert.equal(preferenceConfigResponse.status, 200);
     assert.equal(projectBootstrapResponse.status, 200);
     assert.equal(personalizationSnapshotResponse.status, 200);
@@ -143,6 +146,7 @@ async function main() {
     assert.match(appJs, /from '\.\/growth-learning\.js'/);
     assert.match(appJs, /from '\.\/harness-brief-labels\.js'/);
     assert.match(appJs, /from '\.\/harness-labels\.js'/);
+    assert.match(appJs, /from '\.\/harness-state\.js'/);
     assert.match(appJs, /from '\.\/pack-config\.js'/);
     assert.match(appJs, /from '\.\/preference-config\.js'/);
     assert.match(appJs, /from '\.\/project-bootstrap\.js'/);
@@ -215,6 +219,9 @@ async function main() {
     assert.match(harnessLabels, /export function formatHarnessExecutionPacketForCopy\(execution, context = \{\}\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionResultKey\(execution\) \{/);
     assert.match(harnessLabels, /export function formatHarnessPolicyReportForCopy\(payload\) \{/);
+    assert.match(harnessState, /export function getHarnessConsumerBrief\(data\) \{/);
+    assert.match(harnessState, /export function getHarnessConsumerStatus\(data\) \{/);
+    assert.match(harnessState, /export function getRecentHarnessExecutions\(data, statusPayload\) \{/);
     assert.match(packConfig, /export const PACK_DISPLAY_NAMES = \{/);
     assert.match(packConfig, /export const KNOWLEDGE_WORK_DELIVERABLES = \{/);
     assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);

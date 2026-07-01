@@ -14,18 +14,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessStatePath = path.join(repoRoot, 'ui', 'harness-state.js');
 const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-309');
 const port = 4609;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessState = fs.readFileSync(harnessStatePath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 
 assert.match(serveUi, /let recentHarnessExecutions = \[];/);
 assert.match(serveUi, /recentHarnessExecutions,/);
 assert.match(serveUi, /function rememberHarnessExecution\(harnessExecution\)/);
-assert.match(appJs, /function getRecentHarnessExecutions\(data, statusPayload\)/);
+assert.match(appJs, /from '\.\/harness-state\.js'/);
+assert.match(harnessState, /export function getRecentHarnessExecutions\(data, statusPayload\) \{/);
 assert.match(appJs, /data-harness-execution-history="true"/);
 assert.match(appJs, /data-harness-execution-history-item="true"/);
 
