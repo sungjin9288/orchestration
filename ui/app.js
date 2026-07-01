@@ -111,6 +111,7 @@ import {
   getHarnessExecutionResultTitle,
   getHarnessExecutionShowActionLabel,
   formatHarnessPolicyReportForCopy,
+  getHarnessExecutionResultKey,
 } from './harness-labels.js';
 import {
   DEFAULT_UI_PREFERENCES,
@@ -1545,21 +1546,6 @@ function getLatestHarnessExecution(data, statusPayload) {
   }
 
   return null;
-}
-
-function getHarnessExecutionResultKey(execution) {
-  if (!execution?.harnessId) {
-    return null;
-  }
-
-  return [
-    execution.projectId || '',
-    execution.harnessId || '',
-    execution.requestId || execution.executionId || '',
-    execution.executedAt || '',
-    execution.resolvedInputPath || execution.inputPath || '',
-    execution.resolvedOutputPath || execution.outputPath || '',
-  ].join('::');
 }
 
 function isHarnessExecutionResultHidden(execution) {

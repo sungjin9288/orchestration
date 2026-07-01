@@ -211,6 +211,7 @@ async function main() {
     assert.match(harnessBriefLabels, /export function getHarnessOperatorActionLabel\(operatorAction\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionModeLabel\(execution\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionOutputLabel\(execution\) \{/);
+    assert.match(harnessLabels, /export function getHarnessExecutionResultKey\(execution\) \{/);
     assert.match(harnessLabels, /export function formatHarnessPolicyReportForCopy\(payload\) \{/);
     assert.match(packConfig, /export const PACK_DISPLAY_NAMES = \{/);
     assert.match(packConfig, /export const KNOWLEDGE_WORK_DELIVERABLES = \{/);

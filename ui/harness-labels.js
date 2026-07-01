@@ -59,6 +59,21 @@ export function getHarnessExecutionPathHandoffLabel(execution) {
   return '';
 }
 
+export function getHarnessExecutionResultKey(execution) {
+  if (!execution?.harnessId) {
+    return null;
+  }
+
+  return [
+    execution.projectId || '',
+    execution.harnessId || '',
+    execution.requestId || execution.executionId || '',
+    execution.executedAt || '',
+    execution.resolvedInputPath || execution.inputPath || '',
+    execution.resolvedOutputPath || execution.outputPath || '',
+  ].join('::');
+}
+
 export function formatHarnessPolicyReportForCopy(payload) {
   if (!payload) {
     return '';
