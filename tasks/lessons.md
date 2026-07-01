@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible preview rendering should reuse the same preview text value that copy and summary actions use. Keep `outputPreview || stdoutPreview` selection in one render-path variable so the preview block does not re-open a second fallback branch.
+
 - Harness policy report copy text should be computed once before visible, hidden, and history report copy buttons use it. Keep parsed policy-report payload selection in `ui/app.js` and keep the formatter in the label module, but avoid formatter calls inside button attributes.
 
 - Harness execution packet copy text should be computed once before the visible, hidden, and history packet buttons use it. Keep packet formatting and context helpers unchanged, but avoid calling the packet formatter directly inside button attributes.

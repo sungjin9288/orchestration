@@ -2072,11 +2072,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                       ${
-                        visibleHarnessExecutionResult.outputPreview
-                          ? `<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">${escapeHtml(visibleHarnessExecutionResult.outputPreview)}</pre>`
-                          : visibleHarnessExecutionResult.stdoutPreview
-                            ? `<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">${escapeHtml(visibleHarnessExecutionResult.stdoutPreview)}</pre>`
-                            : '<p class="detail-copy detail-copy-compact">미리보기 가능한 출력이 없습니다.</p>'
+                        visibleHarnessPreviewText
+                          ? `<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">${escapeHtml(visibleHarnessPreviewText)}</pre>`
+                          : '<p class="detail-copy detail-copy-compact">미리보기 가능한 출력이 없습니다.</p>'
                       }
                     </div>
                   </section>
