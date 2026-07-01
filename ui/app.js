@@ -17992,13 +17992,16 @@ async function copyHarnessCommand(command) {
 
 async function copyHarnessExecutionOutputPath(outputPath, label = '출력 경로') {
   const outputLabel = label || '출력 경로';
+  const emptyOutputPathCopyMessage = `복사할 하네스 ${outputLabel}가 없습니다.`;
+  const copiedOutputPathMessage = (value) => `하네스 ${outputLabel}를 복사했습니다: ${value}`;
+  const unsupportedOutputPathCopyMessage = (value) =>
+    `클립보드 미지원 환경입니다. ${outputLabel}를 직접 확인하세요: ${value}`;
 
   await copyTextValue({
     value: outputPath,
-    emptyErrorMessage: `복사할 하네스 ${outputLabel}가 없습니다.`,
-    copiedMessage: (value) => `하네스 ${outputLabel}를 복사했습니다: ${value}`,
-    unsupportedMessage: (value) =>
-      `클립보드 미지원 환경입니다. ${outputLabel}를 직접 확인하세요: ${value}`,
+    emptyErrorMessage: emptyOutputPathCopyMessage,
+    copiedMessage: copiedOutputPathMessage,
+    unsupportedMessage: unsupportedOutputPathCopyMessage,
   });
 }
 
