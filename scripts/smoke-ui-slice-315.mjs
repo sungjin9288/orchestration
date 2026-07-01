@@ -24,8 +24,13 @@ assert.match(appJs, /data-action="copy-harness-input-path"/);
 assert.match(appJs, /data-harness-input-copy="true"/);
 assert.match(appJs, /입력 경로/);
 assert.match(appJs, /async function copyHarnessExecutionInputPath\(inputPath\)/);
-assert.match(appJs, /emptyErrorMessage: '복사할 하네스 입력 경로가 없습니다\.'/);
-assert.match(appJs, /copiedMessage: \(value\) => `하네스 입력 경로를 복사했습니다: \$\{value\}`/);
+assert.match(appJs, /const emptyInputPathCopyMessage = '복사할 하네스 입력 경로가 없습니다\.';/);
+assert.match(appJs, /const copiedInputPathMessage = \(value\) => `하네스 입력 경로를 복사했습니다: \$\{value\}`;/);
+assert.match(appJs, /const unsupportedInputPathCopyMessage = \(value\) =>\s+`클립보드 미지원 환경입니다\. 입력 경로를 직접 확인하세요: \$\{value\}`;/);
+assert.match(appJs, /emptyErrorMessage: emptyInputPathCopyMessage/);
+assert.match(appJs, /copiedMessage: copiedInputPathMessage/);
+assert.match(appJs, /unsupportedMessage: unsupportedInputPathCopyMessage/);
+assert.doesNotMatch(appJs, /copiedMessage: \(value\) => `하네스 입력 경로를 복사했습니다: \$\{value\}`/);
 assert.match(appJs, /actionButton\.dataset\.action === 'copy-harness-input-path'/);
 
 async function fetchJson(url, options = {}) {

@@ -18006,12 +18006,16 @@ async function copyHarnessExecutionOutputPath(outputPath, label = '출력 경로
 }
 
 async function copyHarnessExecutionInputPath(inputPath) {
+  const emptyInputPathCopyMessage = '복사할 하네스 입력 경로가 없습니다.';
+  const copiedInputPathMessage = (value) => `하네스 입력 경로를 복사했습니다: ${value}`;
+  const unsupportedInputPathCopyMessage = (value) =>
+    `클립보드 미지원 환경입니다. 입력 경로를 직접 확인하세요: ${value}`;
+
   await copyTextValue({
     value: inputPath,
-    emptyErrorMessage: '복사할 하네스 입력 경로가 없습니다.',
-    copiedMessage: (value) => `하네스 입력 경로를 복사했습니다: ${value}`,
-    unsupportedMessage: (value) =>
-      `클립보드 미지원 환경입니다. 입력 경로를 직접 확인하세요: ${value}`,
+    emptyErrorMessage: emptyInputPathCopyMessage,
+    copiedMessage: copiedInputPathMessage,
+    unsupportedMessage: unsupportedInputPathCopyMessage,
   });
 }
 
