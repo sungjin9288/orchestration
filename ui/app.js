@@ -1718,6 +1718,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessRequestSummaryMarkup = hiddenHarnessRequestId
     ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-request-summary="true">요청 ID: <code>${escapeHtml(hiddenHarnessRequestId)}</code></p>`
     : '';
+  const hiddenHarnessExecutedAtSummaryMarkup = hiddenHarnessExecutedAtLabel
+    ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(hiddenHarnessExecutedAtLabel)}</code></p>`
+    : '';
   const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel
     ? `실행:${visibleHarnessExecutedAtLabel}`
     : '';
@@ -2128,11 +2131,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         <strong>실행 기록</strong>
                       </div>
                       ${hiddenHarnessRequestSummaryMarkup}
-                      ${
-                        hiddenHarnessExecutedAtLabel
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(hiddenHarnessExecutedAtLabel)}</code></p>`
-                          : ''
-                      }
+                      ${hiddenHarnessExecutedAtSummaryMarkup}
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(hiddenHarnessHandoffText)}</code></p>
                       ${
