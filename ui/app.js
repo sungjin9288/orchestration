@@ -1736,6 +1736,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     harnessExecutionResult?.harnessId === primaryHarnessId && !visibleHarnessExecutionResult
       ? harnessExecutionResult
       : null;
+  const isVisibleHarnessResultForPrimaryHarness =
+    visibleHarnessExecutionResult?.harnessId === primaryHarnessId;
+  const isHiddenHarnessResultForPrimaryHarness =
+    hiddenHarnessExecutionResult?.harnessId === primaryHarnessId;
   const visibleHarnessExecutionKey = getHarnessExecutionResultKey(visibleHarnessExecutionResult);
   const hiddenHarnessExecutionKey = getHarnessExecutionResultKey(hiddenHarnessExecutionResult);
   const visibleHarnessRequestId =
@@ -2024,7 +2028,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
               </div>
             </form>
             ${
-              visibleHarnessExecutionResult?.harnessId === statusCard.primaryHarnessId
+              isVisibleHarnessResultForPrimaryHarness
                 ? `
                   <section class="relation-strip relation-strip-compact" data-harness-execution-result="true">
                     <div class="harness-execution-result-packet" data-harness-execution-result-packet="true">
@@ -2220,7 +2224,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                 : ''
             }
             ${
-              hiddenHarnessExecutionResult?.harnessId === statusCard.primaryHarnessId
+              isHiddenHarnessResultForPrimaryHarness
                 ? `
                   <section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">
                     <div

@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible and hidden result sections should name whether each result belongs to the primary harness before rendering. Keep result selection and hide/show state in `ui/app.js`, but avoid re-reading `statusCard.primaryHarnessId` inside template conditions after `primaryHarnessId` has already been derived.
+
 - Harness action shelf render guards should name the harness id, action kind, and display predicate before template rendering. Keep action shelf rendering in `ui/app.js`, but avoid repeating inline status-card/operator-action guard expressions when the same harness id also drives hidden-result matching and register copy.
 
 - Harness operator action guards should name the harness id, action kind, and runnable predicate before mutating state. Keep execution routing in `ui/app.js`, but avoid long inline guard expressions when the same values also feed pending and completion copy.
