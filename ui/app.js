@@ -1748,6 +1748,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessExecutionResult?.outputPath ? 'accent' : 'neutral';
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
+  const harnessOperatorActionLabel = operatorAction
+    ? getHarnessOperatorActionLabel(operatorAction)
+    : '미확인';
+  const harnessOperatorActionTone = operatorAction
+    ? getHarnessOperatorActionTone(operatorAction)
+    : 'neutral';
+  const harnessHostStateLabel = getHarnessBriefHostStateLabel({
+    currentHostState: statusCard.currentHostState,
+  });
   const visibleHarnessInputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력: <code>${escapeHtml(visibleHarnessInputSummaryPath)}</code></p>`;
   const visibleHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(visibleHarnessModeLabel)}</code></p>`;
   const visibleHarnessHandoffSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(visibleHarnessHandoffText)}</code></p>`;
@@ -1760,10 +1769,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessPrimaryRunnerSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-runner-summary="true">대표 러너: <code>${escapeHtml(statusCard.primaryRunner || '미확인')}</code></p>`;
   const hiddenHarnessPostureSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-posture-summary="true">대표 정책: <code>${escapeHtml(statusCard.primaryPosture || '미확인')}</code></p>`;
   const hiddenHarnessStateSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-state-summary="true">현재 상태: <code>${escapeHtml(statusCard.primaryHarnessState)}</code></p>`;
-  const hiddenHarnessHostSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(getHarnessBriefHostStateLabel({ currentHostState: statusCard.currentHostState }))}</code></p>`;
-  const hiddenHarnessOperatorActionLabel = operatorAction
-    ? getHarnessOperatorActionLabel(operatorAction)
-    : '미확인';
+  const hiddenHarnessHostSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(harnessHostStateLabel)}</code></p>`;
+  const hiddenHarnessOperatorActionLabel = harnessOperatorActionLabel;
   const hiddenHarnessOperatorCommand = operatorAction?.repoNativeCommand || '';
   const hiddenHarnessOperatorMessage = operatorAction?.message || '';
   const hiddenHarnessOperatorActionSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>${escapeHtml(hiddenHarnessOperatorActionLabel)}</code></p>`;
@@ -1836,7 +1843,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
           <p class="control-overview-label">Harness operator action</p>
           <h4 class="ops-section-title">하네스 실행 액션</h4>
         </div>
-        ${createToken(getHarnessOperatorActionLabel(operatorAction), getHarnessOperatorActionTone(operatorAction))}
+        ${createToken(harnessOperatorActionLabel, harnessOperatorActionTone)}
       </div>
       <p class="control-overview-copy">${escapeHtml(operatorAction.message || '대표 하네스 액션이 아직 준비되지 않았습니다.')}</p>
       <div class="control-overview-register">
@@ -1846,11 +1853,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
         </div>
         <div class="control-overview-register-row">
           <span class="control-overview-register-label">액션</span>
-          <strong class="control-overview-register-value">${escapeHtml(getHarnessOperatorActionLabel(operatorAction))}</strong>
+          <strong class="control-overview-register-value">${escapeHtml(harnessOperatorActionLabel)}</strong>
         </div>
         <div class="control-overview-register-row">
           <span class="control-overview-register-label">호스트</span>
-          <strong class="control-overview-register-value">${escapeHtml(getHarnessBriefHostStateLabel({ currentHostState: statusCard.currentHostState }))}</strong>
+          <strong class="control-overview-register-value">${escapeHtml(harnessHostStateLabel)}</strong>
         </div>
       </div>
       ${

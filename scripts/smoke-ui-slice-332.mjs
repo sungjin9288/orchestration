@@ -21,10 +21,13 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-host-summary="true"/);
-assert.match(appJs, /getHarnessBriefHostStateLabel\(\{ currentHostState: statusCard\.currentHostState \}\)/);
+assert.match(appJs, /const harnessHostStateLabel = getHarnessBriefHostStateLabel\(\{\s+currentHostState: statusCard\.currentHostState,\s+\}\);/);
 assert.match(appJs, /const hiddenHarnessHostSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">/);
 assert.match(appJs, /\$\{hiddenHarnessHostSummaryMarkup\}/);
+assert.match(appJs, /data-harness-result-hidden-host-summary="true">호스트 상태: <code>\$\{escapeHtml\(harnessHostStateLabel\)\}<\/code>/);
+assert.match(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(harnessHostStateLabel\)\}<\/strong>/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>\$\{escapeHtml\(getHarnessBriefHostStateLabel\(\{ currentHostState: statusCard\.currentHostState \}\)\)\}<\/code><\/p>\s*<\/section>/);
+assert.doesNotMatch(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(getHarnessBriefHostStateLabel\(\{ currentHostState: statusCard\.currentHostState \}\)\)\}<\/strong>/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -109,7 +112,7 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenHostSummary->hostStateLabel',
             sourceMarker: 'data-harness-result-hidden-host-summary',
             route: '/api/harness/operator-action/run',
-            namedValues: ['hiddenHarnessHostSummaryMarkup'],
+            namedValues: ['harnessHostStateLabel', 'hiddenHarnessHostSummaryMarkup'],
             currentHostState: harnessConsumerStatus.statusCard.currentHostState,
           },
         },
