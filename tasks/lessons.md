@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness hidden status-card summary values should be named before summary markup. Keep hidden harness context rendering in `ui/app.js`, but avoid applying `statusCard` fallback logic directly inside kind, command, runner, posture, or state markup after the values have already been selected.
+
 - Harness operator action messages should name the raw message and display fallback before rendering. Keep action shelf and hidden summary ownership in `ui/app.js`, but avoid reading `operatorAction.message` directly inside visible copy or hidden summary markup after the message has already been derived.
 
 - Harness run form command rendering should name the repo-native command and form predicate before template rendering. Keep command ownership in `ui/app.js`, but avoid reading `operatorAction.repoNativeCommand` directly inside form conditions, visible command text, or copy-button attributes after the command has already been derived.

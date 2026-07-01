@@ -23,11 +23,12 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 assert.match(appJs, /data-harness-result-hidden-harness-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-state-summary="true"/);
 assert.match(appJs, /const hiddenHarnessIdSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">/);
+assert.match(appJs, /const hiddenHarnessStateValue = statusCard\.primaryHarnessState;/);
 assert.match(appJs, /const hiddenHarnessStateSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-state-summary="true">/);
 assert.match(appJs, /\$\{hiddenHarnessIdSummaryMarkup\}/);
 assert.match(appJs, /\$\{hiddenHarnessStateSummaryMarkup\}/);
 assert.match(appJs, /statusCard\.primaryHarnessId/);
-assert.match(appJs, /statusCard\.primaryHarnessState/);
+assert.match(appJs, /현재 상태: <code>\$\{escapeHtml\(hiddenHarnessStateValue\)\}<\/code>/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>\$\{escapeHtml\(statusCard\.primaryHarnessId\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-state-summary="true">현재 상태: <code>\$\{escapeHtml\(statusCard\.primaryHarnessState\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">/);
 
@@ -117,7 +118,11 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenHarnessStateSummary->statusCard',
             harnessMarker: 'data-harness-result-hidden-harness-summary',
             stateMarker: 'data-harness-result-hidden-state-summary',
-            namedValues: ['hiddenHarnessIdSummaryMarkup', 'hiddenHarnessStateSummaryMarkup'],
+            namedValues: [
+              'hiddenHarnessIdSummaryMarkup',
+              'hiddenHarnessStateValue',
+              'hiddenHarnessStateSummaryMarkup',
+            ],
             route: '/api/harness/operator-action/run',
             primaryHarnessId: harnessConsumerStatus.statusCard.primaryHarnessId,
             primaryHarnessState: harnessConsumerStatus.statusCard.primaryHarnessState,
