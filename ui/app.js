@@ -2317,6 +2317,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessOutputLabel = getHarnessExecutionOutputLabel(execution);
                               const historyHarnessOutputSummaryValue =
                                 historyHarnessOutputPath || '표준 출력 전용';
+                              const historyHarnessExecutedAtLabel = formatDate(execution.executedAt);
                               const historyHarnessExecutionPacketText =
                                 formatHarnessExecutionPacketForCopy(execution);
                               const historyHarnessPolicyReportCopyText = historyHarnessPolicyReportPayload
@@ -2338,7 +2339,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">실행</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(formatDate(execution.executedAt))}</strong>
+                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessExecutedAtLabel)}</strong>
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">모드</span>

@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness history row date values should be named before rendering. Keep date formatting in the app render path, but do not call `formatDate` directly inside history-row template strings.
+
 - Harness output-channel tokens should name the label and tone before rendering. Keep stdout versus output-file detection in `ui/app.js`, but avoid branching directly inside `createToken` calls.
 
 - Harness visibility status messages should be assembled from named title, mode, harness id, executed-at, and final copy values before assigning refresh status text. Keep hide/show/restore state mutation unchanged, but avoid putting helper calls directly inside operator-facing status strings.
