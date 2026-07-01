@@ -24,7 +24,8 @@ assert.match(appJs, /data-harness-result-hidden-input-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-summary="true"/);
 assert.match(appJs, /const hiddenHarnessInputPath = hiddenHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
 assert.match(appJs, /const hiddenHarnessOutputPath = hiddenHarnessExecutionResult\?\.resolvedOutputPath \|\| '';/);
-assert.match(appJs, /const hiddenHarnessInputSummaryMarkup = hiddenHarnessInputPath/);
+assert.match(appJs, /const canRenderHiddenHarnessInputSummary = Boolean\(hiddenHarnessInputPath\);/);
+assert.match(appJs, /const hiddenHarnessInputSummaryMarkup = canRenderHiddenHarnessInputSummary/);
 assert.match(appJs, /const hiddenHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">/);
 assert.match(appJs, /\$\{hiddenHarnessInputSummaryMarkup\}/);
 assert.match(appJs, /\$\{hiddenHarnessOutputSummaryMarkup\}/);
@@ -118,6 +119,7 @@ async function main() {
             inputMarker: 'data-harness-result-hidden-input-summary',
             outputMarker: 'data-harness-result-hidden-output-summary',
             namedValues: [
+              'canRenderHiddenHarnessInputSummary',
               'hiddenHarnessInputSummaryMarkup',
               'hiddenHarnessOutputSummaryMarkup',
             ],

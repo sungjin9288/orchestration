@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness optional summary sections should name their render predicates before markup assembly. Keep request, executed-at, and input summary ownership in `ui/app.js`, but avoid using raw ids, timestamps, or paths as implicit template conditions once those values have already been selected.
+
 - Harness hidden status-card summary values should be named before summary markup. Keep hidden harness context rendering in `ui/app.js`, but avoid applying `statusCard` fallback logic directly inside kind, command, runner, posture, or state markup after the values have already been selected.
 
 - Harness operator action messages should name the raw message and display fallback before rendering. Keep action shelf and hidden summary ownership in `ui/app.js`, but avoid reading `operatorAction.message` directly inside visible copy or hidden summary markup after the message has already been derived.

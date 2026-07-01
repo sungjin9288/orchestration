@@ -1772,16 +1772,20 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessRequestTokenLabel = visibleHarnessRequestId
     ? `요청:${visibleHarnessRequestId}`
     : '';
-  const visibleHarnessRequestSummaryMarkup = visibleHarnessRequestId
+  const canRenderVisibleHarnessRequestSummary = Boolean(visibleHarnessRequestId);
+  const canRenderHiddenHarnessRequestSummary = Boolean(hiddenHarnessRequestId);
+  const canRenderHiddenHarnessExecutedAtSummary = Boolean(hiddenHarnessExecutedAtLabel);
+  const canRenderHiddenHarnessInputSummary = Boolean(hiddenHarnessInputPath);
+  const visibleHarnessRequestSummaryMarkup = canRenderVisibleHarnessRequestSummary
     ? `<p class="detail-copy detail-copy-compact" data-harness-execution-request-summary="true">요청 ID: <code>${escapeHtml(visibleHarnessRequestId)}</code></p>`
     : '';
-  const hiddenHarnessRequestSummaryMarkup = hiddenHarnessRequestId
+  const hiddenHarnessRequestSummaryMarkup = canRenderHiddenHarnessRequestSummary
     ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-request-summary="true">요청 ID: <code>${escapeHtml(hiddenHarnessRequestId)}</code></p>`
     : '';
-  const hiddenHarnessExecutedAtSummaryMarkup = hiddenHarnessExecutedAtLabel
+  const hiddenHarnessExecutedAtSummaryMarkup = canRenderHiddenHarnessExecutedAtSummary
     ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(hiddenHarnessExecutedAtLabel)}</code></p>`
     : '';
-  const hiddenHarnessInputSummaryMarkup = hiddenHarnessInputPath
+  const hiddenHarnessInputSummaryMarkup = canRenderHiddenHarnessInputSummary
     ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessInputPath)}</code></p>`
     : '';
   const hiddenHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(hiddenHarnessOutputLabel)}: <code>${escapeHtml(hiddenHarnessOutputSummaryValue)}</code></p>`;

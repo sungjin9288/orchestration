@@ -25,7 +25,8 @@ assert.match(appJs, /const visibleHarnessExecutedAtLabel = visibleHarnessExecuti
 assert.match(appJs, /const hiddenHarnessExecutedAtLabel = hiddenHarnessExecutionResult\?\.executedAt/);
 assert.match(appJs, /const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel/);
 assert.match(appJs, /createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
-assert.match(appJs, /const hiddenHarnessExecutedAtSummaryMarkup = hiddenHarnessExecutedAtLabel/);
+assert.match(appJs, /const canRenderHiddenHarnessExecutedAtSummary = Boolean\(hiddenHarnessExecutedAtLabel\);/);
+assert.match(appJs, /const hiddenHarnessExecutedAtSummaryMarkup = canRenderHiddenHarnessExecutedAtSummary/);
 assert.match(appJs, /\$\{hiddenHarnessExecutedAtSummaryMarkup\}/);
 assert.match(appJs, /data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>\$\{escapeHtml\(hiddenHarnessExecutedAtLabel\)\}<\/code>/);
 assert.doesNotMatch(appJs, /escapeHtml\(formatDate\(hiddenHarnessExecutionResult\.executedAt\)\)/);
@@ -118,6 +119,7 @@ async function main() {
             namedValues: [
               'visibleHarnessExecutedAtLabel',
               'hiddenHarnessExecutedAtLabel',
+              'canRenderHiddenHarnessExecutedAtSummary',
               'hiddenHarnessExecutedAtSummaryMarkup',
               'visibleHarnessExecutedAtTokenLabel',
             ],
