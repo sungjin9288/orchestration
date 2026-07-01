@@ -18342,13 +18342,14 @@ async function previewHarnessPolicyReport(actionButton) {
   const formData = new FormData(form);
   const inputPath = String(formData.get('inputPath') || '').trim();
   const outputPath = String(formData.get('outputPath') || '').trim();
+  const policyReportPendingMessage = '하네스 정책 리포트를 확인하는 중…';
 
   await executeHarnessOperatorAction({
     inputPath,
     outputPath,
     statusPayload,
     policyReport: true,
-    pendingMessage: '하네스 정책 리포트를 확인하는 중…',
+    pendingMessage: policyReportPendingMessage,
   });
 }
 

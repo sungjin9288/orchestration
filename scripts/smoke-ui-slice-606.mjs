@@ -70,12 +70,15 @@ assert.match(appJs, /const executionCompletionOutputCopy =\s+executionIsPolicyRe
 assert.match(appJs, /const defaultExecutionPendingMessage =\s+`하네스 \$\{statusCard\.primaryHarnessId\} 실행을 시작하는 중…`;/);
 assert.match(appJs, /const executionPendingMessage = pendingMessage \|\| defaultExecutionPendingMessage;/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = executionPendingMessage;/);
+assert.match(appJs, /const policyReportPendingMessage = '하네스 정책 리포트를 확인하는 중…';/);
+assert.match(appJs, /pendingMessage: policyReportPendingMessage,/);
 assert.match(appJs, /const executionCompletionCopy = getHarnessExecutionCompletionCopy\(\{\s+execution,\s+fallbackHarnessId: statusCard\.primaryHarnessId,/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = executionCompletionCopy;/);
 assert.doesNotMatch(appJs, /execution\.actionMode === 'policy-report'\s+\?\s+`하네스 \$\{execution\.harnessId/);
 assert.doesNotMatch(appJs, /const executionOutputCopy = execution\.resolvedOutputPath\s+\?/);
 assert.doesNotMatch(appJs, /const policyReportOutputCopy = execution\.stdoutPreview/);
 assert.doesNotMatch(appJs, /elements\.refreshStatus\.textContent =\s+pendingMessage \|\| `하네스 \$\{statusCard\.primaryHarnessId\} 실행을 시작하는 중…`;/);
+assert.doesNotMatch(appJs, /pendingMessage: '하네스 정책 리포트를 확인하는 중…'/);
 assert.match(serveUi, /stdoutPreview: stdout \? stdout\.slice\(0, policyReport \? 1600 : 400\) : null/);
 
 async function fetchJson(url, options = {}) {
