@@ -28,6 +28,10 @@ assert.match(appJs, /value="\$\{escapeHtml\(state\.harnessExecutionDraftInputPat
 assert.match(appJs, /value="\$\{escapeHtml\(state\.harnessExecutionDraftOutputPath\)\}"/);
 assert.match(appJs, /data-action="reuse-harness-execution-paths"/);
 assert.match(appJs, /data-harness-history-reuse="true"/);
+assert.match(appJs, /const historyHarnessInputPath = execution\.inputPath \|\| execution\.resolvedInputPath \|\| '';/);
+assert.match(appJs, /const historyHarnessOutputPath = execution\.outputPath \|\| execution\.resolvedOutputPath \|\| '';/);
+assert.match(appJs, /data-input-path="\$\{escapeHtml\(historyHarnessInputPath\)\}"/);
+assert.match(appJs, /data-output-path="\$\{escapeHtml\(historyHarnessOutputPath\)\}"/);
 assert.match(appJs, /function reuseHarnessExecutionPaths\(actionButton\)/);
 assert.match(appJs, /state\.harnessExecutionDraftInputPath = event\.target\.value;/);
 assert.match(appJs, /state\.harnessExecutionDraftOutputPath = event\.target\.value;/);

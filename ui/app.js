@@ -2251,6 +2251,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         ${recentHarnessExecutions
                           .map(
                             (execution, index) => {
+                              const historyHarnessExecutionKey = getHarnessExecutionResultKey(execution);
+                              const historyHarnessRequestId = execution.requestId || execution.executionId || '';
+                              const historyHarnessInputPath = execution.inputPath || execution.resolvedInputPath || '';
+                              const historyHarnessOutputPath = execution.outputPath || execution.resolvedOutputPath || '';
                               const historyHarnessPolicyReportPayload = getHarnessPolicyReportPayload(execution);
                               const historyHarnessPreviewText = execution.outputPreview || execution.stdoutPreview || '';
 
@@ -2260,7 +2264,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   <div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">요청</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(execution.requestId || execution.executionId || `최근 ${index + 1}`)}</strong>
+                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessRequestId || `최근 ${index + 1}`)}</strong>
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">실행</span>
@@ -2276,23 +2280,23 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">입력</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(execution.inputPath || execution.resolvedInputPath || '경로 없음')}</strong>
+                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessInputPath || '경로 없음')}</strong>
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">${escapeHtml(getHarnessExecutionOutputLabel(execution))}</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '표준 출력 전용')}</strong>
+                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessOutputPath || '표준 출력 전용')}</strong>
                                     </div>
                                   </div>
                                   <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
                                     <div class="form-actions form-actions-inline form-actions-compact">
                                       ${
-                                        execution.inputPath || execution.resolvedInputPath
+                                        historyHarnessInputPath
                                           ? `
                                             <button
                                               class="secondary-button"
                                               type="button"
                                               data-action="copy-harness-input-path"
-                                              data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
+                                              data-input-path="${escapeHtml(historyHarnessInputPath)}"
                                               data-harness-input-copy="true"
                                             >
                                               입력 경로
@@ -2310,13 +2314,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         ${escapeHtml(getHarnessExecutionShowActionLabel(execution))}
                                       </button>
                                       ${
-                                        execution.outputPath || execution.resolvedOutputPath
+                                        historyHarnessOutputPath
                                           ? `
                                             <button
                                               class="secondary-button"
                                               type="button"
                                               data-action="copy-harness-output-path"
-                                              data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
+                                              data-output-path="${escapeHtml(historyHarnessOutputPath)}"
                                               data-output-path-label="${escapeHtml(getHarnessExecutionOutputPathActionLabel(execution))}"
                                               data-harness-output-copy="true"
                                             >
@@ -2326,13 +2330,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                           : ''
                                       }
                                       ${
-                                        execution.requestId || execution.executionId
+                                        historyHarnessRequestId
                                           ? `
                                             <button
                                               class="secondary-button"
                                               type="button"
                                               data-action="copy-harness-request-id"
-                                              data-request-id="${escapeHtml(execution.requestId || execution.executionId || '')}"
+                                              data-request-id="${escapeHtml(historyHarnessRequestId)}"
                                               data-harness-history-request-id-copy="true"
                                             >
                                               요청 ID
@@ -2368,8 +2372,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         class="secondary-button"
                                         type="button"
                                         data-action="reuse-harness-execution-paths"
-                                        data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
-                                        data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
+                                        data-input-path="${escapeHtml(historyHarnessInputPath)}"
+                                        data-output-path="${escapeHtml(historyHarnessOutputPath)}"
                                         data-harness-history-reuse="true"
                                       >
                                         경로 채우기
@@ -2378,8 +2382,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         class="secondary-button"
                                         type="button"
                                         data-action="rerun-harness-execution-paths"
-                                        data-input-path="${escapeHtml(execution.inputPath || execution.resolvedInputPath || '')}"
-                                        data-output-path="${escapeHtml(execution.outputPath || execution.resolvedOutputPath || '')}"
+                                        data-input-path="${escapeHtml(historyHarnessInputPath)}"
+                                        data-output-path="${escapeHtml(historyHarnessOutputPath)}"
                                         data-policy-report="${execution.actionMode === 'policy-report' ? 'true' : 'false'}"
                                         data-harness-history-rerun="true"
                                         ${state.loading || state.mutating ? 'disabled' : ''}
@@ -2402,7 +2406,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                               class="secondary-button"
                                               type="button"
                                               data-action="summarize-harness-execution-preview"
-                                              data-execution-key="${escapeHtml(getHarnessExecutionResultKey(execution) || '')}"
+                                              data-execution-key="${escapeHtml(historyHarnessExecutionKey || '')}"
                                               data-history-index="${String(index)}"
                                               data-preview-text="${escapeHtml(historyHarnessPreviewText)}"
                                               data-harness-history-output-brief="true"

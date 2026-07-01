@@ -22,7 +22,11 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-action="rerun-harness-execution-paths"/);
 assert.match(appJs, /data-harness-history-rerun="true"/);
-assert.match(appJs, /async function executeHarnessOperatorAction\(\{ inputPath, outputPath, statusPayload, pendingMessage \}\)/);
+assert.match(appJs, /const historyHarnessInputPath = execution\.inputPath \|\| execution\.resolvedInputPath \|\| '';/);
+assert.match(appJs, /const historyHarnessOutputPath = execution\.outputPath \|\| execution\.resolvedOutputPath \|\| '';/);
+assert.match(appJs, /data-input-path="\$\{escapeHtml\(historyHarnessInputPath\)\}"/);
+assert.match(appJs, /data-output-path="\$\{escapeHtml\(historyHarnessOutputPath\)\}"/);
+assert.match(appJs, /async function executeHarnessOperatorAction\(\{ inputPath, outputPath, statusPayload, pendingMessage, policyReport = false \}\)/);
 assert.match(appJs, /async function rerunHarnessExecutionPaths\(actionButton\)/);
 assert.match(appJs, /await executeHarnessOperatorAction\(\{/);
 

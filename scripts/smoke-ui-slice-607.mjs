@@ -33,6 +33,8 @@ assert.match(appJs, /data-action="summarize-harness-execution-preview"/);
 assert.match(appJs, /data-harness-output-brief="true"/);
 assert.match(appJs, /data-harness-history-output-brief="true"/);
 assert.match(appJs, /state\.lastHarnessExecutionResult = historyExecution;/);
+assert.match(appJs, /const historyHarnessExecutionKey = getHarnessExecutionResultKey\(execution\);/);
+assert.match(appJs, /data-execution-key="\$\{escapeHtml\(historyHarnessExecutionKey \|\| ''\)\}"/);
 assert.match(appJs, /data-history-index="\$\{String\(index\)\}"/);
 assert.match(appJs, /getHarnessExecutionBriefActionLabel\(visibleHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionBriefActionLabel\(execution\)/);
