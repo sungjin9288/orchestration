@@ -1700,21 +1700,44 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult);
   const visibleHarnessOutputSummaryValue = visibleHarnessOutputPath || '표준 출력 전용';
   const hiddenHarnessOutputSummaryValue = hiddenHarnessOutputPath || '표준 출력 전용';
+  const visibleHarnessModeLabel = getHarnessExecutionModeLabel(visibleHarnessExecutionResult);
+  const hiddenHarnessModeLabel = getHarnessExecutionModeLabel(hiddenHarnessExecutionResult);
+  const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
+  const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
   const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
     visibleHarnessExecutionResult,
   );
   const hiddenHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
     hiddenHarnessExecutionResult,
   );
+  const visibleHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(visibleHarnessExecutionResult);
+  const hiddenHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(hiddenHarnessExecutionResult);
+  const visibleHarnessHideActionLabel = getHarnessExecutionHideActionLabel(visibleHarnessExecutionResult);
+  const hiddenHarnessShowActionLabel = getHarnessExecutionShowActionLabel(hiddenHarnessExecutionResult);
+  const visibleHarnessExecutionPacketText = visibleHarnessExecutionResult
+    ? formatHarnessExecutionPacketForCopy(visibleHarnessExecutionResult)
+    : '';
+  const hiddenHarnessExecutionPacketText = hiddenHarnessExecutionResult
+    ? formatHarnessExecutionPacketForCopy(hiddenHarnessExecutionResult)
+    : '';
   const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload(hiddenHarnessExecutionResult);
   const visibleHarnessPreviewText =
     visibleHarnessExecutionResult?.outputPreview || visibleHarnessExecutionResult?.stdoutPreview || '';
   const hiddenHarnessPreviewText =
     hiddenHarnessExecutionResult?.outputPreview || hiddenHarnessExecutionResult?.stdoutPreview || '';
+  const hiddenHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(hiddenHarnessExecutionResult);
   const visibleHarnessOutputBrief = getHarnessOutputBriefResult(
     visibleHarnessExecutionResult,
     state.lastHarnessOutputBriefResult,
   );
+  const visibleHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(visibleHarnessExecutionResult);
+  const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief
+    ? formatHarnessOutputBriefForCopy(visibleHarnessOutputBrief, visibleHarnessExecutionResult)
+    : '';
+  const visibleHarnessOutputBriefCopyStatusLabel =
+    getHarnessExecutionBriefCopyStatusLabel(visibleHarnessExecutionResult);
+  const visibleHarnessOutputBriefCopyActionLabel =
+    getHarnessExecutionBriefCopyActionLabel(visibleHarnessExecutionResult);
   const visibleHarnessPolicyReportPayload = getHarnessPolicyReportPayload(visibleHarnessExecutionResult);
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
   const hasExecutionHistory = hasHarnessExecutionHistory(
@@ -1881,8 +1904,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         }
                       </div>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력: <code>${escapeHtml(visibleHarnessInputSummaryPath)}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(getHarnessExecutionModeLabel(visibleHarnessExecutionResult))}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffText(visibleHarnessExecutionResult))}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(visibleHarnessModeLabel)}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(visibleHarnessHandoffText)}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(visibleHarnessOutputLabel)}: <code>${escapeHtml(visibleHarnessOutputSummaryValue)}</code></p>
                       ${
                         visibleHarnessRequestId
@@ -1927,7 +1950,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       data-harness-result-rerun="true"
                                       ${state.loading || state.mutating ? 'disabled' : ''}
                                     >
-                                      ${escapeHtml(getHarnessExecutionRerunActionLabel(visibleHarnessExecutionResult))}
+                                      ${escapeHtml(visibleHarnessRerunActionLabel)}
                                     </button>
                                   `
                                   : ''
@@ -1967,7 +1990,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 class="secondary-button"
                                 type="button"
                                 data-action="copy-harness-execution-packet"
-                                data-execution-packet-text="${escapeHtml(formatHarnessExecutionPacketForCopy(visibleHarnessExecutionResult))}"
+                                data-execution-packet-text="${escapeHtml(visibleHarnessExecutionPacketText)}"
                                 data-harness-execution-packet-copy="true"
                               >
                                 패킷 복사
@@ -1993,7 +2016,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       data-harness-output-brief="true"
                                       ${state.loading || state.mutating ? 'disabled' : ''}
                                     >
-                                      ${escapeHtml(getHarnessExecutionBriefActionLabel(visibleHarnessExecutionResult))}
+                                      ${escapeHtml(visibleHarnessBriefActionLabel)}
                                     </button>
                                   `
                                   : ''
@@ -2005,11 +2028,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       class="secondary-button"
                                       type="button"
                                       data-action="copy-harness-output-brief"
-                                      data-output-brief-text="${escapeHtml(formatHarnessOutputBriefForCopy(visibleHarnessOutputBrief, visibleHarnessExecutionResult))}"
-                                      data-output-brief-label="${escapeHtml(getHarnessExecutionBriefCopyStatusLabel(visibleHarnessExecutionResult))}"
+                                      data-output-brief-text="${escapeHtml(visibleHarnessOutputBriefCopyText)}"
+                                      data-output-brief-label="${escapeHtml(visibleHarnessOutputBriefCopyStatusLabel)}"
                                       data-harness-output-brief-copy="true"
                                     >
-                                      ${escapeHtml(getHarnessExecutionBriefCopyActionLabel(visibleHarnessExecutionResult))}
+                                      ${escapeHtml(visibleHarnessOutputBriefCopyActionLabel)}
                                     </button>
                                   `
                                   : ''
@@ -2036,7 +2059,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 data-execution-key="${escapeHtml(visibleHarnessExecutionKey || '')}"
                                 data-harness-result-hide="true"
                               >
-                                ${escapeHtml(getHarnessExecutionHideActionLabel(visibleHarnessExecutionResult))}
+                                ${escapeHtml(visibleHarnessHideActionLabel)}
                               </button>
                             </div>
                           `
@@ -2066,7 +2089,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <strong>${escapeHtml(getHarnessExecutionResultTitle(hiddenHarnessExecutionResult))}가 숨겨져 있습니다</strong>
                       ${createToken('숨김', 'neutral')}
                     </div>
-                    <p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 ${escapeHtml(getHarnessExecutionModeLabel(hiddenHarnessExecutionResult))}를 다시 표시할 수 있습니다.</p>
+                    <p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 ${escapeHtml(hiddenHarnessModeLabel)}를 다시 표시할 수 있습니다.</p>
                     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-run-context="true">
                       <div class="card-title-row card-title-row-tight">
                         <strong>실행 기록</strong>
@@ -2081,8 +2104,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(formatDate(hiddenHarnessExecutionResult.executedAt))}</code></p>`
                           : ''
                       }
-                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(getHarnessExecutionModeLabel(hiddenHarnessExecutionResult))}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffText(hiddenHarnessExecutionResult))}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(hiddenHarnessHandoffText)}</code></p>
                       ${
                         hiddenHarnessInputPath
                           ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessInputPath)}</code></p>`
@@ -2122,7 +2145,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         data-execution-key="${escapeHtml(hiddenHarnessExecutionKey || '')}"
                         data-harness-result-show="true"
                       >
-                        ${escapeHtml(getHarnessExecutionShowActionLabel(hiddenHarnessExecutionResult))}
+                        ${escapeHtml(hiddenHarnessShowActionLabel)}
                       </button>
                       ${
                         hiddenHarnessInputPath
@@ -2156,7 +2179,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               data-harness-result-hidden-rerun="true"
                               ${state.loading || state.mutating ? 'disabled' : ''}
                             >
-                              ${escapeHtml(getHarnessExecutionRerunActionLabel(hiddenHarnessExecutionResult))}
+                              ${escapeHtml(hiddenHarnessRerunActionLabel)}
                             </button>
                           `
                           : ''
@@ -2196,7 +2219,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         class="secondary-button"
                         type="button"
                         data-action="copy-harness-execution-packet"
-                        data-execution-packet-text="${escapeHtml(formatHarnessExecutionPacketForCopy(hiddenHarnessExecutionResult))}"
+                        data-execution-packet-text="${escapeHtml(hiddenHarnessExecutionPacketText)}"
                         data-harness-result-hidden-packet-copy="true"
                       >
                         패킷 복사
@@ -2238,7 +2261,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               data-harness-result-hidden-output-brief="true"
                               ${state.loading || state.mutating ? 'disabled' : ''}
                             >
-                              ${escapeHtml(getHarnessExecutionBriefActionLabel(hiddenHarnessExecutionResult))}
+                              ${escapeHtml(hiddenHarnessBriefActionLabel)}
                             </button>
                           `
                           : ''
@@ -2280,6 +2303,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessOutputLabel = getHarnessExecutionOutputLabel(execution);
                               const historyHarnessOutputSummaryValue =
                                 historyHarnessOutputPath || '표준 출력 전용';
+                              const historyHarnessExecutionPacketText =
+                                formatHarnessExecutionPacketForCopy(execution);
                               const historyHarnessShowActionLabel = getHarnessExecutionShowActionLabel(execution);
                               const historyHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(execution);
                               const historyHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(execution);
@@ -2374,7 +2399,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         class="secondary-button"
                                         type="button"
                                         data-action="copy-harness-execution-packet"
-                                        data-execution-packet-text="${escapeHtml(formatHarnessExecutionPacketForCopy(execution))}"
+                                        data-execution-packet-text="${escapeHtml(historyHarnessExecutionPacketText)}"
                                         data-harness-history-packet-copy="true"
                                       >
                                         패킷 복사

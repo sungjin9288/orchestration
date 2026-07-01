@@ -19,12 +19,21 @@ assert.match(appJs, /getHarnessExecutionBriefCopyTitle\(execution\)/);
 assert.match(appJs, /const visibleHarnessOutputBrief = getHarnessOutputBriefResult\(/);
 assert.match(
   appJs,
-  /formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)/,
+  /const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief\s+\? formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\s+: '';/,
 );
-assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\)\)\}"/);
+assert.match(
+  appJs,
+  /const visibleHarnessOutputBriefCopyStatusLabel =\s+getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\);/,
+);
+assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(visibleHarnessOutputBriefCopyStatusLabel\)\}"/);
+assert.match(appJs, /data-output-brief-text="\$\{escapeHtml\(visibleHarnessOutputBriefCopyText\)\}"/);
 assert.doesNotMatch(
   appJs,
   /data-output-brief-text="\$\{escapeHtml\(formatHarnessOutputBriefForCopy\(getHarnessOutputBriefResult\(visibleHarnessExecutionResult\)\)\)\}"/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-output-brief-text="\$\{escapeHtml\(formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\)\}"/,
 );
 
 console.log(

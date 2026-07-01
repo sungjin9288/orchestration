@@ -14,8 +14,10 @@ const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionRerunActionLabel\(execution\) \{/);
 assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '같은 경로 정책 리포트' : '같은 경로 재실행'/);
-assert.match(appJs, /getHarnessExecutionRerunActionLabel\(visibleHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionRerunActionLabel\(hiddenHarnessExecutionResult\)/);
+assert.match(appJs, /const visibleHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel\(visibleHarnessExecutionResult\);/);
+assert.match(appJs, /const hiddenHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel\(hiddenHarnessExecutionResult\);/);
+assert.match(appJs, /\$\{escapeHtml\(visibleHarnessRerunActionLabel\)\}/);
+assert.match(appJs, /\$\{escapeHtml\(hiddenHarnessRerunActionLabel\)\}/);
 assert.match(appJs, /const historyHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel\(execution\);/);
 assert.match(appJs, /\$\{escapeHtml\(historyHarnessRerunActionLabel\)\}/);
 assert.match(appJs, /data-policy-report="\$\{visibleHarnessExecutionResult\.actionMode === 'policy-report' \? 'true' : 'false'\}"/);

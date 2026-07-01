@@ -28,8 +28,10 @@ assert.match(appJs, /getHarnessExecutionHandoffLabel\(execution, getHarnessExecu
 assert.match(appJs, /data-harness-execution-handoff-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-handoff-summary="true"/);
 assert.match(appJs, /<span class="control-overview-register-label">핸드오프<\/span>/);
-assert.match(appJs, /getHarnessExecutionHandoffText\(visibleHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionHandoffText\(hiddenHarnessExecutionResult\)/);
+assert.match(appJs, /const visibleHarnessHandoffText = getHarnessExecutionHandoffText\(visibleHarnessExecutionResult\);/);
+assert.match(appJs, /const hiddenHarnessHandoffText = getHarnessExecutionHandoffText\(hiddenHarnessExecutionResult\);/);
+assert.match(appJs, /data-harness-execution-handoff-summary="true">핸드오프: <code>\$\{escapeHtml\(visibleHarnessHandoffText\)\}<\/code>/);
+assert.match(appJs, /data-harness-result-hidden-handoff-summary="true">핸드오프: <code>\$\{escapeHtml\(hiddenHarnessHandoffText\)\}<\/code>/);
 assert.match(appJs, /const historyHarnessHandoffText = getHarnessExecutionHandoffText\(execution\);/);
 assert.match(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(historyHarnessHandoffText\)\}<\/strong>/);
 

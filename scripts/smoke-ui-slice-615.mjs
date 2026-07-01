@@ -22,6 +22,21 @@ assert.match(
 );
 assert.match(harnessLabels, /정책 리포트: \$\{context\.hasPolicyReport \? '있음' : '없음'\}/);
 assert.match(appJs, /data-action="copy-harness-execution-packet"/);
+assert.match(
+  appJs,
+  /const visibleHarnessExecutionPacketText = visibleHarnessExecutionResult\s+\? formatHarnessExecutionPacketForCopy\(visibleHarnessExecutionResult\)\s+: '';/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessExecutionPacketText = hiddenHarnessExecutionResult\s+\? formatHarnessExecutionPacketForCopy\(hiddenHarnessExecutionResult\)\s+: '';/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessExecutionPacketText =\s+formatHarnessExecutionPacketForCopy\(execution\);/,
+);
+assert.match(appJs, /data-execution-packet-text="\$\{escapeHtml\(visibleHarnessExecutionPacketText\)\}"/);
+assert.match(appJs, /data-execution-packet-text="\$\{escapeHtml\(hiddenHarnessExecutionPacketText\)\}"/);
+assert.match(appJs, /data-execution-packet-text="\$\{escapeHtml\(historyHarnessExecutionPacketText\)\}"/);
 assert.match(appJs, /data-harness-execution-packet-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-packet-copy="true"/);
 assert.match(appJs, /data-harness-history-packet-copy="true"/);

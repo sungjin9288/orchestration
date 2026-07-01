@@ -16,8 +16,10 @@ assert.match(harnessLabels, /export function getHarnessExecutionHideActionLabel\
 assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '리포트 숨기기' : '결과 숨기기'/);
 assert.match(harnessLabels, /export function getHarnessExecutionShowActionLabel\(execution\) \{/);
 assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '리포트 다시 보기' : '결과 다시 보기'/);
-assert.match(appJs, /getHarnessExecutionHideActionLabel\(visibleHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionShowActionLabel\(hiddenHarnessExecutionResult\)/);
+assert.match(appJs, /const visibleHarnessHideActionLabel = getHarnessExecutionHideActionLabel\(visibleHarnessExecutionResult\);/);
+assert.match(appJs, /const hiddenHarnessShowActionLabel = getHarnessExecutionShowActionLabel\(hiddenHarnessExecutionResult\);/);
+assert.match(appJs, /\$\{escapeHtml\(visibleHarnessHideActionLabel\)\}/);
+assert.match(appJs, /\$\{escapeHtml\(hiddenHarnessShowActionLabel\)\}/);
 assert.match(appJs, /const historyHarnessShowActionLabel = getHarnessExecutionShowActionLabel\(execution\);/);
 assert.match(appJs, /\$\{escapeHtml\(historyHarnessShowActionLabel\)\}/);
 assert.match(appJs, /data-harness-result-hide="true"/);

@@ -2,6 +2,12 @@
 
 ## direction resets
 
+- Harness execution packet copy text should be computed once before the visible, hidden, and history packet buttons use it. Keep packet formatting and context helpers unchanged, but avoid calling the packet formatter directly inside button attributes.
+
+- Harness visible and hidden result labels should be computed once before the latest and hidden templates use them. Keep mode, handoff, rerun, visibility, and brief wording in the existing label helpers, but reuse named render values so the template reads as state flow instead of helper plumbing.
+
+- Harness output brief copy rendering should compute copy text, copy status label, copy action label, and summarize action label once before the latest-result template uses them. Keep output brief state and copy handlers in `ui/app.js`, but avoid formatting payloads inside button attributes.
+
 - Harness output summary fallback values should be named once before rendering latest, hidden, and history rows. Keep `표준 출력 전용` as the fallback value, but reuse summary variables so labels and values do not fork inside templates.
 
 - Harness visible and hidden output summary labels should be computed once beside the output paths before fallback rendering. Keep the output label helper as the wording source and reuse named values in the latest and hidden result summaries.

@@ -16,15 +16,25 @@ assert.match(appJs, /중요도: fail/);
 assert.match(appJs, /처리 방식:/);
 assert.match(appJs, /data-action="copy-harness-output-brief"/);
 assert.match(appJs, /const visibleHarnessOutputBrief = getHarnessOutputBriefResult\(\s*visibleHarnessExecutionResult,\s*state\.lastHarnessOutputBriefResult,\s*\);/);
+assert.match(appJs, /const visibleHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel\(visibleHarnessExecutionResult\);/);
+assert.match(appJs, /const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief\s+\? formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\s+: '';/);
 assert.match(
   appJs,
-  /data-output-brief-text="\$\{escapeHtml\(formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\)\}"/,
+  /const visibleHarnessOutputBriefCopyStatusLabel =\s+getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\);/,
 );
-assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\)\)\}"/);
+assert.match(
+  appJs,
+  /const visibleHarnessOutputBriefCopyActionLabel =\s+getHarnessExecutionBriefCopyActionLabel\(visibleHarnessExecutionResult\);/,
+);
+assert.match(
+  appJs,
+  /data-output-brief-text="\$\{escapeHtml\(visibleHarnessOutputBriefCopyText\)\}"/,
+);
+assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(visibleHarnessOutputBriefCopyStatusLabel\)\}"/);
 assert.match(appJs, /data-harness-output-brief-copy="true"/);
 assert.match(appJs, /async function copyHarnessOutputBrief\(briefText, label = '출력 요약'\)/);
 assert.match(appJs, /actionButton\.dataset\.outputBriefLabel/);
-assert.match(appJs, /getHarnessExecutionBriefCopyActionLabel\(visibleHarnessExecutionResult\)/);
+assert.match(appJs, /\$\{escapeHtml\(visibleHarnessOutputBriefCopyActionLabel\)\}/);
 
 console.log(
   JSON.stringify(
