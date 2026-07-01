@@ -18099,6 +18099,14 @@ function hideHarnessExecutionResult(actionButton) {
   elements.refreshStatus.textContent = hideHarnessExecutionCopy;
 }
 
+function getHarnessExecutionDisplayStamp(execution) {
+  const modeLabel = getHarnessExecutionModeLabel(execution);
+  const harnessId = execution?.harnessId || '미확인';
+  const executedAtLabel = execution?.executedAt ? formatDate(execution.executedAt) : '최근 실행';
+
+  return `${modeLabel}: ${harnessId} · ${executedAtLabel}`;
+}
+
 function showHarnessExecutionResult(actionButton, statusPayload) {
   const executionKey = String(actionButton?.dataset.executionKey || '').trim();
   const currentExecution = getLatestHarnessExecution(
@@ -18117,13 +18125,9 @@ function showHarnessExecutionResult(actionButton, statusPayload) {
   state.lastHarnessExecutionResult = currentExecution;
   render();
 
-  const currentExecutionModeLabel = getHarnessExecutionModeLabel(currentExecution);
-  const currentExecutionHarnessId = currentExecution.harnessId;
-  const currentExecutionExecutedAtLabel = currentExecution.executedAt
-    ? formatDate(currentExecution.executedAt)
-    : '최근 실행';
+  const currentExecutionDisplayStamp = getHarnessExecutionDisplayStamp(currentExecution);
   const showHarnessExecutionCopy =
-    `숨긴 ${currentExecutionModeLabel}를 다시 표시했습니다: ${currentExecutionHarnessId} · ${currentExecutionExecutedAtLabel}`;
+    `숨긴 하네스 실행을 다시 표시했습니다: ${currentExecutionDisplayStamp}`;
   elements.refreshStatus.textContent = showHarnessExecutionCopy;
 }
 
@@ -18144,13 +18148,9 @@ function restoreHarnessExecutionPreview(actionButton, statusPayload) {
   state.lastHarnessExecutionResult = targetExecution;
   render();
 
-  const targetExecutionModeLabel = getHarnessExecutionModeLabel(targetExecution);
-  const targetExecutionHarnessId = targetExecution.harnessId;
-  const targetExecutionExecutedAtLabel = targetExecution.executedAt
-    ? formatDate(targetExecution.executedAt)
-    : '최근 실행';
+  const targetExecutionDisplayStamp = getHarnessExecutionDisplayStamp(targetExecution);
   const restoreHarnessExecutionCopy =
-    `${targetExecutionModeLabel}를 다시 표시했습니다: ${targetExecutionHarnessId} · ${targetExecutionExecutedAtLabel}`;
+    `하네스 실행 기록을 다시 표시했습니다: ${targetExecutionDisplayStamp}`;
   elements.refreshStatus.textContent = restoreHarnessExecutionCopy;
 }
 

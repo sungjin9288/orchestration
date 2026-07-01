@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visibility status messages should share one named display stamp before copy assembly. Keep hide/show/restore state mutation in `ui/app.js`, but avoid rebuilding mode, harness id, and executed-at text separately in show and restore handlers.
+
 - Harness history summary rows should share one row renderer and named markup values before rendering. Keep per-execution history state, copy actions, rerun actions, and output-brief actions in `ui/app.js`, but avoid rebuilding request/mode/handoff/input/output register rows directly inside the history template.
 
 - Harness action shelf labels should be named before rendering. Keep operator action and host-state label helpers in the render path, but avoid calling them directly inside the action shelf header/register or hidden summary templates.

@@ -24,15 +24,16 @@ assert.match(appJs, /createToken\(visibleHarnessResultStateLabel, visibleHarness
 assert.match(appJs, /const currentExecutionTitle = getHarnessExecutionResultTitle\(currentExecution\);/);
 assert.match(appJs, /const hideHarnessExecutionCopy =\s+`\$\{currentExecutionTitle\}를 숨겼습니다\. 필요하면 실행 기록에서 다시 볼 수 있습니다\.`;/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = hideHarnessExecutionCopy;/);
-assert.match(appJs, /const currentExecutionModeLabel = getHarnessExecutionModeLabel\(currentExecution\);/);
-assert.match(appJs, /const currentExecutionHarnessId = currentExecution\.harnessId;/);
-assert.match(appJs, /const currentExecutionExecutedAtLabel = currentExecution\.executedAt/);
-assert.match(appJs, /const showHarnessExecutionCopy =\s+`숨긴 \$\{currentExecutionModeLabel\}를 다시 표시했습니다: \$\{currentExecutionHarnessId\} · \$\{currentExecutionExecutedAtLabel\}`;/);
+assert.match(appJs, /function getHarnessExecutionDisplayStamp\(execution\) \{/);
+assert.match(appJs, /const modeLabel = getHarnessExecutionModeLabel\(execution\);/);
+assert.match(appJs, /const harnessId = execution\?\.harnessId \|\| '미확인';/);
+assert.match(appJs, /const executedAtLabel = execution\?\.executedAt \? formatDate\(execution\.executedAt\) : '최근 실행';/);
+assert.match(appJs, /return `\$\{modeLabel\}: \$\{harnessId\} · \$\{executedAtLabel\}`;/);
+assert.match(appJs, /const currentExecutionDisplayStamp = getHarnessExecutionDisplayStamp\(currentExecution\);/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = showHarnessExecutionCopy;/);
-assert.match(appJs, /const targetExecutionModeLabel = getHarnessExecutionModeLabel\(targetExecution\);/);
-assert.match(appJs, /const targetExecutionHarnessId = targetExecution\.harnessId;/);
-assert.match(appJs, /const targetExecutionExecutedAtLabel = targetExecution\.executedAt/);
-assert.match(appJs, /const restoreHarnessExecutionCopy =\s+`\$\{targetExecutionModeLabel\}를 다시 표시했습니다: \$\{targetExecutionHarnessId\} · \$\{targetExecutionExecutedAtLabel\}`;/);
+assert.match(appJs, /const showHarnessExecutionCopy =\s+`숨긴 하네스 실행을 다시 표시했습니다: \$\{currentExecutionDisplayStamp\}`;/);
+assert.match(appJs, /const targetExecutionDisplayStamp = getHarnessExecutionDisplayStamp\(targetExecution\);/);
+assert.match(appJs, /const restoreHarnessExecutionCopy =\s+`하네스 실행 기록을 다시 표시했습니다: \$\{targetExecutionDisplayStamp\}`;/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = restoreHarnessExecutionCopy;/);
 assert.doesNotMatch(appJs, /<strong>\$\{escapeHtml\(getHarnessExecutionResultTitle\(visibleHarnessExecutionResult\)\)\}<\/strong>/);
 assert.doesNotMatch(appJs, /<strong>\$\{escapeHtml\(getHarnessExecutionResultTitle\(hiddenHarnessExecutionResult\)\)\}가 숨겨져 있습니다<\/strong>/);
@@ -41,6 +42,8 @@ assert.doesNotMatch(appJs, /최근 실행 결과를 숨겼습니다\. 필요하�
 assert.doesNotMatch(appJs, /\$\{getHarnessExecutionResultTitle\(currentExecution\)\}를 숨겼습니다/);
 assert.doesNotMatch(appJs, /숨긴 \$\{getHarnessExecutionModeLabel\(currentExecution\)\}를 다시 표시했습니다/);
 assert.doesNotMatch(appJs, /\$\{getHarnessExecutionModeLabel\(targetExecution\)\}를 다시 표시했습니다/);
+assert.doesNotMatch(appJs, /const currentExecutionHarnessId = currentExecution\.harnessId;/);
+assert.doesNotMatch(appJs, /const targetExecutionHarnessId = targetExecution\.harnessId;/);
 
 console.log(
   JSON.stringify(
@@ -51,8 +54,10 @@ console.log(
         labels: ['최근 정책 리포트', '최근 실행 결과'],
         namedValues: ['visibleHarnessResultTitle', 'hiddenHarnessResultTitle'],
         namedMessages: [
+          'currentExecutionDisplayStamp',
           'hideHarnessExecutionCopy',
           'showHarnessExecutionCopy',
+          'targetExecutionDisplayStamp',
           'restoreHarnessExecutionCopy',
         ],
       },
