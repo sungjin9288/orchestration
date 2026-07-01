@@ -39,6 +39,13 @@ assert.match(appJs, /data-harness-execution-packet-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-packet-copy="true"/);
 assert.match(appJs, /data-harness-history-packet-copy="true"/);
 assert.match(appJs, /function copyHarnessExecutionPacket\(packetText\)/);
+assert.match(appJs, /const emptyPacketCopyMessage = '복사할 하네스 실행 패킷이 없습니다\.';/);
+assert.match(appJs, /const copiedPacketMessage = \(\) => '하네스 실행 패킷을 복사했습니다\.';/);
+assert.match(appJs, /const unsupportedPacketCopyMessage = \(\) =>\s+'클립보드 미지원 환경입니다\. 하네스 실행 패킷을 직접 확인하세요\.';/);
+assert.match(appJs, /emptyErrorMessage: emptyPacketCopyMessage/);
+assert.match(appJs, /copiedMessage: copiedPacketMessage/);
+assert.match(appJs, /unsupportedMessage: unsupportedPacketCopyMessage/);
+assert.doesNotMatch(appJs, /copiedMessage: \(\) => '하네스 실행 패킷을 복사했습니다\.'/);
 assert.match(appJs, /copyHarnessExecutionPacket\(actionButton\.dataset\.executionPacketText\)/);
 assert.match(appJs, />\s*패킷 복사\s*</);
 

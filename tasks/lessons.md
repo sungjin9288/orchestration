@@ -74,7 +74,7 @@
 
 - Harness output brief rendering should name both the local brief selector, shared summary labels, and shared line items before rendering or copy formatting. Keep output-brief state in `ui/app.js`, route scope/severity/processing wording and line type/text/copy text through local helpers, and avoid hiding repeated selector, count, processing-label, or line-label calculations inside template strings.
 
-- Harness clipboard status handlers should name empty, copied, and unsupported messages before passing handlers into `copyTextValue`. Keep clipboard behavior in `ui/app.js`, but avoid hiding operator-facing status copy for input paths, output paths, or output briefs inside inline callback template strings.
+- Harness clipboard status handlers should name empty, copied, and unsupported messages before passing handlers into `copyTextValue`. Keep clipboard behavior in `ui/app.js`, but avoid hiding operator-facing status copy for command templates, request IDs, previews, packets, input paths, output paths, or output briefs inside inline callback template strings.
 
 - Harness output brief selector splitting should keep `lastHarnessOutputBriefResult` and copy/render actions in `ui/app.js`; move only the execution-key match into `ui/harness-state.js`, and pass the local output brief result explicitly so route handling, clipboard state, runtime mutation, source mutation, commit, and push paths stay outside the helper.
 

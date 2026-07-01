@@ -17981,12 +17981,16 @@ async function copyTextValue({
 }
 
 async function copyHarnessCommand(command) {
+  const emptyCommandCopyMessage = '복사할 하네스 명령이 없습니다.';
+  const copiedCommandMessage = (value) => `하네스 명령 템플릿을 복사했습니다: ${value}`;
+  const unsupportedCommandCopyMessage = (value) =>
+    `클립보드 미지원 환경입니다. 명령 템플릿을 직접 채워 실행하세요: ${value}`;
+
   await copyTextValue({
     value: command,
-    emptyErrorMessage: '복사할 하네스 명령이 없습니다.',
-    copiedMessage: (value) => `하네스 명령 템플릿을 복사했습니다: ${value}`,
-    unsupportedMessage: (value) =>
-      `클립보드 미지원 환경입니다. 명령 템플릿을 직접 채워 실행하세요: ${value}`,
+    emptyErrorMessage: emptyCommandCopyMessage,
+    copiedMessage: copiedCommandMessage,
+    unsupportedMessage: unsupportedCommandCopyMessage,
   });
 }
 
@@ -18020,32 +18024,44 @@ async function copyHarnessExecutionInputPath(inputPath) {
 }
 
 async function copyHarnessExecutionRequestId(requestId) {
+  const emptyRequestIdCopyMessage = '복사할 하네스 요청 ID가 없습니다.';
+  const copiedRequestIdMessage = (value) => `하네스 요청 ID를 복사했습니다: ${value}`;
+  const unsupportedRequestIdCopyMessage = (value) =>
+    `클립보드 미지원 환경입니다. 요청 ID를 직접 확인하세요: ${value}`;
+
   await copyTextValue({
     value: requestId,
-    emptyErrorMessage: '복사할 하네스 요청 ID가 없습니다.',
-    copiedMessage: (value) => `하네스 요청 ID를 복사했습니다: ${value}`,
-    unsupportedMessage: (value) =>
-      `클립보드 미지원 환경입니다. 요청 ID를 직접 확인하세요: ${value}`,
+    emptyErrorMessage: emptyRequestIdCopyMessage,
+    copiedMessage: copiedRequestIdMessage,
+    unsupportedMessage: unsupportedRequestIdCopyMessage,
   });
 }
 
 async function copyHarnessExecutionPreview(previewText) {
+  const emptyPreviewCopyMessage = '복사할 하네스 실행 미리보기가 없습니다.';
+  const copiedPreviewMessage = () => '하네스 실행 미리보기를 복사했습니다.';
+  const unsupportedPreviewCopyMessage = () =>
+    '클립보드 미지원 환경입니다. 하네스 실행 미리보기를 직접 확인하세요.';
+
   await copyTextValue({
     value: previewText,
-    emptyErrorMessage: '복사할 하네스 실행 미리보기가 없습니다.',
-    copiedMessage: () => '하네스 실행 미리보기를 복사했습니다.',
-    unsupportedMessage: () =>
-      '클립보드 미지원 환경입니다. 하네스 실행 미리보기를 직접 확인하세요.',
+    emptyErrorMessage: emptyPreviewCopyMessage,
+    copiedMessage: copiedPreviewMessage,
+    unsupportedMessage: unsupportedPreviewCopyMessage,
   });
 }
 
 async function copyHarnessExecutionPacket(packetText) {
+  const emptyPacketCopyMessage = '복사할 하네스 실행 패킷이 없습니다.';
+  const copiedPacketMessage = () => '하네스 실행 패킷을 복사했습니다.';
+  const unsupportedPacketCopyMessage = () =>
+    '클립보드 미지원 환경입니다. 하네스 실행 패킷을 직접 확인하세요.';
+
   await copyTextValue({
     value: packetText,
-    emptyErrorMessage: '복사할 하네스 실행 패킷이 없습니다.',
-    copiedMessage: () => '하네스 실행 패킷을 복사했습니다.',
-    unsupportedMessage: () =>
-      '클립보드 미지원 환경입니다. 하네스 실행 패킷을 직접 확인하세요.',
+    emptyErrorMessage: emptyPacketCopyMessage,
+    copiedMessage: copiedPacketMessage,
+    unsupportedMessage: unsupportedPacketCopyMessage,
   });
 }
 

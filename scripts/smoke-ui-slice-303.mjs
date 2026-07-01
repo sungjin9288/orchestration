@@ -17,7 +17,13 @@ assert.match(appJs, /명령 복사/);
 assert.match(appJs, /async function copyHarnessCommand\(command\) \{/);
 assert.match(appJs, /if \(globalThis\.navigator\?\.clipboard\?\.writeText\)/);
 assert.match(appJs, /await globalThis\.navigator\.clipboard\.writeText\(value\);/);
-assert.match(appJs, /클립보드 미지원 환경입니다\. 명령 템플릿을 직접 채워 실행하세요:/);
+assert.match(appJs, /const emptyCommandCopyMessage = '복사할 하네스 명령이 없습니다\.';/);
+assert.match(appJs, /const copiedCommandMessage = \(value\) => `하네스 명령 템플릿을 복사했습니다: \$\{value\}`;/);
+assert.match(appJs, /const unsupportedCommandCopyMessage = \(value\) =>\s+`클립보드 미지원 환경입니다\. 명령 템플릿을 직접 채워 실행하세요: \$\{value\}`;/);
+assert.match(appJs, /emptyErrorMessage: emptyCommandCopyMessage/);
+assert.match(appJs, /copiedMessage: copiedCommandMessage/);
+assert.match(appJs, /unsupportedMessage: unsupportedCommandCopyMessage/);
+assert.doesNotMatch(appJs, /copiedMessage: \(value\) => `하네스 명령 템플릿을 복사했습니다: \$\{value\}`/);
 assert.match(appJs, /actionButton\.dataset\.action === 'copy-harness-command'/);
 assert.doesNotMatch(appJs, /harness-run\.mjs doctor/);
 

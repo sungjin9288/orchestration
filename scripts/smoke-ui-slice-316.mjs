@@ -24,8 +24,13 @@ assert.match(appJs, /data-action="copy-harness-execution-preview"/);
 assert.match(appJs, /data-harness-preview-copy="true"/);
 assert.match(appJs, /미리보기/);
 assert.match(appJs, /async function copyHarnessExecutionPreview\(previewText\)/);
-assert.match(appJs, /emptyErrorMessage: '복사할 하네스 실행 미리보기가 없습니다\.'/);
-assert.match(appJs, /copiedMessage: \(\) => '하네스 실행 미리보기를 복사했습니다\.'/);
+assert.match(appJs, /const emptyPreviewCopyMessage = '복사할 하네스 실행 미리보기가 없습니다\.';/);
+assert.match(appJs, /const copiedPreviewMessage = \(\) => '하네스 실행 미리보기를 복사했습니다\.';/);
+assert.match(appJs, /const unsupportedPreviewCopyMessage = \(\) =>\s+'클립보드 미지원 환경입니다\. 하네스 실행 미리보기를 직접 확인하세요\.';/);
+assert.match(appJs, /emptyErrorMessage: emptyPreviewCopyMessage/);
+assert.match(appJs, /copiedMessage: copiedPreviewMessage/);
+assert.match(appJs, /unsupportedMessage: unsupportedPreviewCopyMessage/);
+assert.doesNotMatch(appJs, /copiedMessage: \(\) => '하네스 실행 미리보기를 복사했습니다\.'/);
 assert.match(appJs, /actionButton\.dataset\.action === 'copy-harness-execution-preview'/);
 
 async function fetchJson(url, options = {}) {
