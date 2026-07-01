@@ -134,6 +134,16 @@ assert.match(appJs, /getPortableUiPreferenceReviewText\(state\.uiPreferences\)/)
 assert.match(appJs, /data-local-personalization-portability="copy-review-only"/);
 assert.match(appJs, /data-action="copy-local-personalization-review"/);
 assert.match(appJs, /function copyLocalPersonalizationReview\(\)/);
+assert.match(appJs, /const emptyPersonalizationCopyMessage = '복사할 로컬 선호 설정 묶음이 없습니다\.';/);
+assert.match(appJs, /const copiedPersonalizationMessage = \(\) => '로컬 선호 설정 묶음을 복사했습니다\.';/);
+assert.match(
+  appJs,
+  /const unsupportedPersonalizationCopyMessage = \(\) =>\s+'클립보드 미지원 환경입니다\. 화면의 로컬 선호 설정 묶음을 직접 확인하세요\.';/,
+);
+assert.match(appJs, /emptyErrorMessage: emptyPersonalizationCopyMessage/);
+assert.match(appJs, /copiedMessage: copiedPersonalizationMessage/);
+assert.match(appJs, /unsupportedMessage: unsupportedPersonalizationCopyMessage/);
+assert.doesNotMatch(appJs, /copiedMessage: \(\) => '로컬 선호 설정 묶음을 복사했습니다\.'/);
 assert.match(appJs, /data-action="set-evidence-density"/);
 assert.match(appJs, /data-action="set-preferred-project-local"/);
 assert.match(appJs, /data-action="reset-local-personalization"/);

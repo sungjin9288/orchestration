@@ -18068,35 +18068,43 @@ async function copyHarnessExecutionPacket(packetText) {
 async function copyHarnessOutputBrief(briefText, label = '출력 요약') {
   const briefLabel = label || '출력 요약';
   const emptyOutputBriefCopyMessage = `복사할 하네스 ${briefLabel}이 없습니다.`;
-  const copiedOutputBriefMessage = `하네스 ${briefLabel}을 복사했습니다.`;
-  const unsupportedOutputBriefCopyMessage =
+  const copiedOutputBriefMessage = () => `하네스 ${briefLabel}을 복사했습니다.`;
+  const unsupportedOutputBriefCopyMessage = () =>
     `클립보드 미지원 환경입니다. 하네스 ${briefLabel}을 직접 확인하세요.`;
 
   await copyTextValue({
     value: briefText,
     emptyErrorMessage: emptyOutputBriefCopyMessage,
-    copiedMessage: () => copiedOutputBriefMessage,
-    unsupportedMessage: () => unsupportedOutputBriefCopyMessage,
+    copiedMessage: copiedOutputBriefMessage,
+    unsupportedMessage: unsupportedOutputBriefCopyMessage,
   });
 }
 
 async function copyHarnessPolicyReport(reportText) {
+  const emptyPolicyReportCopyMessage = '복사할 하네스 정책 리포트가 없습니다.';
+  const copiedPolicyReportMessage = () => '하네스 정책 리포트를 복사했습니다.';
+  const unsupportedPolicyReportCopyMessage = () =>
+    '클립보드 미지원 환경입니다. 하네스 정책 리포트를 직접 확인하세요.';
+
   await copyTextValue({
     value: reportText,
-    emptyErrorMessage: '복사할 하네스 정책 리포트가 없습니다.',
-    copiedMessage: () => '하네스 정책 리포트를 복사했습니다.',
-    unsupportedMessage: () =>
-      '클립보드 미지원 환경입니다. 하네스 정책 리포트를 직접 확인하세요.',
+    emptyErrorMessage: emptyPolicyReportCopyMessage,
+    copiedMessage: copiedPolicyReportMessage,
+    unsupportedMessage: unsupportedPolicyReportCopyMessage,
   });
 }
 
 async function copyLocalPersonalizationReview() {
+  const emptyPersonalizationCopyMessage = '복사할 로컬 선호 설정 묶음이 없습니다.';
+  const copiedPersonalizationMessage = () => '로컬 선호 설정 묶음을 복사했습니다.';
+  const unsupportedPersonalizationCopyMessage = () =>
+    '클립보드 미지원 환경입니다. 화면의 로컬 선호 설정 묶음을 직접 확인하세요.';
+
   await copyTextValue({
     value: getPortableUiPreferenceReviewText(state.uiPreferences),
-    emptyErrorMessage: '복사할 로컬 선호 설정 묶음이 없습니다.',
-    copiedMessage: () => '로컬 선호 설정 묶음을 복사했습니다.',
-    unsupportedMessage: () =>
-      '클립보드 미지원 환경입니다. 화면의 로컬 선호 설정 묶음을 직접 확인하세요.',
+    emptyErrorMessage: emptyPersonalizationCopyMessage,
+    copiedMessage: copiedPersonalizationMessage,
+    unsupportedMessage: unsupportedPersonalizationCopyMessage,
   });
 }
 

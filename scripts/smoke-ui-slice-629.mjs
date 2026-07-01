@@ -29,11 +29,11 @@ assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(visibleHarnessOutp
 assert.match(appJs, /async function copyHarnessOutputBrief\(briefText, label = '출력 요약'\)/);
 assert.match(appJs, /const briefLabel = label \|\| '출력 요약'/);
 assert.match(appJs, /const emptyOutputBriefCopyMessage = `복사할 하네스 \$\{briefLabel\}이 없습니다\.`;/);
-assert.match(appJs, /const copiedOutputBriefMessage = `하네스 \$\{briefLabel\}을 복사했습니다\.`;/);
-assert.match(appJs, /const unsupportedOutputBriefCopyMessage =\s+`클립보드 미지원 환경입니다\. 하네스 \$\{briefLabel\}을 직접 확인하세요\.`;/);
+assert.match(appJs, /const copiedOutputBriefMessage = \(\) => `하네스 \$\{briefLabel\}을 복사했습니다\.`;/);
+assert.match(appJs, /const unsupportedOutputBriefCopyMessage = \(\) =>\s+`클립보드 미지원 환경입니다\. 하네스 \$\{briefLabel\}을 직접 확인하세요\.`;/);
 assert.match(appJs, /emptyErrorMessage: emptyOutputBriefCopyMessage/);
-assert.match(appJs, /copiedMessage: \(\) => copiedOutputBriefMessage/);
-assert.match(appJs, /unsupportedMessage: \(\) => unsupportedOutputBriefCopyMessage/);
+assert.match(appJs, /copiedMessage: copiedOutputBriefMessage/);
+assert.match(appJs, /unsupportedMessage: unsupportedOutputBriefCopyMessage/);
 assert.doesNotMatch(appJs, /copiedMessage: \(\) => `하네스 \$\{briefLabel\}을 복사했습니다\.`/);
 assert.match(appJs, /actionButton\.dataset\.outputBriefLabel/);
 assert.match(appJs, /data-harness-output-brief-copy="true"/);

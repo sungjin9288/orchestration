@@ -29,6 +29,13 @@ assert.match(
 assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(visibleHarnessPolicyReportCopyText\)\}"/);
 assert.match(appJs, /data-harness-policy-report-copy="true"/);
 assert.match(appJs, /function copyHarnessPolicyReport\(reportText\)/);
+assert.match(appJs, /const emptyPolicyReportCopyMessage = '복사할 하네스 정책 리포트가 없습니다\.';/);
+assert.match(appJs, /const copiedPolicyReportMessage = \(\) => '하네스 정책 리포트를 복사했습니다\.';/);
+assert.match(appJs, /const unsupportedPolicyReportCopyMessage = \(\) =>\s+'클립보드 미지원 환경입니다\. 하네스 정책 리포트를 직접 확인하세요\.';/);
+assert.match(appJs, /emptyErrorMessage: emptyPolicyReportCopyMessage/);
+assert.match(appJs, /copiedMessage: copiedPolicyReportMessage/);
+assert.match(appJs, /unsupportedMessage: unsupportedPolicyReportCopyMessage/);
+assert.doesNotMatch(appJs, /copiedMessage: \(\) => '하네스 정책 리포트를 복사했습니다\.'/);
 assert.match(appJs, /copyHarnessPolicyReport\(actionButton\.dataset\.policyReportText\)/);
 assert.match(appJs, /리포트 복사/);
 
