@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness action shelf render guards should name the harness id, action kind, and display predicate before template rendering. Keep action shelf rendering in `ui/app.js`, but avoid repeating inline status-card/operator-action guard expressions when the same harness id also drives hidden-result matching and register copy.
+
 - Harness operator action guards should name the harness id, action kind, and runnable predicate before mutating state. Keep execution routing in `ui/app.js`, but avoid long inline guard expressions when the same values also feed pending and completion copy.
 
 - Harness policy-report preview pending copy should be named before execution handoff. Keep preview form parsing and `executeHarnessOperatorAction(...)` routing in `ui/app.js`, but pass a named pending message instead of hiding operator-facing copy inside the call object.

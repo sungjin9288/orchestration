@@ -34,8 +34,19 @@ assert.match(serveUi, /url\.pathname === '\/harness-state\.js'/);
 assert.match(appJs, /from '\.\/harness-state\.js'/);
 assert.match(harnessState, /export function getHarnessConsumerStatus\(data\) \{/);
 assert.match(appJs, /function renderHarnessExecutionActionShelf\(statusPayload\) \{/);
+assert.match(appJs, /const primaryHarnessId = statusCard\?\.primaryHarnessId \|\| '';/);
+assert.match(appJs, /const operatorActionKind = operatorAction\?\.kind \|\| '';/);
+assert.match(appJs, /const canShowHarnessOperatorAction =\s+primaryHarnessId && operatorActionKind && operatorActionKind !== 'none';/);
+assert.match(appJs, /if \(!canShowHarnessOperatorAction\) \{/);
 assert.match(appJs, /const harnessConsumerStatus = getHarnessConsumerStatus\(data\);/);
 assert.match(appJs, /data-harness-execution-action="true"/);
+assert.match(appJs, /harnessExecutionResult\?\.harnessId === primaryHarnessId/);
+assert.match(appJs, /대표 하네스: <code>\$\{escapeHtml\(primaryHarnessId\)\}<\/code>/);
+assert.match(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(primaryHarnessId\)\}<\/strong>/);
+assert.doesNotMatch(
+  appJs,
+  /if \(!statusCard\?\.primaryHarnessId \|\| !operatorAction\?\.kind \|\| operatorAction\.kind === 'none'\) \{/,
+);
 assert.match(
   appJs,
   /\$\{renderNarrativeDeck\(\{[\s\S]*?\}\)\}\s*\n\s*\$\{renderHarnessExecutionActionShelf\(harnessConsumerStatus\)\}\s*\n\s*\$\{executionEvidenceRail\}/,

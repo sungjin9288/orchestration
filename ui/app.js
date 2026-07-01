@@ -1716,6 +1716,10 @@ function formatHarnessOutputBriefForCopy(outputBrief, execution) {
 function renderHarnessExecutionActionShelf(statusPayload) {
   const statusCard = statusPayload?.statusCard || null;
   const operatorAction = statusPayload?.operatorAction || null;
+  const primaryHarnessId = statusCard?.primaryHarnessId || '';
+  const operatorActionKind = operatorAction?.kind || '';
+  const canShowHarnessOperatorAction =
+    primaryHarnessId && operatorActionKind && operatorActionKind !== 'none';
   const data = getDerived();
   const harnessExecutionResult = getLatestHarnessExecution(
     data,
@@ -1729,7 +1733,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ? null
     : harnessExecutionResult;
   const hiddenHarnessExecutionResult =
-    harnessExecutionResult?.harnessId === statusCard?.primaryHarnessId && !visibleHarnessExecutionResult
+    harnessExecutionResult?.harnessId === primaryHarnessId && !visibleHarnessExecutionResult
       ? harnessExecutionResult
       : null;
   const visibleHarnessExecutionKey = getHarnessExecutionResultKey(visibleHarnessExecutionResult);
@@ -1819,7 +1823,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(visibleHarnessOutputLabel)}: <code>${escapeHtml(visibleHarnessOutputSummaryValue)}</code></p>`;
   const hiddenHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>`;
   const hiddenHarnessHandoffSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(hiddenHarnessHandoffText)}</code></p>`;
-  const hiddenHarnessIdSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>${escapeHtml(statusCard.primaryHarnessId)}</code></p>`;
+  const hiddenHarnessIdSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>${escapeHtml(primaryHarnessId)}</code></p>`;
   const hiddenHarnessKindSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">하네스 종류: <code>${escapeHtml(statusCard.primaryKind || '미확인')}</code></p>`;
   const hiddenHarnessPrimaryCommandSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-command-summary="true">대표 명령: <code>${escapeHtml(statusCard.primaryCommand || '미확인')}</code></p>`;
   const hiddenHarnessPrimaryRunnerSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-runner-summary="true">대표 러너: <code>${escapeHtml(statusCard.primaryRunner || '미확인')}</code></p>`;
@@ -1894,7 +1898,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     statusPayload,
   );
 
-  if (!statusCard?.primaryHarnessId || !operatorAction?.kind || operatorAction.kind === 'none') {
+  if (!canShowHarnessOperatorAction) {
     return '';
   }
 
@@ -1911,7 +1915,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       <div class="control-overview-register">
         <div class="control-overview-register-row">
           <span class="control-overview-register-label">대표</span>
-          <strong class="control-overview-register-value">${escapeHtml(statusCard.primaryHarnessId)}</strong>
+          <strong class="control-overview-register-value">${escapeHtml(primaryHarnessId)}</strong>
         </div>
         <div class="control-overview-register-row">
           <span class="control-overview-register-label">액션</span>
