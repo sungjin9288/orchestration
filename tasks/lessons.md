@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness hidden identity and kind summary markup should be named before rendering. Keep status card field selection in the render path, but avoid constructing hidden harness id/kind summary `<p>` blocks directly inside the hidden result template.
+
 - Harness hidden mode and handoff summary markup should be named before rendering. Keep label helper calls in the render path, but avoid constructing hidden mode/handoff summary `<p>` blocks directly inside the hidden result template.
 
 - Harness hidden path summary markup should be named before rendering. Keep input and output path selection in the render path, but avoid constructing hidden input/output summary `<p>` blocks directly inside the hidden result template.

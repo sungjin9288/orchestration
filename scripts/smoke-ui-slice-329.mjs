@@ -22,8 +22,11 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-harness-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-state-summary="true"/);
+assert.match(appJs, /const hiddenHarnessIdSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">/);
+assert.match(appJs, /\$\{hiddenHarnessIdSummaryMarkup\}/);
 assert.match(appJs, /statusCard\.primaryHarnessId/);
 assert.match(appJs, /statusCard\.primaryHarnessState/);
+assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>\$\{escapeHtml\(statusCard\.primaryHarnessId\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -111,6 +114,7 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenHarnessStateSummary->statusCard',
             harnessMarker: 'data-harness-result-hidden-harness-summary',
             stateMarker: 'data-harness-result-hidden-state-summary',
+            namedValues: ['hiddenHarnessIdSummaryMarkup'],
             route: '/api/harness/operator-action/run',
             primaryHarnessId: harnessConsumerStatus.statusCard.primaryHarnessId,
             primaryHarnessState: harnessConsumerStatus.statusCard.primaryHarnessState,

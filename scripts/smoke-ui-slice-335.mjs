@@ -21,7 +21,10 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-kind-summary="true"/);
+assert.match(appJs, /const hiddenHarnessKindSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">/);
+assert.match(appJs, /\$\{hiddenHarnessKindSummaryMarkup\}/);
 assert.match(appJs, /statusCard\.primaryKind \|\| '미확인'/);
+assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">하네스 종류: <code>\$\{escapeHtml\(statusCard\.primaryKind \|\| '미확인'\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-command-summary="true">/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -105,6 +108,7 @@ async function main() {
           harnessExecutionHiddenKindSummary: {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenKindSummary->statusCardPrimaryKind',
             sourceMarker: 'data-harness-result-hidden-kind-summary',
+            namedValues: ['hiddenHarnessKindSummaryMarkup'],
             route: '/api/harness/operator-action/run',
             primaryKind: harnessConsumerStatus.statusCard.primaryKind,
           },

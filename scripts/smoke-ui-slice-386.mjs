@@ -22,8 +22,9 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /data-harness-result-hidden-kind-summary="true">하네스 종류: <code>\$\{escapeHtml\(statusCard\.primaryKind \|\| '미확인'\)\}<\/code><\/p>/,
+  /const hiddenHarnessKindSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">하네스 종류: <code>\$\{escapeHtml\(statusCard\.primaryKind \|\| '미확인'\)\}<\/code><\/p>`;/,
 );
+assert.match(appJs, /\$\{hiddenHarnessKindSummaryMarkup\}/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
