@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible run summary markup should be named before rendering. Keep visible input, mode, handoff, and output value selection in the render path, but avoid constructing visible result summary `<p>` blocks directly inside the latest result template.
+
 - Harness hidden operator context summary markup should be named before rendering. Keep operator action label, command, and message selection in the render path, but avoid constructing hidden action/command/message `<p>` blocks directly inside the hidden result template.
 
 - Harness hidden command, runner, posture, state, and host summary markup should be named before rendering. Keep status card field selection and host-state label wording in the render path, but avoid constructing the remaining hidden harness context `<p>` blocks directly inside the hidden result template.

@@ -1748,6 +1748,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessExecutionResult?.outputPath ? 'accent' : 'neutral';
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
+  const visibleHarnessInputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력: <code>${escapeHtml(visibleHarnessInputSummaryPath)}</code></p>`;
+  const visibleHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(visibleHarnessModeLabel)}</code></p>`;
+  const visibleHarnessHandoffSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(visibleHarnessHandoffText)}</code></p>`;
+  const visibleHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(visibleHarnessOutputLabel)}: <code>${escapeHtml(visibleHarnessOutputSummaryValue)}</code></p>`;
   const hiddenHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>`;
   const hiddenHarnessHandoffSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(hiddenHarnessHandoffText)}</code></p>`;
   const hiddenHarnessIdSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>${escapeHtml(statusCard.primaryHarnessId)}</code></p>`;
@@ -1968,10 +1972,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                             : ''
                         }
                       </div>
-                      <p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력: <code>${escapeHtml(visibleHarnessInputSummaryPath)}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(visibleHarnessModeLabel)}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(visibleHarnessHandoffText)}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(visibleHarnessOutputLabel)}: <code>${escapeHtml(visibleHarnessOutputSummaryValue)}</code></p>
+                      ${visibleHarnessInputSummaryMarkup}
+                      ${visibleHarnessModeSummaryMarkup}
+                      ${visibleHarnessHandoffSummaryMarkup}
+                      ${visibleHarnessOutputSummaryMarkup}
                       ${visibleHarnessRequestSummaryMarkup}
                       ${renderHarnessPolicyReportSummary(visibleHarnessExecutionResult)}
                       ${renderHarnessOutputBriefSummary(visibleHarnessExecutionResult)}

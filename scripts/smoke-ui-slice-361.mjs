@@ -23,11 +23,21 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 assert.match(appJs, /data-harness-execution-result="true"/);
 assert.match(
   appJs,
-  /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력:/,
+  /const visibleHarnessInputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력:/,
 );
 assert.match(
   appJs,
-  /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">출력:/,
+  /const visibleHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">\$\{escapeHtml\(visibleHarnessOutputLabel\)\}:/,
+);
+assert.match(appJs, /\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}/);
+assert.match(appJs, /\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력:/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">\$\{escapeHtml\(visibleHarnessOutputLabel\)\}:/,
 );
 
 async function fetchJson(url, options = {}) {

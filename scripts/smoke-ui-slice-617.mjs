@@ -17,6 +17,12 @@ assert.match(appJs, /data-harness-execution-mode-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-mode-summary="true"/);
 assert.match(appJs, /getHarnessExecutionModeLabel\(visibleHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionModeLabel\(hiddenHarnessExecutionResult\)/);
+assert.match(appJs, /const visibleHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">/);
+assert.match(appJs, /\$\{visibleHarnessModeSummaryMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>\$\{escapeHtml\(visibleHarnessModeLabel\)\}<\/code><\/p>/,
+);
 assert.match(appJs, /data-harness-execution-packet-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-packet-copy="true"/);
 
@@ -26,6 +32,7 @@ console.log(
       ok: true,
       harnessExecutionResultModeSummary: {
         helper: 'getHarnessExecutionModeLabel',
+        namedValues: ['visibleHarnessModeSummaryMarkup'],
         surfaces: ['latest-result', 'hidden-result'],
       },
     },

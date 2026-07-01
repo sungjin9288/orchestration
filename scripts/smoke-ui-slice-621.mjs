@@ -19,6 +19,8 @@ assert.match(appJs, /const visibleHarnessOutputLabel = getHarnessExecutionOutput
 assert.match(appJs, /const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /const visibleHarnessOutputSummaryValue = visibleHarnessOutputPath \|\| '표준 출력 전용';/);
 assert.match(appJs, /const hiddenHarnessOutputSummaryValue = hiddenHarnessOutputPath \|\| '표준 출력 전용';/);
+assert.match(appJs, /const visibleHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">\$\{escapeHtml\(visibleHarnessOutputLabel\)\}:/);
+assert.match(appJs, /\$\{visibleHarnessOutputSummaryMarkup\}/);
 assert.match(appJs, /const historyHarnessOutputLabel = getHarnessExecutionOutputLabel\(execution\);/);
 assert.match(appJs, /const historyHarnessOutputSummaryValue =\s+historyHarnessOutputPath \|\| '표준 출력 전용';/);
 assert.match(appJs, /<span class="control-overview-register-label">\$\{escapeHtml\(historyHarnessOutputLabel\)\}<\/span>/);
