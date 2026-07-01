@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness policy report copy text should be computed once before visible, hidden, and history report copy buttons use it. Keep parsed policy-report payload selection in `ui/app.js` and keep the formatter in the label module, but avoid formatter calls inside button attributes.
+
 - Harness execution packet copy text should be computed once before the visible, hidden, and history packet buttons use it. Keep packet formatting and context helpers unchanged, but avoid calling the packet formatter directly inside button attributes.
 
 - Harness visible and hidden result labels should be computed once before the latest and hidden templates use them. Keep mode, handoff, rerun, visibility, and brief wording in the existing label helpers, but reuse named render values so the template reads as state flow instead of helper plumbing.

@@ -15,8 +15,17 @@ assert.match(appJs, /data-harness-result-hidden-policy-report-copy="true"/);
 assert.match(appJs, /data-harness-history-policy-report-copy="true"/);
 assert.match(appJs, /const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /const historyHarnessPolicyReportPayload = getHarnessPolicyReportPayload\(execution\);/);
-assert.match(appJs, /formatHarnessPolicyReportForCopy\(hiddenHarnessPolicyReportPayload\)/);
-assert.match(appJs, /formatHarnessPolicyReportForCopy\(historyHarnessPolicyReportPayload\)/);
+assert.match(
+  appJs,
+  /const hiddenHarnessPolicyReportCopyText = hiddenHarnessPolicyReportPayload\s+\? formatHarnessPolicyReportForCopy\(hiddenHarnessPolicyReportPayload\)\s+: '';/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessPolicyReportCopyText = historyHarnessPolicyReportPayload\s+\? formatHarnessPolicyReportForCopy\(historyHarnessPolicyReportPayload\)\s+: '';/,
+);
+assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(visibleHarnessPolicyReportCopyText\)\}"/);
+assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(hiddenHarnessPolicyReportCopyText\)\}"/);
+assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(historyHarnessPolicyReportCopyText\)\}"/);
 assert.match(appJs, /copyHarnessPolicyReport\(actionButton\.dataset\.policyReportText\)/);
 assert.match(appJs, /data-action="copy-harness-policy-report"/);
 assert.match(appJs, />\s*리포트 복사\s*</);

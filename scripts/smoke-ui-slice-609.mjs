@@ -22,7 +22,11 @@ assert.match(harnessLabels, /실행 방식:/);
 assert.match(harnessLabels, /CLI 상태:/);
 assert.match(appJs, /data-action="copy-harness-policy-report"/);
 assert.match(appJs, /const visibleHarnessPolicyReportPayload = getHarnessPolicyReportPayload\(visibleHarnessExecutionResult\);/);
-assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(formatHarnessPolicyReportForCopy\(visibleHarnessPolicyReportPayload\)\)\}"/);
+assert.match(
+  appJs,
+  /const visibleHarnessPolicyReportCopyText = visibleHarnessPolicyReportPayload\s+\? formatHarnessPolicyReportForCopy\(visibleHarnessPolicyReportPayload\)\s+: '';/,
+);
+assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(visibleHarnessPolicyReportCopyText\)\}"/);
 assert.match(appJs, /data-harness-policy-report-copy="true"/);
 assert.match(appJs, /function copyHarnessPolicyReport\(reportText\)/);
 assert.match(appJs, /copyHarnessPolicyReport\(actionButton\.dataset\.policyReportText\)/);

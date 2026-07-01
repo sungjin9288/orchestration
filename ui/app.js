@@ -1721,6 +1721,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ? formatHarnessExecutionPacketForCopy(hiddenHarnessExecutionResult)
     : '';
   const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload(hiddenHarnessExecutionResult);
+  const hiddenHarnessPolicyReportCopyText = hiddenHarnessPolicyReportPayload
+    ? formatHarnessPolicyReportForCopy(hiddenHarnessPolicyReportPayload)
+    : '';
   const visibleHarnessPreviewText =
     visibleHarnessExecutionResult?.outputPreview || visibleHarnessExecutionResult?.stdoutPreview || '';
   const hiddenHarnessPreviewText =
@@ -1739,6 +1742,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessOutputBriefCopyActionLabel =
     getHarnessExecutionBriefCopyActionLabel(visibleHarnessExecutionResult);
   const visibleHarnessPolicyReportPayload = getHarnessPolicyReportPayload(visibleHarnessExecutionResult);
+  const visibleHarnessPolicyReportCopyText = visibleHarnessPolicyReportPayload
+    ? formatHarnessPolicyReportForCopy(visibleHarnessPolicyReportPayload)
+    : '';
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
   const hasExecutionHistory = hasHarnessExecutionHistory(
     harnessExecutionResult,
@@ -2044,7 +2050,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       class="secondary-button"
                                       type="button"
                                       data-action="copy-harness-policy-report"
-                                      data-policy-report-text="${escapeHtml(formatHarnessPolicyReportForCopy(visibleHarnessPolicyReportPayload))}"
+                                      data-policy-report-text="${escapeHtml(visibleHarnessPolicyReportCopyText)}"
                                       data-harness-policy-report-copy="true"
                                     >
                                       리포트 복사
@@ -2231,7 +2237,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               class="secondary-button"
                               type="button"
                               data-action="copy-harness-policy-report"
-                              data-policy-report-text="${escapeHtml(formatHarnessPolicyReportForCopy(hiddenHarnessPolicyReportPayload))}"
+                              data-policy-report-text="${escapeHtml(hiddenHarnessPolicyReportCopyText)}"
                               data-harness-result-hidden-policy-report-copy="true"
                             >
                               리포트 복사
@@ -2305,6 +2311,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 historyHarnessOutputPath || '표준 출력 전용';
                               const historyHarnessExecutionPacketText =
                                 formatHarnessExecutionPacketForCopy(execution);
+                              const historyHarnessPolicyReportCopyText = historyHarnessPolicyReportPayload
+                                ? formatHarnessPolicyReportForCopy(historyHarnessPolicyReportPayload)
+                                : '';
                               const historyHarnessShowActionLabel = getHarnessExecutionShowActionLabel(execution);
                               const historyHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(execution);
                               const historyHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(execution);
@@ -2411,7 +2420,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                               class="secondary-button"
                                               type="button"
                                               data-action="copy-harness-policy-report"
-                                              data-policy-report-text="${escapeHtml(formatHarnessPolicyReportForCopy(historyHarnessPolicyReportPayload))}"
+                                              data-policy-report-text="${escapeHtml(historyHarnessPolicyReportCopyText)}"
                                               data-harness-history-policy-report-copy="true"
                                             >
                                               리포트 복사
