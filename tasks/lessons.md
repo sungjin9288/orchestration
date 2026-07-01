@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness request summary markup should be named before rendering. Keep request-id generation and copy actions unchanged, but avoid constructing latest or hidden request-summary `<p>` blocks directly inside the result templates.
+
 - Harness policy-report token text should be named before rendering. Keep `policy-report` detection and no-write semantics unchanged, but avoid rendering the `정책 리포트` token as a direct literal inside `createToken`.
 
 - Harness primary and request token text should be named before rendering. Keep request-id generation and copy actions unchanged, but avoid constructing `대표:` or `요청:` token strings directly inside `createToken` calls.

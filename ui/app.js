@@ -1712,6 +1712,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessRequestTokenLabel = visibleHarnessRequestId
     ? `요청:${visibleHarnessRequestId}`
     : '';
+  const visibleHarnessRequestSummaryMarkup = visibleHarnessRequestId
+    ? `<p class="detail-copy detail-copy-compact" data-harness-execution-request-summary="true">요청 ID: <code>${escapeHtml(visibleHarnessRequestId)}</code></p>`
+    : '';
+  const hiddenHarnessRequestSummaryMarkup = hiddenHarnessRequestId
+    ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-request-summary="true">요청 ID: <code>${escapeHtml(hiddenHarnessRequestId)}</code></p>`
+    : '';
   const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel
     ? `실행:${visibleHarnessExecutedAtLabel}`
     : '';
@@ -1940,11 +1946,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(visibleHarnessModeLabel)}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(visibleHarnessHandoffText)}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(visibleHarnessOutputLabel)}: <code>${escapeHtml(visibleHarnessOutputSummaryValue)}</code></p>
-                      ${
-                        visibleHarnessRequestId
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-execution-request-summary="true">요청 ID: <code>${escapeHtml(visibleHarnessRequestId)}</code></p>`
-                          : ''
-                      }
+                      ${visibleHarnessRequestSummaryMarkup}
                       ${renderHarnessPolicyReportSummary(visibleHarnessExecutionResult)}
                       ${renderHarnessOutputBriefSummary(visibleHarnessExecutionResult)}
                       ${
@@ -2125,11 +2127,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <div class="card-title-row card-title-row-tight">
                         <strong>실행 기록</strong>
                       </div>
-                      ${
-                        hiddenHarnessRequestId
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-request-summary="true">요청 ID: <code>${escapeHtml(hiddenHarnessRequestId)}</code></p>`
-                          : ''
-                      }
+                      ${hiddenHarnessRequestSummaryMarkup}
                       ${
                         hiddenHarnessExecutedAtLabel
                           ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(hiddenHarnessExecutedAtLabel)}</code></p>`
