@@ -43,6 +43,21 @@ assert.doesNotMatch(
   /data-harness-execution-result="true"[\s\S]*?\$\{renderHarnessPolicyReportSummary\(visibleHarnessExecutionResult\)\}/,
 );
 assert.match(appJs, /현재 프로세스 권한으로 읽음/);
+assert.match(appJs, /const policyReportInputStateLabel = payload\.input\?\.exists \? '파일 있음' : '파일 없음';/);
+assert.match(appJs, /const policyReportInputSizeLabel = `\$\{String\(payload\.input\?\.sizeBytes \?\? 0\)\} bytes`;/);
+assert.match(appJs, /const policyReportOutputPlanLabel = payload\.output\?\.wouldWrite/);
+assert.match(appJs, /const policyReportPermissionLabel = pathPolicy\.readsWithCurrentProcessPrivileges/);
+assert.match(appJs, /const policyReportExecutionModeLabel = pathPolicy\.executesConversion/);
+assert.match(appJs, /const policyReportCliStateLabel = markitdown\.available/);
+assert.match(appJs, /\$\{escapeHtml\(policyReportInputStateLabel\)\} · \$\{escapeHtml\(policyReportInputSizeLabel\)\}/);
+assert.match(appJs, /\$\{escapeHtml\(policyReportOutputPlanLabel\)\}/);
+assert.match(appJs, /\$\{escapeHtml\(policyReportPermissionLabel\)\}/);
+assert.match(appJs, /\$\{escapeHtml\(policyReportExecutionModeLabel\)\}/);
+assert.match(appJs, /\$\{escapeHtml\(policyReportCliStateLabel\)\}/);
+assert.doesNotMatch(appJs, /\$\{escapeHtml\(payload\.input\?\.exists \? '파일 있음' : '파일 없음'\)\}/);
+assert.doesNotMatch(appJs, /\$\{escapeHtml\(payload\.output\?\.wouldWrite \?/);
+assert.doesNotMatch(appJs, /\$\{escapeHtml\(pathPolicy\.readsWithCurrentProcessPrivileges \?/);
+assert.doesNotMatch(appJs, /\$\{escapeHtml\(markitdown\.available \?/);
 assert.match(appJs, /function getHarnessExecutionOutputCopy\(execution\) \{/);
 assert.match(appJs, /function getHarnessExecutionCompletionCopy\(\{ execution, fallbackHarnessId \}\) \{/);
 assert.match(appJs, /const executionHarnessId = execution\?\.harnessId \|\| fallbackHarnessId;/);

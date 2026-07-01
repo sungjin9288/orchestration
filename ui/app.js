@@ -1531,6 +1531,20 @@ function renderHarnessPolicyReportSummary(execution) {
 
   const pathPolicy = payload.pathPolicy || {};
   const markitdown = payload.markitdown || {};
+  const policyReportInputStateLabel = payload.input?.exists ? '파일 있음' : '파일 없음';
+  const policyReportInputSizeLabel = `${String(payload.input?.sizeBytes ?? 0)} bytes`;
+  const policyReportOutputPlanLabel = payload.output?.wouldWrite
+    ? payload.output.resolvedPath || '경로 미지정'
+    : '출력 파일 없음';
+  const policyReportPermissionLabel = pathPolicy.readsWithCurrentProcessPrivileges
+    ? '현재 프로세스 권한으로 읽음'
+    : '권한 정책 미확인';
+  const policyReportExecutionModeLabel = pathPolicy.executesConversion
+    ? '변환 실행'
+    : 'no-write preflight';
+  const policyReportCliStateLabel = markitdown.available
+    ? 'markitdown 사용 가능'
+    : 'markitdown 미설치 또는 확인 실패';
 
   return `
     <section
@@ -1539,23 +1553,23 @@ function renderHarnessPolicyReportSummary(execution) {
     >
       <div class="control-overview-register-row">
         <span class="control-overview-register-label">입력 확인</span>
-        <strong class="control-overview-register-value">${escapeHtml(payload.input?.exists ? '파일 있음' : '파일 없음')} · ${escapeHtml(String(payload.input?.sizeBytes ?? 0))} bytes</strong>
+        <strong class="control-overview-register-value">${escapeHtml(policyReportInputStateLabel)} · ${escapeHtml(policyReportInputSizeLabel)}</strong>
       </div>
       <div class="control-overview-register-row">
         <span class="control-overview-register-label">출력 예정</span>
-        <strong class="control-overview-register-value">${escapeHtml(payload.output?.wouldWrite ? payload.output.resolvedPath || '경로 미지정' : '출력 파일 없음')}</strong>
+        <strong class="control-overview-register-value">${escapeHtml(policyReportOutputPlanLabel)}</strong>
       </div>
       <div class="control-overview-register-row">
         <span class="control-overview-register-label">권한 정책</span>
-        <strong class="control-overview-register-value">${escapeHtml(pathPolicy.readsWithCurrentProcessPrivileges ? '현재 프로세스 권한으로 읽음' : '권한 정책 미확인')}</strong>
+        <strong class="control-overview-register-value">${escapeHtml(policyReportPermissionLabel)}</strong>
       </div>
       <div class="control-overview-register-row">
         <span class="control-overview-register-label">실행 방식</span>
-        <strong class="control-overview-register-value">${escapeHtml(pathPolicy.executesConversion ? '변환 실행' : 'no-write preflight')}</strong>
+        <strong class="control-overview-register-value">${escapeHtml(policyReportExecutionModeLabel)}</strong>
       </div>
       <div class="control-overview-register-row">
         <span class="control-overview-register-label">CLI 상태</span>
-        <strong class="control-overview-register-value">${escapeHtml(markitdown.available ? 'markitdown 사용 가능' : 'markitdown 미설치 또는 확인 실패')}</strong>
+        <strong class="control-overview-register-value">${escapeHtml(policyReportCliStateLabel)}</strong>
       </div>
       ${
         pathPolicy.guidance

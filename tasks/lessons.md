@@ -8,7 +8,7 @@
 
 - Harness action shelf labels should be named before rendering. Keep operator action and host-state label helpers in the render path, but avoid calling them directly inside the action shelf header/register or hidden summary templates.
 
-- Harness visible helper summary markup should be named before rendering. Keep policy-report parsing and output-brief state in the render path, but avoid calling policy-report or output-brief summary render helpers directly inside the latest result template.
+- Harness visible helper summary markup and summary values should be named before rendering. Keep policy-report parsing and output-brief state in the render path, but avoid calling summary helpers or embedding payload/path-policy ternaries directly inside the latest result template.
 
 - Harness visible run summary markup should be named before rendering. Keep visible input, mode, handoff, and output value selection in the render path, but avoid constructing visible result summary `<p>` blocks directly inside the latest result template.
 
