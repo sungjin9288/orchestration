@@ -23,6 +23,31 @@ export function getHarnessConsumerStatus(data) {
   return null;
 }
 
+export function getLatestHarnessExecution(data, statusPayload, localHarnessExecution = null) {
+  const snapshot = data?.snapshot || {};
+  const activeProjectId = snapshot.activeProjectId || null;
+  const representativeHarnessId = statusPayload?.statusCard?.primaryHarnessId || null;
+  const derivedLatestHarnessExecution = data?.derived?.latestHarnessExecution || null;
+
+  for (const candidate of [localHarnessExecution, derivedLatestHarnessExecution]) {
+    if (!candidate?.harnessId || !representativeHarnessId) {
+      continue;
+    }
+
+    if (candidate.harnessId !== representativeHarnessId) {
+      continue;
+    }
+
+    if ((candidate.projectId || null) !== activeProjectId) {
+      continue;
+    }
+
+    return candidate;
+  }
+
+  return null;
+}
+
 export function getRecentHarnessExecutions(data, statusPayload) {
   const snapshot = data?.snapshot || {};
   const activeProjectId = snapshot.activeProjectId || null;

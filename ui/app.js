@@ -117,6 +117,7 @@ import {
 import {
   getHarnessConsumerBrief,
   getHarnessConsumerStatus,
+  getLatestHarnessExecution,
   getRecentHarnessExecutions,
 } from './harness-state.js';
 import {
@@ -1504,31 +1505,6 @@ function getProviderExecutionSummary(project, data) {
   return data.derived.providerExecutionSummaries?.[project.id] || null;
 }
 
-function getLatestHarnessExecution(data, statusPayload) {
-  const snapshot = data?.snapshot || {};
-  const activeProjectId = snapshot.activeProjectId || null;
-  const representativeHarnessId = statusPayload?.statusCard?.primaryHarnessId || null;
-  const derivedLatestHarnessExecution = data?.derived?.latestHarnessExecution || null;
-
-  for (const candidate of [state.lastHarnessExecutionResult, derivedLatestHarnessExecution]) {
-    if (!candidate?.harnessId || !representativeHarnessId) {
-      continue;
-    }
-
-    if (candidate.harnessId !== representativeHarnessId) {
-      continue;
-    }
-
-    if ((candidate.projectId || null) !== activeProjectId) {
-      continue;
-    }
-
-    return candidate;
-  }
-
-  return null;
-}
-
 function isHarnessExecutionResultHidden(execution) {
   const executionKey = getHarnessExecutionResultKey(execution);
 
@@ -1706,7 +1682,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const statusCard = statusPayload?.statusCard || null;
   const operatorAction = statusPayload?.operatorAction || null;
   const data = getDerived();
-  const harnessExecutionResult = getLatestHarnessExecution(data, statusPayload);
+  const harnessExecutionResult = getLatestHarnessExecution(
+    data,
+    statusPayload,
+    state.lastHarnessExecutionResult,
+  );
   const visibleHarnessExecutionResult = isHarnessExecutionResultHidden(harnessExecutionResult)
     ? null
     : harnessExecutionResult;
@@ -17910,7 +17890,11 @@ async function summarizeHarnessExecutionPreview(actionButton) {
   const hiddenExecutionKey = String(actionButton?.dataset.hiddenExecutionKey || '').trim();
   const historyIndex = Number.parseInt(actionButton?.dataset.historyIndex || '', 10);
   const statusPayload = getHarnessConsumerStatus(getDerived());
-  const currentExecution = getLatestHarnessExecution(getDerived(), statusPayload);
+  const currentExecution = getLatestHarnessExecution(
+    getDerived(),
+    statusPayload,
+    state.lastHarnessExecutionResult,
+  );
   const currentExecutionKey = getHarnessExecutionResultKey(currentExecution);
   const recentHarnessExecutions = getRecentHarnessExecutions(getDerived(), statusPayload);
   const historyExecution =
@@ -17962,7 +17946,11 @@ async function summarizeHarnessExecutionPreview(actionButton) {
 function hideHarnessExecutionResult(actionButton) {
   const executionKey = String(actionButton?.dataset.executionKey || '').trim();
   const statusPayload = getHarnessConsumerStatus(getDerived());
-  const currentExecution = getLatestHarnessExecution(getDerived(), statusPayload);
+  const currentExecution = getLatestHarnessExecution(
+    getDerived(),
+    statusPayload,
+    state.lastHarnessExecutionResult,
+  );
   const currentExecutionKey = getHarnessExecutionResultKey(currentExecution);
 
   if (!executionKey || !currentExecution?.harnessId || currentExecutionKey !== executionKey) {
@@ -17978,7 +17966,11 @@ function hideHarnessExecutionResult(actionButton) {
 
 function showHarnessExecutionResult(actionButton, statusPayload) {
   const executionKey = String(actionButton?.dataset.executionKey || '').trim();
-  const currentExecution = getLatestHarnessExecution(getDerived(), statusPayload);
+  const currentExecution = getLatestHarnessExecution(
+    getDerived(),
+    statusPayload,
+    state.lastHarnessExecutionResult,
+  );
   const currentExecutionKey = getHarnessExecutionResultKey(currentExecution);
 
   if (!executionKey || !currentExecution?.harnessId || currentExecutionKey !== executionKey) {

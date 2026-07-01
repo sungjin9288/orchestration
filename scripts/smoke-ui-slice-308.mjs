@@ -14,18 +14,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessStatePath = path.join(repoRoot, 'ui', 'harness-state.js');
 const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-308');
 const port = 4608;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessState = fs.readFileSync(harnessStatePath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 
 assert.match(serveUi, /let latestHarnessExecution = null;/);
 assert.match(serveUi, /latestHarnessExecution,/);
-assert.match(appJs, /function getLatestHarnessExecution\(data, statusPayload\)/);
-assert.match(appJs, /const derivedLatestHarnessExecution = data\?\.derived\?\.latestHarnessExecution \|\| null;/);
+assert.match(appJs, /from '\.\/harness-state\.js'/);
+assert.match(harnessState, /export function getLatestHarnessExecution\(data, statusPayload, localHarnessExecution = null\) \{/);
+assert.match(appJs, /state\.lastHarnessExecutionResult,/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
