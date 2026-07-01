@@ -1684,6 +1684,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessExecutionResult,
     state.lastHarnessOutputBriefResult,
   );
+  const visibleHarnessPolicyReportPayload = getHarnessPolicyReportPayload(visibleHarnessExecutionResult);
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
   const hasExecutionHistory = hasHarnessExecutionHistory(
     harnessExecutionResult,
@@ -1987,13 +1988,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   : ''
                               }
                               ${
-                                getHarnessPolicyReportPayload(visibleHarnessExecutionResult)
+                                visibleHarnessPolicyReportPayload
                                   ? `
                                     <button
                                       class="secondary-button"
                                       type="button"
                                       data-action="copy-harness-policy-report"
-                                      data-policy-report-text="${escapeHtml(formatHarnessPolicyReportForCopy(getHarnessPolicyReportPayload(visibleHarnessExecutionResult)))}"
+                                      data-policy-report-text="${escapeHtml(formatHarnessPolicyReportForCopy(visibleHarnessPolicyReportPayload))}"
                                       data-harness-policy-report-copy="true"
                                     >
                                       리포트 복사
