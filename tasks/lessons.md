@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness operator action completion messages should be assembled from named request, output, policy-report, and final copy values before assigning refresh status text. Keep the route execution and state mutation unchanged, but do not hide operator-facing completion wording inside nested ternaries.
+
 - Harness result titles, state tokens, and policy-report rerun flags should be named once before result templates use them. Keep `actionMode === 'policy-report'` checks in a small render-path group so latest, hidden, and history buttons do not reopen the same branch.
 
 - Harness visible preview rendering should reuse the same preview text value that copy and summary actions use. Keep `outputPreview || stdoutPreview` selection in one render-path variable so the preview block does not re-open a second fallback branch.

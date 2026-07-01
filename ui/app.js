@@ -18125,22 +18125,24 @@ async function executeHarnessOperatorAction({ inputPath, outputPath, statusPaylo
     state.lastHarnessExecutionResult = payload.harnessExecution || null;
     render();
 
-  const execution = payload.harnessExecution || {};
-  const requestCopy =
-    execution.requestId || execution.executionId
-      ? `요청: ${execution.requestId || execution.executionId}. `
-      : '';
-  const outputCopy =
-    execution.resolvedOutputPath
+    const execution = payload.harnessExecution || {};
+    const executionHarnessId = execution.harnessId || statusCard.primaryHarnessId;
+    const executionRequestId = execution.requestId || execution.executionId || '';
+    const executionRequestCopy = executionRequestId ? `요청: ${executionRequestId}. ` : '';
+    const executionOutputCopy = execution.resolvedOutputPath
       ? `출력: ${execution.resolvedOutputPath}`
       : execution.stdoutPreview
         ? '표준 출력 미리보기를 반환했습니다.'
         : '출력 파일 없이 완료됐습니다.';
+    const executionIsPolicyReport = execution.actionMode === 'policy-report';
+    const policyReportOutputCopy = execution.stdoutPreview
+      ? '리포트 미리보기를 반환했습니다.'
+      : executionOutputCopy;
+    const executionCompletionCopy = executionIsPolicyReport
+      ? `하네스 ${executionHarnessId} 정책 리포트 확인 완료. ${executionRequestCopy}${policyReportOutputCopy}`
+      : `하네스 ${executionHarnessId} 실행 완료. ${executionRequestCopy}${executionOutputCopy}`;
 
-  elements.refreshStatus.textContent =
-    execution.actionMode === 'policy-report'
-      ? `하네스 ${execution.harnessId || statusCard.primaryHarnessId} 정책 리포트 확인 완료. ${requestCopy}${execution.stdoutPreview ? '리포트 미리보기를 반환했습니다.' : outputCopy}`
-      : `하네스 ${execution.harnessId || statusCard.primaryHarnessId} 실행 완료. ${requestCopy}${outputCopy}`;
+    elements.refreshStatus.textContent = executionCompletionCopy;
   } finally {
     state.mutating = false;
     render();

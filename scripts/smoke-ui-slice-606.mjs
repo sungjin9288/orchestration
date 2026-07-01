@@ -14,12 +14,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-606');
 const port = 4706;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 
 assert.match(serveUi, /const policyReport = input\.policyReport === true;/);
@@ -29,12 +31,20 @@ assert.match(appJs, /data-action="preview-harness-policy-report"/);
 assert.match(appJs, /data-harness-policy-report="true"/);
 assert.match(appJs, /정책 리포트 확인/);
 assert.match(appJs, /policyReport: true/);
-assert.match(appJs, /최근 정책 리포트/);
-assert.match(appJs, /출력 예정/);
+assert.match(harnessLabels, /최근 정책 리포트/);
+assert.match(harnessLabels, /출력 예정/);
 assert.match(appJs, /function getHarnessPolicyReportPayload\(execution\)/);
 assert.match(appJs, /data-harness-policy-report-summary="true"/);
 assert.match(appJs, /data-harness-policy-report-guidance="true"/);
 assert.match(appJs, /현재 프로세스 권한으로 읽음/);
+assert.match(appJs, /const executionHarnessId = execution\.harnessId \|\| statusCard\.primaryHarnessId;/);
+assert.match(appJs, /const executionRequestId = execution\.requestId \|\| execution\.executionId \|\| '';/);
+assert.match(appJs, /const executionRequestCopy = executionRequestId \? `요청: \$\{executionRequestId\}\. ` : '';/);
+assert.match(appJs, /const executionIsPolicyReport = execution\.actionMode === 'policy-report';/);
+assert.match(appJs, /const policyReportOutputCopy = execution\.stdoutPreview/);
+assert.match(appJs, /const executionCompletionCopy = executionIsPolicyReport/);
+assert.match(appJs, /elements\.refreshStatus\.textContent = executionCompletionCopy;/);
+assert.doesNotMatch(appJs, /execution\.actionMode === 'policy-report'\s+\?\s+`하네스 \$\{execution\.harnessId/);
 assert.match(serveUi, /stdoutPreview: stdout \? stdout\.slice\(0, policyReport \? 1600 : 400\) : null/);
 
 async function fetchJson(url, options = {}) {
