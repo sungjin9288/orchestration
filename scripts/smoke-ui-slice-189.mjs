@@ -28,6 +28,7 @@ const helperSourceByName = new Map([
   ['escapeHtml', formatters],
   ['getExecutionStageDisplay', executionLabels],
   ['getEvidenceRailHandoffDisplay', executionLabels],
+  ['getGuardReasonDisplay', executionLabels],
   ['getApprovalStatusDisplay', executionLabels],
   ['getReviewStatusDisplay', executionLabels],
   ['getRunStatusDisplay', executionLabels],

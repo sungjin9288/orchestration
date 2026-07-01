@@ -32,6 +32,7 @@ const helperSourceByName = new Map([
   ['getEvidenceRailHandoffDisplay', executionLabels],
   ['getEvidenceRailStatusDisplay', executionLabels],
   ['getEvidenceRailStatusTone', executionLabels],
+  ['getGuardReasonDisplay', executionLabels],
   ['getApprovalStatusDisplay', executionLabels],
   ['getReviewStatusDisplay', executionLabels],
   ['getRunStatusDisplay', executionLabels],

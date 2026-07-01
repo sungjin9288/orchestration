@@ -184,6 +184,7 @@ async function main() {
     assert.match(executionLabels, /export function getCouncilStatusTone\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailStatusTone\(status\) \{/);
+    assert.match(executionLabels, /export function getGuardReasonDisplay\(reason\) \{/);
     assert.match(executionLabels, /export function getEvidenceRailHandoffDisplay\(value\) \{/);
     assert.match(inboxLabels, /export function getInboxKindDisplay\(kind\) \{/);
     assert.match(inboxLabels, /export function getInboxStatusDisplay\(status\) \{/);
@@ -210,6 +211,7 @@ async function main() {
     assert.match(harnessBriefLabels, /export function getHarnessOperatorActionLabel\(operatorAction\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionModeLabel\(execution\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionOutputLabel\(execution\) \{/);
+    assert.match(harnessLabels, /export function formatHarnessPolicyReportForCopy\(payload\) \{/);
     assert.match(packConfig, /export const PACK_DISPLAY_NAMES = \{/);
     assert.match(packConfig, /export const KNOWLEDGE_WORK_DELIVERABLES = \{/);
     assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);

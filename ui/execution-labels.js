@@ -393,6 +393,32 @@ export function getEvidenceRailStatusTone(status) {
   return 'neutral';
 }
 
+export function getGuardReasonDisplay(reason) {
+  const normalizedReason = String(reason || '').trim();
+
+  if (!normalizedReason) {
+    return '알 수 없는 사유';
+  }
+
+  const directMap = {
+    'select a task': '태스크를 먼저 선택하세요.',
+    'wait for the current action to finish': '현재 작업이 끝날 때까지 기다리세요.',
+    'runtime guard unavailable': '런타임 가드 요약을 아직 확인할 수 없습니다.',
+    'runtime request summary unavailable': '런타임 요청 요약을 아직 확인할 수 없습니다.',
+    'reviewer readiness unavailable': '리뷰어 준비도를 아직 확인할 수 없습니다.',
+    'commit-package readiness unavailable': '커밋패키지 준비도를 아직 확인할 수 없습니다.',
+    'commit execution readiness unavailable': '로컬 커밋 준비도를 아직 확인할 수 없습니다.',
+    'release-package readiness unavailable': '릴리스패키지 준비도를 아직 확인할 수 없습니다.',
+    'close-out readiness unavailable': '종료 정리 준비도를 아직 확인할 수 없습니다.',
+    'latest plan artifact required': '최신 계획 아티팩트가 필요합니다.',
+    'latest architecture artifact required': '최신 설계 아티팩트가 필요합니다.',
+    'latest breakdown artifact required': '최신 분해 아티팩트가 필요합니다.',
+    'latest preflight artifact required': '최신 프리플라이트 아티팩트가 필요합니다.',
+  };
+
+  return directMap[normalizedReason] || normalizedReason;
+}
+
 export function getEvidenceRailHandoffDisplay(value) {
   const normalized = String(value || '').trim();
 

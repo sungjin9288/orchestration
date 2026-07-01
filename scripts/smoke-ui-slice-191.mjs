@@ -36,6 +36,7 @@ const helperSourceByName = new Map([
   ['getArtifactTypeDisplay', artifactPreview],
   ['getExecutionStageDisplay', executionLabels],
   ['getEvidenceRailHandoffDisplay', executionLabels],
+  ['getGuardReasonDisplay', executionLabels],
   ['getApprovalStatusDisplay', executionLabels],
   ['getReviewStatusDisplay', executionLabels],
   ['getRunStatusDisplay', executionLabels],

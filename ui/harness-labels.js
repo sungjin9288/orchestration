@@ -58,3 +58,24 @@ export function getHarnessExecutionPathHandoffLabel(execution) {
 
   return '';
 }
+
+export function formatHarnessPolicyReportForCopy(payload) {
+  if (!payload) {
+    return '';
+  }
+
+  const pathPolicy = payload.pathPolicy || {};
+  const markitdown = payload.markitdown || {};
+
+  return [
+    '하네스 정책 리포트',
+    `입력 확인: ${payload.input?.exists ? '파일 있음' : '파일 없음'} · ${String(payload.input?.sizeBytes ?? 0)} bytes`,
+    `출력 예정: ${payload.output?.wouldWrite ? payload.output.resolvedPath || '경로 미지정' : '출력 파일 없음'}`,
+    `권한 정책: ${pathPolicy.readsWithCurrentProcessPrivileges ? '현재 프로세스 권한으로 읽음' : '권한 정책 미확인'}`,
+    `실행 방식: ${pathPolicy.executesConversion ? '변환 실행' : 'no-write preflight'}`,
+    `CLI 상태: ${markitdown.available ? 'markitdown 사용 가능' : 'markitdown 미설치 또는 확인 실패'}`,
+    pathPolicy.guidance ? `안내: ${pathPolicy.guidance}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}

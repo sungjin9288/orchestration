@@ -16,7 +16,7 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'utf8'));
 
-assert.match(appJs, /function getGuardReasonDisplay\(reason\)/);
+assert.match(executionLabels, /export function getGuardReasonDisplay\(reason\) \{/);
 assert.match(appJs, /getRunRelationLabelDisplay,/);
 assert.match(executionLabels, /export function getExecutionModeDisplay\(mode\) \{/);
 assert.match(executionLabels, /export function getRunRelationLabelDisplay\(label\) \{/);
