@@ -1757,6 +1757,16 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessPostureSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-posture-summary="true">대표 정책: <code>${escapeHtml(statusCard.primaryPosture || '미확인')}</code></p>`;
   const hiddenHarnessStateSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-state-summary="true">현재 상태: <code>${escapeHtml(statusCard.primaryHarnessState)}</code></p>`;
   const hiddenHarnessHostSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(getHarnessBriefHostStateLabel({ currentHostState: statusCard.currentHostState }))}</code></p>`;
+  const hiddenHarnessOperatorActionLabel = operatorAction
+    ? getHarnessOperatorActionLabel(operatorAction)
+    : '미확인';
+  const hiddenHarnessOperatorCommand = operatorAction?.repoNativeCommand || '';
+  const hiddenHarnessOperatorMessage = operatorAction?.message || '';
+  const hiddenHarnessOperatorActionSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>${escapeHtml(hiddenHarnessOperatorActionLabel)}</code></p>`;
+  const hiddenHarnessOperatorCommandSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>${escapeHtml(hiddenHarnessOperatorCommand)}</code></p>`;
+  const hiddenHarnessOperatorMessageSummaryMarkup = hiddenHarnessOperatorMessage
+    ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-message-summary="true">운영 메모: ${escapeHtml(hiddenHarnessOperatorMessage)}</p>`
+    : '';
   const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
     visibleHarnessExecutionResult,
   );
@@ -2166,13 +2176,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <div class="card-title-row card-title-row-tight">
                         <strong>운영 컨텍스트</strong>
                       </div>
-                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>${escapeHtml(getHarnessOperatorActionLabel(operatorAction))}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>${escapeHtml(operatorAction.repoNativeCommand)}</code></p>
-                      ${
-                        operatorAction.message
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-message-summary="true">운영 메모: ${escapeHtml(operatorAction.message)}</p>`
-                          : ''
-                      }
+                      ${hiddenHarnessOperatorActionSummaryMarkup}
+                      ${hiddenHarnessOperatorCommandSummaryMarkup}
+                      ${hiddenHarnessOperatorMessageSummaryMarkup}
                     </section>
                     <div class="form-actions form-actions-inline form-actions-hidden-compact">
                       <button

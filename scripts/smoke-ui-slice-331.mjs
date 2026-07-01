@@ -22,6 +22,10 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-action-summary="true"/);
 assert.match(appJs, /getHarnessOperatorActionLabel\(operatorAction\)/);
+assert.match(appJs, /const hiddenHarnessOperatorActionLabel = operatorAction/);
+assert.match(appJs, /const hiddenHarnessOperatorActionSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">/);
+assert.match(appJs, /\$\{hiddenHarnessOperatorActionSummaryMarkup\}/);
+assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>\$\{escapeHtml\(getHarnessOperatorActionLabel\(operatorAction\)\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -106,6 +110,7 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenActionSummary->operatorActionLabel',
             sourceMarker: 'data-harness-result-hidden-action-summary',
             route: '/api/harness/operator-action/run',
+            namedValues: ['hiddenHarnessOperatorActionLabel', 'hiddenHarnessOperatorActionSummaryMarkup'],
             actionKind: harnessConsumerStatus.operatorAction.kind,
           },
         },

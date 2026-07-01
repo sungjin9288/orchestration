@@ -22,6 +22,10 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-command-summary="true"/);
 assert.match(appJs, /operatorAction\.repoNativeCommand/);
+assert.match(appJs, /const hiddenHarnessOperatorCommand = operatorAction\?\.repoNativeCommand \|\| '';/);
+assert.match(appJs, /const hiddenHarnessOperatorCommandSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">/);
+assert.match(appJs, /\$\{hiddenHarnessOperatorCommandSummaryMarkup\}/);
+assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>\$\{escapeHtml\(operatorAction\.repoNativeCommand\)\}<\/code><\/p>\s*\$\{/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -108,6 +112,7 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenCommandSummary->operatorAction',
             sourceMarker: 'data-harness-result-hidden-command-summary',
             route: '/api/harness/operator-action/run',
+            namedValues: ['hiddenHarnessOperatorCommand', 'hiddenHarnessOperatorCommandSummaryMarkup'],
             repoNativeCommand: harnessConsumerStatus.operatorAction.repoNativeCommand,
           },
         },
