@@ -22,8 +22,17 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /<section class="relation-strip relation-strip-compact" data-harness-execution-result="true">[\s\S]*?createToken\('표준 출력', 'neutral'\)/s,
+  /const visibleHarnessOutputChannelLabel =\s+visibleHarnessExecutionResult\?\.outputPath \? '출력 파일' : '표준 출력';/,
 );
+assert.match(
+  appJs,
+  /const visibleHarnessOutputChannelTone =\s+visibleHarnessExecutionResult\?\.outputPath \? 'accent' : 'neutral';/,
+);
+assert.match(
+  appJs,
+  /createToken\(visibleHarnessOutputChannelLabel, visibleHarnessOutputChannelTone\)/,
+);
+assert.doesNotMatch(appJs, /createToken\('표준 출력', 'neutral'\)/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

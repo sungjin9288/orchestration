@@ -1712,6 +1712,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessPolicyReportFlag === 'true' ? 'no-write' : '완료';
   const visibleHarnessResultStateTone =
     visibleHarnessPolicyReportFlag === 'true' ? 'neutral' : 'success';
+  const visibleHarnessOutputChannelLabel =
+    visibleHarnessExecutionResult?.outputPath ? '출력 파일' : '표준 출력';
+  const visibleHarnessOutputChannelTone =
+    visibleHarnessExecutionResult?.outputPath ? 'accent' : 'neutral';
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
   const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
@@ -1908,11 +1912,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                             ? createToken(`요청:${visibleHarnessRequestId}`, 'neutral')
                             : ''
                         }
-                        ${
-                          visibleHarnessExecutionResult.outputPath
-                            ? createToken('출력 파일', 'accent')
-                            : createToken('표준 출력', 'neutral')
-                        }
+                        ${createToken(visibleHarnessOutputChannelLabel, visibleHarnessOutputChannelTone)}
                         ${
                           visibleHarnessExecutionResult.executedAt
                             ? createToken(`실행:${formatDate(visibleHarnessExecutionResult.executedAt)}`, 'neutral')
