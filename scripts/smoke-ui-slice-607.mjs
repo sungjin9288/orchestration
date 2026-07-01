@@ -26,6 +26,7 @@ assert.match(serveUi, /function runVerificationOutputBrief\(input = \{\}\)/);
 assert.match(serveUi, /url\.pathname === '\/api\/harness\/output-brief'/);
 assert.match(serveUi, /mode: 'harness-output-brief'/);
 assert.match(appJs, /lastHarnessOutputBriefResult: null/);
+assert.match(appJs, /function getHarnessOutputBriefSummaryLabels\(outputBrief\)/);
 assert.match(appJs, /function renderHarnessOutputBriefSummary\(execution\)/);
 assert.match(appJs, /data-harness-output-brief-summary="true"/);
 assert.match(appJs, /data-harness-output-brief-lines="true"/);
@@ -37,6 +38,7 @@ assert.match(appJs, /const outputBriefProcessingLabel = `\$\{outputBriefHookLabe
 assert.match(appJs, /\$\{escapeHtml\(outputBriefScopeLabel\)\}/);
 assert.match(appJs, /\$\{escapeHtml\(outputBriefSeverityLabel\)\}/);
 assert.match(appJs, /\$\{escapeHtml\(outputBriefProcessingLabel\)\}/);
+assert.match(appJs, /getHarnessOutputBriefSummaryLabels\(outputBrief\)/);
 assert.doesNotMatch(appJs, /\$\{escapeHtml\(String\(outputBrief\.input\?\.nonEmptyLineCount \|\| 0\)\)\} lines/);
 assert.doesNotMatch(appJs, /fail \$\{escapeHtml\(String\(counts\.fail \|\| 0\)\)\}/);
 assert.doesNotMatch(appJs, /\$\{escapeHtml\(outputBrief\.installsShellHooks \? 'hook 사용' : 'hook 없음'\)\}/);

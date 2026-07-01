@@ -14,8 +14,12 @@ const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionBriefCopyTitle\(execution\) \{/);
 assert.match(harnessLabels, /return `하네스 \$\{getHarnessExecutionBriefCopyStatusLabel\(execution\)\}`/);
+assert.match(appJs, /function getHarnessOutputBriefSummaryLabels\(outputBrief\)/);
 assert.match(appJs, /function formatHarnessOutputBriefForCopy\(outputBrief, execution\)/);
 assert.match(appJs, /getHarnessExecutionBriefCopyTitle\(execution\)/);
+assert.match(appJs, /`범위: \$\{outputBriefScopeLabel\}`/);
+assert.match(appJs, /`중요도: \$\{outputBriefSeverityLabel\}`/);
+assert.match(appJs, /`처리 방식: \$\{outputBriefProcessingLabel\}`/);
 assert.match(appJs, /const visibleHarnessOutputBrief = getHarnessOutputBriefResult\(/);
 assert.match(
   appJs,

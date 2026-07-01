@@ -1608,15 +1608,8 @@ function getHarnessExecutionHandoffText(execution) {
   return getHarnessExecutionHandoffLabel(execution, getHarnessExecutionHandoffContext(execution));
 }
 
-function renderHarnessOutputBriefSummary(execution) {
-  const outputBrief = getHarnessOutputBriefResult(execution, state.lastHarnessOutputBriefResult);
-
-  if (!outputBrief) {
-    return '';
-  }
-
+function getHarnessOutputBriefSummaryLabels(outputBrief) {
   const counts = outputBrief.countsByType || {};
-  const briefLines = Array.isArray(outputBrief.briefLines) ? outputBrief.briefLines : [];
   const outputBriefScopeLabel =
     `${String(outputBrief.input?.nonEmptyLineCount || 0)} lines · ${String(outputBrief.input?.charCount || 0)} chars`;
   const outputBriefSeverityLabel =
@@ -1624,6 +1617,27 @@ function renderHarnessOutputBriefSummary(execution) {
   const outputBriefHookLabel = outputBrief.installsShellHooks ? 'hook 사용' : 'hook 없음';
   const outputBriefRewriteLabel = outputBrief.rewritesCommands ? 'command rewrite' : 'rewrite 없음';
   const outputBriefProcessingLabel = `${outputBriefHookLabel} · ${outputBriefRewriteLabel}`;
+
+  return {
+    outputBriefScopeLabel,
+    outputBriefSeverityLabel,
+    outputBriefProcessingLabel,
+  };
+}
+
+function renderHarnessOutputBriefSummary(execution) {
+  const outputBrief = getHarnessOutputBriefResult(execution, state.lastHarnessOutputBriefResult);
+
+  if (!outputBrief) {
+    return '';
+  }
+
+  const briefLines = Array.isArray(outputBrief.briefLines) ? outputBrief.briefLines : [];
+  const {
+    outputBriefScopeLabel,
+    outputBriefSeverityLabel,
+    outputBriefProcessingLabel,
+  } = getHarnessOutputBriefSummaryLabels(outputBrief);
 
   return `
     <section
@@ -1667,13 +1681,17 @@ function formatHarnessOutputBriefForCopy(outputBrief, execution) {
     return '';
   }
 
-  const counts = outputBrief.countsByType || {};
   const briefLines = Array.isArray(outputBrief.briefLines) ? outputBrief.briefLines : [];
+  const {
+    outputBriefScopeLabel,
+    outputBriefSeverityLabel,
+    outputBriefProcessingLabel,
+  } = getHarnessOutputBriefSummaryLabels(outputBrief);
   const header = [
     getHarnessExecutionBriefCopyTitle(execution),
-    `범위: ${String(outputBrief.input?.nonEmptyLineCount || 0)} lines · ${String(outputBrief.input?.charCount || 0)} chars`,
-    `중요도: fail ${String(counts.fail || 0)} · warn ${String(counts.warn || 0)} · pass ${String(counts.pass || 0)}`,
-    `처리 방식: ${outputBrief.installsShellHooks ? 'hook 사용' : 'hook 없음'} · ${outputBrief.rewritesCommands ? 'command rewrite' : 'rewrite 없음'}`,
+    `범위: ${outputBriefScopeLabel}`,
+    `중요도: ${outputBriefSeverityLabel}`,
+    `처리 방식: ${outputBriefProcessingLabel}`,
   ];
   const lineText = briefLines.map(
     (line) => `[${getHarnessOutputBriefTypeLabel(line.type)}] ${line.text || ''}`.trim(),
