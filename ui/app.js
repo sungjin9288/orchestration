@@ -103,13 +103,14 @@ import {
   getHarnessExecutionBriefCopyStatusLabel,
   getHarnessExecutionBriefCopyTitle,
   getHarnessExecutionHideActionLabel,
+  getHarnessExecutionHandoffLabel,
   getHarnessExecutionModeLabel,
   getHarnessExecutionOutputLabel,
   getHarnessExecutionOutputPathActionLabel,
-  getHarnessExecutionPathHandoffLabel,
   getHarnessExecutionRerunActionLabel,
   getHarnessExecutionResultTitle,
   getHarnessExecutionShowActionLabel,
+  formatHarnessExecutionPacketForCopy as formatHarnessExecutionPacketForCopyBase,
   formatHarnessPolicyReportForCopy,
   getHarnessExecutionResultKey,
 } from './harness-labels.js';
@@ -1641,56 +1642,32 @@ function renderHarnessPolicyReportSummary(execution) {
   `;
 }
 
-function getHarnessExecutionHandoffLabel(execution) {
-  if (!execution?.harnessId) {
-    return '없음';
-  }
-
-  const handoffs = ['패킷 복사'];
-  const pathHandoffLabel = getHarnessExecutionPathHandoffLabel(execution);
-
-  if (execution.requestId || execution.executionId) {
-    handoffs.push('요청 ID');
-  }
-  if (pathHandoffLabel) {
-    handoffs.push(pathHandoffLabel);
-  }
-  if (execution.outputPreview || execution.stdoutPreview) {
-    handoffs.push('미리보기', getHarnessExecutionBriefActionLabel(execution));
-  }
-  if (getHarnessOutputBriefResult(execution)) {
-    handoffs.push(getHarnessExecutionBriefCopyActionLabel(execution));
-  }
-  if (getHarnessPolicyReportPayload(execution)) {
-    handoffs.push('리포트 복사');
-  }
-
-  return handoffs.join(' · ');
+function formatHarnessExecutionPacketForCopy(execution) {
+  return formatHarnessExecutionPacketForCopyBase(
+    execution,
+    getHarnessExecutionPacketContext(execution),
+  );
 }
 
-function formatHarnessExecutionPacketForCopy(execution) {
-  if (!execution?.harnessId) {
-    return '';
-  }
+function getHarnessExecutionPacketContext(execution) {
+  const handoffContext = getHarnessExecutionHandoffContext(execution);
 
-  const inputPath = execution.resolvedInputPath || execution.inputPath || '경로 없음';
-  const outputPath =
-    execution.resolvedOutputPath || execution.outputPath || '표준 출력 전용';
-  const requestId = execution.requestId || execution.executionId || '요청 ID 없음';
+  return {
+    ...handoffContext,
+    executedAtLabel: execution?.executedAt ? formatDate(execution.executedAt) : '기록 없음',
+    handoffLabel: getHarnessExecutionHandoffLabel(execution, handoffContext),
+  };
+}
 
-  return [
-    '하네스 실행 패킷',
-    `대표 하네스: ${execution.harnessId}`,
-    `모드: ${getHarnessExecutionModeLabel(execution)}`,
-    `요청 ID: ${requestId}`,
-    `실행 시각: ${execution.executedAt ? formatDate(execution.executedAt) : '기록 없음'}`,
-    `입력: ${inputPath}`,
-    `${getHarnessExecutionOutputLabel(execution)}: ${outputPath}`,
-    `핸드오프: ${getHarnessExecutionHandoffLabel(execution)}`,
-    `미리보기: ${execution.outputPreview || execution.stdoutPreview ? '있음' : '없음'}`,
-    `${getHarnessExecutionBriefCopyStatusLabel(execution)}: ${getHarnessOutputBriefResult(execution) ? '있음' : '없음'}`,
-    `정책 리포트: ${getHarnessPolicyReportPayload(execution) ? '있음' : '없음'}`,
-  ].join('\n');
+function getHarnessExecutionHandoffContext(execution) {
+  return {
+    hasOutputBrief: Boolean(getHarnessOutputBriefResult(execution)),
+    hasPolicyReport: Boolean(getHarnessPolicyReportPayload(execution)),
+  };
+}
+
+function getHarnessExecutionHandoffText(execution) {
+  return getHarnessExecutionHandoffLabel(execution, getHarnessExecutionHandoffContext(execution));
 }
 
 function getHarnessOutputBriefResult(execution) {
@@ -1946,7 +1923,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       </div>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedInputPath || visibleHarnessExecutionResult.inputPath || '')}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(getHarnessExecutionModeLabel(visibleHarnessExecutionResult))}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffLabel(visibleHarnessExecutionResult))}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffText(visibleHarnessExecutionResult))}</code></p>
                       ${
                         visibleHarnessExecutionResult.resolvedOutputPath
                           ? `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(visibleHarnessExecutionResult))}: <code>${escapeHtml(visibleHarnessExecutionResult.resolvedOutputPath)}</code></p>`
@@ -2150,7 +2127,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(getHarnessExecutionModeLabel(hiddenHarnessExecutionResult))}</code></p>
-                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffLabel(hiddenHarnessExecutionResult))}</code></p>
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffText(hiddenHarnessExecutionResult))}</code></p>
                       ${
                         hiddenHarnessExecutionResult.resolvedInputPath
                           ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessExecutionResult.resolvedInputPath)}</code></p>`
@@ -2356,7 +2333,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">핸드오프</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(getHarnessExecutionHandoffLabel(execution))}</strong>
+                                      <strong class="control-overview-register-value">${escapeHtml(getHarnessExecutionHandoffText(execution))}</strong>
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">입력</span>

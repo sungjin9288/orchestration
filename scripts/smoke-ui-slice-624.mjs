@@ -18,12 +18,13 @@ assert.match(harnessLabels, /const hasOutputPath = Boolean\(execution\?\.resolve
 assert.match(harnessLabels, /return `입력\/\$\{getHarnessExecutionOutputPathActionLabel\(execution\)\}`/);
 assert.match(harnessLabels, /return '입력 경로'/);
 assert.match(harnessLabels, /return getHarnessExecutionOutputPathActionLabel\(execution\)/);
-assert.match(appJs, /const pathHandoffLabel = getHarnessExecutionPathHandoffLabel\(execution\)/);
-assert.match(appJs, /handoffs\.push\(pathHandoffLabel\)/);
+assert.match(harnessLabels, /export function getHarnessExecutionHandoffLabel\(execution, context = \{\}\) \{/);
+assert.match(harnessLabels, /const pathHandoffLabel = getHarnessExecutionPathHandoffLabel\(execution\)/);
+assert.match(harnessLabels, /handoffs\.push\(pathHandoffLabel\)/);
 assert.doesNotMatch(appJs, /handoffs\.push\('경로'\)/);
-assert.match(appJs, /getHarnessExecutionHandoffLabel\(visibleHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionHandoffLabel\(hiddenHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionHandoffLabel\(execution\)/);
+assert.match(appJs, /getHarnessExecutionHandoffText\(visibleHarnessExecutionResult\)/);
+assert.match(appJs, /getHarnessExecutionHandoffText\(hiddenHarnessExecutionResult\)/);
+assert.match(appJs, /getHarnessExecutionHandoffText\(execution\)/);
 
 console.log(
   JSON.stringify(

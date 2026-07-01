@@ -7,22 +7,30 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
-assert.match(appJs, /function getHarnessExecutionHandoffLabel\(execution\)/);
-assert.match(appJs, /handoffs = \['패킷 복사'\]/);
-assert.match(appJs, /handoffs\.push\('요청 ID'\)/);
-assert.match(appJs, /handoffs\.push\(pathHandoffLabel\)/);
-assert.match(appJs, /handoffs\.push\('미리보기', getHarnessExecutionBriefActionLabel\(execution\)\)/);
-assert.match(appJs, /handoffs\.push\(getHarnessExecutionBriefCopyActionLabel\(execution\)\)/);
-assert.match(appJs, /handoffs\.push\('리포트 복사'\)/);
+assert.match(appJs, /from '\.\/harness-labels\.js'/);
+assert.match(harnessLabels, /export function getHarnessExecutionHandoffLabel\(execution, context = \{\}\) \{/);
+assert.match(harnessLabels, /handoffs = \['패킷 복사'\]/);
+assert.match(harnessLabels, /handoffs\.push\('요청 ID'\)/);
+assert.match(harnessLabels, /handoffs\.push\(pathHandoffLabel\)/);
+assert.match(harnessLabels, /handoffs\.push\('미리보기', getHarnessExecutionBriefActionLabel\(execution\)\)/);
+assert.match(harnessLabels, /handoffs\.push\(getHarnessExecutionBriefCopyActionLabel\(execution\)\)/);
+assert.match(harnessLabels, /handoffs\.push\('리포트 복사'\)/);
+assert.match(appJs, /function getHarnessExecutionHandoffContext\(execution\)/);
+assert.match(appJs, /hasOutputBrief: Boolean\(getHarnessOutputBriefResult\(execution\)\)/);
+assert.match(appJs, /hasPolicyReport: Boolean\(getHarnessPolicyReportPayload\(execution\)\)/);
+assert.match(appJs, /function getHarnessExecutionHandoffText\(execution\)/);
+assert.match(appJs, /getHarnessExecutionHandoffLabel\(execution, getHarnessExecutionHandoffContext\(execution\)\)/);
 assert.match(appJs, /data-harness-execution-handoff-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-handoff-summary="true"/);
 assert.match(appJs, /<span class="control-overview-register-label">핸드오프<\/span>/);
-assert.match(appJs, /getHarnessExecutionHandoffLabel\(visibleHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionHandoffLabel\(hiddenHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionHandoffLabel\(execution\)/);
+assert.match(appJs, /getHarnessExecutionHandoffText\(visibleHarnessExecutionResult\)/);
+assert.match(appJs, /getHarnessExecutionHandoffText\(hiddenHarnessExecutionResult\)/);
+assert.match(appJs, /getHarnessExecutionHandoffText\(execution\)/);
 
 console.log(
   JSON.stringify(

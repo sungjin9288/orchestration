@@ -7,14 +7,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(appJs, /function formatHarnessExecutionPacketForCopy\(execution\)/);
-assert.match(appJs, /하네스 실행 패킷/);
-assert.match(appJs, /대표 하네스:/);
-assert.match(appJs, /요청 ID:/);
-assert.match(appJs, /정책 리포트:/);
+assert.match(appJs, /formatHarnessExecutionPacketForCopyBase\(\s*execution,\s*getHarnessExecutionPacketContext\(execution\),\s*\)/);
+assert.match(harnessLabels, /export function formatHarnessExecutionPacketForCopy\(execution, context = \{\}\) \{/);
+assert.match(harnessLabels, /하네스 실행 패킷/);
+assert.match(harnessLabels, /대표 하네스:/);
+assert.match(harnessLabels, /요청 ID:/);
+assert.match(harnessLabels, /정책 리포트:/);
 assert.match(appJs, /data-action="copy-harness-execution-packet"/);
 assert.match(appJs, /data-harness-execution-packet-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-packet-copy="true"/);

@@ -59,6 +59,60 @@ export function getHarnessExecutionPathHandoffLabel(execution) {
   return '';
 }
 
+export function getHarnessExecutionHandoffLabel(execution, context = {}) {
+  if (!execution?.harnessId) {
+    return '없음';
+  }
+
+  const handoffs = ['패킷 복사'];
+  const pathHandoffLabel = getHarnessExecutionPathHandoffLabel(execution);
+
+  if (execution.requestId || execution.executionId) {
+    handoffs.push('요청 ID');
+  }
+  if (pathHandoffLabel) {
+    handoffs.push(pathHandoffLabel);
+  }
+  if (execution.outputPreview || execution.stdoutPreview) {
+    handoffs.push('미리보기', getHarnessExecutionBriefActionLabel(execution));
+  }
+  if (context.hasOutputBrief) {
+    handoffs.push(getHarnessExecutionBriefCopyActionLabel(execution));
+  }
+  if (context.hasPolicyReport) {
+    handoffs.push('리포트 복사');
+  }
+
+  return handoffs.join(' · ');
+}
+
+export function formatHarnessExecutionPacketForCopy(execution, context = {}) {
+  if (!execution?.harnessId) {
+    return '';
+  }
+
+  const inputPath = execution.resolvedInputPath || execution.inputPath || '경로 없음';
+  const outputPath =
+    execution.resolvedOutputPath || execution.outputPath || '표준 출력 전용';
+  const requestId = execution.requestId || execution.executionId || '요청 ID 없음';
+  const executedAtLabel = context.executedAtLabel || '기록 없음';
+  const handoffLabel = context.handoffLabel || getHarnessExecutionHandoffLabel(execution, context);
+
+  return [
+    '하네스 실행 패킷',
+    `대표 하네스: ${execution.harnessId}`,
+    `모드: ${getHarnessExecutionModeLabel(execution)}`,
+    `요청 ID: ${requestId}`,
+    `실행 시각: ${executedAtLabel}`,
+    `입력: ${inputPath}`,
+    `${getHarnessExecutionOutputLabel(execution)}: ${outputPath}`,
+    `핸드오프: ${handoffLabel}`,
+    `미리보기: ${execution.outputPreview || execution.stdoutPreview ? '있음' : '없음'}`,
+    `${getHarnessExecutionBriefCopyStatusLabel(execution)}: ${context.hasOutputBrief ? '있음' : '없음'}`,
+    `정책 리포트: ${context.hasPolicyReport ? '있음' : '없음'}`,
+  ].join('\n');
+}
+
 export function getHarnessExecutionResultKey(execution) {
   if (!execution?.harnessId) {
     return null;

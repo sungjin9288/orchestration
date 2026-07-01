@@ -4,6 +4,8 @@
 
 - Harness execution result key splitting may move only the deterministic key builder into `ui/harness-labels.js`; keep hidden-result state, hide/show actions, latest/hidden/history selection, runtime mutation, source mutation, commit, and push paths in the app shell.
 
+- Harness handoff and packet-copy splitting may move only label assembly and text formatting into `ui/harness-labels.js`; keep output brief state, policy-report payload parsing, hidden/history selection, clipboard actions, runtime mutation, source mutation, commit, and push paths in the app shell, and pass presence and date labels as explicit context.
+
 - Guard reason display splitting should stay display-only. Move only `getGuardReasonDisplay` into `ui/execution-labels.js`, but keep readiness calculation, checkpoint ordering, blocker selection, guard summaries, runtime mutation, source mutation, commit, and push paths outside the helper.
 
 - Review, approval, and run status display splitting should stay display-only. Move only `getReviewStatusDisplay`, `getApprovalStatusDisplay`, and `getRunStatusDisplay` into `ui/execution-labels.js`, but keep review status calculation, approval lookup, run selection, gate resolution, runtime mutation, source mutation, commit, and push paths outside the helper.

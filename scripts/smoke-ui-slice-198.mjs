@@ -211,6 +211,8 @@ async function main() {
     assert.match(harnessBriefLabels, /export function getHarnessOperatorActionLabel\(operatorAction\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionModeLabel\(execution\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionOutputLabel\(execution\) \{/);
+    assert.match(harnessLabels, /export function getHarnessExecutionHandoffLabel\(execution, context = \{\}\) \{/);
+    assert.match(harnessLabels, /export function formatHarnessExecutionPacketForCopy\(execution, context = \{\}\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionResultKey\(execution\) \{/);
     assert.match(harnessLabels, /export function formatHarnessPolicyReportForCopy\(payload\) \{/);
     assert.match(packConfig, /export const PACK_DISPLAY_NAMES = \{/);
