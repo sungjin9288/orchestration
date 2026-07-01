@@ -167,9 +167,12 @@ async function main() {
     assert.match(executionLabels, /export function getCommitApprovalDisplayStatus\(summary\) \{/);
     assert.match(executionLabels, /export function getCloseOutApprovalDisplayStatus\(summary\) \{/);
     assert.match(executionLabels, /export function getApprovalActionLabel\(action\) \{/);
+    assert.match(executionLabels, /export function getApprovalStatusDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getApprovalTone\(status\) \{/);
     assert.match(executionLabels, /export function getApprovalDisplayTone\(status\) \{/);
     assert.match(executionLabels, /export function getRunTone\(status\) \{/);
+    assert.match(executionLabels, /export function getRunStatusDisplay\(status\) \{/);
+    assert.match(executionLabels, /export function getReviewStatusDisplay\(status\) \{/);
     assert.match(executionLabels, /export function getReviewTone\(status\) \{/);
     assert.match(executionLabels, /export function getTaskLifecycleDisplay\(state\) \{/);
     assert.match(executionLabels, /export function getTaskLifecycleTone\(state\) \{/);

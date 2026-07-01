@@ -14,6 +14,7 @@ import {
   getBooleanDisplay,
   getApprovalActionLabel,
   getApprovalDisplayTone,
+  getApprovalStatusDisplay,
   getApprovalTone,
   getCloseOutApprovalDisplayStatus,
   getCommitApprovalDisplayStatus,
@@ -29,9 +30,11 @@ import {
   getMissionStatusTone,
   getPackageStatusDisplay,
   getProviderReadinessDisplay,
+  getReviewStatusDisplay,
   getReviewTone,
   getReviewerVerdictDisplay,
   getReviewerVerdictTone,
+  getRunStatusDisplay,
   getRunTone,
   getRunRelationLabelDisplay,
   getTaskLifecycleDisplay,
@@ -2744,66 +2747,6 @@ function getDerived() {
     artifactMap,
     inboxItemMap,
   };
-}
-
-function getReviewStatusDisplay(status) {
-  if (status === 'passed') {
-    return '통과';
-  }
-
-  if (status === 'changes_requested') {
-    return '수정 요청';
-  }
-
-  if (status === 'pending') {
-    return '대기';
-  }
-
-  return status || '알 수 없음';
-}
-
-function getApprovalStatusDisplay(status) {
-  if (status === 'approved') {
-    return '승인';
-  }
-
-  if (status === 'rejected') {
-    return '반려';
-  }
-
-  if (status === 'pending') {
-    return '대기';
-  }
-
-  if (status === 'stale') {
-    return '오래됨';
-  }
-
-  if (status === 'none') {
-    return '없음';
-  }
-
-  return status || '알 수 없음';
-}
-
-function getRunStatusDisplay(status) {
-  if (status === 'running') {
-    return '실행 중';
-  }
-
-  if (status === 'completed') {
-    return '완료';
-  }
-
-  if (status === 'failed') {
-    return '실패';
-  }
-
-  if (status === 'pending') {
-    return '대기';
-  }
-
-  return status || '알 수 없음';
 }
 
 function getGuardReasonDisplay(reason) {

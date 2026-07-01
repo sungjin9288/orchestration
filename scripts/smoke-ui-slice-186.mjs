@@ -27,18 +27,23 @@ const formatters = fs.readFileSync(formattersPath, 'utf8');
 const helperSourceByName = new Map([
   ['escapeHtml', formatters],
   ['formatDate', formatters],
+  ['getExecutionStageDisplay', executionLabels],
   ['getEvidenceRailHandoffDisplay', executionLabels],
   ['getEvidenceRailStatusDisplay', executionLabels],
   ['getEvidenceRailStatusTone', executionLabels],
-  ['getExecutionStageDisplay', executionLabels],
+  ['getApprovalStatusDisplay', executionLabels],
+  ['getReviewStatusDisplay', executionLabels],
+  ['getRunStatusDisplay', executionLabels],
   ['getMissionStatusDisplay', executionLabels],
   ['getMissionStatusTone', executionLabels],
   ['getTaskLifecycleDisplay', executionLabels],
 ]);
 
 function extractFunction(source, name) {
-  const signature = `function ${name}(`;
-  const start = source.indexOf(signature);
+  const signatures = [`function ${name}(`, `export function ${name}(`];
+  const start = signatures
+    .map((signature) => source.indexOf(signature))
+    .find((index) => index !== -1) ?? -1;
 
   if (start === -1) {
     throw new Error(`Function ${name} was not found in ui/app.js`);
@@ -95,7 +100,7 @@ function extractFunction(source, name) {
       depth -= 1;
 
       if (depth === 0) {
-        return source.slice(start, index + 1);
+        return source.slice(start, index + 1).replace(/^export\s+/, '');
       }
     }
   }

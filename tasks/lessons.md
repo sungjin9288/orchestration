@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Review, approval, and run status display splitting should stay display-only. Move only `getReviewStatusDisplay`, `getApprovalStatusDisplay`, and `getRunStatusDisplay` into `ui/execution-labels.js`, but keep review status calculation, approval lookup, run selection, gate resolution, runtime mutation, source mutation, commit, and push paths outside the helper.
+
 - Task lifecycle display splitting should stay display-only. Move only `getTaskLifecycleDisplay` into `ui/execution-labels.js`, but keep lifecycle state changes, task selection, execution actions, runtime mutation, source mutation, commit, and push paths outside the helper.
 
 - Inbox tone splitting should stay display-only. Move only `getInboxTone` into `ui/inbox-labels.js`, but keep inbox resolution actions, approval bridge state, task mutation, runtime mutation, source mutation, commit, and push paths outside the helper.
@@ -1371,3 +1373,4 @@
 - Company helper 분리에서는 roster 정렬, group label, editor member selection처럼 state를 인자로 받는 순수 helper만 config module로 옮기고, `state.companyMembers` 소유권, form draft, localStorage persistence, mutation action은 app shell에 남겨야 한다. 이렇게 하면 회사형 shell의 읽기 흐름은 단순해지면서 사용자 편집 상태와 runtime 권한은 움직이지 않는다.
 - Personalization snapshot 분리에서는 추천 surface, preferred project, visit count 같은 계산만 state를 인자로 받는 순수 helper로 옮기고, localStorage read/write, body dataset sync, copy-review packet, disabled action state는 app shell에 남겨야 한다. 이렇게 해야 local-only 편의가 durable memory persistence나 runtime mutation으로 오해되지 않는다.
 - Harness label 분리에서는 policy-report/result 문구, hide/show label, output/path label처럼 실행 상태를 바꾸지 않는 표시 문구만 module로 옮기고, result selection, hidden state, clipboard action, rerun request는 app shell에 남겨야 한다. source-contract smoke도 helper 본문은 새 module에서 확인하되 UI 사용 지점은 app에서 계속 확인해야 검증이 약해지지 않는다.
+- Status display helper 분리에서는 run/review/approval처럼 같은 종류의 표시 문구를 한 module로 묶어도 괜찮지만, VM smoke의 helper map도 같은 module 경계를 따라가야 한다. source-only smoke가 오래된 위치나 오래된 copy를 보고 있으면 helper 이동과 무관한 false red가 생기므로, 실제 source-of-truth module과 현재 문구를 함께 고정해야 한다.
