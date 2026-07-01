@@ -1680,6 +1680,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     harnessExecutionResult?.harnessId === statusCard?.primaryHarnessId && !visibleHarnessExecutionResult
       ? harnessExecutionResult
       : null;
+  const visibleHarnessOutputBrief = getHarnessOutputBriefResult(
+    visibleHarnessExecutionResult,
+    state.lastHarnessOutputBriefResult,
+  );
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
   const hasExecutionHistory = hasHarnessExecutionHistory(
     harnessExecutionResult,
@@ -1967,16 +1971,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   : ''
                               }
                               ${
-                                getHarnessOutputBriefResult(
-                                  visibleHarnessExecutionResult,
-                                  state.lastHarnessOutputBriefResult,
-                                )
+                                visibleHarnessOutputBrief
                                   ? `
                                     <button
                                       class="secondary-button"
                                       type="button"
                                       data-action="copy-harness-output-brief"
-                                      data-output-brief-text="${escapeHtml(formatHarnessOutputBriefForCopy(getHarnessOutputBriefResult(visibleHarnessExecutionResult, state.lastHarnessOutputBriefResult), visibleHarnessExecutionResult))}"
+                                      data-output-brief-text="${escapeHtml(formatHarnessOutputBriefForCopy(visibleHarnessOutputBrief, visibleHarnessExecutionResult))}"
                                       data-output-brief-label="${escapeHtml(getHarnessExecutionBriefCopyStatusLabel(visibleHarnessExecutionResult))}"
                                       data-harness-output-brief-copy="true"
                                     >

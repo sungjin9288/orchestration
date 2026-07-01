@@ -15,9 +15,10 @@ assert.match(appJs, /getHarnessExecutionBriefCopyTitle\(execution\)/);
 assert.match(appJs, /중요도: fail/);
 assert.match(appJs, /처리 방식:/);
 assert.match(appJs, /data-action="copy-harness-output-brief"/);
+assert.match(appJs, /const visibleHarnessOutputBrief = getHarnessOutputBriefResult\(\s*visibleHarnessExecutionResult,\s*state\.lastHarnessOutputBriefResult,\s*\);/);
 assert.match(
   appJs,
-  /data-output-brief-text="\$\{escapeHtml\(formatHarnessOutputBriefForCopy\(getHarnessOutputBriefResult\(visibleHarnessExecutionResult, state\.lastHarnessOutputBriefResult\), visibleHarnessExecutionResult\)\)\}"/,
+  /data-output-brief-text="\$\{escapeHtml\(formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\)\}"/,
 );
 assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\)\)\}"/);
 assert.match(appJs, /data-harness-output-brief-copy="true"/);

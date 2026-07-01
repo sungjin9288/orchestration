@@ -16,9 +16,10 @@ assert.match(harnessLabels, /export function getHarnessExecutionBriefCopyTitle\(
 assert.match(harnessLabels, /return `하네스 \$\{getHarnessExecutionBriefCopyStatusLabel\(execution\)\}`/);
 assert.match(appJs, /function formatHarnessOutputBriefForCopy\(outputBrief, execution\)/);
 assert.match(appJs, /getHarnessExecutionBriefCopyTitle\(execution\)/);
+assert.match(appJs, /const visibleHarnessOutputBrief = getHarnessOutputBriefResult\(/);
 assert.match(
   appJs,
-  /formatHarnessOutputBriefForCopy\(getHarnessOutputBriefResult\(visibleHarnessExecutionResult, state\.lastHarnessOutputBriefResult\), visibleHarnessExecutionResult\)/,
+  /formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)/,
 );
 assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\)\)\}"/);
 assert.doesNotMatch(
