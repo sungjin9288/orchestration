@@ -1835,7 +1835,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessStateSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-state-summary="true">현재 상태: <code>${escapeHtml(statusCard.primaryHarnessState)}</code></p>`;
   const hiddenHarnessHostSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(harnessHostStateLabel)}</code></p>`;
   const hiddenHarnessOperatorActionLabel = harnessOperatorActionLabel;
-  const hiddenHarnessOperatorCommand = operatorAction?.repoNativeCommand || '';
+  const operatorActionCommand = operatorAction?.repoNativeCommand || '';
+  const canRenderHarnessRunForm = Boolean(operatorActionCommand);
+  const hiddenHarnessOperatorCommand = operatorActionCommand;
   const hiddenHarnessOperatorMessage = operatorAction?.message || '';
   const hiddenHarnessOperatorActionSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>${escapeHtml(hiddenHarnessOperatorActionLabel)}</code></p>`;
   const hiddenHarnessOperatorCommandSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>${escapeHtml(hiddenHarnessOperatorCommand)}</code></p>`;
@@ -1931,7 +1933,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
         </div>
       </div>
       ${
-        operatorAction.repoNativeCommand
+        canRenderHarnessRunForm
           ? `
             <form class="stack" data-form="run-harness-operator-action" data-harness-execution-form="true">
               <div class="harness-run-helper-cluster" data-harness-run-helper-cluster="true">
@@ -1942,7 +1944,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       data-harness-run-template-note="true"
                     >
                       <span class="harness-run-template-kicker">실행 템플릿</span>
-                      <code class="harness-run-template-command">${escapeHtml(operatorAction.repoNativeCommand)}</code>
+                      <code class="harness-run-template-command">${escapeHtml(operatorActionCommand)}</code>
                     </div>
                     <div
                       class="field-grid field-grid-compact harness-run-field-rack"
@@ -1979,7 +1981,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       class="secondary-button"
                       type="button"
                       data-action="copy-harness-command"
-                      data-command="${escapeHtml(operatorAction.repoNativeCommand)}"
+                      data-command="${escapeHtml(operatorActionCommand)}"
                       data-harness-operator-command="true"
                     >
                       명령 복사

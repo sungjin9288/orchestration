@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness run form command rendering should name the repo-native command and form predicate before template rendering. Keep command ownership in `ui/app.js`, but avoid reading `operatorAction.repoNativeCommand` directly inside form conditions, visible command text, or copy-button attributes after the command has already been derived.
+
 - Harness visible and hidden result sections should name whether each result belongs to the primary harness before rendering. Keep result selection and hide/show state in `ui/app.js`, but avoid re-reading `statusCard.primaryHarnessId` inside template conditions after `primaryHarnessId` has already been derived.
 
 - Harness action shelf render guards should name the harness id, action kind, and display predicate before template rendering. Keep action shelf rendering in `ui/app.js`, but avoid repeating inline status-card/operator-action guard expressions when the same harness id also drives hidden-result matching and register copy.

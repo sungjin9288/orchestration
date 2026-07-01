@@ -21,8 +21,8 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-command-summary="true"/);
-assert.match(appJs, /operatorAction\.repoNativeCommand/);
-assert.match(appJs, /const hiddenHarnessOperatorCommand = operatorAction\?\.repoNativeCommand \|\| '';/);
+assert.match(appJs, /const operatorActionCommand = operatorAction\?\.repoNativeCommand \|\| '';/);
+assert.match(appJs, /const hiddenHarnessOperatorCommand = operatorActionCommand;/);
 assert.match(appJs, /const hiddenHarnessOperatorCommandSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">/);
 assert.match(appJs, /\$\{hiddenHarnessOperatorCommandSummaryMarkup\}/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>\$\{escapeHtml\(operatorAction\.repoNativeCommand\)\}<\/code><\/p>\s*\$\{/);
