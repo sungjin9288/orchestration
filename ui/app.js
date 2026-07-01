@@ -18281,11 +18281,21 @@ function getHarnessExecutionCompletionCopy({ execution, fallbackHarnessId }) {
   return `${executionCompletionLead} ${executionRequestCopy}${executionCompletionOutputCopy}`;
 }
 
-async function executeHarnessOperatorAction({ inputPath, outputPath, statusPayload, pendingMessage, policyReport = false }) {
+async function executeHarnessOperatorAction({
+  inputPath,
+  outputPath,
+  statusPayload,
+  pendingMessage,
+  policyReport = false,
+}) {
   const operatorAction = statusPayload?.operatorAction || null;
   const statusCard = statusPayload?.statusCard || null;
+  const primaryHarnessId = statusCard?.primaryHarnessId || '';
+  const operatorActionKind = operatorAction?.kind || '';
+  const canRunHarnessOperatorAction =
+    primaryHarnessId && operatorActionKind === 'repo-native-run';
 
-  if (!statusCard?.primaryHarnessId || !operatorAction?.kind || operatorAction.kind !== 'repo-native-run') {
+  if (!canRunHarnessOperatorAction) {
     throw new Error('현재 실행 가능한 대표 하네스 operator action이 없습니다.');
   }
 
@@ -18300,7 +18310,7 @@ async function executeHarnessOperatorAction({ inputPath, outputPath, statusPaylo
   state.harnessExecutionDraftOutputPath = outputPath;
   state.mutating = true;
   const defaultExecutionPendingMessage =
-    `하네스 ${statusCard.primaryHarnessId} 실행을 시작하는 중…`;
+    `하네스 ${primaryHarnessId} 실행을 시작하는 중…`;
   const executionPendingMessage = pendingMessage || defaultExecutionPendingMessage;
   elements.refreshStatus.textContent = executionPendingMessage;
   render();
@@ -18321,7 +18331,7 @@ async function executeHarnessOperatorAction({ inputPath, outputPath, statusPaylo
     const execution = payload.harnessExecution || {};
     const executionCompletionCopy = getHarnessExecutionCompletionCopy({
       execution,
-      fallbackHarnessId: statusCard.primaryHarnessId,
+      fallbackHarnessId: primaryHarnessId,
     });
 
     elements.refreshStatus.textContent = executionCompletionCopy;

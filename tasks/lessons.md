@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness operator action guards should name the harness id, action kind, and runnable predicate before mutating state. Keep execution routing in `ui/app.js`, but avoid long inline guard expressions when the same values also feed pending and completion copy.
+
 - Harness policy-report preview pending copy should be named before execution handoff. Keep preview form parsing and `executeHarnessOperatorAction(...)` routing in `ui/app.js`, but pass a named pending message instead of hiding operator-facing copy inside the call object.
 
 - Harness operator execution pending messages should be named before `refreshStatus` writes. Keep the execution route and policy-report/rerun handoffs in `ui/app.js`, but keep pending copy selection separate from mutation setup and completion copy assembly.
