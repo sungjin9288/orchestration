@@ -1721,6 +1721,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessExecutedAtSummaryMarkup = hiddenHarnessExecutedAtLabel
     ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>${escapeHtml(hiddenHarnessExecutedAtLabel)}</code></p>`
     : '';
+  const hiddenHarnessInputSummaryMarkup = hiddenHarnessInputPath
+    ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessInputPath)}</code></p>`
+    : '';
+  const hiddenHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(hiddenHarnessOutputLabel)}: <code>${escapeHtml(hiddenHarnessOutputSummaryValue)}</code></p>`;
   const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel
     ? `실행:${visibleHarnessExecutedAtLabel}`
     : '';
@@ -2134,12 +2138,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${hiddenHarnessExecutedAtSummaryMarkup}
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(hiddenHarnessHandoffText)}</code></p>
-                      ${
-                        hiddenHarnessInputPath
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessInputPath)}</code></p>`
-                          : ''
-                      }
-                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(hiddenHarnessOutputLabel)}: <code>${escapeHtml(hiddenHarnessOutputSummaryValue)}</code></p>
+                      ${hiddenHarnessInputSummaryMarkup}
+                      ${hiddenHarnessOutputSummaryMarkup}
                     </section>
                     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-harness-context="true">
                       <div class="card-title-row card-title-row-tight">

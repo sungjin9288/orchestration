@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness hidden path summary markup should be named before rendering. Keep input and output path selection in the render path, but avoid constructing hidden input/output summary `<p>` blocks directly inside the hidden result template.
+
 - Harness hidden executed-at summary markup should be named before rendering. Keep date formatting in the render path, but avoid constructing the hidden executed-at summary `<p>` block directly inside the hidden result template.
 
 - Harness request summary markup should be named before rendering. Keep request-id generation and copy actions unchanged, but avoid constructing latest or hidden request-summary `<p>` blocks directly inside the result templates.

@@ -24,8 +24,13 @@ assert.match(appJs, /data-harness-result-hidden-input-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-summary="true"/);
 assert.match(appJs, /const hiddenHarnessInputPath = hiddenHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
 assert.match(appJs, /const hiddenHarnessOutputPath = hiddenHarnessExecutionResult\?\.resolvedOutputPath \|\| '';/);
+assert.match(appJs, /const hiddenHarnessInputSummaryMarkup = hiddenHarnessInputPath/);
+assert.match(appJs, /const hiddenHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">/);
+assert.match(appJs, /\$\{hiddenHarnessInputSummaryMarkup\}/);
+assert.match(appJs, /\$\{hiddenHarnessOutputSummaryMarkup\}/);
 assert.match(appJs, /data-harness-result-hidden-input-summary="true">입력: <code>\$\{escapeHtml\(hiddenHarnessInputPath\)\}/);
-assert.match(appJs, /data-harness-result-hidden-output-summary="true"[\s\S]*?\$\{escapeHtml\(hiddenHarnessOutputPath\)\}/);
+assert.match(appJs, /data-harness-result-hidden-output-summary="true">\$\{escapeHtml\(hiddenHarnessOutputLabel\)\}: <code>\$\{escapeHtml\(hiddenHarnessOutputSummaryValue\)\}/);
+assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessInputPath\s+\?\s+`<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -112,6 +117,10 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenPathSummary->localLatestExecutionPayload',
             inputMarker: 'data-harness-result-hidden-input-summary',
             outputMarker: 'data-harness-result-hidden-output-summary',
+            namedValues: [
+              'hiddenHarnessInputSummaryMarkup',
+              'hiddenHarnessOutputSummaryMarkup',
+            ],
             route: '/api/harness/operator-action/run',
             resolvedInputPath: latestHarnessExecution.resolvedInputPath,
             resolvedOutputPath: latestHarnessExecution.resolvedOutputPath,
