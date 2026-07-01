@@ -2,6 +2,14 @@
 
 ## direction resets
 
+- Harness output summary fallback values should be named once before rendering latest, hidden, and history rows. Keep `표준 출력 전용` as the fallback value, but reuse summary variables so labels and values do not fork inside templates.
+
+- Harness visible and hidden output summary labels should be computed once beside the output paths before fallback rendering. Keep the output label helper as the wording source and reuse named values in the latest and hidden result summaries.
+
+- Harness output path action labels should be computed once for visible, hidden, and history result actions before being reused in button text and `data-output-path-label`. Keep output path copy behavior and policy-report wording in the existing label helper.
+
+- Harness history row display and action labels should be computed once beside the history execution paths before the template uses them. Keep label wording in `ui/harness-labels.js`, and keep only per-row reuse variables in `ui/app.js`.
+
 - Harness latest and hidden result path rendering should name request ids, summary paths, resolved action paths, and fallback output paths once before the template. Keep summary and action path variables separate so readability improves without widening when buttons render.
 
 - Harness history action rendering should compute the history execution key, request id, input path, and output path once inside the history render callback, then reuse those named values across register rows and action buttons. Keep history restore, reuse, rerun, output brief, runtime mutation, source mutation, commit, and push paths in `ui/app.js`.

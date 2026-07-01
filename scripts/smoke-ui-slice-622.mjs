@@ -14,9 +14,18 @@ const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionOutputPathActionLabel\(execution\) \{/);
 assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '출력 예정 경로' : '출력 경로'/);
-assert.match(appJs, /getHarnessExecutionOutputPathActionLabel\(visibleHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionOutputPathActionLabel\(hiddenHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionOutputPathActionLabel\(execution\)/);
+assert.match(
+  appJs,
+  /const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel\(\s*visibleHarnessExecutionResult,\s*\);/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel\(\s*hiddenHarnessExecutionResult,\s*\);/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessOutputPathActionLabel =\s+getHarnessExecutionOutputPathActionLabel\(execution\);/,
+);
 assert.match(appJs, /data-action="copy-harness-output-path"/);
 assert.match(appJs, /data-harness-output-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-copy="true"/);

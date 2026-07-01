@@ -30,7 +30,8 @@ assert.match(appJs, /data-harness-result-hidden-handoff-summary="true"/);
 assert.match(appJs, /<span class="control-overview-register-label">핸드오프<\/span>/);
 assert.match(appJs, /getHarnessExecutionHandoffText\(visibleHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionHandoffText\(hiddenHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionHandoffText\(execution\)/);
+assert.match(appJs, /const historyHarnessHandoffText = getHarnessExecutionHandoffText\(execution\);/);
+assert.match(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(historyHarnessHandoffText\)\}<\/strong>/);
 
 console.log(
   JSON.stringify(

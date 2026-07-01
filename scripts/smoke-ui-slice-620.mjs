@@ -14,8 +14,14 @@ assert.match(appJs, /data-harness-execution-output-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-summary="true"/);
 assert.match(appJs, /visibleHarnessOutputPath[\s\S]*표준 출력 전용/);
 assert.match(appJs, /hiddenHarnessOutputPath[\s\S]*표준 출력 전용/);
-assert.match(appJs, /getHarnessExecutionOutputLabel\(visibleHarnessExecutionResult\)[\s\S]*표준 출력 전용/);
-assert.match(appJs, /getHarnessExecutionOutputLabel\(hiddenHarnessExecutionResult\)[\s\S]*표준 출력 전용/);
+assert.match(appJs, /const visibleHarnessOutputLabel = getHarnessExecutionOutputLabel\(visibleHarnessExecutionResult\);/);
+assert.match(appJs, /const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel\(hiddenHarnessExecutionResult\);/);
+assert.match(appJs, /const visibleHarnessOutputSummaryValue = visibleHarnessOutputPath \|\| '표준 출력 전용';/);
+assert.match(appJs, /const hiddenHarnessOutputSummaryValue = hiddenHarnessOutputPath \|\| '표준 출력 전용';/);
+assert.match(appJs, /visibleHarnessOutputLabel[\s\S]*표준 출력 전용/);
+assert.match(appJs, /hiddenHarnessOutputLabel[\s\S]*표준 출력 전용/);
+assert.match(appJs, /data-harness-execution-output-summary="true"[^`]*\$\{escapeHtml\(visibleHarnessOutputSummaryValue\)\}/);
+assert.match(appJs, /data-harness-result-hidden-output-summary="true"[^`]*\$\{escapeHtml\(hiddenHarnessOutputSummaryValue\)\}/);
 assert.match(appJs, /data-harness-execution-preview="true"/);
 assert.match(appJs, /data-harness-result-hidden-preview="true"/);
 

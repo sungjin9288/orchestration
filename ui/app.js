@@ -1696,6 +1696,16 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessExecutionResult?.resolvedOutputPath || visibleHarnessExecutionResult?.outputPath || '';
   const hiddenHarnessActionOutputPath =
     hiddenHarnessExecutionResult?.resolvedOutputPath || hiddenHarnessExecutionResult?.outputPath || '';
+  const visibleHarnessOutputLabel = getHarnessExecutionOutputLabel(visibleHarnessExecutionResult);
+  const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult);
+  const visibleHarnessOutputSummaryValue = visibleHarnessOutputPath || '표준 출력 전용';
+  const hiddenHarnessOutputSummaryValue = hiddenHarnessOutputPath || '표준 출력 전용';
+  const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
+    visibleHarnessExecutionResult,
+  );
+  const hiddenHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
+    hiddenHarnessExecutionResult,
+  );
   const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload(hiddenHarnessExecutionResult);
   const visibleHarnessPreviewText =
     visibleHarnessExecutionResult?.outputPreview || visibleHarnessExecutionResult?.stdoutPreview || '';
@@ -1873,11 +1883,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력: <code>${escapeHtml(visibleHarnessInputSummaryPath)}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(getHarnessExecutionModeLabel(visibleHarnessExecutionResult))}</code></p>
                       <p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(getHarnessExecutionHandoffText(visibleHarnessExecutionResult))}</code></p>
-                      ${
-                        visibleHarnessOutputPath
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(visibleHarnessExecutionResult))}: <code>${escapeHtml(visibleHarnessOutputPath)}</code></p>`
-                          : `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(visibleHarnessExecutionResult))}: <code>표준 출력 전용</code></p>`
-                      }
+                      <p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(visibleHarnessOutputLabel)}: <code>${escapeHtml(visibleHarnessOutputSummaryValue)}</code></p>
                       ${
                         visibleHarnessRequestId
                           ? `<p class="detail-copy detail-copy-compact" data-harness-execution-request-summary="true">요청 ID: <code>${escapeHtml(visibleHarnessRequestId)}</code></p>`
@@ -1934,10 +1940,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       type="button"
                                       data-action="copy-harness-output-path"
                                       data-output-path="${escapeHtml(visibleHarnessOutputPath)}"
-                                      data-output-path-label="${escapeHtml(getHarnessExecutionOutputPathActionLabel(visibleHarnessExecutionResult))}"
+                                      data-output-path-label="${escapeHtml(visibleHarnessOutputPathActionLabel)}"
                                       data-harness-output-copy="true"
                                     >
-                                      ${escapeHtml(getHarnessExecutionOutputPathActionLabel(visibleHarnessExecutionResult))}
+                                      ${escapeHtml(visibleHarnessOutputPathActionLabel)}
                                     </button>
                                   `
                                   : ''
@@ -2082,11 +2088,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessInputPath)}</code></p>`
                           : ''
                       }
-                      ${
-                        hiddenHarnessOutputPath
-                          ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult))}: <code>${escapeHtml(hiddenHarnessOutputPath)}</code></p>`
-                          : `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult))}: <code>표준 출력 전용</code></p>`
-                      }
+                      <p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(hiddenHarnessOutputLabel)}: <code>${escapeHtml(hiddenHarnessOutputSummaryValue)}</code></p>
                     </section>
                     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-harness-context="true">
                       <div class="card-title-row card-title-row-tight">
@@ -2167,10 +2169,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               type="button"
                               data-action="copy-harness-output-path"
                               data-output-path="${escapeHtml(hiddenHarnessOutputPath)}"
-                              data-output-path-label="${escapeHtml(getHarnessExecutionOutputPathActionLabel(hiddenHarnessExecutionResult))}"
+                              data-output-path-label="${escapeHtml(hiddenHarnessOutputPathActionLabel)}"
                               data-harness-result-hidden-output-copy="true"
                             >
-                              ${escapeHtml(getHarnessExecutionOutputPathActionLabel(hiddenHarnessExecutionResult))}
+                              ${escapeHtml(hiddenHarnessOutputPathActionLabel)}
                             </button>
                           `
                           : ''
@@ -2269,8 +2271,18 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessRequestId = execution.requestId || execution.executionId || '';
                               const historyHarnessInputPath = execution.inputPath || execution.resolvedInputPath || '';
                               const historyHarnessOutputPath = execution.outputPath || execution.resolvedOutputPath || '';
+                              const historyHarnessOutputPathActionLabel =
+                                getHarnessExecutionOutputPathActionLabel(execution);
                               const historyHarnessPolicyReportPayload = getHarnessPolicyReportPayload(execution);
                               const historyHarnessPreviewText = execution.outputPreview || execution.stdoutPreview || '';
+                              const historyHarnessModeLabel = getHarnessExecutionModeLabel(execution);
+                              const historyHarnessHandoffText = getHarnessExecutionHandoffText(execution);
+                              const historyHarnessOutputLabel = getHarnessExecutionOutputLabel(execution);
+                              const historyHarnessOutputSummaryValue =
+                                historyHarnessOutputPath || '표준 출력 전용';
+                              const historyHarnessShowActionLabel = getHarnessExecutionShowActionLabel(execution);
+                              const historyHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(execution);
+                              const historyHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(execution);
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2286,19 +2298,19 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">모드</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(getHarnessExecutionModeLabel(execution))}</strong>
+                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessModeLabel)}</strong>
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">핸드오프</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(getHarnessExecutionHandoffText(execution))}</strong>
+                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessHandoffText)}</strong>
                                     </div>
                                     <div class="control-overview-register-row">
                                       <span class="control-overview-register-label">입력</span>
                                       <strong class="control-overview-register-value">${escapeHtml(historyHarnessInputPath || '경로 없음')}</strong>
                                     </div>
                                     <div class="control-overview-register-row">
-                                      <span class="control-overview-register-label">${escapeHtml(getHarnessExecutionOutputLabel(execution))}</span>
-                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessOutputPath || '표준 출력 전용')}</strong>
+                                      <span class="control-overview-register-label">${escapeHtml(historyHarnessOutputLabel)}</span>
+                                      <strong class="control-overview-register-value">${escapeHtml(historyHarnessOutputSummaryValue)}</strong>
                                     </div>
                                   </div>
                                   <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
@@ -2325,7 +2337,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         data-history-index="${String(index)}"
                                         data-harness-history-preview="true"
                                       >
-                                        ${escapeHtml(getHarnessExecutionShowActionLabel(execution))}
+                                        ${escapeHtml(historyHarnessShowActionLabel)}
                                       </button>
                                       ${
                                         historyHarnessOutputPath
@@ -2335,10 +2347,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                               type="button"
                                               data-action="copy-harness-output-path"
                                               data-output-path="${escapeHtml(historyHarnessOutputPath)}"
-                                              data-output-path-label="${escapeHtml(getHarnessExecutionOutputPathActionLabel(execution))}"
+                                              data-output-path-label="${escapeHtml(historyHarnessOutputPathActionLabel)}"
                                               data-harness-output-copy="true"
                                             >
-                                              ${escapeHtml(getHarnessExecutionOutputPathActionLabel(execution))}
+                                              ${escapeHtml(historyHarnessOutputPathActionLabel)}
                                             </button>
                                           `
                                           : ''
@@ -2402,7 +2414,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         data-harness-history-rerun="true"
                                         ${state.loading || state.mutating ? 'disabled' : ''}
                                       >
-                                        ${escapeHtml(getHarnessExecutionRerunActionLabel(execution))}
+                                        ${escapeHtml(historyHarnessRerunActionLabel)}
                                       </button>
                                       ${
                                         historyHarnessPreviewText
@@ -2426,7 +2438,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                               data-harness-history-output-brief="true"
                                               ${state.loading || state.mutating ? 'disabled' : ''}
                                             >
-                                              ${escapeHtml(getHarnessExecutionBriefActionLabel(execution))}
+                                              ${escapeHtml(historyHarnessBriefActionLabel)}
                                             </button>
                                           `
                                           : ''

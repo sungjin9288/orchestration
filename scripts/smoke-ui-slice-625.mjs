@@ -16,7 +16,8 @@ assert.match(harnessLabels, /export function getHarnessExecutionRerunActionLabel
 assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '같은 경로 정책 리포트' : '같은 경로 재실행'/);
 assert.match(appJs, /getHarnessExecutionRerunActionLabel\(visibleHarnessExecutionResult\)/);
 assert.match(appJs, /getHarnessExecutionRerunActionLabel\(hiddenHarnessExecutionResult\)/);
-assert.match(appJs, /getHarnessExecutionRerunActionLabel\(execution\)/);
+assert.match(appJs, /const historyHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel\(execution\);/);
+assert.match(appJs, /\$\{escapeHtml\(historyHarnessRerunActionLabel\)\}/);
 assert.match(appJs, /data-policy-report="\$\{visibleHarnessExecutionResult\.actionMode === 'policy-report' \? 'true' : 'false'\}"/);
 assert.match(appJs, /data-policy-report="\$\{hiddenHarnessExecutionResult\.actionMode === 'policy-report' \? 'true' : 'false'\}"/);
 assert.match(appJs, /data-policy-report="\$\{execution\.actionMode === 'policy-report' \? 'true' : 'false'\}"/);
