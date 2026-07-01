@@ -29,6 +29,17 @@ assert.match(appJs, /lastHarnessOutputBriefResult: null/);
 assert.match(appJs, /function renderHarnessOutputBriefSummary\(execution\)/);
 assert.match(appJs, /data-harness-output-brief-summary="true"/);
 assert.match(appJs, /data-harness-output-brief-lines="true"/);
+assert.match(appJs, /const outputBriefScopeLabel =\s+`\$\{String\(outputBrief\.input\?\.nonEmptyLineCount \|\| 0\)\} lines · \$\{String\(outputBrief\.input\?\.charCount \|\| 0\)\} chars`;/);
+assert.match(appJs, /const outputBriefSeverityLabel =\s+`fail \$\{String\(counts\.fail \|\| 0\)\} · warn \$\{String\(counts\.warn \|\| 0\)\} · pass \$\{String\(counts\.pass \|\| 0\)\}`;/);
+assert.match(appJs, /const outputBriefHookLabel = outputBrief\.installsShellHooks \? 'hook 사용' : 'hook 없음';/);
+assert.match(appJs, /const outputBriefRewriteLabel = outputBrief\.rewritesCommands \? 'command rewrite' : 'rewrite 없음';/);
+assert.match(appJs, /const outputBriefProcessingLabel = `\$\{outputBriefHookLabel\} · \$\{outputBriefRewriteLabel\}`;/);
+assert.match(appJs, /\$\{escapeHtml\(outputBriefScopeLabel\)\}/);
+assert.match(appJs, /\$\{escapeHtml\(outputBriefSeverityLabel\)\}/);
+assert.match(appJs, /\$\{escapeHtml\(outputBriefProcessingLabel\)\}/);
+assert.doesNotMatch(appJs, /\$\{escapeHtml\(String\(outputBrief\.input\?\.nonEmptyLineCount \|\| 0\)\)\} lines/);
+assert.doesNotMatch(appJs, /fail \$\{escapeHtml\(String\(counts\.fail \|\| 0\)\)\}/);
+assert.doesNotMatch(appJs, /\$\{escapeHtml\(outputBrief\.installsShellHooks \? 'hook 사용' : 'hook 없음'\)\}/);
 assert.match(appJs, /const visibleHarnessOutputBriefSummaryMarkup = renderHarnessOutputBriefSummary\(\s+visibleHarnessExecutionResult,\s+\);/);
 assert.match(appJs, /\$\{visibleHarnessOutputBriefSummaryMarkup\}/);
 assert.doesNotMatch(

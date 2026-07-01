@@ -1617,6 +1617,13 @@ function renderHarnessOutputBriefSummary(execution) {
 
   const counts = outputBrief.countsByType || {};
   const briefLines = Array.isArray(outputBrief.briefLines) ? outputBrief.briefLines : [];
+  const outputBriefScopeLabel =
+    `${String(outputBrief.input?.nonEmptyLineCount || 0)} lines · ${String(outputBrief.input?.charCount || 0)} chars`;
+  const outputBriefSeverityLabel =
+    `fail ${String(counts.fail || 0)} · warn ${String(counts.warn || 0)} · pass ${String(counts.pass || 0)}`;
+  const outputBriefHookLabel = outputBrief.installsShellHooks ? 'hook 사용' : 'hook 없음';
+  const outputBriefRewriteLabel = outputBrief.rewritesCommands ? 'command rewrite' : 'rewrite 없음';
+  const outputBriefProcessingLabel = `${outputBriefHookLabel} · ${outputBriefRewriteLabel}`;
 
   return `
     <section
@@ -1625,15 +1632,15 @@ function renderHarnessOutputBriefSummary(execution) {
     >
       <div class="control-overview-register-row">
         <span class="control-overview-register-label">요약 범위</span>
-        <strong class="control-overview-register-value">${escapeHtml(String(outputBrief.input?.nonEmptyLineCount || 0))} lines · ${escapeHtml(String(outputBrief.input?.charCount || 0))} chars</strong>
+        <strong class="control-overview-register-value">${escapeHtml(outputBriefScopeLabel)}</strong>
       </div>
       <div class="control-overview-register-row">
         <span class="control-overview-register-label">중요도</span>
-        <strong class="control-overview-register-value">fail ${escapeHtml(String(counts.fail || 0))} · warn ${escapeHtml(String(counts.warn || 0))} · pass ${escapeHtml(String(counts.pass || 0))}</strong>
+        <strong class="control-overview-register-value">${escapeHtml(outputBriefSeverityLabel)}</strong>
       </div>
       <div class="control-overview-register-row">
         <span class="control-overview-register-label">처리 방식</span>
-        <strong class="control-overview-register-value">${escapeHtml(outputBrief.installsShellHooks ? 'hook 사용' : 'hook 없음')} · ${escapeHtml(outputBrief.rewritesCommands ? 'command rewrite' : 'rewrite 없음')}</strong>
+        <strong class="control-overview-register-value">${escapeHtml(outputBriefProcessingLabel)}</strong>
       </div>
       <div class="stack stack-compact" data-harness-output-brief-lines="true">
         ${
