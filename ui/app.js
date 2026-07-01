@@ -18138,7 +18138,9 @@ async function summarizeHarnessExecutionPreview(actionButton) {
 
   state.error = null;
   state.mutating = true;
-  elements.refreshStatus.textContent = '하네스 실행 미리보기를 요약하는 중…';
+  const previewSummaryPendingMessage = '하네스 실행 미리보기를 요약하는 중…';
+  const previewSummaryDoneMessage = '하네스 실행 미리보기 요약을 만들었습니다.';
+  elements.refreshStatus.textContent = previewSummaryPendingMessage;
   render();
 
   try {
@@ -18160,7 +18162,7 @@ async function summarizeHarnessExecutionPreview(actionButton) {
       state.lastHarnessExecutionResult = hiddenExecution;
     }
     render();
-    elements.refreshStatus.textContent = '하네스 실행 미리보기 요약을 만들었습니다.';
+    elements.refreshStatus.textContent = previewSummaryDoneMessage;
   } finally {
     state.mutating = false;
     render();
@@ -18186,9 +18188,9 @@ function hideHarnessExecutionResult(actionButton) {
   render();
 
   const currentExecutionTitle = getHarnessExecutionResultTitle(currentExecution);
-  const hideHarnessExecutionCopy =
+  const hideHarnessExecutionMessage =
     `${currentExecutionTitle}를 숨겼습니다. 필요하면 실행 기록에서 다시 볼 수 있습니다.`;
-  elements.refreshStatus.textContent = hideHarnessExecutionCopy;
+  elements.refreshStatus.textContent = hideHarnessExecutionMessage;
 }
 
 function getHarnessExecutionDisplayStamp(execution) {
@@ -18222,9 +18224,9 @@ function showHarnessExecutionResult(actionButton, statusPayload) {
   render();
 
   const currentExecutionDisplayStamp = getHarnessExecutionDisplayStamp(currentExecution);
-  const showHarnessExecutionCopy =
+  const showHarnessExecutionMessage =
     `숨긴 하네스 실행을 다시 표시했습니다: ${currentExecutionDisplayStamp}`;
-  elements.refreshStatus.textContent = showHarnessExecutionCopy;
+  elements.refreshStatus.textContent = showHarnessExecutionMessage;
 }
 
 function restoreHarnessExecutionPreview(actionButton, statusPayload) {
@@ -18245,9 +18247,9 @@ function restoreHarnessExecutionPreview(actionButton, statusPayload) {
   render();
 
   const targetExecutionDisplayStamp = getHarnessExecutionDisplayStamp(targetExecution);
-  const restoreHarnessExecutionCopy =
+  const restoreHarnessExecutionMessage =
     `하네스 실행 기록을 다시 표시했습니다: ${targetExecutionDisplayStamp}`;
-  elements.refreshStatus.textContent = restoreHarnessExecutionCopy;
+  elements.refreshStatus.textContent = restoreHarnessExecutionMessage;
 }
 
 function getHarnessExecutionOutputCopy(execution) {

@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness preview and visibility status messages should be named before `refreshStatus` writes. Keep summary, hide, show, and restore mutations in `ui/app.js`, but avoid mixing operator-facing status copy with state mutation or route handoff steps.
+
 - Harness visibility status messages should share one named display stamp before copy assembly. Keep hide/show/restore state mutation in `ui/app.js`, but avoid rebuilding mode, harness id, and executed-at text separately in show and restore handlers.
 
 - Harness history summary rows should share one row renderer and named markup values before rendering. Keep per-execution history state, copy actions, rerun actions, and output-brief actions in `ui/app.js`, but avoid rebuilding request/mode/handoff/input/output register rows directly inside the history template.

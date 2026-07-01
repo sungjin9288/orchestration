@@ -18,28 +18,35 @@ assert.match(appJs, /const visibleHarnessResultTitle = getHarnessExecutionResult
 assert.match(appJs, /const hiddenHarnessResultTitle = getHarnessExecutionResultTitle\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>/);
 assert.match(appJs, /<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>/);
-assert.match(appJs, /const visibleHarnessResultStateLabel =\s+visibleHarnessPolicyReportFlag === 'true' \? 'no-write' : '완료';/);
-assert.match(appJs, /const visibleHarnessResultStateTone =\s+visibleHarnessPolicyReportFlag === 'true' \? 'neutral' : 'success';/);
+assert.match(appJs, /const visibleHarnessResultStateLabel =\s+visibleHarnessIsPolicyReport \? 'no-write' : '완료';/);
+assert.match(appJs, /const visibleHarnessResultStateTone =\s+visibleHarnessIsPolicyReport \? 'neutral' : 'success';/);
 assert.match(appJs, /createToken\(visibleHarnessResultStateLabel, visibleHarnessResultStateTone\)/);
+assert.match(appJs, /const previewSummaryPendingMessage = '하네스 실행 미리보기를 요약하는 중…';/);
+assert.match(appJs, /const previewSummaryDoneMessage = '하네스 실행 미리보기 요약을 만들었습니다\.';/);
+assert.match(appJs, /elements\.refreshStatus\.textContent = previewSummaryPendingMessage;/);
+assert.match(appJs, /elements\.refreshStatus\.textContent = previewSummaryDoneMessage;/);
 assert.match(appJs, /const currentExecutionTitle = getHarnessExecutionResultTitle\(currentExecution\);/);
-assert.match(appJs, /const hideHarnessExecutionCopy =\s+`\$\{currentExecutionTitle\}를 숨겼습니다\. 필요하면 실행 기록에서 다시 볼 수 있습니다\.`;/);
-assert.match(appJs, /elements\.refreshStatus\.textContent = hideHarnessExecutionCopy;/);
+assert.match(appJs, /const hideHarnessExecutionMessage =\s+`\$\{currentExecutionTitle\}를 숨겼습니다\. 필요하면 실행 기록에서 다시 볼 수 있습니다\.`;/);
+assert.match(appJs, /elements\.refreshStatus\.textContent = hideHarnessExecutionMessage;/);
 assert.match(appJs, /function getHarnessExecutionDisplayStamp\(execution\) \{/);
 assert.match(appJs, /const modeLabel = getHarnessExecutionModeLabel\(execution\);/);
 assert.match(appJs, /const harnessId = execution\?\.harnessId \|\| '미확인';/);
 assert.match(appJs, /const executedAtLabel = execution\?\.executedAt \? formatDate\(execution\.executedAt\) : '최근 실행';/);
 assert.match(appJs, /return `\$\{modeLabel\}: \$\{harnessId\} · \$\{executedAtLabel\}`;/);
 assert.match(appJs, /const currentExecutionDisplayStamp = getHarnessExecutionDisplayStamp\(currentExecution\);/);
-assert.match(appJs, /elements\.refreshStatus\.textContent = showHarnessExecutionCopy;/);
-assert.match(appJs, /const showHarnessExecutionCopy =\s+`숨긴 하네스 실행을 다시 표시했습니다: \$\{currentExecutionDisplayStamp\}`;/);
+assert.match(appJs, /elements\.refreshStatus\.textContent = showHarnessExecutionMessage;/);
+assert.match(appJs, /const showHarnessExecutionMessage =\s+`숨긴 하네스 실행을 다시 표시했습니다: \$\{currentExecutionDisplayStamp\}`;/);
 assert.match(appJs, /const targetExecutionDisplayStamp = getHarnessExecutionDisplayStamp\(targetExecution\);/);
-assert.match(appJs, /const restoreHarnessExecutionCopy =\s+`하네스 실행 기록을 다시 표시했습니다: \$\{targetExecutionDisplayStamp\}`;/);
-assert.match(appJs, /elements\.refreshStatus\.textContent = restoreHarnessExecutionCopy;/);
+assert.match(appJs, /const restoreHarnessExecutionMessage =\s+`하네스 실행 기록을 다시 표시했습니다: \$\{targetExecutionDisplayStamp\}`;/);
+assert.match(appJs, /elements\.refreshStatus\.textContent = restoreHarnessExecutionMessage;/);
 assert.doesNotMatch(appJs, /<strong>\$\{escapeHtml\(getHarnessExecutionResultTitle\(visibleHarnessExecutionResult\)\)\}<\/strong>/);
 assert.doesNotMatch(appJs, /<strong>\$\{escapeHtml\(getHarnessExecutionResultTitle\(hiddenHarnessExecutionResult\)\)\}가 숨겨져 있습니다<\/strong>/);
 assert.doesNotMatch(appJs, /<strong>최근 실행 결과가 숨겨져 있습니다<\/strong>/);
 assert.doesNotMatch(appJs, /최근 실행 결과를 숨겼습니다\. 필요하면 실행 기록에서 다시 볼 수 있습니다\./);
 assert.doesNotMatch(appJs, /\$\{getHarnessExecutionResultTitle\(currentExecution\)\}를 숨겼습니다/);
+assert.doesNotMatch(appJs, /elements\.refreshStatus\.textContent = '하네스 실행 미리보기를 요약하는 중…';/);
+assert.doesNotMatch(appJs, /elements\.refreshStatus\.textContent = '하네스 실행 미리보기 요약을 만들었습니다\.';/);
+assert.doesNotMatch(appJs, /visibleHarnessPolicyReportFlag/);
 assert.doesNotMatch(appJs, /숨긴 \$\{getHarnessExecutionModeLabel\(currentExecution\)\}를 다시 표시했습니다/);
 assert.doesNotMatch(appJs, /\$\{getHarnessExecutionModeLabel\(targetExecution\)\}를 다시 표시했습니다/);
 assert.doesNotMatch(appJs, /const currentExecutionHarnessId = currentExecution\.harnessId;/);
@@ -55,10 +62,10 @@ console.log(
         namedValues: ['visibleHarnessResultTitle', 'hiddenHarnessResultTitle'],
         namedMessages: [
           'currentExecutionDisplayStamp',
-          'hideHarnessExecutionCopy',
-          'showHarnessExecutionCopy',
+          'hideHarnessExecutionMessage',
+          'showHarnessExecutionMessage',
           'targetExecutionDisplayStamp',
-          'restoreHarnessExecutionCopy',
+          'restoreHarnessExecutionMessage',
         ],
       },
     },
