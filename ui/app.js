@@ -1659,6 +1659,10 @@ function getHarnessOutputSummaryValue(outputPath) {
   return outputPath || '표준 출력 전용';
 }
 
+function getHarnessInputSummaryValue(inputPath) {
+  return inputPath || '경로 없음';
+}
+
 function getHarnessExecutionPreviewText(execution) {
   return execution?.outputPreview || execution?.stdoutPreview || '';
 }
@@ -2560,7 +2564,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 historyHarnessRequestId || `최근 ${index + 1}`;
                               const canRenderHistoryHarnessRequestIdCopy = Boolean(historyHarnessRequestId);
                               const historyHarnessInputSummaryValue =
-                                historyHarnessInputPath || '경로 없음';
+                                getHarnessInputSummaryValue(historyHarnessInputPath);
                               const historyHarnessRequestSummaryMarkup =
                                 renderHarnessHistorySummaryRow('요청', historyHarnessRequestLabel);
                               const historyHarnessExecutedAtSummaryMarkup =

@@ -17,6 +17,8 @@ assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '출
 assert.match(harnessLabels, /`\$\{getHarnessExecutionOutputLabel\(execution\)\}: \$\{outputPath\}`/);
 assert.match(appJs, /function getHarnessOutputSummaryValue\(outputPath\) \{/);
 assert.match(appJs, /return outputPath \|\| '표준 출력 전용';/);
+assert.match(appJs, /function getHarnessInputSummaryValue\(inputPath\) \{/);
+assert.match(appJs, /return inputPath \|\| '경로 없음';/);
 assert.match(appJs, /const visibleHarnessOutputLabel = getHarnessExecutionOutputLabel\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel\(hiddenHarnessExecutionResult\);/);
 assert.match(
@@ -37,7 +39,11 @@ assert.match(
   /const historyHarnessOutputSummaryValue =\s+getHarnessOutputSummaryValue\(historyHarnessOutputPath\);/,
 );
 assert.doesNotMatch(appJs, /const historyHarnessOutputSummaryValue =\s+historyHarnessOutputPath \|\| '표준 출력 전용';/);
-assert.match(appJs, /const historyHarnessInputSummaryValue =\s+historyHarnessInputPath \|\| '경로 없음';/);
+assert.match(
+  appJs,
+  /const historyHarnessInputSummaryValue =\s+getHarnessInputSummaryValue\(historyHarnessInputPath\);/,
+);
+assert.doesNotMatch(appJs, /const historyHarnessInputSummaryValue =\s+historyHarnessInputPath \|\| '경로 없음';/);
 assert.match(appJs, /const historyHarnessInputSummaryMarkup =\s+renderHarnessHistorySummaryRow\('입력', historyHarnessInputSummaryValue\);/);
 assert.match(appJs, /const historyHarnessOutputSummaryMarkup = renderHarnessHistorySummaryRow\(\s+historyHarnessOutputLabel,\s+historyHarnessOutputSummaryValue,\s+\);/);
 assert.match(appJs, /\$\{historyHarnessInputSummaryMarkup\}/);
@@ -57,6 +63,7 @@ console.log(
       harnessExecutionOutputLabel: {
         helper: 'getHarnessExecutionOutputLabel',
         labels: ['출력 예정', '출력'],
+        inputSummaryHelper: 'getHarnessInputSummaryValue',
         namedValues: [
           'historyHarnessInputSummaryMarkup',
           'historyHarnessOutputSummaryMarkup',
