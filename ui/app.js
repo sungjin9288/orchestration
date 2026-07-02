@@ -17969,7 +17969,7 @@ function render() {
 }
 
 document.addEventListener('click', async (event) => {
-  const navButton = event.target.closest('[data-surface]');
+  const navButton = event.target.closest('.nav-button[data-surface]');
   const navGroupButton = event.target.closest('[data-nav-group-tab]');
   const actionButton = event.target.closest('[data-action]');
 

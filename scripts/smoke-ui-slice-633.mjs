@@ -22,14 +22,10 @@ const unknownArgResult = spawnSync(process.execPath, [uiQaStatusPath, '--typo'],
 });
 const unknownArgPayload = JSON.parse(unknownArgResult.stderr);
 
-assert.equal(smokeCheckEntries.length, 27);
+assert.equal(smokeCheckEntries.length, 28);
 assert.deepEqual(
   smokeCheckEntries.slice(-15),
   [
-    {
-      id: 'harness-preview-brief-doc-mode-labels',
-      script: 'scripts/smoke-ui-slice-632.mjs',
-    },
     {
       id: 'harness-baseline-verification-doc-bundle',
       script: 'scripts/smoke-ui-slice-634.mjs',
@@ -85,6 +81,10 @@ assert.deepEqual(
     {
       id: 'reference-driven-growth-personalization-ui',
       script: 'scripts/smoke-ui-slice-649.mjs',
+    },
+    {
+      id: 'nav-dispatcher-in-surface-action-reachability',
+      script: 'scripts/smoke-ui-slice-650.mjs',
     },
   ],
 );

@@ -595,82 +595,28 @@ function navigateToSurface({ outputRoot, overrideEnvVar, sessionName, surface })
 }
 
 function selectTaskViaQaHook({ outputRoot, overrideEnvVar, sessionName, taskId }) {
-  // The current shell's global click dispatcher resolves any click inside a
-  // surface section to its [data-surface] ancestor before the generic action
-  // dispatch runs, so in-surface buttons such as [data-action="select-task"]
-  // never reach their handlers. Task selection therefore goes through the
-  // official QA hook (openSurface + refresh), which runs the same
-  // syncSelectionsFromTask + hydration path the click handler would.
-  runCode({
-    codeBody: `
-await page.waitForFunction(() => Boolean(window.__orchestrationQa));
-await page.evaluate(async (taskId) => {
-  const qa = window.__orchestrationQa;
-
-  if (!qa.openSurface('taskboard', { taskId })) {
-    throw new Error('QA surface hook rejected taskboard');
-  }
-
-  await qa.refresh();
-}, ${JSON.stringify(taskId)});
-`,
+  // Real click: the global dispatcher matches nav buttons via
+  // .nav-button[data-surface], so in-surface [data-action="select-task"]
+  // clicks reach their handler (syncSelectionsFromTask + render).
+  navigateToSurface({ outputRoot, overrideEnvVar, sessionName, surface: 'taskboard' });
+  clickSelector({
     outputRoot,
     overrideEnvVar,
+    selector: `[data-action="select-task"][data-id="${taskId}"]`,
     sessionName,
   });
 }
 
 function launchBuilderPreflightViaBrowser({ outputRoot, overrideEnvVar, sessionName, taskId }) {
-  // The same dispatcher behavior keeps the enabled
-  // [data-action="run-builder-preflight"] button from reaching its click
-  // handler, so the launch fires from the browser page context through the
-  // same endpoint the button handler posts to. The QA hook then re-syncs the
-  // task selection (which now prefers the new preflight artifact) and lands
-  // on the Artifacts surface exactly like the handler does.
-  runCode({
-    codeBody: `
-await page.waitForFunction(() => Boolean(window.__orchestrationQa));
-await page.evaluate(async (taskId) => {
-  const button = document.querySelector('[data-action="run-builder-preflight"][data-id="' + taskId + '"]');
-
-  if (!button) {
-    throw new Error('builder preflight launch button not found');
-  }
-
-  if (button.disabled) {
-    throw new Error('builder preflight launch button is disabled');
-  }
-
-  const response = await fetch('/api/tasks/' + encodeURIComponent(taskId) + '/run-builder-preflight', {
-    method: 'POST',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: '{}',
-  });
-  const payload = await response.json();
-
-  if (!response.ok) {
-    throw new Error(payload.error || ('builder preflight launch failed: ' + response.status));
-  }
-
-  const qa = window.__orchestrationQa;
-
-  await qa.refresh();
-
-  if (!qa.openSurface('taskboard', { taskId })) {
-    throw new Error('QA surface hook rejected taskboard');
-  }
-
-  await qa.refresh();
-
-  if (!qa.openSurface('artifacts')) {
-    throw new Error('QA surface hook rejected artifacts');
-  }
-}, ${JSON.stringify(taskId)});
-`,
+  // Real click: the enabled [data-action="run-builder-preflight"] button now
+  // reaches its handler, which posts run-builder-preflight and lands on the
+  // Artifacts surface exactly like an operator click.
+  navigateToSurface({ outputRoot, overrideEnvVar, sessionName, surface: 'taskboard' });
+  clickSelector({
     outputRoot,
     overrideEnvVar,
+    selector: `[data-action="run-builder-preflight"][data-id="${taskId}"]:not([disabled])`,
     sessionName,
-    timeoutMs: 120_000,
   });
 }
 

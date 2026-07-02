@@ -154,6 +154,12 @@ const smokeChecks = [
     purpose:
       'Reference-driven enterprise redesign exposes read-only growth candidates and local-only personalization without provider, memory, source mutation, commit, or push authority',
   },
+  {
+    id: 'nav-dispatcher-in-surface-action-reachability',
+    script: 'scripts/smoke-ui-slice-650.mjs',
+    purpose:
+      'Global click dispatcher scopes surface navigation to .nav-button so in-surface action buttons stay reachable by real operator clicks',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

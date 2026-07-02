@@ -495,27 +495,14 @@ function navigateToSurface({ outputRoot, overrideEnvVar, sessionName, surface })
 }
 
 function selectTaskViaQaHook({ outputRoot, overrideEnvVar, sessionName, taskId }) {
-  // The current shell's global click dispatcher resolves any click inside a
-  // surface section to its [data-surface] ancestor before the generic action
-  // dispatch runs, so in-surface buttons such as [data-action="select-task"]
-  // never reach their handlers. Task selection therefore goes through the
-  // official QA hook (openSurface + refresh), which runs the same
-  // syncSelectionsFromTask + hydration path the click handler would.
-  runCode({
-    codeBody: `
-await page.waitForFunction(() => Boolean(window.__orchestrationQa));
-await page.evaluate(async (taskId) => {
-  const qa = window.__orchestrationQa;
-
-  if (!qa.openSurface('taskboard', { taskId })) {
-    throw new Error('QA surface hook rejected taskboard');
-  }
-
-  await qa.refresh();
-}, ${JSON.stringify(taskId)});
-`,
+  // Real click: the global dispatcher matches nav buttons via
+  // .nav-button[data-surface], so in-surface [data-action="select-task"]
+  // clicks reach their handler (syncSelectionsFromTask + render).
+  navigateToSurface({ outputRoot, overrideEnvVar, sessionName, surface: 'taskboard' });
+  clickSelector({
     outputRoot,
     overrideEnvVar,
+    selector: `[data-action="select-task"][data-id="${taskId}"]`,
     sessionName,
   });
 }
