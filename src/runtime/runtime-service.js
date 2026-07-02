@@ -30,6 +30,22 @@ const {
   TASK_LIFECYCLE,
 } = require('./contracts');
 const { createFileStore } = require('./file-store');
+const {
+  normalizeOptionalString,
+  normalizeRequiredString,
+  normalizeRequiredStringArray,
+  normalizeRepoRelativePaths,
+  normalizeIsoTimestamp,
+} = require('./normalizers');
+const {
+  defaultProposalRecordExpiry,
+  normalizeProposalRecordCreationApproval,
+  normalizeProposalRecordVerificationPlan,
+  normalizeProposalRecordBlockedActions,
+  normalizeProposalApplicationApproval,
+  normalizeProposalApplicationAttemptBlockedActions,
+  assertProposalRecordCanReceiveApplicationAttempt,
+} = require('./proposal-records');
 
 function createRuntimeService(options = {}) {
   const store = createFileStore(options);
@@ -37,22 +53,6 @@ function createRuntimeService(options = {}) {
   const decisionInboxSourceTypes = new Set(Object.values(DECISION_INBOX_SOURCE_TYPE));
   const proposalRecordTypes = new Set(Object.values(PROPOSAL_RECORD_TYPE));
   const proposalRecordRiskClasses = new Set(Object.values(PROPOSAL_RECORD_RISK_CLASS));
-  const proposalRecordDefaultBlockedActions = [...PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS];
-  const proposalApplicationAttemptDefaultBlockedActions = [
-    ...PROPOSAL_APPLICATION_ATTEMPT_DEFAULT_BLOCKED_ACTIONS,
-  ];
-  const proposalApplicationAttemptApprovalStatus =
-    'approve-application-implementation-slice';
-  const proposalApplicationAttemptTargetAuthority =
-    'proposal application implementation for one audit-only attempt path on existing durable proposal records';
-  const proposalApplicationAttemptStillBlockedAuthorities = [
-    'proposal generation',
-    'provider calls',
-    'memory persistence',
-    'source mutation',
-    'commit',
-    'push',
-  ];
 
   function nextId(state, entity) {
     state.sequences[entity] += 1;
@@ -69,70 +69,6 @@ function createRuntimeService(options = {}) {
     return `proposal-application-attempt-${String(
       state.sequences.proposalApplicationAttempt,
     ).padStart(4, '0')}`;
-  }
-
-  function normalizeOptionalString(value) {
-    if (value === null || value === undefined) {
-      return null;
-    }
-
-    const normalizedValue = String(value).trim();
-    return normalizedValue.length > 0 ? normalizedValue : null;
-  }
-
-  function normalizeRequiredString(value, fieldName) {
-    const normalizedValue = normalizeOptionalString(value);
-
-    if (!normalizedValue) {
-      throw new Error(`${fieldName} is required`);
-    }
-
-    return normalizedValue;
-  }
-
-  function normalizeRequiredStringArray(value, fieldName) {
-    if (!Array.isArray(value)) {
-      throw new Error(`${fieldName} must be a non-empty array`);
-    }
-
-    const normalizedValues = value
-      .map((item) => normalizeOptionalString(item))
-      .filter(Boolean);
-
-    if (normalizedValues.length === 0) {
-      throw new Error(`${fieldName} must be a non-empty array`);
-    }
-
-    return [...new Set(normalizedValues)];
-  }
-
-  function normalizeRepoRelativePaths(value, fieldName) {
-    const paths = normalizeRequiredStringArray(value, fieldName);
-
-    for (const relativePath of paths) {
-      if (path.isAbsolute(relativePath) || relativePath.split(/[\\/]/).includes('..')) {
-        throw new Error(`${fieldName} must contain repo-relative paths only`);
-      }
-    }
-
-    return paths;
-  }
-
-  function normalizeIsoTimestamp(value, fieldName) {
-    const timestamp = normalizeRequiredString(value, fieldName);
-    const parsed = Date.parse(timestamp);
-
-    if (Number.isNaN(parsed)) {
-      throw new Error(`${fieldName} must be an ISO timestamp`);
-    }
-
-    return new Date(parsed).toISOString();
-  }
-
-  function defaultProposalRecordExpiry(createdAt) {
-    const expiry = new Date(Date.parse(createdAt));
-    expiry.setUTCDate(expiry.getUTCDate() + 30);
-    return expiry.toISOString();
   }
 
   function createDefaultProjectProviderConfig() {
@@ -1736,228 +1672,6 @@ function createRuntimeService(options = {}) {
     };
 
     return state.decisionInboxItems[id];
-  }
-
-  function normalizeProposalRecordCreationApproval(input) {
-    const approval = input && typeof input === 'object' ? input : null;
-
-    if (!approval) {
-      throw new Error('creationApproval is required');
-    }
-
-    const status = normalizeRequiredString(approval.status, 'creationApproval.status');
-    const decisionId = normalizeRequiredString(approval.decisionId, 'creationApproval.decisionId');
-    const targetAuthority = normalizeRequiredString(
-      approval.targetAuthority,
-      'creationApproval.targetAuthority',
-    );
-    const approvalStatement = normalizeRequiredString(
-      approval.approvalStatement,
-      'creationApproval.approvalStatement',
-    );
-
-    if (status !== APPROVAL_STATUS.APPROVED) {
-      throw new Error('creationApproval.status must be approved');
-    }
-
-    if (targetAuthority !== 'durable proposal record creation and persistence') {
-      throw new Error(
-        'creationApproval.targetAuthority must be durable proposal record creation and persistence',
-      );
-    }
-
-    if (!/approve implementation only/i.test(approvalStatement)) {
-      throw new Error('creationApproval.approvalStatement must approve implementation only');
-    }
-
-    if (!/does not approve proposal application/i.test(approvalStatement)) {
-      throw new Error('creationApproval.approvalStatement must keep proposal application blocked');
-    }
-
-    return {
-      decisionId,
-      status,
-      targetAuthority,
-      approvalStatement,
-      approvedAt: approval.approvedAt
-        ? normalizeIsoTimestamp(approval.approvedAt, 'creationApproval.approvedAt')
-        : null,
-    };
-  }
-
-  function normalizeProposalRecordVerificationPlan(value) {
-    const verificationPlan = value && typeof value === 'object' ? value : null;
-
-    if (!verificationPlan) {
-      throw new Error('verificationPlan is required');
-    }
-
-    return {
-      commands: normalizeRequiredStringArray(verificationPlan.commands, 'verificationPlan.commands'),
-      expectedSignals: normalizeRequiredStringArray(
-        verificationPlan.expectedSignals,
-        'verificationPlan.expectedSignals',
-      ),
-      failureStopCondition: normalizeRequiredString(
-        verificationPlan.failureStopCondition,
-        'verificationPlan.failureStopCondition',
-      ),
-      focusedSmokes: Array.isArray(verificationPlan.focusedSmokes)
-        ? normalizeRequiredStringArray(
-            verificationPlan.focusedSmokes,
-            'verificationPlan.focusedSmokes',
-          )
-        : [],
-      aggregateChecks: Array.isArray(verificationPlan.aggregateChecks)
-        ? normalizeRequiredStringArray(
-            verificationPlan.aggregateChecks,
-            'verificationPlan.aggregateChecks',
-          )
-        : [],
-      manualReviewNotes: normalizeOptionalString(verificationPlan.manualReviewNotes),
-    };
-  }
-
-  function normalizeProposalRecordBlockedActions(value) {
-    const requestedActions = Array.isArray(value)
-      ? normalizeRequiredStringArray(value, 'blockedActions')
-      : [];
-    const actionSet = new Set([...proposalRecordDefaultBlockedActions, ...requestedActions]);
-
-    return proposalRecordDefaultBlockedActions
-      .filter((action) => actionSet.has(action))
-      .concat(requestedActions.filter((action) => !proposalRecordDefaultBlockedActions.includes(action)));
-  }
-
-  function normalizeProposalApplicationApproval(input) {
-    const approval = input && typeof input === 'object' ? input : null;
-
-    if (!approval) {
-      throw new Error('applicationApproval is required');
-    }
-
-    const decisionId = normalizeRequiredString(
-      approval.decisionId,
-      'applicationApproval.decisionId',
-    );
-    const decisionStatus = normalizeRequiredString(
-      approval.decisionStatus,
-      'applicationApproval.decisionStatus',
-    );
-    const status = normalizeOptionalString(approval.status) || APPROVAL_STATUS.APPROVED;
-    const targetAuthority = normalizeRequiredString(
-      approval.targetAuthority,
-      'applicationApproval.targetAuthority',
-    );
-    const approvalStatement = normalizeRequiredString(
-      approval.approvalStatement,
-      'applicationApproval.approvalStatement',
-    );
-
-    if (status !== APPROVAL_STATUS.APPROVED) {
-      throw new Error('applicationApproval.status must be approved');
-    }
-
-    if (decisionStatus !== proposalApplicationAttemptApprovalStatus) {
-      throw new Error(
-        'applicationApproval.decisionStatus must be approve-application-implementation-slice',
-      );
-    }
-
-    if (targetAuthority !== proposalApplicationAttemptTargetAuthority) {
-      throw new Error(
-        'applicationApproval.targetAuthority must approve the audit-only proposal application attempt path',
-      );
-    }
-
-    if (!/approve implementation only/i.test(approvalStatement)) {
-      throw new Error('applicationApproval.approvalStatement must approve implementation only');
-    }
-
-    for (const blockedAuthority of proposalApplicationAttemptStillBlockedAuthorities) {
-      const blockedAuthorityPattern = new RegExp(
-        `does not approve[\\s\\S]*${blockedAuthority}`,
-        'i',
-      );
-
-      if (!blockedAuthorityPattern.test(approvalStatement)) {
-        throw new Error(
-          `applicationApproval.approvalStatement must keep ${blockedAuthority} blocked`,
-        );
-      }
-    }
-
-    return {
-      decisionId,
-      decisionStatus,
-      status,
-      targetAuthority,
-      approvalStatement,
-      approvedAt: approval.approvedAt
-        ? normalizeIsoTimestamp(approval.approvedAt, 'applicationApproval.approvedAt')
-        : null,
-    };
-  }
-
-  function normalizeProposalApplicationAttemptBlockedActions(value) {
-    const requestedActions = Array.isArray(value)
-      ? normalizeRequiredStringArray(value, 'blockedActions')
-      : [];
-    const actionSet = new Set([
-      ...proposalApplicationAttemptDefaultBlockedActions,
-      ...requestedActions,
-    ]);
-
-    return proposalApplicationAttemptDefaultBlockedActions
-      .filter((action) => actionSet.has(action))
-      .concat(
-        requestedActions.filter(
-          (action) => !proposalApplicationAttemptDefaultBlockedActions.includes(action),
-        ),
-      );
-  }
-
-  function assertProposalRecordCanReceiveApplicationAttempt(proposalRecord, now) {
-    if (proposalRecord.status !== PROPOSAL_RECORD_STATUS.CREATED) {
-      throw new Error('proposalRecord.status must be created');
-    }
-
-    if (proposalRecord.applyAllowed !== false) {
-      throw new Error('proposalRecord.applyAllowed must remain false');
-    }
-
-    if (!proposalRecord.expiresAt || Date.parse(proposalRecord.expiresAt) <= Date.parse(now)) {
-      throw new Error('proposalRecord must not be expired');
-    }
-
-    for (const [fieldName, value] of Object.entries({
-      sourceClaimIds: proposalRecord.sourceClaimIds,
-      evidenceRefs: proposalRecord.evidenceRefs,
-      negativeEvidenceRefs: proposalRecord.negativeEvidenceRefs,
-      reviewerRefs: proposalRecord.reviewerRefs,
-      approvalRefs: proposalRecord.approvalRefs,
-      affectedFiles: proposalRecord.affectedFiles,
-      blockedActions: proposalRecord.blockedActions,
-    })) {
-      if (!Array.isArray(value) || value.length === 0) {
-        throw new Error(`proposalRecord.${fieldName} must be a non-empty array`);
-      }
-    }
-
-    if (
-      !proposalRecord.verificationPlan ||
-      !Array.isArray(proposalRecord.verificationPlan.commands) ||
-      proposalRecord.verificationPlan.commands.length === 0
-    ) {
-      throw new Error('proposalRecord.verificationPlan.commands must be a non-empty array');
-    }
-
-    if (
-      Array.isArray(proposalRecord.applicationAttemptIds) &&
-      proposalRecord.applicationAttemptIds.length > 0
-    ) {
-      throw new Error('proposalRecord already has an application attempt');
-    }
   }
 
   function createProposalRecord(input = {}) {

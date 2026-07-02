@@ -52,6 +52,7 @@ const applicationAttemptEvidenceSources = {
   fileStore: readFile('src/runtime/file-store.js'),
   readme: readFile('README.md'),
   runtimeService: readFile('src/runtime/runtime-service.js'),
+  proposalRecords: readFile('src/runtime/proposal-records.js'),
   verification: readFile('scripts/verification_status.mjs'),
 };
 
@@ -69,11 +70,14 @@ assertMatchesAll(applicationAttemptEvidenceSources.fileStore, [
 ]);
 assertMatchesAll(applicationAttemptEvidenceSources.runtimeService, [
   /function createProposalApplicationAttempt\(input = \{\}\)/,
-  /function normalizeProposalApplicationApproval\(input\)/,
-  /applicationApproval\.decisionStatus must be approve-application-implementation-slice/,
   /applicationApprovalRefs must include applicationApproval\.decisionId/,
   /applicationApproval must be separate from creation approval/,
   /function quarantineProposalApplicationAttempt\(input = \{\}\)/,
+  /require\('\.\/proposal-records'\)/,
+]);
+assertMatchesAll(applicationAttemptEvidenceSources.proposalRecords, [
+  /function normalizeProposalApplicationApproval\(input\)/,
+  /applicationApproval\.decisionStatus must be approve-application-implementation-slice/,
 ]);
 assertMatchesAll(applicationAttemptEvidenceSources.app, [
   /from '\.\/growth-config\.js'/,
