@@ -1655,6 +1655,10 @@ function getHarnessOutputChannelToken(usesOutputFile) {
   };
 }
 
+function getHarnessOutputSummaryValue(outputPath) {
+  return outputPath || '표준 출력 전용';
+}
+
 function getHarnessExecutionPacketContext(execution) {
   const handoffContext = getHarnessExecutionHandoffContext(execution);
 
@@ -1832,8 +1836,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     hiddenHarnessExecutionResult?.resolvedOutputPath || hiddenHarnessExecutionResult?.outputPath || '';
   const visibleHarnessOutputLabel = getHarnessExecutionOutputLabel(visibleHarnessExecutionResult);
   const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult);
-  const visibleHarnessOutputSummaryValue = visibleHarnessOutputPath || '표준 출력 전용';
-  const hiddenHarnessOutputSummaryValue = hiddenHarnessOutputPath || '표준 출력 전용';
+  const visibleHarnessOutputSummaryValue =
+    getHarnessOutputSummaryValue(visibleHarnessOutputPath);
+  const hiddenHarnessOutputSummaryValue =
+    getHarnessOutputSummaryValue(hiddenHarnessOutputPath);
   const visibleHarnessExecutedAtLabel = getHarnessExecutionTimestampLabel(
     visibleHarnessExecutionResult,
     '',
@@ -2543,7 +2549,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessHandoffText = getHarnessExecutionHandoffText(execution);
                               const historyHarnessOutputLabel = getHarnessExecutionOutputLabel(execution);
                               const historyHarnessOutputSummaryValue =
-                                historyHarnessOutputPath || '표준 출력 전용';
+                                getHarnessOutputSummaryValue(historyHarnessOutputPath);
                               const historyHarnessExecutedAtLabel =
                                 getHarnessExecutionTimestampLabel(execution);
                               const historyHarnessRequestLabel =

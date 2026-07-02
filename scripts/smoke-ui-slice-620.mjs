@@ -12,14 +12,20 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-execution-output-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-summary="true"/);
-assert.match(appJs, /visibleHarnessOutputPath[\s\S]*표준 출력 전용/);
-assert.match(appJs, /hiddenHarnessOutputPath[\s\S]*표준 출력 전용/);
+assert.match(appJs, /function getHarnessOutputSummaryValue\(outputPath\) \{/);
+assert.match(appJs, /return outputPath \|\| '표준 출력 전용';/);
 assert.match(appJs, /const visibleHarnessOutputLabel = getHarnessExecutionOutputLabel\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel\(hiddenHarnessExecutionResult\);/);
-assert.match(appJs, /const visibleHarnessOutputSummaryValue = visibleHarnessOutputPath \|\| '표준 출력 전용';/);
-assert.match(appJs, /const hiddenHarnessOutputSummaryValue = hiddenHarnessOutputPath \|\| '표준 출력 전용';/);
-assert.match(appJs, /visibleHarnessOutputLabel[\s\S]*표준 출력 전용/);
-assert.match(appJs, /hiddenHarnessOutputLabel[\s\S]*표준 출력 전용/);
+assert.match(
+  appJs,
+  /const visibleHarnessOutputSummaryValue =\s+getHarnessOutputSummaryValue\(visibleHarnessOutputPath\);/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessOutputSummaryValue =\s+getHarnessOutputSummaryValue\(hiddenHarnessOutputPath\);/,
+);
+assert.doesNotMatch(appJs, /const visibleHarnessOutputSummaryValue = visibleHarnessOutputPath \|\| '표준 출력 전용';/);
+assert.doesNotMatch(appJs, /const hiddenHarnessOutputSummaryValue = hiddenHarnessOutputPath \|\| '표준 출력 전용';/);
 assert.match(appJs, /const visibleHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">\$\{escapeHtml\(visibleHarnessOutputLabel\)\}: <code>\$\{escapeHtml\(visibleHarnessOutputSummaryValue\)\}<\/code><\/p>`;/);
 assert.match(appJs, /\$\{visibleHarnessOutputSummaryMarkup\}/);
 assert.match(appJs, /data-harness-result-hidden-output-summary="true"[^`]*\$\{escapeHtml\(hiddenHarnessOutputSummaryValue\)\}/);
