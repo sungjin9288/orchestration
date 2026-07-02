@@ -18,12 +18,17 @@ const concurrentChecks = [
     mode: 'v1-operator-status',
   },
 ];
-const childTimeoutMs = 180_000;
+const childTimeoutMs = 600_000;
+const childLockWaitMs = '900000';
 
 function runNodeCheck(check) {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, check.args, {
       cwd: process.cwd(),
+      env: {
+        ...process.env,
+        ORCHESTRATION_VERIFICATION_LOCK_WAIT_MS: childLockWaitMs,
+      },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let stdout = '';

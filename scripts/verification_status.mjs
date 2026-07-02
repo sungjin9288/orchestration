@@ -1107,4 +1107,4 @@ try {
   releaseVerificationLock(lock);
 }
 
-process.exit(exitCode);
+process.exitCode = exitCode;

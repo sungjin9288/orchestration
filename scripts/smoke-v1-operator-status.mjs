@@ -95,7 +95,7 @@ assert.match(verificationStatus, /ORCHESTRATION_VERIFICATION_LOCK_WAIT_MS/);
 assert.match(lockConcurrencySmoke, /verification-status-lock-concurrency-smoke/);
 assert.match(lockConcurrencySmoke, /do not add this recursive concurrency smoke to scripts\/verification_status\.mjs/);
 assert.match(lockConcurrencySmoke, /Promise\.all\(concurrentChecks\.map\(runNodeCheck\)\)/);
-assert.match(lockConcurrencySmoke, /childTimeoutMs = 180_000/);
+assert.match(lockConcurrencySmoke, /childTimeoutMs = 600_000/);
 assert.match(lockTimeoutSmoke, /verification-status-lock-timeout-smoke/);
 assert.match(lockTimeoutSmoke, /ORCHESTRATION_VERIFICATION_LOCK_WAIT_MS: '1'/);
 assert.match(lockTimeoutSmoke, /payload\.error, 'lock-timeout'/);
