@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness execution packet copy text should name visible and hidden copy predicates before formatting packet text. Keep packet formatting and clipboard behavior in `ui/app.js`, but avoid using the execution result object itself as the copy-text condition after the latest and hidden results have already been selected.
+
 - Harness hidden operator message summary rendering should name the render predicate before summary markup. Keep the shared operator message in `ui/app.js`, but avoid using the message string itself as the template condition after it has already been derived.
 
 - Harness operator action label and tone rendering should name the operator-action presence before display selection. Keep helper calls in `ui/app.js`, but avoid checking `operatorAction` separately for each label or tone fallback after presence has already been derived.

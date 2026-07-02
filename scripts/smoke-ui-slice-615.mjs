@@ -22,13 +22,15 @@ assert.match(
 );
 assert.match(harnessLabels, /정책 리포트: \$\{context\.hasPolicyReport \? '있음' : '없음'\}/);
 assert.match(appJs, /data-action="copy-harness-execution-packet"/);
+assert.match(appJs, /const canCopyVisibleHarnessExecutionPacket = Boolean\(visibleHarnessExecutionResult\);/);
+assert.match(appJs, /const canCopyHiddenHarnessExecutionPacket = Boolean\(hiddenHarnessExecutionResult\);/);
 assert.match(
   appJs,
-  /const visibleHarnessExecutionPacketText = visibleHarnessExecutionResult\s+\? formatHarnessExecutionPacketForCopy\(visibleHarnessExecutionResult\)\s+: '';/,
+  /const visibleHarnessExecutionPacketText = canCopyVisibleHarnessExecutionPacket\s+\? formatHarnessExecutionPacketForCopy\(visibleHarnessExecutionResult\)\s+: '';/,
 );
 assert.match(
   appJs,
-  /const hiddenHarnessExecutionPacketText = hiddenHarnessExecutionResult\s+\? formatHarnessExecutionPacketForCopy\(hiddenHarnessExecutionResult\)\s+: '';/,
+  /const hiddenHarnessExecutionPacketText = canCopyHiddenHarnessExecutionPacket\s+\? formatHarnessExecutionPacketForCopy\(hiddenHarnessExecutionResult\)\s+: '';/,
 );
 assert.match(
   appJs,
@@ -48,6 +50,10 @@ console.log(
       harnessExecutionPacketBriefPresence: {
         formatter: 'formatHarnessExecutionPacketForCopy',
         labelSource: 'getHarnessExecutionBriefCopyStatusLabel',
+        namedPredicates: [
+          'canCopyVisibleHarnessExecutionPacket',
+          'canCopyHiddenHarnessExecutionPacket',
+        ],
         includes: ['output-brief presence', 'policy-report presence'],
       },
     },

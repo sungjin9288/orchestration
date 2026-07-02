@@ -20,13 +20,15 @@ assert.match(harnessLabels, /대표 하네스:/);
 assert.match(harnessLabels, /요청 ID:/);
 assert.match(harnessLabels, /정책 리포트:/);
 assert.match(appJs, /data-action="copy-harness-execution-packet"/);
+assert.match(appJs, /const canCopyVisibleHarnessExecutionPacket = Boolean\(visibleHarnessExecutionResult\);/);
+assert.match(appJs, /const canCopyHiddenHarnessExecutionPacket = Boolean\(hiddenHarnessExecutionResult\);/);
 assert.match(
   appJs,
-  /const visibleHarnessExecutionPacketText = visibleHarnessExecutionResult\s+\? formatHarnessExecutionPacketForCopy\(visibleHarnessExecutionResult\)\s+: '';/,
+  /const visibleHarnessExecutionPacketText = canCopyVisibleHarnessExecutionPacket\s+\? formatHarnessExecutionPacketForCopy\(visibleHarnessExecutionResult\)\s+: '';/,
 );
 assert.match(
   appJs,
-  /const hiddenHarnessExecutionPacketText = hiddenHarnessExecutionResult\s+\? formatHarnessExecutionPacketForCopy\(hiddenHarnessExecutionResult\)\s+: '';/,
+  /const hiddenHarnessExecutionPacketText = canCopyHiddenHarnessExecutionPacket\s+\? formatHarnessExecutionPacketForCopy\(hiddenHarnessExecutionResult\)\s+: '';/,
 );
 assert.match(
   appJs,
@@ -45,6 +47,8 @@ assert.match(appJs, /const unsupportedPacketCopyMessage = \(\) =>\s+'클립보�
 assert.match(appJs, /emptyErrorMessage: emptyPacketCopyMessage/);
 assert.match(appJs, /copiedMessage: copiedPacketMessage/);
 assert.match(appJs, /unsupportedMessage: unsupportedPacketCopyMessage/);
+assert.doesNotMatch(appJs, /const visibleHarnessExecutionPacketText = visibleHarnessExecutionResult/);
+assert.doesNotMatch(appJs, /const hiddenHarnessExecutionPacketText = hiddenHarnessExecutionResult/);
 assert.doesNotMatch(appJs, /copiedMessage: \(\) => '하네스 실행 패킷을 복사했습니다\.'/);
 assert.match(appJs, /copyHarnessExecutionPacket\(actionButton\.dataset\.executionPacketText\)/);
 assert.match(appJs, />\s*패킷 복사\s*</);
@@ -55,6 +59,10 @@ console.log(
       ok: true,
       harnessExecutionPacketCopy: {
         action: 'copy-harness-execution-packet',
+        namedPredicates: [
+          'canCopyVisibleHarnessExecutionPacket',
+          'canCopyHiddenHarnessExecutionPacket',
+        ],
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],
       },
     },
