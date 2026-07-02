@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness operator action label and tone rendering should name the operator-action presence before display selection. Keep helper calls in `ui/app.js`, but avoid checking `operatorAction` separately for each label or tone fallback after presence has already been derived.
+
 - Harness visible output-channel token rendering should name the output-file predicate before label and tone selection. Keep stdout versus output-file detection in `ui/app.js`, but avoid reading the latest result output path separately for the label and tone after the predicate has already been derived.
 
 - Harness history result actions should name their render predicates before history action-shelf markup. Keep history input path, output path, request id, policy-report payload, and preview text selection in `ui/app.js`, but avoid using those history values as implicit button conditions after they have already been derived.

@@ -1829,10 +1829,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessUsesOutputFile ? 'accent' : 'neutral';
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
-  const harnessOperatorActionLabel = operatorAction
+  const hasHarnessOperatorAction = Boolean(operatorAction);
+  const harnessOperatorActionLabel = hasHarnessOperatorAction
     ? getHarnessOperatorActionLabel(operatorAction)
     : '미확인';
-  const harnessOperatorActionTone = operatorAction
+  const harnessOperatorActionTone = hasHarnessOperatorAction
     ? getHarnessOperatorActionTone(operatorAction)
     : 'neutral';
   const harnessHostStateLabel = getHarnessBriefHostStateLabel({

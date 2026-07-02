@@ -21,14 +21,17 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-action-summary="true"/);
+assert.match(appJs, /const hasHarnessOperatorAction = Boolean\(operatorAction\);/);
 assert.match(appJs, /getHarnessOperatorActionLabel\(operatorAction\)/);
-assert.match(appJs, /const harnessOperatorActionLabel = operatorAction/);
-assert.match(appJs, /const harnessOperatorActionTone = operatorAction/);
+assert.match(appJs, /const harnessOperatorActionLabel = hasHarnessOperatorAction/);
+assert.match(appJs, /const harnessOperatorActionTone = hasHarnessOperatorAction/);
 assert.match(appJs, /const hiddenHarnessOperatorActionLabel = harnessOperatorActionLabel;/);
 assert.match(appJs, /const hiddenHarnessOperatorActionSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">/);
 assert.match(appJs, /\$\{hiddenHarnessOperatorActionSummaryMarkup\}/);
 assert.match(appJs, /createToken\(harnessOperatorActionLabel, harnessOperatorActionTone\)/);
 assert.match(appJs, /\$\{escapeHtml\(harnessOperatorActionLabel\)\}/);
+assert.doesNotMatch(appJs, /const harnessOperatorActionLabel = operatorAction/);
+assert.doesNotMatch(appJs, /const harnessOperatorActionTone = operatorAction/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>\$\{escapeHtml\(getHarnessOperatorActionLabel\(operatorAction\)\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">/);
 assert.doesNotMatch(appJs, /createToken\(getHarnessOperatorActionLabel\(operatorAction\), getHarnessOperatorActionTone\(operatorAction\)\)/);
 assert.doesNotMatch(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(getHarnessOperatorActionLabel\(operatorAction\)\)\}<\/strong>/);
@@ -117,6 +120,7 @@ async function main() {
             sourceMarker: 'data-harness-result-hidden-action-summary',
             route: '/api/harness/operator-action/run',
             namedValues: [
+              'hasHarnessOperatorAction',
               'harnessOperatorActionLabel',
               'harnessOperatorActionTone',
               'hiddenHarnessOperatorActionLabel',
