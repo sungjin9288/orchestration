@@ -5,10 +5,12 @@ import path from 'node:path';
 
 import executionCoordinatorModule from '../src/execution/execution-coordinator.js';
 import localStubAdapterModule from '../src/execution/providers/local-stub-adapter.js';
+import openaiResponsesAdapterModule from '../src/execution/providers/openai-responses-adapter.js';
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
 
 const { createExecutionCoordinator } = executionCoordinatorModule;
 const { createLocalStubProviderAdapter } = localStubAdapterModule;
+const { createOpenAIResponsesProviderAdapter } = openaiResponsesAdapterModule;
 const { createRuntimeService } = runtimeServiceModule;
 
 const repoRoot = process.cwd();
@@ -69,9 +71,118 @@ function scanFilesForSecret(rootPath, secret) {
   return matches;
 }
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function assertSecretAbsent(value, secret, label) {
+  assert.doesNotMatch(String(value || ''), new RegExp(escapeRegExp(secret)), label);
+}
+
+function createPlannerArtifactMarkdown(label) {
+  return `# Plan: ${label}
+
+## Slice Goal
+Verify provider-slice-01 planner provider boundary behavior on the current contract.
+
+## Intended Outcome
+Keep local-stub as the shipped default while planner live execution flows through openai-responses.
+
+## Acceptance Target
+- local-stub remains the default adapter
+- live mode fails closed without complete config
+- planner is a supported live role on openai-responses
+- non-allowlisted roles stay degraded and blocked
+
+## Verification Approach
+- synthetic provider smoke
+
+## Dependencies and Blockers
+- none
+
+## Expected Artifacts
+- plan
+
+## Worktree Need
+No.
+
+## Non-Goals
+- commit-package live execution
+- release or close-out changes
+`;
+}
+
+function createStructuredPlannerText({ artifactMarkdown, normalizedResult = {} }) {
+  return JSON.stringify({
+    artifactMarkdown,
+    normalizedResult: {
+      blockers: Array.isArray(normalizedResult.blockers) ? normalizedResult.blockers : [],
+      needsDecision: Boolean(normalizedResult.needsDecision),
+      nextStage: normalizedResult.nextStage || 'architect',
+      summary: normalizedResult.summary || 'Planner output is ready for architect handoff.',
+      decisionTitle: normalizedResult.decisionTitle || '',
+      decisionPrompt: normalizedResult.decisionPrompt || '',
+    },
+  });
+}
+
+function createResponse(status, payload) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    async text() {
+      return JSON.stringify(payload);
+    },
+  };
+}
+
+function createQueuedFetch(initialResponses = []) {
+  const queue = [...initialResponses];
+  const calls = [];
+
+  async function fetchImpl(url, init = {}) {
+    calls.push({
+      body: init.body || '',
+      headers: init.headers || {},
+      method: init.method || 'GET',
+      url,
+    });
+
+    if (queue.length === 0) {
+      throw new Error('No queued response for openai-responses fetch stub');
+    }
+
+    const next = queue.shift();
+
+    if (next && Object.prototype.hasOwnProperty.call(next, 'throwError')) {
+      throw next.throwError;
+    }
+
+    return createResponse(next.status ?? 200, next.payload ?? {});
+  }
+
+  return {
+    calls,
+    fetchImpl,
+  };
+}
+
+function collectTaskRunErrors(runtime, taskId) {
+  const snapshot = runtime.getSnapshot();
+  const runs = Object.values(snapshot.runs)
+    .filter((run) => run.taskId === taskId)
+    .sort((left, right) => (right.startedAt || '').localeCompare(left.startedAt || ''));
+
+  return runs.map((run) => ({
+    id: run.id,
+    error: run.summary?.error || null,
+    logs: runtime.getLogs(run.id),
+  }));
+}
+
 function createMalformedLiveProviderAdapter() {
   return {
-    name: 'live-provider',
+    name: 'openai-responses',
     getReadiness() {
       return {
         readiness: 'ready',
@@ -106,7 +217,8 @@ const appJsSource = fs.readFileSync(path.join(repoRoot, 'ui', 'app.js'), 'utf8')
 assert.match(serveUiSource, /providerExecutionSummaries/);
 assert.match(serveUiSource, /provider-config/);
 assert.match(appJsSource, /update-project-provider/);
-assert.match(appJsSource, /provider readiness:/);
+assert.match(appJsSource, /providerExecutionSummaries/);
+assert.match(appJsSource, /providerSummary\.readiness/);
 assert.match(appJsSource, /projectProviderMode/);
 
 const localStubCoordinator = createExecutionCoordinator({
@@ -122,7 +234,7 @@ const project = runtime.createProject({
 const task = runtime.createTask({
   projectId: project.id,
   title: 'provider-slice-01 local default smoke',
-  intent: 'Keep local-stub as the shipped default while adding explicit live opt-in plumbing.',
+  intent: 'Keep local-stub as the shipped default while validating explicit live opt-in plumbing.',
 });
 
 assert.equal(runtime.getProject(project.id).provider.mode, 'local-stub');
@@ -162,7 +274,7 @@ const invalidRunCountBefore = countRuns(runtime.getSnapshot(), task.id);
 const invalidArtifactCountBefore = countArtifacts(runtime.getSnapshot(), task.id);
 
 assert.equal(invalidReadiness.mode, 'live');
-assert.equal(invalidReadiness.adapter, 'live-provider');
+assert.equal(invalidReadiness.adapter, 'openai-responses');
 assert.equal(invalidReadiness.readiness, 'not-configured');
 assert.equal(invalidReadiness.allowed, false);
 assert.match(invalidReadiness.reasons.join('; '), /model is required/i);
@@ -195,29 +307,81 @@ runtime.setProjectProviderConfig({
   },
 });
 
-const degradedReadiness = localStubCoordinator.getProviderExecutionReadiness({
-  projectId: project.id,
+assert.equal(runtime.getProject(project.id).provider.adapter, 'openai-responses');
+
+const livePlannerArtifactMarkdown = createPlannerArtifactMarkdown('live-planner-boundary');
+const queuedFetch = createQueuedFetch([
+  {
+    payload: {
+      id: 'resp-provider-slice-01-planner',
+      model: 'gpt-4.1-mini',
+      output_text: createStructuredPlannerText({
+        artifactMarkdown: livePlannerArtifactMarkdown,
+      }),
+      usage: {
+        input_tokens: 10,
+        output_tokens: 20,
+        total_tokens: 30,
+      },
+    },
+  },
+]);
+const liveCoordinator = createExecutionCoordinator({
+  liveProviderAdapter: createOpenAIResponsesProviderAdapter({
+    fetchImpl: queuedFetch.fetchImpl,
+  }),
+  providerAdapter: createLocalStubProviderAdapter(),
+  repoRoot,
+  runtimeService: runtime,
 });
-const degradedRunCountBefore = countRuns(runtime.getSnapshot(), task.id);
-const degradedArtifactCountBefore = countArtifacts(runtime.getSnapshot(), task.id);
 
-assert.equal(degradedReadiness.readiness, 'degraded');
-assert.equal(degradedReadiness.allowed, false);
-assert.match(degradedReadiness.reasons.join('; '), /disabled in provider-slice-01/i);
+const plannerLiveReadiness = liveCoordinator.getProviderExecutionReadiness({
+  projectId: project.id,
+  role: 'planner',
+});
 
-await assert.rejects(
-  () =>
-    localStubCoordinator.runPlanner({
-      taskId: task.id,
-      routingOutcome: createRoutingOutcome(
-        'Fail closed without silently falling back to local-stub when live mode is disabled.',
-      ),
-    }),
-  /disabled in provider-slice-01/i,
+assert.equal(plannerLiveReadiness.mode, 'live');
+assert.equal(plannerLiveReadiness.adapter, 'openai-responses');
+assert.equal(plannerLiveReadiness.readiness, 'ready');
+assert.equal(plannerLiveReadiness.allowed, true);
+assert.deepEqual(plannerLiveReadiness.reasons, []);
+
+const blockedRoleReadiness = liveCoordinator.getProviderExecutionReadiness({
+  projectId: project.id,
+  role: 'commit-package',
+});
+
+assert.equal(blockedRoleReadiness.adapter, 'openai-responses');
+assert.equal(blockedRoleReadiness.readiness, 'degraded');
+assert.equal(blockedRoleReadiness.allowed, false);
+assert.match(
+  blockedRoleReadiness.reasons.join('; '),
+  /limited to planner, architect, task-breaker, builder-preflight, builder-live-mutation, and reviewer/i,
 );
+assert.match(blockedRoleReadiness.reasons.join('; '), /commit-package remains blocked/i);
 
-assert.equal(countRuns(runtime.getSnapshot(), task.id), degradedRunCountBefore);
-assert.equal(countArtifacts(runtime.getSnapshot(), task.id), degradedArtifactCountBefore);
+const liveTask = runtime.createTask({
+  projectId: project.id,
+  title: 'provider-slice-01 live planner boundary smoke',
+  intent: 'Run planner live through openai-responses on the current role allowlist.',
+});
+const livePlannerResult = await liveCoordinator.runPlanner({
+  taskId: liveTask.id,
+  routingOutcome: createRoutingOutcome(
+    'Run planner through openai-responses as a supported live role.',
+  ),
+});
+const livePlanArtifact = runtime.getArtifact(livePlannerResult.artifact.id);
+const livePlannerRequestBody = JSON.parse(queuedFetch.calls[0].body);
+
+assert.equal(queuedFetch.calls.length, 1);
+assert.equal(livePlannerResult.run.summary.adapter, 'openai-responses');
+assert.equal(livePlannerResult.run.summary.providerRunId, 'resp-provider-slice-01-planner');
+assert.equal(livePlanArtifact.content.trim(), livePlannerArtifactMarkdown.trim());
+assert.equal(livePlannerRequestBody.model, 'operator-chosen-model');
+assert.equal(livePlannerRequestBody.text.format.type, 'json_schema');
+assert.equal(livePlannerRequestBody.text.format.name, 'planner_artifact_response');
+assert.equal(queuedFetch.calls[0].headers.Authorization, `Bearer ${sentinelSecret}`);
 
 const malformedCoordinator = createExecutionCoordinator({
   providerAdapter: createLocalStubProviderAdapter(),
@@ -233,30 +397,40 @@ await assert.rejects(
     malformedCoordinator.runPlanner({
       taskId: task.id,
       routingOutcome: createRoutingOutcome(
-        'Reject malformed live-provider adapter responses after readiness passes.',
+        'Reject malformed openai-responses adapter responses after readiness passes.',
       ),
     }),
   /outputText is required/i,
 );
 
 const malformedSnapshot = runtime.getSnapshot();
-const malformedRun =
-  Object.values(malformedSnapshot.runs)
-    .filter((run) => run.taskId === task.id)
-    .sort((left, right) => (right.startedAt || '').localeCompare(left.startedAt || ''))[0] || null;
-const malformedLogs = malformedRun ? runtime.getLogs(malformedRun.id) : [];
+const malformedTaskRuns = collectTaskRunErrors(runtime, task.id);
+const malformedRun = malformedTaskRuns[0] || null;
 
 assert.equal(countRuns(malformedSnapshot, task.id), malformedRunCountBefore + 1);
 assert.equal(countArtifacts(malformedSnapshot, task.id, 'plan'), malformedPlanArtifactCountBefore);
-assert.equal(malformedRun?.summary?.error, 'Provider adapter response outputText is required');
+assert.equal(malformedRun?.error, 'Provider adapter response outputText is required');
 assert.match(
-  malformedLogs.map((entry) => entry.message).join('\n'),
-  /invoking provider adapter live-provider/i,
+  (malformedRun?.logs || []).map((entry) => entry.message).join('\n'),
+  /invoking provider adapter openai-responses/i,
 );
 assert.doesNotMatch(
-  malformedLogs.map((entry) => entry.message).join('\n'),
+  (malformedRun?.logs || []).map((entry) => entry.message).join('\n'),
   /local-stub/i,
 );
+
+const snapshotPayload = runtime.getSnapshot();
+assertSecretAbsent(JSON.stringify(snapshotPayload), sentinelSecret, 'snapshot payload');
+
+for (const run of Object.values(snapshotPayload.runs)) {
+  const logs = runtime.getLogs(run.id);
+  assertSecretAbsent(JSON.stringify(logs), sentinelSecret, `logs ${run.id}`);
+}
+
+for (const artifact of Object.values(snapshotPayload.artifacts)) {
+  const artifactPayload = runtime.getArtifact(artifact.id);
+  assertSecretAbsent(JSON.stringify(artifactPayload), sentinelSecret, `artifact ${artifact.id}`);
+}
 
 const secretMatches = scanFilesForSecret(runtimeRoot, sentinelSecret);
 
@@ -271,7 +445,10 @@ console.log(
       taskId: task.id,
       defaultReadiness: defaultReadiness.readiness,
       invalidReadiness: invalidReadiness.readiness,
-      degradedReadiness: degradedReadiness.readiness,
+      plannerLiveReadiness: plannerLiveReadiness.readiness,
+      blockedRoleReadiness: blockedRoleReadiness.readiness,
+      livePlannerAdapter: livePlannerResult.run.summary.adapter,
+      livePlannerRunId: livePlannerResult.run.summary.providerRunId,
       malformedRunId: malformedRun?.id || null,
     },
     null,

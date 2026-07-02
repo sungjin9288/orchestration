@@ -6,11 +6,13 @@ import path from 'node:path';
 import executionCoordinatorModule from '../src/execution/execution-coordinator.js';
 import localStubAdapterModule from '../src/execution/providers/local-stub-adapter.js';
 import openaiResponsesAdapterModule from '../src/execution/providers/openai-responses-adapter.js';
+import retryPolicyModule from '../src/execution/providers/openai-responses-retry-policy.js';
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
 
 const { createExecutionCoordinator } = executionCoordinatorModule;
 const { createLocalStubProviderAdapter } = localStubAdapterModule;
 const { createOpenAIResponsesProviderAdapter } = openaiResponsesAdapterModule;
+const { DEFAULT_OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS } = retryPolicyModule;
 const { createRuntimeService } = runtimeServiceModule;
 
 const repoRoot = process.cwd();
@@ -223,9 +225,21 @@ function createQueuedFetch(initialResponses = []) {
     calls,
     fetchImpl,
     push(response) {
+      if (Array.isArray(response)) {
+        queue.push(...response);
+        return;
+      }
+
       queue.push(response);
     },
   };
+}
+
+function createTerminalStatusResponses(status, payload) {
+  return Array.from({ length: DEFAULT_OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS + 1 }, () => ({
+    status,
+    payload,
+  }));
 }
 
 function createPlannerApiPayload(label, options = {}) {
@@ -299,6 +313,9 @@ function createLiveCoordinator(runtime, fetchImpl) {
   return createExecutionCoordinator({
     liveProviderAdapter: createOpenAIResponsesProviderAdapter({
       fetchImpl,
+      // Keep the smoke fast: exercise the real retry attempt budget while
+      // shrinking the adapter-supported retry delay override to zero.
+      retryDelayMs: 0,
     }),
     providerAdapter: createLocalStubProviderAdapter(),
     repoRoot,
@@ -353,6 +370,7 @@ async function runPlannerForTask({ coordinator, projectId, runtime, label, inten
 
 async function assertArchitectFailure({
   errorPattern,
+  expectedArchitectFetchCalls = 1,
   projectId,
   runtime,
   label,
@@ -375,19 +393,29 @@ async function assertArchitectFailure({
     context.planArtifact.id,
     context.plannerResult.run.id,
   );
-  queuedFetch.push(
+  const resolvedArchitectResponses = [
     typeof architectResponse === 'function' ? architectResponse(anchor) : architectResponse,
-  );
+  ].flat();
+
+  for (const resolvedResponse of resolvedArchitectResponses) {
+    queuedFetch.push(resolvedResponse);
+  }
 
   const runCountBefore = countRuns(runtime.getSnapshot(), context.task.id);
   const artifactCountBefore = countArtifacts(runtime.getSnapshot(), context.task.id, 'architecture');
   const decisionCountBefore = countPendingDecisionItems(runtime.getSnapshot(), context.task.id);
+  const fetchCallCountBefore = queuedFetch.calls.length;
 
   await assert.rejects(() => failingCoordinator.runArchitect({ taskId: context.task.id }), errorPattern);
 
   const snapshot = runtime.getSnapshot();
   const taskRuns = collectTaskRunErrors(runtime, context.task.id);
 
+  assert.equal(
+    queuedFetch.calls.length,
+    fetchCallCountBefore + expectedArchitectFetchCalls,
+    `${label} must observe ${expectedArchitectFetchCalls} architect fetch attempt(s)`,
+  );
   assert.equal(countRuns(snapshot, context.task.id), runCountBefore + 1);
   assert.equal(countArtifacts(snapshot, context.task.id, 'architecture'), artifactCountBefore);
   assert.equal(countPendingDecisionItems(snapshot, context.task.id), decisionCountBefore);
@@ -720,18 +748,17 @@ await assertArchitectFailure({
 
 await assertArchitectFailure({
   errorPattern: /status 429/i,
+  expectedArchitectFetchCalls: DEFAULT_OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS + 1,
   projectId: liveProject.id,
   runtime,
   label: 'architect quota failure',
   plannerResponse: createPlannerApiPayload('architect-quota-failure'),
-  architectResponse: () => ({
-    status: 429,
-    payload: {
+  architectResponse: () =>
+    createTerminalStatusResponses(429, {
       error: {
         message: 'Rate limited',
       },
-    },
-  }),
+    }),
 });
 
 await assertArchitectFailure({

@@ -6,11 +6,13 @@ import path from 'node:path';
 import executionCoordinatorModule from '../src/execution/execution-coordinator.js';
 import localStubAdapterModule from '../src/execution/providers/local-stub-adapter.js';
 import openaiResponsesAdapterModule from '../src/execution/providers/openai-responses-adapter.js';
+import retryPolicyModule from '../src/execution/providers/openai-responses-retry-policy.js';
 import runtimeServiceModule from '../src/runtime/runtime-service.js';
 
 const { createExecutionCoordinator } = executionCoordinatorModule;
 const { createLocalStubProviderAdapter } = localStubAdapterModule;
 const { createOpenAIResponsesProviderAdapter } = openaiResponsesAdapterModule;
+const { DEFAULT_OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS } = retryPolicyModule;
 const { createRuntimeService } = runtimeServiceModule;
 
 const repoRoot = process.cwd();
@@ -370,6 +372,9 @@ function createLiveCoordinator(runtime, fetchImpl) {
   return createExecutionCoordinator({
     liveProviderAdapter: createOpenAIResponsesProviderAdapter({
       fetchImpl,
+      // Keep the smoke fast: exercise the real retry attempt budget while
+      // shrinking the adapter-supported retry delay override to zero.
+      retryDelayMs: 0,
     }),
     providerAdapter: createLocalStubProviderAdapter(),
     repoRoot,
@@ -469,6 +474,13 @@ async function runPlannerAndArchitectForTask({
   };
 }
 
+function createTerminalStatusResponses(status, payload) {
+  return Array.from({ length: DEFAULT_OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS + 1 }, () => ({
+    status,
+    payload,
+  }));
+}
+
 async function assertTaskBreakerFailure({
   errorPattern,
   projectId,
@@ -499,11 +511,15 @@ async function assertTaskBreakerFailure({
     context.architectResult.run.id,
   );
 
-  queuedFetch.push(
+  const resolvedTaskBreakerResponses = [
     typeof taskBreakerResponse === 'function'
       ? taskBreakerResponse(anchor)
       : taskBreakerResponse,
-  );
+  ].flat();
+
+  for (const resolvedResponse of resolvedTaskBreakerResponses) {
+    queuedFetch.push(resolvedResponse);
+  }
 
   const runCountBefore = countRuns(runtime.getSnapshot(), context.task.id);
   const artifactCountBefore = countArtifacts(runtime.getSnapshot(), context.task.id, 'breakdown');
@@ -936,14 +952,12 @@ await assertTaskBreakerFailure({
   label: 'task-breaker quota failure',
   plannerResponse: createPlannerApiPayload('task-breaker-quota-failure'),
   architectResponse: (anchor) => createArchitectApiPayload(anchor),
-  taskBreakerResponse: () => ({
-    status: 429,
-    payload: {
+  taskBreakerResponse: () =>
+    createTerminalStatusResponses(429, {
       error: {
         message: 'Rate limited',
       },
-    },
-  }),
+    }),
 });
 
 await assertTaskBreakerFailure({
