@@ -35,43 +35,17 @@ for (const line of lines) {
 }
 
 const trackedBuckets = {
-  policyContracts: [
-    'docs/00_master-brief.md',
-    'docs/01_decision-log.md',
-    'docs/02_ia-v1.md',
-    'docs/03_architecture-roadmap-v1.md',
-    'packs/development/pack.md',
-    'tasks/lessons.md',
-    'tasks/todo.md',
-  ],
-  runtimeRetention: [
-    'scripts/serve-ui-slice-01.mjs',
-    'src/runtime/contracts.js',
-    'src/runtime/file-store.js',
-    'src/runtime/runtime-service.js',
-  ],
-  shellUi: [
-    'scripts/smoke-ui-slice-02.mjs',
-    'ui/app.js',
-    'ui/index.html',
-    'ui/styles.css',
-  ],
-  browserCoverage: [
-    'scripts/smoke-qa-slice-01.mjs',
-    'scripts/smoke-qa-slice-02.mjs',
-  ],
+  // The 2026-04 dirty baseline was committed; every cleanup-readiness bucket is now empty.
+  policyContracts: [],
+  runtimeRetention: [],
+  shellUi: [],
+  browserCoverage: [],
 };
 
 const untrackedBuckets = {
-  pivotDocs: [
-    'docs/06_ai-orchestration-pivot.md',
-    'docs/07_mission-council-slice-m6-02.md',
-  ],
-  retentionSmokes: [
-    'scripts/smoke-retention-slice-01.mjs',
-    'scripts/smoke-retention-slice-02.mjs',
-  ],
-  uiSliceSmokes: Array.from({ length: 66 - 13 + 1 }, (_, index) => `scripts/smoke-ui-slice-${index + 13}.mjs`),
+  pivotDocs: [],
+  retentionSmokes: [],
+  uiSliceSmokes: [],
 };
 
 const expectedTracked = Object.values(trackedBuckets).flat().sort();
@@ -80,13 +54,13 @@ const expectedUntracked = Object.values(untrackedBuckets).flat().sort();
 assert.deepEqual([...trackedModified].sort(), expectedTracked, 'Tracked modified inventory drifted from cleanup-readiness buckets.');
 assert.deepEqual([...untracked].sort(), expectedUntracked, 'Untracked inventory drifted from cleanup-readiness buckets.');
 
-assert.equal(trackedBuckets.policyContracts.length, 7);
-assert.equal(trackedBuckets.runtimeRetention.length, 4);
-assert.equal(trackedBuckets.shellUi.length, 4);
-assert.equal(trackedBuckets.browserCoverage.length, 2);
-assert.equal(untrackedBuckets.pivotDocs.length, 2);
-assert.equal(untrackedBuckets.retentionSmokes.length, 2);
-assert.equal(untrackedBuckets.uiSliceSmokes.length, 54);
+assert.equal(trackedBuckets.policyContracts.length, 0);
+assert.equal(trackedBuckets.runtimeRetention.length, 0);
+assert.equal(trackedBuckets.shellUi.length, 0);
+assert.equal(trackedBuckets.browserCoverage.length, 0);
+assert.equal(untrackedBuckets.pivotDocs.length, 0);
+assert.equal(untrackedBuckets.retentionSmokes.length, 0);
+assert.equal(untrackedBuckets.uiSliceSmokes.length, 0);
 
 assert.match(
   todo,

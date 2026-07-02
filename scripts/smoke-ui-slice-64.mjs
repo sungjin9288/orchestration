@@ -37,31 +37,11 @@ for (const line of lines) {
 }
 
 const expectedTrackedModified = [
-  'docs/00_master-brief.md',
-  'docs/01_decision-log.md',
-  'docs/02_ia-v1.md',
-  'docs/03_architecture-roadmap-v1.md',
-  'packs/development/pack.md',
-  'scripts/serve-ui-slice-01.mjs',
-  'scripts/smoke-qa-slice-01.mjs',
-  'scripts/smoke-qa-slice-02.mjs',
-  'scripts/smoke-ui-slice-02.mjs',
-  'src/runtime/contracts.js',
-  'src/runtime/file-store.js',
-  'src/runtime/runtime-service.js',
-  'tasks/lessons.md',
-  'tasks/todo.md',
-  'ui/app.js',
-  'ui/index.html',
-  'ui/styles.css',
+  // The 2026-04 dirty hygiene baseline was committed; the known baseline is now a clean worktree.
 ].sort();
 
 const expectedUntracked = [
-  'docs/06_ai-orchestration-pivot.md',
-  'docs/07_mission-council-slice-m6-02.md',
-  'scripts/smoke-retention-slice-01.mjs',
-  'scripts/smoke-retention-slice-02.mjs',
-  ...Array.from({ length: 66 - 13 + 1 }, (_, index) => `scripts/smoke-ui-slice-${index + 13}.mjs`),
+  // The 2026-04 untracked additions were committed; the known baseline is now a clean worktree.
 ].sort();
 
 assert.deepEqual(
