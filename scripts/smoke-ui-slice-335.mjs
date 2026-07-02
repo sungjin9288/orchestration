@@ -21,10 +21,13 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-kind-summary="true"/);
-assert.match(appJs, /const hiddenHarnessKindValue = statusCard\.primaryKind \|\| '미확인';/);
+assert.match(appJs, /function getHarnessStatusSummaryValue\(value\) \{/);
+assert.match(appJs, /return value \|\| '미확인';/);
+assert.match(appJs, /const hiddenHarnessKindValue = getHarnessStatusSummaryValue\(statusCard\.primaryKind\);/);
 assert.match(appJs, /const hiddenHarnessKindSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">/);
 assert.match(appJs, /\$\{hiddenHarnessKindSummaryMarkup\}/);
 assert.match(appJs, /하네스 종류: <code>\$\{escapeHtml\(hiddenHarnessKindValue\)\}<\/code>/);
+assert.doesNotMatch(appJs, /const hiddenHarnessKindValue = statusCard\.primaryKind \|\| '미확인';/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">하네스 종류: <code>\$\{escapeHtml\(statusCard\.primaryKind \|\| '미확인'\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-command-summary="true">/);
 
 async function fetchJson(url, options = {}) {
@@ -108,6 +111,7 @@ async function main() {
           ok: true,
           harnessExecutionHiddenKindSummary: {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenKindSummary->statusCardPrimaryKind',
+            helper: 'getHarnessStatusSummaryValue',
             sourceMarker: 'data-harness-result-hidden-kind-summary',
             namedValues: ['hiddenHarnessKindValue', 'hiddenHarnessKindSummaryMarkup'],
             route: '/api/harness/operator-action/run',

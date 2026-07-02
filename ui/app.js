@@ -1667,6 +1667,10 @@ function getHarnessInputSummaryValue(inputPath) {
   return inputPath || '경로 없음';
 }
 
+function getHarnessStatusSummaryValue(value) {
+  return value || '미확인';
+}
+
 function getHarnessExecutionPreviewText(execution) {
   return execution?.outputPreview || execution?.stdoutPreview || '';
 }
@@ -1929,10 +1933,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(visibleHarnessOutputLabel)}: <code>${escapeHtml(visibleHarnessOutputSummaryValue)}</code></p>`;
   const hiddenHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>`;
   const hiddenHarnessHandoffSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(hiddenHarnessHandoffText)}</code></p>`;
-  const hiddenHarnessKindValue = statusCard.primaryKind || '미확인';
-  const hiddenHarnessPrimaryCommandValue = statusCard.primaryCommand || '미확인';
-  const hiddenHarnessPrimaryRunnerValue = statusCard.primaryRunner || '미확인';
-  const hiddenHarnessPostureValue = statusCard.primaryPosture || '미확인';
+  const hiddenHarnessKindValue = getHarnessStatusSummaryValue(statusCard.primaryKind);
+  const hiddenHarnessPrimaryCommandValue =
+    getHarnessStatusSummaryValue(statusCard.primaryCommand);
+  const hiddenHarnessPrimaryRunnerValue =
+    getHarnessStatusSummaryValue(statusCard.primaryRunner);
+  const hiddenHarnessPostureValue = getHarnessStatusSummaryValue(statusCard.primaryPosture);
   const hiddenHarnessStateValue = statusCard.primaryHarnessState;
   const hiddenHarnessIdSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>${escapeHtml(primaryHarnessId)}</code></p>`;
   const hiddenHarnessKindSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">하네스 종류: <code>${escapeHtml(hiddenHarnessKindValue)}</code></p>`;

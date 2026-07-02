@@ -22,8 +22,13 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /const hiddenHarnessPostureSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-posture-summary="true">대표 정책: <code>\$\{escapeHtml\(statusCard\.primaryPosture \|\| '미확인'\)\}<\/code><\/p>`;/,
+  /const hiddenHarnessPostureValue = getHarnessStatusSummaryValue\(statusCard\.primaryPosture\);/,
 );
+assert.match(
+  appJs,
+  /const hiddenHarnessPostureSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-posture-summary="true">대표 정책: <code>\$\{escapeHtml\(hiddenHarnessPostureValue\)\}<\/code><\/p>`;/,
+);
+assert.doesNotMatch(appJs, /statusCard\.primaryPosture \|\| '미확인'/);
 assert.match(appJs, /\$\{hiddenHarnessPostureSummaryMarkup\}/);
 
 async function fetchJson(url, options = {}) {

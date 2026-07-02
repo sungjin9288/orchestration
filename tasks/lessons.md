@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness hidden status-card fallback values should flow through one named helper before hidden summaries render. Keep `미확인` wording in `ui/app.js`, but avoid repeating `statusCard.primary* || '미확인'` across each status summary value.
+
 - Harness history request fallback labels should flow through one named helper before request summaries render. Keep `최근 N` wording in `ui/app.js`, but avoid choosing request-id fallback copy inside history row assembly.
 
 - Harness input summary fallback values should flow through one named helper before history summaries render. Keep `경로 없음` wording in `ui/app.js`, but avoid repeating path fallback logic inside history row assembly.

@@ -21,10 +21,16 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-primary-command-summary="true"/);
-assert.match(appJs, /const hiddenHarnessPrimaryCommandValue = statusCard\.primaryCommand \|\| '미확인';/);
+assert.match(appJs, /function getHarnessStatusSummaryValue\(value\) \{/);
+assert.match(appJs, /return value \|\| '미확인';/);
+assert.match(
+  appJs,
+  /const hiddenHarnessPrimaryCommandValue =\s+getHarnessStatusSummaryValue\(statusCard\.primaryCommand\);/,
+);
 assert.match(appJs, /const hiddenHarnessPrimaryCommandSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-command-summary="true">/);
 assert.match(appJs, /대표 명령: <code>\$\{escapeHtml\(hiddenHarnessPrimaryCommandValue\)\}<\/code>/);
 assert.match(appJs, /\$\{hiddenHarnessPrimaryCommandSummaryMarkup\}/);
+assert.doesNotMatch(appJs, /const hiddenHarnessPrimaryCommandValue = statusCard\.primaryCommand \|\| '미확인';/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-command-summary="true">대표 명령: <code>\$\{escapeHtml\(statusCard\.primaryCommand \|\| '미확인'\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-runner-summary="true">/);
 
 async function fetchJson(url, options = {}) {
@@ -108,6 +114,7 @@ async function main() {
           ok: true,
           harnessExecutionHiddenPrimaryCommandSummary: {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenPrimaryCommandSummary->statusCardPrimaryCommand',
+            helper: 'getHarnessStatusSummaryValue',
             sourceMarker: 'data-harness-result-hidden-primary-command-summary',
             route: '/api/harness/operator-action/run',
             namedValues: [
