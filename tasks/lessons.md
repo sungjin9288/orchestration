@@ -2,6 +2,10 @@
 
 ## direction resets
 
+- README product-planning or current-focus claims should be pinned by `scripts/smoke-readme-scope-evidence.mjs` in the same slice. When the README names helper lanes, focused smokes, or aggregate counts, rerun the matching focused smokes and `verification_status.mjs` before committing the public claim.
+
+- Workspace playbook smoke assertions should follow the app's current shared hint model. If `ui/app.js` consolidates per-surface result or next hints into a shared fallback, update `scripts/smoke-ui-slice-637.mjs` to assert the shared copy and fallback boundary instead of stale per-surface strings.
+
 - Harness hidden status-card fallback values should flow through one named helper before hidden summaries render. Keep `미확인` wording in `ui/app.js`, but avoid repeating `statusCard.primary* || '미확인'` across each status summary value.
 
 - Harness history request fallback labels should flow through one named helper before request summaries render. Keep `최근 N` wording in `ui/app.js`, but avoid choosing request-id fallback copy inside history row assembly.

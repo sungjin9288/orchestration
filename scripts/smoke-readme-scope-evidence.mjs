@@ -50,6 +50,8 @@ const uiSmokeFileCount = countScripts((name) => /^smoke-ui-slice-.*\.mjs$/.test(
 const requiredSections = [
   '# Orchestration 1.0',
   '## Why I Built This',
+  '## Product Planning',
+  '## Current Development Focus',
   '## Features',
   '## Tech Stack',
   '## Architecture',
@@ -69,6 +71,12 @@ for (const section of requiredSections) {
 }
 
 assert.match(readme, /PoC \/ MVP-quality local project/);
+assert.match(readme, /local-first AI work operating system/);
+assert.match(readme, /Mission \/ Council \/ Execution \/ Deliverables/);
+assert.match(readme, /Taskboard \/ Logs \/ Artifacts \/ Decision Inbox/);
+assert.match(readme, /Planning source files:/);
+assert.match(readme, /docs\/06_ai-orchestration-pivot\.md/);
+assert.match(readme, /packs\/development\/pack\.md/);
 assert.match(readme, /root `package\.json` is not present/);
 assert.match(readme, /Root `\.env\.example` is not present/);
 assert.match(readme, /No public hosted demo URL is verified/);
@@ -78,6 +86,14 @@ assert.match(readme, /"plannerArtifactId": "artifact-0001"/);
 assert.match(readme, /Reference-driven operator shell/);
 assert.match(readme, /Read-only growth evidence/);
 assert.match(readme, /Local-only personalization/);
+assert.match(readme, /Advanced Ops harness evidence/);
+assert.match(readme, /The latest implementation lane closed the Advanced Ops harness readability pass/);
+assert.match(readme, /Repeated fallback and display rules for harness output, input, request labels/);
+assert.match(readme, /Focused harness smokes:/);
+assert.match(readme, /scripts\/smoke-ui-slice-328\.mjs/);
+assert.match(readme, /scripts\/smoke-ui-slice-334\.mjs/);
+assert.match(readme, /scripts\/smoke-ui-slice-621\.mjs/);
+assert.match(readme, /scripts\/smoke-ui-slice-628\.mjs/);
 assert.match(readme, /Opt-in knowledge-work pack/);
 assert.match(readme, /`knowledge-work` pack is explicit opt-in/);
 assert.match(readme, /does not replace the `development` pack/);
@@ -205,6 +221,12 @@ assert.match(
   /vnext-proposal-application-source-mutation-planning-plan-status\.mjs/,
 );
 assert.match(appJs, /data-growth-learning-surface="read-only"/);
+assert.match(appJs, /function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/);
+assert.match(appJs, /function getHarnessHistoryRequestLabel\(requestId, index\) \{/);
+assert.match(appJs, /function getHarnessOutputSummaryValue\(outputPath\) \{/);
+assert.match(appJs, /function getHarnessInputSummaryValue\(inputPath\) \{/);
+assert.match(appJs, /function getHarnessStatusSummaryValue\(value\) \{/);
+assert.match(appJs, /function isHarnessPolicyReportExecution\(execution\) \{/);
 assert.match(appJs, /data-personalization-scope="local-only"/);
 assert.match(appJs, /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/);
 assert.match(appJs, /data-proposal-record-persistence-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordPersistenceAllowed\}"/);

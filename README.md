@@ -14,6 +14,63 @@ plane layer directly: a local project is registered, a mission or task is create
 through bounded stages, and every meaningful output is inspectable through logs, artifacts, review,
 and approvals.
 
+## Product Planning
+
+We planned Orchestration as a local-first AI work operating system, not as a generic chatbot, hosted
+team platform, or provider marketplace. The first planning decision was to make the product useful
+for one operator managing real local repo work: every task must belong to a selected project, every
+execution must carry `project_path`, and review or approval gates must be visible before work is
+treated as complete.
+
+The initial v1 product plan centered on an ops-first development control plane. `Taskboard`, `Logs`,
+`Artifacts`, and `Decision Inbox` were defined as the authoritative operator surfaces, while the
+default workflow stayed intentionally narrow around the `development` pack: planner, architect,
+task-breaker, builder preflight, approval-gated builder live mutation, reviewer, commit-package,
+local commit, release-package, and close-out. This kept the product focused on inspectable local
+execution instead of broad automation.
+
+After the v1 control-plane baseline, the planning direction shifted toward a more legible
+AI-orchestration product experience: a user starts from a goal, sees multiple AI roles align around a
+mission, watches bounded execution progress, and receives evidence-backed deliverables. That is why
+the current primary shell is organized around `Mission / Council / Execution / Deliverables`, while
+the original `Taskboard / Logs / Artifacts / Decision Inbox` surfaces remain available as advanced
+ops mode and source-of-truth controls.
+
+We also planned explicit boundaries. The product does not pursue messenger-first collaboration,
+ranking or gamification, budget/HR/org simulation, OAuth-first platform expansion, hidden source
+mutation, self-commit, self-push, or multi-provider-first architecture. The code-present
+`knowledge-work` pack is treated as an explicit opt-in path for bounded non-coding deliverables such
+as decision memos, plans, checklists, and research briefs; it does not replace the default
+`development` workflow or open a pack marketplace.
+
+Planning source files:
+
+- `docs/00_master-brief.md`
+- `docs/01_decision-log.md`
+- `docs/03_architecture-roadmap-v1.md`
+- `docs/06_ai-orchestration-pivot.md`
+- `packs/development/pack.md`
+- `packs/knowledge-work/pack.md`
+
+## Current Development Focus
+
+The latest implementation lane closed the Advanced Ops harness readability pass without changing
+runtime authority. Repeated fallback and display rules for harness output, input, request labels,
+preview text, policy-report mode, executed-at labels, output-channel tokens, and hidden status-card
+summaries now flow through named helpers before the render markup consumes them. The app shell still
+owns browser state, output-brief state, policy-report parsing, clipboard actions, rerun actions,
+runtime mutation, provider calls, source mutation, commit, and push boundaries.
+
+Current source-backed evidence:
+
+- UI ownership and helper flow: `ui/app.js`, `ui/harness-labels.js`, `ui/harness-brief-labels.js`,
+  and `ui/harness-state.js`
+- Focused harness smokes: `scripts/smoke-ui-slice-328.mjs`, `334`, `335`, `336`, `337`, `380`,
+  `382`, `383`, `384`, `385`, `386`, `387`, `388`, `605`, `606`, `613`, `616`, `620`, `621`,
+  `625`, `626`, and `628`
+- README evidence gate: `scripts/smoke-readme-scope-evidence.mjs`
+- Aggregate gate: `scripts/verification_status.mjs`
+
 ## Features
 
 | Feature | Evidence-backed scope |
@@ -24,6 +81,7 @@ and approvals.
 | Reference-driven operator shell | `docs/reference/vnext-reference-driven-ui-audit.md` records what was adopted or rejected from Linear, LangSmith Studio, Retool, Dify, n8n HITL, Zapier, and NN/g before the UI refresh. |
 | Read-only growth evidence | The shell exposes `성장 증거 원장`, `개선 후보 대기열` drilldown, grouped failure patterns, current-snapshot regression comparison, rollback evidence links, and a blocked `제안 검토 게이트` as evidence-derived views; `scripts/smoke-ui-slice-649.mjs` pins that they do not call providers, persist memory, create/persist durable proposal records, mutate source, generate/apply proposals, commit, or push. |
 | Local-only personalization | Recent desks, evidence density, preferred project hints, copyable preference review, preference reset/set controls, and a blocked long-term memory readiness gate stay local-only; browser `localStorage` under `orchestration.ui-preferences.v1` only changes shell convenience and the review packet is not an import/apply path. |
+| Advanced Ops harness evidence | Harness execution output, input, preview, request, policy-report, executed-at, output-channel, and hidden status summaries use named helper flows in `ui/app.js` while the focused `smoke-ui-slice-*` scripts keep action, runtime, provider, source mutation, commit, and push boundaries unchanged. |
 | Authority expansion review | `docs/26_authority-expansion-review-spec.md` records the shared read-only request contract for future durable proposal records, memory persistence, provider calls, or source mutation; it does not approve implementation or open any authority. |
 | Development pack loop | The implemented pack flow is documented in `packs/development/pack.md`: planner, architect, task-breaker, builder preflight, builder live mutation, reviewer, commit-package, local commit, release-package, close-out. |
 | Opt-in knowledge-work pack | `packs/knowledge-work/pack.md` defines an explicit opt-in path for bounded non-coding deliverables such as decision memos, plans, checklists, and research briefs; it does not replace the `development` pack or open a pack marketplace. |
@@ -301,6 +359,28 @@ node scripts/run-smoke.mjs --all --fail-fast
 Representative verification commands:
 
 ```bash
+node scripts/smoke-ui-slice-328.mjs
+node scripts/smoke-ui-slice-334.mjs
+node scripts/smoke-ui-slice-335.mjs
+node scripts/smoke-ui-slice-336.mjs
+node scripts/smoke-ui-slice-337.mjs
+node scripts/smoke-ui-slice-380.mjs
+node scripts/smoke-ui-slice-382.mjs
+node scripts/smoke-ui-slice-383.mjs
+node scripts/smoke-ui-slice-384.mjs
+node scripts/smoke-ui-slice-385.mjs
+node scripts/smoke-ui-slice-386.mjs
+node scripts/smoke-ui-slice-387.mjs
+node scripts/smoke-ui-slice-388.mjs
+node scripts/smoke-ui-slice-605.mjs
+node scripts/smoke-ui-slice-606.mjs
+node scripts/smoke-ui-slice-613.mjs
+node scripts/smoke-ui-slice-616.mjs
+node scripts/smoke-ui-slice-620.mjs
+node scripts/smoke-ui-slice-621.mjs
+node scripts/smoke-ui-slice-625.mjs
+node scripts/smoke-ui-slice-626.mjs
+node scripts/smoke-ui-slice-628.mjs
 node scripts/smoke-ui-slice-649.mjs
 node scripts/vnext-growth-dashboard-evidence-depth-status.mjs
 node scripts/vnext-memory-readiness-decision-spec-status.mjs
@@ -328,6 +408,11 @@ node scripts/smoke-qa-slice-07.mjs
 
 Current verification evidence from this README refresh:
 
+- `node scripts/smoke-ui-slice-328.mjs`, `334`, `335`, `336`, `337`, `380`, `382`, `383`, `384`,
+  `385`, `386`, `387`, `388`, `605`, `606`, `613`, `616`, `620`, `621`, `625`, `626`, and `628`:
+  harness helper-focused smokes for executed-at labels, hidden status summaries, output-channel
+  tokens, visible token labels, policy-report predicates, preview text, request labels, input/output
+  summary fallback values, result state tokens, and hidden/history output-brief action rendering.
 - `node scripts/smoke-ui-slice-649.mjs`: reference-driven shell markers, read-only growth candidate
   drilldown, grouped failure patterns, regression comparison, rollback evidence links, blocked
   proposal-review preview, local-only personalization settings, and blocked provider/memory/
@@ -403,7 +488,7 @@ Current verification evidence from this README refresh:
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `27/27`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `161/161`, total `162/162`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `162/162`, total `163/163`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -412,10 +497,6 @@ Current verification evidence from this README refresh:
   proposal application implementation decision handoff, proposal application attempt creation smoke,
   proposal application implementation status, source mutation decision packet, source mutation
   operator handoff, and source mutation planning plan checks.
-- `node scripts/smoke-qa-slice-07.mjs`: representative local browser/runtime QA path covering
-  Mission, linked task, builder approval, builder live mutation, reviewer, artifacts, logs, and
-  duplicate guards.
-
 Recent local visual QA evidence for the refreshed shell was captured with the local UI server and
 Playwright CLI:
 
