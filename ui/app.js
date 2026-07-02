@@ -1595,6 +1595,26 @@ function getHarnessExecutionTimestampLabel(execution, fallbackLabel = '기록 �
   return formatDate(execution.executedAt);
 }
 
+function getHarnessPrimaryTokenLabel(execution) {
+  if (!execution?.harnessId) {
+    return '';
+  }
+
+  return `대표:${execution.harnessId}`;
+}
+
+function getHarnessRequestTokenLabel(requestId) {
+  if (!requestId) {
+    return '';
+  }
+
+  return `요청:${requestId}`;
+}
+
+function getHarnessPolicyReportTokenLabel(isPolicyReport) {
+  return isPolicyReport ? '정책 리포트' : '';
+}
+
 function getHarnessExecutionPacketContext(execution) {
   const handoffContext = getHarnessExecutionHandoffContext(execution);
 
@@ -1782,12 +1802,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     hiddenHarnessExecutionResult,
     '',
   );
-  const visibleHarnessPrimaryTokenLabel = visibleHarnessExecutionResult?.harnessId
-    ? `대표:${visibleHarnessExecutionResult.harnessId}`
-    : '';
-  const visibleHarnessRequestTokenLabel = visibleHarnessRequestId
-    ? `요청:${visibleHarnessRequestId}`
-    : '';
+  const visibleHarnessPrimaryTokenLabel =
+    getHarnessPrimaryTokenLabel(visibleHarnessExecutionResult);
+  const visibleHarnessRequestTokenLabel = getHarnessRequestTokenLabel(visibleHarnessRequestId);
   const canRenderVisibleHarnessRequestSummary = Boolean(visibleHarnessRequestId);
   const canRenderVisibleHarnessRequestIdCopy = Boolean(visibleHarnessRequestId);
   const canRenderHiddenHarnessRequestSummary = Boolean(hiddenHarnessRequestId);
@@ -1826,7 +1843,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessPolicyReportDataValue =
     getHarnessPolicyReportDataValue(hiddenHarnessIsPolicyReport);
   const visibleHarnessPolicyReportTokenLabel =
-    visibleHarnessIsPolicyReport ? '정책 리포트' : '';
+    getHarnessPolicyReportTokenLabel(visibleHarnessIsPolicyReport);
   const canRenderVisibleHarnessPolicyReportToken = Boolean(visibleHarnessPolicyReportTokenLabel);
   const visibleHarnessResultStateLabel =
     visibleHarnessIsPolicyReport ? 'no-write' : '완료';

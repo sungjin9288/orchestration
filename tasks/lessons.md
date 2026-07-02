@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible result token labels should be selected through named label helpers before render predicates consume them. Keep representative id, request id, and policy-report token copy in `ui/app.js`, but avoid inline token-label ternaries once the render predicates depend on those labels.
+
 - Harness execution timestamp labels should share one fallback helper before packet, token, summary, history, or status-message rendering. Keep per-surface fallback text in `ui/app.js`, but avoid repeating inline `executedAt` ternaries after the display rule has been named.
 
 - Harness copy text selection should reuse the same render predicate that controls the copy button. Keep output-brief and policy-report payload selection in `ui/app.js`, but avoid checking the payload object again when formatting copy text after `canRender...Copy` has already been derived.
