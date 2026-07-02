@@ -20,14 +20,17 @@ const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 
+assert.match(appJs, /const visibleHarnessUsesOutputFile = Boolean\(visibleHarnessExecutionResult\?\.outputPath\);/);
 assert.match(
   appJs,
-  /const visibleHarnessOutputChannelLabel =\s+visibleHarnessExecutionResult\?\.outputPath \? '출력 파일' : '표준 출력';/,
+  /const visibleHarnessOutputChannelLabel =\s+visibleHarnessUsesOutputFile \? '출력 파일' : '표준 출력';/,
 );
 assert.match(
   appJs,
-  /const visibleHarnessOutputChannelTone =\s+visibleHarnessExecutionResult\?\.outputPath \? 'accent' : 'neutral';/,
+  /const visibleHarnessOutputChannelTone =\s+visibleHarnessUsesOutputFile \? 'accent' : 'neutral';/,
 );
+assert.doesNotMatch(appJs, /visibleHarnessExecutionResult\?\.outputPath \? '출력 파일' : '표준 출력'/);
+assert.doesNotMatch(appJs, /visibleHarnessExecutionResult\?\.outputPath \? 'accent' : 'neutral'/);
 assert.match(
   appJs,
   /createToken\(visibleHarnessOutputChannelLabel, visibleHarnessOutputChannelTone\)/,

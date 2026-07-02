@@ -1822,10 +1822,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessIsPolicyReport ? 'no-write' : '완료';
   const visibleHarnessResultStateTone =
     visibleHarnessIsPolicyReport ? 'neutral' : 'success';
+  const visibleHarnessUsesOutputFile = Boolean(visibleHarnessExecutionResult?.outputPath);
   const visibleHarnessOutputChannelLabel =
-    visibleHarnessExecutionResult?.outputPath ? '출력 파일' : '표준 출력';
+    visibleHarnessUsesOutputFile ? '출력 파일' : '표준 출력';
   const visibleHarnessOutputChannelTone =
-    visibleHarnessExecutionResult?.outputPath ? 'accent' : 'neutral';
+    visibleHarnessUsesOutputFile ? 'accent' : 'neutral';
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
   const harnessOperatorActionLabel = operatorAction
