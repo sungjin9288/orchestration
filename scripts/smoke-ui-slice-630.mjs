@@ -21,6 +21,7 @@ assert.match(appJs, /`범위: \$\{outputBriefScopeLabel\}`/);
 assert.match(appJs, /`중요도: \$\{outputBriefSeverityLabel\}`/);
 assert.match(appJs, /`처리 방식: \$\{outputBriefProcessingLabel\}`/);
 assert.match(appJs, /const visibleHarnessOutputBrief = getHarnessOutputBriefResult\(/);
+assert.match(appJs, /const canRenderVisibleHarnessOutputBriefCopy = Boolean\(visibleHarnessOutputBrief\);/);
 assert.match(
   appJs,
   /const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief\s+\? formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\s+: '';/,
@@ -31,6 +32,8 @@ assert.match(
 );
 assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(visibleHarnessOutputBriefCopyStatusLabel\)\}"/);
 assert.match(appJs, /data-output-brief-text="\$\{escapeHtml\(visibleHarnessOutputBriefCopyText\)\}"/);
+assert.match(appJs, /canRenderVisibleHarnessOutputBriefCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-brief"/);
+assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessOutputBrief\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-brief"/);
 assert.doesNotMatch(
   appJs,
   /data-output-brief-text="\$\{escapeHtml\(formatHarnessOutputBriefForCopy\(getHarnessOutputBriefResult\(visibleHarnessExecutionResult\)\)\)\}"/,
@@ -47,6 +50,7 @@ console.log(
       harnessExecutionBriefCopyPayloadTitle: {
         helper: 'getHarnessExecutionBriefCopyTitle',
         derivedFrom: 'getHarnessExecutionBriefCopyStatusLabel',
+        namedValues: ['visibleHarnessOutputBrief', 'canRenderVisibleHarnessOutputBriefCopy'],
         defaultTitle: '하네스 출력 요약',
         policyReportTitle: '하네스 리포트 요약',
         surface: 'latest-result copy payload',

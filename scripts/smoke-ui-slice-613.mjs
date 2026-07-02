@@ -17,11 +17,14 @@ assert.match(appJs, /data-action="copy-harness-execution-preview"/);
 assert.match(appJs, /const visibleHarnessPreviewText =\s+visibleHarnessExecutionResult\?\.outputPreview \|\| visibleHarnessExecutionResult\?\.stdoutPreview \|\| '';/);
 assert.match(appJs, /const hiddenHarnessPreviewText =\s+hiddenHarnessExecutionResult\?\.outputPreview \|\| hiddenHarnessExecutionResult\?\.stdoutPreview \|\| '';/);
 assert.match(appJs, /const historyHarnessPreviewText = execution\.outputPreview \|\| execution\.stdoutPreview \|\| '';/);
+assert.match(appJs, /const canRenderVisibleHarnessPreview = Boolean\(visibleHarnessPreviewText\);/);
+assert.match(appJs, /canRenderVisibleHarnessPreview\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">/);
 assert.match(appJs, /data-harness-execution-preview="true">\$\{escapeHtml\(visibleHarnessPreviewText\)\}<\/pre>/);
 assert.match(appJs, /data-preview-text="\$\{escapeHtml\(historyHarnessPreviewText\)\}"/);
 assert.match(appJs, /copyHarnessExecutionPreview\(actionButton\.dataset\.previewText\)/);
 assert.match(appJs, /하네스 실행 미리보기를 복사했습니다/);
 assert.match(appJs, />\s*미리보기\s*</);
+assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessPreviewText\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">/);
 
 console.log(
   JSON.stringify(
@@ -30,6 +33,7 @@ console.log(
       harnessPreviewCopyCoverage: {
         action: 'copy-harness-execution-preview',
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],
+        namedValues: ['visibleHarnessPreviewText', 'canRenderVisibleHarnessPreview'],
       },
     },
     null,

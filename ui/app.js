@@ -1884,11 +1884,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessExecutionResult?.outputPreview || visibleHarnessExecutionResult?.stdoutPreview || '';
   const hiddenHarnessPreviewText =
     hiddenHarnessExecutionResult?.outputPreview || hiddenHarnessExecutionResult?.stdoutPreview || '';
+  const canRenderVisibleHarnessPreview = Boolean(visibleHarnessPreviewText);
   const hiddenHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(hiddenHarnessExecutionResult);
   const visibleHarnessOutputBrief = getHarnessOutputBriefResult(
     visibleHarnessExecutionResult,
     state.lastHarnessOutputBriefResult,
   );
+  const canRenderVisibleHarnessOutputBriefCopy = Boolean(visibleHarnessOutputBrief);
   const visibleHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(visibleHarnessExecutionResult);
   const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief
     ? formatHarnessOutputBriefForCopy(visibleHarnessOutputBrief, visibleHarnessExecutionResult)
@@ -1898,6 +1900,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessOutputBriefCopyActionLabel =
     getHarnessExecutionBriefCopyActionLabel(visibleHarnessExecutionResult);
   const visibleHarnessPolicyReportPayload = getHarnessPolicyReportPayload(visibleHarnessExecutionResult);
+  const canRenderVisibleHarnessPolicyReportCopy = Boolean(visibleHarnessPolicyReportPayload);
   const visibleHarnessPolicyReportCopyText = visibleHarnessPolicyReportPayload
     ? formatHarnessPolicyReportForCopy(visibleHarnessPolicyReportPayload)
     : '';
@@ -2166,7 +2169,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 패킷 복사
                               </button>
                               ${
-                                visibleHarnessPreviewText
+                                canRenderVisibleHarnessPreview
                                   ? `
                                     <button
                                       class="secondary-button"
@@ -2192,7 +2195,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   : ''
                               }
                               ${
-                                visibleHarnessOutputBrief
+                                canRenderVisibleHarnessOutputBriefCopy
                                   ? `
                                     <button
                                       class="secondary-button"
@@ -2208,7 +2211,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   : ''
                               }
                               ${
-                                visibleHarnessPolicyReportPayload
+                                canRenderVisibleHarnessPolicyReportCopy
                                   ? `
                                     <button
                                       class="secondary-button"
@@ -2236,7 +2239,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                       ${
-                        visibleHarnessPreviewText
+                        canRenderVisibleHarnessPreview
                           ? `<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">${escapeHtml(visibleHarnessPreviewText)}</pre>`
                           : '<p class="detail-copy detail-copy-compact">미리보기 가능한 출력이 없습니다.</p>'
                       }
