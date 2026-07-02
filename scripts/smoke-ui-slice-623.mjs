@@ -16,6 +16,9 @@ assert.match(appJs, /data-output-path-label="\$\{escapeHtml\(historyHarnessOutpu
 assert.match(appJs, /const canRenderVisibleHarnessOutputPathCopy = Boolean\(visibleHarnessOutputPath\);/);
 assert.match(appJs, /canRenderVisibleHarnessOutputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessOutputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
+assert.match(appJs, /const canRenderHistoryHarnessOutputPathCopy = Boolean\(historyHarnessOutputPath\);/);
+assert.match(appJs, /canRenderHistoryHarnessOutputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
+assert.doesNotMatch(appJs, /\$\{\s*historyHarnessOutputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
 assert.match(appJs, /async function copyHarnessExecutionOutputPath\(outputPath, label = '출력 경로'\)/);
 assert.match(appJs, /const outputLabel = label \|\| '출력 경로'/);
 assert.match(appJs, /const emptyOutputPathCopyMessage = `복사할 하네스 \$\{outputLabel\}가 없습니다\.`;/);
@@ -34,7 +37,10 @@ console.log(
       harnessExecutionOutputPathCopyStatus: {
         labelSource: 'data-output-path-label',
         helper: 'copyHarnessExecutionOutputPath',
-        namedValues: ['canRenderVisibleHarnessOutputPathCopy'],
+        namedValues: [
+          'canRenderVisibleHarnessOutputPathCopy',
+          'canRenderHistoryHarnessOutputPathCopy',
+        ],
       },
     },
     null,

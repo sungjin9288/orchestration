@@ -24,6 +24,9 @@ assert.match(appJs, /canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?dat
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessPreviewText\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/);
 assert.match(appJs, /const historyHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel\(execution\);/);
 assert.match(appJs, /\$\{escapeHtml\(historyHarnessBriefActionLabel\)\}/);
+assert.match(appJs, /const canRenderHistoryHarnessPreview = Boolean\(historyHarnessPreviewText\);/);
+assert.match(appJs, /canRenderHistoryHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/);
+assert.doesNotMatch(appJs, /\$\{\s*historyHarnessPreviewText\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/);
 assert.match(appJs, /data-harness-output-brief="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-brief="true"/);
 assert.match(appJs, /data-harness-history-output-brief="true"/);
@@ -35,7 +38,10 @@ console.log(
       harnessExecutionBriefActionLabel: {
         helper: 'getHarnessExecutionBriefActionLabel',
         labels: ['리포트 요약', '출력 요약'],
-        namedValues: ['canRenderHiddenHarnessPreview'],
+        namedValues: [
+          'canRenderHiddenHarnessPreview',
+          'canRenderHistoryHarnessPreview',
+        ],
         surfaces: ['latest-result', 'hidden-result', 'recent-history', 'handoff-summary'],
       },
     },

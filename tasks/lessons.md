@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness history result actions should name their render predicates before history action-shelf markup. Keep history input path, output path, request id, policy-report payload, and preview text selection in `ui/app.js`, but avoid using those history values as implicit button conditions after they have already been derived.
+
 - Harness hidden result actions should name their render predicates before hidden action-shelf markup. Keep hidden input path, output path, request id, policy-report payload, and preview text selection in `ui/app.js`, but avoid using those hidden values as implicit button or preview conditions after they have already been derived.
 
 - Harness visible path and request actions should name their render predicates before action-shelf markup. Keep input path, output path, and request id selection in `ui/app.js`, but avoid using raw path or request values as implicit button conditions after the values have already been derived.

@@ -2459,10 +2459,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessRequestId = execution.requestId || execution.executionId || '';
                               const historyHarnessInputPath = execution.inputPath || execution.resolvedInputPath || '';
                               const historyHarnessOutputPath = execution.outputPath || execution.resolvedOutputPath || '';
+                              const canRenderHistoryHarnessInputPathCopy = Boolean(historyHarnessInputPath);
+                              const canRenderHistoryHarnessOutputPathCopy = Boolean(historyHarnessOutputPath);
                               const historyHarnessOutputPathActionLabel =
                                 getHarnessExecutionOutputPathActionLabel(execution);
                               const historyHarnessPolicyReportPayload = getHarnessPolicyReportPayload(execution);
+                              const canRenderHistoryHarnessPolicyReportCopy =
+                                Boolean(historyHarnessPolicyReportPayload);
                               const historyHarnessPreviewText = execution.outputPreview || execution.stdoutPreview || '';
+                              const canRenderHistoryHarnessPreview = Boolean(historyHarnessPreviewText);
                               const historyHarnessModeLabel = getHarnessExecutionModeLabel(execution);
                               const historyHarnessHandoffText = getHarnessExecutionHandoffText(execution);
                               const historyHarnessOutputLabel = getHarnessExecutionOutputLabel(execution);
@@ -2471,6 +2476,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessExecutedAtLabel = formatDate(execution.executedAt);
                               const historyHarnessRequestLabel =
                                 historyHarnessRequestId || `최근 ${index + 1}`;
+                              const canRenderHistoryHarnessRequestIdCopy = Boolean(historyHarnessRequestId);
                               const historyHarnessInputSummaryValue =
                                 historyHarnessInputPath || '경로 없음';
                               const historyHarnessRequestSummaryMarkup =
@@ -2514,7 +2520,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
                                     <div class="form-actions form-actions-inline form-actions-compact">
                                       ${
-                                        historyHarnessInputPath
+                                        canRenderHistoryHarnessInputPathCopy
                                           ? `
                                             <button
                                               class="secondary-button"
@@ -2538,7 +2544,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         ${escapeHtml(historyHarnessShowActionLabel)}
                                       </button>
                                       ${
-                                        historyHarnessOutputPath
+                                        canRenderHistoryHarnessOutputPathCopy
                                           ? `
                                             <button
                                               class="secondary-button"
@@ -2554,7 +2560,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                           : ''
                                       }
                                       ${
-                                        historyHarnessRequestId
+                                        canRenderHistoryHarnessRequestIdCopy
                                           ? `
                                             <button
                                               class="secondary-button"
@@ -2578,7 +2584,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         패킷 복사
                                       </button>
                                       ${
-                                        historyHarnessPolicyReportPayload
+                                        canRenderHistoryHarnessPolicyReportCopy
                                           ? `
                                             <button
                                               class="secondary-button"
@@ -2615,7 +2621,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         ${escapeHtml(historyHarnessRerunActionLabel)}
                                       </button>
                                       ${
-                                        historyHarnessPreviewText
+                                        canRenderHistoryHarnessPreview
                                           ? `
                                             <button
                                               class="secondary-button"

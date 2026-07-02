@@ -18,6 +18,9 @@ assert.match(appJs, /const canRenderHiddenHarnessPolicyReportCopy = Boolean\(hid
 assert.match(appJs, /canRenderHiddenHarnessPolicyReportCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessPolicyReportPayload\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
 assert.match(appJs, /const historyHarnessPolicyReportPayload = getHarnessPolicyReportPayload\(execution\);/);
+assert.match(appJs, /const canRenderHistoryHarnessPolicyReportCopy =\s+Boolean\(historyHarnessPolicyReportPayload\);/);
+assert.match(appJs, /canRenderHistoryHarnessPolicyReportCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
+assert.doesNotMatch(appJs, /\$\{\s*historyHarnessPolicyReportPayload\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
 assert.match(
   appJs,
   /const hiddenHarnessPolicyReportCopyText = hiddenHarnessPolicyReportPayload\s+\? formatHarnessPolicyReportForCopy\(hiddenHarnessPolicyReportPayload\)\s+: '';/,
@@ -40,7 +43,10 @@ console.log(
       harnessPolicyReportCopyCoverage: {
         action: 'copy-harness-policy-report',
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],
-        namedValues: ['canRenderHiddenHarnessPolicyReportCopy'],
+        namedValues: [
+          'canRenderHiddenHarnessPolicyReportCopy',
+          'canRenderHistoryHarnessPolicyReportCopy',
+        ],
       },
     },
     null,
