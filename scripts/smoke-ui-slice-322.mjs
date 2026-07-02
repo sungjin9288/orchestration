@@ -22,7 +22,16 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-preview-copy="true"/);
 assert.match(appJs, /data-action="copy-harness-execution-preview"/);
-assert.match(appJs, /const hiddenHarnessPreviewText =\s+hiddenHarnessExecutionResult\?\.outputPreview \|\| hiddenHarnessExecutionResult\?\.stdoutPreview \|\| '';/);
+assert.match(appJs, /function getHarnessExecutionPreviewText\(execution\) \{/);
+assert.match(appJs, /return execution\?\.outputPreview \|\| execution\?\.stdoutPreview \|\| '';/);
+assert.match(
+  appJs,
+  /const hiddenHarnessPreviewText =\s+getHarnessExecutionPreviewText\(hiddenHarnessExecutionResult\);/,
+);
+assert.doesNotMatch(
+  appJs,
+  /const hiddenHarnessPreviewText =\s+hiddenHarnessExecutionResult\?\.outputPreview \|\| hiddenHarnessExecutionResult\?\.stdoutPreview \|\| '';/,
+);
 assert.match(appJs, /const canRenderHiddenHarnessPreview = Boolean\(hiddenHarnessPreviewText\);/);
 assert.match(appJs, /canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessPreviewText\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);

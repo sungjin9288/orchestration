@@ -14,9 +14,26 @@ assert.match(appJs, /data-harness-preview-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-preview-copy="true"/);
 assert.match(appJs, /data-harness-history-preview-copy="true"/);
 assert.match(appJs, /data-action="copy-harness-execution-preview"/);
-assert.match(appJs, /const visibleHarnessPreviewText =\s+visibleHarnessExecutionResult\?\.outputPreview \|\| visibleHarnessExecutionResult\?\.stdoutPreview \|\| '';/);
-assert.match(appJs, /const hiddenHarnessPreviewText =\s+hiddenHarnessExecutionResult\?\.outputPreview \|\| hiddenHarnessExecutionResult\?\.stdoutPreview \|\| '';/);
-assert.match(appJs, /const historyHarnessPreviewText = execution\.outputPreview \|\| execution\.stdoutPreview \|\| '';/);
+assert.match(appJs, /function getHarnessExecutionPreviewText\(execution\) \{/);
+assert.match(appJs, /return execution\?\.outputPreview \|\| execution\?\.stdoutPreview \|\| '';/);
+assert.match(
+  appJs,
+  /const visibleHarnessPreviewText =\s+getHarnessExecutionPreviewText\(visibleHarnessExecutionResult\);/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessPreviewText =\s+getHarnessExecutionPreviewText\(hiddenHarnessExecutionResult\);/,
+);
+assert.match(appJs, /const historyHarnessPreviewText = getHarnessExecutionPreviewText\(execution\);/);
+assert.doesNotMatch(
+  appJs,
+  /const visibleHarnessPreviewText =\s+visibleHarnessExecutionResult\?\.outputPreview \|\| visibleHarnessExecutionResult\?\.stdoutPreview \|\| '';/,
+);
+assert.doesNotMatch(
+  appJs,
+  /const hiddenHarnessPreviewText =\s+hiddenHarnessExecutionResult\?\.outputPreview \|\| hiddenHarnessExecutionResult\?\.stdoutPreview \|\| '';/,
+);
+assert.doesNotMatch(appJs, /const historyHarnessPreviewText = execution\.outputPreview \|\| execution\.stdoutPreview \|\| '';/);
 assert.match(appJs, /const canRenderVisibleHarnessPreview = Boolean\(visibleHarnessPreviewText\);/);
 assert.match(appJs, /canRenderVisibleHarnessPreview\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">/);
 assert.match(appJs, /data-harness-execution-preview="true">\$\{escapeHtml\(visibleHarnessPreviewText\)\}<\/pre>/);

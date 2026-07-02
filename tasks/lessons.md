@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness preview text should be selected once through a named helper before latest, hidden, or history preview predicates consume it. Keep `outputPreview` before `stdoutPreview` in `ui/app.js`, but avoid repeating the fallback chain across each preview surface.
+
 - Harness output summary fallback values should flow through one named helper before latest, hidden, or history summaries render. Keep stdout-only wording in `ui/app.js`, but avoid repeating `path || '표준 출력 전용'` across each surface.
 
 - Harness output-channel chips should select their label and tone as one named token. Keep stdout-only and output-file semantics in `ui/app.js`, but avoid separate inline label and tone ternaries that can drift apart.

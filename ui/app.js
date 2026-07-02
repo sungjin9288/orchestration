@@ -1659,6 +1659,10 @@ function getHarnessOutputSummaryValue(outputPath) {
   return outputPath || '표준 출력 전용';
 }
 
+function getHarnessExecutionPreviewText(execution) {
+  return execution?.outputPreview || execution?.stdoutPreview || '';
+}
+
 function getHarnessExecutionPacketContext(execution) {
   const handoffContext = getHarnessExecutionHandoffContext(execution);
 
@@ -1967,9 +1971,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ? formatHarnessPolicyReportForCopy(hiddenHarnessPolicyReportPayload)
     : '';
   const visibleHarnessPreviewText =
-    visibleHarnessExecutionResult?.outputPreview || visibleHarnessExecutionResult?.stdoutPreview || '';
+    getHarnessExecutionPreviewText(visibleHarnessExecutionResult);
   const hiddenHarnessPreviewText =
-    hiddenHarnessExecutionResult?.outputPreview || hiddenHarnessExecutionResult?.stdoutPreview || '';
+    getHarnessExecutionPreviewText(hiddenHarnessExecutionResult);
   const canRenderHiddenHarnessPreview = Boolean(hiddenHarnessPreviewText);
   const canRenderVisibleHarnessPreview = Boolean(visibleHarnessPreviewText);
   const hiddenHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(hiddenHarnessExecutionResult);
@@ -2543,7 +2547,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessPolicyReportPayload = getHarnessPolicyReportPayload(execution);
                               const canRenderHistoryHarnessPolicyReportCopy =
                                 Boolean(historyHarnessPolicyReportPayload);
-                              const historyHarnessPreviewText = execution.outputPreview || execution.stdoutPreview || '';
+                              const historyHarnessPreviewText = getHarnessExecutionPreviewText(execution);
                               const canRenderHistoryHarnessPreview = Boolean(historyHarnessPreviewText);
                               const historyHarnessModeLabel = getHarnessExecutionModeLabel(execution);
                               const historyHarnessHandoffText = getHarnessExecutionHandoffText(execution);
