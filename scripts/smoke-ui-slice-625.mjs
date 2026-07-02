@@ -7,9 +7,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionRerunActionLabel\(execution\) \{/);
@@ -22,8 +24,8 @@ assert.match(appJs, /const historyHarnessRerunActionLabel = getHarnessExecutionR
 assert.match(appJs, /\$\{escapeHtml\(historyHarnessRerunActionLabel\)\}/);
 assert.match(appJs, /function getHarnessPolicyReportDataValue\(isPolicyReport\) \{/);
 assert.match(appJs, /return isPolicyReport \? 'true' : 'false';/);
-assert.match(appJs, /function isHarnessPolicyReportExecution\(execution\) \{/);
-assert.match(appJs, /return execution\?\.actionMode === 'policy-report';/);
+assert.match(harnessExecutionTokens, /export function isHarnessPolicyReportExecution\(execution\) \{/);
+assert.match(harnessExecutionTokens, /return execution\?\.actionMode === 'policy-report';/);
 assert.match(appJs, /const visibleHarnessIsPolicyReport =\s+isHarnessPolicyReportExecution\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessIsPolicyReport =\s+isHarnessPolicyReportExecution\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /const visibleHarnessPolicyReportDataValue =\s+getHarnessPolicyReportDataValue\(visibleHarnessIsPolicyReport\);/);

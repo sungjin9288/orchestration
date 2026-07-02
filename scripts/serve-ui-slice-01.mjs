@@ -2174,6 +2174,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/harness-execution-tokens.js') {
+    await serveStaticAsset(response, 'harness-execution-tokens.js');
+    return;
+  }
+
   if (url.pathname === '/harness-labels.js') {
     await serveStaticAsset(response, 'harness-labels.js');
     return;

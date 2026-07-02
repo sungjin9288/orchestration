@@ -14,16 +14,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-321');
 const port = 4622;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 
 assert.match(appJs, /data-harness-execution-result-hidden="true"/);
 assert.match(appJs, /data-harness-result-hidden-preview="true"/);
-assert.match(appJs, /function getHarnessExecutionPreviewText\(execution\) \{/);
-assert.match(appJs, /return execution\?\.outputPreview \|\| execution\?\.stdoutPreview \|\| '';/);
+assert.match(harnessExecutionTokens, /export function getHarnessExecutionPreviewText\(execution\) \{/);
+assert.match(harnessExecutionTokens, /return execution\?\.outputPreview \|\| execution\?\.stdoutPreview \|\| '';/);
 assert.match(
   appJs,
   /const hiddenHarnessPreviewText =\s+getHarnessExecutionPreviewText\(hiddenHarnessExecutionResult\);/,

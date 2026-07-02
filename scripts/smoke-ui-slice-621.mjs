@@ -7,18 +7,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionOutputLabel\(execution\) \{/);
 assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '출력 예정' : '출력'/);
 assert.match(harnessLabels, /`\$\{getHarnessExecutionOutputLabel\(execution\)\}: \$\{outputPath\}`/);
-assert.match(appJs, /function getHarnessOutputSummaryValue\(outputPath\) \{/);
-assert.match(appJs, /return outputPath \|\| '표준 출력 전용';/);
-assert.match(appJs, /function getHarnessInputSummaryValue\(inputPath\) \{/);
-assert.match(appJs, /return inputPath \|\| '경로 없음';/);
+assert.match(harnessExecutionTokens, /export function getHarnessOutputSummaryValue\(outputPath\) \{/);
+assert.match(harnessExecutionTokens, /return outputPath \|\| '표준 출력 전용';/);
+assert.match(harnessExecutionTokens, /export function getHarnessInputSummaryValue\(inputPath\) \{/);
+assert.match(harnessExecutionTokens, /return inputPath \|\| '경로 없음';/);
 assert.match(appJs, /const visibleHarnessOutputLabel = getHarnessExecutionOutputLabel\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel\(hiddenHarnessExecutionResult\);/);
 assert.match(
@@ -54,7 +56,7 @@ assert.doesNotMatch(
 );
 assert.match(appJs, /data-harness-execution-output-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-summary="true"/);
-assert.match(appJs, /표준 출력 전용/);
+assert.match(harnessExecutionTokens, /표준 출력 전용/);
 
 console.log(
   JSON.stringify(

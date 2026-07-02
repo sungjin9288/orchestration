@@ -99,6 +99,8 @@ async function main() {
     const growthLearning = await growthLearningResponse.text();
     const harnessBriefLabelsResponse = await fetch(`${baseUrl}/harness-brief-labels.js`);
     const harnessBriefLabels = await harnessBriefLabelsResponse.text();
+    const harnessExecutionTokensResponse = await fetch(`${baseUrl}/harness-execution-tokens.js`);
+    const harnessExecutionTokens = await harnessExecutionTokensResponse.text();
     const harnessLabelsResponse = await fetch(`${baseUrl}/harness-labels.js`);
     const harnessLabels = await harnessLabelsResponse.text();
     const harnessStateResponse = await fetch(`${baseUrl}/harness-state.js`);
@@ -127,6 +129,7 @@ async function main() {
     assert.equal(growthConfigResponse.status, 200);
     assert.equal(growthLearningResponse.status, 200);
     assert.equal(harnessBriefLabelsResponse.status, 200);
+    assert.equal(harnessExecutionTokensResponse.status, 200);
     assert.equal(harnessLabelsResponse.status, 200);
     assert.equal(harnessStateResponse.status, 200);
     assert.equal(preferenceConfigResponse.status, 200);
@@ -145,6 +148,7 @@ async function main() {
     assert.match(appJs, /from '\.\/growth-config\.js'/);
     assert.match(appJs, /from '\.\/growth-learning\.js'/);
     assert.match(appJs, /from '\.\/harness-brief-labels\.js'/);
+    assert.match(appJs, /from '\.\/harness-execution-tokens\.js'/);
     assert.match(appJs, /from '\.\/harness-labels\.js'/);
     assert.match(appJs, /from '\.\/harness-state\.js'/);
     assert.match(appJs, /from '\.\/pack-config\.js'/);
@@ -213,6 +217,8 @@ async function main() {
     assert.match(growthLearning, /export function getGrowthEvidenceCandidates/);
     assert.match(harnessBriefLabels, /export function getHarnessBriefSignalValue\(brief\) \{/);
     assert.match(harnessBriefLabels, /export function getHarnessOperatorActionLabel\(operatorAction\) \{/);
+    assert.match(harnessExecutionTokens, /export function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/);
+    assert.match(harnessExecutionTokens, /export function getHarnessExecutionPreviewText\(execution\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionModeLabel\(execution\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionOutputLabel\(execution\) \{/);
     assert.match(harnessLabels, /export function getHarnessExecutionHandoffLabel\(execution, context = \{\}\) \{/);

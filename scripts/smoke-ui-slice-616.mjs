@@ -7,9 +7,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionModeLabel\(execution\) \{/);
@@ -23,8 +25,8 @@ assert.match(appJs, /data-harness-execution-mode-summary="true">모드: <code>\$
 assert.match(appJs, /data-harness-result-hidden-mode-summary="true">모드: <code>\$\{escapeHtml\(hiddenHarnessModeLabel\)\}<\/code>/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>\$\{escapeHtml\(hiddenHarnessModeLabel\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">/);
 assert.match(appJs, /const renderHarnessHistorySummaryRow = \(label, value\) => `/);
-assert.match(appJs, /function getHarnessHistoryRequestLabel\(requestId, index\) \{/);
-assert.match(appJs, /return requestId \|\| `최근 \$\{index \+ 1\}`;/);
+assert.match(harnessExecutionTokens, /export function getHarnessHistoryRequestLabel\(requestId, index\) \{/);
+assert.match(harnessExecutionTokens, /return requestId \|\| `최근 \$\{index \+ 1\}`;/);
 assert.match(appJs, /const historyHarnessModeLabel = getHarnessExecutionModeLabel\(execution\);/);
 assert.match(appJs, /const historyHarnessExecutedAtLabel =\s+getHarnessExecutionTimestampLabel\(execution\);/);
 assert.match(

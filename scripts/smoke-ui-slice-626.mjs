@@ -7,9 +7,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionResultTitle\(execution\) \{/);
@@ -18,9 +20,9 @@ assert.match(appJs, /const visibleHarnessResultTitle = getHarnessExecutionResult
 assert.match(appJs, /const hiddenHarnessResultTitle = getHarnessExecutionResultTitle\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>/);
 assert.match(appJs, /<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>/);
-assert.match(appJs, /function getHarnessResultStateToken\(isPolicyReport\) \{/);
-assert.match(appJs, /return \{\s+label: 'no-write',\s+tone: 'neutral',\s+\};/);
-assert.match(appJs, /return \{\s+label: '완료',\s+tone: 'success',\s+\};/);
+assert.match(harnessExecutionTokens, /export function getHarnessResultStateToken\(isPolicyReport\) \{/);
+assert.match(harnessExecutionTokens, /return \{\s+label: 'no-write',\s+tone: 'neutral',\s+\};/);
+assert.match(harnessExecutionTokens, /return \{\s+label: '완료',\s+tone: 'success',\s+\};/);
 assert.match(appJs, /const visibleHarnessResultStateToken =\s+getHarnessResultStateToken\(visibleHarnessIsPolicyReport\);/);
 assert.match(appJs, /const visibleHarnessResultStateLabel = visibleHarnessResultStateToken\.label;/);
 assert.match(appJs, /const visibleHarnessResultStateTone = visibleHarnessResultStateToken\.tone;/);
@@ -33,9 +35,9 @@ assert.match(appJs, /const currentExecutionTitle = getHarnessExecutionResultTitl
 assert.match(appJs, /const hideHarnessExecutionMessage =\s+`\$\{currentExecutionTitle\}를 숨겼습니다\. 필요하면 실행 기록에서 다시 볼 수 있습니다\.`;/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = hideHarnessExecutionMessage;/);
 assert.match(appJs, /function getHarnessExecutionDisplayStamp\(execution\) \{/);
-assert.match(appJs, /function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/);
-assert.match(appJs, /if \(!execution\?\.executedAt\) \{\s+return fallbackLabel;\s+\}/);
-assert.match(appJs, /return formatDate\(execution\.executedAt\);/);
+assert.match(harnessExecutionTokens, /export function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/);
+assert.match(harnessExecutionTokens, /if \(!execution\?\.executedAt\) \{\s+return fallbackLabel;\s+\}/);
+assert.match(harnessExecutionTokens, /return formatDate\(execution\.executedAt\);/);
 assert.match(appJs, /const modeLabel = getHarnessExecutionModeLabel\(execution\);/);
 assert.match(appJs, /const harnessId = execution\?\.harnessId \|\| '미확인';/);
 assert.match(appJs, /const executedAtLabel = getHarnessExecutionTimestampLabel\(execution, '최근 실행'\);/);

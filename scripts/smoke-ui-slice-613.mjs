@@ -7,15 +7,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 
 assert.match(appJs, /data-harness-preview-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-preview-copy="true"/);
 assert.match(appJs, /data-harness-history-preview-copy="true"/);
 assert.match(appJs, /data-action="copy-harness-execution-preview"/);
-assert.match(appJs, /function getHarnessExecutionPreviewText\(execution\) \{/);
-assert.match(appJs, /return execution\?\.outputPreview \|\| execution\?\.stdoutPreview \|\| '';/);
+assert.match(harnessExecutionTokens, /export function getHarnessExecutionPreviewText\(execution\) \{/);
+assert.match(harnessExecutionTokens, /return execution\?\.outputPreview \|\| execution\?\.stdoutPreview \|\| '';/);
 assert.match(
   appJs,
   /const visibleHarnessPreviewText =\s+getHarnessExecutionPreviewText\(visibleHarnessExecutionResult\);/,

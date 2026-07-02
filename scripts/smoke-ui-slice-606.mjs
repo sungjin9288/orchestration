@@ -14,6 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-606');
@@ -21,6 +22,7 @@ const port = 4706;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 
@@ -64,7 +66,7 @@ assert.match(appJs, /const executionHarnessId = execution\?\.harnessId \|\| fall
 assert.match(appJs, /const executionRequestId = execution\?\.requestId \|\| execution\?\.executionId \|\| '';/);
 assert.match(appJs, /const executionRequestCopy = executionRequestId \? `요청: \$\{executionRequestId\}\. ` : '';/);
 assert.match(appJs, /const executionOutputCopy = getHarnessExecutionOutputCopy\(execution\);/);
-assert.match(appJs, /function isHarnessPolicyReportExecution\(execution\) \{/);
+assert.match(harnessExecutionTokens, /export function isHarnessPolicyReportExecution\(execution\) \{/);
 assert.match(appJs, /const executionIsPolicyReport = isHarnessPolicyReportExecution\(execution\);/);
 assert.match(appJs, /const executionCompletionLead = executionIsPolicyReport/);
 assert.match(appJs, /const executionCompletionOutputCopy =\s+executionIsPolicyReport && execution\?\.stdoutPreview/);

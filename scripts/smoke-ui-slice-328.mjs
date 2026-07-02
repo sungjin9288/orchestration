@@ -14,19 +14,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-328');
 const port = 4629;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-executed-at-summary="true"/);
-assert.match(appJs, /function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/);
-assert.match(appJs, /if \(!execution\?\.executedAt\) \{\s+return fallbackLabel;\s+\}/);
-assert.match(appJs, /return formatDate\(execution\.executedAt\);/);
-assert.match(appJs, /function getHarnessExecutedAtTokenLabel\(executedAtLabel\) \{/);
-assert.match(appJs, /if \(!executedAtLabel\) \{\s+return '';\s+\}/);
-assert.match(appJs, /return `실행:\$\{executedAtLabel\}`;/);
+assert.match(harnessExecutionTokens, /export function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/);
+assert.match(harnessExecutionTokens, /if \(!execution\?\.executedAt\) \{\s+return fallbackLabel;\s+\}/);
+assert.match(harnessExecutionTokens, /return formatDate\(execution\.executedAt\);/);
+assert.match(harnessExecutionTokens, /export function getHarnessExecutedAtTokenLabel\(executedAtLabel\) \{/);
+assert.match(harnessExecutionTokens, /if \(!executedAtLabel\) \{\s+return '';\s+\}/);
+assert.match(harnessExecutionTokens, /return `실행:\$\{executedAtLabel\}`;/);
 assert.match(appJs, /const visibleHarnessExecutedAtLabel = getHarnessExecutionTimestampLabel\(\s+visibleHarnessExecutionResult,\s+'',\s+\);/);
 assert.match(appJs, /const hiddenHarnessExecutedAtLabel = getHarnessExecutionTimestampLabel\(\s+hiddenHarnessExecutionResult,\s+'',\s+\);/);
 assert.match(appJs, /const visibleHarnessExecutedAtTokenLabel =\s+getHarnessExecutedAtTokenLabel\(visibleHarnessExecutedAtLabel\);/);
