@@ -54,17 +54,24 @@ Planning source files:
 
 ## Current Development Focus
 
-The latest implementation lane closed the Advanced Ops harness readability pass without changing
-runtime authority. Repeated fallback and display rules for harness output, input, request labels,
-preview text, policy-report mode, executed-at labels, output-channel tokens, and hidden status-card
-summaries now flow through named helpers before the render markup consumes them. The app shell still
+The latest implementation lane closed a behavior-preserving module extraction pass without changing
+runtime authority. Coordinator git/diff/path helpers now live in `src/execution/coordinator/git.js`,
+`src/execution/coordinator/diff.js`, and `src/execution/coordinator/paths.js`; pure proposal-record
+validation and shared input normalizers live in `src/runtime/proposal-records.js` and
+`src/runtime/normalizers.js`; and pure harness execution tokens and markdown parsing primitives live
+in `ui/harness-execution-tokens.js` and `ui/markdown-artifact-parsing.js`. The app shell still
 owns browser state, output-brief state, policy-report parsing, clipboard actions, rerun actions,
-runtime mutation, provider calls, source mutation, commit, and push boundaries.
+runtime mutation, provider calls, source mutation, commit, and push boundaries, and the runtime
+service keeps all state-bound proposal-record creation, listing, and quarantine entry points.
 
 Current source-backed evidence:
 
 - UI ownership and helper flow: `ui/app.js`, `ui/harness-labels.js`, `ui/harness-brief-labels.js`,
-  and `ui/harness-state.js`
+  `ui/harness-execution-tokens.js`, `ui/markdown-artifact-parsing.js`, and `ui/harness-state.js`
+- Runtime/execution extraction: `src/execution/coordinator/git.js`, `src/execution/coordinator/diff.js`,
+  `src/execution/coordinator/paths.js`, `src/runtime/proposal-records.js`, `src/runtime/normalizers.js`,
+  with source-text gates `scripts/vnext-durable-proposal-record-implementation-status.mjs` and
+  `scripts/vnext-proposal-application-implementation-status.mjs` repointed in the same change
 - Focused harness smokes: `scripts/smoke-ui-slice-328.mjs`, `334`, `335`, `336`, `337`, `380`,
   `382`, `383`, `384`, `385`, `386`, `387`, `388`, `605`, `606`, `613`, `616`, `620`, `621`,
   `625`, `626`, and `628`
