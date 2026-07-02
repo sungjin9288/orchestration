@@ -1619,6 +1619,10 @@ function getHarnessRequestTokenLabel(requestId) {
   return `요청:${requestId}`;
 }
 
+function getHarnessHistoryRequestLabel(requestId, index) {
+  return requestId || `최근 ${index + 1}`;
+}
+
 function getHarnessPolicyReportTokenLabel(isPolicyReport) {
   return isPolicyReport ? '정책 리포트' : '';
 }
@@ -2561,7 +2565,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessExecutedAtLabel =
                                 getHarnessExecutionTimestampLabel(execution);
                               const historyHarnessRequestLabel =
-                                historyHarnessRequestId || `최근 ${index + 1}`;
+                                getHarnessHistoryRequestLabel(historyHarnessRequestId, index);
                               const canRenderHistoryHarnessRequestIdCopy = Boolean(historyHarnessRequestId);
                               const historyHarnessInputSummaryValue =
                                 getHarnessInputSummaryValue(historyHarnessInputPath);

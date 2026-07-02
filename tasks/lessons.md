@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness history request fallback labels should flow through one named helper before request summaries render. Keep `최근 N` wording in `ui/app.js`, but avoid choosing request-id fallback copy inside history row assembly.
+
 - Harness input summary fallback values should flow through one named helper before history summaries render. Keep `경로 없음` wording in `ui/app.js`, but avoid repeating path fallback logic inside history row assembly.
 
 - Harness preview text should be selected once through a named helper before latest, hidden, or history preview predicates consume it. Keep `outputPreview` before `stdoutPreview` in `ui/app.js`, but avoid repeating the fallback chain across each preview surface.

@@ -23,8 +23,15 @@ assert.match(appJs, /data-harness-execution-mode-summary="true">모드: <code>\$
 assert.match(appJs, /data-harness-result-hidden-mode-summary="true">모드: <code>\$\{escapeHtml\(hiddenHarnessModeLabel\)\}<\/code>/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>\$\{escapeHtml\(hiddenHarnessModeLabel\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">/);
 assert.match(appJs, /const renderHarnessHistorySummaryRow = \(label, value\) => `/);
+assert.match(appJs, /function getHarnessHistoryRequestLabel\(requestId, index\) \{/);
+assert.match(appJs, /return requestId \|\| `최근 \$\{index \+ 1\}`;/);
 assert.match(appJs, /const historyHarnessModeLabel = getHarnessExecutionModeLabel\(execution\);/);
-assert.match(appJs, /const historyHarnessExecutedAtLabel = formatDate\(execution\.executedAt\);/);
+assert.match(appJs, /const historyHarnessExecutedAtLabel =\s+getHarnessExecutionTimestampLabel\(execution\);/);
+assert.match(
+  appJs,
+  /const historyHarnessRequestLabel =\s+getHarnessHistoryRequestLabel\(historyHarnessRequestId, index\);/,
+);
+assert.doesNotMatch(appJs, /const historyHarnessRequestLabel =\s+historyHarnessRequestId \|\| `최근 \$\{index \+ 1\}`;/);
 assert.match(appJs, /const historyHarnessRequestSummaryMarkup =\s+renderHarnessHistorySummaryRow\('요청', historyHarnessRequestLabel\);/);
 assert.match(appJs, /const historyHarnessExecutedAtSummaryMarkup =\s+renderHarnessHistorySummaryRow\('실행', historyHarnessExecutedAtLabel\);/);
 assert.match(appJs, /const historyHarnessModeSummaryMarkup =\s+renderHarnessHistorySummaryRow\('모드', historyHarnessModeLabel\);/);
@@ -46,6 +53,7 @@ console.log(
       ok: true,
       harnessExecutionHistoryModeRow: {
         helper: 'getHarnessExecutionModeLabel',
+        requestLabelHelper: 'getHarnessHistoryRequestLabel',
         labels: ['정책 리포트', '실행 결과'],
         namedValues: [
           'hiddenHarnessModeSummaryMarkup',
