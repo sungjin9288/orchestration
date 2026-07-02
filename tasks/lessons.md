@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness output-channel chips should select their label and tone as one named token. Keep stdout-only and output-file semantics in `ui/app.js`, but avoid separate inline label and tone ternaries that can drift apart.
+
 - Harness policy-report checks should flow through one named predicate before render data attributes, rerun behavior, or completion copy consume the mode. Keep `actionMode` semantics in `ui/app.js`, but avoid repeating raw `actionMode === 'policy-report'` checks across render and status-copy paths.
 
 - Harness executed-at token labels should be selected through a named label helper before render predicates consume them. Keep timestamp fallback selection separate from token copy assembly, and avoid inline `실행:<timestamp>` ternaries in the render path.

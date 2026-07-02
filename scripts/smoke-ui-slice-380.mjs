@@ -21,16 +21,22 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /const visibleHarnessUsesOutputFile = Boolean\(visibleHarnessExecutionResult\?\.outputPath\);/);
+assert.match(appJs, /function getHarnessOutputChannelToken\(usesOutputFile\) \{/);
 assert.match(
   appJs,
-  /const visibleHarnessOutputChannelLabel =\s+visibleHarnessUsesOutputFile \? '출력 파일' : '표준 출력';/,
+  /return \{\s+label: '출력 파일',\s+tone: 'accent',\s+\};/,
 );
 assert.match(
   appJs,
-  /const visibleHarnessOutputChannelTone =\s+visibleHarnessUsesOutputFile \? 'accent' : 'neutral';/,
+  /return \{\s+label: '표준 출력',\s+tone: 'neutral',\s+\};/,
 );
+assert.match(appJs, /const visibleHarnessOutputChannelToken =\s+getHarnessOutputChannelToken\(visibleHarnessUsesOutputFile\);/);
+assert.match(appJs, /const visibleHarnessOutputChannelLabel = visibleHarnessOutputChannelToken\.label;/);
+assert.match(appJs, /const visibleHarnessOutputChannelTone = visibleHarnessOutputChannelToken\.tone;/);
 assert.doesNotMatch(appJs, /visibleHarnessExecutionResult\?\.outputPath \? '출력 파일' : '표준 출력'/);
 assert.doesNotMatch(appJs, /visibleHarnessExecutionResult\?\.outputPath \? 'accent' : 'neutral'/);
+assert.doesNotMatch(appJs, /const visibleHarnessOutputChannelLabel =\s+visibleHarnessUsesOutputFile \? '출력 파일' : '표준 출력';/);
+assert.doesNotMatch(appJs, /const visibleHarnessOutputChannelTone =\s+visibleHarnessUsesOutputFile \? 'accent' : 'neutral';/);
 assert.match(
   appJs,
   /createToken\(visibleHarnessOutputChannelLabel, visibleHarnessOutputChannelTone\)/,

@@ -1641,6 +1641,20 @@ function getHarnessResultStateToken(isPolicyReport) {
   };
 }
 
+function getHarnessOutputChannelToken(usesOutputFile) {
+  if (usesOutputFile) {
+    return {
+      label: '출력 파일',
+      tone: 'accent',
+    };
+  }
+
+  return {
+    label: '표준 출력',
+    tone: 'neutral',
+  };
+}
+
 function getHarnessExecutionPacketContext(execution) {
   const handoffContext = getHarnessExecutionHandoffContext(execution);
 
@@ -1875,10 +1889,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessResultStateLabel = visibleHarnessResultStateToken.label;
   const visibleHarnessResultStateTone = visibleHarnessResultStateToken.tone;
   const visibleHarnessUsesOutputFile = Boolean(visibleHarnessExecutionResult?.outputPath);
-  const visibleHarnessOutputChannelLabel =
-    visibleHarnessUsesOutputFile ? '출력 파일' : '표준 출력';
-  const visibleHarnessOutputChannelTone =
-    visibleHarnessUsesOutputFile ? 'accent' : 'neutral';
+  const visibleHarnessOutputChannelToken =
+    getHarnessOutputChannelToken(visibleHarnessUsesOutputFile);
+  const visibleHarnessOutputChannelLabel = visibleHarnessOutputChannelToken.label;
+  const visibleHarnessOutputChannelTone = visibleHarnessOutputChannelToken.tone;
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
   const hasHarnessOperatorAction = Boolean(operatorAction);
