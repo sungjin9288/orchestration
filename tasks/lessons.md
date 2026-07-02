@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness execution timestamp labels should share one fallback helper before packet, token, summary, history, or status-message rendering. Keep per-surface fallback text in `ui/app.js`, but avoid repeating inline `executedAt` ternaries after the display rule has been named.
+
 - Harness copy text selection should reuse the same render predicate that controls the copy button. Keep output-brief and policy-report payload selection in `ui/app.js`, but avoid checking the payload object again when formatting copy text after `canRender...Copy` has already been derived.
 
 - Harness execution packet copy text should name visible and hidden copy predicates before formatting packet text. Keep packet formatting and clipboard behavior in `ui/app.js`, but avoid using the execution result object itself as the copy-text condition after the latest and hidden results have already been selected.

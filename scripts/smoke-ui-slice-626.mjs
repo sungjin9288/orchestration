@@ -29,9 +29,12 @@ assert.match(appJs, /const currentExecutionTitle = getHarnessExecutionResultTitl
 assert.match(appJs, /const hideHarnessExecutionMessage =\s+`\$\{currentExecutionTitle\}를 숨겼습니다\. 필요하면 실행 기록에서 다시 볼 수 있습니다\.`;/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = hideHarnessExecutionMessage;/);
 assert.match(appJs, /function getHarnessExecutionDisplayStamp\(execution\) \{/);
+assert.match(appJs, /function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/);
+assert.match(appJs, /if \(!execution\?\.executedAt\) \{\s+return fallbackLabel;\s+\}/);
+assert.match(appJs, /return formatDate\(execution\.executedAt\);/);
 assert.match(appJs, /const modeLabel = getHarnessExecutionModeLabel\(execution\);/);
 assert.match(appJs, /const harnessId = execution\?\.harnessId \|\| '미확인';/);
-assert.match(appJs, /const executedAtLabel = execution\?\.executedAt \? formatDate\(execution\.executedAt\) : '최근 실행';/);
+assert.match(appJs, /const executedAtLabel = getHarnessExecutionTimestampLabel\(execution, '최근 실행'\);/);
 assert.match(appJs, /return `\$\{modeLabel\}: \$\{harnessId\} · \$\{executedAtLabel\}`;/);
 assert.match(appJs, /const currentExecutionDisplayStamp = getHarnessExecutionDisplayStamp\(currentExecution\);/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = showHarnessExecutionMessage;/);
@@ -49,6 +52,7 @@ assert.doesNotMatch(appJs, /elements\.refreshStatus\.textContent = '하네스 �
 assert.doesNotMatch(appJs, /visibleHarnessPolicyReportFlag/);
 assert.doesNotMatch(appJs, /숨긴 \$\{getHarnessExecutionModeLabel\(currentExecution\)\}를 다시 표시했습니다/);
 assert.doesNotMatch(appJs, /\$\{getHarnessExecutionModeLabel\(targetExecution\)\}를 다시 표시했습니다/);
+assert.doesNotMatch(appJs, /const executedAtLabel = execution\?\.executedAt \? formatDate\(execution\.executedAt\) : '최근 실행';/);
 assert.doesNotMatch(appJs, /const currentExecutionHarnessId = currentExecution\.harnessId;/);
 assert.doesNotMatch(appJs, /const targetExecutionHarnessId = targetExecution\.harnessId;/);
 
@@ -66,6 +70,7 @@ console.log(
           'showHarnessExecutionMessage',
           'targetExecutionDisplayStamp',
           'restoreHarnessExecutionMessage',
+          'getHarnessExecutionTimestampLabel',
         ],
       },
     },

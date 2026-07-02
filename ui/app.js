@@ -1587,12 +1587,20 @@ function formatHarnessExecutionPacketForCopy(execution) {
   );
 }
 
+function getHarnessExecutionTimestampLabel(execution, fallbackLabel = '기록 없음') {
+  if (!execution?.executedAt) {
+    return fallbackLabel;
+  }
+
+  return formatDate(execution.executedAt);
+}
+
 function getHarnessExecutionPacketContext(execution) {
   const handoffContext = getHarnessExecutionHandoffContext(execution);
 
   return {
     ...handoffContext,
-    executedAtLabel: execution?.executedAt ? formatDate(execution.executedAt) : '기록 없음',
+    executedAtLabel: getHarnessExecutionTimestampLabel(execution),
     handoffLabel: getHarnessExecutionHandoffLabel(execution, handoffContext),
   };
 }
@@ -1766,12 +1774,14 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult);
   const visibleHarnessOutputSummaryValue = visibleHarnessOutputPath || '표준 출력 전용';
   const hiddenHarnessOutputSummaryValue = hiddenHarnessOutputPath || '표준 출력 전용';
-  const visibleHarnessExecutedAtLabel = visibleHarnessExecutionResult?.executedAt
-    ? formatDate(visibleHarnessExecutionResult.executedAt)
-    : '';
-  const hiddenHarnessExecutedAtLabel = hiddenHarnessExecutionResult?.executedAt
-    ? formatDate(hiddenHarnessExecutionResult.executedAt)
-    : '';
+  const visibleHarnessExecutedAtLabel = getHarnessExecutionTimestampLabel(
+    visibleHarnessExecutionResult,
+    '',
+  );
+  const hiddenHarnessExecutedAtLabel = getHarnessExecutionTimestampLabel(
+    hiddenHarnessExecutionResult,
+    '',
+  );
   const visibleHarnessPrimaryTokenLabel = visibleHarnessExecutionResult?.harnessId
     ? `대표:${visibleHarnessExecutionResult.harnessId}`
     : '';
@@ -2478,7 +2488,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessOutputLabel = getHarnessExecutionOutputLabel(execution);
                               const historyHarnessOutputSummaryValue =
                                 historyHarnessOutputPath || '표준 출력 전용';
-                              const historyHarnessExecutedAtLabel = formatDate(execution.executedAt);
+                              const historyHarnessExecutedAtLabel =
+                                getHarnessExecutionTimestampLabel(execution);
                               const historyHarnessRequestLabel =
                                 historyHarnessRequestId || `최근 ${index + 1}`;
                               const canRenderHistoryHarnessRequestIdCopy = Boolean(historyHarnessRequestId);
@@ -18250,7 +18261,7 @@ function hideHarnessExecutionResult(actionButton) {
 function getHarnessExecutionDisplayStamp(execution) {
   const modeLabel = getHarnessExecutionModeLabel(execution);
   const harnessId = execution?.harnessId || '미확인';
-  const executedAtLabel = execution?.executedAt ? formatDate(execution.executedAt) : '최근 실행';
+  const executedAtLabel = getHarnessExecutionTimestampLabel(execution, '최근 실행');
 
   return `${modeLabel}: ${harnessId} · ${executedAtLabel}`;
 }
