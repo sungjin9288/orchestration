@@ -24,8 +24,9 @@ assert.match(appJs, /const visibleHarnessOutputBrief = getHarnessOutputBriefResu
 assert.match(appJs, /const canRenderVisibleHarnessOutputBriefCopy = Boolean\(visibleHarnessOutputBrief\);/);
 assert.match(
   appJs,
-  /const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief\s+\? formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\s+: '';/,
+  /const visibleHarnessOutputBriefCopyText = canRenderVisibleHarnessOutputBriefCopy\s+\? formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\s+: '';/,
 );
+assert.doesNotMatch(appJs, /const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief/);
 assert.match(
   appJs,
   /const visibleHarnessOutputBriefCopyStatusLabel =\s+getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\);/,
@@ -50,7 +51,11 @@ console.log(
       harnessExecutionBriefCopyPayloadTitle: {
         helper: 'getHarnessExecutionBriefCopyTitle',
         derivedFrom: 'getHarnessExecutionBriefCopyStatusLabel',
-        namedValues: ['visibleHarnessOutputBrief', 'canRenderVisibleHarnessOutputBriefCopy'],
+        namedValues: [
+          'visibleHarnessOutputBrief',
+          'canRenderVisibleHarnessOutputBriefCopy',
+          'visibleHarnessOutputBriefCopyText',
+        ],
         defaultTitle: '하네스 출력 요약',
         policyReportTitle: '하네스 리포트 요약',
         surface: 'latest-result copy payload',

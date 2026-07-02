@@ -1891,7 +1891,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     : '';
   const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload(hiddenHarnessExecutionResult);
   const canRenderHiddenHarnessPolicyReportCopy = Boolean(hiddenHarnessPolicyReportPayload);
-  const hiddenHarnessPolicyReportCopyText = hiddenHarnessPolicyReportPayload
+  const hiddenHarnessPolicyReportCopyText = canRenderHiddenHarnessPolicyReportCopy
     ? formatHarnessPolicyReportForCopy(hiddenHarnessPolicyReportPayload)
     : '';
   const visibleHarnessPreviewText =
@@ -1907,7 +1907,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   );
   const canRenderVisibleHarnessOutputBriefCopy = Boolean(visibleHarnessOutputBrief);
   const visibleHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(visibleHarnessExecutionResult);
-  const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief
+  const visibleHarnessOutputBriefCopyText = canRenderVisibleHarnessOutputBriefCopy
     ? formatHarnessOutputBriefForCopy(visibleHarnessOutputBrief, visibleHarnessExecutionResult)
     : '';
   const visibleHarnessOutputBriefCopyStatusLabel =
@@ -1916,7 +1916,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     getHarnessExecutionBriefCopyActionLabel(visibleHarnessExecutionResult);
   const visibleHarnessPolicyReportPayload = getHarnessPolicyReportPayload(visibleHarnessExecutionResult);
   const canRenderVisibleHarnessPolicyReportCopy = Boolean(visibleHarnessPolicyReportPayload);
-  const visibleHarnessPolicyReportCopyText = visibleHarnessPolicyReportPayload
+  const visibleHarnessPolicyReportCopyText = canRenderVisibleHarnessPolicyReportCopy
     ? formatHarnessPolicyReportForCopy(visibleHarnessPolicyReportPayload)
     : '';
   const visibleHarnessPolicyReportSummaryMarkup = renderHarnessPolicyReportSummary(
@@ -2500,7 +2500,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               );
                               const historyHarnessExecutionPacketText =
                                 formatHarnessExecutionPacketForCopy(execution);
-                              const historyHarnessPolicyReportCopyText = historyHarnessPolicyReportPayload
+                              const historyHarnessPolicyReportCopyText = canRenderHistoryHarnessPolicyReportCopy
                                 ? formatHarnessPolicyReportForCopy(historyHarnessPolicyReportPayload)
                                 : '';
                               const historyHarnessShowActionLabel = getHarnessExecutionShowActionLabel(execution);

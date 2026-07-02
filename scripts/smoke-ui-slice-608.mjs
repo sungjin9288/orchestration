@@ -27,7 +27,8 @@ assert.doesNotMatch(appJs, /\(line\) => `\[\$\{getHarnessOutputBriefTypeLabel\(l
 assert.match(appJs, /data-action="copy-harness-output-brief"/);
 assert.match(appJs, /const visibleHarnessOutputBrief = getHarnessOutputBriefResult\(\s*visibleHarnessExecutionResult,\s*state\.lastHarnessOutputBriefResult,\s*\);/);
 assert.match(appJs, /const visibleHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel\(visibleHarnessExecutionResult\);/);
-assert.match(appJs, /const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief\s+\? formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\s+: '';/);
+assert.match(appJs, /const visibleHarnessOutputBriefCopyText = canRenderVisibleHarnessOutputBriefCopy\s+\? formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\s+: '';/);
+assert.doesNotMatch(appJs, /const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief/);
 assert.match(
   appJs,
   /const visibleHarnessOutputBriefCopyStatusLabel =\s+getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\);/,
@@ -54,6 +55,7 @@ console.log(
         action: 'copy-harness-output-brief',
         source: 'latest-result output brief',
         labelSource: 'getHarnessExecutionBriefCopyStatusLabel',
+        predicate: 'canRenderVisibleHarnessOutputBriefCopy',
       },
     },
     null,

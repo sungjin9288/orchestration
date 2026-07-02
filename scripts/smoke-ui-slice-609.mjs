@@ -25,8 +25,9 @@ assert.match(appJs, /const visibleHarnessPolicyReportPayload = getHarnessPolicyR
 assert.match(appJs, /const canRenderVisibleHarnessPolicyReportCopy = Boolean\(visibleHarnessPolicyReportPayload\);/);
 assert.match(
   appJs,
-  /const visibleHarnessPolicyReportCopyText = visibleHarnessPolicyReportPayload\s+\? formatHarnessPolicyReportForCopy\(visibleHarnessPolicyReportPayload\)\s+: '';/,
+  /const visibleHarnessPolicyReportCopyText = canRenderVisibleHarnessPolicyReportCopy\s+\? formatHarnessPolicyReportForCopy\(visibleHarnessPolicyReportPayload\)\s+: '';/,
 );
+assert.doesNotMatch(appJs, /const visibleHarnessPolicyReportCopyText = visibleHarnessPolicyReportPayload/);
 assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(visibleHarnessPolicyReportCopyText\)\}"/);
 assert.match(appJs, /data-harness-policy-report-copy="true"/);
 assert.match(appJs, /canRenderVisibleHarnessPolicyReportCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
@@ -49,7 +50,11 @@ console.log(
       harnessPolicyReportCopy: {
         action: 'copy-harness-policy-report',
         helperModule: 'ui/harness-labels.js',
-        namedValues: ['visibleHarnessPolicyReportPayload', 'canRenderVisibleHarnessPolicyReportCopy'],
+        namedValues: [
+          'visibleHarnessPolicyReportPayload',
+          'canRenderVisibleHarnessPolicyReportCopy',
+          'visibleHarnessPolicyReportCopyText',
+        ],
         source: 'latest-result policy report summary',
       },
     },

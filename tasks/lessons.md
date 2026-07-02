@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness copy text selection should reuse the same render predicate that controls the copy button. Keep output-brief and policy-report payload selection in `ui/app.js`, but avoid checking the payload object again when formatting copy text after `canRender...Copy` has already been derived.
+
 - Harness execution packet copy text should name visible and hidden copy predicates before formatting packet text. Keep packet formatting and clipboard behavior in `ui/app.js`, but avoid using the execution result object itself as the copy-text condition after the latest and hidden results have already been selected.
 
 - Harness hidden operator message summary rendering should name the render predicate before summary markup. Keep the shared operator message in `ui/app.js`, but avoid using the message string itself as the template condition after it has already been derived.

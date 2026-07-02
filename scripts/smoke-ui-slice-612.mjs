@@ -23,12 +23,14 @@ assert.match(appJs, /canRenderHistoryHarnessPolicyReportCopy\s+\?\s+`\s+<button[
 assert.doesNotMatch(appJs, /\$\{\s*historyHarnessPolicyReportPayload\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
 assert.match(
   appJs,
-  /const hiddenHarnessPolicyReportCopyText = hiddenHarnessPolicyReportPayload\s+\? formatHarnessPolicyReportForCopy\(hiddenHarnessPolicyReportPayload\)\s+: '';/,
+  /const hiddenHarnessPolicyReportCopyText = canRenderHiddenHarnessPolicyReportCopy\s+\? formatHarnessPolicyReportForCopy\(hiddenHarnessPolicyReportPayload\)\s+: '';/,
 );
 assert.match(
   appJs,
-  /const historyHarnessPolicyReportCopyText = historyHarnessPolicyReportPayload\s+\? formatHarnessPolicyReportForCopy\(historyHarnessPolicyReportPayload\)\s+: '';/,
+  /const historyHarnessPolicyReportCopyText = canRenderHistoryHarnessPolicyReportCopy\s+\? formatHarnessPolicyReportForCopy\(historyHarnessPolicyReportPayload\)\s+: '';/,
 );
+assert.doesNotMatch(appJs, /const hiddenHarnessPolicyReportCopyText = hiddenHarnessPolicyReportPayload/);
+assert.doesNotMatch(appJs, /const historyHarnessPolicyReportCopyText = historyHarnessPolicyReportPayload/);
 assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(visibleHarnessPolicyReportCopyText\)\}"/);
 assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(hiddenHarnessPolicyReportCopyText\)\}"/);
 assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(historyHarnessPolicyReportCopyText\)\}"/);
@@ -46,6 +48,8 @@ console.log(
         namedValues: [
           'canRenderHiddenHarnessPolicyReportCopy',
           'canRenderHistoryHarnessPolicyReportCopy',
+          'hiddenHarnessPolicyReportCopyText',
+          'historyHarnessPolicyReportCopyText',
         ],
       },
     },
