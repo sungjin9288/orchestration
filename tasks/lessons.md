@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness hidden operator message summary rendering should name the render predicate before summary markup. Keep the shared operator message in `ui/app.js`, but avoid using the message string itself as the template condition after it has already been derived.
+
 - Harness operator action label and tone rendering should name the operator-action presence before display selection. Keep helper calls in `ui/app.js`, but avoid checking `operatorAction` separately for each label or tone fallback after presence has already been derived.
 
 - Harness visible output-channel token rendering should name the output-file predicate before label and tone selection. Keep stdout versus output-file detection in `ui/app.js`, but avoid reading the latest result output path separately for the label and tone after the predicate has already been derived.

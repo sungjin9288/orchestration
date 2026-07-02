@@ -24,8 +24,10 @@ assert.match(appJs, /data-harness-result-hidden-message-summary="true"/);
 assert.match(appJs, /const operatorActionMessage = operatorAction\?\.message \|\| '';/);
 assert.match(appJs, /const operatorActionDisplayMessage =\s+operatorActionMessage \|\| '대표 하네스 액션이 아직 준비되지 않았습니다\.';/);
 assert.match(appJs, /const hiddenHarnessOperatorMessage = operatorActionMessage;/);
-assert.match(appJs, /const hiddenHarnessOperatorMessageSummaryMarkup = hiddenHarnessOperatorMessage/);
+assert.match(appJs, /const canRenderHiddenHarnessOperatorMessageSummary = Boolean\(hiddenHarnessOperatorMessage\);/);
+assert.match(appJs, /const hiddenHarnessOperatorMessageSummaryMarkup = canRenderHiddenHarnessOperatorMessageSummary/);
 assert.match(appJs, /\$\{hiddenHarnessOperatorMessageSummaryMarkup\}/);
+assert.doesNotMatch(appJs, /const hiddenHarnessOperatorMessageSummaryMarkup = hiddenHarnessOperatorMessage/);
 assert.doesNotMatch(appJs, /escapeHtml\(operatorAction\.message/);
 assert.doesNotMatch(appJs, /operatorAction\.message\s*\?\s*`<p class="detail-copy detail-copy-compact" data-harness-result-hidden-message-summary="true">운영 메모: \$\{escapeHtml\(operatorAction\.message\)\}<\/p>`/);
 
@@ -116,6 +118,7 @@ async function main() {
               'operatorActionMessage',
               'operatorActionDisplayMessage',
               'hiddenHarnessOperatorMessage',
+              'canRenderHiddenHarnessOperatorMessageSummary',
               'hiddenHarnessOperatorMessageSummaryMarkup',
             ],
             messageLength: harnessConsumerStatus.operatorAction.message.length,

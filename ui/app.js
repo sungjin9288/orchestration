@@ -1865,9 +1865,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const canRenderHarnessRunForm = Boolean(operatorActionCommand);
   const hiddenHarnessOperatorCommand = operatorActionCommand;
   const hiddenHarnessOperatorMessage = operatorActionMessage;
+  const canRenderHiddenHarnessOperatorMessageSummary = Boolean(hiddenHarnessOperatorMessage);
   const hiddenHarnessOperatorActionSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>${escapeHtml(hiddenHarnessOperatorActionLabel)}</code></p>`;
   const hiddenHarnessOperatorCommandSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>${escapeHtml(hiddenHarnessOperatorCommand)}</code></p>`;
-  const hiddenHarnessOperatorMessageSummaryMarkup = hiddenHarnessOperatorMessage
+  const hiddenHarnessOperatorMessageSummaryMarkup = canRenderHiddenHarnessOperatorMessageSummary
     ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-message-summary="true">운영 메모: ${escapeHtml(hiddenHarnessOperatorMessage)}</p>`
     : '';
   const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
