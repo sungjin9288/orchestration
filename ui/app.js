@@ -17978,6 +17978,11 @@ document.addEventListener('click', async (event) => {
     return;
   }
 
+  if (navButton) {
+    await handleSurfaceChange(navButton.dataset.surface);
+    return;
+  }
+
   if (actionButton?.dataset.action === 'open-surface') {
     await handleSurfaceChange(actionButton.dataset.targetSurface || state.surface);
     return;
@@ -18048,11 +18053,6 @@ document.addEventListener('click', async (event) => {
     }
 
     render();
-    return;
-  }
-
-  if (navButton) {
-    await handleSurfaceChange(navButton.dataset.surface);
     return;
   }
 
