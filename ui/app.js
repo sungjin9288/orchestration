@@ -1623,6 +1623,10 @@ function getHarnessPolicyReportTokenLabel(isPolicyReport) {
   return isPolicyReport ? '정책 리포트' : '';
 }
 
+function isHarnessPolicyReportExecution(execution) {
+  return execution?.actionMode === 'policy-report';
+}
+
 function getHarnessResultStateToken(isPolicyReport) {
   if (isPolicyReport) {
     return {
@@ -1856,9 +1860,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessResultTitle = getHarnessExecutionResultTitle(visibleHarnessExecutionResult);
   const hiddenHarnessResultTitle = getHarnessExecutionResultTitle(hiddenHarnessExecutionResult);
   const visibleHarnessIsPolicyReport =
-    visibleHarnessExecutionResult?.actionMode === 'policy-report';
+    isHarnessPolicyReportExecution(visibleHarnessExecutionResult);
   const hiddenHarnessIsPolicyReport =
-    hiddenHarnessExecutionResult?.actionMode === 'policy-report';
+    isHarnessPolicyReportExecution(hiddenHarnessExecutionResult);
   const visibleHarnessPolicyReportDataValue =
     getHarnessPolicyReportDataValue(visibleHarnessIsPolicyReport);
   const hiddenHarnessPolicyReportDataValue =
@@ -2556,7 +2560,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               const historyHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(execution);
                               const historyHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(execution);
                               const historyHarnessIsPolicyReport =
-                                execution.actionMode === 'policy-report';
+                                isHarnessPolicyReportExecution(execution);
                               const historyHarnessPolicyReportDataValue =
                                 getHarnessPolicyReportDataValue(historyHarnessIsPolicyReport);
 
@@ -18372,7 +18376,7 @@ function getHarnessExecutionCompletionCopy({ execution, fallbackHarnessId }) {
   const executionRequestId = execution?.requestId || execution?.executionId || '';
   const executionRequestCopy = executionRequestId ? `요청: ${executionRequestId}. ` : '';
   const executionOutputCopy = getHarnessExecutionOutputCopy(execution);
-  const executionIsPolicyReport = execution?.actionMode === 'policy-report';
+  const executionIsPolicyReport = isHarnessPolicyReportExecution(execution);
   const executionCompletionLead = executionIsPolicyReport
     ? `하네스 ${executionHarnessId} 정책 리포트 확인 완료.`
     : `하네스 ${executionHarnessId} 실행 완료.`;

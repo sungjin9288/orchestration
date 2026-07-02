@@ -64,7 +64,8 @@ assert.match(appJs, /const executionHarnessId = execution\?\.harnessId \|\| fall
 assert.match(appJs, /const executionRequestId = execution\?\.requestId \|\| execution\?\.executionId \|\| '';/);
 assert.match(appJs, /const executionRequestCopy = executionRequestId \? `요청: \$\{executionRequestId\}\. ` : '';/);
 assert.match(appJs, /const executionOutputCopy = getHarnessExecutionOutputCopy\(execution\);/);
-assert.match(appJs, /const executionIsPolicyReport = execution\?\.actionMode === 'policy-report';/);
+assert.match(appJs, /function isHarnessPolicyReportExecution\(execution\) \{/);
+assert.match(appJs, /const executionIsPolicyReport = isHarnessPolicyReportExecution\(execution\);/);
 assert.match(appJs, /const executionCompletionLead = executionIsPolicyReport/);
 assert.match(appJs, /const executionCompletionOutputCopy =\s+executionIsPolicyReport && execution\?\.stdoutPreview/);
 assert.match(appJs, /const primaryHarnessId = statusCard\?\.primaryHarnessId \|\| '';/);
@@ -79,6 +80,7 @@ assert.match(appJs, /pendingMessage: policyReportPendingMessage,/);
 assert.match(appJs, /const executionCompletionCopy = getHarnessExecutionCompletionCopy\(\{\s+execution,\s+fallbackHarnessId: primaryHarnessId,/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = executionCompletionCopy;/);
 assert.doesNotMatch(appJs, /execution\.actionMode === 'policy-report'\s+\?\s+`하네스 \$\{execution\.harnessId/);
+assert.doesNotMatch(appJs, /const executionIsPolicyReport = execution\?\.actionMode === 'policy-report';/);
 assert.doesNotMatch(appJs, /const executionOutputCopy = execution\.resolvedOutputPath\s+\?/);
 assert.doesNotMatch(appJs, /const policyReportOutputCopy = execution\.stdoutPreview/);
 assert.doesNotMatch(appJs, /elements\.refreshStatus\.textContent =\s+pendingMessage \|\| `하네스 \$\{statusCard\.primaryHarnessId\} 실행을 시작하는 중…`;/);
