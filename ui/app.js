@@ -1756,6 +1756,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const canRenderVisibleHarnessOutputPathCopy = Boolean(visibleHarnessOutputPath);
   const canRenderVisibleHarnessPathActionShelf =
     canRenderVisibleHarnessInputPathActions || canRenderVisibleHarnessOutputPathCopy;
+  const canRenderHiddenHarnessInputPathActions = Boolean(hiddenHarnessInputPath);
+  const canRenderHiddenHarnessOutputPathCopy = Boolean(hiddenHarnessOutputPath);
   const visibleHarnessActionOutputPath =
     visibleHarnessExecutionResult?.resolvedOutputPath || visibleHarnessExecutionResult?.outputPath || '';
   const hiddenHarnessActionOutputPath =
@@ -1779,6 +1781,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const canRenderVisibleHarnessRequestSummary = Boolean(visibleHarnessRequestId);
   const canRenderVisibleHarnessRequestIdCopy = Boolean(visibleHarnessRequestId);
   const canRenderHiddenHarnessRequestSummary = Boolean(hiddenHarnessRequestId);
+  const canRenderHiddenHarnessRequestIdCopy = Boolean(hiddenHarnessRequestId);
   const canRenderHiddenHarnessExecutedAtSummary = Boolean(hiddenHarnessExecutedAtLabel);
   const canRenderHiddenHarnessInputSummary = Boolean(hiddenHarnessInputPath);
   const visibleHarnessRequestSummaryMarkup = canRenderVisibleHarnessRequestSummary
@@ -1882,6 +1885,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ? formatHarnessExecutionPacketForCopy(hiddenHarnessExecutionResult)
     : '';
   const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload(hiddenHarnessExecutionResult);
+  const canRenderHiddenHarnessPolicyReportCopy = Boolean(hiddenHarnessPolicyReportPayload);
   const hiddenHarnessPolicyReportCopyText = hiddenHarnessPolicyReportPayload
     ? formatHarnessPolicyReportForCopy(hiddenHarnessPolicyReportPayload)
     : '';
@@ -1889,6 +1893,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessExecutionResult?.outputPreview || visibleHarnessExecutionResult?.stdoutPreview || '';
   const hiddenHarnessPreviewText =
     hiddenHarnessExecutionResult?.outputPreview || hiddenHarnessExecutionResult?.stdoutPreview || '';
+  const canRenderHiddenHarnessPreview = Boolean(hiddenHarnessPreviewText);
   const canRenderVisibleHarnessPreview = Boolean(visibleHarnessPreviewText);
   const hiddenHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(hiddenHarnessExecutionResult);
   const visibleHarnessOutputBrief = getHarnessOutputBriefResult(
@@ -2308,7 +2313,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         ${escapeHtml(hiddenHarnessShowActionLabel)}
                       </button>
                       ${
-                        hiddenHarnessInputPath
+                        canRenderHiddenHarnessInputPathActions
                           ? `
                             <button
                               class="secondary-button"
@@ -2345,7 +2350,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                       ${
-                        hiddenHarnessOutputPath
+                        canRenderHiddenHarnessOutputPathCopy
                           ? `
                             <button
                               class="secondary-button"
@@ -2361,7 +2366,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                       ${
-                        hiddenHarnessRequestId
+                        canRenderHiddenHarnessRequestIdCopy
                           ? `
                             <button
                               class="secondary-button"
@@ -2385,7 +2390,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         패킷 복사
                       </button>
                       ${
-                        hiddenHarnessPolicyReportPayload
+                        canRenderHiddenHarnessPolicyReportCopy
                           ? `
                             <button
                               class="secondary-button"
@@ -2400,7 +2405,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                       ${
-                        hiddenHarnessPreviewText
+                        canRenderHiddenHarnessPreview
                           ? `
                             <button
                               class="secondary-button"
@@ -2428,7 +2433,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       }
                     </div>
                     ${
-                      hiddenHarnessPreviewText
+                      canRenderHiddenHarnessPreview
                         ? `<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">${escapeHtml(hiddenHarnessPreviewText)}</pre>`
                         : ''
                     }

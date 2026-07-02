@@ -23,6 +23,9 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 assert.match(appJs, /data-harness-result-hidden-input-copy="true"/);
 assert.match(appJs, /data-action="copy-harness-input-path"/);
 assert.match(appJs, /const hiddenHarnessInputPath = hiddenHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
+assert.match(appJs, /const canRenderHiddenHarnessInputPathActions = Boolean\(hiddenHarnessInputPath\);/);
+assert.match(appJs, /canRenderHiddenHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
+assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
 assert.match(appJs, /data-input-path="\$\{escapeHtml\(hiddenHarnessInputPath\)\}"/);
 
 async function fetchJson(url, options = {}) {
@@ -109,6 +112,7 @@ async function main() {
           harnessExecutionHiddenInputCopy: {
             insertionPoint: 'hiddenExecutionResultRegister->copyHiddenInputPathAction->localClipboardOrStatus',
             sourceMarker: 'data-harness-result-hidden-input-copy',
+            namedValues: ['canRenderHiddenHarnessInputPathActions'],
             route: '/api/harness/operator-action/run',
             resolvedInputPath: latestHarnessExecution.resolvedInputPath,
           },

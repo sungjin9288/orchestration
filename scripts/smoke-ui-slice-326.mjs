@@ -23,6 +23,9 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 assert.match(appJs, /data-harness-result-hidden-rerun="true"/);
 assert.match(appJs, /data-action="rerun-harness-execution-paths"/);
 assert.match(appJs, /const hiddenHarnessInputPath = hiddenHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
+assert.match(appJs, /const canRenderHiddenHarnessInputPathActions = Boolean\(hiddenHarnessInputPath\);/);
+assert.match(appJs, /canRenderHiddenHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="rerun-harness-execution-paths"/);
+assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="rerun-harness-execution-paths"/);
 assert.match(appJs, /const hiddenHarnessActionOutputPath =\s+hiddenHarnessExecutionResult\?\.resolvedOutputPath \|\| hiddenHarnessExecutionResult\?\.outputPath \|\| '';/);
 assert.match(
   appJs,
@@ -113,6 +116,7 @@ async function main() {
           harnessExecutionHiddenRerun: {
             insertionPoint: 'hiddenExecutionResultRegister->rerunExecutionPathsAction->runHarnessOperatorActionRoute',
             sourceMarker: 'data-harness-result-hidden-rerun',
+            namedValues: ['canRenderHiddenHarnessInputPathActions'],
             route: '/api/harness/operator-action/run',
             resolvedInputPath: latestHarnessExecution.resolvedInputPath,
             resolvedOutputPath: latestHarnessExecution.resolvedOutputPath,

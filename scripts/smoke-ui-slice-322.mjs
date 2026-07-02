@@ -23,6 +23,9 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 assert.match(appJs, /data-harness-result-hidden-preview-copy="true"/);
 assert.match(appJs, /data-action="copy-harness-execution-preview"/);
 assert.match(appJs, /const hiddenHarnessPreviewText =\s+hiddenHarnessExecutionResult\?\.outputPreview \|\| hiddenHarnessExecutionResult\?\.stdoutPreview \|\| '';/);
+assert.match(appJs, /const canRenderHiddenHarnessPreview = Boolean\(hiddenHarnessPreviewText\);/);
+assert.match(appJs, /canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
+assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessPreviewText\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
 assert.match(appJs, /data-preview-text="\$\{escapeHtml\(hiddenHarnessPreviewText\)\}"/);
 
 async function fetchJson(url, options = {}) {
@@ -110,6 +113,7 @@ async function main() {
           harnessExecutionHiddenPreviewCopy: {
             insertionPoint: 'hiddenExecutionResultRegister->copyHiddenPreviewAction->localClipboardOrStatus',
             sourceMarker: 'data-harness-result-hidden-preview-copy',
+            namedValues: ['canRenderHiddenHarnessPreview'],
             route: '/api/harness/operator-action/run',
             previewLength: String(latestHarnessExecution.outputPreview || latestHarnessExecution.stdoutPreview || '').length,
           },
