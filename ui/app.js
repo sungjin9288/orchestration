@@ -1752,6 +1752,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessInputPath = hiddenHarnessExecutionResult?.resolvedInputPath || '';
   const visibleHarnessOutputPath = visibleHarnessExecutionResult?.resolvedOutputPath || '';
   const hiddenHarnessOutputPath = hiddenHarnessExecutionResult?.resolvedOutputPath || '';
+  const canRenderVisibleHarnessInputPathActions = Boolean(visibleHarnessInputPath);
+  const canRenderVisibleHarnessOutputPathCopy = Boolean(visibleHarnessOutputPath);
+  const canRenderVisibleHarnessPathActionShelf =
+    canRenderVisibleHarnessInputPathActions || canRenderVisibleHarnessOutputPathCopy;
   const visibleHarnessActionOutputPath =
     visibleHarnessExecutionResult?.resolvedOutputPath || visibleHarnessExecutionResult?.outputPath || '';
   const hiddenHarnessActionOutputPath =
@@ -1773,6 +1777,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ? `요청:${visibleHarnessRequestId}`
     : '';
   const canRenderVisibleHarnessRequestSummary = Boolean(visibleHarnessRequestId);
+  const canRenderVisibleHarnessRequestIdCopy = Boolean(visibleHarnessRequestId);
   const canRenderHiddenHarnessRequestSummary = Boolean(hiddenHarnessRequestId);
   const canRenderHiddenHarnessExecutedAtSummary = Boolean(hiddenHarnessExecutedAtLabel);
   const canRenderHiddenHarnessInputSummary = Boolean(hiddenHarnessInputPath);
@@ -2088,11 +2093,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${visibleHarnessPolicyReportSummaryMarkup}
                       ${visibleHarnessOutputBriefSummaryMarkup}
                       ${
-                        visibleHarnessInputPath || visibleHarnessOutputPath
+                        canRenderVisibleHarnessPathActionShelf
                           ? `
                             <div class="form-actions form-actions-inline form-actions-compact">
                               ${
-                                visibleHarnessInputPath
+                                canRenderVisibleHarnessInputPathActions
                                   ? `
                                     <button
                                       class="secondary-button"
@@ -2129,7 +2134,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   : ''
                               }
                               ${
-                                visibleHarnessOutputPath
+                                canRenderVisibleHarnessOutputPathCopy
                                   ? `
                                     <button
                                       class="secondary-button"
@@ -2145,7 +2150,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   : ''
                               }
                               ${
-                                visibleHarnessRequestId
+                                canRenderVisibleHarnessRequestIdCopy
                                   ? `
                                     <button
                                       class="secondary-button"

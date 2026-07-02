@@ -22,6 +22,9 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-action="rerun-harness-execution-paths"/);
 assert.match(appJs, /data-harness-result-rerun="true"/);
+assert.match(appJs, /const canRenderVisibleHarnessInputPathActions = Boolean\(visibleHarnessInputPath\);/);
+assert.match(appJs, /canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="rerun-harness-execution-paths"/);
+assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="rerun-harness-execution-paths"/);
 assert.match(appJs, /async function rerunHarnessExecutionPaths\(actionButton\)/);
 assert.match(appJs, /await executeHarnessOperatorAction\(\{/);
 assert.match(
@@ -130,6 +133,7 @@ async function main() {
           harnessExecutionResultRerun: {
             insertionPoint: 'executionResultRegister->rerunExecutionPathsAction->runHarnessOperatorActionRoute',
             sourceMarker: 'data-harness-result-rerun',
+            namedValues: ['canRenderVisibleHarnessInputPathActions'],
             route: '/api/harness/operator-action/run',
             resolvedInputPath: inputPath,
             resolvedOutputPath: outputPath,

@@ -28,6 +28,9 @@ assert.match(appJs, /state\.harnessExecutionDraftOutputPath = outputPath;/);
 assert.match(appJs, /const reusePathsMessage = `최근 실행 경로를 폼에 다시 채웠습니다: \$\{inputPath\}`;/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = reusePathsMessage;/);
 assert.match(appJs, /const visibleHarnessInputPath = visibleHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
+assert.match(appJs, /const canRenderVisibleHarnessInputPathActions = Boolean\(visibleHarnessInputPath\);/);
+assert.match(appJs, /canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
+assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
 assert.match(appJs, /data-input-path="\$\{escapeHtml\(visibleHarnessInputPath\)\}"/);
 
 async function fetchJson(url, options = {}) {
@@ -117,6 +120,7 @@ async function main() {
           harnessExecutionResultReuse: {
             insertionPoint: 'executionResultRegister->reuseExecutionPathsAction->executionFormDraft',
             sourceMarker: 'data-harness-result-reuse',
+            namedValues: ['canRenderVisibleHarnessInputPathActions'],
             route: '/api/harness/operator-action/run',
             resolvedInputPath: inputPath,
             resolvedOutputPath: outputPath,

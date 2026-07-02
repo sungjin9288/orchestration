@@ -13,6 +13,9 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 assert.match(appJs, /function copyHarnessExecutionRequestId\(requestId\)/);
 assert.match(appJs, /data-action="copy-harness-request-id"/);
 assert.match(appJs, /const visibleHarnessRequestId =\s+visibleHarnessExecutionResult\?\.requestId \|\| visibleHarnessExecutionResult\?\.executionId \|\| '';/);
+assert.match(appJs, /const canRenderVisibleHarnessRequestIdCopy = Boolean\(visibleHarnessRequestId\);/);
+assert.match(appJs, /canRenderVisibleHarnessRequestIdCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-request-id"/);
+assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessRequestId\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-request-id"/);
 assert.match(appJs, /data-request-id="\$\{escapeHtml\(visibleHarnessRequestId\)\}"/);
 assert.match(appJs, /data-harness-request-id-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-request-id-copy="true"/);
@@ -34,6 +37,7 @@ console.log(
       harnessRequestIdCopy: {
         action: 'copy-harness-request-id',
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],
+        namedValues: ['canRenderVisibleHarnessRequestIdCopy'],
       },
     },
     null,

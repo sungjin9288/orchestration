@@ -22,6 +22,11 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-action="copy-harness-input-path"/);
 assert.match(appJs, /data-harness-input-copy="true"/);
+assert.match(appJs, /const canRenderVisibleHarnessInputPathActions = Boolean\(visibleHarnessInputPath\);/);
+assert.match(appJs, /const canRenderVisibleHarnessPathActionShelf =\s+canRenderVisibleHarnessInputPathActions \|\| canRenderVisibleHarnessOutputPathCopy;/);
+assert.match(appJs, /canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
+assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
+assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessInputPath \|\| visibleHarnessOutputPath\s+\?\s+`/);
 assert.match(appJs, /입력 경로/);
 assert.match(appJs, /async function copyHarnessExecutionInputPath\(inputPath\)/);
 assert.match(appJs, /const emptyInputPathCopyMessage = '복사할 하네스 입력 경로가 없습니다\.';/);
@@ -125,6 +130,10 @@ async function main() {
           harnessExecutionInputPathCopy: {
             insertionPoint: 'executionResultRegister->copyExecutionInputPathAction->localClipboardOrStatus',
             sourceMarker: 'data-harness-input-copy',
+            namedValues: [
+              'canRenderVisibleHarnessPathActionShelf',
+              'canRenderVisibleHarnessInputPathActions',
+            ],
             route: '/api/harness/operator-action/run',
             resolvedInputPath: inputPath,
           },

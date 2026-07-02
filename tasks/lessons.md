@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible path and request actions should name their render predicates before action-shelf markup. Keep input path, output path, and request id selection in `ui/app.js`, but avoid using raw path or request values as implicit button conditions after the values have already been derived.
+
 - Harness visible optional action buttons should name their render predicates before button and preview markup. Keep preview text, output-brief payload, and policy-report payload selection in `ui/app.js`, but avoid using those payload values as implicit template conditions after they have already been derived.
 
 - Harness visible result tokens should name their render predicates before token-row assembly. Keep primary id, request id, executed-at, and policy-report label selection in `ui/app.js`, but avoid using token-label strings as implicit template conditions after those labels have already been derived.
