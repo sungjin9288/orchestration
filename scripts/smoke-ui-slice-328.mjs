@@ -24,9 +24,12 @@ assert.match(appJs, /data-harness-result-hidden-executed-at-summary="true"/);
 assert.match(appJs, /function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/);
 assert.match(appJs, /if \(!execution\?\.executedAt\) \{\s+return fallbackLabel;\s+\}/);
 assert.match(appJs, /return formatDate\(execution\.executedAt\);/);
+assert.match(appJs, /function getHarnessExecutedAtTokenLabel\(executedAtLabel\) \{/);
+assert.match(appJs, /if \(!executedAtLabel\) \{\s+return '';\s+\}/);
+assert.match(appJs, /return `실행:\$\{executedAtLabel\}`;/);
 assert.match(appJs, /const visibleHarnessExecutedAtLabel = getHarnessExecutionTimestampLabel\(\s+visibleHarnessExecutionResult,\s+'',\s+\);/);
 assert.match(appJs, /const hiddenHarnessExecutedAtLabel = getHarnessExecutionTimestampLabel\(\s+hiddenHarnessExecutionResult,\s+'',\s+\);/);
-assert.match(appJs, /const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel/);
+assert.match(appJs, /const visibleHarnessExecutedAtTokenLabel =\s+getHarnessExecutedAtTokenLabel\(visibleHarnessExecutedAtLabel\);/);
 assert.match(appJs, /const canRenderVisibleHarnessExecutedAtToken = Boolean\(visibleHarnessExecutedAtTokenLabel\);/);
 assert.match(appJs, /canRenderVisibleHarnessExecutedAtToken\s+\?\s+createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
 assert.match(appJs, /createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
@@ -38,6 +41,7 @@ assert.doesNotMatch(appJs, /escapeHtml\(formatDate\(hiddenHarnessExecutionResult
 assert.doesNotMatch(appJs, /createToken\(`실행:\$\{formatDate\(visibleHarnessExecutionResult\.executedAt\)\}`/);
 assert.doesNotMatch(appJs, /const visibleHarnessExecutedAtLabel = visibleHarnessExecutionResult\?\.executedAt/);
 assert.doesNotMatch(appJs, /const hiddenHarnessExecutedAtLabel = hiddenHarnessExecutionResult\?\.executedAt/);
+assert.doesNotMatch(appJs, /const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel\s+\?\s+`실행:\$\{visibleHarnessExecutedAtLabel\}`\s+:\s+'';/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessExecutedAtLabel\s+\?\s+`<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessExecutedAtTokenLabel\s+\?\s+createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
 
@@ -128,6 +132,7 @@ async function main() {
               'visibleHarnessExecutedAtLabel',
               'hiddenHarnessExecutedAtLabel',
               'getHarnessExecutionTimestampLabel',
+              'getHarnessExecutedAtTokenLabel',
               'canRenderHiddenHarnessExecutedAtSummary',
               'hiddenHarnessExecutedAtSummaryMarkup',
               'visibleHarnessExecutedAtTokenLabel',

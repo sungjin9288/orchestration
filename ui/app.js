@@ -1595,6 +1595,14 @@ function getHarnessExecutionTimestampLabel(execution, fallbackLabel = '기록 �
   return formatDate(execution.executedAt);
 }
 
+function getHarnessExecutedAtTokenLabel(executedAtLabel) {
+  if (!executedAtLabel) {
+    return '';
+  }
+
+  return `실행:${executedAtLabel}`;
+}
+
 function getHarnessPrimaryTokenLabel(execution) {
   if (!execution?.harnessId) {
     return '';
@@ -1838,9 +1846,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-input-summary="true">입력: <code>${escapeHtml(hiddenHarnessInputPath)}</code></p>`
     : '';
   const hiddenHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-output-summary="true">${escapeHtml(hiddenHarnessOutputLabel)}: <code>${escapeHtml(hiddenHarnessOutputSummaryValue)}</code></p>`;
-  const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel
-    ? `실행:${visibleHarnessExecutedAtLabel}`
-    : '';
+  const visibleHarnessExecutedAtTokenLabel =
+    getHarnessExecutedAtTokenLabel(visibleHarnessExecutedAtLabel);
   const canRenderVisibleHarnessPrimaryToken = Boolean(visibleHarnessPrimaryTokenLabel);
   const canRenderVisibleHarnessRequestToken = Boolean(visibleHarnessRequestTokenLabel);
   const canRenderVisibleHarnessExecutedAtToken = Boolean(visibleHarnessExecutedAtTokenLabel);

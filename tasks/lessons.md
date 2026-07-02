@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness executed-at token labels should be selected through a named label helper before render predicates consume them. Keep timestamp fallback selection separate from token copy assembly, and avoid inline `실행:<timestamp>` ternaries in the render path.
+
 - Harness result state chips should select their label and tone as one named state token. Keep policy-report and completed execution semantics in `ui/app.js`, but avoid separate inline label and tone ternaries that can drift apart.
 
 - Harness visible result token labels should be selected through named label helpers before render predicates consume them. Keep representative id, request id, and policy-report token copy in `ui/app.js`, but avoid inline token-label ternaries once the render predicates depend on those labels.
