@@ -1615,6 +1615,20 @@ function getHarnessPolicyReportTokenLabel(isPolicyReport) {
   return isPolicyReport ? '정책 리포트' : '';
 }
 
+function getHarnessResultStateToken(isPolicyReport) {
+  if (isPolicyReport) {
+    return {
+      label: 'no-write',
+      tone: 'neutral',
+    };
+  }
+
+  return {
+    label: '완료',
+    tone: 'success',
+  };
+}
+
 function getHarnessExecutionPacketContext(execution) {
   const handoffContext = getHarnessExecutionHandoffContext(execution);
 
@@ -1845,10 +1859,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessPolicyReportTokenLabel =
     getHarnessPolicyReportTokenLabel(visibleHarnessIsPolicyReport);
   const canRenderVisibleHarnessPolicyReportToken = Boolean(visibleHarnessPolicyReportTokenLabel);
-  const visibleHarnessResultStateLabel =
-    visibleHarnessIsPolicyReport ? 'no-write' : '완료';
-  const visibleHarnessResultStateTone =
-    visibleHarnessIsPolicyReport ? 'neutral' : 'success';
+  const visibleHarnessResultStateToken =
+    getHarnessResultStateToken(visibleHarnessIsPolicyReport);
+  const visibleHarnessResultStateLabel = visibleHarnessResultStateToken.label;
+  const visibleHarnessResultStateTone = visibleHarnessResultStateToken.tone;
   const visibleHarnessUsesOutputFile = Boolean(visibleHarnessExecutionResult?.outputPath);
   const visibleHarnessOutputChannelLabel =
     visibleHarnessUsesOutputFile ? '출력 파일' : '표준 출력';
