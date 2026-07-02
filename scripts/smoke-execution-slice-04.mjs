@@ -249,7 +249,7 @@ await assert.rejects(
     coordinator.runBuilderPreflight({
       taskId: approvalBlockedTask.id,
     }),
-  /cannot run builder preflight while gates remain active: pending approvals/i,
+  /pending approvals: approval-/i,
 );
 
 const approvalBlockedTaskAfter = runtime.getTask(approvalBlockedTask.id);
