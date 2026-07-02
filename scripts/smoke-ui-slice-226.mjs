@@ -20,7 +20,7 @@ assert.match(app, /빌더 라이브 변경 증적이 아직 없습니다\./);
 assert.match(app, /플래너 실행을 시작하기 전에 태스크를 먼저 선택하세요\./);
 assert.match(app, /설계 실행을 시작하기 전에 태스크를 먼저 선택하세요\./);
 assert.match(app, /태스크 분해 실행을 시작하기 전에 태스크를 먼저 선택하세요\./);
-assert.match(app, /회의 결론 승인 자동 체인은 플래너부터 사전 점검까지만 진행되고, 이후는 기존 게이트 규칙을 따릅니다\./);
+assert.match(app, /회의 결론 승인 자동 체인은 플래너부터 프리플라이트까지만 진행되고, 이후는 기존 승인 게이트 규칙을 따릅니다\./);
 
 assert.doesNotMatch(app, /evidenceLabel: `plan \$\{latestPlanArtifact\.id\}`/);
 assert.doesNotMatch(app, /evidenceLabel: 'plan 대기'/);

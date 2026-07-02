@@ -7,9 +7,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const surfaceConfigJs = fs.readFileSync(surfaceConfigPath, 'utf8');
 const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(appJs, /function renderWorkspacePlaybookShortcutButtons\(\n  card,\n  activeGroupId,\n  currentPlaybookStep,\n  playbookCardLabelIds,\n  playbookCardCurrentId,\n  shortcutGroupDescriptionIds,\n  playbookCardDescriptionIds,\n\) \{/);
@@ -32,9 +34,9 @@ assert.match(appJs, /aria-describedby="\$\{escapeHtml\(playbookCardDescriptionId
 assert.doesNotMatch(appJs, /shortcutAriaLabel/);
 assert.doesNotMatch(appJs, /aria-label="\$\{escapeHtml\(shortcutAriaLabel\)\}"/);
 assert.match(appJs, /\$\{renderWorkspacePlaybookShortcutButtons\(card, activeGroupId, currentPlaybookStep, playbookCardLabelIds, playbookCardCurrentId, shortcutGroupDescriptionIds, playbookCardDescriptionIds\)\}/);
-assert.match(appJs, /surfaces: \['mission'\]/);
-assert.match(appJs, /surfaces: \['council', 'execution'\]/);
-assert.match(appJs, /surfaces: \['decision-inbox'\]/);
+assert.match(surfaceConfigJs, /surfaces: \['mission'\]/);
+assert.match(surfaceConfigJs, /surfaces: \['council', 'execution'\]/);
+assert.match(surfaceConfigJs, /surfaces: \['decision-inbox'\]/);
 assert.match(stylesCss, /\.workspace-playbook-shortcuts \{/);
 assert.match(stylesCss, /\.workspace-playbook-shortcut \{/);
 assert.match(stylesCss, /\.workspace-playbook-shortcut\.is-current-surface \{/);

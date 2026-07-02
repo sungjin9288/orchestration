@@ -7,8 +7,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const surfaceConfigJs = fs.readFileSync(surfaceConfigPath, 'utf8');
 
 assert.match(appJs, /data-step-state="\$\{isCurrentStep \? 'current' : 'idle'\}"/);
 assert.match(appJs, /\$\{isCurrentStep \? 'aria-current="step"' : ''\}/);
@@ -22,12 +24,12 @@ assert.match(appJs, /const playbookCardCurrentId = isCurrentStep/);
 assert.match(appJs, /\? `workspace-playbook-card-current-\$\{activeGroupId\}-\$\{card\.step\}`/);
 assert.match(appJs, /<span class="workspace-playbook-current-step" id="\$\{escapeHtml\(playbookCardCurrentId\)\}">현재 단계<\/span>/);
 assert.match(appJs, /const playbookCardDescriptionIds = \[playbookCardCurrentId, playbookCardNoteId, playbookCardWhereId\]/);
-assert.match(appJs, /surfaces:\s*\['mission'\]/);
-assert.match(appJs, /surfaces:\s*\['council', 'execution'\]/);
-assert.match(appJs, /surfaces:\s*\['deliverables'\]/);
-assert.match(appJs, /surfaces:\s*\['artifacts'\]/);
-assert.match(appJs, /surfaces:\s*\['logs'\]/);
-assert.match(appJs, /surfaces:\s*\['decision-inbox'\]/);
+assert.match(surfaceConfigJs, /surfaces:\s*\['mission'\]/);
+assert.match(surfaceConfigJs, /surfaces:\s*\['council', 'execution'\]/);
+assert.match(surfaceConfigJs, /surfaces:\s*\['deliverables', 'artifacts', 'logs'\]/);
+assert.match(surfaceConfigJs, /surfaces:\s*\['artifacts'\]/);
+assert.match(surfaceConfigJs, /surfaces:\s*\['logs'\]/);
+assert.match(surfaceConfigJs, /surfaces:\s*\['decision-inbox'\]/);
 
 console.log(
   JSON.stringify(

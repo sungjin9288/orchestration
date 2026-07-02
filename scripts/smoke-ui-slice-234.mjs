@@ -7,8 +7,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const councilConfigPath = path.join(repoRoot, 'ui', 'council-config.js');
 
-const appJs = fs.readFileSync(appJsPath, 'utf8');
+const appJs = fs.readFileSync(appJsPath, 'utf8') + fs.readFileSync(councilConfigPath, 'utf8');
 
 assert.match(appJs, /여기는 참석자, 안건, 이견, 권고, 승인 선반을 같은 회의실에서 정리하는 표면입니다\./);
 assert.match(appJs, /owner: '회의 리드 \+ 참여 역할'/);

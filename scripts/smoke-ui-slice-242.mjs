@@ -7,8 +7,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const councilConfigPath = path.join(repoRoot, 'ui', 'council-config.js');
 
-const appJs = fs.readFileSync(appPath, 'utf8');
+const appJs = fs.readFileSync(appPath, 'utf8') + fs.readFileSync(councilConfigPath, 'utf8');
 
 assert.match(appJs, /현재 결론과 다음 인계 판단을 한 지점에서 정리합니다\./);
 assert.match(appJs, /정렬 상태와 다음 인계 판단을 한 지점에서 확인합니다\./);

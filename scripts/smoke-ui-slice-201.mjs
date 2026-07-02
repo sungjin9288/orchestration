@@ -23,20 +23,20 @@ function getNarrativeDeckBlock(eyebrow) {
   return app.slice(deckStart, cardsIndex);
 }
 
-const deliverablesLeftDeck = getNarrativeDeckBlock('보고 개요판');
-const deliverablesRightDeck = getNarrativeDeckBlock('보고 판단판');
+const deliverablesLeftDeck = getNarrativeDeckBlock('전달 패킷 개요');
+const deliverablesRightDeck = getNarrativeDeckBlock('인계 판단판');
 
-assert.match(deliverablesLeftDeck, /heading:\s*'결과 보고'/);
+assert.match(deliverablesLeftDeck, /heading:\s*'결과 패킷 데스크'/);
 assert.match(
   deliverablesLeftDeck,
-  /copy:\s*'결과 보고 왼쪽 패널도 현재 보고 판단, 다음 행동, 연결 근거부터 먼저 보여 줍니다\.'/,
+  /copy:\s*'왼쪽 패널은 현재 결과 패킷, 다음 인계, 연결 근거부터 먼저 보여 줍니다\.'/,
 );
 assert.doesNotMatch(deliverablesLeftDeck, /entryFrame:\s*true/);
 
-assert.match(deliverablesRightDeck, /heading:\s*'현재 보고 상태와 다음 후속만 먼저 봅니다'/);
+assert.match(deliverablesRightDeck, /heading:\s*'현재 패킷 상태와 다음 인계선을 먼저 봅니다'/);
 assert.match(
   deliverablesRightDeck,
-  /copy:\s*'결과 보고 오른쪽 패널은 현재 보고 묶음, 결재선, 다음 후속을 먼저 보여 주고 깊은 점검은 아래로 미룹니다\.'/,
+  /copy:\s*'오른쪽 패널은 결과 패킷보다 리뷰 라인, 승인선, 종료 보고 경로를 우선 보여 줍니다\.'/,
 );
 assert.doesNotMatch(deliverablesRightDeck, /entryFrame:\s*true/);
 
@@ -45,7 +45,7 @@ console.log(
     {
       ok: true,
       deliverablesNarrativeDeckDensity: {
-        decks: ['보고 개요판', '보고 판단판'],
+        decks: ['전달 패킷 개요', '인계 판단판'],
         markers: ['renderNarrativeDeck', 'entryFrame removed'],
       },
     },

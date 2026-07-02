@@ -86,7 +86,7 @@ async function main() {
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.equal(initialSnapshot.snapshot.activeProjectId, null);
-    assert.match(indexHtml, /AI 전략 본부/);
+    assert.match(indexHtml, /<h1>Orchestration<\/h1>/);
     assert.match(appJs, /create-project-from-mission/);
     assert.match(appJs, /미션 시작/);
     assert.match(

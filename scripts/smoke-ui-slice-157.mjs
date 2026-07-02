@@ -12,7 +12,7 @@ const app = fs.readFileSync(appPath, 'utf8');
 
 assert.match(app, /회의를 열면 참석 역할, 권고안, 승인 선반이 이곳에 뜹니다\./);
 assert.match(app, /오른쪽 패널은 회의록 전체보다 현재 권고안, 열린 이견, 승인 상태를 먼저 보여 줍니다\./);
-assert.match(app, /이제 작전실과 관제실에서 다음 지시를 확인합니다\./);
+assert.match(app, /이제 실행 지시 데스크와 관제실에서 다음 지시를 확인합니다\./);
 assert.match(app, /선택된 안건에서 회의를 열면 권고안과 승인 선반이 채워집니다\./);
 
 assert.doesNotMatch(app, /참모 회의를 초안으로 만들어 역할군, 회의록, 결론, 승인 체크포인트를 화면에 올립니다\./);

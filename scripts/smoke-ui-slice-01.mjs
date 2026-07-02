@@ -175,20 +175,23 @@ async function main() {
     const indexHtml = await indexResponse.text();
     const appJsResponse = await fetch(`${baseUrl}/app.js`);
     const appJs = await appJsResponse.text();
+    const artifactPreviewJsResponse = await fetch(`${baseUrl}/artifact-preview.js`);
+    const artifactPreviewJs = await artifactPreviewJsResponse.text();
 
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
-    assert.match(indexHtml, /AI 전략 본부/);
-    assert.match(indexHtml, /고급 운영 모드/);
+    assert.equal(artifactPreviewJsResponse.status, 200);
+    assert.match(indexHtml, /<h1>Orchestration<\/h1>/);
+    assert.match(indexHtml, /office-register-value">advanced</);
     assert.match(indexHtml, /작업판/);
     assert.match(indexHtml, /결정함/);
     assert.match(appJs, /function getArtifactCatalogEntry\(artifact, data\)/);
     assert.match(appJs, /function renderArtifactPolicyTokens\(artifact, data\)/);
-    assert.match(appJs, /tier-c-generic-fallback/);
-    assert.match(appJs, /raw-only/);
-    assert.match(appJs, /일반 보존/);
-    assert.match(appJs, /원문만 제공/);
-    assert.match(appJs, /최종 기준/);
+    assert.match(artifactPreviewJs, /tier-c-generic-fallback/);
+    assert.match(artifactPreviewJs, /raw-only/);
+    assert.match(artifactPreviewJs, /일반 보존/);
+    assert.match(artifactPreviewJs, /원문만 제공/);
+    assert.match(artifactPreviewJs, /최종 기준/);
 
     const snapshotResponse = await fetch(`${baseUrl}/api/snapshot`);
     const snapshotPayload = await snapshotResponse.json();

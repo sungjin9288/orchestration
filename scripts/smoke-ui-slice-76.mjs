@@ -13,9 +13,9 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(appJs, /strong>브리프 핵심 4줄<\/strong>/);
-assert.match(appJs, /지금 바로 판단해야 할 상태만 네 줄로 압축해 둡니다\./);
+assert.match(appJs, /지금 판단할 상태만 네 줄로 봅니다\./);
 assert.match(appJs, /label: '회의'/);
-assert.match(appJs, /label: '작전'/);
+assert.match(appJs, /label: '실행'/);
 assert.match(appJs, /label: '보고'/);
 assert.match(appJs, /label: '다음'/);
 assert.match(appJs, /renderMissionSnapshotList\(selectedMissionActiveSnapshotItems, \{ compact: true \}\)/);
@@ -25,8 +25,8 @@ assert.match(appJs, /class="list-copy list-copy-compact mission-row-goal"/);
 assert.match(appJs, /class="list-copy list-copy-compact mission-row-summary"/);
 assert.match(appJs, /class="mission-row-foot"/);
 assert.match(appJs, /class="list-copy list-copy-compact mission-row-next"/);
-assert.match(appJs, /지금 바로 움직이는 안건만 짧게 모아 둡니다\./);
-assert.match(appJs, /봉인된 안건은 다음 사이클 전까지 짧게 보관합니다\./);
+assert.match(appJs, /현재 배정 중인 안건만 모읍니다\./);
+assert.match(appJs, /종료 정리까지 끝난 안건만 따로 보관합니다\./);
 
 assert.match(styles, /\.mission-row-button \{/);
 assert.match(styles, /\.mission-row-head \{/);

@@ -24,7 +24,7 @@ assert.match(appJs, /function renderHarnessBriefRegister\(brief\)/);
 assert.match(appJs, /const harnessBrief = getHarnessConsumerBrief\(data\);/);
 assert.match(
   appJs,
-  /\$\{deliverablesDeck\}\s*\n\s*\$\{renderHarnessBriefRegister\(harnessBrief\)\}\s*\n\s*<div class="surface-grid">/,
+  /\$\{deliverablesDeck\}\s*\n\s*\$\{renderDeliverablesCompletionSummary\(deliverablesCompletionSummary\)\}\s*\n\s*\$\{renderHarnessBriefRegister\(harnessBrief\)\}\s*\n\s*<div class="surface-grid">/,
 );
 
 async function fetchJson(url, options = {}) {

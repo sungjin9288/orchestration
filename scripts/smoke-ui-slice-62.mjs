@@ -36,7 +36,7 @@ assert.match(
 );
 assert.match(
   masterBrief,
-  /broad pack marketplace or non-development packs/,
+  /broad pack marketplace or additional non-development packs/,
 );
 assert.match(
   ia,

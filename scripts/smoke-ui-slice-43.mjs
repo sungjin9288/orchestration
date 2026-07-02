@@ -14,21 +14,21 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-const detailStart = appJs.indexOf('<h2>안건 브리프</h2>');
+const detailStart = appJs.indexOf('<h2>안건 배정 브리프</h2>');
 const detailEnd = appJs.indexOf('</aside>', detailStart);
-assert.notEqual(detailStart, -1, '안건 브리프 section should exist');
-assert.notEqual(detailEnd, -1, '안건 브리프 aside should exist');
+assert.notEqual(detailStart, -1, '안건 배정 브리프 section should exist');
+assert.notEqual(detailEnd, -1, '안건 배정 브리프 aside should exist');
 
 const detailSource = appJs.slice(detailStart, detailEnd + 1600);
 
 const linkedTaskSection = detailSource.match(/<strong>실행 셀 연결<\/strong>[\s\S]*?<\/section>/);
-const missionActionsSection = detailSource.match(/<strong>브리프 액션<\/strong>[\s\S]*?<\/section>/);
+const missionActionsSection = detailSource.match(/<strong>등록 후속<\/strong>[\s\S]*?<\/section>/);
 const missionCompletionSection = detailSource.match(/<strong>안건 종료 보고<\/strong>[\s\S]*?<\/section>/);
 const councilSection = detailSource.match(/<strong>참여 역할<\/strong>[\s\S]*?<\/section>/);
 const advancedOpsSection = detailSource.match(/<strong>관제실 직행<\/strong>[\s\S]*?<\/section>/);
 
 assert.ok(linkedTaskSection, '실행 셀 연결 section should exist');
-assert.ok(missionActionsSection, '브리프 액션 section should exist');
+assert.ok(missionActionsSection, '등록 후속 section should exist');
 assert.ok(missionCompletionSection, '안건 종료 보고 section should exist');
 assert.ok(councilSection, '참여 역할 section should exist');
 assert.ok(advancedOpsSection, '관제실 직행 section should exist');

@@ -6,16 +6,15 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
-const indexPath = path.join(repoRoot, 'ui', 'index.html');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const councilConfigPath = path.join(repoRoot, 'ui', 'council-config.js');
 
-const indexHtml = fs.readFileSync(indexPath, 'utf8');
-const appJs = fs.readFileSync(appPath, 'utf8');
+const appJs = fs.readFileSync(appPath, 'utf8') + fs.readFileSync(councilConfigPath, 'utf8');
 
-assert.match(indexHtml, /회의 리드/);
-assert.match(indexHtml, /전략 역할/);
-assert.match(indexHtml, /설계 역할/);
-assert.match(indexHtml, /실행 역할/);
+assert.match(appJs, /회의 리드/);
+assert.match(appJs, /전략 역할/);
+assert.match(appJs, /설계 역할/);
+assert.match(appJs, /실행 역할/);
 
 assert.match(appJs, /avatarLabel: '리드 아바타'/);
 assert.match(appJs, /displayName: '리드'/);

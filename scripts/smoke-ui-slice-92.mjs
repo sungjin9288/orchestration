@@ -17,8 +17,8 @@ assert.match(appJs, /function getArtifactListSnapshot\(artifact, task, data\)/);
 assert.match(appJs, /function getInboxListSnapshot\(item, task, approval, evidenceRail = null\)/);
 
 assert.match(appJs, /class="card list-button ops-list-button/);
-assert.match(appJs, /class="ops-list-head"/);
-assert.match(appJs, /class="ops-list-summary"/);
+assert.match(appJs, /class="ops-list-head ops-list-register ops-list-register-primary"/);
+assert.match(appJs, /class="ops-list-summary ops-list-register"/);
 assert.match(appJs, /class="ops-list-label">현재 상태<\/p>/);
 assert.match(appJs, /class="ops-list-label">다음 확인<\/p>/);
 assert.match(appJs, /class="list-copy list-copy-compact ops-list-meta"/);

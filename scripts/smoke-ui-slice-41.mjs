@@ -21,15 +21,15 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 const completedState = JSON.parse(fs.readFileSync(completedStatePath, 'utf8'));
 
-const detailHeaderMatch = appJs.match(/eyebrow: '안건 판단판'[\s\S]*?tokens:\s*\[([\s\S]*?)\],\s*cards:/);
+const detailHeaderMatch = appJs.match(/eyebrow: '안건 배정 판단판'[\s\S]*?tokens:\s*\[([\s\S]*?)\],\s*cards:/);
 const snapshotSectionMatch = appJs.match(/<strong>브리프 핵심 4줄<\/strong>[\s\S]*?<\/section>/);
 const completionSectionMatch = appJs.match(/<strong>안건 종료 보고<\/strong>[\s\S]*?<\/section>/);
-const councilSectionMatch = appJs.match(/<strong>착석 참모진<\/strong>[\s\S]*?<\/section>/);
+const councilSectionMatch = appJs.match(/<strong>참여 역할<\/strong>[\s\S]*?<\/section>/);
 
-assert.ok(detailHeaderMatch, '안건 판단판 token row should exist');
+assert.ok(detailHeaderMatch, '안건 배정 판단판 token row should exist');
 assert.ok(snapshotSectionMatch, '브리프 핵심 4줄 section should exist');
 assert.ok(completionSectionMatch, '안건 종료 보고 section should exist');
-assert.ok(councilSectionMatch, '착석 참모진 section should exist');
+assert.ok(councilSectionMatch, '참여 역할 section should exist');
 
 assert.match(detailHeaderMatch[1], /연결태스크:/);
 assert.doesNotMatch(detailHeaderMatch[1], /createToken\(`미션:/);

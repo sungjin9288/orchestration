@@ -29,7 +29,7 @@ assert.match(appJs, /function getMissionDeliverablesPreview/);
 assert.match(appJs, /연결된 태스크가 아직 없어서 산출물도 없습니다\./);
 assert.match(appJs, /아직 아티팩트 패키지가 없습니다; 리뷰/);
 assert.match(appJs, /승인 /);
-assert.match(appJs, /현재 결재 안건/);
+assert.match(appJs, /결재 안건입니다/);
 assert.match(appJs, /안건 종료 보고/);
 assert.equal(mission.status, 'executing');
 assert.equal(latestArtifact.type, 'preflight');

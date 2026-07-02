@@ -14,7 +14,7 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 assert.match(appJs, /data-harness-execution-history-summary-rack="true"/);
 assert.match(
   appJs,
-  /data-harness-execution-history-item="true"[\s\S]*?data-harness-execution-history-summary-rack="true"[\s\S]*?실행[\s\S]*?입력[\s\S]*?출력[\s\S]*?data-harness-execution-history-action-shelf="true"/,
+  /renderHarnessHistorySummaryRow\('실행'[\s\S]*?renderHarnessHistorySummaryRow\('입력'[\s\S]*?historyHarnessOutputLabel[\s\S]*?data-harness-execution-history-item="true"[\s\S]*?data-harness-execution-history-summary-rack="true"[\s\S]*?data-harness-execution-history-action-shelf="true"/,
 );
 
 assert.match(stylesCss, /\.harness-execution-history-summary-rack\s*\{/);

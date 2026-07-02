@@ -29,7 +29,7 @@ assert.doesNotMatch(app, /function renderSurfaceFocusCard\(/);
 assert.doesNotMatch(app, /function renderHomeCompanyPulseStrip\(/);
 assert.doesNotMatch(app, /function renderSurfaceFocusStrip\(/);
 
-assert.match(app, /function getCompanyFloorBoardEntries\(data\)/);
+assert.match(app, /function getCompanyFloorBoardEntries\(data, navGroupId\)/);
 assert.match(app, /function renderControlOverview\(data\)/);
 assert.match(app, /controlOverview:\s*document\.querySelector\('#control-overview'\)/);
 

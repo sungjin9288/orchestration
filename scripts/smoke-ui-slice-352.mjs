@@ -18,10 +18,17 @@ const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-352');
 const port = 4653;
 const baseUrl = `http://127.0.0.1:${port}`;
 
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
+
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(appJs, /data-harness-history-rerun="true"/);
-assert.match(appJs, /data-harness-history-rerun="true"[\s\S]*?>\s*같은 경로 재실행\s*<\/button>/);
+assert.match(
+  appJs,
+  /data-harness-history-rerun="true"[\s\S]*?>\s*\$\{escapeHtml\(historyHarnessRerunActionLabel\)\}\s*<\/button>/,
+);
+assert.match(harnessLabels, /'같은 경로 재실행'/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

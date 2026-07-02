@@ -24,9 +24,9 @@ const task = runtimeState.tasks[mission.linkedTaskId];
 const closeOutArtifact = runtimeState.artifacts[smoke30.missionDoneSummary.closeOutArtifactId];
 
 assert.equal(smoke30.ok, true);
-assert.match(appJs, /진행 중인 미션/);
-assert.match(appJs, /완료된 미션/);
-assert.match(appJs, /봉인된 안건은 이 줄에 보관합니다\./);
+assert.match(appJs, /진행 안건 등록대장/);
+assert.match(appJs, /종료 안건 보관대장/);
+assert.match(appJs, /종료 정리까지 끝난 안건이 생기면 이 줄에 보관됩니다\./);
 assert.match(appJs, /종료 정리 .* · 다음 안건을 바로 준비할 수 있습니다\./);
 assert.match(appJs, /다음: 미션에서 다음 안건 준비/);
 assert.match(appJs, /완료:봉인/);

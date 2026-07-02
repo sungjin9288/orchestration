@@ -24,7 +24,7 @@ assert.match(app, /company-directory-section-list/);
 assert.match(app, /workflow-stage-stack/);
 assert.match(app, /review-lane-stack/);
 assert.match(app, /ops-team-section-list/);
-assert.match(app, /팀 우선 노출 · 역할 변경은 운영 메뉴/);
+assert.match(app, /팀별 배정/);
 
 assert.match(styles, /\.company-directory-section-list \{/);
 assert.match(styles, /\.workflow-stage-stack \{/);
@@ -37,7 +37,7 @@ console.log(
     {
       ok: true,
       groupedWorkspaceReadabilityReset: {
-        sidebar: ['company-directory-section-list', '팀 우선 노출 · 역할 변경은 운영 메뉴'],
+        sidebar: ['company-directory-section-list', '팀별 배정'],
         workspaces: ['Workflow map', 'Selected work order', 'Execution handoff', 'Review queue', 'Company org'],
         layouts: ['workflow-stage-stack', 'review-lane-stack', 'ops-team-section-list'],
       },

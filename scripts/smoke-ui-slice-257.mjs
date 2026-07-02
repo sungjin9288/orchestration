@@ -32,7 +32,7 @@ assert.match(
 );
 assert.match(
   styles,
-  /\.control-overview-grid \{[\s\S]*grid-template-columns:\s*minmax\(300px, 1\.1fr\) minmax\(0, 1\.15fr\) minmax\(280px, 0\.9fr\);/s,
+  /\.control-overview-grid \{[\s\S]*grid-template-columns:\s*minmax\(260px, 0\.9fr\) minmax\(0, 1\.1fr\) minmax\(240px, 0\.82fr\);/s,
 );
 
 console.log(

@@ -18,8 +18,8 @@ assert.match(appJs, /aria-labelledby="\$\{escapeHtml\(`\$\{locationCellIds\.resu
 assert.match(appJs, /aria-labelledby="\$\{escapeHtml\(`\$\{locationCellIds\.next\.label\} \$\{locationCellIds\.next\.action\}`\)\}"/);
 assert.match(appJs, /aria-describedby="\$\{escapeHtml\(locationCellIds\.result\.value\)\}"/);
 assert.match(appJs, /aria-describedby="\$\{escapeHtml\(locationCellIds\.next\.value\)\}"/);
-assert.match(appJs, /\$\{escapeHtml\(resultSurfaceLabel\)\} 보기/);
-assert.match(appJs, /\$\{escapeHtml\(targetSurfaceLabel\)\} 열기/);
+assert.match(appJs, /\$\{escapeHtml\(resultSurfaceLabel\)\}에서 결과 보기/);
+assert.match(appJs, /\$\{escapeHtml\(targetSurfaceLabel\)\}에서 다음 처리 열기/);
 assert.doesNotMatch(appJs, /aria-label="결과 확인:/);
 assert.doesNotMatch(appJs, /aria-label="다음 이동:/);
 

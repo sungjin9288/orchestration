@@ -134,7 +134,7 @@ async function main() {
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(appJs, /최신 라이브 변경 번들이 준비됐습니다\./);
     assert.match(appJs, /리뷰어 실행/);
-    assert.match(appJs, /리뷰어 경로를 따라 아티팩트로 이어집니다\./);
+    assert.match(appJs, /리뷰어 경로를 따라 검토 보고로 이어집니다\./);
 
     const taskPayload = await postJson('/api/tasks', {
       title: 'ui-slice-23 reviewer CTA smoke',

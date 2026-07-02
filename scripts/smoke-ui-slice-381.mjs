@@ -22,7 +22,7 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /<section class="relation-strip relation-strip-compact" data-harness-execution-result="true">[\s\S]*?createToken\('완료', 'success'\)/s,
+  /<section class="relation-strip relation-strip-compact" data-harness-execution-result="true">[\s\S]*?\$\{createToken\(visibleHarnessResultStateLabel, visibleHarnessResultStateTone\)\}/s,
 );
 
 async function fetchJson(url, options = {}) {

@@ -1793,7 +1793,7 @@ async function triggerBrowserApprovalRequest({
   const requestText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: /Request Live Mutation Approval/i,
+    pattern: /라이브 변경 승인 요청/,
     sessionName,
     label: 'live mutation approval request button visibility',
   });

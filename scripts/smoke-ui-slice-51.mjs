@@ -14,9 +14,9 @@ assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.js
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /placeholder="무엇을 논의할지 한 줄로 적으세요"/);
-assert.match(appJs, /placeholder="이번 회의가 끝날 때 무엇이 정리돼 있어야 하는지 적으세요"/);
-assert.match(appJs, /placeholder="이번 안건에서 넘지 않을 범위나 꼭 지킬 제약을 적으세요"/);
+assert.match(appJs, /placeholder="오늘 등록할 안건 제목을 적으세요"/);
+assert.match(appJs, /placeholder="이번 안건으로 무엇을 정리해야 하는지 적으세요"/);
+assert.match(appJs, /placeholder="이번 안건에서 넘지 않을 범위나 제약을 적으세요"/);
 
 assert.doesNotMatch(appJs, /placeholder="Mission title"/);
 assert.doesNotMatch(appJs, /placeholder="What should the system make or improve\?"/);

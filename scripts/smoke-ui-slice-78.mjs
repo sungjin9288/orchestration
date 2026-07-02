@@ -26,7 +26,7 @@ assert.match(appJs, /detailHoldTitle = task\.flags\?\.waitingApproval/);
 assert.match(appJs, /detailNextTitle = '승인 처리'/);
 assert.match(appJs, /detailNextTitle = '결정 처리'/);
 assert.match(appJs, /detailNextTitle = '플래너 실행'/);
-assert.match(appJs, /detailNextTitle = '사전 점검 준비'/);
+assert.match(appJs, /detailNextTitle = '실행 준비 패킷'/);
 assert.match(appJs, /detailNextTitle = '로컬 커밋'/);
 assert.match(appJs, /detailNextTitle = '종료 정리'/);
 assert.match(appJs, /wide: false/);

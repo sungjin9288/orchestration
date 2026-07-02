@@ -7,8 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const councilConfigPath = path.join(repoRoot, 'ui', 'council-config.js');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 
-const appJs = fs.readFileSync(appJsPath, 'utf8');
+const appJs =
+  fs.readFileSync(appJsPath, 'utf8') +
+  fs.readFileSync(councilConfigPath, 'utf8') +
+  fs.readFileSync(surfaceConfigPath, 'utf8');
 
 assert.match(appJs, /owner: '실행 역할 · 실행 흐름'/);
 assert.match(appJs, /summary: '현재 작업 지시와 다음 실행을 정리합니다\.'/);

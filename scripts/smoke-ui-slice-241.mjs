@@ -10,10 +10,10 @@ const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 
-assert.match(appJs, /label: '왼쪽 입력선'/);
-assert.match(appJs, /label: '오른쪽 판단선'/);
-assert.match(appJs, /왼쪽 입력선에서 첫 안건을 올리면 회의와 판단선이 함께 열립니다\./);
-assert.match(appJs, /왼쪽 목록에서 안건을 고르거나 위 입력선에서 새 안건을 접수합니다\./);
+assert.match(appJs, /label: '접수 라인'/);
+assert.match(appJs, /label: '배정 판단선'/);
+assert.match(appJs, /왼쪽 접수 라인에서 첫 안건을 등록하면 회의와 판단선이 함께 열립니다\./);
+assert.match(appJs, /왼쪽 등록대장에서 안건을 고르거나 위 입력선에서 새 안건을 등록합니다\./);
 assert.match(appJs, /실행 셀을 하나 고르면 오른쪽 판단선이 바로 열립니다\./);
 
 assert.doesNotMatch(appJs, /왼쪽 데스크/);

@@ -18,13 +18,17 @@ const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-376');
 const port = 4677;
 const baseUrl = `http://127.0.0.1:${port}`;
 
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
+
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(appJs, /function hideHarnessExecutionResult\(actionButton\)/);
 assert.match(
   appJs,
-  /최근 실행 결과를 숨겼습니다\. 필요하면 실행 기록에서 다시 볼 수 있습니다\./,
+  /hideHarnessExecutionMessage =\s*`\$\{currentExecutionTitle\}를 숨겼습니다\. 필요하면 실행 기록에서 다시 볼 수 있습니다\.`/,
 );
+assert.match(harnessLabels, /최근 실행 결과/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

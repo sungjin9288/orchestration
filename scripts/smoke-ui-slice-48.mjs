@@ -17,8 +17,8 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 const completedState = JSON.parse(fs.readFileSync(completedStatePath, 'utf8'));
 
-assert.match(appJs, /진행 중인 미션[\s\S]*?지금 움직이는 안건만 모읍니다\./);
-assert.match(appJs, /완료된 미션[\s\S]*?봉인된 안건은 이 줄에 보관합니다\./);
+assert.match(appJs, /진행 안건 등록대장[\s\S]*?현재 배정 중인 안건만 모읍니다\./);
+assert.match(appJs, /종료 안건 보관대장[\s\S]*?종료 정리까지 끝난 안건만 따로 보관합니다\./);
 
 assert.doesNotMatch(appJs, /Current bounded work stays here\./);
 assert.doesNotMatch(appJs, /Sealed rows wait here for the next cycle\./);

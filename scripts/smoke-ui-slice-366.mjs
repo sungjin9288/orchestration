@@ -18,13 +18,17 @@ const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-366');
 const port = 4667;
 const baseUrl = `http://127.0.0.1:${port}`;
 
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
+
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 
 assert.match(
   appJs,
   /<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">/,
 );
-assert.match(appJs, /hiddenHarnessExecutionResult\.outputPreview \|\| hiddenHarnessExecutionResult\.stdoutPreview/);
+assert.match(appJs, /hiddenHarnessPreviewText =\s*getHarnessExecutionPreviewText\(hiddenHarnessExecutionResult\);/);
+assert.match(harnessExecutionTokens, /execution\?\.outputPreview \|\| execution\?\.stdoutPreview \|\| ''/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

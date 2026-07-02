@@ -22,7 +22,7 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /pendingMessage: statusCard\?\.primaryHarnessId[\s\S]*\? `하네스 \$\{statusCard\.primaryHarnessId\}의 최근 실행 경로를 다시 실행하는 중…`[\s\S]*: '미확인 하네스의 최근 실행 경로를 다시 실행하는 중…',/,
+  /const rerunHarnessSubjectCopy = statusCard\?\.primaryHarnessId[\s\S]*?\? `하네스 \$\{statusCard\.primaryHarnessId\}`[\s\S]*?: '미확인 하네스';[\s\S]*?const rerunHarnessPendingMessage =\s*`\$\{rerunHarnessSubjectCopy\}의 최근 실행 경로를 \$\{rerunHarnessModeCopy\}하는 중…`;/,
 );
 
 async function fetchJson(url, options = {}) {

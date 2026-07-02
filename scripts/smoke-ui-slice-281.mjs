@@ -18,7 +18,7 @@ assert.match(appJs, /data-editor-state="editing"/);
 assert.match(appJs, /Read-only roster/);
 assert.match(appJs, /Editing rows/);
 assert.match(appJs, /편집 대상/);
-assert.match(appJs, /역할·desk 수정/);
+assert.match(appJs, /역할\/데스크 편집/);
 
 assert.match(styles, /\.ops-current-lineup\[data-panel-state='readonly'\] \{/);
 assert.match(styles, /\.ops-assignment-editor\[data-panel-state='editing'\] \{/);
@@ -39,7 +39,7 @@ console.log(
           'Read-only roster',
           'Editing rows',
           '편집 대상',
-          '역할·desk 수정',
+          '역할/데스크 편집',
         ],
         styles: [
           "ops-current-lineup[data-panel-state='readonly']",

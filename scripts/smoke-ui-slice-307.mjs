@@ -15,17 +15,19 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-307');
 const port = 4607;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(serveUi, /outputPreview:/);
 assert.match(appJs, /data-harness-execution-result="true"/);
 assert.match(appJs, /data-harness-execution-preview="true"/);
-assert.match(appJs, /최근 실행 결과/);
+assert.match(harnessLabels, /최근 실행 결과/);
 assert.match(appJs, /state\.lastHarnessExecutionResult = payload\.harnessExecution \|\| null;/);
 
 async function fetchJson(url, options = {}) {

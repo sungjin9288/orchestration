@@ -10,8 +10,8 @@ const appPath = path.join(repoRoot, 'ui', 'app.js');
 
 const app = fs.readFileSync(appPath, 'utf8');
 
-assert.match(app, /<strong>진행 중인 미션<\/strong>[\s\S]*지금 움직이는 안건만 모읍니다\./);
-assert.match(app, /<strong>완료된 미션<\/strong>[\s\S]*봉인된 안건은 이 줄에 보관합니다\./);
+assert.match(app, /<strong>진행 안건 등록대장<\/strong>[\s\S]*현재 배정 중인 안건만 모읍니다\./);
+assert.match(app, /<strong>종료 안건 보관대장<\/strong>[\s\S]*종료 정리까지 끝난 안건만 따로 보관합니다\./);
 
 console.log(
   JSON.stringify(
@@ -19,8 +19,8 @@ console.log(
       ok: true,
       missionRowSectionCopyTightening: {
         markers: [
-          '지금 움직이는 안건만 모읍니다.',
-          '봉인된 안건은 이 줄에 보관합니다.',
+          '현재 배정 중인 안건만 모읍니다.',
+          '종료 정리까지 끝난 안건만 따로 보관합니다.',
         ],
       },
     },

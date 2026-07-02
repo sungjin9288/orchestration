@@ -7,7 +7,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const appJs = fs.readFileSync(appPath, 'utf8');
+const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
+const appJs = fs.readFileSync(appPath, 'utf8') + fs.readFileSync(executionLabelsPath, 'utf8');
 
 assert.match(appJs, /'runtime guard unavailable': '런타임 가드 요약을 아직 확인할 수 없습니다\.',/);
 assert.match(appJs, /'runtime request summary unavailable': '런타임 요청 요약을 아직 확인할 수 없습니다\.',/);

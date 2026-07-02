@@ -8,23 +8,26 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
+const surfaceConfig = fs.readFileSync(surfaceConfigPath, 'utf8');
 
-assert.match(appJs, /const GROUP_PLAYBOOK_META = \{/);
-assert.match(appJs, /function renderWorkspacePlaybook\(activeGroupId\)/);
+assert.match(surfaceConfig, /export const GROUP_PLAYBOOK_META = \{/);
+assert.match(appJs, /GROUP_PLAYBOOK_META,/);
+assert.match(appJs, /function renderWorkspacePlaybook\(activeGroupId, context = \{\}\)/);
 assert.match(appJs, /운영 모드/);
-assert.match(appJs, /업무 사용 순서/);
-assert.match(appJs, /검토 사용 순서/);
-assert.match(appJs, /운영 사용 순서/);
-assert.match(appJs, /안건 정리/);
-assert.match(appJs, /계획 정렬/);
-assert.match(appJs, /패킷 선택/);
-assert.match(appJs, /근거 교차/);
-assert.match(appJs, /범위 선택/);
-assert.match(appJs, /역할 배정/);
-assert.equal((appJs.match(/\$\{renderWorkspacePlaybook\(activeGroupId\)\}/g) || []).length, 3);
+assert.match(surfaceConfig, /업무 사용 순서/);
+assert.match(surfaceConfig, /검토 사용 순서/);
+assert.match(surfaceConfig, /운영 사용 순서/);
+assert.match(surfaceConfig, /안건 정리/);
+assert.match(surfaceConfig, /계획 정렬/);
+assert.match(surfaceConfig, /패킷 선택/);
+assert.match(surfaceConfig, /근거 교차/);
+assert.match(surfaceConfig, /범위 선택/);
+assert.match(surfaceConfig, /역할 배정/);
+assert.equal((appJs.match(/\$\{renderWorkspacePlaybook\(activeGroupId, context\)\}/g) || []).length, 3);
 
 assert.match(styles, /\.workspace-playbook \{/);
 assert.match(styles, /\.workspace-playbook-grid \{/);

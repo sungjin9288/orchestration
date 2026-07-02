@@ -59,9 +59,9 @@ assert.match(indexHtml, /data-surface="mission"/);
 assert.match(indexHtml, /data-surface="council"/);
 assert.match(indexHtml, /data-surface="execution"/);
 assert.match(indexHtml, /data-surface="deliverables"/);
-assert.match(indexHtml, /Advanced Ops Mode/);
-assert.match(appJs, /Mission Actions/);
-assert.match(appJs, /Mission Completion/);
+assert.match(indexHtml, /<span class="office-register-label">Ops<\/span>\s*<strong class="office-register-value">advanced<\/strong>/);
+assert.match(appJs, /<strong>등록 후속<\/strong>/);
+assert.match(appJs, /<strong>안건 종료 보고<\/strong>/);
 
 const executingMission = Object.values(executionGateState.missions)[0];
 const executingTask = executionGateState.tasks[executingMission.linkedTaskId];

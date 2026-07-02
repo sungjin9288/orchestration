@@ -11,7 +11,7 @@ const appPath = path.join(repoRoot, 'ui', 'app.js');
 const app = fs.readFileSync(appPath, 'utf8');
 
 assert.match(app, /council-approval-copy/);
-assert.match(app, /이 결론을 승인하면 사전 점검까지만 넘기고, 다음 게이트에서 멈춥니다\./);
+assert.match(app, /이 권고안을 승인하면 사전 점검까지만 넘기고, 다음 게이트에서 멈춥니다\./);
 assert.doesNotMatch(app, /planner부터 사전 점검까지 자동으로 넘기고, 다음 승인 또는 결정 게이트에서 멈춥니다\./);
 
 console.log(

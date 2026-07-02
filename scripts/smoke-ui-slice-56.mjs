@@ -16,8 +16,8 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /<div class="panel-header panel-header-tight">[\s\S]*?<h2>Mission<\/h2>/);
-assert.match(appJs, /<p class="panel-copy panel-copy-tight">Intent starts here\. Task-level execution stays in Advanced Ops\.<\/p>/);
+assert.match(appJs, /<div class="panel-header panel-header-tight">[\s\S]*?<h2>안건 등록대장<\/h2>/);
+assert.match(appJs, /<p class="panel-copy panel-copy-tight">왼쪽은 신규 안건 등록과 현재 안건 배정만 둡니다\.<\/p>/);
 assert.match(appJs, /<div class="token-row token-row-compact">/);
 
 assert.match(styles, /\.panel-header-tight\s*\{/);

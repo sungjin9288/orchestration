@@ -8,8 +8,10 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 const appJs = fs.readFileSync(appPath, 'utf8');
-const dockMetadataSection = appJs.match(/const SURFACE_DOCK_METADATA = \{[\s\S]*?\n\};/);
+const surfaceConfigJs = fs.readFileSync(surfaceConfigPath, 'utf8');
+const dockMetadataSection = surfaceConfigJs.match(/export const SURFACE_DOCK_METADATA = \{[\s\S]*?\n\};/);
 
 assert.ok(dockMetadataSection, 'SURFACE_DOCK_METADATA section should exist');
 const dockMetadata = dockMetadataSection[0];
@@ -25,7 +27,7 @@ assert.doesNotMatch(dockMetadata, /kicker: '실행기록'/);
 assert.doesNotMatch(dockMetadata, /kicker: '실행셀'/);
 
 assert.match(appJs, /surface: 'decision-inbox',\s*label: '승인'/);
-assert.match(appJs, /surface: 'decision-inbox',\s*kicker: '승인'/);
+assert.match(appJs, /surface: 'decision-inbox',\s*desk: '승인선',\s*kicker: '게이트 라인'/);
 assert.doesNotMatch(appJs, /label: '결재'/);
 
 console.log(

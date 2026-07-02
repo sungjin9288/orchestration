@@ -7,10 +7,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const councilConfigPath = path.join(repoRoot, 'ui', 'council-config.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const auditPath = path.join(repoRoot, 'docs', 'reference', 'agent-product-pattern-audit.md');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const councilConfigJs = fs.readFileSync(councilConfigPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const audit = fs.readFileSync(auditPath, 'utf8');
 
@@ -18,10 +20,10 @@ assert.match(audit, /flow ownership rail/);
 assert.match(audit, /dify/);
 assert.match(audit, /crewAI/);
 
-assert.match(appJs, /owner: '운영자 · 안건 흐름'/);
-assert.match(appJs, /owner: '회의 리드 \+ 참여 역할'/);
-assert.match(appJs, /owner: '실행 역할 · 실행 흐름'/);
-assert.match(appJs, /owner: '결과 보고 · 보고 흐름'/);
+assert.match(councilConfigJs, /owner: '운영자 · 안건 흐름'/);
+assert.match(councilConfigJs, /owner: '회의 리드 \+ 참여 역할'/);
+assert.match(councilConfigJs, /owner: '실행 역할 · 실행 흐름'/);
+assert.match(councilConfigJs, /owner: '결과 보고 · 보고 흐름'/);
 assert.match(appJs, /statusLabel: isActive \? '현재 단계' : isComplete \? '완료됨' : '다음 단계'/);
 assert.match(appJs, /charter-flow-step-active/);
 assert.match(appJs, /charter-flow-step-complete/);

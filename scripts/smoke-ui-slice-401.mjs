@@ -9,8 +9,8 @@ const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const appJs = fs.readFileSync(appPath, 'utf8');
 
-assert.match(appJs, /parts\.push\('현재 프로젝트 경로'\)/);
-assert.doesNotMatch(appJs, /parts\.push\('현재 project_path'\)/);
+assert.match(appJs, /option\.isCurrentProjectPath \? createToken\('현재 프로젝트 경로', 'success'\) : ''/);
+assert.doesNotMatch(appJs, /createToken\('현재 project_path', 'success'\)/);
 
 console.log(
   JSON.stringify(

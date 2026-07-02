@@ -16,12 +16,12 @@ const appJs = fs.readFileSync(appJsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /<div class="panel-header panel-header-tight">[\s\S]*?<h2>안건 브리프<\/h2>/);
+assert.match(appJs, /<div class="panel-header panel-header-tight">[\s\S]*?<h2>안건 배정 브리프<\/h2>/);
 assert.match(
   appJs,
-  /<p class="panel-copy panel-copy-tight">오른쪽은 현재 판단과 다음 이동만 먼저 봅니다\.<\/p>/,
+  /<p class="panel-copy panel-copy-tight">오른쪽은 현재 배정 판단과 다음 처리만 먼저 봅니다\.<\/p>/,
 );
-assert.match(appJs, /<h2>안건 브리프<\/h2>[\s\S]*?<div class="token-row token-row-compact">/);
+assert.match(appJs, /<h2>안건 배정 브리프<\/h2>[\s\S]*?<p class="panel-copy panel-copy-tight">/);
 
 assert.match(styles, /\.panel-header-tight\s*\{/);
 assert.match(styles, /\.panel-copy-tight\s*\{/);

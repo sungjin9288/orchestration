@@ -11,7 +11,7 @@ const appPath = path.join(repoRoot, 'ui', 'app.js');
 const app = fs.readFileSync(appPath, 'utf8');
 
 assert.match(app, /class="form-help council-approval-help"/);
-assert.match(app, /이제 작전실과 관제실에서 다음 지시를 확인합니다\./);
+assert.match(app, /이제 실행 지시 데스크와 관제실에서 다음 지시를 확인합니다\./);
 assert.doesNotMatch(app, /이제 작전실과 관제실에서 연결 태스크와 다음 지시를 이어서 확인합니다\./);
 
 console.log(

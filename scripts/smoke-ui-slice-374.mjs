@@ -18,9 +18,12 @@ const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-374');
 const port = 4675;
 const baseUrl = `http://127.0.0.1:${port}`;
 
-const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
-assert.match(appJs, /표준 출력 전용/);
+const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
+
+assert.match(harnessLabels, /표준 출력 전용/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

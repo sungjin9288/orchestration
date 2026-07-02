@@ -10,9 +10,9 @@ const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(styles, /--accent:\s*#2563eb;/);
+assert.match(styles, /--accent:\s*#8b5a2b;/);
 assert.match(styles, /\.office-sidebar-section:not\(\.office-sidebar-section-status\)\s*\{[\s\S]*display:\s*none;/s);
-assert.match(styles, /\.shell-window-meta:not\(\.shell-window-meta-left\)\s*\{[\s\S]*display:\s*none;/s);
+assert.match(styles, /\.shell-window-meta\s*\{[\s\S]*?display:\s*flex;/s);
 assert.match(
   styles,
   /\.refresh-button\s*\{[\s\S]*background:\s*rgba\(255, 255, 255, 0\.99\);[\s\S]*color:\s*#16202a;/s,

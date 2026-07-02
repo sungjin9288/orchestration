@@ -7,7 +7,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const appJs = fs.readFileSync(appPath, 'utf8');
+const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
+const appJs = fs.readFileSync(appPath, 'utf8') + fs.readFileSync(executionLabelsPath, 'utf8');
 
 assert.match(appJs, /'latest preflight artifact required': '최신 프리플라이트 아티팩트가 필요합니다\.',/);
 assert.match(appJs, /제한된 빌더 라이브 변경에 대한 런타임 요약입니다\. 실행은 최신 프리플라이트 대상 파일에만 한정되고, 커밋 경로를 자동 시작하지 않은 채 리뷰어에게 넘깁니다\./);
@@ -21,7 +22,7 @@ assert.match(appJs, /대상 프리플라이트 아티팩트: \$\{parsed\.preflig
 assert.match(appJs, /최신 프리플라이트가 준비될 때까지/);
 assert.match(appJs, /최신 승인된 프리플라이트 쌍이 준비될 때까지/);
 assert.match(appJs, /실행 전 프리플라이트를 먼저 남겨 다음 승인선을 엽니다\./);
-assert.match(appJs, /title: '런타임 연결 끊김'/);
+assert.match(appJs, /title: '런타임 연결 복구 필요'/);
 assert.match(appJs, /빌더 프리플라이트 실행/);
 assert.match(appJs, /<p class="detail-key">최신 빌더 프리플라이트<\/p>/);
 assert.match(appJs, /아직 빌더 프리플라이트 아티팩트가 없습니다\. 계획, 설계, 분해 아티팩트가 준비된 뒤 빌더 프리플라이트를 실행합니다\./);

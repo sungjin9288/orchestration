@@ -7,13 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const surfaceConfigJs = fs.readFileSync(surfaceConfigPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(appJs, /resultSurface:\s*'deliverables'/);
-assert.match(appJs, /resultSurface:\s*'artifacts'/);
+assert.match(surfaceConfigJs, /resultSurface:\s*'deliverables'/);
+assert.match(surfaceConfigJs, /resultSurface:\s*'artifacts'/);
 assert.match(appJs, /결과 확인/);
 assert.match(appJs, /workspace-location-action workspace-location-action-secondary/);
 assert.match(appJs, /const resultSurface = location\.resultSurface \|\| 'deliverables';/);

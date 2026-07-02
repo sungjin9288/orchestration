@@ -12,7 +12,7 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(
   styles,
-  /\.office-sidebar \{\s*position: sticky;[\s\S]*?border-radius: 12px;[\s\S]*?background: rgba\(252, 253, 254, 0\.98\);[\s\S]*?box-shadow: 0 1px 2px rgba\(12, 22, 30, 0\.04\);/s,
+  /\.office-sidebar \{\s*position: sticky;[\s\S]*?border-radius: 14px;[\s\S]*?background: rgba\(255, 255, 255, 0\.98\);[\s\S]*?box-shadow: 0 1px 2px rgba\(12, 22, 30, 0\.04\);/s,
 );
 assert.match(
   styles,
@@ -28,7 +28,7 @@ assert.match(
 );
 assert.match(
   styles,
-  /\.nav-button\.is-active\[data-surface="mission"\] \{[\s\S]*?box-shadow: 0 1px 2px rgba\(154, 94, 47, 0\.05\);/s,
+  /\.nav-group-tab\.is-active,\s*\.nav-button\.is-active,\s*\.company-directory-row\.is-current-surface,\s*\.company-directory-row\[data-selection-state='active'\] \{[\s\S]*?border-color: rgba\(139, 90, 43, 0\.44\);[\s\S]*?background: rgba\(139, 90, 43, 0\.1\);/s,
 );
 assert.match(
   styles,

@@ -116,7 +116,7 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.equal(stylesResponse.status, 200);
     assert.match(appJs, /run-builder-preflight/);
-    assert.match(appJs, /사전 점검 준비/);
+    assert.match(appJs, /사전 점검을 시작하는 중/);
     assert.match(appJs, /renderStructuredPreflight/);
     assert.match(appJs, /renderCompactList/);
     assert.match(appJs, /taskGuardSummaries/);

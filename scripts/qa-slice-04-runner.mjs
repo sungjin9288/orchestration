@@ -467,6 +467,59 @@ function clickSelector({ outputRoot, overrideEnvVar, selector, sessionName }) {
   });
 }
 
+const SURFACE_NAV_GROUPS = {
+  artifacts: 'review',
+  'decision-inbox': 'review',
+  logs: 'review',
+  taskboard: 'ops',
+};
+
+function navigateToSurface({ outputRoot, overrideEnvVar, sessionName, surface }) {
+  const navGroup = SURFACE_NAV_GROUPS[surface];
+
+  if (navGroup) {
+    clickSelector({
+      outputRoot,
+      overrideEnvVar,
+      selector: `[data-nav-group-tab="${navGroup}"]`,
+      sessionName,
+    });
+  }
+
+  clickSelector({
+    outputRoot,
+    overrideEnvVar,
+    selector: `.nav-button[data-surface="${surface}"]`,
+    sessionName,
+  });
+}
+
+function selectTaskViaQaHook({ outputRoot, overrideEnvVar, sessionName, taskId }) {
+  // The current shell's global click dispatcher resolves any click inside a
+  // surface section to its [data-surface] ancestor before the generic action
+  // dispatch runs, so in-surface buttons such as [data-action="select-task"]
+  // never reach their handlers. Task selection therefore goes through the
+  // official QA hook (openSurface + refresh), which runs the same
+  // syncSelectionsFromTask + hydration path the click handler would.
+  runCode({
+    codeBody: `
+await page.waitForFunction(() => Boolean(window.__orchestrationQa));
+await page.evaluate(async (taskId) => {
+  const qa = window.__orchestrationQa;
+
+  if (!qa.openSurface('taskboard', { taskId })) {
+    throw new Error('QA surface hook rejected taskboard');
+  }
+
+  await qa.refresh();
+}, ${JSON.stringify(taskId)});
+`,
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+  });
+}
+
 function getBodyText({ outputRoot, overrideEnvVar, sessionName }) {
   return evaluate({
     expression: `document.body ? document.body.innerText.replace(/\\s+/g, ' ').trim() : ''`,
@@ -863,18 +916,28 @@ async function verifyBrowserProjectSummary({
   secret,
   sessionName,
 }) {
+  // The provider readiness tokens render in the project list of the advanced-ops
+  // bootstrap panel, which lives on the taskboard surface (ops nav group).
+  navigateToSurface({
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+    surface: 'taskboard',
+  });
+
   const providerReadySnapshot = await waitForSnapshotText({
     outputRoot,
     overrideEnvVar,
-    pattern: /provider readiness:ready/i,
+    pattern: /준비도:준비됨/,
     sessionName,
     label: 'provider readiness ready DOM',
   });
 
-  assert.match(providerReadySnapshot, /provider:openai-responses/i);
+  assert.match(providerReadySnapshot, /프로바이더:openai-responses/i);
+  assert.match(providerReadySnapshot, /프로바이더준비:준비됨/);
   assert.match(
     providerReadySnapshot,
-    /planner[\s\S]*architect[\s\S]*task-breaker[\s\S]*builder preflight[\s\S]*reviewer/i,
+    /기획 셀[\s\S]*설계 셀[\s\S]*분해 셀[\s\S]*사전 점검[\s\S]*리뷰 검토/,
   );
   assertSecretAbsent(providerReadySnapshot, secret, 'project summary snapshot');
   assertProjectProviderSummary(projectSummary);
@@ -896,11 +959,11 @@ async function verifyBrowserHumanGateFlow({
 }) {
   const collectedDomTexts = [];
 
-  clickSelector({
+  selectTaskViaQaHook({
     outputRoot,
     overrideEnvVar,
-    selector: `[data-action="select-task"][data-id="${taskId}"]`,
     sessionName,
+    taskId,
   });
 
   const selectedTaskText = await waitForBodyText({
@@ -914,16 +977,16 @@ async function verifyBrowserHumanGateFlow({
   collectedDomTexts.push(selectedTaskText);
   assert.match(selectedTaskText, new RegExp(escapeRegExp(plannerArtifactId)));
   assert.match(selectedTaskText, new RegExp(escapeRegExp(architectureArtifactId)));
-  assert.match(selectedTaskText, /Task-Breaker stays disabled until/i);
-  assert.match(selectedTaskText, /Builder preflight stays disabled until/i);
-  assert.match(selectedTaskText, /Reviewer Disabled By/i);
+  assert.match(selectedTaskText, /태스크 분해는[^.]*비활성입니다/);
+  assert.match(selectedTaskText, /빌더 프리플라이트는[^.]*비활성입니다/);
+  assert.match(selectedTaskText, /리뷰어 비활성 사유/);
   assertSecretAbsent(selectedTaskText, secret, 'taskboard selected task body');
 
-  clickSelector({
+  navigateToSurface({
     outputRoot,
     overrideEnvVar,
-    selector: '.nav-button[data-surface="logs"]',
     sessionName,
+    surface: 'logs',
   });
 
   const logsText = await waitForBodyText({
@@ -936,29 +999,42 @@ async function verifyBrowserHumanGateFlow({
   collectedDomTexts.push(logsText);
   assertSecretAbsent(logsText, secret, 'logs surface body');
 
-  clickSelector({
+  navigateToSurface({
     outputRoot,
     overrideEnvVar,
-    selector: '.nav-button[data-surface="artifacts"]',
     sessionName,
+    surface: 'artifacts',
   });
 
-  const artifactsText = await waitForBodyText({
+  const artifactsListText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
     pattern: new RegExp(escapeRegExp(architectureArtifactId)),
     sessionName,
     label: 'artifacts surface body',
   });
-  collectedDomTexts.push(artifactsText);
-  assert.match(artifactsText, /Stop-And-Escalate Conditions/i);
-  assertSecretAbsent(artifactsText, secret, 'artifacts surface body');
+  collectedDomTexts.push(artifactsListText);
+  assertSecretAbsent(artifactsListText, secret, 'artifacts surface list body');
 
-  clickSelector({
+  // The breakdown artifact is already the preferred selection for the gate
+  // task (selected and hydrated by selectTaskViaQaHook), so its raw markdown
+  // renders in the artifacts detail pane without an extra click.
+  const artifactsText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    selector: '.nav-button[data-surface="decision-inbox"]',
+    pattern: /Stop-And-Escalate Conditions/i,
     sessionName,
+    label: 'selected artifact raw content body',
+  });
+  collectedDomTexts.push(artifactsText);
+  assert.match(artifactsText, new RegExp(escapeRegExp(architectureArtifactId)));
+  assertSecretAbsent(artifactsText, secret, 'artifacts surface body');
+
+  navigateToSurface({
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+    surface: 'decision-inbox',
   });
 
   const decisionInboxText = await waitForBodyText({
@@ -987,11 +1063,11 @@ async function verifyBrowserRealFlow({
 }) {
   const collectedDomTexts = [];
 
-  clickSelector({
+  selectTaskViaQaHook({
     outputRoot,
     overrideEnvVar,
-    selector: `[data-action="select-task"][data-id="${taskId}"]`,
     sessionName,
+    taskId,
   });
 
   const taskBodyText = await waitForBodyText({
@@ -1005,11 +1081,11 @@ async function verifyBrowserRealFlow({
   assert.match(taskBodyText, new RegExp(escapeRegExp(architectureArtifactId)));
   assertSecretAbsent(taskBodyText, secret, 'real live task body');
 
-  clickSelector({
+  navigateToSurface({
     outputRoot,
     overrideEnvVar,
-    selector: '.nav-button[data-surface="logs"]',
     sessionName,
+    surface: 'logs',
   });
 
   const logsText = await waitForBodyText({
@@ -1022,11 +1098,11 @@ async function verifyBrowserRealFlow({
   collectedDomTexts.push(logsText);
   assertSecretAbsent(logsText, secret, 'real live logs body');
 
-  clickSelector({
+  navigateToSurface({
     outputRoot,
     overrideEnvVar,
-    selector: '.nav-button[data-surface="artifacts"]',
     sessionName,
+    surface: 'artifacts',
   });
 
   const artifactsText = await waitForBodyText({
@@ -1040,11 +1116,11 @@ async function verifyBrowserRealFlow({
   assertSecretAbsent(artifactsText, secret, 'real live artifacts body');
 
   if (decisionTitle) {
-    clickSelector({
+    navigateToSurface({
       outputRoot,
       overrideEnvVar,
-      selector: '.nav-button[data-surface="decision-inbox"]',
       sessionName,
+      surface: 'decision-inbox',
     });
 
     const decisionText = await waitForBodyText({
@@ -1133,7 +1209,7 @@ export async function runQaSlice04SyntheticSmoke(options = {}) {
     const landingSnapshot = await waitForSnapshotText({
       outputRoot,
       overrideEnvVar,
-      pattern: /Register Project/i,
+      pattern: /등록된 프로젝트 없음/,
       sessionName: harness.sessionName,
       label: 'project bootstrap landing',
     });
@@ -1480,7 +1556,7 @@ export async function runQaSlice04RealSmoke(options = {}) {
     const landingSnapshot = await waitForSnapshotText({
       outputRoot,
       overrideEnvVar,
-      pattern: /Register Project/i,
+      pattern: /등록된 프로젝트 없음/,
       sessionName: harness.sessionName,
       label: 'real live project bootstrap landing',
     });

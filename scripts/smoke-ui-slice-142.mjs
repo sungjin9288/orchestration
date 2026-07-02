@@ -15,8 +15,8 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 assert.match(app, /empty-state empty-state-inline mission-empty-state mission-empty-state-row \$\{escapeHtml\(emptyStateClass\)\}/);
 assert.match(app, /'mission-empty-state-active-row'/);
 assert.match(app, /'mission-empty-state-complete-row'/);
-assert.match(app, /위 접수 흐름에서 새 안건을 열면 바로 이 줄에 이어집니다\./);
-assert.match(app, /종료 정리까지 끝난 안건이 생기면 이 줄에 차곡히 보관됩니다\./);
+assert.match(app, /위 등록대장에서 새 안건을 올리면 바로 이 줄에 이어집니다\./);
+assert.match(app, /종료 정리까지 끝난 안건이 생기면 이 줄에 보관됩니다\./);
 
 assert.match(styles, /\.mission-empty-state-row \{[\s\S]*padding:\s*15px 16px 14px;[\s\S]*border-radius:\s*18px;/);
 assert.match(styles, /\.mission-empty-state-active-row \{[\s\S]*rgba\(255, 253, 248, 0\.92\)/);

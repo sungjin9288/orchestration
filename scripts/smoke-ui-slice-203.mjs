@@ -7,17 +7,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const surfaceConfigJs = fs.readFileSync(surfaceConfigPath, 'utf8');
 
-assert.match(appJs, /artifacts:\s*\{\s*copy: '현재 증적과 연결 근거를 검토합니다\.',\s*kicker: '증적'/);
-assert.match(appJs, /council:\s*\{\s*copy: '회의 결론과 이견 정리를 한 지점에서 봅니다\.',\s*kicker: '회의'/);
-assert.match(appJs, /'decision-inbox':\s*\{\s*copy: '현재 승인 안건과 다음 처리를 판단합니다\.',\s*kicker: '승인선'/);
-assert.match(appJs, /deliverables:\s*\{\s*copy: '현재 보고 상태와 다음 인계선을 확인합니다\.',\s*kicker: '보고'/);
-assert.match(appJs, /execution:\s*\{\s*copy: '현재 작업 지시와 다음 실행을 정리합니다\.',\s*kicker: '실행'/);
-assert.match(appJs, /logs:\s*\{\s*copy: '현재 실행 로그와 다음 확인 대상을 빠르게 훑습니다\.',\s*kicker: '실행 로그'/);
-assert.match(appJs, /mission:\s*\{\s*copy: '현재 안건과 다음 등록 동선을 정리합니다\.',\s*kicker: '접수 라인'/);
-assert.match(appJs, /taskboard:\s*\{\s*copy: '현재 작업 셀과 다음 배정을 조정합니다\.',\s*kicker: '실행 셀'/);
+assert.match(surfaceConfigJs, /artifacts:\s*\{\s*copy: '현재 증적과 연결 근거를 검토합니다\.',\s*kicker: '증적'/);
+assert.match(surfaceConfigJs, /council:\s*\{\s*copy: '회의 결론과 이견 정리를 한 지점에서 봅니다\.',\s*kicker: '회의'/);
+assert.match(surfaceConfigJs, /'decision-inbox':\s*\{\s*copy: '현재 승인 안건과 다음 처리를 판단합니다\.',\s*kicker: '승인선'/);
+assert.match(surfaceConfigJs, /deliverables:\s*\{\s*copy: '현재 보고 상태와 다음 인계선을 확인합니다\.',\s*kicker: '보고'/);
+assert.match(surfaceConfigJs, /execution:\s*\{\s*copy: '현재 작업 지시와 다음 실행을 정리합니다\.',\s*kicker: '실행'/);
+assert.match(surfaceConfigJs, /logs:\s*\{\s*copy: '현재 실행 로그와 다음 확인 대상을 빠르게 훑습니다\.',\s*kicker: '실행 로그'/);
+assert.match(surfaceConfigJs, /mission:\s*\{\s*copy: '현재 안건과 다음 등록 동선을 정리합니다\.',\s*kicker: '접수 라인'/);
+assert.match(surfaceConfigJs, /taskboard:\s*\{\s*copy: '현재 작업 셀과 다음 배정을 조정합니다\.',\s*kicker: '실행 셀'/);
 
 assert.match(appJs, /class="nav-button-main"/);
 assert.match(appJs, /nav-button-count">\$\{escapeHtml\(String\(count\)\)\}<\/span>/);

@@ -102,7 +102,7 @@ async function main() {
 
   assert.match(serveUiSource, /linked-worktrees/);
   assert.match(serveUiSource, /worktree\/\$\{slug\}/);
-  assert.match(appJsSource, /Create Linked Worktree/);
+  assert.match(appJsSource, /연결 워크트리 만들기/);
   assert.match(appJsSource, /linkedWorktreeSlug/);
 
   const server = spawn(
@@ -185,7 +185,7 @@ async function main() {
         postJson(`/api/projects/${encodeURIComponent(mainProject.id)}/linked-worktrees`, {
           slug: 'feature-a',
         }),
-      /Linked worktree branch already exists: worktree\/feature-a.*detected\/switch flow/i,
+      /연결 워크트리 브랜치가 이미 존재합니다: worktree\/feature-a.*기존 탐지\/전환 흐름/,
     );
 
     const conflictingPath = path.join(
@@ -199,7 +199,7 @@ async function main() {
         postJson(`/api/projects/${encodeURIComponent(mainProject.id)}/linked-worktrees`, {
           slug: 'feature-b',
         }),
-      /Linked worktree path already exists: .*feature-b.*detected\/switch flow/i,
+      /연결 워크트리 경로가 이미 존재합니다: .*feature-b.*기존 탐지\/전환 흐름/,
     );
 
     const finalSnapshotResponse = await fetch(`${baseUrl}/api/snapshot`);

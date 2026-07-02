@@ -7,18 +7,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 const activeStatePath = path.join(repoRoot, 'var', 'runtime-ui-slice-20', 'state.json');
 
 assert.equal(fs.existsSync(activeStatePath), true, 'runtime-ui-slice-20 state.json is required');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const surfaceConfigJs = fs.readFileSync(surfaceConfigPath, 'utf8');
 const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
-assert.match(appJs, /현재 안건과 다음 등록 동선을 정리합니다\./);
-assert.match(appJs, /현재 작업 지시와 다음 실행을 정리합니다\./);
-assert.match(appJs, /현재 보고 상태와 다음 인계선을 확인합니다\./);
+assert.match(surfaceConfigJs, /현재 안건과 다음 등록 동선을 정리합니다\./);
+assert.match(surfaceConfigJs, /현재 작업 지시와 다음 실행을 정리합니다\./);
+assert.match(surfaceConfigJs, /현재 보고 상태와 다음 인계선을 확인합니다\./);
 assert.match(appJs, /프로바이더, 워크트리, 로그, 아티팩트, 결정함은 고급 운영 모드에 남습니다\./);
-assert.match(appJs, /고급 운영 모드에서 현재 프로젝트를 고른 뒤/);
+assert.match(appJs, /협의회를 열기 전에 미션 또는 고급 운영 모드에서 프로젝트를 먼저 고릅니다\./);
 
 assert.doesNotMatch(appJs, /Mission stays default\. Advanced Ops stays the escape hatch\./);
 assert.doesNotMatch(appJs, /Grouped primary actions live here\. Advanced Ops stays secondary\./);

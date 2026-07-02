@@ -121,8 +121,8 @@ async function main() {
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(appJs, /현재 빌더 승인은 이미 승인됐습니다\./);
-    assert.match(appJs, /작전 변경 실행/);
-    assert.match(appJs, /라이브 변경 경로를 따라 한정된 변경 번들을 로그로 남깁니다\./);
+    assert.match(appJs, /라이브 변경 적용/);
+    assert.match(appJs, /라이브 변경 경로를 따라 한정된 변경 번들을 실행 로그로 남깁니다\./);
 
     const missionPayload = await postJson('/api/missions', {
       autoDraftCouncil: true,

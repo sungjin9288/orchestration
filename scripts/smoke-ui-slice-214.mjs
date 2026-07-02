@@ -11,10 +11,10 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /현재 실행 기록이 연결된 실행 셀로 돌아가면 승인선과 다음 액션을 바로 이어서 볼 수 있습니다\./);
 assert.match(appJs, /지금은 오른쪽 상세에서 이 실행 기록의 상태와 원문 로그를 먼저 읽으면 됩니다\./);
-assert.match(appJs, /현재 실행 기록과 다음 확인을 빠르게 훑습니다\./);
-assert.match(appJs, /현재 실행 기록은 .*이고 다음 확인은 .*입니다\./);
-assert.match(appJs, /선택된 실행 기록의 현재 상태와 다음 확인이 아래에 이어집니다\./);
-assert.match(appJs, /원문 로그보다 먼저 현재 실행 기록과 다음 확인 토큰을 읽으면 판단 속도가 훨씬 빨라집니다\./);
+assert.match(appJs, /기준으로 기록된 실행 보고입니다\./);
+assert.match(appJs, /왼쪽 목록에서 실행 기록을 고르면 현재 실행 상태를 먼저 판단할 수 있습니다\./);
+assert.match(appJs, /실행 기록을 고르면 기록 시각, 연결선, 원문 로그가 아래에 열립니다\./);
+assert.match(appJs, /왼쪽에서 실행 기록을 고르고, 상태와 다음 확인만 짧게 비교합니다\./);
 assert.match(appJs, /실행 기록 하나 고르기/);
 assert.match(appJs, /왼쪽 실행 기록 목록에서 한 건을 고르면 오른쪽 판단과 원문 로그가 바로 채워집니다\./);
 assert.match(appJs, /로그실 아래는 실행 기록 목록과 현재 실행 기록으로 나눕니다/);

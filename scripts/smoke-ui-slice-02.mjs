@@ -90,8 +90,8 @@ async function main() {
     const indexHtml = await indexResponse.text();
 
     assert.equal(indexResponse.status, 200);
-    assert.match(indexHtml, /AI 전략 본부/);
-    assert.match(indexHtml, /고급 운영 모드/);
+    assert.match(indexHtml, /<h1>Orchestration<\/h1>/);
+    assert.match(indexHtml, /office-register-value">advanced</);
     assert.match(indexHtml, /작업판/);
 
     const createPayload = await fetchJson(`${baseUrl}/api/tasks`, {

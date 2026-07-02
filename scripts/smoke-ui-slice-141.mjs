@@ -14,10 +14,10 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(app, /empty-state mission-empty-state mission-empty-state-list/);
 assert.match(app, /empty-state mission-empty-state mission-empty-state-detail/);
-assert.match(app, /class="mission-empty-title">미션 없음<\/strong>/);
+assert.match(app, /class="mission-empty-title">등록 안건 없음<\/strong>/);
 assert.match(app, /class="mission-empty-title">선택된 안건 없음<\/strong>/);
-assert.match(app, /class="mission-empty-copy">위 접수 흐름에서 첫 안건을 만들면 이곳에 바로 쌓입니다\.<\/p>/);
-assert.match(app, /class="mission-empty-copy">왼쪽 목록에서 안건을 고르거나 위 입력선에서 새 안건을 접수합니다\.<\/p>/);
+assert.match(app, /class="mission-empty-copy">위 등록대장에서 첫 안건을 만들면 이곳에 바로 쌓입니다\.<\/p>/);
+assert.match(app, /class="mission-empty-copy">왼쪽 등록대장에서 안건을 고르거나 위 입력선에서 새 안건을 등록합니다\.<\/p>/);
 
 assert.match(styles, /\.surface\[data-surface="mission"\] \.mission-empty-state \{[\s\S]*padding:\s*18px 18px 17px;[\s\S]*border-color:\s*var\(--surface-control-border\);/);
 assert.match(styles, /\.surface\[data-surface="mission"\] \.mission-empty-state::before \{[\s\S]*height:\s*2px;[\s\S]*opacity:\s*0\.82;/);

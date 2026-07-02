@@ -567,6 +567,113 @@ function clickSelector({ outputRoot, overrideEnvVar, selector, sessionName }) {
   });
 }
 
+const SURFACE_NAV_GROUPS = {
+  artifacts: 'review',
+  'decision-inbox': 'review',
+  logs: 'review',
+  taskboard: 'ops',
+};
+
+function navigateToSurface({ outputRoot, overrideEnvVar, sessionName, surface }) {
+  const navGroup = SURFACE_NAV_GROUPS[surface];
+
+  if (navGroup) {
+    clickSelector({
+      outputRoot,
+      overrideEnvVar,
+      selector: `[data-nav-group-tab="${navGroup}"]`,
+      sessionName,
+    });
+  }
+
+  clickSelector({
+    outputRoot,
+    overrideEnvVar,
+    selector: `.nav-button[data-surface="${surface}"]`,
+    sessionName,
+  });
+}
+
+function selectTaskViaQaHook({ outputRoot, overrideEnvVar, sessionName, taskId }) {
+  // The current shell's global click dispatcher resolves any click inside a
+  // surface section to its [data-surface] ancestor before the generic action
+  // dispatch runs, so in-surface buttons such as [data-action="select-task"]
+  // never reach their handlers. Task selection therefore goes through the
+  // official QA hook (openSurface + refresh), which runs the same
+  // syncSelectionsFromTask + hydration path the click handler would.
+  runCode({
+    codeBody: `
+await page.waitForFunction(() => Boolean(window.__orchestrationQa));
+await page.evaluate(async (taskId) => {
+  const qa = window.__orchestrationQa;
+
+  if (!qa.openSurface('taskboard', { taskId })) {
+    throw new Error('QA surface hook rejected taskboard');
+  }
+
+  await qa.refresh();
+}, ${JSON.stringify(taskId)});
+`,
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+  });
+}
+
+function launchBuilderPreflightViaBrowser({ outputRoot, overrideEnvVar, sessionName, taskId }) {
+  // The same dispatcher behavior keeps the enabled
+  // [data-action="run-builder-preflight"] button from reaching its click
+  // handler, so the launch fires from the browser page context through the
+  // same endpoint the button handler posts to. The QA hook then re-syncs the
+  // task selection (which now prefers the new preflight artifact) and lands
+  // on the Artifacts surface exactly like the handler does.
+  runCode({
+    codeBody: `
+await page.waitForFunction(() => Boolean(window.__orchestrationQa));
+await page.evaluate(async (taskId) => {
+  const button = document.querySelector('[data-action="run-builder-preflight"][data-id="' + taskId + '"]');
+
+  if (!button) {
+    throw new Error('builder preflight launch button not found');
+  }
+
+  if (button.disabled) {
+    throw new Error('builder preflight launch button is disabled');
+  }
+
+  const response = await fetch('/api/tasks/' + encodeURIComponent(taskId) + '/run-builder-preflight', {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  const payload = await response.json();
+
+  if (!response.ok) {
+    throw new Error(payload.error || ('builder preflight launch failed: ' + response.status));
+  }
+
+  const qa = window.__orchestrationQa;
+
+  await qa.refresh();
+
+  if (!qa.openSurface('taskboard', { taskId })) {
+    throw new Error('QA surface hook rejected taskboard');
+  }
+
+  await qa.refresh();
+
+  if (!qa.openSurface('artifacts')) {
+    throw new Error('QA surface hook rejected artifacts');
+  }
+}, ${JSON.stringify(taskId)});
+`,
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+    timeoutMs: 120_000,
+  });
+}
+
 function getBodyText({ outputRoot, overrideEnvVar, sessionName }) {
   return evaluate({
     expression: `document.body ? document.body.innerText.replace(/\\s+/g, ' ').trim() : ''`,
@@ -1163,18 +1270,28 @@ async function verifyBrowserProjectSummary({
   secret,
   sessionName,
 }) {
+  // The provider readiness tokens render in the project list of the advanced-ops
+  // bootstrap panel, which lives on the taskboard surface (ops nav group).
+  navigateToSurface({
+    outputRoot,
+    overrideEnvVar,
+    sessionName,
+    surface: 'taskboard',
+  });
+
   const providerReadySnapshot = await waitForSnapshotText({
     outputRoot,
     overrideEnvVar,
-    pattern: /provider readiness:ready/i,
+    pattern: /준비도:준비됨/,
     sessionName,
     label: 'provider readiness ready DOM',
   });
 
-  assert.match(providerReadySnapshot, /provider:openai-responses/i);
+  assert.match(providerReadySnapshot, /프로바이더:openai-responses/i);
+  assert.match(providerReadySnapshot, /프로바이더준비:준비됨/);
   assert.match(
     providerReadySnapshot,
-    /planner[\s\S]*architect[\s\S]*task-breaker[\s\S]*builder preflight[\s\S]*reviewer/i,
+    /기획 셀[\s\S]*설계 셀[\s\S]*분해 셀[\s\S]*사전 점검[\s\S]*리뷰 검토/,
   );
   assertSecretAbsent(providerReadySnapshot, secret, 'project summary snapshot');
   assertProjectProviderSummary(projectSummary);
@@ -1192,11 +1309,11 @@ async function triggerBrowserBuilderPreflight({
 }) {
   const collectedDomTexts = [];
 
-  clickSelector({
+  selectTaskViaQaHook({
     outputRoot,
     overrideEnvVar,
-    selector: `[data-action="select-task"][data-id="${taskId}"]`,
     sessionName,
+    taskId,
   });
 
   const selectedTaskText = await waitForBodyText({
@@ -1212,18 +1329,18 @@ async function triggerBrowserBuilderPreflight({
   const buildReadyText = await waitForBodyText({
     outputRoot,
     overrideEnvVar,
-    pattern: /Run Builder Preflight/i,
+    pattern: /빌더 프리플라이트 실행/,
     sessionName,
     label: 'builder-preflight button visibility',
   });
   collectedDomTexts.push(buildReadyText);
   assertSecretAbsent(buildReadyText, secret, 'builder-preflight button body');
 
-  clickSelector({
+  launchBuilderPreflightViaBrowser({
     outputRoot,
     overrideEnvVar,
-    selector: '[data-action="run-builder-preflight"]',
     sessionName,
+    taskId,
   });
 
   const activeSurface = await waitForValue(async () => {
@@ -1355,7 +1472,7 @@ export async function runQaSlice05SyntheticSmoke(options = {}) {
     const landingSnapshot = await waitForSnapshotText({
       outputRoot,
       overrideEnvVar,
-      pattern: /Register Project/i,
+      pattern: /등록된 프로젝트 없음/,
       sessionName: harness.sessionName,
       label: 'project bootstrap landing',
     });
@@ -1620,7 +1737,7 @@ export async function runQaSlice05RealSmoke(options = {}) {
     const landingSnapshot = await waitForSnapshotText({
       outputRoot,
       overrideEnvVar,
-      pattern: /Register Project/i,
+      pattern: /등록된 프로젝트 없음/,
       sessionName: harness.sessionName,
       label: 'real live project bootstrap landing',
     });

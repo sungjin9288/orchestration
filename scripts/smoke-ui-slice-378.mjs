@@ -18,12 +18,16 @@ const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-378');
 const port = 4679;
 const baseUrl = `http://127.0.0.1:${port}`;
 
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
+
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(
   appJs,
-  /<section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">[\s\S]*?필요하면 방금 숨긴 실행 결과를 다시 표시할 수 있습니다\./s,
+  /<section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">[\s\S]*?필요하면 방금 숨긴 \$\{escapeHtml\(hiddenHarnessModeLabel\)\}를 다시 표시할 수 있습니다\./s,
 );
+assert.match(harnessLabels, /실행 결과/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

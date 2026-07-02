@@ -22,22 +22,10 @@ const unknownArgResult = spawnSync(process.execPath, [uiQaStatusPath, '--typo'],
 });
 const unknownArgPayload = JSON.parse(unknownArgResult.stderr);
 
-assert.equal(smokeCheckEntries.length, 24);
+assert.equal(smokeCheckEntries.length, 27);
 assert.deepEqual(
   smokeCheckEntries.slice(-15),
   [
-    {
-      id: 'harness-brief-mode-labels',
-      script: 'scripts/smoke-ui-slice-628.mjs',
-    },
-    {
-      id: 'harness-brief-copy-payload-title',
-      script: 'scripts/smoke-ui-slice-630.mjs',
-    },
-    {
-      id: 'harness-packet-brief-presence-label',
-      script: 'scripts/smoke-ui-slice-631.mjs',
-    },
     {
       id: 'harness-preview-brief-doc-mode-labels',
       script: 'scripts/smoke-ui-slice-632.mjs',
@@ -85,6 +73,18 @@ assert.deepEqual(
     {
       id: 'manual-ui-qa-summary-argument-guard',
       script: 'scripts/smoke-ui-slice-645.mjs',
+    },
+    {
+      id: 'mission-first-run-handoff-state',
+      script: 'scripts/smoke-ui-slice-647.mjs',
+    },
+    {
+      id: 'deliverables-completion-summary',
+      script: 'scripts/smoke-ui-slice-648.mjs',
+    },
+    {
+      id: 'reference-driven-growth-personalization-ui',
+      script: 'scripts/smoke-ui-slice-649.mjs',
     },
   ],
 );

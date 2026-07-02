@@ -10,14 +10,14 @@ const appPath = path.join(repoRoot, 'ui', 'app.js');
 
 const app = fs.readFileSync(appPath, 'utf8');
 
-assert.match(app, /<strong>안건 접수 흐름<\/strong>[\s\S]*안건을 접수하면 바로 참모 회의로 이어집니다\./);
+assert.match(app, /<h2>오늘 안건을 등록대장에 올리고 바로 다음 회의를 엽니다<\/h2>[\s\S]*Mission은 새 안건 등록, 현재 배정, 다음 처리 트리거를 같은 접수 보드에서 다룹니다\./);
 
 console.log(
   JSON.stringify(
     {
       ok: true,
       missionOrderDeskCopyTightening: {
-        markers: ['안건을 접수하면 바로 참모 회의로 이어집니다.'],
+        markers: ['Mission은 새 안건 등록, 현재 배정, 다음 처리 트리거를 같은 접수 보드에서 다룹니다.'],
       },
     },
     null,

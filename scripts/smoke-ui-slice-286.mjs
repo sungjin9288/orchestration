@@ -14,7 +14,7 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(appJs, /사람 판단을 먼저 처리합니다\./);
 assert.match(appJs, /차단 원인을 먼저 정리합니다\./);
-assert.match(appJs, /안건 정리 후 회의로 넘깁니다\./);
+assert.match(appJs, /안건이 등록됐으므로 보이는 추천안과 정렬 지점을 먼저 엽니다\./);
 assert.match(appJs, /권고안 정리 후 실행으로 넘깁니다\./);
 assert.match(appJs, /담당·상태·다음만 먼저 봅니다\./);
 assert.match(appJs, /<span class="control-overview-label">반영<\/span>/);
@@ -35,7 +35,7 @@ console.log(
         app: [
           '사람 판단을 먼저 처리합니다.',
           '차단 원인을 먼저 정리합니다.',
-          '안건 정리 후 회의로 넘깁니다.',
+          '안건이 등록됐으므로 보이는 추천안과 정렬 지점을 먼저 엽니다.',
           '권고안 정리 후 실행으로 넘깁니다.',
           '담당·상태·다음만 먼저 봅니다.',
           '반영',

@@ -7,7 +7,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
-const appJs = fs.readFileSync(appPath, 'utf8');
+const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
+const appJs = fs.readFileSync(appPath, 'utf8') + fs.readFileSync(executionLabelsPath, 'utf8');
 
 assert.match(appJs, /if \(label === 'commit-executor run'\) return '커밋실행 기록';/);
 assert.match(appJs, /if \(label === 'commit-packager run'\) return '커밋패키저 실행 기록';/);

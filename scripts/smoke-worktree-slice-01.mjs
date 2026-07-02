@@ -107,10 +107,10 @@ async function main() {
 
   assert.match(serveUiSource, /activeProjectLinkedWorktrees/);
   assert.match(serveUiSource, /worktree-ref/);
-  assert.match(appJsSource, /Apply Worktree/);
+  assert.match(appJsSource, /워크트리 적용/);
   assert.match(appJsSource, /set-task-worktree-ref/);
   assert.match(appJsSource, /clear-task-worktree-ref/);
-  assert.match(appJsSource, /Detected Linked Worktrees/);
+  assert.match(appJsSource, /탐지된 연결 워크트리/);
 
   const server = spawn(
     process.execPath,
@@ -163,7 +163,7 @@ async function main() {
         postJson(`/api/tasks/${encodeURIComponent(task.id)}/worktree-ref`, {
           worktreeRef: fixture.mainProjectPath,
         }),
-      /worktreeRef must match a detected linked worktree/i,
+      /worktreeRef는 프로젝트 .+에서 탐지된 연결 워크트리와 일치해야 합니다/,
     );
 
     const clearPayload = await postJson(`/api/tasks/${encodeURIComponent(task.id)}/worktree-ref`, {

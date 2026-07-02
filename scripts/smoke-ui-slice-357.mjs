@@ -18,13 +18,16 @@ const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-357');
 const port = 4658;
 const baseUrl = `http://127.0.0.1:${port}`;
 
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
+
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 
 assert.match(appJs, /data-harness-execution-result="true"/);
-assert.match(appJs, /visibleHarnessExecutionResult\.outputPreview \|\| visibleHarnessExecutionResult\.stdoutPreview/);
+assert.match(harnessExecutionTokens, /execution\?\.outputPreview \|\| execution\?\.stdoutPreview \|\| ''/);
 assert.match(
   appJs,
-  /visibleHarnessExecutionResult\.outputPreview \|\| visibleHarnessExecutionResult\.stdoutPreview[\s\S]*?data-harness-preview-copy="true"[\s\S]*?>\s*미리보기\s*<\/button>/,
+  /canRenderVisibleHarnessPreview[\s\S]*?data-harness-preview-copy="true"[\s\S]*?>\s*미리보기\s*<\/button>/,
 );
 
 async function fetchJson(url, options = {}) {

@@ -125,8 +125,8 @@ async function main() {
   assert.match(serveUiSource, /registeredProjectId/);
   assert.match(serveUiSource, /suggestedProjectName/);
   assert.match(appJsSource, /switch-active-project-worktree/);
-  assert.match(appJsSource, /task\.worktreeRef vs active project_path/);
-  assert.match(appJsSource, /worktree:mismatch/);
+  assert.match(appJsSource, /저장된 워크트리 경로와 현재 프로젝트 경로/);
+  assert.match(appJsSource, /워크트리:불일치/);
 
   const server = spawn(
     process.execPath,

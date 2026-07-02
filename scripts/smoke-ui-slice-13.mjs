@@ -86,13 +86,16 @@ async function main() {
     const indexHtml = await indexResponse.text();
     const appJsResponse = await fetch(`${baseUrl}/app.js`);
     const appJs = await appJsResponse.text();
+    const councilConfigJsResponse = await fetch(`${baseUrl}/council-config.js`);
+    const councilConfigJs = await councilConfigJsResponse.text();
     const initialSnapshot = await fetchJson(`${baseUrl}/api/snapshot`);
 
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
+    assert.equal(councilConfigJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="mission"/);
     assert.match(indexHtml, /surface-mission/);
-    assert.match(appJs, /안건 접수/);
+    assert.match(councilConfigJs, /안건 접수/);
     assert.match(appJs, /고급 운영 모드/);
     assert.match(appJs, /create-linked-task-for-mission/);
     assert.deepEqual(initialSnapshot.snapshot.missions, {});

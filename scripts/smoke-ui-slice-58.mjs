@@ -18,7 +18,7 @@ const activeState = JSON.parse(fs.readFileSync(activeStatePath, 'utf8'));
 
 assert.match(
   appJs,
-  /<section class="relation-strip relation-strip-compact">[\s\S]*?<div class="card-title-row card-title-row-tight">[\s\S]*?<strong>\$\{escapeHtml\(selectedMission\.title\)\}<\/strong>[\s\S]*?<p class="detail-copy detail-copy-compact">\$\{escapeHtml\(selectedMission\.goal \|\| 'No mission goal recorded\.'\)\}<\/p>/,
+  /<section class="relation-strip relation-strip-compact">[\s\S]*?<div class="card-title-row card-title-row-tight">[\s\S]*?<strong>\$\{escapeHtml\(selectedMission\.title\)\}<\/strong>[\s\S]*?<p class="detail-copy detail-copy-compact">\$\{escapeHtml\(selectedMission\.goal \|\| '기록된 미션 목표가 없습니다\.'\)\}<\/p>/,
 );
 
 assert.match(styles, /\.relation-strip-compact\s*\{/);
