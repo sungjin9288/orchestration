@@ -1,11 +1,25 @@
 'use strict';
 
-const crypto = require('crypto');
-const { execFileSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+const {
+  buildCombinedDiff,
+  captureFileContents,
+  captureFileDigests,
+  computeContentDigest,
+  resolveProjectFilePath,
+  restoreFileContents,
+} = require('./coordinator/diff');
+const {
+  assertDedicatedLinkedWorktreeReady,
+  collectRepoChangeSet,
+  ensureGitCommitEnvironment,
+  normalizeRelativePath,
+  parseGitPathLines,
+  runGit,
+} = require('./coordinator/git');
 const { executeWithAdapter } = require('./provider-adapter');
 const {
   createOpenAIResponsesProviderAdapter,
@@ -308,25 +322,6 @@ function getMarkdownSection(content, heading) {
   return match ? match[1].trim() : '';
 }
 
-function normalizeRelativePath(value) {
-  const normalized = String(value || '')
-    .trim()
-    .replace(/\\/g, '/')
-    .replace(/^\.\//, '');
-
-  if (
-    !normalized ||
-    path.posix.isAbsolute(normalized) ||
-    normalized === '..' ||
-    normalized.startsWith('../') ||
-    normalized.includes('/../')
-  ) {
-    return null;
-  }
-
-  return normalized;
-}
-
 function parseMarkdownList(content, heading) {
   return [
     ...new Set(
@@ -408,125 +403,6 @@ function parseBase64FileUpdates(content) {
   }
 
   return fileUpdates;
-}
-
-function resolveProjectFilePath(projectPath, relativePath) {
-  const resolvedProjectPath = path.resolve(projectPath);
-  const filePath = path.resolve(resolvedProjectPath, relativePath);
-
-  if (filePath !== resolvedProjectPath && !filePath.startsWith(`${resolvedProjectPath}${path.sep}`)) {
-    throw new Error(`Resolved file path escapes project_path: ${relativePath}`);
-  }
-
-  return filePath;
-}
-
-function captureFileContents(projectPath, relativePaths) {
-  const contents = new Map();
-
-  for (const relativePath of [...new Set(relativePaths)]) {
-    const filePath = resolveProjectFilePath(projectPath, relativePath);
-
-    contents.set(relativePath, fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null);
-  }
-
-  return contents;
-}
-
-function computeContentDigest(content) {
-  return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
-}
-
-function captureFileDigests(projectPath, relativePaths) {
-  const digests = [];
-
-  for (const relativePath of [...new Set(relativePaths)]) {
-    const filePath = resolveProjectFilePath(projectPath, relativePath);
-
-    if (!fs.existsSync(filePath)) {
-      digests.push({
-        path: relativePath,
-        digest: null,
-      });
-      continue;
-    }
-
-    digests.push({
-      path: relativePath,
-      digest: computeContentDigest(fs.readFileSync(filePath, 'utf8')),
-    });
-  }
-
-  return digests;
-}
-
-function restoreFileContents(projectPath, fileContents) {
-  for (const [relativePath, content] of fileContents.entries()) {
-    const filePath = resolveProjectFilePath(projectPath, relativePath);
-
-    if (content === null) {
-      if (fs.existsSync(filePath)) {
-        fs.rmSync(filePath, { force: true });
-      }
-      continue;
-    }
-
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, content);
-  }
-}
-
-function buildUnifiedDiff(relativePath, beforeContent, afterContent) {
-  if ((beforeContent || '') === (afterContent || '')) {
-    return '';
-  }
-
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-live-mutation-'));
-  const beforePath = path.join(tempDir, 'before');
-  const afterPath = path.join(tempDir, 'after');
-
-  fs.writeFileSync(beforePath, beforeContent || '', 'utf8');
-  fs.writeFileSync(afterPath, afterContent || '', 'utf8');
-
-  try {
-    let diffOutput = '';
-
-    try {
-      diffOutput = execFileSync(
-        'git',
-        ['diff', '--no-index', '--no-ext-diff', '--', beforePath, afterPath],
-        {
-          encoding: 'utf8',
-          stdio: ['ignore', 'pipe', 'pipe'],
-        },
-      );
-    } catch (error) {
-      if (error.status !== 1) {
-        throw error;
-      }
-
-      diffOutput = String(error.stdout || '');
-    }
-
-    return diffOutput
-      .replaceAll(beforePath, `a/${relativePath}`)
-      .replaceAll(afterPath, `b/${relativePath}`);
-  } finally {
-    fs.rmSync(tempDir, { recursive: true, force: true });
-  }
-}
-
-function buildCombinedDiff(relativePaths, beforeContents, afterContents) {
-  return relativePaths
-    .map((relativePath) =>
-      buildUnifiedDiff(
-        relativePath,
-        beforeContents.get(relativePath) || '',
-        afterContents.get(relativePath) || '',
-      ),
-    )
-    .filter(Boolean)
-    .join('\n');
 }
 
 function compareRunsByStartedDesc(left, right) {
@@ -1358,137 +1234,6 @@ function parseReleasePackageArtifactContent(content) {
     sourceBuilderApprovalId: sourceCommitValues['source builder approval'] || null,
     sourceBuilderRunId: sourceCommitValues['source builder run'] || null,
     sourceReviewerRunId: sourceCommitValues['source reviewer run'] || null,
-  };
-}
-
-function parseGitPathLines(output) {
-  return [
-    ...new Set(
-      String(output || '')
-        .split('\n')
-        .map((line) => normalizeRelativePath(line.trim()))
-        .filter(Boolean),
-    ),
-  ];
-}
-
-function runGit(projectPath, args) {
-  try {
-    return execFileSync('git', args, {
-      cwd: projectPath,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-  } catch (error) {
-    const stderr = String(error.stderr || '').trim();
-    const stdout = String(error.stdout || '').trim();
-    const detail = stderr || stdout || error.message;
-
-    throw new Error(`git ${args.join(' ')} failed: ${detail}`);
-  }
-}
-
-function collectRepoChangeSet(projectPath) {
-  const dirtyFiles = parseGitPathLines(runGit(projectPath, ['diff', '--name-only']));
-  const stagedFiles = parseGitPathLines(runGit(projectPath, ['diff', '--cached', '--name-only']));
-  const untrackedFiles = parseGitPathLines(
-    runGit(projectPath, ['ls-files', '--others', '--exclude-standard']),
-  );
-
-  return {
-    allFiles: [...new Set([...dirtyFiles, ...stagedFiles, ...untrackedFiles])],
-    dirtyFiles,
-    stagedFiles,
-    untrackedFiles,
-  };
-}
-
-function ensureGitCommitEnvironment(projectPath) {
-  const insideWorkTree = runGit(projectPath, ['rev-parse', '--is-inside-work-tree']).trim();
-
-  if (insideWorkTree !== 'true') {
-    throw new Error(`project_path is not a git worktree: ${projectPath}`);
-  }
-
-  runGit(projectPath, ['rev-parse', '--verify', 'HEAD']);
-  runGit(projectPath, ['config', '--get', 'user.name']);
-  runGit(projectPath, ['config', '--get', 'user.email']);
-}
-
-function assertDedicatedLinkedWorktreeReady(input) {
-  const actionLabel = input?.actionLabel || 'execution';
-  const projectPath = String(input?.projectPath || '').trim();
-  const expectedWorktreeRef = String(input?.worktreeRef || '').trim();
-
-  if (!projectPath) {
-    throw new Error('project_path is required');
-  }
-
-  if (!fs.existsSync(projectPath)) {
-    throw new Error(`project_path does not exist: ${projectPath}`);
-  }
-
-  const resolvedProjectPath = fs.realpathSync(projectPath);
-  let insideWorkTree = null;
-
-  try {
-    insideWorkTree = runGit(projectPath, ['rev-parse', '--is-inside-work-tree']).trim();
-  } catch (_error) {
-    throw new Error(`project_path is not a git worktree: ${projectPath}`);
-  }
-
-  if (insideWorkTree !== 'true') {
-    throw new Error(`project_path is not a git worktree: ${projectPath}`);
-  }
-
-  const linkedWorktreeRoot = fs.realpathSync(runGit(projectPath, ['rev-parse', '--show-toplevel']).trim());
-  const gitDir = fs.realpathSync(path.resolve(projectPath, runGit(projectPath, ['rev-parse', '--git-dir']).trim()));
-  const gitCommonDir = fs.realpathSync(
-    path.resolve(projectPath, runGit(projectPath, ['rev-parse', '--git-common-dir']).trim()),
-  );
-  const registeredWorktreeRoots = runGit(projectPath, ['worktree', 'list', '--porcelain'])
-    .split('\n')
-    .filter((line) => line.startsWith('worktree '))
-    .map((line) => line.slice('worktree '.length).trim())
-    .filter(Boolean)
-    .map((worktreePath) => fs.realpathSync(worktreePath));
-
-  if (resolvedProjectPath !== linkedWorktreeRoot) {
-    throw new Error(
-      `project_path must point to the linked worktree root before ${actionLabel}: ${projectPath}`,
-    );
-  }
-
-  if (gitDir === gitCommonDir) {
-    throw new Error(
-      `main worktree is blocked before ${actionLabel}; use a dedicated linked worktree root: ${projectPath}`,
-    );
-  }
-
-  if (!registeredWorktreeRoots.includes(linkedWorktreeRoot)) {
-    throw new Error(
-      `project_path is not a registered linked worktree root before ${actionLabel}: ${projectPath}`,
-    );
-  }
-
-  if (expectedWorktreeRef) {
-    if (!fs.existsSync(expectedWorktreeRef)) {
-      throw new Error(`task.worktreeRef does not exist before ${actionLabel}: ${expectedWorktreeRef}`);
-    }
-
-    const resolvedWorktreeRef = fs.realpathSync(expectedWorktreeRef);
-
-    if (resolvedWorktreeRef !== linkedWorktreeRoot) {
-      throw new Error(
-        `task.worktreeRef must match the current linked worktree root before ${actionLabel}: expected=${resolvedWorktreeRef} actual=${linkedWorktreeRoot}`,
-      );
-    }
-  }
-
-  return {
-    gitCommonDir,
-    gitDir,
-    linkedWorktreeRoot,
   };
 }
 
