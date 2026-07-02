@@ -1792,6 +1792,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel
     ? `실행:${visibleHarnessExecutedAtLabel}`
     : '';
+  const canRenderVisibleHarnessPrimaryToken = Boolean(visibleHarnessPrimaryTokenLabel);
+  const canRenderVisibleHarnessRequestToken = Boolean(visibleHarnessRequestTokenLabel);
+  const canRenderVisibleHarnessExecutedAtToken = Boolean(visibleHarnessExecutedAtTokenLabel);
   const visibleHarnessModeLabel = getHarnessExecutionModeLabel(visibleHarnessExecutionResult);
   const hiddenHarnessModeLabel = getHarnessExecutionModeLabel(hiddenHarnessExecutionResult);
   const visibleHarnessResultTitle = getHarnessExecutionResultTitle(visibleHarnessExecutionResult);
@@ -1806,6 +1809,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     getHarnessPolicyReportDataValue(hiddenHarnessIsPolicyReport);
   const visibleHarnessPolicyReportTokenLabel =
     visibleHarnessIsPolicyReport ? '정책 리포트' : '';
+  const canRenderVisibleHarnessPolicyReportToken = Boolean(visibleHarnessPolicyReportTokenLabel);
   const visibleHarnessResultStateLabel =
     visibleHarnessIsPolicyReport ? 'no-write' : '완료';
   const visibleHarnessResultStateTone =
@@ -2051,20 +2055,24 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         ${createToken(visibleHarnessResultStateLabel, visibleHarnessResultStateTone)}
                       </div>
                       <div class="token-row token-row-compact">
-                        ${createToken(visibleHarnessPrimaryTokenLabel, 'neutral')}
                         ${
-                          visibleHarnessPolicyReportTokenLabel
+                          canRenderVisibleHarnessPrimaryToken
+                            ? createToken(visibleHarnessPrimaryTokenLabel, 'neutral')
+                            : ''
+                        }
+                        ${
+                          canRenderVisibleHarnessPolicyReportToken
                             ? createToken(visibleHarnessPolicyReportTokenLabel, 'neutral')
                             : ''
                         }
                         ${
-                          visibleHarnessRequestTokenLabel
+                          canRenderVisibleHarnessRequestToken
                             ? createToken(visibleHarnessRequestTokenLabel, 'neutral')
                             : ''
                         }
                         ${createToken(visibleHarnessOutputChannelLabel, visibleHarnessOutputChannelTone)}
                         ${
-                          visibleHarnessExecutedAtTokenLabel
+                          canRenderVisibleHarnessExecutedAtToken
                             ? createToken(visibleHarnessExecutedAtTokenLabel, 'neutral')
                             : ''
                         }

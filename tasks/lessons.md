@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible result tokens should name their render predicates before token-row assembly. Keep primary id, request id, executed-at, and policy-report label selection in `ui/app.js`, but avoid using token-label strings as implicit template conditions after those labels have already been derived.
+
 - Harness optional summary sections should name their render predicates before markup assembly. Keep request, executed-at, and input summary ownership in `ui/app.js`, but avoid using raw ids, timestamps, or paths as implicit template conditions once those values have already been selected.
 
 - Harness hidden status-card summary values should be named before summary markup. Keep hidden harness context rendering in `ui/app.js`, but avoid applying `statusCard` fallback logic directly inside kind, command, runner, posture, or state markup after the values have already been selected.

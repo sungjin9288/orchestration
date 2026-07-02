@@ -31,11 +31,17 @@ assert.match(appJs, /data-harness-result-hidden-request-summary="true"/);
 assert.match(appJs, /const visibleHarnessRequestId =\s+visibleHarnessExecutionResult\?\.requestId \|\| visibleHarnessExecutionResult\?\.executionId \|\| '';/);
 assert.match(appJs, /const visibleHarnessPrimaryTokenLabel = visibleHarnessExecutionResult\?\.harnessId/);
 assert.match(appJs, /const visibleHarnessRequestTokenLabel = visibleHarnessRequestId/);
+assert.match(appJs, /const canRenderVisibleHarnessPrimaryToken = Boolean\(visibleHarnessPrimaryTokenLabel\);/);
+assert.match(appJs, /const canRenderVisibleHarnessRequestToken = Boolean\(visibleHarnessRequestTokenLabel\);/);
 assert.match(appJs, /const canRenderVisibleHarnessRequestSummary = Boolean\(visibleHarnessRequestId\);/);
 assert.match(appJs, /const canRenderHiddenHarnessRequestSummary = Boolean\(hiddenHarnessRequestId\);/);
 assert.match(appJs, /const visibleHarnessRequestSummaryMarkup = canRenderVisibleHarnessRequestSummary/);
 assert.match(appJs, /const hiddenHarnessRequestSummaryMarkup = canRenderHiddenHarnessRequestSummary/);
 assert.match(appJs, /const visibleHarnessPolicyReportTokenLabel =\s+visibleHarnessIsPolicyReport \? '정책 리포트' : '';/);
+assert.match(appJs, /const canRenderVisibleHarnessPolicyReportToken = Boolean\(visibleHarnessPolicyReportTokenLabel\);/);
+assert.match(appJs, /canRenderVisibleHarnessPrimaryToken\s+\?\s+createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/);
+assert.match(appJs, /canRenderVisibleHarnessRequestToken\s+\?\s+createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/);
+assert.match(appJs, /canRenderVisibleHarnessPolicyReportToken\s+\?\s+createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/);
 assert.match(appJs, /createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/);
 assert.match(appJs, /createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/);
 assert.match(appJs, /createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/);
@@ -44,6 +50,9 @@ assert.match(appJs, /\$\{hiddenHarnessRequestSummaryMarkup\}/);
 assert.doesNotMatch(appJs, /createToken\(`대표:\$\{visibleHarnessExecutionResult\.harnessId\}`/);
 assert.doesNotMatch(appJs, /createToken\(`요청:\$\{visibleHarnessRequestId\}`/);
 assert.doesNotMatch(appJs, /createToken\('정책 리포트', 'neutral'\)/);
+assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessPrimaryTokenLabel\s+\?\s+createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/);
+assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessRequestTokenLabel\s+\?\s+createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/);
+assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessPolicyReportTokenLabel\s+\?\s+createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessRequestId\s+\?\s+`<p class="detail-copy detail-copy-compact" data-harness-execution-request-summary="true">/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessRequestId\s+\?\s+`<p class="detail-copy detail-copy-compact" data-harness-result-hidden-request-summary="true">/);
 
@@ -146,11 +155,14 @@ async function main() {
             namedValues: [
               'visibleHarnessPrimaryTokenLabel',
               'visibleHarnessRequestTokenLabel',
+              'canRenderVisibleHarnessPrimaryToken',
+              'canRenderVisibleHarnessRequestToken',
               'canRenderVisibleHarnessRequestSummary',
               'visibleHarnessRequestSummaryMarkup',
               'canRenderHiddenHarnessRequestSummary',
               'hiddenHarnessRequestSummaryMarkup',
               'visibleHarnessPolicyReportTokenLabel',
+              'canRenderVisibleHarnessPolicyReportToken',
             ],
             firstRequestId: firstPayload.harnessExecution.requestId,
             secondRequestId: secondPayload.harnessExecution.requestId,
