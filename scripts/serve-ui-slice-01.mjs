@@ -2224,6 +2224,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/artifact-parsing.js') {
+    await serveStaticAsset(response, 'artifact-parsing.js');
+    return;
+  }
+
   text(response, 404, 'Not Found', 'text/plain; charset=utf-8');
 });
 
