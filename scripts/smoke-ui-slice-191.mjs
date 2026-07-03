@@ -20,6 +20,7 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const artifactPreviewPath = path.join(repoRoot, 'ui', 'artifact-preview.js');
+const artifactStructuredRenderPath = path.join(repoRoot, 'ui', 'artifact-structured-render.js');
 const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
 const formattersPath = path.join(repoRoot, 'ui', 'formatters.js');
 const taskDetailSnapshotsPath = path.join(repoRoot, 'ui', 'task-detail-snapshots.js');
@@ -27,14 +28,18 @@ const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-191');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const artifactPreview = fs.readFileSync(artifactPreviewPath, 'utf8');
+const artifactStructuredRender = fs.readFileSync(artifactStructuredRenderPath, 'utf8');
 const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const formatters = fs.readFileSync(formattersPath, 'utf8');
 const taskDetailSnapshots = fs.readFileSync(taskDetailSnapshotsPath, 'utf8');
 const taskSummariesPath = path.join(repoRoot, 'ui', 'task-summaries.js');
 const taskSummaries = fs.readFileSync(taskSummariesPath, 'utf8');
 const helperSourceByName = new Map([
+  ['sortByCreatedDesc', taskSummaries],
+  ['getLatestTaskArtifact', taskSummaries],
   ['getTaskInboxItems', taskSummaries],
   ['getTaskApprovals', taskSummaries],
+  ['getArtifactPolicySummary', artifactStructuredRender],
   ['renderArtifactPolicyTokens', artifactPreview],
   ['getArtifactCatalogEntry', artifactPreview],
   ['createToken', formatters],

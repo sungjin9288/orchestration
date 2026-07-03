@@ -24,7 +24,14 @@ const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-188');
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const formatters = fs.readFileSync(formattersPath, 'utf8');
+const taskSummariesPath = path.join(repoRoot, 'ui', 'task-summaries.js');
+const taskSummaries = fs.readFileSync(taskSummariesPath, 'utf8');
 const helperSourceByName = new Map([
+  ['createToken', formatters],
+  ['getTaskInboxItems', taskSummaries],
+  ['getTaskApprovals', taskSummaries],
+  ['sortByCreatedDesc', taskSummaries],
+  ['getLatestTaskArtifact', taskSummaries],
   ['escapeHtml', formatters],
   ['formatDate', formatters],
   ['getEvidenceRailHandoffDisplay', executionLabels],

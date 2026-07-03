@@ -2129,6 +2129,16 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/artifact-relations.js') {
+    await serveStaticAsset(response, 'artifact-relations.js');
+    return;
+  }
+
+  if (url.pathname === '/artifact-structured-render.js') {
+    await serveStaticAsset(response, 'artifact-structured-render.js');
+    return;
+  }
+
   if (url.pathname === '/execution-labels.js') {
     await serveStaticAsset(response, 'execution-labels.js');
     return;

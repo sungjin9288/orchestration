@@ -367,13 +367,17 @@ const artifactParsingSource = fs.readFileSync(
   path.join(repoRoot, 'ui', 'artifact-parsing.js'),
   'utf8',
 );
+const artifactStructuredRenderSource = fs.readFileSync(
+  path.join(repoRoot, 'ui', 'artifact-structured-render.js'),
+  'utf8',
+);
 
 assert.match(serveUiSource, /closeOutReadinessSummaries/);
 assert.match(serveUiSource, /run-close-out/);
 assert.match(appJsSource, /closeOutReadinessSummaries/);
 assert.match(appJsSource, /function getCloseOutAvailability/);
 assert.match(artifactParsingSource, /function parseCloseOutArtifact/);
-assert.match(appJsSource, /function renderStructuredCloseOut/);
+assert.match(artifactStructuredRenderSource, /function renderStructuredCloseOut/);
 assert.match(appJsSource, /data-action="run-close-out"/);
 assert.match(appJsSource, /승인된 종료 정리 이어가기/);
 assert.match(appJsSource, /종료 가드/);

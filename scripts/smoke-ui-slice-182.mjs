@@ -28,7 +28,14 @@ const artifactPreview = fs.readFileSync(artifactPreviewPath, 'utf8');
 const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const formatters = fs.readFileSync(formattersPath, 'utf8');
 const inboxLabels = fs.readFileSync(inboxLabelsPath, 'utf8');
+const taskSummariesPath = path.join(repoRoot, 'ui', 'task-summaries.js');
+const taskSummaries = fs.readFileSync(taskSummariesPath, 'utf8');
 const helperSourceByName = new Map([
+  ['createToken', formatters],
+  ['getTaskInboxItems', taskSummaries],
+  ['getTaskApprovals', taskSummaries],
+  ['sortByCreatedDesc', taskSummaries],
+  ['getLatestTaskArtifact', taskSummaries],
   ['getArtifactTypeDisplay', artifactPreview],
   ['escapeHtml', formatters],
   ['formatDate', formatters],

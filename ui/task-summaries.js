@@ -31,3 +31,32 @@ export function getTaskDecisionSummary(task, inboxItems) {
   };
 }
 
+
+export function sortByCreatedDesc(left, right) {
+  const leftValue = left.updatedAt || left.createdAt || '';
+  const rightValue = right.updatedAt || right.createdAt || '';
+
+  if (leftValue === rightValue) {
+    return String(left.id).localeCompare(String(right.id));
+  }
+
+  return rightValue.localeCompare(leftValue);
+}
+
+export function getLatestTaskArtifact(task, data, type = null) {
+  const artifactIds = Array.isArray(task?.artifactIds) ? [...task.artifactIds].reverse() : [];
+
+  for (const artifactId of artifactIds) {
+    const artifact = data.artifactMap.get(artifactId);
+
+    if (!artifact) {
+      continue;
+    }
+
+    if (!type || artifact.type === type) {
+      return artifact;
+    }
+  }
+
+  return null;
+}
