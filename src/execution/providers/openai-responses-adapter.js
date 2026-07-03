@@ -5,6 +5,7 @@ const path = require('path');
 
 const { PROVIDER_READINESS } = require('../../runtime/contracts');
 const { getMarkdownSection } = require('../coordinator/markdown');
+const { normalizeRelativePath } = require('../coordinator/paths');
 const { sameExactDigestEntries, sameExactStringArrays } = require('../execution-text-utils');
 const {
   DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS,
@@ -1761,25 +1762,6 @@ function normalizeStructuredResult(value, allowedNextStages, role) {
   };
 }
 
-function normalizeRelativePath(value) {
-  const normalized = String(value || '')
-    .trim()
-    .replace(/\\/g, '/')
-    .replace(/^\.\//, '');
-
-  if (
-    !normalized ||
-    path.posix.isAbsolute(normalized) ||
-    /^[A-Za-z]:\//.test(normalized) ||
-    normalized === '..' ||
-    normalized.startsWith('../') ||
-    normalized.includes('/../')
-  ) {
-    return null;
-  }
-
-  return normalized;
-}
 
 function normalizeArchitectAnchor(anchor, label) {
   if (!anchor || typeof anchor !== 'object' || Array.isArray(anchor)) {

@@ -3,6 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const { normalizeRelativePath } = require('../coordinator/paths');
+
 function renderList(items, emptyValue) {
   if (!Array.isArray(items) || items.length === 0) {
     return `- ${emptyValue}`;
@@ -42,25 +44,6 @@ function parseMarkdownList(content, heading) {
 
 function uniqueList(items) {
   return [...new Set((items || []).map((item) => String(item || '').trim()).filter(Boolean))];
-}
-
-function normalizeRelativePath(value) {
-  const normalized = String(value || '')
-    .trim()
-    .replace(/\\/g, '/')
-    .replace(/^\.\//, '');
-
-  if (
-    !normalized ||
-    path.posix.isAbsolute(normalized) ||
-    normalized === '..' ||
-    normalized.startsWith('../') ||
-    normalized.includes('/../')
-  ) {
-    return null;
-  }
-
-  return normalized;
 }
 
 function hasMarkdownHeading(content, heading) {

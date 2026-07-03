@@ -11,6 +11,7 @@ function normalizeRelativePath(value) {
   if (
     !normalized ||
     path.posix.isAbsolute(normalized) ||
+    /^[A-Za-z]:\//.test(normalized) ||
     normalized === '..' ||
     normalized.startsWith('../') ||
     normalized.includes('/../')
