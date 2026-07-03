@@ -288,6 +288,25 @@ assert.throws(
 // The target file is untouched by every rejected call above.
 assert.equal(fs.readFileSync(path.join(projectRoot, targetRelativePath), 'utf8'), beforeContent);
 
+// Path-traversal regression: a symlink at the target must be refused so fs.writeFileSync
+// cannot follow it outside the project, and the linked outside file must stay untouched.
+const outsideRoot = path.join(process.cwd(), 'var', 'proposal-source-mutation-outside');
+fs.rmSync(outsideRoot, { force: true, recursive: true, maxRetries: 10, retryDelay: 50 });
+fs.mkdirSync(outsideRoot, { recursive: true });
+const outsideSecret = path.join(outsideRoot, 'secret.txt');
+fs.writeFileSync(outsideSecret, 'OUTSIDE-SECRET\n');
+const targetAbsolute = path.join(projectRoot, targetRelativePath);
+fs.rmSync(targetAbsolute, { force: true });
+fs.symlinkSync(path.relative(path.dirname(targetAbsolute), outsideSecret), targetAbsolute);
+assert.throws(
+  () => runtime.applyProposalSourceMutation(buildMutationInput()),
+  /mutation target must not be a symbolic link/,
+);
+assert.equal(fs.readFileSync(outsideSecret, 'utf8'), 'OUTSIDE-SECRET\n');
+fs.rmSync(targetAbsolute, { force: true });
+fs.writeFileSync(targetAbsolute, beforeContent);
+fs.rmSync(outsideRoot, { force: true, recursive: true, maxRetries: 10, retryDelay: 50 });
+
 // Approved single apply path
 const appliedMutation = runtime.applyProposalSourceMutation(buildMutationInput());
 

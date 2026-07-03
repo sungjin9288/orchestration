@@ -1274,7 +1274,9 @@ function createRuntimeService(options = {}) {
       throw new Error('project.projectPath is required before source mutation');
     }
 
-    const resolvedProjectPath = path.resolve(project.projectPath);
+    // Resolve the project root through any symlinks so containment is checked
+    // against the real directory, then require the lexical target to stay inside it.
+    const resolvedProjectPath = fs.realpathSync(path.resolve(project.projectPath));
     const targetPath = path.resolve(resolvedProjectPath, relativePath);
 
     if (
@@ -1282,6 +1284,27 @@ function createRuntimeService(options = {}) {
       !targetPath.startsWith(`${resolvedProjectPath}${path.sep}`)
     ) {
       throw new Error('mutation.relativePath must stay inside the project path');
+    }
+
+    // Lexical containment is not enough: a symlink at the target, or a symlinked
+    // ancestor directory, would let fs.writeFileSync follow the link outside the
+    // project. Reject a symlinked target outright and re-assert containment on the
+    // real path of the (existing) parent directory.
+    if (fs.existsSync(targetPath) && fs.lstatSync(targetPath).isSymbolicLink()) {
+      throw new Error('mutation target must not be a symbolic link');
+    }
+
+    const parentDir = path.dirname(targetPath);
+
+    if (fs.existsSync(parentDir)) {
+      const realParentPath = fs.realpathSync(parentDir);
+
+      if (
+        realParentPath !== resolvedProjectPath &&
+        !realParentPath.startsWith(`${resolvedProjectPath}${path.sep}`)
+      ) {
+        throw new Error('mutation.relativePath must stay inside the project path');
+      }
     }
 
     return targetPath;
