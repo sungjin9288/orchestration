@@ -54,15 +54,17 @@ Planning source files:
 
 ## Current Development Focus
 
-The latest implementation lane closed a behavior-preserving module extraction pass without changing
-runtime authority. Coordinator git/diff/path helpers now live in `src/execution/coordinator/git.js`,
-`src/execution/coordinator/diff.js`, and `src/execution/coordinator/paths.js`; pure proposal-record
-validation and shared input normalizers live in `src/runtime/proposal-records.js` and
-`src/runtime/normalizers.js`; and pure harness execution tokens and markdown parsing primitives live
-in `ui/harness-execution-tokens.js` and `ui/markdown-artifact-parsing.js`. The app shell still
-owns browser state, output-brief state, policy-report parsing, clipboard actions, rerun actions,
-runtime mutation, provider calls, source mutation, commit, and push boundaries, and the runtime
-service keeps all state-bound proposal-record creation, listing, and quarantine entry points.
+The latest implementation lane combined the operator-approved source mutation slice (`DEC-067`,
+`docs/39_proposal-application-source-mutation-implementation.md`) with a second behavior-preserving
+module extraction wave. Coordinator request/decision/artifact-content builders now live under
+`src/execution/coordinator/` next to the earlier git/diff/path helpers; the closed task-gate
+subgraph lives in `src/runtime/task-gates.js` beside `src/runtime/proposal-records.js` and
+`src/runtime/normalizers.js`; and the structured artifact renderers, relation-context builders,
+task snapshots, and task summaries live in `ui/artifact-structured-render.js`,
+`ui/artifact-relations.js`, `ui/task-detail-snapshots.js`, and `ui/task-summaries.js`. The app shell
+still owns browser state, output-brief state, policy-report parsing, clipboard actions, rerun
+actions, runtime mutation, provider calls, commit, and push boundaries, and the runtime service
+keeps all state-bound entry points plus the single approved source mutation path.
 
 Current source-backed evidence:
 
