@@ -7,12 +7,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 
-assert.match(appJs, /function getCouncilControlSnapshot\(mission, councilSession, linkedTask\)/);
-assert.match(appJs, /function getExecutionControlSnapshot\(task, latestRun, approvalBridge, gateCopy, summaries = \{\}\)/);
-assert.match(appJs, /function getDeliverablesControlSnapshot\(/);
+assert.match(controlSnapshots, /export function getCouncilControlSnapshot\(mission, councilSession, linkedTask\)/);
+assert.match(controlSnapshots, /export function getExecutionControlSnapshot\(task, latestRun, approvalBridge, gateCopy, summaries = \{\}\)/);
+assert.match(controlSnapshots, /export function getDeliverablesControlSnapshot\(/);
 
 assert.match(appJs, /eyebrow: '회의 권고 선반'/);
 assert.match(appJs, /heading: '권고안, 이견, 승인 선반을 먼저 봅니다'/);

@@ -2154,6 +2154,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/control-snapshots.js') {
+    await serveStaticAsset(response, 'control-snapshots.js');
+    return;
+  }
+
   if (url.pathname === '/council-config.js') {
     await serveStaticAsset(response, 'council-config.js');
     return;

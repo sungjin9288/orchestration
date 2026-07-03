@@ -7,10 +7,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 
-assert.match(appJs, /function getMissionBriefControlSnapshot\(mission, previews\)/);
+assert.match(controlSnapshots, /export function getMissionBriefControlSnapshot\(mission, previews\)/);
 assert.match(appJs, /eyebrow: '안건 배정 판단판'/);
 assert.match(appJs, /heading: '현재 배정 판단과 다음 처리를 먼저 봅니다'/);
 assert.match(appJs, /오른쪽 패널은 긴 설명보다 현재 배정 상태, 가장 먼저 열어야 할 처리선, 필요한 연결 상태를 먼저 보여 줍니다\./);

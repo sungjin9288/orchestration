@@ -7,16 +7,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(appJs, /function getMissionSurfaceRailEntries\(mission, previews\)/);
-assert.match(appJs, /label: '안건'/);
-assert.match(appJs, /label: '회의'/);
-assert.match(appJs, /label: '실행'/);
-assert.match(appJs, /label: '보고'/);
+assert.match(controlSnapshots, /export function getMissionSurfaceRailEntries\(mission, previews\)/);
+assert.match(controlSnapshots, /label: '안건'/);
+assert.match(controlSnapshots, /label: '회의'/);
+assert.match(controlSnapshots, /label: '실행'/);
+assert.match(controlSnapshots, /label: '보고'/);
 assert.match(appJs, /class="card mission-row-card/);
 assert.match(appJs, /class="list-button mission-row-button"/);
 assert.match(appJs, /class="mission-row-rail"/);

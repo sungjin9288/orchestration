@@ -29,6 +29,8 @@ const styles = fs.readFileSync(stylesPath, 'utf8');
 const taskSummariesPath = path.join(repoRoot, 'ui', 'task-summaries.js');
 const taskSummaries = fs.readFileSync(taskSummariesPath, 'utf8');
 const helperSourceByName = new Map([
+  ['getPrimaryBlockedReason', taskSummaries],
+  ['getBuilderLiveMutationSummaries', taskSummaries],
   ['getTaskInboxItems', taskSummaries],
   ['getTaskApprovals', taskSummaries],
   ['sortByCreatedDesc', taskSummaries],

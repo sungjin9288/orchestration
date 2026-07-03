@@ -7,29 +7,31 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
 const uiQaStatusPath = path.join(repoRoot, 'scripts', 'ui_qa_status.mjs');
 const verificationStatusPath = path.join(repoRoot, 'scripts', 'verification_status.mjs');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 const uiQaStatus = fs.readFileSync(uiQaStatusPath, 'utf8');
 const verificationStatus = fs.readFileSync(verificationStatusPath, 'utf8');
 
-assert.match(appJs, /function getMissionHandoffState\(\{ mission = null, councilSession = null, linkedTask = null \} = \{\}\)/);
-assert.match(appJs, /function getMissionFirstRunHandoff\(mission, data\)/);
+assert.match(controlSnapshots, /export function getMissionHandoffState\(\{ mission = null, councilSession = null, linkedTask = null \} = \{\}\)/);
+assert.match(controlSnapshots, /export function getMissionFirstRunHandoff\(mission, data\)/);
 assert.match(
-  appJs,
+  controlSnapshots,
   /if \(!councilSession\) \{[\s\S]*action:\s*\{ label:\s*'회의 초안',\s*targetSurface:\s*'council'\s*\}[\s\S]*next:\s*'회의 초안 작성'/,
 );
 assert.match(
-  appJs,
+  controlSnapshots,
   /if \(alignmentStatus !== 'approved'\) \{[\s\S]*action:\s*\{ label:\s*'협의회 정렬',\s*targetSurface:\s*'council'\s*\}[\s\S]*next:\s*'협의회 정렬'/,
 );
 assert.match(
-  appJs,
+  controlSnapshots,
   /if \(!linkedTask\) \{[\s\S]*action:\s*\{ label:\s*'실행 셀 연결',\s*targetSurface:\s*'mission'\s*\}[\s\S]*next:\s*'실행 셀 연결'/,
 );
 assert.match(
-  appJs,
+  controlSnapshots,
   /return \{[\s\S]*action:\s*\{ label:\s*'실행 데스크',\s*targetSurface:\s*'execution'\s*\}[\s\S]*next:\s*getExecutionDeskNext\(linkedTask\)[\s\S]*title:\s*'실행 인계'/,
 );
 assert.match(appJs, /const selectedMissionHandoff = getMissionFirstRunHandoff\(selectedMission, data\);/);

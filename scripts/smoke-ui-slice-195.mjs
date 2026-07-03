@@ -29,6 +29,8 @@ const inboxLabels = fs.readFileSync(inboxLabelsPath, 'utf8');
 const taskSummariesPath = path.join(repoRoot, 'ui', 'task-summaries.js');
 const taskSummaries = fs.readFileSync(taskSummariesPath, 'utf8');
 const helperSourceByName = new Map([
+  ['getPrimaryBlockedReason', taskSummaries],
+  ['getBuilderLiveMutationSummaries', taskSummaries],
   ['createToken', formatters],
   ['getTaskInboxItems', taskSummaries],
   ['getTaskApprovals', taskSummaries],

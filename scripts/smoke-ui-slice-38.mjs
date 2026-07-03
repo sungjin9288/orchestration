@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-20');
 const statePath = path.join(runtimeRoot, 'state.json');
 
@@ -18,6 +19,7 @@ const smoke37Output = execFileSync(process.execPath, ['scripts/smoke-ui-slice-37
 });
 const smoke37 = JSON.parse(smoke37Output);
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 const runtimeState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
 const mission = runtimeState.missions[smoke37.densityTrim.missionId];
 const task = runtimeState.tasks[mission.linkedTaskId];
@@ -25,9 +27,9 @@ const latestApproval = runtimeState.approvals[smoke37.densityTrim.approvalId];
 
 assert.equal(smoke37.ok, true);
 assert.match(appJs, /renderMissionSnapshotList\(selectedMissionActiveSnapshotItems, \{ compact: true \}\)/);
-assert.match(appJs, /brief-snapshot-list/);
-assert.match(appJs, /brief-snapshot-row/);
-assert.match(appJs, /createToken\(getSurfaceDisplayName\(item\.surface\), item\.tone \|\| 'neutral'\)/);
+assert.match(controlSnapshots, /brief-snapshot-list/);
+assert.match(controlSnapshots, /brief-snapshot-row/);
+assert.match(controlSnapshots, /createToken\(getSurfaceDisplayName\(item\.surface\), item\.tone \|\| 'neutral'\)/);
 assert.match(appJs, /브리프 핵심 4줄/);
 assert.equal(mission.status, 'executing');
 assert.equal(task.flags.waitingApproval, true);

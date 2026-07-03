@@ -28,7 +28,12 @@ const formatters = fs.readFileSync(formattersPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const taskSummariesPath = path.join(repoRoot, 'ui', 'task-summaries.js');
 const taskSummaries = fs.readFileSync(taskSummariesPath, 'utf8');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 const helperSourceByName = new Map([
+  ['getPrimaryBlockedReason', taskSummaries],
+  ['getBuilderLiveMutationSummaries', taskSummaries],
+  ['renderExecutionEvidenceRail', controlSnapshots],
   ['createToken', formatters],
   ['getTaskInboxItems', taskSummaries],
   ['getTaskApprovals', taskSummaries],

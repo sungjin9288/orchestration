@@ -86,14 +86,20 @@ async function main() {
     const indexHtml = await indexResponse.text();
     const appJsResponse = await fetch(`${baseUrl}/app.js`);
     const appJs = await appJsResponse.text();
+    const controlSnapshotsResponse = await fetch(`${baseUrl}/control-snapshots.js`);
+    const controlSnapshots = await controlSnapshotsResponse.text();
+    const taskSummariesResponse = await fetch(`${baseUrl}/task-summaries.js`);
+    const taskSummaries = await taskSummariesResponse.text();
 
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
+    assert.equal(controlSnapshotsResponse.status, 200);
+    assert.equal(taskSummariesResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(indexHtml, /data-surface="deliverables"/);
     assert.match(appJs, /승인 라인 현황/);
-    assert.match(appJs, /현재 승인 안건/);
-    assert.match(appJs, /다음 운영 단계/);
+    assert.match(controlSnapshots, /현재 승인 안건/);
+    assert.match(taskSummaries, /다음 운영 단계/);
     assert.match(appJs, /승인은 실행에서 처리합니다\. 산출물은 요약만 남깁니다\./);
     assert.match(appJs, /여기서는 리뷰 라인, 승인선, 종료 보고 경로를 먼저 봅니다\./);
 

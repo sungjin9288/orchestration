@@ -8,6 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const taskDetailSnapshotsPath = path.join(repoRoot, 'ui', 'task-detail-snapshots.js');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-16');
 const statePath = path.join(runtimeRoot, 'state.json');
 
@@ -18,6 +20,8 @@ const smoke16Output = execFileSync(process.execPath, ['scripts/smoke-ui-slice-16
 });
 const smoke16 = JSON.parse(smoke16Output);
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const taskDetailSnapshots = fs.readFileSync(taskDetailSnapshotsPath, 'utf8');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 const runtimeState = JSON.parse(fs.readFileSync(statePath, 'utf8'));
 const mission = runtimeState.missions[smoke16.mission.id];
 const task = runtimeState.tasks[mission.linkedTaskId];
@@ -25,11 +29,11 @@ const latestArtifact = runtimeState.artifacts[smoke16.deliverables.latestArtifac
 const latestApproval = runtimeState.approvals[smoke16.deliverables.approvalId];
 
 assert.equal(smoke16.ok, true);
-assert.match(appJs, /function getMissionDeliverablesPreview/);
-assert.match(appJs, /연결된 태스크가 아직 없어서 산출물도 없습니다\./);
-assert.match(appJs, /아직 아티팩트 패키지가 없습니다; 리뷰/);
+assert.match(controlSnapshots, /export function getMissionDeliverablesPreview/);
+assert.match(controlSnapshots, /연결된 태스크가 아직 없어서 산출물도 없습니다\./);
+assert.match(controlSnapshots, /아직 아티팩트 패키지가 없습니다; 리뷰/);
 assert.match(appJs, /승인 /);
-assert.match(appJs, /결재 안건입니다/);
+assert.match(taskDetailSnapshots, /결재 안건입니다/);
 assert.match(appJs, /안건 종료 보고/);
 assert.equal(mission.status, 'executing');
 assert.equal(latestArtifact.type, 'preflight');

@@ -1555,3 +1555,4 @@
 - vm 추출형 smoke 밴드는 helper가 leaf로 이동할 때마다 helperSourceByName 갱신이 필요한 유지비를 가지므로, leaf 승격 slice는 해당 이름을 참조하는 밴드 전체(179–197)를 grep해 한 번에 갱신해야 한다. cf31e2a에서 실패 재현된 5개만 고치고 이름을 참조하는 나머지 14개를 놓쳐 aggregate 밖에서 조용히 썩었다 — "지금 실패한 것"이 아니라 "이동한 이름을 참조하는 모든 것"이 갱신 단위다. 반복 픽서(실행→누락 함수명 추출→홈 탐지→맵 추가)로 기계적으로 수렴시킬 수 있다.
 - lane 마감 문서는 slice별 커밋 ref와 실측 LOC, 그리고 그 lane에서 새로 확립된 운영 사실(검증 사각지대와 그 대응)을 함께 남겨야 다음 lane의 정찰이 같은 함정을 피한다.
 - Loose reference는 vm 밴드의 helperSourceByName만이 아니라 임의 게이트의 본문 assertion(smoke-readme-scope-evidence의 data-attribute pin 등)에도 숨어 있으므로, 이동 전 grep은 함수명만이 아니라 이동 블록 안의 고유 마커 문자열(data-* 속성, 한국어 카피)로도 수행해야 한다.
+- 대형 스냅샷 클러스터 분리는 leaf 승격 대상을 "이동 함수가 부르는 app.js-only 순수 helper"로 한정하되, 잔류 함수도 함께 쓰는 helper(getDevelopmentPackExecutionGateReason)는 그 함수가 app.js에 남는 한 승격하지 않고 app.js에 둔다. 승격 여부 판단은 "이동 블록이 부르는가"가 아니라 "이동 블록만 부르는가 vs 잔류 코드도 부르는가"이며, 후자는 leaf로 옮기고 app.js가 import back, 전자 중 잔류 함수 전용은 그대로 둔다.
