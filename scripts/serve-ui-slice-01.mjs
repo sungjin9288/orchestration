@@ -2164,6 +2164,16 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/council-signals.js') {
+    await serveStaticAsset(response, 'council-signals.js');
+    return;
+  }
+
+  if (url.pathname === '/ops-entry-signals.js') {
+    await serveStaticAsset(response, 'ops-entry-signals.js');
+    return;
+  }
+
   if (url.pathname === '/desk-status.js') {
     await serveStaticAsset(response, 'desk-status.js');
     return;

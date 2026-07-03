@@ -7,12 +7,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const opsEntrySignalsPath = path.join(repoRoot, 'ui', 'ops-entry-signals.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const app = fs.readFileSync(appPath, 'utf8');
+const opsEntrySignals = fs.readFileSync(opsEntrySignalsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(app, /function renderDeliverablesShelfSignalRow\(entries = \[\], surfaces = \[\]\)/);
+assert.match(opsEntrySignals, /export function renderDeliverablesShelfSignalRow\(entries = \[\], surfaces = \[\]\)/);
 assert.match(app, /const deliverablesActionSignals = getCompanySignalEntries\(/);
 assert.match(
   app,
@@ -34,17 +36,17 @@ assert.match(app, /\$\{reviewActionSignalRow\}/);
 assert.match(app, /\$\{approvalActionSignalRow\}/);
 assert.match(app, /\$\{closeOutActionSignalRow\}/);
 assert.match(app, /\$\{opsActionSignalRow\}/);
-assert.match(app, /class="deliverables-shelf-signal-row"/);
+assert.match(opsEntrySignals, /class="deliverables-shelf-signal-row"/);
 assert.match(
-  app,
+  opsEntrySignals,
   /class="deliverables-shelf-signal deliverables-shelf-signal-\$\{escapeHtml\(entry\.surface\)\}"/,
 );
 assert.match(
-  app,
+  opsEntrySignals,
   /class="deliverables-shelf-signal-dot deliverables-shelf-signal-dot-\$\{escapeHtml\(entry\.tone\)\}"/,
 );
-assert.match(app, /class="deliverables-shelf-signal-label"/);
-assert.match(app, /class="deliverables-shelf-signal-status"/);
+assert.match(opsEntrySignals, /class="deliverables-shelf-signal-label"/);
+assert.match(opsEntrySignals, /class="deliverables-shelf-signal-status"/);
 
 assert.match(styles, /\.deliverables-shelf-signal-row \{/);
 assert.match(styles, /\.deliverables-shelf-signal \{/);

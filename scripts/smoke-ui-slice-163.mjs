@@ -7,12 +7,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const councilSignalsPath = path.join(repoRoot, 'ui', 'council-signals.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const app = fs.readFileSync(appPath, 'utf8');
+const councilSignals = fs.readFileSync(councilSignalsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(app, /function getCompanySignalEntries\(options = \{\}\)/);
+assert.match(councilSignals, /export function getCompanySignalEntries\(options = \{\}\)/);
 assert.match(app, /card\.signal/);
 assert.match(app, /viewport-handoff-signal/);
 assert.match(app, /signal: missionSignalBySurface\.mission/);

@@ -7,12 +7,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const opsEntrySignalsPath = path.join(repoRoot, 'ui', 'ops-entry-signals.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const app = fs.readFileSync(appPath, 'utf8');
+const opsEntrySignals = fs.readFileSync(opsEntrySignalsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(app, /function renderDeliverablesOpsEntryRow\(entries = \[\]\)/);
+assert.match(opsEntrySignals, /export function renderDeliverablesOpsEntryRow\(entries = \[\]\)/);
 assert.match(app, /const latestRunForOps = linkedTask\.latestRunId \? data\.runMap\.get\(linkedTask\.latestRunId\) \|\| null : null;/);
 assert.match(app, /const deliverablesOpsEntrySignals = \[/);
 assert.match(app, /surface: 'taskboard'/);
@@ -21,11 +23,11 @@ assert.match(app, /surface: 'artifacts'/);
 assert.match(app, /surface: 'decision-inbox'/);
 assert.match(app, /const opsEntrySignalRow = renderDeliverablesOpsEntryRow\(deliverablesOpsEntrySignals\);/);
 assert.match(app, /\$\{opsEntrySignalRow\}/);
-assert.match(app, /class="deliverables-ops-entry-row"/);
-assert.match(app, /class="deliverables-ops-entry deliverables-ops-entry-\$\{escapeHtml\(entry\.surface\)\}"/);
-assert.match(app, /class="deliverables-ops-entry-dot deliverables-ops-entry-dot-\$\{escapeHtml\(entry\.tone\)\}"/);
-assert.match(app, /class="deliverables-ops-entry-label"/);
-assert.match(app, /class="deliverables-ops-entry-status"/);
+assert.match(opsEntrySignals, /class="deliverables-ops-entry-row"/);
+assert.match(opsEntrySignals, /class="deliverables-ops-entry deliverables-ops-entry-\$\{escapeHtml\(entry\.surface\)\}"/);
+assert.match(opsEntrySignals, /class="deliverables-ops-entry-dot deliverables-ops-entry-dot-\$\{escapeHtml\(entry\.tone\)\}"/);
+assert.match(opsEntrySignals, /class="deliverables-ops-entry-label"/);
+assert.match(opsEntrySignals, /class="deliverables-ops-entry-status"/);
 
 assert.match(styles, /\.deliverables-ops-entry-row \{/);
 assert.match(styles, /\.deliverables-ops-entry \{/);
