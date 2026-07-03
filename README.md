@@ -54,29 +54,34 @@ Planning source files:
 
 ## Current Development Focus
 
-The latest implementation lane combined the operator-approved source mutation slice (`DEC-067`,
-`docs/39_proposal-application-source-mutation-implementation.md`) with a second behavior-preserving
-module extraction wave. Coordinator request/decision/artifact-content builders now live under
-`src/execution/coordinator/` next to the earlier git/diff/path helpers; the closed task-gate
-subgraph lives in `src/runtime/task-gates.js` beside `src/runtime/proposal-records.js` and
-`src/runtime/normalizers.js`; and the structured artifact renderers, relation-context builders,
-task snapshots, and task summaries live in `ui/artifact-structured-render.js`,
-`ui/artifact-relations.js`, `ui/task-detail-snapshots.js`, and `ui/task-summaries.js`. The app shell
-still owns browser state, output-brief state, policy-report parsing, clipboard actions, rerun
-actions, runtime mutation, provider calls, commit, and push boundaries, and the runtime service
-keeps all state-bound entry points plus the single approved source mutation path.
+The most recent development arc concluded a behavior-preserving module extraction campaign that
+pulled pure logic out of the three largest files into single-responsibility leaf modules, alongside
+the operator-approved source mutation slice (`DEC-067`,
+`docs/39_proposal-application-source-mutation-implementation.md`) and several regression and
+hardening fixes. Measured with `wc -l`, `ui/app.js` went from 19,335 to 14,691 lines,
+`src/execution/execution-coordinator.js` from 5,657 to 4,610, and `src/runtime/runtime-service.js`
+from 3,520 to 2,810; the extracted logic now lives in leaf modules under `src/execution/coordinator/`
+(git, diff, paths, execution-requests, decision-inputs, artifact-content, markdown), under
+`src/runtime/` (normalizers, proposal-records, task-gates, retention-policy, assertions), and across
+`ui/` (harness-execution-tokens, markdown-artifact-parsing, artifact-parsing, artifact-structured-render,
+artifact-relations, task-detail-snapshots, task-summaries, control-snapshots, growth-panels,
+council-signals, ops-entry-signals, availability). Each extraction kept function bodies verbatim and
+was gated by the aggregate plus, for UI slices, a real-browser boot smoke; per-function re-audits
+kept genuinely state-coupled functions (store/state closure-bound CRUD, DOM/render code) in place.
+The app shell still owns browser state, clipboard actions, rerun actions, runtime mutation, provider
+calls, commit, and push boundaries, and the runtime service keeps all state-bound entry points plus
+the single approved source mutation path.
 
 Current source-backed evidence:
 
-- UI ownership and helper flow: `ui/app.js`, `ui/harness-labels.js`, `ui/harness-brief-labels.js`,
-  `ui/harness-execution-tokens.js`, `ui/markdown-artifact-parsing.js`, and `ui/harness-state.js`
-- Runtime/execution extraction: `src/execution/coordinator/git.js`, `src/execution/coordinator/diff.js`,
-  `src/execution/coordinator/paths.js`, `src/runtime/proposal-records.js`, `src/runtime/normalizers.js`,
-  with source-text gates `scripts/vnext-durable-proposal-record-implementation-status.mjs` and
-  `scripts/vnext-proposal-application-implementation-status.mjs` repointed in the same change
-- Focused harness smokes: `scripts/smoke-ui-slice-328.mjs`, `334`, `335`, `336`, `337`, `380`,
-  `382`, `383`, `384`, `385`, `386`, `387`, `388`, `605`, `606`, `613`, `616`, `620`, `621`,
-  `625`, `626`, and `628`
+- Extraction verdict and metrics: `docs/inspection-20260703-final.md` records the commit arc, the
+  measured before/after line counts, and the confirmed no-clean-extraction-remaining state.
+- Runtime/execution leaves: `src/runtime/task-gates.js`, `src/runtime/retention-policy.js`,
+  `src/runtime/assertions.js`, `src/execution/coordinator/artifact-content.js`, and
+  `src/execution/execution-text-utils.js`, with the shared `normalizeRelativePath` path-traversal
+  guard hardened and consolidated into `src/execution/coordinator/paths.js`.
+- UI leaves: `ui/artifact-structured-render.js`, `ui/control-snapshots.js`, and `ui/availability.js`
+  (the last extracted via `busy`-boolean injection so its logic is state-shape independent).
 - README evidence gate: `scripts/smoke-readme-scope-evidence.mjs`
 - Aggregate gate: `scripts/verification_status.mjs`
 
