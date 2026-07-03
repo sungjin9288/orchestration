@@ -2229,6 +2229,16 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/task-summaries.js') {
+    await serveStaticAsset(response, 'task-summaries.js');
+    return;
+  }
+
+  if (url.pathname === '/task-detail-snapshots.js') {
+    await serveStaticAsset(response, 'task-detail-snapshots.js');
+    return;
+  }
+
   text(response, 404, 'Not Found', 'text/plain; charset=utf-8');
 });
 

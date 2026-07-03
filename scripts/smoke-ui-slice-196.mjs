@@ -20,13 +20,20 @@ const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
 const formattersPath = path.join(repoRoot, 'ui', 'formatters.js');
 const inboxLabelsPath = path.join(repoRoot, 'ui', 'inbox-labels.js');
+const taskDetailSnapshotsPath = path.join(repoRoot, 'ui', 'task-detail-snapshots.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-196');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const formatters = fs.readFileSync(formattersPath, 'utf8');
 const inboxLabels = fs.readFileSync(inboxLabelsPath, 'utf8');
+const taskDetailSnapshots = fs.readFileSync(taskDetailSnapshotsPath, 'utf8');
+const taskSummariesPath = path.join(repoRoot, 'ui', 'task-summaries.js');
+const taskSummaries = fs.readFileSync(taskSummariesPath, 'utf8');
 const helperSourceByName = new Map([
+  ['getTaskInboxItems', taskSummaries],
+  ['getTaskApprovals', taskSummaries],
+  ['createToken', formatters],
   ['escapeHtml', formatters],
   ['formatDate', formatters],
   ['getExecutionStageDisplay', executionLabels],
@@ -39,6 +46,7 @@ const helperSourceByName = new Map([
   ['getRunStatusDisplay', executionLabels],
   ['getTaskLifecycleDisplay', executionLabels],
   ['getInboxKindDisplay', inboxLabels],
+  ['getInboxListSnapshot', taskDetailSnapshots],
   ['getInboxStatusDisplay', inboxLabels],
   ['getInboxTone', inboxLabels],
 ]);

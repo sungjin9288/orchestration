@@ -20,3 +20,8 @@ export function formatDate(value) {
 
   return date.toLocaleString();
 }
+
+export function createToken(label, tone = 'neutral') {
+  return `<span class="token token-${tone}">${escapeHtml(label)}</span>`;
+}
+

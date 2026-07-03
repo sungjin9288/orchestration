@@ -1,3 +1,5 @@
+import { createToken } from './formatters.js';
+
 export function getArtifactMeaningBadge(entry) {
   if (!entry) {
     return null;
@@ -66,3 +68,23 @@ export function getStructuredPreviewFallbackCopy() {
 export function getRawOnlyPreviewCopy() {
   return '현재 계약에서는 이 아티팩트 타입이 원문 전용입니다. 구조화된 뷰는 만들지 않습니다.';
 }
+
+export function getArtifactCatalogEntry(artifact, data) {
+  if (!artifact || !data?.artifactCatalog) {
+    return null;
+  }
+
+  return data.artifactCatalog[artifact.type] || null;
+}
+
+export function renderArtifactPolicyTokens(artifact, data) {
+  const entry = getArtifactCatalogEntry(artifact, data);
+  const meaningBadge = getArtifactMeaningBadge(entry);
+  const previewBadge = getArtifactPreviewBadge(entry);
+
+  return [meaningBadge, previewBadge]
+    .filter(Boolean)
+    .map((badge) => createToken(badge.label, badge.tone))
+    .join('');
+}
+

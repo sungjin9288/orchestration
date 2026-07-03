@@ -7,18 +7,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const taskDetailSnapshotsPath = path.join(repoRoot, 'ui', 'task-detail-snapshots.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const executionGateStatePath = path.join(repoRoot, 'var', 'runtime-ui-slice-20', 'state.json');
 
 assert.equal(fs.existsSync(executionGateStatePath), true, 'runtime-ui-slice-20 state.json is required');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const taskDetailSnapshots = fs.readFileSync(taskDetailSnapshotsPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
 const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'utf8'));
 
-assert.match(appJs, /function getLogsDetailSnapshot\(selectedRun, selectedTask, runBundle, logs = \[\]\)/);
-assert.match(appJs, /function getArtifactDetailSnapshot\(selectedArtifactMeta, selectedArtifactTask, data, policySummary = ''\)/);
-assert.match(appJs, /function getInboxDetailSnapshot\(selectedItem, selectedTask, selectedApproval\)/);
+assert.match(taskDetailSnapshots, /function getLogsDetailSnapshot\(selectedRun, selectedTask, runBundle, logs = \[\]\)/);
+assert.match(taskDetailSnapshots, /function getArtifactDetailSnapshot\(selectedArtifactMeta, selectedArtifactTask, data, policySummary = ''\)/);
+assert.match(taskDetailSnapshots, /function getInboxDetailSnapshot\(selectedItem, selectedTask, selectedApproval\)/);
 
 assert.match(appJs, /eyebrow: '관제실 판단 요약'/);
 assert.match(appJs, /heading: '현재 실행 기록과 다음 확인을 먼저 보는 로그 상세'/);
@@ -31,11 +33,11 @@ assert.match(appJs, /label: '다음 처리'/);
 assert.match(appJs, /실행 기록을 고르면 현재 실행 기록과 다음 확인만 먼저 판단합니다\./);
 assert.match(appJs, /증적을 고르면 현재 증적과 다음 확인만 먼저 판단합니다\./);
 assert.match(appJs, /결재를 고르면 현재 상태와 다음 처리만 먼저 판단합니다\./);
-assert.match(appJs, /연결선과 원문 확인/);
-assert.match(appJs, /미리보기와 원문 확인/);
-assert.match(appJs, /승인 또는 반려/);
-assert.match(appJs, /해결 처리/);
-assert.match(appJs, /처리 메모 확인/);
+assert.match(taskDetailSnapshots, /연결선과 원문 확인/);
+assert.match(taskDetailSnapshots, /미리보기와 원문 확인/);
+assert.match(taskDetailSnapshots, /승인 또는 반려/);
+assert.match(taskDetailSnapshots, /해결 처리/);
+assert.match(taskDetailSnapshots, /처리 메모 확인/);
 assert.match(appJs, /wide: false/);
 
 assert.match(styles, /\.command-deck-detail \{/);

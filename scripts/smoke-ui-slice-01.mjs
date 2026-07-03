@@ -185,8 +185,8 @@ async function main() {
     assert.match(indexHtml, /office-register-value">advanced</);
     assert.match(indexHtml, /작업판/);
     assert.match(indexHtml, /결정함/);
-    assert.match(appJs, /function getArtifactCatalogEntry\(artifact, data\)/);
-    assert.match(appJs, /function renderArtifactPolicyTokens\(artifact, data\)/);
+    assert.match(artifactPreviewJs, /function getArtifactCatalogEntry\(artifact, data\)/);
+    assert.match(artifactPreviewJs, /function renderArtifactPolicyTokens\(artifact, data\)/);
     assert.match(artifactPreviewJs, /tier-c-generic-fallback/);
     assert.match(artifactPreviewJs, /raw-only/);
     assert.match(artifactPreviewJs, /일반 보존/);
