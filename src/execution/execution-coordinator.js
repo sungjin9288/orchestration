@@ -38,6 +38,7 @@ const {
   normalizeRoleResult,
 } = require('./coordinator/decision-inputs');
 const { getMarkdownSection, parseMarkdownKeyValueLines, parseMarkdownList, parseYesNoValue } = require('./coordinator/markdown');
+const { sameExactDigestEntries, sameExactStringArrays } = require('./execution-text-utils');
 const {
   buildCommitApprovalPrompt,
   buildCommitApprovalTitle,
@@ -189,34 +190,6 @@ function sameStringSets(left, right) {
   const leftSet = new Set(left);
 
   return right.every((value) => leftSet.has(value));
-}
-
-function sameExactDigestEntries(left, right) {
-  if (left.length !== right.length) {
-    return false;
-  }
-
-  for (let index = 0; index < left.length; index += 1) {
-    if (left[index].path !== right[index].path || left[index].digest !== right[index].digest) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function sameExactStringArrays(left, right) {
-  if (left.length !== right.length) {
-    return false;
-  }
-
-  for (let index = 0; index < left.length; index += 1) {
-    if (left[index] !== right[index]) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 function findLatestTaskArtifact(runtime, task, type) {

@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 
 const { PROVIDER_READINESS } = require('../../runtime/contracts');
+const { getMarkdownSection } = require('../coordinator/markdown');
+const { sameExactDigestEntries, sameExactStringArrays } = require('../execution-text-utils');
 const {
   DEFAULT_OPENAI_RESPONSES_TIMEOUT_MS,
   resolveOpenAIResponsesMaxRetryAttempts,
@@ -2122,20 +2124,6 @@ function normalizeReviewerAnchor(anchor, label) {
   return normalizedAnchor;
 }
 
-function sameExactStringArrays(left, right) {
-  if (left.length !== right.length) {
-    return false;
-  }
-
-  for (let index = 0; index < left.length; index += 1) {
-    if (left[index] !== right[index]) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 function assertArchitectAnchorExactMatch(expected, actual) {
   if (
     expected.projectId !== actual.projectId ||
@@ -2186,20 +2174,6 @@ function assertBuilderPreflightAnchorExactMatch(expected, actual) {
       'OpenAI Responses structured output anchor must exactly match the builder-preflight request anchor',
     );
   }
-}
-
-function sameExactDigestEntries(left, right) {
-  if (left.length !== right.length) {
-    return false;
-  }
-
-  for (let index = 0; index < left.length; index += 1) {
-    if (left[index].path !== right[index].path || left[index].digest !== right[index].digest) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 function assertBuilderLiveMutationAnchorExactMatch(expected, actual) {
@@ -2336,17 +2310,6 @@ function renderList(items, emptyValue) {
   }
 
   return items.map((item) => `- ${item}`).join('\n');
-}
-
-function getMarkdownSection(content, heading) {
-  const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(
-    `^## ${escapedHeading}\\n([\\s\\S]*?)(?=^## [^\\n]+\\n|(?![\\s\\S]))`,
-    'm',
-  );
-  const match = String(content || '').match(pattern);
-
-  return match ? match[1].trim() : '';
 }
 
 function parseMarkdownList(content, heading) {
