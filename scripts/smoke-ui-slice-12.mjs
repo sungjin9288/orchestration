@@ -363,6 +363,7 @@ const serveUiSource = fs.readFileSync(
   'utf8',
 );
 const appJsSource = fs.readFileSync(path.join(repoRoot, 'ui', 'app.js'), 'utf8');
+const availabilitySource = fs.readFileSync(path.join(repoRoot, 'ui', 'availability.js'), 'utf8');
 const artifactParsingSource = fs.readFileSync(
   path.join(repoRoot, 'ui', 'artifact-parsing.js'),
   'utf8',
@@ -375,7 +376,7 @@ const artifactStructuredRenderSource = fs.readFileSync(
 assert.match(serveUiSource, /closeOutReadinessSummaries/);
 assert.match(serveUiSource, /run-close-out/);
 assert.match(appJsSource, /closeOutReadinessSummaries/);
-assert.match(appJsSource, /function getCloseOutAvailability/);
+assert.match(availabilitySource, /function getCloseOutAvailability/);
 assert.match(artifactParsingSource, /function parseCloseOutArtifact/);
 assert.match(artifactStructuredRenderSource, /function renderStructuredCloseOut/);
 assert.match(appJsSource, /data-action="run-close-out"/);

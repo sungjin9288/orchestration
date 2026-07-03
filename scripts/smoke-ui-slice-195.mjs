@@ -28,7 +28,13 @@ const formatters = fs.readFileSync(formattersPath, 'utf8');
 const inboxLabels = fs.readFileSync(inboxLabelsPath, 'utf8');
 const taskSummariesPath = path.join(repoRoot, 'ui', 'task-summaries.js');
 const taskSummaries = fs.readFileSync(taskSummariesPath, 'utf8');
+const availabilityPath = path.join(repoRoot, 'ui', 'availability.js');
+const availability = fs.readFileSync(availabilityPath, 'utf8');
 const helperSourceByName = new Map([
+  ['getPlannerAvailability', availability],
+  ['getArchitectAvailability', availability],
+  ['getTaskBreakerAvailability', availability],
+  ['getBuilderPreflightAvailability', availability],
   ['getPrimaryBlockedReason', taskSummaries],
   ['getBuilderLiveMutationSummaries', taskSummaries],
   ['createToken', formatters],

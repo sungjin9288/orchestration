@@ -42,6 +42,17 @@ import {
   renderStructuredUnifiedDiff,
 } from './artifact-structured-render.js';
 import {
+  getArchitectAvailability,
+  getBuilderPreflightAvailability,
+  getCloseOutAvailability,
+  getCommitExecutionAvailability,
+  getCommitPackageAvailability,
+  getPlannerAvailability,
+  getReleasePackageAvailability,
+  getReviewerAvailability,
+  getTaskBreakerAvailability,
+} from './availability.js';
+import {
   getEvidenceRailHandoffDisplay,
   getEvidenceRailStatusDisplay,
   getEvidenceRailStatusTone,
@@ -2931,144 +2942,6 @@ function renderLinkedWorktreeSwitchPanel(data, projectActionDisabled) {
   `;
 }
 
-function getTaskBreakerAvailability(task, data) {
-  const summary = task ? data.derived?.executionEntrySummaries?.[task.id]?.taskBreaker || null : null;
-  const guardSummary = task ? data.derived?.taskGuardSummaries?.[task.id]?.taskBreaker || null : null;
-  const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
-  const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
-  const latestBreakdownArtifact = getLatestTaskArtifact(task, data, 'breakdown');
-  const reasons = [];
-
-  if (!task) {
-    reasons.push('select a task');
-  }
-
-  if (!summary) {
-    reasons.push('task-breaker readiness unavailable');
-  } else if (!summary.allowed && summary.reasons?.length) {
-    reasons.push(...summary.reasons);
-  }
-
-  if (guardSummary?.reasons?.length) {
-    reasons.push(...guardSummary.reasons);
-  }
-
-  if (state.loading || state.mutating) {
-    reasons.push('wait for the current action to finish');
-  }
-
-  return {
-    disabled: reasons.length > 0,
-    latestArchitectureArtifact,
-    latestBreakdownArtifact,
-    latestPlanArtifact,
-    pendingApprovalIds: guardSummary?.pendingApprovalIds || [],
-    pendingBlockingDecisionItemIds: guardSummary?.pendingBlockingDecisionItemIds || [],
-    reasons: [...new Set(reasons)],
-  };
-}
-
-function getBuilderPreflightAvailability(task, data) {
-  const summary = task
-    ? data.derived?.executionEntrySummaries?.[task.id]?.builderPreflight || null
-    : null;
-  const guardSummary = task
-    ? data.derived?.taskGuardSummaries?.[task.id]?.builderPreflight || null
-    : null;
-  const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
-  const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
-  const latestBreakdownArtifact = getLatestTaskArtifact(task, data, 'breakdown');
-  const latestPreflightArtifact = getLatestTaskArtifact(task, data, 'preflight');
-  const reasons = [];
-
-  if (!task) {
-    reasons.push('select a task');
-  }
-
-  if (!summary) {
-    reasons.push('builder preflight readiness unavailable');
-  } else if (!summary.allowed && summary.reasons?.length) {
-    reasons.push(...summary.reasons);
-  }
-
-  if (guardSummary?.reasons?.length) {
-    reasons.push(...guardSummary.reasons);
-  }
-
-  if (state.loading || state.mutating) {
-    reasons.push('wait for the current action to finish');
-  }
-
-  return {
-    disabled: reasons.length > 0,
-    latestArchitectureArtifact,
-    latestBreakdownArtifact,
-    latestPlanArtifact,
-    latestPreflightArtifact,
-    pendingApprovalIds: guardSummary?.pendingApprovalIds || [],
-    pendingBlockingDecisionItemIds: guardSummary?.pendingBlockingDecisionItemIds || [],
-    reasons: [...new Set(reasons)],
-  };
-}
-
-function getPlannerAvailability(task, data) {
-  const summary = task ? data.derived?.executionEntrySummaries?.[task.id]?.planner || null : null;
-  const reasons = [];
-
-  if (!task) {
-    reasons.push('select a task');
-  }
-
-  if (!summary) {
-    reasons.push('planner readiness unavailable');
-  } else if (!summary.allowed && summary.reasons?.length) {
-    reasons.push(...summary.reasons);
-  }
-
-  if (state.loading || state.mutating) {
-    reasons.push('wait for the current action to finish');
-  }
-
-  return {
-    disabled: !summary?.allowed || reasons.length > 0,
-    reasons: [...new Set(reasons)],
-    summary: summary || {
-      allowed: false,
-      reasons: ['planner readiness unavailable'],
-    },
-  };
-}
-
-function getArchitectAvailability(task, data) {
-  const summary = task ? data.derived?.executionEntrySummaries?.[task.id]?.architect || null : null;
-  const latestPlanArtifact = getLatestTaskArtifact(task, data, 'plan');
-  const reasons = [];
-
-  if (!task) {
-    reasons.push('select a task');
-  }
-
-  if (!summary) {
-    reasons.push('architect readiness unavailable');
-  } else if (!summary.allowed && summary.reasons?.length) {
-    reasons.push(...summary.reasons);
-  }
-
-  if (state.loading || state.mutating) {
-    reasons.push('wait for the current action to finish');
-  }
-
-  return {
-    disabled: !summary?.allowed || reasons.length > 0,
-    latestPlanArtifact,
-    reasons: [...new Set(reasons)],
-    summary: summary || {
-      allowed: false,
-      reasons: ['architect readiness unavailable'],
-    },
-  };
-}
-
 function getDevelopmentPackExecutionGateReason(task, data) {
   if (!task) {
     return null;
@@ -3078,10 +2951,10 @@ function getDevelopmentPackExecutionGateReason(task, data) {
   const latestArchitectureArtifact = getLatestTaskArtifact(task, data, 'architecture');
   const latestBreakdownArtifact = getLatestTaskArtifact(task, data, 'breakdown');
   const latestPreflightArtifact = getLatestTaskArtifact(task, data, 'preflight');
-  const plannerState = getPlannerAvailability(task, data);
-  const architectState = getArchitectAvailability(task, data);
-  const taskBreakerState = getTaskBreakerAvailability(task, data);
-  const builderPreflightState = getBuilderPreflightAvailability(task, data);
+  const plannerState = getPlannerAvailability(task, data, state.loading || state.mutating);
+  const architectState = getArchitectAvailability(task, data, state.loading || state.mutating);
+  const taskBreakerState = getTaskBreakerAvailability(task, data, state.loading || state.mutating);
+  const builderPreflightState = getBuilderPreflightAvailability(task, data, state.loading || state.mutating);
 
   if (!latestPlanArtifact && plannerState.reasons.length > 0) {
     return plannerState.reasons[0];
@@ -3113,156 +2986,13 @@ function getDevelopmentPackExecutionGateReason(task, data) {
   return null;
 }
 
-function getReviewerAvailability(task, data) {
-  const summary = task ? data.derived?.reviewerReadinessSummaries?.[task.id] || null : null;
-  const reasons = [];
-
-  if (!task) {
-    reasons.push('select a task');
-  }
-
-  if (!summary) {
-    reasons.push('reviewer readiness unavailable');
-  } else if (!summary.allowed && summary.reasons?.length) {
-    reasons.push(...summary.reasons);
-  }
-
-  if (state.loading || state.mutating) {
-    reasons.push('wait for the current action to finish');
-  }
-
-  return {
-    disabled: !summary?.allowed || reasons.length > 0,
-    summary: summary || {
-      allowed: false,
-      reasons: ['reviewer readiness unavailable'],
-    },
-    reasons: [...new Set(reasons)],
-  };
-}
-
-function getCommitPackageAvailability(task, data) {
-  const summary = task ? data.derived?.commitPackageReadinessSummaries?.[task.id] || null : null;
-
-  return {
-    disabled: state.loading || state.mutating || !summary?.allowed,
-    summary: summary || {
-      allowed: false,
-      approvalStale: false,
-      currentCommitPackageArtifactId: null,
-      latestApprovalId: null,
-      latestApprovalStatus: null,
-      latestCommitPackageArtifactId: null,
-      packageStale: false,
-      reasons: ['commit-package readiness unavailable'],
-      sourceBuilderRunId: null,
-      sourceReviewArtifactId: null,
-      sourceReviewerRunId: null,
-      targetPreflightArtifactId: null,
-      targetPreflightRunId: null,
-    },
-  };
-}
-
-function getCommitExecutionAvailability(task, data) {
-  const summary = task ? data.derived?.commitExecutionReadinessSummaries?.[task.id] || null : null;
-
-  return {
-    disabled: state.loading || state.mutating || !summary?.allowed,
-    summary: summary || {
-      allowed: false,
-      approvalStale: false,
-      changedFileCount: 0,
-      commitMessagePresent: false,
-      commitPackageArtifactId: null,
-      conflict: false,
-      existingCommitResultArtifactId: null,
-      existingLocalCommitRunId: null,
-      latestApprovalDisplayStatus: 'none',
-      latestApprovalId: null,
-      latestApprovalStatus: null,
-      reasons: ['commit execution readiness unavailable'],
-      repoChangeCountBeforeCommit: null,
-      sourceBuilderRunId: null,
-      sourceReviewArtifactId: null,
-      sourceReviewerRunId: null,
-      targetPreflightArtifactId: null,
-      targetPreflightRunId: null,
-    },
-  };
-}
-
-function getReleasePackageAvailability(task, data) {
-  const summary = task ? data.derived?.releasePackageReadinessSummaries?.[task.id] || null : null;
-
-  return {
-    disabled: state.loading || state.mutating || !summary?.allowed,
-    summary: summary || {
-      allowed: false,
-      approvalStale: false,
-      commitPackageArtifactId: null,
-      commitResultArtifactId: null,
-      commitSha: null,
-      conflict: false,
-      currentReleasePackageArtifactId: null,
-      deliveryStance: null,
-      latestApprovalDisplayStatus: 'none',
-      latestApprovalId: null,
-      latestApprovalStatus: null,
-      latestReleasePackageArtifactId: null,
-      packageStale: false,
-      reasons: ['release-package readiness unavailable'],
-      sourceBuilderRunId: null,
-      sourceReviewArtifactId: null,
-      sourceReviewerRunId: null,
-      targetPreflightArtifactId: null,
-      targetPreflightRunId: null,
-    },
-  };
-}
-
-function getCloseOutAvailability(task, data) {
-  const summary = task ? data.derived?.closeOutReadinessSummaries?.[task.id] || null : null;
-
-  return {
-    disabled: state.loading || state.mutating || !summary?.allowed,
-    summary: summary || {
-      allowed: false,
-      approvalStale: false,
-      commitPackageArtifactId: null,
-      commitResultArtifactId: null,
-      commitSha: null,
-      conflict: false,
-      currentReleasePackageArtifactId: null,
-      deliveryStance: null,
-      existingCloseOutArtifactId: null,
-      existingCloseOutRunId: null,
-      latestApprovedReleaseApprovalId: null,
-      latestApprovedReleaseApprovalStatus: null,
-      latestCloseOutArtifactId: null,
-      latestReleasePackageArtifactId: null,
-      reasons: ['close-out readiness unavailable'],
-      repoClean: false,
-      repoDirtyFileCount: null,
-      repoStagedFileCount: null,
-      repoUntrackedFileCount: null,
-      sourceBuilderApprovalId: null,
-      sourceBuilderRunId: null,
-      sourceReviewArtifactId: null,
-      sourceReviewerRunId: null,
-      targetPreflightArtifactId: null,
-      targetPreflightRunId: null,
-    },
-  };
-}
-
 function getMissionCompletionSummary(mission, data) {
   const linkedTask =
     mission?.linkedTaskId && data.taskMap.has(mission.linkedTaskId)
       ? data.taskMap.get(mission.linkedTaskId)
       : null;
   const latestCloseOutArtifact = linkedTask ? getLatestTaskArtifact(linkedTask, data, 'close-out') : null;
-  const closeOutState = linkedTask ? getCloseOutAvailability(linkedTask, data) : null;
+  const closeOutState = linkedTask ? getCloseOutAvailability(linkedTask, data, state.loading || state.mutating) : null;
   const completionReady = Boolean(
     linkedTask &&
       linkedTask.lifecycleState === 'Done' &&
@@ -3999,8 +3729,8 @@ function renderCommitPackagePanel(task, data, options = {}) {
     return '';
   }
 
-  const { disabled, summary } = getCommitPackageAvailability(task, data);
-  const commitExecutionState = getCommitExecutionAvailability(task, data);
+  const { disabled, summary } = getCommitPackageAvailability(task, data, state.loading || state.mutating);
+  const commitExecutionState = getCommitExecutionAvailability(task, data, state.loading || state.mutating);
   const currentSurface = options.currentSurface || state.surface;
   const allowExecutingActions =
     options.forceExecutingActions === true || currentSurface === 'taskboard';
@@ -4228,7 +3958,7 @@ function renderReleasePackagePanel(task, data, options = {}) {
     return '';
   }
 
-  const { disabled, summary } = getReleasePackageAvailability(task, data);
+  const { disabled, summary } = getReleasePackageAvailability(task, data, state.loading || state.mutating);
   const currentSurface = options.currentSurface || state.surface;
   const displayStatus = summary.latestApprovalDisplayStatus || 'none';
   const packageStatus = summary.currentReleasePackageArtifactId
@@ -4354,7 +4084,7 @@ function renderCloseOutPanel(task, data, options = {}) {
     return '';
   }
 
-  const { disabled, summary } = getCloseOutAvailability(task, data);
+  const { disabled, summary } = getCloseOutAvailability(task, data, state.loading || state.mutating);
   const currentSurface = options.currentSurface || state.surface;
   const allowExecutingActions =
     options.forceExecutingActions === true || currentSurface === 'taskboard';
@@ -10191,14 +9921,14 @@ function renderExecution(data) {
   const latestRunRole = latestRun?.role || latestRun?.kind || 'none';
   const preferredInboxItem = getPreferredTaskInboxItem(linkedTask.id, data);
   const executionEntryGateReason = getDevelopmentPackExecutionGateReason(linkedTask, data);
-  const taskBreakerState = getTaskBreakerAvailability(linkedTask, data);
-  const builderPreflightState = getBuilderPreflightAvailability(linkedTask, data);
+  const taskBreakerState = getTaskBreakerAvailability(linkedTask, data, state.loading || state.mutating);
+  const builderPreflightState = getBuilderPreflightAvailability(linkedTask, data, state.loading || state.mutating);
   const builderLiveMutationState = getBuilderLiveMutationSummaries(linkedTask, data);
-  const reviewerState = getReviewerAvailability(linkedTask, data);
-  const commitPackageState = getCommitPackageAvailability(linkedTask, data);
-  const commitExecutionState = getCommitExecutionAvailability(linkedTask, data);
-  const releasePackageState = getReleasePackageAvailability(linkedTask, data);
-  const closeOutState = getCloseOutAvailability(linkedTask, data);
+  const reviewerState = getReviewerAvailability(linkedTask, data, state.loading || state.mutating);
+  const commitPackageState = getCommitPackageAvailability(linkedTask, data, state.loading || state.mutating);
+  const commitExecutionState = getCommitExecutionAvailability(linkedTask, data, state.loading || state.mutating);
+  const releasePackageState = getReleasePackageAvailability(linkedTask, data, state.loading || state.mutating);
+  const closeOutState = getCloseOutAvailability(linkedTask, data, state.loading || state.mutating);
   const latestCloseOutArtifact = getLatestTaskArtifact(linkedTask, data, 'close-out');
   const executionCompletionReady = Boolean(
     linkedTask.lifecycleState === 'Done' &&
@@ -10785,11 +10515,11 @@ function renderDeliverables(data) {
   const latestApproval = taskApprovals[0] || null;
   const selectedCouncilSession = getMissionCouncilPreview(selectedMission, data).councilSession;
   const approvalBridge = getTaskApprovalBridge(linkedTask, data);
-  const reviewerState = getReviewerAvailability(linkedTask, data);
-  const commitPackageState = getCommitPackageAvailability(linkedTask, data);
-  const commitExecutionState = getCommitExecutionAvailability(linkedTask, data);
-  const releasePackageState = getReleasePackageAvailability(linkedTask, data);
-  const closeOutState = getCloseOutAvailability(linkedTask, data);
+  const reviewerState = getReviewerAvailability(linkedTask, data, state.loading || state.mutating);
+  const commitPackageState = getCommitPackageAvailability(linkedTask, data, state.loading || state.mutating);
+  const commitExecutionState = getCommitExecutionAvailability(linkedTask, data, state.loading || state.mutating);
+  const releasePackageState = getReleasePackageAvailability(linkedTask, data, state.loading || state.mutating);
+  const closeOutState = getCloseOutAvailability(linkedTask, data, state.loading || state.mutating);
   const missionCompletionReady = Boolean(
     linkedTask &&
       linkedTask.lifecycleState === 'Done' &&
@@ -11821,10 +11551,10 @@ function renderTaskDetail(task, data) {
   const pendingTaskInboxItems = taskInboxItems.filter((item) => item.status === 'pending');
   const preferredTaskInboxItem = getPreferredTaskInboxItem(task.id, data);
   const latestRun = task.latestRunId ? data.runMap.get(task.latestRunId) : null;
-  const plannerState = getPlannerAvailability(task, data);
-  const architectState = getArchitectAvailability(task, data);
-  const taskBreakerState = getTaskBreakerAvailability(task, data);
-  const builderPreflightState = getBuilderPreflightAvailability(task, data);
+  const plannerState = getPlannerAvailability(task, data, state.loading || state.mutating);
+  const architectState = getArchitectAvailability(task, data, state.loading || state.mutating);
+  const taskBreakerState = getTaskBreakerAvailability(task, data, state.loading || state.mutating);
+  const builderPreflightState = getBuilderPreflightAvailability(task, data, state.loading || state.mutating);
   const latestPlanArtifact = taskBreakerState.latestPlanArtifact;
   const latestArchitectureArtifact = taskBreakerState.latestArchitectureArtifact;
   const latestBreakdownArtifact = taskBreakerState.latestBreakdownArtifact;
@@ -11896,11 +11626,11 @@ function renderTaskDetail(task, data) {
     state.mutating ||
     detectedWorktreeOptions.length === 0;
   const worktreeClearDisabled = state.loading || state.mutating || !task.worktreeRef;
-  const reviewerState = getReviewerAvailability(task, data);
-  const commitPackageState = getCommitPackageAvailability(task, data);
-  const commitExecutionState = getCommitExecutionAvailability(task, data);
-  const releasePackageState = getReleasePackageAvailability(task, data);
-  const closeOutState = getCloseOutAvailability(task, data);
+  const reviewerState = getReviewerAvailability(task, data, state.loading || state.mutating);
+  const commitPackageState = getCommitPackageAvailability(task, data, state.loading || state.mutating);
+  const commitExecutionState = getCommitExecutionAvailability(task, data, state.loading || state.mutating);
+  const releasePackageState = getReleasePackageAvailability(task, data, state.loading || state.mutating);
+  const closeOutState = getCloseOutAvailability(task, data, state.loading || state.mutating);
   const showBuilderApprovalHint =
     Boolean(preselectedPendingItem) &&
     (preselectedPendingItem.kind !== 'approval' ||

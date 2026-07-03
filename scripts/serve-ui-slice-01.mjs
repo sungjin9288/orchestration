@@ -2139,6 +2139,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (url.pathname === '/availability.js') {
+    await serveStaticAsset(response, 'availability.js');
+    return;
+  }
+
   if (url.pathname === '/execution-labels.js') {
     await serveStaticAsset(response, 'execution-labels.js');
     return;
