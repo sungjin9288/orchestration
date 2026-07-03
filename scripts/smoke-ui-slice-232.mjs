@@ -8,14 +8,16 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
+const councilSignalsPath = path.join(repoRoot, 'ui', 'council-signals.js');
 
 const app = fs.readFileSync(appPath, 'utf8') + fs.readFileSync(surfaceConfigPath, 'utf8');
+const councilSignals = fs.readFileSync(councilSignalsPath, 'utf8');
 
-assert.match(app, /현재 안건 판단이 운영 흐름의 첫 줄입니다\./);
-assert.match(app, /첫 안건이 올라오면 운영 흐름이 여기서 시작됩니다\./);
+assert.match(councilSignals, /현재 안건 판단이 운영 흐름의 첫 줄입니다\./);
+assert.match(councilSignals, /첫 안건이 올라오면 운영 흐름이 여기서 시작됩니다\./);
 assert.match(app, /홈에서 본 전체 흐름이 여기선 현재 안건 흐름으로 더 촘촘하게 이어집니다\./);
 assert.match(app, /상단 연출은 방향 표시만 맡고, 실제 실행은 경계가 분명한 실행 흐름과 리뷰·승인 게이트를 그대로 따릅니다\./);
-assert.match(app, /사람 게이트가 풀리면 흐름이 바로 다음 표면으로 이어집니다\./);
+assert.match(councilSignals, /사람 게이트가 풀리면 흐름이 바로 다음 표면으로 이어집니다\./);
 assert.match(app, /왼쪽 버튼을 누르면 해당 desk만 열립니다\. 작업 결과는 산출물, 근거는 아티팩트, 실행 흐름은 로그에서 확인합니다\./);
 
 console.log(

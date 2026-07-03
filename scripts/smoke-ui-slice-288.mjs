@@ -7,13 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 
-assert.match(appJs, /actionLabel: '회의 초안'/);
-assert.match(appJs, /actionLabel: '태스크 연결'/);
-assert.match(appJs, /nextTitle: '실행 데스크'/);
-assert.match(appJs, /nextTitle: '안건 브리프'/);
+assert.match(controlSnapshots, /actionLabel: '회의 초안'/);
+assert.match(controlSnapshots, /actionLabel: '태스크 연결'/);
+assert.match(controlSnapshots, /nextTitle: '실행 데스크'/);
+assert.match(controlSnapshots, /nextTitle: '안건 브리프'/);
 assert.match(appJs, /const label = options\.label \|\| '태스크 상세'/);
 assert.match(appJs, /label: '커밋 가드'/);
 assert.match(appJs, /label: '종료 가드'/);

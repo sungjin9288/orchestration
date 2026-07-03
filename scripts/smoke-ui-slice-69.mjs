@@ -9,12 +9,14 @@ const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const executionLabelsPath = path.join(repoRoot, 'ui', 'execution-labels.js');
 const executionGateStatePath = path.join(repoRoot, 'var', 'runtime-ui-slice-20', 'state.json');
+const artifactStructuredRenderPath = path.join(repoRoot, 'ui', 'artifact-structured-render.js');
 
 assert.equal(fs.existsSync(executionGateStatePath), true, 'runtime-ui-slice-20 state.json is required');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const executionLabels = fs.readFileSync(executionLabelsPath, 'utf8');
 const executionGateState = JSON.parse(fs.readFileSync(executionGateStatePath, 'utf8'));
+const artifactStructuredRender = fs.readFileSync(artifactStructuredRenderPath, 'utf8');
 
 assert.match(executionLabels, /export function getGuardReasonDisplay\(reason\) \{/);
 assert.match(appJs, /getRunRelationLabelDisplay,/);
@@ -26,10 +28,10 @@ assert.match(executionLabels, /export function getReviewerVerdictTone\(verdict\)
 assert.match(executionLabels, /export function getDeliveryStanceDisplay\(stance\) \{/);
 assert.match(executionLabels, /export function getPackageStatusDisplay\(status\) \{/);
 assert.match(executionLabels, /export function getProviderReadinessDisplay\(status\) \{/);
-assert.match(appJs, /정렬된 하위 작업/);
-assert.match(appJs, /체크포인트별 기대 아티팩트/);
-assert.match(appJs, /검토한 증거/);
-assert.match(appJs, /소스 리뷰어 번들/);
+assert.match(artifactStructuredRender, /정렬된 하위 작업/);
+assert.match(artifactStructuredRender, /체크포인트별 기대 아티팩트/);
+assert.match(artifactStructuredRender, /검토한 증거/);
+assert.match(artifactStructuredRender, /소스 리뷰어 번들/);
 assert.match(appJs, /증적 연결/);
 assert.match(appJs, /변경 파일/);
 assert.match(appJs, /라이브 변경 승인 요청/);

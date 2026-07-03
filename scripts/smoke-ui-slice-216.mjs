@@ -8,8 +8,10 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const appJs = fs.readFileSync(appPath, 'utf8');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 
-assert.match(appJs, /options\.copy \|\| '이 인계선은 현재 태스크, 실행 기록, 증적, 준비도, 리뷰 기준만 읽습니다\.'/);
+assert.match(controlSnapshots, /options\.copy \|\| '이 인계선은 현재 태스크, 실행 기록, 증적, 준비도, 리뷰 기준만 읽습니다\.'/);
 assert.doesNotMatch(appJs, /options\.copy \|\| '이 rail은 현재 task, run, artifact, readiness, review truth만 읽습니다\.'/);
 
 console.log(

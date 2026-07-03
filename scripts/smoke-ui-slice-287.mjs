@@ -7,11 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 
-assert.match(appJs, /actionLabel: '협의회'/);
-assert.match(appJs, /actionLabel: '실행'/);
+assert.match(controlSnapshots, /actionLabel: '협의회'/);
+assert.match(controlSnapshots, /actionLabel: '실행'/);
 assert.match(appJs, /label: '결정함'/);
 assert.match(appJs, /label: '산출물'/);
 assert.match(appJs, /label: '아티팩트'/);

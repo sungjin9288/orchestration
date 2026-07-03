@@ -8,11 +8,13 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const appJs = fs.readFileSync(appPath, 'utf8');
+const artifactStructuredRenderPath = path.join(repoRoot, 'ui', 'artifact-structured-render.js');
+const artifactStructuredRender = fs.readFileSync(artifactStructuredRenderPath, 'utf8');
 
-assert.match(appJs, /커밋 전 저장소 변경 파일 수: \$\{parsed\.repoChangedFileCountBeforeCommit\}/);
-assert.match(appJs, /커밋 후 저장소 정리 상태: \$\{getBooleanDisplay\(parsed\.repoCleanAfterCommit\)\}/);
-assert.match(appJs, /저장소정상:\$\{getBooleanDisplay\(parsed\.repoCleanBeforeCloseOut\)\}/);
-assert.match(appJs, /종료 전 저장소 정리 상태: \$\{getBooleanDisplay\(parsed\.repoCleanBeforeCloseOut\)\}/);
+assert.match(artifactStructuredRender, /커밋 전 저장소 변경 파일 수: \$\{parsed\.repoChangedFileCountBeforeCommit\}/);
+assert.match(artifactStructuredRender, /커밋 후 저장소 정리 상태: \$\{getBooleanDisplay\(parsed\.repoCleanAfterCommit\)\}/);
+assert.match(artifactStructuredRender, /저장소정상:\$\{getBooleanDisplay\(parsed\.repoCleanBeforeCloseOut\)\}/);
+assert.match(artifactStructuredRender, /종료 전 저장소 정리 상태: \$\{getBooleanDisplay\(parsed\.repoCleanBeforeCloseOut\)\}/);
 assert.match(appJs, /createToken\('저장소:정상', 'success'\)/);
 assert.match(appJs, /createToken\('저장소:차단', 'warning'\)/);
 

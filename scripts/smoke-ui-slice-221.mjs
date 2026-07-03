@@ -8,16 +8,18 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const appJs = fs.readFileSync(appPath, 'utf8');
+const artifactStructuredRenderPath = path.join(repoRoot, 'ui', 'artifact-structured-render.js');
+const artifactStructuredRender = fs.readFileSync(artifactStructuredRenderPath, 'utf8');
 
-assert.match(appJs, /커밋 전 수정 파일 수: \$\{parsed\.dirtyFileCountBeforeCommit\}/);
-assert.match(appJs, /커밋 전 스테이징 파일 수: \$\{parsed\.stagedFileCountBeforeCommit\}/);
-assert.match(appJs, /커밋 전 미추적 파일 수: \$\{parsed\.untrackedFileCountBeforeCommit\}/);
-assert.match(appJs, /git add 후 스테이징 파일 수: \$\{parsed\.stagedFileCountAfterGitAdd\}/);
-assert.match(appJs, /git add 후 수정 파일 수: \$\{parsed\.dirtyFileCountAfterGitAdd\}/);
-assert.match(appJs, /git add 후 미추적 파일 수: \$\{parsed\.untrackedFileCountAfterGitAdd\}/);
-assert.match(appJs, /수정 파일 수: \$\{parsed\.dirtyFileCount\}/);
-assert.match(appJs, /스테이징 파일 수: \$\{parsed\.stagedFileCount\}/);
-assert.match(appJs, /미추적 파일 수: \$\{parsed\.untrackedFileCount\}/);
+assert.match(artifactStructuredRender, /커밋 전 수정 파일 수: \$\{parsed\.dirtyFileCountBeforeCommit\}/);
+assert.match(artifactStructuredRender, /커밋 전 스테이징 파일 수: \$\{parsed\.stagedFileCountBeforeCommit\}/);
+assert.match(artifactStructuredRender, /커밋 전 미추적 파일 수: \$\{parsed\.untrackedFileCountBeforeCommit\}/);
+assert.match(artifactStructuredRender, /git add 후 스테이징 파일 수: \$\{parsed\.stagedFileCountAfterGitAdd\}/);
+assert.match(artifactStructuredRender, /git add 후 수정 파일 수: \$\{parsed\.dirtyFileCountAfterGitAdd\}/);
+assert.match(artifactStructuredRender, /git add 후 미추적 파일 수: \$\{parsed\.untrackedFileCountAfterGitAdd\}/);
+assert.match(artifactStructuredRender, /수정 파일 수: \$\{parsed\.dirtyFileCount\}/);
+assert.match(artifactStructuredRender, /스테이징 파일 수: \$\{parsed\.stagedFileCount\}/);
+assert.match(artifactStructuredRender, /미추적 파일 수: \$\{parsed\.untrackedFileCount\}/);
 
 assert.doesNotMatch(appJs, /커밋 전 dirty 파일 수/);
 assert.doesNotMatch(appJs, /커밋 전 staged 파일 수/);

@@ -7,10 +7,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const councilSignalsPath = path.join(repoRoot, 'ui', 'council-signals.js');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const councilSignals = fs.readFileSync(councilSignalsPath, 'utf8');
 
-assert.match(appJs, /리뷰와 보고 묶음이 다음 운영 판단을 위한 근거를 남깁니다\./);
+assert.match(councilSignals, /리뷰와 보고 묶음이 다음 운영 판단을 위한 근거를 남깁니다\./);
 assert.match(appJs, /결과 패킷, 리뷰 라인, 승인 라인을 같은 인계선에서 다룹니다/);
 assert.match(appJs, /Deliverables는 실행에서 올라온 결과 패킷을 리뷰 라인, 승인 라인, 종료 보고 데스크까지 같은 delivery board에서 이어 읽습니다\./);
 

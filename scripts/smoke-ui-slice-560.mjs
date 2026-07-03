@@ -8,11 +8,13 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
 const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
+const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
 const styles = fs.readFileSync(stylesPath, 'utf8');
+const surfaceConfig = fs.readFileSync(surfaceConfigPath, 'utf8');
 
-assert.match(appJs, /targetSurface:\s*'council'/);
+assert.match(surfaceConfig, /targetSurface:\s*'council'/);
 assert.match(appJs, /targetSurface:\s*'execution'/);
 assert.match(appJs, /targetSurface:\s*'deliverables'/);
 assert.match(appJs, /targetSurface:\s*'artifacts'/);

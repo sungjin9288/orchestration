@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -86,13 +87,15 @@ async function main() {
     const indexHtml = await indexResponse.text();
     const appJsResponse = await fetch(`${baseUrl}/app.js`);
     const appJs = await appJsResponse.text();
+    const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
+    const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 
     assert.equal(indexResponse.status, 200);
     assert.equal(appJsResponse.status, 200);
     assert.match(indexHtml, /data-surface="execution"/);
     assert.match(appJs, /현재 지시 승인/);
     assert.match(appJs, /기존 대기 중인 빌더 승인 기록을 그대로 재사용하며, 세부 태스크\/로그\/아티팩트\/결정함 제어는 관제실에 남깁니다\./);
-    assert.match(appJs, /아래 승인선에서 현재 지시 승인을 먼저 처리합니다\./);
+    assert.match(controlSnapshots, /아래 승인선에서 현재 지시 승인을 먼저 처리합니다\./);
 
     const missionPayload = await postJson('/api/missions', {
       autoDraftCouncil: true,

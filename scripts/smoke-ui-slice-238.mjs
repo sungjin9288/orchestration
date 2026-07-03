@@ -7,11 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const councilSignalsPath = path.join(repoRoot, 'ui', 'council-signals.js');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const councilSignals = fs.readFileSync(councilSignalsPath, 'utf8');
 
-assert.match(appJs, /현재 안건 판단이 운영 흐름의 첫 줄입니다\./);
-assert.match(appJs, /첫 안건이 올라오면 운영 흐름이 여기서 시작됩니다\./);
+assert.match(councilSignals, /현재 안건 판단이 운영 흐름의 첫 줄입니다\./);
+assert.match(councilSignals, /첫 안건이 올라오면 운영 흐름이 여기서 시작됩니다\./);
 assert.match(appJs, /evidence: selectedRun\?\.id \|\| activeTask\?\.id \|\| '실행 대기'/);
 assert.match(appJs, /eyebrow: '등록대장 인계선'/);
 assert.match(appJs, /heading: '등록, 배정, 다음 처리를 같은 보드에서 나눕니다'/);

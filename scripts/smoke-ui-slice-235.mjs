@@ -9,11 +9,13 @@ const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
 const councilConfigPath = path.join(repoRoot, 'ui', 'council-config.js');
 const surfaceConfigPath = path.join(repoRoot, 'ui', 'surface-config.js');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
 
 const appJs =
   fs.readFileSync(appJsPath, 'utf8') +
   fs.readFileSync(councilConfigPath, 'utf8') +
   fs.readFileSync(surfaceConfigPath, 'utf8');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 
 assert.match(appJs, /owner: '실행 역할 · 실행 흐름'/);
 assert.match(appJs, /summary: '현재 작업 지시와 다음 실행을 정리합니다\.'/);
@@ -28,7 +30,7 @@ assert.match(appJs, /copy: '왼쪽 패널은 현재 작업 지시, 다음 처리
 assert.match(appJs, /<h2>게이트 제어 데스크<\/h2>/);
 assert.match(appJs, /eyebrow: '게이트 판단판'/);
 assert.match(appJs, /heading: '현재 게이트와 바로 처리할 후속을 먼저 봅니다'/);
-assert.match(appJs, /연결 실행 셀이 생기면 현재 게이트 판단이 이곳에 나타납니다\./);
+assert.match(controlSnapshots, /연결 실행 셀이 생기면 현재 게이트 판단이 이곳에 나타납니다\./);
 assert.doesNotMatch(appJs, /작전 지휘실/);
 assert.doesNotMatch(appJs, /회의에서 정한 방향을 실행 셀에 내리는 작전실/);
 assert.doesNotMatch(appJs, /작전 지휘 메모/);

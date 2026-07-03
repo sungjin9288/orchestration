@@ -7,19 +7,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appJsPath = path.join(repoRoot, 'ui', 'app.js');
+const controlSnapshotsPath = path.join(repoRoot, 'ui', 'control-snapshots.js');
 
 const appJs = fs.readFileSync(appJsPath, 'utf8');
+const controlSnapshots = fs.readFileSync(controlSnapshotsPath, 'utf8');
 
 assert.match(appJs, /열린 승인 라인 없음/);
 assert.match(appJs, /현재 결과 패킷에는 사람이 처리할 승인 안건이 없습니다\./);
 assert.match(appJs, /결과 패킷, 리뷰 라인, 승인 라인을 같은 인계선에서 다룹니다/);
 assert.match(appJs, /승인 라인/);
-assert.match(appJs, /연결 태스크가 생기면 결과 패킷 판단판이 이곳에 나타납니다\./);
-assert.match(appJs, /사람 승인이 남아 있어 현재 결과 패킷은 승인 라인 판단이 먼저입니다\./);
-assert.match(appJs, /currentTitle: '승인 라인 대기'/);
-assert.match(appJs, /nextTitle: '승인 안건 확인'/);
-assert.match(appJs, /현재 결과 패킷은 최신 결과를 보여 주며 다음 승인이나 종료 보고를 기다리는 상태입니다\./);
-assert.match(appJs, /nextTitle: '승인 라인 확인'/);
+assert.match(controlSnapshots, /연결 태스크가 생기면 결과 패킷 판단판이 이곳에 나타납니다\./);
+assert.match(controlSnapshots, /사람 승인이 남아 있어 현재 결과 패킷은 승인 라인 판단이 먼저입니다\./);
+assert.match(controlSnapshots, /currentTitle: '승인 라인 대기'/);
+assert.match(controlSnapshots, /nextTitle: '승인 안건 확인'/);
+assert.match(controlSnapshots, /현재 결과 패킷은 최신 결과를 보여 주며 다음 승인이나 종료 보고를 기다리는 상태입니다\./);
+assert.match(controlSnapshots, /nextTitle: '승인 라인 확인'/);
 assert.match(appJs, /상류 준비 패킷/);
 assert.match(appJs, /전달 패킷 선반/);
 assert.match(appJs, /여기서는 리뷰 라인, 승인선, 종료 보고 경로를 먼저 봅니다\./);

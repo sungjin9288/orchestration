@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -110,12 +111,14 @@ async function main() {
     const appJs = await appJsResponse.text();
     const stylesResponse = await fetch(`${baseUrl}/styles.css`);
     const stylesCss = await stylesResponse.text();
+    const taskSummariesPath = path.join(repoRoot, 'ui', 'task-summaries.js');
+    const taskSummaries = fs.readFileSync(taskSummariesPath, 'utf8');
 
     assert.equal(appJsResponse.status, 200);
     assert.equal(stylesResponse.status, 200);
     assert.match(appJs, /라이브 변경 승인 요청/);
     assert.match(appJs, /request-builder-live-mutation-approval/);
-    assert.match(appJs, /builderLiveMutationApprovalRequest/);
+    assert.match(taskSummaries, /builderLiveMutationApprovalRequest/);
     assert.match(appJs, /현재 프리플라이트 아티팩트 기준으로 빌더 라이브 변경 승인 게이트가 생성된 상태입니다\./);
     assert.match(appJs, /preferredInboxItemId: payload\.mutation\.inboxItemId \|\| null/);
     assert.match(stylesCss, /\.guard-summary/);
