@@ -1,0 +1,16 @@
+{
+  "name": "orchestration",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local-first AI workflow control plane (PoC/MVP): explicit project context, bounded execution stages, review and approval gates, logs, and artifacts.",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "serve": "node scripts/serve-ui-slice-01.mjs",
+    "verify": "node scripts/verification_status.mjs",
+    "smoke": "node scripts/run-smoke.mjs"
+  }
+}

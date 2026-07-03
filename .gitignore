@@ -2,3 +2,10 @@ var/
 output/
 .DS_Store
 _portfolio_export/
+node_modules/
+
+# Local environment files may contain secrets (e.g. OPENAI_API_KEY).
+# The tracked template is .env.example; real .env files must never be committed.
+.env
+.env.*
+!.env.example

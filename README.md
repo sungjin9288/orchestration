@@ -113,7 +113,7 @@ Current source-backed evidence:
 | UI | Static HTML/CSS/JavaScript in `ui/index.html`, `ui/styles.css`, `ui/app.js` |
 | Persistence | Local file store rooted by `--runtime-root` |
 | Verification | Node smoke scripts using `node:assert/strict`; representative browser/runtime QA through project scripts |
-| Dependencies | No root `package.json` is present on current head, so the documented local-stub path uses Node.js and built-in modules only. |
+| Dependencies | A root `package.json` is present but declares no dependencies; the local-stub path uses Node.js built-in modules only, so no `npm install` is required. |
 
 ## Architecture
 
@@ -257,11 +257,12 @@ src/runtime/file-store.js
 
 Prerequisites:
 
-- Node.js
+- Node.js (built-in modules only; the repo declares no npm dependencies)
 - A local git worktree to use as `project_path`
-- No `npm install` step is documented for current head because root `package.json` is not present.
-- Root `.env.example` is not present. Optional live-provider variables are listed below from source
-  usage instead of an env template.
+- A minimal root `package.json` is present for reviewer convenience (name, engines, and `serve`/`verify`/`smoke`
+  scripts); it declares no dependencies, so no `npm install` step is required.
+- A root `.env.example` lists the optional live-provider variables; the default local-stub path needs none of
+  them, so copying it to `.env` is only necessary when exercising the opt-in OpenAI Responses adapter.
 
 Run the local UI/API server:
 
@@ -539,7 +540,8 @@ Playwright CLI:
 - This is a local-first PoC/MVP-quality project, not a hosted service.
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
-- Root `.env.example` and root `package.json` are not present on current head.
+- Root `package.json` (no dependencies) and root `.env.example` are present; the project still ships with no
+  third-party runtime dependencies and runs on Node.js built-in modules only.
 - Optional OpenAI live-provider verification requires visible `OPENAI_API_KEY` and
   `OPENAI_RESPONSES_MODEL`; when those env vars are missing, live-provider checks are skipped rather
   than treated as required failures.
