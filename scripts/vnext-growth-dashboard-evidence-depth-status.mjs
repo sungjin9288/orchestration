@@ -26,6 +26,7 @@ const growthDashboardEvidenceDepthFiles = {
   app: 'ui/app.js',
   growthConfig: 'ui/growth-config.js',
   growthLearning: 'ui/growth-learning.js',
+  growthPanels: 'ui/growth-panels.js',
   styles: 'ui/styles.css',
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
   verification: 'scripts/verification_status.mjs',
@@ -100,8 +101,14 @@ const growthDashboardEvidenceDepthEscapedAuthorityMarkers =
   );
 
 const growthDashboardEvidenceDepthSourceEvidence = {
-  app: [
-    /from '\.\/growth-learning\.js'/,
+  app: [/from '\.\/growth-learning\.js'/, /from '\.\/growth-panels\.js'/],
+  growthLearning: [
+    /export function getGrowthFailurePatternGroups\(\{ failedRuns, reviewArtifacts, blockedTasks \}\)/,
+    /export function getGrowthRegressionComparison\(\{ failedRuns, completedRuns \}\)/,
+    /export function getGrowthRollbackEvidenceLinks/,
+    /const ROLLBACK_ARTIFACT_TYPES = new Set\(\[/,
+  ],
+  growthPanels: [
     /function renderGrowthDashboardEvidenceDepth\(growth\)/,
     /data-growth-dashboard-evidence-depth="read-only"/,
     /data-failure-pattern-groups="true"/,
@@ -110,12 +117,6 @@ const growthDashboardEvidenceDepthSourceEvidence = {
     /data-growth-dashboard-action-allowed="false"/,
     /실패 묶음, 회귀 비교, 되돌림 근거를 함께 봅니다/,
     /되돌림 근거 링크/,
-  ],
-  growthLearning: [
-    /export function getGrowthFailurePatternGroups\(\{ failedRuns, reviewArtifacts, blockedTasks \}\)/,
-    /export function getGrowthRegressionComparison\(\{ failedRuns, completedRuns \}\)/,
-    /export function getGrowthRollbackEvidenceLinks/,
-    /const ROLLBACK_ARTIFACT_TYPES = new Set\(\[/,
   ],
   growthConfig: growthDashboardEvidenceDepthEscapedAuthorityMarkers,
   styles: [
@@ -142,6 +143,7 @@ assertSourceEvidence(
 );
 
 assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.app, forbiddenActions);
+assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.growthPanels, forbiddenActions);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
 const vnextDevelopmentAuditNextSlice =
