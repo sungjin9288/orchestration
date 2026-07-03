@@ -41,6 +41,7 @@ function createFileStore(options = {}) {
       approvals: state.approvals || {},
       proposalRecords: state.proposalRecords || {},
       proposalApplicationAttempts: state.proposalApplicationAttempts || {},
+      proposalSourceMutations: state.proposalSourceMutations || {},
     };
 
     for (const mission of Object.values(normalizedState.missions)) {
@@ -195,6 +196,48 @@ function createFileStore(options = {}) {
       proposalApplicationAttempt.sourceMutationAllowed = false;
       proposalApplicationAttempt.commitAllowed = false;
       proposalApplicationAttempt.pushAllowed = false;
+    }
+
+    for (const proposalSourceMutation of Object.values(
+      normalizedState.proposalSourceMutations,
+    )) {
+      proposalSourceMutation.sourceMutationApprovalRefs = Array.isArray(
+        proposalSourceMutation.sourceMutationApprovalRefs,
+      )
+        ? proposalSourceMutation.sourceMutationApprovalRefs
+        : [];
+      proposalSourceMutation.mutationPlanRefs = Array.isArray(
+        proposalSourceMutation.mutationPlanRefs,
+      )
+        ? proposalSourceMutation.mutationPlanRefs
+        : [];
+      proposalSourceMutation.sourceEvidenceRefs = Array.isArray(
+        proposalSourceMutation.sourceEvidenceRefs,
+      )
+        ? proposalSourceMutation.sourceEvidenceRefs
+        : [];
+      proposalSourceMutation.negativeEvidenceRefs = Array.isArray(
+        proposalSourceMutation.negativeEvidenceRefs,
+      )
+        ? proposalSourceMutation.negativeEvidenceRefs
+        : [];
+      proposalSourceMutation.rollbackRefs = Array.isArray(proposalSourceMutation.rollbackRefs)
+        ? proposalSourceMutation.rollbackRefs
+        : [];
+      proposalSourceMutation.focusedSmokeRefs = Array.isArray(
+        proposalSourceMutation.focusedSmokeRefs,
+      )
+        ? proposalSourceMutation.focusedSmokeRefs
+        : [];
+      proposalSourceMutation.blockedActions = Array.isArray(proposalSourceMutation.blockedActions)
+        ? proposalSourceMutation.blockedActions
+        : [];
+      proposalSourceMutation.proposalGenerationAllowed = false;
+      proposalSourceMutation.providerCallsAllowed = false;
+      proposalSourceMutation.memoryPersistenceAllowed = false;
+      proposalSourceMutation.sourceMutationOutsideNamedPathAllowed = false;
+      proposalSourceMutation.commitAllowed = false;
+      proposalSourceMutation.pushAllowed = false;
     }
 
     normalizedState.schemaVersion = emptyState.schemaVersion;

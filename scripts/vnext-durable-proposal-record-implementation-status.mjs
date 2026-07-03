@@ -65,7 +65,7 @@ const durableProposalRecordImplementationStatusSources = Object.fromEntries(
 
 const durableProposalRecordImplementationStatusSourceEvidence = {
   contracts: [
-    /schemaVersion: 5/,
+    /schemaVersion: 6/,
     /proposalRecord: 0/,
     /proposalRecords: \{\}/,
     /PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS/,

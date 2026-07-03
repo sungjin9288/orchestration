@@ -263,9 +263,24 @@ const PROPOSAL_APPLICATION_ATTEMPT_DEFAULT_BLOCKED_ACTIONS = Object.freeze([
   PROPOSAL_RECORD_BLOCKED_ACTION.PUSH,
 ]);
 
+const PROPOSAL_SOURCE_MUTATION_STATUS = {
+  APPLIED: 'applied',
+  ROLLED_BACK: 'rolled-back',
+  QUARANTINED: 'quarantined',
+};
+
+const PROPOSAL_SOURCE_MUTATION_DEFAULT_BLOCKED_ACTIONS = Object.freeze([
+  'proposal-generation',
+  PROPOSAL_RECORD_BLOCKED_ACTION.PROVIDER_CALL,
+  PROPOSAL_RECORD_BLOCKED_ACTION.MEMORY_PERSISTENCE,
+  'source-mutation-outside-named-path',
+  PROPOSAL_RECORD_BLOCKED_ACTION.COMMIT,
+  PROPOSAL_RECORD_BLOCKED_ACTION.PUSH,
+]);
+
 function createEmptyState() {
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     activeProjectId: null,
     selectedMissionId: null,
     sequences: {
@@ -279,6 +294,7 @@ function createEmptyState() {
       approval: 0,
       proposalRecord: 0,
       proposalApplicationAttempt: 0,
+      proposalSourceMutation: 0,
     },
     missions: {},
     councilSessions: {},
@@ -290,6 +306,7 @@ function createEmptyState() {
     approvals: {},
     proposalRecords: {},
     proposalApplicationAttempts: {},
+    proposalSourceMutations: {},
   };
 }
 
@@ -310,6 +327,8 @@ module.exports = {
   PROVIDER_MODE,
   PROVIDER_READINESS,
   PROPOSAL_APPLICATION_ATTEMPT_DEFAULT_BLOCKED_ACTIONS,
+  PROPOSAL_SOURCE_MUTATION_STATUS,
+  PROPOSAL_SOURCE_MUTATION_DEFAULT_BLOCKED_ACTIONS,
   PROPOSAL_APPLICATION_ATTEMPT_STATUS,
   PROPOSAL_RECORD_BLOCKED_ACTION,
   PROPOSAL_RECORD_DEFAULT_BLOCKED_ACTIONS,

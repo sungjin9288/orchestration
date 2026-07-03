@@ -384,6 +384,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `AGENTS.md`, `docs/00_master-brief.md`, `docs/03_architecture-roadmap-v1.md`, and README must describe `knowledge-work` as opt-in support for bounded artifacts such as decision memos, plans, checklists, and research briefs. This decision does not replace the default `development` workflow, create a pack marketplace, add further non-development packs, weaken review or approval gates, call providers, persist memory, mutate source, commit, or push.
 - Needed Before: Any additional pack, default workflow change, marketplace behavior, or broader non-development expansion still requires a later explicit decision and verification plan.
 
+### DEC-067
+- Status: `Accepted`
+- Decision: Implement the approved proposal application source mutation slice: `applyProposalSourceMutation` applies exactly one accepted mutation plan for one audit-only application attempt, with `rollbackProposalSourceMutation` and `quarantineProposalSourceMutation` as the recorded safety paths.
+- Why: The operator accepted `operator-decision-vnext-proposal-source-mutation-implementation-001` (`approve-source-mutation-implementation-slice`) against the accepted planning plan in `DEC-065` and `docs/38_proposal-application-source-mutation-planning-plan.md`, after the audit-only attempt path (`DEC-062`) and the decision packet/handoff evidence (`DEC-063`, `DEC-064`).
+- Impact: The runtime gains one approved local mutation path guarded by a separate source mutation approval, exactly-one-target normalization, clean baseline proof, dry-run diff preview, expectedBeforeContent matching, one-mutation-per-attempt, project-path containment, recorded beforeContent rollback, quarantine, and load-time authority hardening in `src/runtime/file-store.js`. `docs/39_proposal-application-source-mutation-implementation.md`, `scripts/smoke-proposal-application-source-mutation.mjs`, and `scripts/vnext-proposal-application-source-mutation-implementation-status.mjs` record and pin the slice. Proposal generation, provider calls, memory persistence, source mutation outside the named path, commit, and push remain blocked, and `proposalRecord.applyAllowed` stays false.
+- Needed Before: Any broader mutation scope, multi-file mutation, proposal generation, provider call, memory persistence, commit, or push still requires a later explicit decision with rollback, focused smoke, and aggregate verification evidence.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

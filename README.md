@@ -234,6 +234,13 @@ src/runtime/file-store.js
   `approve-source-mutation-planning-only` decision, one mutation plan, rollback plan, focused smoke
   plan, and implementation prerequisites, but they do not approve source mutation implementation,
   proposal generation, provider calls, memory persistence, commit, or push.
+- Proposal application source mutation is implemented for exactly one approved path: `DEC-067` and
+  `docs/39_proposal-application-source-mutation-implementation.md` add the approved local runtime
+  path that applies one accepted mutation plan for one audit-only application attempt, guarded by a
+  separate source mutation approval, exactly-one-target normalization, clean baseline proof,
+  dry-run diff preview, recorded beforeContent rollback, quarantine, and load-time authority
+  hardening. Proposal generation, provider calls, memory persistence, source mutation outside the
+  named path, commit, and push remain blocked.
 - Local-demo-only release boundary: release-package and close-out do not push, publish, merge, or
   call an external release system.
 - Provider opt-in stays bounded: OpenAI Responses support is an explicit adapter path and does not
@@ -349,7 +356,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 850 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 851 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 650 UI smoke files
 ```
@@ -407,6 +414,8 @@ node scripts/vnext-proposal-application-implementation-status.mjs
 node scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs
 node scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs
 node scripts/vnext-proposal-application-source-mutation-planning-plan-status.mjs
+node scripts/smoke-proposal-application-source-mutation.mjs
+node scripts/vnext-proposal-application-source-mutation-implementation-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
@@ -495,7 +504,7 @@ Current verification evidence from this README refresh:
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `28/28`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `162/162`, total `163/163`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `164/164`, total `165/165`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -579,10 +588,12 @@ Playwright CLI:
   `docs/37_proposal-application-source-mutation-operator-decision-handoff.md` gives the operator
   copy-ready decision wording and is now consumed by the planning-only decision, but it does not
   approve source mutation implementation, provider calls, memory persistence, commit, or push.
-- Proposal application source mutation planning is planning-only.
-  `docs/38_proposal-application-source-mutation-planning-plan.md` records the accepted planning
-  decision, mutation plan, rollback plan, and focused smoke plan, but it does not mutate source,
-  call providers, persist memory, generate proposals, commit, or push.
+- Proposal application source mutation is implemented for exactly one approved path. `DEC-067` and
+  `docs/39_proposal-application-source-mutation-implementation.md` record the accepted
+  `approve-source-mutation-implementation-slice` decision and the runtime path that applies one
+  accepted mutation plan with clean baseline proof, dry-run diff preview, recorded rollback, and
+  quarantine evidence. It does not generate proposals, call providers, persist memory, mutate
+  source outside the named path, commit, or push, and `proposalRecord.applyAllowed` stays false.
 - The `knowledge-work` pack is explicit opt-in for bounded non-coding deliverables under `DEC-066`
   and has a
   required synthetic smoke in `scripts/verification_status.mjs`, but it does not replace the

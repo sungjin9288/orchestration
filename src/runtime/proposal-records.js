@@ -29,6 +29,25 @@ const proposalApplicationAttemptStillBlockedAuthorities = [
   'commit',
   'push',
 ];
+const proposalSourceMutationApprovalStatus = 'approve-source-mutation-implementation-slice';
+const proposalSourceMutationTargetAuthority =
+  'proposal application source mutation implementation for exactly one accepted mutation plan';
+const proposalSourceMutationStillBlockedAuthorities = [
+  'proposal generation',
+  'provider calls',
+  'memory persistence',
+  'source mutation outside the named path',
+  'commit',
+  'push',
+];
+const proposalSourceMutationDefaultBlockedActions = [
+  'proposal-generation',
+  'provider-call',
+  'memory-persistence',
+  'source-mutation-outside-named-path',
+  'commit',
+  'push',
+];
 
 function defaultProposalRecordExpiry(createdAt) {
   const expiry = new Date(Date.parse(createdAt));
@@ -258,6 +277,200 @@ function assertProposalRecordCanReceiveApplicationAttempt(proposalRecord, now) {
   }
 }
 
+function normalizeProposalSourceMutationApproval(input) {
+  const approval = input && typeof input === 'object' ? input : null;
+
+  if (!approval) {
+    throw new Error('sourceMutationApproval is required');
+  }
+
+  const decisionId = normalizeRequiredString(
+    approval.decisionId,
+    'sourceMutationApproval.decisionId',
+  );
+  const decisionStatus = normalizeRequiredString(
+    approval.decisionStatus,
+    'sourceMutationApproval.decisionStatus',
+  );
+  const status = normalizeOptionalString(approval.status) || APPROVAL_STATUS.APPROVED;
+  const targetAuthority = normalizeRequiredString(
+    approval.targetAuthority,
+    'sourceMutationApproval.targetAuthority',
+  );
+  const approvalStatement = normalizeRequiredString(
+    approval.approvalStatement,
+    'sourceMutationApproval.approvalStatement',
+  );
+
+  if (status !== APPROVAL_STATUS.APPROVED) {
+    throw new Error('sourceMutationApproval.status must be approved');
+  }
+
+  if (decisionStatus !== proposalSourceMutationApprovalStatus) {
+    throw new Error(
+      'sourceMutationApproval.decisionStatus must be approve-source-mutation-implementation-slice',
+    );
+  }
+
+  if (targetAuthority !== proposalSourceMutationTargetAuthority) {
+    throw new Error(
+      'sourceMutationApproval.targetAuthority must approve exactly one accepted mutation plan',
+    );
+  }
+
+  if (!/approve implementation only/i.test(approvalStatement)) {
+    throw new Error('sourceMutationApproval.approvalStatement must approve implementation only');
+  }
+
+  for (const blockedAuthority of proposalSourceMutationStillBlockedAuthorities) {
+    const blockedAuthorityPattern = new RegExp(
+      `does not approve[\\s\\S]*${blockedAuthority}`,
+      'i',
+    );
+
+    if (!blockedAuthorityPattern.test(approvalStatement)) {
+      throw new Error(
+        `sourceMutationApproval.approvalStatement must keep ${blockedAuthority} blocked`,
+      );
+    }
+  }
+
+  return {
+    decisionId,
+    decisionStatus,
+    status,
+    targetAuthority,
+    approvalStatement,
+    approvedAt: approval.approvedAt
+      ? normalizeIsoTimestamp(approval.approvedAt, 'sourceMutationApproval.approvedAt')
+      : null,
+  };
+}
+
+function normalizeProposalSourceMutationBlockedActions(value) {
+  if (value === undefined || value === null) {
+    return [...proposalSourceMutationDefaultBlockedActions];
+  }
+
+  const requestedActions = normalizeRequiredStringArray(value, 'blockedActions');
+
+  return proposalSourceMutationDefaultBlockedActions
+    .slice()
+    .concat(
+      requestedActions.filter(
+        (action) => !proposalSourceMutationDefaultBlockedActions.includes(action),
+      ),
+    );
+}
+
+function normalizeProposalSourceMutationTarget(input) {
+  const mutation = input && typeof input === 'object' && !Array.isArray(input) ? input : null;
+
+  if (!mutation) {
+    throw new Error('mutation must name exactly one target file');
+  }
+
+  const relativePath = normalizeRequiredString(mutation.relativePath, 'mutation.relativePath');
+  const afterContent = mutation.afterContent;
+  const expectedBeforeContent = mutation.expectedBeforeContent;
+
+  if (typeof expectedBeforeContent !== 'string') {
+    throw new Error('mutation.expectedBeforeContent is required');
+  }
+
+  if (typeof afterContent !== 'string' || afterContent.length === 0) {
+    throw new Error('mutation.afterContent is required');
+  }
+
+  if (afterContent === expectedBeforeContent) {
+    throw new Error('mutation.afterContent must differ from the current target content');
+  }
+
+  if (
+    relativePath.startsWith('/') ||
+    relativePath === '..' ||
+    relativePath.startsWith('../') ||
+    relativePath.includes('/../')
+  ) {
+    throw new Error('mutation.relativePath must stay inside the project path');
+  }
+
+  return {
+    relativePath,
+    expectedBeforeContent,
+    afterContent,
+  };
+}
+
+function normalizeCleanBaselineProof(input) {
+  const proof = input && typeof input === 'object' ? input : null;
+
+  if (!proof) {
+    throw new Error('cleanBaselineProof is required');
+  }
+
+  if (typeof proof.statusOutput !== 'string' || proof.statusOutput.trim() !== '') {
+    throw new Error('cleanBaselineProof.statusOutput must be empty');
+  }
+
+  return {
+    statusOutput: '',
+    capturedAt: normalizeIsoTimestamp(proof.capturedAt, 'cleanBaselineProof.capturedAt'),
+  };
+}
+
+function normalizeDryRunDiffPreview(input, relativePath) {
+  const preview = input && typeof input === 'object' ? input : null;
+
+  if (!preview) {
+    throw new Error('dryRunDiffPreview is required');
+  }
+
+  const diffText = normalizeRequiredString(preview.diffText, 'dryRunDiffPreview.diffText');
+
+  if (!diffText.includes(relativePath)) {
+    throw new Error('dryRunDiffPreview.diffText must reference the target relativePath');
+  }
+
+  return {
+    diffText,
+    previewedAt: normalizeIsoTimestamp(preview.previewedAt, 'dryRunDiffPreview.previewedAt'),
+  };
+}
+
+function assertProposalApplicationAttemptCanAuthorizeSourceMutation(
+  proposalApplicationAttempt,
+  proposalRecord,
+  now,
+) {
+  if (proposalApplicationAttempt.proposalId !== proposalRecord.proposalId) {
+    throw new Error('proposalApplicationAttempt must reference the target proposal record');
+  }
+
+  if (proposalApplicationAttempt.status !== 'planned') {
+    throw new Error('proposalApplicationAttempt.status must be planned');
+  }
+
+  if (
+    Array.isArray(proposalApplicationAttempt.sourceMutationIds) &&
+    proposalApplicationAttempt.sourceMutationIds.length > 0
+  ) {
+    throw new Error('proposalApplicationAttempt already authorized one source mutation');
+  }
+
+  if (proposalRecord.status !== PROPOSAL_RECORD_STATUS.CREATED) {
+    throw new Error('proposalRecord.status must be created');
+  }
+
+  if (proposalRecord.applyAllowed !== false) {
+    throw new Error('proposalRecord.applyAllowed must remain false');
+  }
+
+  if (!proposalRecord.expiresAt || Date.parse(proposalRecord.expiresAt) <= Date.parse(now)) {
+    throw new Error('proposalRecord must not be expired');
+  }
+}
+
 module.exports = {
   defaultProposalRecordExpiry,
   normalizeProposalRecordCreationApproval,
@@ -265,5 +478,11 @@ module.exports = {
   normalizeProposalRecordBlockedActions,
   normalizeProposalApplicationApproval,
   normalizeProposalApplicationAttemptBlockedActions,
+  normalizeProposalSourceMutationApproval,
+  normalizeProposalSourceMutationBlockedActions,
+  normalizeProposalSourceMutationTarget,
+  normalizeCleanBaselineProof,
+  normalizeDryRunDiffPreview,
   assertProposalRecordCanReceiveApplicationAttempt,
+  assertProposalApplicationAttemptCanAuthorizeSourceMutation,
 };

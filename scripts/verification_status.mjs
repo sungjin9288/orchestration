@@ -317,6 +317,16 @@ const informationalChecks = [
     purpose: 'vNext proposal application source mutation planning plan records accepted planning-only approval, mutation plan, rollback plan, focused smoke plan, and implementation prerequisites without opening source mutation implementation, provider calls, memory persistence, proposal generation, commit, or push authority',
   },
   {
+    id: 'proposal-application-source-mutation-smoke',
+    script: 'scripts/smoke-proposal-application-source-mutation.mjs',
+    purpose: 'Approved source mutation path applies exactly one accepted mutation plan with clean baseline proof, dry-run diff preview, rollback restore, and quarantine evidence while keeping proposal generation, provider, memory, out-of-path source mutation, commit, and push authority blocked',
+  },
+  {
+    id: 'vnext-proposal-application-source-mutation-implementation-status',
+    script: 'scripts/vnext-proposal-application-source-mutation-implementation-status.mjs',
+    purpose: 'vNext proposal application source mutation implementation source-checks the runtime contract, pure validation helpers, file-store hardening, focused smoke, implementation doc, and aggregate registration for the approved single mutation path slice',
+  },
+  {
     id: 'lifecycle-supporting-boundary',
     script: 'scripts/smoke-lifecycle-supporting-boundary.mjs',
     purpose: 'Growth lifecycle status chain remains supporting evidence only and cannot become the default product development lane without stale command or source-of-truth evidence',

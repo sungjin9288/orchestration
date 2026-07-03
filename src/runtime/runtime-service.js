@@ -22,6 +22,7 @@ const {
   PROPOSAL_RECORD_RISK_CLASS,
   PROPOSAL_RECORD_STATUS,
   PROPOSAL_RECORD_TYPE,
+  PROPOSAL_SOURCE_MUTATION_STATUS,
   RETENTION_CONSUMER_ACTION,
   RETENTION_CONSUMER_DISPOSITION,
   RETENTION_CONSUMER_STATUS,
@@ -44,7 +45,13 @@ const {
   normalizeProposalRecordBlockedActions,
   normalizeProposalApplicationApproval,
   normalizeProposalApplicationAttemptBlockedActions,
+  normalizeProposalSourceMutationApproval,
+  normalizeProposalSourceMutationBlockedActions,
+  normalizeProposalSourceMutationTarget,
+  normalizeCleanBaselineProof,
+  normalizeDryRunDiffPreview,
   assertProposalRecordCanReceiveApplicationAttempt,
+  assertProposalApplicationAttemptCanAuthorizeSourceMutation,
 } = require('./proposal-records');
 
 function createRuntimeService(options = {}) {
@@ -68,6 +75,13 @@ function createRuntimeService(options = {}) {
     state.sequences.proposalApplicationAttempt += 1;
     return `proposal-application-attempt-${String(
       state.sequences.proposalApplicationAttempt,
+    ).padStart(4, '0')}`;
+  }
+
+  function nextProposalSourceMutationId(state) {
+    state.sequences.proposalSourceMutation += 1;
+    return `proposal-source-mutation-${String(
+      state.sequences.proposalSourceMutation,
     ).padStart(4, '0')}`;
   }
 
@@ -297,6 +311,16 @@ function createRuntimeService(options = {}) {
     }
 
     return proposalApplicationAttempt;
+  }
+
+  function assertProposalSourceMutation(sourceMutationId, state) {
+    const proposalSourceMutation = state.proposalSourceMutations[sourceMutationId];
+
+    if (!proposalSourceMutation) {
+      throw new Error(`Proposal source mutation not found: ${sourceMutationId}`);
+    }
+
+    return proposalSourceMutation;
   }
 
   function isCommitAction(action) {
@@ -1933,6 +1957,241 @@ function createRuntimeService(options = {}) {
     return proposalApplicationAttempt;
   }
 
+  function resolveProposalSourceMutationTargetPath(project, relativePath) {
+    if (!project.projectPath) {
+      throw new Error('project.projectPath is required before source mutation');
+    }
+
+    const resolvedProjectPath = path.resolve(project.projectPath);
+    const targetPath = path.resolve(resolvedProjectPath, relativePath);
+
+    if (
+      targetPath !== resolvedProjectPath &&
+      !targetPath.startsWith(`${resolvedProjectPath}${path.sep}`)
+    ) {
+      throw new Error('mutation.relativePath must stay inside the project path');
+    }
+
+    return targetPath;
+  }
+
+  function applyProposalSourceMutation(input = {}) {
+    const state = store.loadState();
+    const proposalRecord = assertProposalRecord(input.proposalId, state);
+    const proposalApplicationAttempt = assertProposalApplicationAttempt(
+      input.applicationAttemptId,
+      state,
+    );
+    const project = assertProject(proposalRecord.projectId, state);
+    const sourceMutationApproval = normalizeProposalSourceMutationApproval(
+      input.sourceMutationApproval,
+    );
+    const now = input.now
+      ? normalizeIsoTimestamp(input.now, 'now')
+      : new Date().toISOString();
+    const sourceMutationApprovalRefs = normalizeRequiredStringArray(
+      input.sourceMutationApprovalRefs,
+      'sourceMutationApprovalRefs',
+    );
+    const mutationPlanRefs = normalizeRequiredStringArray(
+      input.mutationPlanRefs,
+      'mutationPlanRefs',
+    );
+    const sourceEvidenceRefs = normalizeRequiredStringArray(
+      input.sourceEvidenceRefs,
+      'sourceEvidenceRefs',
+    );
+    const negativeEvidenceRefs = normalizeRequiredStringArray(
+      input.negativeEvidenceRefs,
+      'negativeEvidenceRefs',
+    );
+    const rollbackRefs = normalizeRequiredStringArray(input.rollbackRefs, 'rollbackRefs');
+    const focusedSmokeRefs = normalizeRequiredStringArray(
+      input.focusedSmokeRefs,
+      'focusedSmokeRefs',
+    );
+    const mutation = normalizeProposalSourceMutationTarget(input.mutation);
+    const cleanBaselineProof = normalizeCleanBaselineProof(input.cleanBaselineProof);
+    const dryRunDiffPreview = normalizeDryRunDiffPreview(
+      input.dryRunDiffPreview,
+      mutation.relativePath,
+    );
+    const blockedActions = normalizeProposalSourceMutationBlockedActions(input.blockedActions);
+
+    assertProposalApplicationAttemptCanAuthorizeSourceMutation(
+      proposalApplicationAttempt,
+      proposalRecord,
+      now,
+    );
+
+    if (!sourceMutationApprovalRefs.includes(sourceMutationApproval.decisionId)) {
+      throw new Error('sourceMutationApprovalRefs must include sourceMutationApproval.decisionId');
+    }
+
+    if (proposalRecord.approvalRefs.includes(sourceMutationApproval.decisionId)) {
+      throw new Error('sourceMutationApproval must be separate from creation approval');
+    }
+
+    if (
+      proposalApplicationAttempt.applicationApprovalRefs.includes(sourceMutationApproval.decisionId)
+    ) {
+      throw new Error('sourceMutationApproval must be separate from application approval');
+    }
+
+    if (!proposalRecord.affectedFiles.includes(mutation.relativePath)) {
+      throw new Error('mutation.relativePath must be listed in proposalRecord.affectedFiles');
+    }
+
+    const targetPath = resolveProposalSourceMutationTargetPath(project, mutation.relativePath);
+
+    if (!fs.existsSync(targetPath)) {
+      throw new Error(`mutation target file does not exist: ${mutation.relativePath}`);
+    }
+
+    const currentContent = fs.readFileSync(targetPath, 'utf8');
+
+    if (currentContent !== mutation.expectedBeforeContent) {
+      throw new Error('mutation.expectedBeforeContent must match the current target content');
+    }
+
+    const id = nextProposalSourceMutationId(state);
+
+    fs.writeFileSync(targetPath, mutation.afterContent);
+
+    state.proposalSourceMutations[id] = {
+      sourceMutationId: id,
+      proposalId: proposalRecord.proposalId,
+      applicationAttemptId: proposalApplicationAttempt.applicationAttemptId,
+      projectId: project.id,
+      taskId: proposalRecord.taskId || null,
+      status: PROPOSAL_SOURCE_MUTATION_STATUS.APPLIED,
+      createdAt: now,
+      updatedAt: now,
+      relativePath: mutation.relativePath,
+      beforeContent: mutation.expectedBeforeContent,
+      afterContent: mutation.afterContent,
+      cleanBaselineProof,
+      dryRunDiffPreview,
+      sourceMutationApprovalRefs,
+      mutationPlanRefs,
+      sourceEvidenceRefs,
+      negativeEvidenceRefs,
+      rollbackRefs,
+      focusedSmokeRefs,
+      blockedActions,
+      proposalGenerationAllowed: false,
+      providerCallsAllowed: false,
+      memoryPersistenceAllowed: false,
+      sourceMutationOutsideNamedPathAllowed: false,
+      commitAllowed: false,
+      pushAllowed: false,
+      nonApprovalStatement:
+        input.nonApprovalStatement ||
+        'This source mutation applies exactly one approved mutation plan and does not authorize proposal generation, provider calls, memory persistence, source mutation outside the named path, commit, or push.',
+      sourceMutationApproval,
+    };
+
+    proposalApplicationAttempt.sourceMutationIds = [
+      ...new Set([...(proposalApplicationAttempt.sourceMutationIds || []), id]),
+    ];
+    proposalApplicationAttempt.updatedAt = now;
+    proposalRecord.updatedAt = now;
+    proposalRecord.applyAllowed = false;
+    store.saveState(state);
+
+    return state.proposalSourceMutations[id];
+  }
+
+  function getProposalSourceMutation(sourceMutationId) {
+    const state = store.loadState();
+    return assertProposalSourceMutation(sourceMutationId, state);
+  }
+
+  function listProposalSourceMutations(input = {}) {
+    const state = store.loadState();
+    const proposalSourceMutations = Object.values(state.proposalSourceMutations).filter(
+      (candidate) => {
+        if (input.proposalId && candidate.proposalId !== input.proposalId) {
+          return false;
+        }
+
+        if (input.status && candidate.status !== input.status) {
+          return false;
+        }
+
+        return true;
+      },
+    );
+
+    return proposalSourceMutations.sort(compareRecordsByCreatedDesc);
+  }
+
+  function rollbackProposalSourceMutation(input = {}) {
+    const state = store.loadState();
+    const proposalSourceMutation = assertProposalSourceMutation(input.sourceMutationId, state);
+    const project = assertProject(proposalSourceMutation.projectId, state);
+    const now = input.now
+      ? normalizeIsoTimestamp(input.now, 'now')
+      : new Date().toISOString();
+
+    if (proposalSourceMutation.status !== PROPOSAL_SOURCE_MUTATION_STATUS.APPLIED) {
+      throw new Error('proposalSourceMutation.status must be applied');
+    }
+
+    const targetPath = resolveProposalSourceMutationTargetPath(
+      project,
+      proposalSourceMutation.relativePath,
+    );
+
+    if (!fs.existsSync(targetPath)) {
+      throw new Error(
+        `rollback target file does not exist: ${proposalSourceMutation.relativePath}`,
+      );
+    }
+
+    const currentContent = fs.readFileSync(targetPath, 'utf8');
+
+    if (currentContent !== proposalSourceMutation.afterContent) {
+      throw new Error('rollback requires the applied content to still be present');
+    }
+
+    fs.writeFileSync(targetPath, proposalSourceMutation.beforeContent);
+
+    proposalSourceMutation.status = PROPOSAL_SOURCE_MUTATION_STATUS.ROLLED_BACK;
+    proposalSourceMutation.updatedAt = now;
+    proposalSourceMutation.rollback = {
+      reason: normalizeRequiredString(input.reason, 'reason'),
+      rolledBackAt: now,
+    };
+    store.saveState(state);
+
+    return proposalSourceMutation;
+  }
+
+  function quarantineProposalSourceMutation(input = {}) {
+    const state = store.loadState();
+    const proposalSourceMutation = assertProposalSourceMutation(input.sourceMutationId, state);
+    const now = input.now
+      ? normalizeIsoTimestamp(input.now, 'now')
+      : new Date().toISOString();
+
+    proposalSourceMutation.status = PROPOSAL_SOURCE_MUTATION_STATUS.QUARANTINED;
+    proposalSourceMutation.updatedAt = now;
+    proposalSourceMutation.quarantine = {
+      reason: normalizeRequiredString(input.reason, 'reason'),
+      quarantinedAt: now,
+    };
+    proposalSourceMutation.proposalGenerationAllowed = false;
+    proposalSourceMutation.providerCallsAllowed = false;
+    proposalSourceMutation.memoryPersistenceAllowed = false;
+    proposalSourceMutation.sourceMutationOutsideNamedPathAllowed = false;
+    proposalSourceMutation.commitAllowed = false;
+    proposalSourceMutation.pushAllowed = false;
+    store.saveState(state);
+
+    return proposalSourceMutation;
+  }
+
   function findPendingReviewItem(taskId, state) {
     return Object.values(state.decisionInboxItems).find(
       (item) =>
@@ -3183,6 +3442,7 @@ function createRuntimeService(options = {}) {
     createDecisionInboxItem,
     createLinkedTaskForMission,
     createMission,
+    applyProposalSourceMutation,
     createProposalApplicationAttempt,
     createProject,
     createProposalRecord,
@@ -3198,6 +3458,7 @@ function createRuntimeService(options = {}) {
     getLogs,
     getMission,
     getProposalApplicationAttempt,
+    getProposalSourceMutation,
     getProposalRecord,
     getProject,
     getRun,
@@ -3208,10 +3469,13 @@ function createRuntimeService(options = {}) {
     listApprovals,
     listDecisionInboxItems,
     listProposalApplicationAttempts,
+    listProposalSourceMutations,
     listProposalRecords,
     listTaskGuardSummaries,
     openReviewGate,
     quarantineProposalApplicationAttempt,
+    quarantineProposalSourceMutation,
+    rollbackProposalSourceMutation,
     quarantineProposalRecord,
     recordArtifact,
     requestBuilderLiveMutationApproval,
