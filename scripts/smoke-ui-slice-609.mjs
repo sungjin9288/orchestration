@@ -25,12 +25,15 @@ assert.match(appJs, /const visibleHarnessPolicyReportPayload = getHarnessPolicyR
 assert.match(appJs, /const canRenderVisibleHarnessPolicyReportCopy = Boolean\(visibleHarnessPolicyReportPayload\);/);
 assert.match(
   appJs,
-  /const visibleHarnessPolicyReportCopyText = canRenderVisibleHarnessPolicyReportCopy\s+\? formatHarnessPolicyReportForCopy\(visibleHarnessPolicyReportPayload\)\s+: '';/,
+  /const visibleHarnessPolicyReportCopyText =\s+formatHarnessPolicyReportForCopy\(visibleHarnessPolicyReportPayload\);/,
 );
 assert.doesNotMatch(appJs, /const visibleHarnessPolicyReportCopyText = visibleHarnessPolicyReportPayload/);
+assert.doesNotMatch(appJs, /const visibleHarnessPolicyReportCopyText = canRenderVisibleHarnessPolicyReportCopy/);
 assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(visibleHarnessPolicyReportCopyText\)\}"/);
 assert.match(appJs, /data-harness-policy-report-copy="true"/);
-assert.match(appJs, /canRenderVisibleHarnessPolicyReportCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
+assert.match(appJs, /const visibleHarnessPolicyReportCopyMarkup = canRenderVisibleHarnessPolicyReportCopy/);
+assert.match(appJs, /\$\{visibleHarnessPolicyReportCopyMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessPolicyReportCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessPolicyReportPayload\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
 assert.match(appJs, /function copyHarnessPolicyReport\(reportText\)/);
 assert.match(appJs, /const emptyPolicyReportCopyMessage = '복사할 하네스 정책 리포트가 없습니다\.';/);
@@ -54,6 +57,7 @@ console.log(
           'visibleHarnessPolicyReportPayload',
           'canRenderVisibleHarnessPolicyReportCopy',
           'visibleHarnessPolicyReportCopyText',
+          'visibleHarnessPolicyReportCopyMarkup',
         ],
         source: 'latest-result policy report summary',
       },

@@ -1800,6 +1800,19 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const canRenderVisibleHarnessPolicyReportCopy = Boolean(visibleHarnessPolicyReportPayload);
   const visibleHarnessPolicyReportCopyText =
     formatHarnessPolicyReportForCopy(visibleHarnessPolicyReportPayload);
+  const visibleHarnessPolicyReportCopyMarkup = canRenderVisibleHarnessPolicyReportCopy
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-policy-report"
+        data-policy-report-text="${escapeHtml(visibleHarnessPolicyReportCopyText)}"
+        data-harness-policy-report-copy="true"
+      >
+        리포트 복사
+      </button>
+    `
+    : '';
   const visibleHarnessPolicyReportSummaryMarkup = renderHarnessPolicyReportSummary(
     visibleHarnessExecutionResult,
   );
@@ -2054,21 +2067,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               </button>
                               ${visibleHarnessPreviewActionsMarkup}
                               ${visibleHarnessOutputBriefCopyMarkup}
-                              ${
-                                canRenderVisibleHarnessPolicyReportCopy
-                                  ? `
-                                    <button
-                                      class="secondary-button"
-                                      type="button"
-                                      data-action="copy-harness-policy-report"
-                                      data-policy-report-text="${escapeHtml(visibleHarnessPolicyReportCopyText)}"
-                                      data-harness-policy-report-copy="true"
-                                    >
-                                      리포트 복사
-                                    </button>
-                                  `
-                                  : ''
-                              }
+                              ${visibleHarnessPolicyReportCopyMarkup}
                               <button
                                 class="secondary-button"
                                 type="button"
