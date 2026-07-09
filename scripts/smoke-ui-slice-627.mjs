@@ -21,10 +21,16 @@ assert.match(harnessLabels, /return getHarnessExecutionLabel\(execution, 'showAc
 assert.match(appJs, /const visibleHarnessHideActionLabel = getHarnessExecutionHideActionLabel\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessShowActionLabel = getHarnessExecutionShowActionLabel\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /const visibleHarnessHideActionMarkup = `/);
+assert.match(appJs, /const visibleHarnessActionShelfMarkup = `\s+\$\{visibleHarnessInputPathActionsMarkup\}/);
 assert.match(appJs, /\$\{visibleHarnessHideActionMarkup\}/);
+assert.match(appJs, /\$\{visibleHarnessActionShelfMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /\$\{visibleHarnessPolicyReportCopyMarkup\}\s+<button[\s\S]*?data-action="hide-harness-execution-result"/,
+);
+assert.doesNotMatch(
+  appJs,
+  /form-actions-compact">\s+\$\{visibleHarnessInputPathActionsMarkup\}\s+\$\{visibleHarnessOutputPathCopyMarkup\}/,
 );
 assert.match(appJs, /\$\{escapeHtml\(visibleHarnessHideActionLabel\)\}/);
 assert.match(appJs, /\$\{escapeHtml\(hiddenHarnessShowActionLabel\)\}/);
@@ -49,6 +55,7 @@ console.log(
         show: ['리포트 다시 보기', '결과 다시 보기'],
         namedValues: [
           'visibleHarnessHideActionMarkup',
+          'visibleHarnessActionShelfMarkup',
           'historyHarnessShowActionLabel',
           'historyHarnessRestorePreviewMarkup',
         ],
