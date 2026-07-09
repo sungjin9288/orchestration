@@ -42,8 +42,13 @@ assert.match(appJs, /data-action="hide-harness-execution-result"/);
 assert.match(appJs, /data-harness-result-hide="true"/);
 assert.match(appJs, /const visibleHarnessHideActionMarkup = `/);
 assert.match(appJs, /const visibleHarnessActionShelfMarkup = `\s+\$\{visibleHarnessInputPathActionsMarkup\}/);
+assert.match(
+  appJs,
+  /const visibleHarnessActionShelfFrameMarkup = canRenderVisibleHarnessPathActionShelf\s+\? `\s+<div class="form-actions form-actions-inline form-actions-compact">\s+\$\{visibleHarnessActionShelfMarkup\}/,
+);
 assert.match(appJs, /\$\{visibleHarnessHideActionMarkup\}/);
 assert.match(appJs, /\$\{visibleHarnessActionShelfMarkup\}/);
+assert.match(appJs, /\$\{visibleHarnessActionShelfFrameMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /\$\{visibleHarnessPolicyReportCopyMarkup\}[\s\S]*?<button[\s\S]*?data-action="hide-harness-execution-result"/,
@@ -51,6 +56,10 @@ assert.doesNotMatch(
 assert.doesNotMatch(
   appJs,
   /form-actions-compact">\s+\$\{visibleHarnessInputPathActionsMarkup\}\s+\$\{visibleHarnessOutputPathCopyMarkup\}/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-packet="true"[\s\S]{0,420}canRenderVisibleHarnessPathActionShelf\s+\?\s+`\s+<div class="form-actions form-actions-inline form-actions-compact">\s+\$\{visibleHarnessActionShelfMarkup\}/,
 );
 assert.match(appJs, /function hideHarnessExecutionResult\(actionButton\)/);
 assert.match(appJs, /state\.hiddenHarnessExecutionResultKey = executionKey;/);
@@ -146,7 +155,11 @@ async function main() {
             insertionPoint: 'executionResultRegister->hideExecutionResultAction->localVisibilityState',
             derivedKey: 'latestHarnessExecution',
             sourceMarker: 'data-harness-result-hide',
-            namedValues: ['visibleHarnessHideActionMarkup', 'visibleHarnessActionShelfMarkup'],
+            namedValues: [
+              'visibleHarnessHideActionMarkup',
+              'visibleHarnessActionShelfMarkup',
+              'visibleHarnessActionShelfFrameMarkup',
+            ],
             latestHarnessId: latestHarnessExecution.harnessId,
             resolvedInputPath: inputPath,
             resolvedOutputPath: outputPath,

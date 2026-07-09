@@ -2190,6 +2190,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ${visibleHarnessPolicyReportCopyMarkup}
     ${visibleHarnessHideActionMarkup}
   `;
+  const visibleHarnessActionShelfFrameMarkup = canRenderVisibleHarnessPathActionShelf
+    ? `
+      <div class="form-actions form-actions-inline form-actions-compact">
+        ${visibleHarnessActionShelfMarkup}
+      </div>
+    `
+    : '';
   const visibleHarnessPolicyReportSummaryMarkup = renderHarnessPolicyReportSummary(
     visibleHarnessExecutionResult,
   );
@@ -2365,15 +2372,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     <div class="harness-execution-result-packet" data-harness-execution-result-packet="true">
                       ${visibleHarnessHeaderMarkup}
                       ${visibleHarnessSummaryRackMarkup}
-                      ${
-                        canRenderVisibleHarnessPathActionShelf
-                          ? `
-                            <div class="form-actions form-actions-inline form-actions-compact">
-                              ${visibleHarnessActionShelfMarkup}
-                            </div>
-                          `
-                          : ''
-                      }
+                      ${visibleHarnessActionShelfFrameMarkup}
                       ${visibleHarnessPreviewMarkup}
                     </div>
                   </section>

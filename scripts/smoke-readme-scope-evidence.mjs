@@ -101,6 +101,8 @@ assert.match(readme, /visible token row markup/);
 assert.match(readme, /visible preview markup/);
 assert.match(readme, /visible preview action markup/);
 assert.match(readme, /visible input path action markup/);
+assert.match(readme, /visible action shelf markup/);
+assert.match(readme, /visible action shelf frame markup/);
 assert.match(readme, /visible summary rack markup/);
 assert.match(readme, /hidden preview markup/);
 assert.match(readme, /hidden preview action markup/);
@@ -171,6 +173,7 @@ assert.match(readme, /execution packet copy markup handoff/);
 assert.match(readme, /hidden action markup handoff/);
 assert.match(readme, /hidden action shelf markup handoff/);
 assert.match(readme, /visible action shelf markup handoff/);
+assert.match(readme, /visible action shelf frame markup handoff/);
 assert.match(readme, /visible hide action markup handoff/);
 assert.match(readme, /output path copy label\/status handoff/);
 assert.match(readme, /output-brief copy labels\/payload titles/);
@@ -550,12 +553,21 @@ assert.match(
   appJs,
   /const visibleHarnessActionShelfMarkup = `\s+\$\{visibleHarnessInputPathActionsMarkup\}\s+\$\{visibleHarnessOutputPathCopyMarkup\}\s+\$\{visibleHarnessRequestIdCopyMarkup\}\s+\$\{visibleHarnessExecutionPacketCopyMarkup\}\s+\$\{visibleHarnessPreviewActionsMarkup\}\s+\$\{visibleHarnessOutputBriefCopyMarkup\}\s+\$\{visibleHarnessPolicyReportCopyMarkup\}\s+\$\{visibleHarnessHideActionMarkup\}/,
 );
+assert.match(
+  appJs,
+  /const visibleHarnessActionShelfFrameMarkup = canRenderVisibleHarnessPathActionShelf\s+\? `\s+<div class="form-actions form-actions-inline form-actions-compact">\s+\$\{visibleHarnessActionShelfMarkup\}/,
+);
 assert.match(appJs, /\$\{visibleHarnessHideActionMarkup\}/);
 assert.match(appJs, /\$\{visibleHarnessActionShelfMarkup\}/);
+assert.match(appJs, /\$\{visibleHarnessActionShelfFrameMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{visibleHarnessPolicyReportCopyMarkup\}\s+<button[\s\S]*?data-action="hide-harness-execution-result"/);
 assert.doesNotMatch(
   appJs,
   /form-actions-compact">\s+\$\{visibleHarnessInputPathActionsMarkup\}\s+\$\{visibleHarnessOutputPathCopyMarkup\}/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-packet="true"[\s\S]{0,420}canRenderVisibleHarnessPathActionShelf\s+\?\s+`\s+<div class="form-actions form-actions-inline form-actions-compact">\s+\$\{visibleHarnessActionShelfMarkup\}/,
 );
 assert.match(appJs, /const harnessOperatorActionLabel = getHarnessOperatorActionLabel\(operatorAction\);/);
 assert.match(appJs, /const harnessOperatorActionTone = getHarnessOperatorActionTone\(operatorAction\);/);
