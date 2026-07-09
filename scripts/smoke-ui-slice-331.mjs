@@ -14,22 +14,28 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessBriefLabelsPath = path.join(repoRoot, 'ui', 'harness-brief-labels.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-331');
 const port = 4632;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessBriefLabels = fs.readFileSync(harnessBriefLabelsPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-action-summary="true"/);
-assert.match(appJs, /const hasHarnessOperatorAction = Boolean\(operatorAction\);/);
 assert.match(appJs, /getHarnessOperatorActionLabel\(operatorAction\)/);
-assert.match(appJs, /const harnessOperatorActionLabel = hasHarnessOperatorAction/);
-assert.match(appJs, /const harnessOperatorActionTone = hasHarnessOperatorAction/);
+assert.match(appJs, /const harnessOperatorActionLabel = getHarnessOperatorActionLabel\(operatorAction\);/);
+assert.match(appJs, /const harnessOperatorActionTone = getHarnessOperatorActionTone\(operatorAction\);/);
+assert.match(harnessBriefLabels, /if \(!operatorAction\?\.kind\) \{\s+return '액션 없음';\s+\}/);
+assert.match(harnessBriefLabels, /if \(!operatorAction\?\.kind \|\| operatorAction\.kind === 'none'\) \{\s+return 'neutral';\s+\}/);
 assert.match(appJs, /const hiddenHarnessOperatorActionLabel = harnessOperatorActionLabel;/);
 assert.match(appJs, /const hiddenHarnessOperatorActionSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">/);
 assert.match(appJs, /\$\{hiddenHarnessOperatorActionSummaryMarkup\}/);
 assert.match(appJs, /createToken\(harnessOperatorActionLabel, harnessOperatorActionTone\)/);
 assert.match(appJs, /\$\{escapeHtml\(harnessOperatorActionLabel\)\}/);
+assert.doesNotMatch(appJs, /const hasHarnessOperatorAction = Boolean\(operatorAction\);/);
+assert.doesNotMatch(appJs, /const harnessOperatorActionLabel = hasHarnessOperatorAction/);
+assert.doesNotMatch(appJs, /const harnessOperatorActionTone = hasHarnessOperatorAction/);
 assert.doesNotMatch(appJs, /const harnessOperatorActionLabel = operatorAction/);
 assert.doesNotMatch(appJs, /const harnessOperatorActionTone = operatorAction/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>\$\{escapeHtml\(getHarnessOperatorActionLabel\(operatorAction\)\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">/);
@@ -120,12 +126,12 @@ async function main() {
             sourceMarker: 'data-harness-result-hidden-action-summary',
             route: '/api/harness/operator-action/run',
             namedValues: [
-              'hasHarnessOperatorAction',
               'harnessOperatorActionLabel',
               'harnessOperatorActionTone',
               'hiddenHarnessOperatorActionLabel',
               'hiddenHarnessOperatorActionSummaryMarkup',
             ],
+            helperFallback: 'getHarnessOperatorActionLabel',
             actionKind: harnessConsumerStatus.operatorAction.kind,
           },
         },

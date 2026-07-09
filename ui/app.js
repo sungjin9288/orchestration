@@ -1647,13 +1647,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessOutputChannelTone = visibleHarnessOutputChannelToken.tone;
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
-  const hasHarnessOperatorAction = Boolean(operatorAction);
-  const harnessOperatorActionLabel = hasHarnessOperatorAction
-    ? getHarnessOperatorActionLabel(operatorAction)
-    : '미확인';
-  const harnessOperatorActionTone = hasHarnessOperatorAction
-    ? getHarnessOperatorActionTone(operatorAction)
-    : 'neutral';
+  const harnessOperatorActionLabel = getHarnessOperatorActionLabel(operatorAction);
+  const harnessOperatorActionTone = getHarnessOperatorActionTone(operatorAction);
   const harnessHostStateLabel = getHarnessBriefHostStateLabel({
     currentHostState: statusCard.currentHostState,
   });
