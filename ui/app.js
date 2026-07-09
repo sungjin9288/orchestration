@@ -1769,6 +1769,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     </div>
   `;
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
+  const recentHarnessExecutionCount = recentHarnessExecutions.length;
+  const recentHarnessExecutionCountTokenMarkup = recentHarnessExecutionCount
+    ? createToken(`${recentHarnessExecutionCount}건`, 'neutral')
+    : '';
   const hasExecutionHistory = hasHarnessExecutionHistory(
     harnessExecutionResult,
     recentHarnessExecutions,
@@ -2269,13 +2273,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                 : ''
             }
             ${
-              recentHarnessExecutions.length
+              recentHarnessExecutionCount
                 ? `
                   <section class="relation-strip relation-strip-compact" data-harness-execution-history="true">
                     <div class="harness-execution-history-packet" data-harness-execution-history-packet="true">
                       <div class="card-title-row card-title-row-tight">
                         <strong>실행 기록</strong>
-                        ${createToken(`${recentHarnessExecutions.length}건`, 'neutral')}
+                        ${recentHarnessExecutionCountTokenMarkup}
                       </div>
                       <div class="stack harness-execution-history-list-compact" data-harness-execution-history-list="true">
                         ${recentHarnessExecutions

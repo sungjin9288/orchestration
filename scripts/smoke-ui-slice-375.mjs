@@ -24,6 +24,13 @@ assert.match(
   appJs,
   /<section class="relation-strip relation-strip-compact" data-harness-execution-history="true">[\s\S]*?<strong>실행 기록<\/strong>/s,
 );
+assert.match(appJs, /const recentHarnessExecutionCount = recentHarnessExecutions\.length;/);
+assert.match(
+  appJs,
+  /const recentHarnessExecutionCountTokenMarkup = recentHarnessExecutionCount\s+\? createToken\(`\$\{recentHarnessExecutionCount\}건`, 'neutral'\)\s+: '';/,
+);
+assert.match(appJs, /\$\{recentHarnessExecutionCountTokenMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{createToken\(`\$\{recentHarnessExecutions\.length\}건`, 'neutral'\)\}/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -110,6 +117,7 @@ async function main() {
           harnessExecutionHistoryTitleWording: {
             insertionPoint: 'executionHistoryRegister->historyTitleWording->sectionTitle',
             title: '실행 기록',
+            namedValues: ['recentHarnessExecutionCount', 'recentHarnessExecutionCountTokenMarkup'],
             route: '/api/harness/operator-action/run',
           },
         },
