@@ -35,7 +35,9 @@ assert.match(
 );
 assert.match(appJs, /data-output-brief-label="\$\{escapeHtml\(visibleHarnessOutputBriefCopyStatusLabel\)\}"/);
 assert.match(appJs, /data-output-brief-text="\$\{escapeHtml\(visibleHarnessOutputBriefCopyText\)\}"/);
-assert.match(appJs, /canRenderVisibleHarnessOutputBriefCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-brief"/);
+assert.match(appJs, /const visibleHarnessOutputBriefCopyMarkup = canRenderVisibleHarnessOutputBriefCopy/);
+assert.match(appJs, /\$\{visibleHarnessOutputBriefCopyMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessOutputBriefCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-brief"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessOutputBrief\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-brief"/);
 assert.doesNotMatch(
   appJs,
@@ -57,6 +59,7 @@ console.log(
           'visibleHarnessOutputBrief',
           'canRenderVisibleHarnessOutputBriefCopy',
           'visibleHarnessOutputBriefCopyText',
+          'visibleHarnessOutputBriefCopyMarkup',
         ],
         defaultTitle: '하네스 출력 요약',
         policyReportTitle: '하네스 리포트 요약',

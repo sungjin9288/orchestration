@@ -1782,6 +1782,20 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     getHarnessExecutionBriefCopyStatusLabel(visibleHarnessExecutionResult);
   const visibleHarnessOutputBriefCopyActionLabel =
     getHarnessExecutionBriefCopyActionLabel(visibleHarnessExecutionResult);
+  const visibleHarnessOutputBriefCopyMarkup = canRenderVisibleHarnessOutputBriefCopy
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-output-brief"
+        data-output-brief-text="${escapeHtml(visibleHarnessOutputBriefCopyText)}"
+        data-output-brief-label="${escapeHtml(visibleHarnessOutputBriefCopyStatusLabel)}"
+        data-harness-output-brief-copy="true"
+      >
+        ${escapeHtml(visibleHarnessOutputBriefCopyActionLabel)}
+      </button>
+    `
+    : '';
   const visibleHarnessPolicyReportPayload = getHarnessPolicyReportPayload(visibleHarnessExecutionResult);
   const canRenderVisibleHarnessPolicyReportCopy = Boolean(visibleHarnessPolicyReportPayload);
   const visibleHarnessPolicyReportCopyText =
@@ -2039,22 +2053,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 패킷 복사
                               </button>
                               ${visibleHarnessPreviewActionsMarkup}
-                              ${
-                                canRenderVisibleHarnessOutputBriefCopy
-                                  ? `
-                                    <button
-                                      class="secondary-button"
-                                      type="button"
-                                      data-action="copy-harness-output-brief"
-                                      data-output-brief-text="${escapeHtml(visibleHarnessOutputBriefCopyText)}"
-                                      data-output-brief-label="${escapeHtml(visibleHarnessOutputBriefCopyStatusLabel)}"
-                                      data-harness-output-brief-copy="true"
-                                    >
-                                      ${escapeHtml(visibleHarnessOutputBriefCopyActionLabel)}
-                                    </button>
-                                  `
-                                  : ''
-                              }
+                              ${visibleHarnessOutputBriefCopyMarkup}
                               ${
                                 canRenderVisibleHarnessPolicyReportCopy
                                   ? `
