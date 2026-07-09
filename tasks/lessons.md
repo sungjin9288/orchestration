@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible and hidden execution packet copy buttons should consume named copy markup once packet copy text is selected. Keep `canCopyVisibleHarnessExecutionPacket` and `canCopyHiddenHarnessExecutionPacket` as render gates, but avoid building packet copy buttons directly inside the latest or hidden result action shelves; when README names this lane, pin the public claim to the focused packet smokes and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.
+
 - Harness history path reuse/rerun buttons should consume named action markup once the history input path, output path, policy-report flag, and rerun label are selected. Keep both path action payloads unchanged, but avoid building the reuse/rerun pair directly inside the history action shelf; when README names this lane, pin the public claim to the focused history reuse/rerun smokes and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.
 
 - Harness history execution packet copy buttons should consume named markup once the history packet copy text is selected. Keep `formatHarnessExecutionPacketForCopy(...)` as the copy payload source, but avoid building the packet copy button directly inside the history action shelf.

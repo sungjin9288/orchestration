@@ -1824,6 +1824,32 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     formatHarnessExecutionPacketForCopy(visibleHarnessExecutionResult);
   const hiddenHarnessExecutionPacketText =
     formatHarnessExecutionPacketForCopy(hiddenHarnessExecutionResult);
+  const visibleHarnessExecutionPacketCopyMarkup = canCopyVisibleHarnessExecutionPacket
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-execution-packet"
+        data-execution-packet-text="${escapeHtml(visibleHarnessExecutionPacketText)}"
+        data-harness-execution-packet-copy="true"
+      >
+        패킷 복사
+      </button>
+    `
+    : '';
+  const hiddenHarnessExecutionPacketCopyMarkup = canCopyHiddenHarnessExecutionPacket
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-execution-packet"
+        data-execution-packet-text="${escapeHtml(hiddenHarnessExecutionPacketText)}"
+        data-harness-result-hidden-packet-copy="true"
+      >
+        패킷 복사
+      </button>
+    `
+    : '';
   const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload(hiddenHarnessExecutionResult);
   const canRenderHiddenHarnessPolicyReportCopy = Boolean(hiddenHarnessPolicyReportPayload);
   const hiddenHarnessPolicyReportCopyText =
@@ -2088,15 +2114,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               ${visibleHarnessInputPathActionsMarkup}
                               ${visibleHarnessOutputPathCopyMarkup}
                               ${visibleHarnessRequestIdCopyMarkup}
-                              <button
-                                class="secondary-button"
-                                type="button"
-                                data-action="copy-harness-execution-packet"
-                                data-execution-packet-text="${escapeHtml(visibleHarnessExecutionPacketText)}"
-                                data-harness-execution-packet-copy="true"
-                              >
-                                패킷 복사
-                              </button>
+                              ${visibleHarnessExecutionPacketCopyMarkup}
                               ${visibleHarnessPreviewActionsMarkup}
                               ${visibleHarnessOutputBriefCopyMarkup}
                               ${visibleHarnessPolicyReportCopyMarkup}
@@ -2205,15 +2223,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           `
                           : ''
                       }
-                      <button
-                        class="secondary-button"
-                        type="button"
-                        data-action="copy-harness-execution-packet"
-                        data-execution-packet-text="${escapeHtml(hiddenHarnessExecutionPacketText)}"
-                        data-harness-result-hidden-packet-copy="true"
-                      >
-                        패킷 복사
-                      </button>
+                      ${hiddenHarnessExecutionPacketCopyMarkup}
                       ${
                         canRenderHiddenHarnessPolicyReportCopy
                           ? `
