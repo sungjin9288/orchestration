@@ -22,7 +22,15 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /<section class="relation-strip relation-strip-compact" data-harness-execution-result="true">[\s\S]*?\$\{createToken\(visibleHarnessResultStateLabel, visibleHarnessResultStateTone\)\}/s,
+  /<section class="relation-strip relation-strip-compact" data-harness-execution-result="true">[\s\S]*?\$\{visibleHarnessResultStateTokenMarkup\}/s,
+);
+assert.match(
+  appJs,
+  /const visibleHarnessResultStateTokenMarkup = createToken\(\s+visibleHarnessResultStateLabel,\s+visibleHarnessResultStateTone,\s+\);/,
+);
+assert.doesNotMatch(
+  appJs,
+  /\$\{createToken\(visibleHarnessResultStateLabel, visibleHarnessResultStateTone\)\}/,
 );
 
 async function fetchJson(url, options = {}) {
@@ -109,6 +117,7 @@ async function main() {
           harnessExecutionVisibleHeaderTokenWording: {
             insertionPoint: 'executionResultRegister->visibleHeaderTokenWording->tokenLabel',
             tokenLabel: '완료',
+            stateTokenMarkup: 'visibleHarnessResultStateTokenMarkup',
             route: '/api/harness/operator-action/run',
           },
         },

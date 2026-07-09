@@ -27,7 +27,11 @@ assert.match(harnessExecutionTokens, /return \{\s+label: '완료',\s+tone: 'succ
 assert.match(appJs, /const visibleHarnessResultStateToken =\s+getHarnessResultStateToken\(visibleHarnessIsPolicyReport\);/);
 assert.match(appJs, /const visibleHarnessResultStateLabel = visibleHarnessResultStateToken\.label;/);
 assert.match(appJs, /const visibleHarnessResultStateTone = visibleHarnessResultStateToken\.tone;/);
-assert.match(appJs, /createToken\(visibleHarnessResultStateLabel, visibleHarnessResultStateTone\)/);
+assert.match(
+  appJs,
+  /const visibleHarnessResultStateTokenMarkup = createToken\(\s+visibleHarnessResultStateLabel,\s+visibleHarnessResultStateTone,\s+\);/,
+);
+assert.match(appJs, /\$\{visibleHarnessResultStateTokenMarkup\}/);
 assert.match(appJs, /const previewSummaryPendingMessage = '하네스 실행 미리보기를 요약하는 중…';/);
 assert.match(appJs, /const previewSummaryDoneMessage = '하네스 실행 미리보기 요약을 만들었습니다\.';/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = previewSummaryPendingMessage;/);
@@ -59,6 +63,7 @@ assert.doesNotMatch(appJs, /elements\.refreshStatus\.textContent = '하네스 �
 assert.doesNotMatch(appJs, /visibleHarnessPolicyReportFlag/);
 assert.doesNotMatch(appJs, /const visibleHarnessResultStateLabel =\s+visibleHarnessIsPolicyReport \? 'no-write' : '완료';/);
 assert.doesNotMatch(appJs, /const visibleHarnessResultStateTone =\s+visibleHarnessIsPolicyReport \? 'neutral' : 'success';/);
+assert.doesNotMatch(appJs, /\$\{createToken\(visibleHarnessResultStateLabel, visibleHarnessResultStateTone\)\}/);
 assert.doesNotMatch(appJs, /숨긴 \$\{getHarnessExecutionModeLabel\(currentExecution\)\}를 다시 표시했습니다/);
 assert.doesNotMatch(appJs, /\$\{getHarnessExecutionModeLabel\(targetExecution\)\}를 다시 표시했습니다/);
 assert.doesNotMatch(appJs, /const executedAtLabel = execution\?\.executedAt \? formatDate\(execution\.executedAt\) : '최근 실행';/);
@@ -74,6 +79,7 @@ console.log(
         labels: ['최근 정책 리포트', '최근 실행 결과'],
         namedValues: ['visibleHarnessResultTitle', 'hiddenHarnessResultTitle'],
         stateTokenHelper: 'getHarnessResultStateToken',
+        stateTokenMarkup: 'visibleHarnessResultStateTokenMarkup',
         namedMessages: [
           'currentExecutionDisplayStamp',
           'hideHarnessExecutionMessage',

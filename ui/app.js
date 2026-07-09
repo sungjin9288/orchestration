@@ -1652,6 +1652,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     getHarnessResultStateToken(visibleHarnessIsPolicyReport);
   const visibleHarnessResultStateLabel = visibleHarnessResultStateToken.label;
   const visibleHarnessResultStateTone = visibleHarnessResultStateToken.tone;
+  const visibleHarnessResultStateTokenMarkup = createToken(
+    visibleHarnessResultStateLabel,
+    visibleHarnessResultStateTone,
+  );
   const visibleHarnessUsesOutputFile = Boolean(visibleHarnessExecutionResult?.outputPath);
   const visibleHarnessOutputChannelToken =
     getHarnessOutputChannelToken(visibleHarnessUsesOutputFile);
@@ -1898,7 +1902,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     <div class="harness-execution-result-packet" data-harness-execution-result-packet="true">
                       <div class="card-title-row card-title-row-tight">
                         <strong>${escapeHtml(visibleHarnessResultTitle)}</strong>
-                        ${createToken(visibleHarnessResultStateLabel, visibleHarnessResultStateTone)}
+                        ${visibleHarnessResultStateTokenMarkup}
                       </div>
                       <div class="token-row token-row-compact">
                         ${visibleHarnessPrimaryTokenMarkup}
