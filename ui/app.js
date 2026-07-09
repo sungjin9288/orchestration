@@ -2048,6 +2048,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ${hiddenHarnessPreviewCopyActionMarkup}
     ${hiddenHarnessOutputBriefActionMarkup}
   `;
+  const hiddenHarnessActionShelfMarkup = `
+    ${hiddenHarnessShowActionMarkup}
+    ${hiddenHarnessInputPathActionsMarkup}
+    ${hiddenHarnessOutputPathCopyMarkup}
+    ${hiddenHarnessRequestIdCopyMarkup}
+    ${hiddenHarnessExecutionPacketCopyMarkup}
+    ${hiddenHarnessPolicyReportCopyMarkup}
+    ${hiddenHarnessPreviewActionsMarkup}
+  `;
   const visibleHarnessOutputBriefCopyText = formatHarnessOutputBriefForCopy(
     visibleHarnessOutputBrief,
     visibleHarnessExecutionResult,
@@ -2327,13 +2336,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${hiddenHarnessOperatorMessageSummaryMarkup}
                     </section>
                     <div class="form-actions form-actions-inline form-actions-hidden-compact">
-                      ${hiddenHarnessShowActionMarkup}
-                      ${hiddenHarnessInputPathActionsMarkup}
-                      ${hiddenHarnessOutputPathCopyMarkup}
-                      ${hiddenHarnessRequestIdCopyMarkup}
-                      ${hiddenHarnessExecutionPacketCopyMarkup}
-                      ${hiddenHarnessPolicyReportCopyMarkup}
-                      ${hiddenHarnessPreviewActionsMarkup}
+                      ${hiddenHarnessActionShelfMarkup}
                     </div>
                     ${hiddenHarnessPreviewMarkup}
                     </div>

@@ -136,6 +136,7 @@ assert.match(readme, /history preview action markup handoff/);
 assert.match(readme, /execution\s+packet copy fallback formatting/);
 assert.match(readme, /execution packet copy markup handoff/);
 assert.match(readme, /hidden action markup handoff/);
+assert.match(readme, /hidden action shelf markup handoff/);
 assert.match(readme, /visible hide action markup handoff/);
 assert.match(readme, /output path copy label\/status handoff/);
 assert.match(readme, /output-brief copy labels\/payload titles/);
@@ -369,6 +370,15 @@ assert.match(appJs, /const hiddenHarnessInputPathCopyActionMarkup =\s+canRenderH
 assert.match(appJs, /const hiddenHarnessPathReuseActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);
 assert.match(appJs, /const hiddenHarnessPathRerunActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);
 assert.match(appJs, /const hiddenHarnessInputPathActionsMarkup = `\s+\$\{hiddenHarnessInputPathCopyActionMarkup\}\s+\$\{hiddenHarnessPathReuseActionMarkup\}\s+\$\{hiddenHarnessPathRerunActionMarkup\}/);
+assert.match(
+  appJs,
+  /const hiddenHarnessActionShelfMarkup = `\s+\$\{hiddenHarnessShowActionMarkup\}\s+\$\{hiddenHarnessInputPathActionsMarkup\}\s+\$\{hiddenHarnessOutputPathCopyMarkup\}\s+\$\{hiddenHarnessRequestIdCopyMarkup\}\s+\$\{hiddenHarnessExecutionPacketCopyMarkup\}\s+\$\{hiddenHarnessPolicyReportCopyMarkup\}\s+\$\{hiddenHarnessPreviewActionsMarkup\}/,
+);
+assert.match(appJs, /\$\{hiddenHarnessActionShelfMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /form-actions-hidden-compact">\s+\$\{hiddenHarnessShowActionMarkup\}\s+\$\{hiddenHarnessInputPathActionsMarkup\}/,
+);
 assert.match(appJs, /const visibleHarnessOutputPathCopyMarkup = canRenderVisibleHarnessOutputPathCopy/);
 assert.match(appJs, /\$\{visibleHarnessOutputPathCopyMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessOutputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);

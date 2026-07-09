@@ -25,7 +25,9 @@ const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-show="true"/);
 assert.match(appJs, /const hiddenHarnessShowActionMarkup = `/);
+assert.match(appJs, /const hiddenHarnessActionShelfMarkup = `\s+\$\{hiddenHarnessShowActionMarkup\}/);
 assert.match(appJs, /\$\{hiddenHarnessShowActionMarkup\}/);
+assert.match(appJs, /\$\{hiddenHarnessActionShelfMarkup\}/);
 assert.match(
   appJs,
   /data-harness-result-show="true"[\s\S]*?>\s*\$\{escapeHtml\(hiddenHarnessShowActionLabel\)\}\s*<\/button>/,
@@ -33,6 +35,10 @@ assert.match(
 assert.doesNotMatch(
   appJs,
   /\$\{hiddenHarnessInputPathActionsMarkup\}[\s\S]*?<button[\s\S]*?data-harness-result-show="true"/,
+);
+assert.doesNotMatch(
+  appJs,
+  /form-actions-hidden-compact">\s+\$\{hiddenHarnessShowActionMarkup\}\s+\$\{hiddenHarnessInputPathActionsMarkup\}/,
 );
 assert.match(harnessLabels, /'결과 다시 보기'/);
 
@@ -120,6 +126,7 @@ async function main() {
           harnessExecutionHiddenRestoreWording: {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenRestoreWording->showActionLabel',
             actionLabel: '결과 다시 보기',
+            namedValues: ['hiddenHarnessShowActionMarkup', 'hiddenHarnessActionShelfMarkup'],
             route: '/api/harness/operator-action/run',
           },
         },
