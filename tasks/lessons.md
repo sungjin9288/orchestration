@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README harness evidence lists should include the newly closed focused smoke in both the representative command block and the evidence summary. Pin that claim in `scripts/smoke-readme-scope-evidence.mjs` before treating the README as current.
+
 - Harness policy-report copy text should flow through the formatter fallback directly. Keep button render predicates separate, but avoid repeating `canRender ? format(...) : ''` copy-text ternaries when the formatter already owns the empty-payload result.
 
 - Harness history path fallback should be named before history copy/reuse/rerun actions consume it. Preserve the existing history priority order, but avoid choosing `inputPath || resolvedInputPath` or `outputPath || resolvedOutputPath` inline inside the history row template.
