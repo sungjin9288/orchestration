@@ -14,7 +14,10 @@ assert.match(appJs, /function copyHarnessExecutionRequestId\(requestId\)/);
 assert.match(appJs, /data-action="copy-harness-request-id"/);
 assert.match(appJs, /const visibleHarnessRequestId =\s+visibleHarnessExecutionResult\?\.requestId \|\| visibleHarnessExecutionResult\?\.executionId \|\| '';/);
 assert.match(appJs, /const canRenderVisibleHarnessRequestIdCopy = Boolean\(visibleHarnessRequestId\);/);
+assert.match(appJs, /const visibleHarnessRequestIdCopyMarkup = canRenderVisibleHarnessRequestIdCopy/);
 assert.match(appJs, /canRenderVisibleHarnessRequestIdCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-request-id"/);
+assert.match(appJs, /\$\{visibleHarnessRequestIdCopyMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessRequestIdCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-request-id"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessRequestId\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-request-id"/);
 assert.match(appJs, /const canRenderHiddenHarnessRequestIdCopy = Boolean\(hiddenHarnessRequestId\);/);
 assert.match(appJs, /canRenderHiddenHarnessRequestIdCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-request-id"/);
@@ -45,6 +48,7 @@ console.log(
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],
         namedValues: [
           'canRenderVisibleHarnessRequestIdCopy',
+          'visibleHarnessRequestIdCopyMarkup',
           'canRenderHiddenHarnessRequestIdCopy',
           'canRenderHistoryHarnessRequestIdCopy',
         ],

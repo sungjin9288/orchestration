@@ -1606,6 +1606,19 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessRequestSummaryMarkup = canRenderVisibleHarnessRequestSummary
     ? `<p class="detail-copy detail-copy-compact" data-harness-execution-request-summary="true">요청 ID: <code>${escapeHtml(visibleHarnessRequestId)}</code></p>`
     : '';
+  const visibleHarnessRequestIdCopyMarkup = canRenderVisibleHarnessRequestIdCopy
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-request-id"
+        data-request-id="${escapeHtml(visibleHarnessRequestId)}"
+        data-harness-request-id-copy="true"
+      >
+        요청 ID
+      </button>
+    `
+    : '';
   const hiddenHarnessRequestSummaryMarkup = canRenderHiddenHarnessRequestSummary
     ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-request-summary="true">요청 ID: <code>${escapeHtml(hiddenHarnessRequestId)}</code></p>`
     : '';
@@ -2040,21 +2053,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   : ''
                               }
                               ${visibleHarnessOutputPathCopyMarkup}
-                              ${
-                                canRenderVisibleHarnessRequestIdCopy
-                                  ? `
-                                    <button
-                                      class="secondary-button"
-                                      type="button"
-                                      data-action="copy-harness-request-id"
-                                      data-request-id="${escapeHtml(visibleHarnessRequestId)}"
-                                      data-harness-request-id-copy="true"
-                                    >
-                                      요청 ID
-                                    </button>
-                                  `
-                                  : ''
-                              }
+                              ${visibleHarnessRequestIdCopyMarkup}
                               <button
                                 class="secondary-button"
                                 type="button"

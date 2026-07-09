@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible request ID copy buttons should consume named copy markup once the request ID predicate is selected. Keep `canRenderVisibleHarnessRequestIdCopy` as the button render gate, but avoid building the request-id copy button directly inside the latest result action shelf.
+
 - Harness visible output path copy buttons should consume named copy markup once the output path predicate and action label are selected. Keep `canRenderVisibleHarnessOutputPathCopy` as the button render gate, but avoid building the output-path copy button directly inside the latest result action shelf.
 
 - Harness visible policy-report copy buttons should consume named copy markup once the policy-report predicate and copy text are selected. Keep `canRenderVisibleHarnessPolicyReportCopy` as the button render gate, but avoid building the policy-report copy button directly inside the latest result action shelf.
