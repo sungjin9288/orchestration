@@ -1775,6 +1775,35 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ${hiddenHarnessOperatorCommandSummaryMarkup}
     ${hiddenHarnessOperatorMessageSummaryMarkup}
   `;
+  const hiddenHarnessRunContextSectionMarkup = `
+    <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-run-context="true">
+      <div class="card-title-row card-title-row-tight">
+        <strong>실행 기록</strong>
+      </div>
+      ${hiddenHarnessRunContextSummaryMarkup}
+    </section>
+  `;
+  const hiddenHarnessHarnessContextSectionMarkup = `
+    <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-harness-context="true">
+      <div class="card-title-row card-title-row-tight">
+        <strong>하네스 컨텍스트</strong>
+      </div>
+      ${hiddenHarnessContextSummaryMarkup}
+    </section>
+  `;
+  const hiddenHarnessOperatorContextSectionMarkup = `
+    <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-operator-context="true">
+      <div class="card-title-row card-title-row-tight">
+        <strong>운영 컨텍스트</strong>
+      </div>
+      ${hiddenHarnessOperatorContextSummaryMarkup}
+    </section>
+  `;
+  const hiddenHarnessContextSectionsMarkup = `
+    ${hiddenHarnessRunContextSectionMarkup}
+    ${hiddenHarnessHarnessContextSectionMarkup}
+    ${hiddenHarnessOperatorContextSectionMarkup}
+  `;
   const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
     visibleHarnessExecutionResult,
   );
@@ -2338,24 +2367,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${hiddenHarnessResultStateTokenMarkup}
                     </div>
                     <p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 ${escapeHtml(hiddenHarnessModeLabel)}를 다시 표시할 수 있습니다.</p>
-                    <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-run-context="true">
-                      <div class="card-title-row card-title-row-tight">
-                        <strong>실행 기록</strong>
-                      </div>
-                      ${hiddenHarnessRunContextSummaryMarkup}
-                    </section>
-                    <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-harness-context="true">
-                      <div class="card-title-row card-title-row-tight">
-                        <strong>하네스 컨텍스트</strong>
-                      </div>
-                      ${hiddenHarnessContextSummaryMarkup}
-                    </section>
-                    <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-operator-context="true">
-                      <div class="card-title-row card-title-row-tight">
-                        <strong>운영 컨텍스트</strong>
-                      </div>
-                      ${hiddenHarnessOperatorContextSummaryMarkup}
-                    </section>
+                    ${hiddenHarnessContextSectionsMarkup}
                     <div class="form-actions form-actions-inline form-actions-hidden-compact">
                       ${hiddenHarnessActionShelfMarkup}
                     </div>
