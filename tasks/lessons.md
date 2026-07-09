@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness output-brief copy text should flow through the formatter fallback directly once the button render predicate is already named. Keep `canRenderVisibleHarnessOutputBriefCopy` for markup, but avoid repeating `canRender ? format(...) : ''` when `formatHarnessOutputBriefForCopy(...)` already returns empty text without a brief.
+
 - README harness evidence lists should include the newly closed focused smoke in both the representative command block and the evidence summary. Pin that claim in `scripts/smoke-readme-scope-evidence.mjs` before treating the README as current.
 
 - Harness policy-report copy text should flow through the formatter fallback directly. Keep button render predicates separate, but avoid repeating `canRender ? format(...) : ''` copy-text ternaries when the formatter already owns the empty-payload result.

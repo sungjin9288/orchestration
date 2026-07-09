@@ -22,11 +22,13 @@ assert.match(appJs, /`중요도: \$\{outputBriefSeverityLabel\}`/);
 assert.match(appJs, /`처리 방식: \$\{outputBriefProcessingLabel\}`/);
 assert.match(appJs, /const visibleHarnessOutputBrief = getHarnessOutputBriefResult\(/);
 assert.match(appJs, /const canRenderVisibleHarnessOutputBriefCopy = Boolean\(visibleHarnessOutputBrief\);/);
+assert.match(appJs, /if \(!outputBrief\) \{\s+return '';\s+\}/);
 assert.match(
   appJs,
-  /const visibleHarnessOutputBriefCopyText = canRenderVisibleHarnessOutputBriefCopy\s+\? formatHarnessOutputBriefForCopy\(visibleHarnessOutputBrief, visibleHarnessExecutionResult\)\s+: '';/,
+  /const visibleHarnessOutputBriefCopyText = formatHarnessOutputBriefForCopy\(\s+visibleHarnessOutputBrief,\s+visibleHarnessExecutionResult,\s+\);/,
 );
 assert.doesNotMatch(appJs, /const visibleHarnessOutputBriefCopyText = visibleHarnessOutputBrief/);
+assert.doesNotMatch(appJs, /const visibleHarnessOutputBriefCopyText = canRenderVisibleHarnessOutputBriefCopy/);
 assert.match(
   appJs,
   /const visibleHarnessOutputBriefCopyStatusLabel =\s+getHarnessExecutionBriefCopyStatusLabel\(visibleHarnessExecutionResult\);/,

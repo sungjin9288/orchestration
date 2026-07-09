@@ -1726,9 +1726,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   );
   const canRenderVisibleHarnessOutputBriefCopy = Boolean(visibleHarnessOutputBrief);
   const visibleHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(visibleHarnessExecutionResult);
-  const visibleHarnessOutputBriefCopyText = canRenderVisibleHarnessOutputBriefCopy
-    ? formatHarnessOutputBriefForCopy(visibleHarnessOutputBrief, visibleHarnessExecutionResult)
-    : '';
+  const visibleHarnessOutputBriefCopyText = formatHarnessOutputBriefForCopy(
+    visibleHarnessOutputBrief,
+    visibleHarnessExecutionResult,
+  );
   const visibleHarnessOutputBriefCopyStatusLabel =
     getHarnessExecutionBriefCopyStatusLabel(visibleHarnessExecutionResult);
   const visibleHarnessOutputBriefCopyActionLabel =
