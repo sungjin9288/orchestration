@@ -202,6 +202,8 @@ import {
   getHarnessExecutionBriefCopyActionLabel,
   getHarnessExecutionBriefCopyStatusLabel,
   getHarnessExecutionBriefCopyTitle,
+  getHarnessExecutionCompletionLead,
+  getHarnessExecutionCompletionOutputCopy,
   getHarnessExecutionHideActionLabel,
   getHarnessExecutionHandoffLabel,
   getHarnessExecutionModeLabel,
@@ -13864,14 +13866,14 @@ function getHarnessExecutionCompletionCopy({ execution, fallbackHarnessId }) {
   const executionRequestId = execution?.requestId || execution?.executionId || '';
   const executionRequestCopy = executionRequestId ? `요청: ${executionRequestId}. ` : '';
   const executionOutputCopy = getHarnessExecutionOutputCopy(execution);
-  const executionIsPolicyReport = isHarnessPolicyReportExecution(execution);
-  const executionCompletionLead = executionIsPolicyReport
-    ? `하네스 ${executionHarnessId} 정책 리포트 확인 완료.`
-    : `하네스 ${executionHarnessId} 실행 완료.`;
-  const executionCompletionOutputCopy =
-    executionIsPolicyReport && execution?.stdoutPreview
-      ? '리포트 미리보기를 반환했습니다.'
-      : executionOutputCopy;
+  const executionCompletionLead = getHarnessExecutionCompletionLead(
+    execution,
+    executionHarnessId,
+  );
+  const executionCompletionOutputCopy = getHarnessExecutionCompletionOutputCopy(
+    execution,
+    executionOutputCopy,
+  );
 
   return `${executionCompletionLead} ${executionRequestCopy}${executionCompletionOutputCopy}`;
 }

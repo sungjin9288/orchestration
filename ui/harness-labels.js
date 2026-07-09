@@ -41,6 +41,10 @@ const HARNESS_EXECUTION_LABELS = {
     policyReport: '정책 리포트로 다시 확인',
     execution: '다시 실행',
   },
+  completionLead: {
+    policyReport: '정책 리포트 확인 완료',
+    execution: '실행 완료',
+  },
 };
 
 function getHarnessExecutionLabel(execution, labelKey) {
@@ -99,6 +103,18 @@ export function getHarnessExecutionRerunActionLabel(execution) {
 
 export function getHarnessExecutionRerunPendingModeLabel(isPolicyReport) {
   return getHarnessPolicyModeLabel(isPolicyReport, 'rerunPendingMode');
+}
+
+export function getHarnessExecutionCompletionLead(execution, harnessId) {
+  return `하네스 ${harnessId} ${getHarnessExecutionLabel(execution, 'completionLead')}.`;
+}
+
+export function getHarnessExecutionCompletionOutputCopy(execution, fallbackOutputCopy) {
+  if (isHarnessPolicyReportExecution(execution) && execution?.stdoutPreview) {
+    return '리포트 미리보기를 반환했습니다.';
+  }
+
+  return fallbackOutputCopy;
 }
 
 export function getHarnessExecutionPathHandoffLabel(execution) {

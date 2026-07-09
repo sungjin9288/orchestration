@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness completion status copy should be assembled through label helpers after app-shell output fallback selection. Keep request-id and output-path fallback logic near the execution route, but avoid choosing policy-report completion lead or stdout-preview copy in `ui/app.js`.
+
 - Harness policy-report versus execution copy belongs in one label table or predicate-backed helper before UI surfaces consume it. Keep `isHarnessPolicyReportExecution(...)` as the mode predicate and avoid repeating raw `actionMode === 'policy-report'` ternaries across label helpers or app-shell rerun copy.
 
 - Portfolio share status must keep reviewer source access, optional evidence-package URLs, and optional configured-env live provider checks as separate axes. Once GitHub source access is reviewer-verified, a missing screencast package download URL belongs in `optionalFollowUps`, not in the same blocker lane as source access.
