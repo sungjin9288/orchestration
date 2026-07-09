@@ -28,7 +28,8 @@ assert.match(appJs, /function showHarnessExecutionResult\(actionButton, statusPa
 assert.match(appJs, /state\.hiddenHarnessExecutionResultKey = null;/);
 assert.match(appJs, /data-harness-execution-result-hidden="true"/);
 assert.match(appJs, /getHarnessExecutionShowActionLabel\(hiddenHarnessExecutionResult\)/);
-assert.match(harnessLabels, /return execution\?\.actionMode === 'policy-report' \? '리포트 다시 보기' : '결과 다시 보기';/);
+assert.match(harnessLabels, /showAction:\s*\{\s*policyReport: '리포트 다시 보기',\s*execution: '결과 다시 보기',\s*\}/);
+assert.match(harnessLabels, /return getHarnessExecutionLabel\(execution, 'showAction'\);/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

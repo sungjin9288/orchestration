@@ -13,7 +13,8 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionOutputPathActionLabel\(execution\) \{/);
-assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '출력 예정 경로' : '출력 경로'/);
+assert.match(harnessLabels, /outputPathAction:\s*\{\s*policyReport: '출력 예정 경로',\s*execution: '출력 경로',\s*\}/);
+assert.match(harnessLabels, /return getHarnessExecutionLabel\(execution, 'outputPathAction'\);/);
 assert.match(
   appJs,
   /const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel\(\s*visibleHarnessExecutionResult,\s*\);/,

@@ -13,9 +13,11 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionHideActionLabel\(execution\) \{/);
-assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '리포트 숨기기' : '결과 숨기기'/);
+assert.match(harnessLabels, /hideAction:\s*\{\s*policyReport: '리포트 숨기기',\s*execution: '결과 숨기기',\s*\}/);
+assert.match(harnessLabels, /return getHarnessExecutionLabel\(execution, 'hideAction'\);/);
 assert.match(harnessLabels, /export function getHarnessExecutionShowActionLabel\(execution\) \{/);
-assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '리포트 다시 보기' : '결과 다시 보기'/);
+assert.match(harnessLabels, /showAction:\s*\{\s*policyReport: '리포트 다시 보기',\s*execution: '결과 다시 보기',\s*\}/);
+assert.match(harnessLabels, /return getHarnessExecutionLabel\(execution, 'showAction'\);/);
 assert.match(appJs, /const visibleHarnessHideActionLabel = getHarnessExecutionHideActionLabel\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessShowActionLabel = getHarnessExecutionShowActionLabel\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /\$\{escapeHtml\(visibleHarnessHideActionLabel\)\}/);

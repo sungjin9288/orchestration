@@ -1,29 +1,84 @@
+import { isHarnessPolicyReportExecution } from './harness-execution-tokens.js';
+
+const HARNESS_EXECUTION_LABELS = {
+  mode: {
+    policyReport: '정책 리포트',
+    execution: '실행 결과',
+  },
+  resultTitle: {
+    policyReport: '최근 정책 리포트',
+    execution: '최근 실행 결과',
+  },
+  hideAction: {
+    policyReport: '리포트 숨기기',
+    execution: '결과 숨기기',
+  },
+  showAction: {
+    policyReport: '리포트 다시 보기',
+    execution: '결과 다시 보기',
+  },
+  briefAction: {
+    policyReport: '리포트 요약',
+    execution: '출력 요약',
+  },
+  briefCopyAction: {
+    policyReport: '리포트 요약 복사',
+    execution: '요약 복사',
+  },
+  output: {
+    policyReport: '출력 예정',
+    execution: '출력',
+  },
+  outputPathAction: {
+    policyReport: '출력 예정 경로',
+    execution: '출력 경로',
+  },
+  rerunAction: {
+    policyReport: '같은 경로 정책 리포트',
+    execution: '같은 경로 재실행',
+  },
+  rerunPendingMode: {
+    policyReport: '정책 리포트로 다시 확인',
+    execution: '다시 실행',
+  },
+};
+
+function getHarnessExecutionLabel(execution, labelKey) {
+  const labels = HARNESS_EXECUTION_LABELS[labelKey];
+  return isHarnessPolicyReportExecution(execution) ? labels.policyReport : labels.execution;
+}
+
+function getHarnessPolicyModeLabel(isPolicyReport, labelKey) {
+  const labels = HARNESS_EXECUTION_LABELS[labelKey];
+  return isPolicyReport ? labels.policyReport : labels.execution;
+}
+
 export function getHarnessExecutionModeLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '정책 리포트' : '실행 결과';
+  return getHarnessExecutionLabel(execution, 'mode');
 }
 
 export function getHarnessExecutionResultTitle(execution) {
-  return execution?.actionMode === 'policy-report' ? '최근 정책 리포트' : '최근 실행 결과';
+  return getHarnessExecutionLabel(execution, 'resultTitle');
 }
 
 export function getHarnessExecutionHideActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '리포트 숨기기' : '결과 숨기기';
+  return getHarnessExecutionLabel(execution, 'hideAction');
 }
 
 export function getHarnessExecutionShowActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '리포트 다시 보기' : '결과 다시 보기';
+  return getHarnessExecutionLabel(execution, 'showAction');
 }
 
 export function getHarnessExecutionBriefActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '리포트 요약' : '출력 요약';
+  return getHarnessExecutionLabel(execution, 'briefAction');
 }
 
 export function getHarnessExecutionBriefCopyActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '리포트 요약 복사' : '요약 복사';
+  return getHarnessExecutionLabel(execution, 'briefCopyAction');
 }
 
 export function getHarnessExecutionBriefCopyStatusLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '리포트 요약' : '출력 요약';
+  return getHarnessExecutionLabel(execution, 'briefAction');
 }
 
 export function getHarnessExecutionBriefCopyTitle(execution) {
@@ -31,15 +86,19 @@ export function getHarnessExecutionBriefCopyTitle(execution) {
 }
 
 export function getHarnessExecutionOutputLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '출력 예정' : '출력';
+  return getHarnessExecutionLabel(execution, 'output');
 }
 
 export function getHarnessExecutionOutputPathActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '출력 예정 경로' : '출력 경로';
+  return getHarnessExecutionLabel(execution, 'outputPathAction');
 }
 
 export function getHarnessExecutionRerunActionLabel(execution) {
-  return execution?.actionMode === 'policy-report' ? '같은 경로 정책 리포트' : '같은 경로 재실행';
+  return getHarnessExecutionLabel(execution, 'rerunAction');
+}
+
+export function getHarnessExecutionRerunPendingModeLabel(isPolicyReport) {
+  return getHarnessPolicyModeLabel(isPolicyReport, 'rerunPendingMode');
 }
 
 export function getHarnessExecutionPathHandoffLabel(execution) {

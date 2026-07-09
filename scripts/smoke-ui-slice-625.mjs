@@ -15,7 +15,10 @@ const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionRerunActionLabel\(execution\) \{/);
-assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '같은 경로 정책 리포트' : '같은 경로 재실행'/);
+assert.match(harnessLabels, /rerunAction:\s*\{\s*policyReport: '같은 경로 정책 리포트',\s*execution: '같은 경로 재실행',\s*\}/);
+assert.match(harnessLabels, /return getHarnessExecutionLabel\(execution, 'rerunAction'\);/);
+assert.match(harnessLabels, /export function getHarnessExecutionRerunPendingModeLabel\(isPolicyReport\) \{/);
+assert.match(harnessLabels, /return getHarnessPolicyModeLabel\(isPolicyReport, 'rerunPendingMode'\);/);
 assert.match(appJs, /const visibleHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /\$\{escapeHtml\(visibleHarnessRerunActionLabel\)\}/);
@@ -37,7 +40,7 @@ assert.match(appJs, /data-policy-report="\$\{hiddenHarnessPolicyReportDataValue\
 assert.match(appJs, /data-policy-report="\$\{historyHarnessPolicyReportDataValue\}"/);
 assert.match(appJs, /const policyReport = actionButton\?\.dataset\.policyReport === 'true'/);
 assert.match(appJs, /const rerunHarnessSubjectCopy = statusCard\?\.primaryHarnessId/);
-assert.match(appJs, /const rerunHarnessModeCopy = policyReport \? '정책 리포트로 다시 확인' : '다시 실행';/);
+assert.match(appJs, /const rerunHarnessModeCopy = getHarnessExecutionRerunPendingModeLabel\(policyReport\);/);
 assert.match(appJs, /const rerunHarnessPendingMessage =\s+`\$\{rerunHarnessSubjectCopy\}의 최근 실행 경로를 \$\{rerunHarnessModeCopy\}하는 중…`;/);
 assert.match(appJs, /pendingMessage: rerunHarnessPendingMessage,/);
 assert.match(appJs, /policyReport,/);

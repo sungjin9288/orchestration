@@ -208,6 +208,7 @@ import {
   getHarnessExecutionOutputLabel,
   getHarnessExecutionOutputPathActionLabel,
   getHarnessExecutionRerunActionLabel,
+  getHarnessExecutionRerunPendingModeLabel,
   getHarnessExecutionResultTitle,
   getHarnessExecutionShowActionLabel,
   formatHarnessExecutionPacketForCopy as formatHarnessExecutionPacketForCopyBase,
@@ -14026,7 +14027,7 @@ async function rerunHarnessExecutionPaths(actionButton) {
   const rerunHarnessSubjectCopy = statusCard?.primaryHarnessId
     ? `하네스 ${statusCard.primaryHarnessId}`
     : '미확인 하네스';
-  const rerunHarnessModeCopy = policyReport ? '정책 리포트로 다시 확인' : '다시 실행';
+  const rerunHarnessModeCopy = getHarnessExecutionRerunPendingModeLabel(policyReport);
   const rerunHarnessPendingMessage =
     `${rerunHarnessSubjectCopy}의 최근 실행 경로를 ${rerunHarnessModeCopy}하는 중…`;
 

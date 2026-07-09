@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness policy-report versus execution copy belongs in one label table or predicate-backed helper before UI surfaces consume it. Keep `isHarnessPolicyReportExecution(...)` as the mode predicate and avoid repeating raw `actionMode === 'policy-report'` ternaries across label helpers or app-shell rerun copy.
+
 - Portfolio share status must keep reviewer source access, optional evidence-package URLs, and optional configured-env live provider checks as separate axes. Once GitHub source access is reviewer-verified, a missing screencast package download URL belongs in `optionalFollowUps`, not in the same blocker lane as source access.
 
 - README product-planning or current-focus claims should be pinned by `scripts/smoke-readme-scope-evidence.mjs` in the same slice. When the README names helper lanes, focused smokes, or aggregate counts, rerun the matching focused smokes and `verification_status.mjs` before committing the public claim.

@@ -15,7 +15,8 @@ const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionOutputLabel\(execution\) \{/);
-assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '출력 예정' : '출력'/);
+assert.match(harnessLabels, /output:\s*\{\s*policyReport: '출력 예정',\s*execution: '출력',\s*\}/);
+assert.match(harnessLabels, /return getHarnessExecutionLabel\(execution, 'output'\);/);
 assert.match(harnessLabels, /`\$\{getHarnessExecutionOutputLabel\(execution\)\}: \$\{outputPath\}`/);
 assert.match(harnessExecutionTokens, /export function getHarnessOutputSummaryValue\(outputPath\) \{/);
 assert.match(harnessExecutionTokens, /return outputPath \|\| '표준 출력 전용';/);

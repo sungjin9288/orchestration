@@ -13,7 +13,8 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(harnessLabels, /export function getHarnessExecutionBriefActionLabel\(execution\) \{/);
-assert.match(harnessLabels, /execution\?\.actionMode === 'policy-report' \? '리포트 요약' : '출력 요약'/);
+assert.match(harnessLabels, /briefAction:\s*\{\s*policyReport: '리포트 요약',\s*execution: '출력 요약',\s*\}/);
+assert.match(harnessLabels, /return getHarnessExecutionLabel\(execution, 'briefAction'\);/);
 assert.match(harnessLabels, /handoffs\.push\('미리보기', getHarnessExecutionBriefActionLabel\(execution\)\)/);
 assert.match(appJs, /const visibleHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel\(hiddenHarnessExecutionResult\);/);
