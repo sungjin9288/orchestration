@@ -2383,6 +2383,17 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     </button>
                                   `
                                   : '';
+                              const historyHarnessRestorePreviewMarkup = `
+                                <button
+                                  class="secondary-button"
+                                  type="button"
+                                  data-action="restore-harness-execution-preview"
+                                  data-history-index="${String(index)}"
+                                  data-harness-history-preview="true"
+                                >
+                                  ${escapeHtml(historyHarnessShowActionLabel)}
+                                </button>
+                              `;
                               const historyHarnessPreviewActionsMarkup =
                                 canRenderHistoryHarnessPreview
                                   ? `
@@ -2424,15 +2435,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
                                     <div class="form-actions form-actions-inline form-actions-compact">
                                       ${historyHarnessInputPathCopyMarkup}
-                                      <button
-                                        class="secondary-button"
-                                        type="button"
-                                        data-action="restore-harness-execution-preview"
-                                        data-history-index="${String(index)}"
-                                        data-harness-history-preview="true"
-                                      >
-                                        ${escapeHtml(historyHarnessShowActionLabel)}
-                                      </button>
+                                      ${historyHarnessRestorePreviewMarkup}
                                       ${historyHarnessOutputPathCopyMarkup}
                                       ${historyHarnessRequestIdCopyMarkup}
                                       <button

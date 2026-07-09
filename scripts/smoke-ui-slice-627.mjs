@@ -24,6 +24,12 @@ assert.match(appJs, /\$\{escapeHtml\(visibleHarnessHideActionLabel\)\}/);
 assert.match(appJs, /\$\{escapeHtml\(hiddenHarnessShowActionLabel\)\}/);
 assert.match(appJs, /const historyHarnessShowActionLabel = getHarnessExecutionShowActionLabel\(execution\);/);
 assert.match(appJs, /\$\{escapeHtml\(historyHarnessShowActionLabel\)\}/);
+assert.match(appJs, /const historyHarnessRestorePreviewMarkup = `\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/);
+assert.match(appJs, /\$\{historyHarnessRestorePreviewMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /\$\{historyHarnessInputPathCopyMarkup\}\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/,
+);
 assert.match(appJs, /data-harness-result-hide="true"/);
 assert.match(appJs, /data-harness-result-show="true"/);
 assert.match(appJs, /data-harness-history-preview="true"/);
@@ -35,6 +41,7 @@ console.log(
       harnessExecutionVisibilityActionLabels: {
         hide: ['리포트 숨기기', '결과 숨기기'],
         show: ['리포트 다시 보기', '결과 다시 보기'],
+        namedValues: ['historyHarnessShowActionLabel', 'historyHarnessRestorePreviewMarkup'],
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],
       },
     },
