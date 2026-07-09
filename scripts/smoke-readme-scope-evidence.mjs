@@ -93,6 +93,7 @@ assert.match(readme, /Reference-driven operator shell/);
 assert.match(readme, /Read-only growth evidence/);
 assert.match(readme, /Local-only personalization/);
 assert.match(readme, /Advanced Ops harness evidence/);
+assert.match(readme, /run action markup/);
 assert.match(readme, /visible preview markup/);
 assert.match(readme, /hidden preview markup/);
 assert.match(readme, /visible token markup/);
@@ -105,6 +106,9 @@ assert.match(readme, /history restore preview/);
 assert.match(readme, /execution packet copy/);
 assert.match(readme, /output-brief copy/);
 assert.match(readme, /policy-report copy/);
+assert.match(readme, /node scripts\/smoke-ui-slice-305\.mjs/);
+assert.match(readme, /node scripts\/smoke-ui-slice-306\.mjs/);
+assert.match(readme, /node scripts\/smoke-ui-slice-310\.mjs/);
 assert.match(readme, /visible preview markup handoff/);
 assert.match(readme, /history input path copy markup handoff/);
 assert.match(readme, /history path action markup handoff/);
@@ -293,6 +297,15 @@ assert.match(appJs, /const visibleHarnessPolicyReportTokenMarkup = canRenderVisi
 assert.match(appJs, /const visibleHarnessRequestTokenMarkup = canRenderVisibleHarnessRequestToken/);
 assert.match(appJs, /const visibleHarnessOutputChannelTokenMarkup = createToken\(\s+visibleHarnessOutputChannelLabel,\s+visibleHarnessOutputChannelTone,\s+\);/);
 assert.match(appJs, /const visibleHarnessExecutedAtTokenMarkup = canRenderVisibleHarnessExecutedAtToken/);
+assert.match(appJs, /const harnessRunCommandCopyMarkup = `/);
+assert.match(appJs, /const harnessRunClearHistoryActionMarkup = hasExecutionHistory/);
+assert.match(appJs, /const harnessRunPolicyReportPreviewActionMarkup = `/);
+assert.match(appJs, /const harnessRunSubmitActionMarkup = `/);
+assert.match(
+  appJs,
+  /\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}\s+\$\{harnessRunPolicyReportPreviewActionMarkup\}\s+\$\{harnessRunSubmitActionMarkup\}/,
+);
+assert.doesNotMatch(appJs, /data-harness-run-action-shelf="true"[\s\S]{0,1800}<button/);
 assert.match(appJs, /const visibleHarnessPreviewMarkup = canRenderVisibleHarnessPreview/);
 assert.match(appJs, /\$\{visibleHarnessPreviewMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessPreview\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">/);

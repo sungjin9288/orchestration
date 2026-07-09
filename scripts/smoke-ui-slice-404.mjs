@@ -13,6 +13,11 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(appJs, /data-harness-run-action-shelf="true"/);
 assert.match(appJs, /class="form-actions form-actions-inline harness-run-action-shelf"/);
+assert.match(
+  appJs,
+  /\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}\s+\$\{harnessRunPolicyReportPreviewActionMarkup\}\s+\$\{harnessRunSubmitActionMarkup\}/,
+);
+assert.doesNotMatch(appJs, /data-harness-run-action-shelf="true"[\s\S]{0,1800}<button/);
 
 assert.match(stylesCss, /\.harness-run-action-shelf\s*\{/);
 assert.match(stylesCss, /\.harness-run-action-shelf::before\s*\{/);
@@ -25,6 +30,12 @@ console.log(
       harnessRunActionShelfDesign: {
         insertionPoint: 'harnessRunForm->actionShelfDesign->commandRow',
         marker: 'data-harness-run-action-shelf',
+        namedValues: [
+          'harnessRunCommandCopyMarkup',
+          'harnessRunClearHistoryActionMarkup',
+          'harnessRunPolicyReportPreviewActionMarkup',
+          'harnessRunSubmitActionMarkup',
+        ],
       },
     },
     null,

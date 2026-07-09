@@ -26,8 +26,14 @@ assert.match(serveUi, /url\.pathname === '\/api\/harness\/operator-action\/clear
 assert.match(serveUi, /function clearHarnessExecutionMemory\(\)/);
 assert.match(serveUi, /kind: 'clear-harness-operator-action-history'/);
 assert.match(serveUi, /하네스 실행 기록을 비우지 못했습니다\./);
+assert.match(appJs, /const harnessRunClearHistoryActionMarkup = hasExecutionHistory/);
+assert.match(appJs, /\$\{harnessRunClearHistoryActionMarkup\}/);
 assert.match(appJs, /data-action="clear-harness-execution-history"/);
 assert.match(appJs, /data-harness-clear-history="true"/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-run-action-shelf="true"[\s\S]{0,1600}<button[\s\S]*?data-action="clear-harness-execution-history"/,
+);
 assert.match(appJs, /await postJson\('\/api\/harness\/operator-action\/clear-history', \{/);
 assert.match(appJs, /현재 비울 실행 기록이 없습니다\./);
 assert.match(appJs, /하네스 \$\{statusCard\.primaryHarnessId\}의 실행 기록을 비우는 중…/);
@@ -133,6 +139,7 @@ async function main() {
           harnessExecutionHistoryClear: {
             insertionPoint: 'executionOperatorActionShelf->clearExecutionHistoryAction->localOnlyRoute',
             route: '/api/harness/operator-action/clear-history',
+            namedValues: ['harnessRunClearHistoryActionMarkup'],
             clearedLatest: afterClear.derived?.latestHarnessExecution || null,
             clearedHistoryCount: (afterClear.derived?.recentHarnessExecutions || []).length,
           },

@@ -59,7 +59,13 @@ assert.match(appJs, /<strong class="control-overview-register-value">\$\{escapeH
 assert.match(appJs, /<p class="control-overview-copy">\$\{escapeHtml\(operatorActionDisplayMessage\)\}<\/p>/);
 assert.match(appJs, /canRenderHarnessRunForm\s+\?/);
 assert.match(appJs, /<code class="harness-run-template-command">\$\{escapeHtml\(operatorActionCommand\)\}<\/code>/);
+assert.match(appJs, /const harnessRunCommandCopyMarkup = `/);
+assert.match(appJs, /\$\{harnessRunCommandCopyMarkup\}/);
 assert.match(appJs, /data-command="\$\{escapeHtml\(operatorActionCommand\)\}"/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-run-action-shelf="true"[\s\S]{0,1200}<button[\s\S]*?data-action="copy-harness-command"/,
+);
 assert.doesNotMatch(
   appJs,
   /if \(!statusCard\?\.primaryHarnessId \|\| !operatorAction\?\.kind \|\| operatorAction\.kind === 'none'\) \{/,
@@ -149,6 +155,7 @@ async function main() {
             operatorKind: harnessStatus.operatorAction.kind,
             repoNativeCommand: harnessStatus.operatorAction.repoNativeCommand,
             primaryHarnessId: harnessStatus.statusCard.primaryHarnessId,
+            namedValues: ['harnessRunCommandCopyMarkup'],
           },
         },
         null,

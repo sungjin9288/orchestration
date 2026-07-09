@@ -1716,6 +1716,17 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const operatorActionDisplayMessage =
     getHarnessOperatorActionDisplayMessage(operatorActionMessage);
   const canRenderHarnessRunForm = Boolean(operatorActionCommand);
+  const harnessRunCommandCopyMarkup = `
+    <button
+      class="secondary-button"
+      type="button"
+      data-action="copy-harness-command"
+      data-command="${escapeHtml(operatorActionCommand)}"
+      data-harness-operator-command="true"
+    >
+      명령 복사
+    </button>
+  `;
   const hiddenHarnessOperatorCommand = operatorActionCommand;
   const hiddenHarnessOperatorMessage = operatorActionMessage;
   const canRenderHiddenHarnessOperatorMessageSummary = Boolean(hiddenHarnessOperatorMessage);
@@ -2045,6 +2056,40 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     recentHarnessExecutions,
     statusPayload,
   );
+  const harnessRunClearHistoryActionMarkup = hasExecutionHistory
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="clear-harness-execution-history"
+        data-harness-clear-history="true"
+        ${state.loading || state.mutating ? 'disabled' : ''}
+      >
+        실행 기록 비우기
+      </button>
+    `
+    : '';
+  const harnessRunPolicyReportPreviewActionMarkup = `
+    <button
+      class="secondary-button"
+      type="button"
+      data-action="preview-harness-policy-report"
+      data-harness-policy-report="true"
+      ${state.loading || state.mutating ? 'disabled' : ''}
+    >
+      정책 리포트 확인
+    </button>
+  `;
+  const harnessRunSubmitActionMarkup = `
+    <button
+      class="primary-button"
+      type="submit"
+      data-harness-run-submit="true"
+      ${state.loading || state.mutating ? 'disabled' : ''}
+    >
+      하네스 실행
+    </button>
+  `;
 
   if (!canShowHarnessOperatorAction) {
     return '';
@@ -2119,47 +2164,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     class="form-actions form-actions-inline harness-run-action-shelf"
                     data-harness-run-action-shelf="true"
                   >
-                    <button
-                      class="secondary-button"
-                      type="button"
-                      data-action="copy-harness-command"
-                      data-command="${escapeHtml(operatorActionCommand)}"
-                      data-harness-operator-command="true"
-                    >
-                      명령 복사
-                    </button>
-                    ${
-                      hasExecutionHistory
-                        ? `
-                          <button
-                            class="secondary-button"
-                            type="button"
-                            data-action="clear-harness-execution-history"
-                            data-harness-clear-history="true"
-                            ${state.loading || state.mutating ? 'disabled' : ''}
-                          >
-                            실행 기록 비우기
-                          </button>
-                        `
-                        : ''
-                    }
-                    <button
-                      class="secondary-button"
-                      type="button"
-                      data-action="preview-harness-policy-report"
-                      data-harness-policy-report="true"
-                      ${state.loading || state.mutating ? 'disabled' : ''}
-                    >
-                      정책 리포트 확인
-                    </button>
-                    <button
-                      class="primary-button"
-                      type="submit"
-                      data-harness-run-submit="true"
-                      ${state.loading || state.mutating ? 'disabled' : ''}
-                    >
-                      하네스 실행
-                    </button>
+                    ${harnessRunCommandCopyMarkup}
+                    ${harnessRunClearHistoryActionMarkup}
+                    ${harnessRunPolicyReportPreviewActionMarkup}
+                    ${harnessRunSubmitActionMarkup}
                   </div>
                 </div>
                 <p

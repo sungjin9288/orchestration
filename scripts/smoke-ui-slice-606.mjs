@@ -29,8 +29,14 @@ const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 assert.match(serveUi, /const policyReport = input\.policyReport === true;/);
 assert.match(serveUi, /\.\.\.\(policyReport \? \['--policy-report'\] : \[\]\)/);
 assert.match(serveUi, /actionMode: policyReport \? 'policy-report' : 'conversion'/);
+assert.match(appJs, /const harnessRunPolicyReportPreviewActionMarkup = `/);
+assert.match(appJs, /\$\{harnessRunPolicyReportPreviewActionMarkup\}/);
 assert.match(appJs, /data-action="preview-harness-policy-report"/);
 assert.match(appJs, /data-harness-policy-report="true"/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-run-action-shelf="true"[\s\S]{0,1600}<button[\s\S]*?data-action="preview-harness-policy-report"/,
+);
 assert.match(appJs, /정책 리포트 확인/);
 assert.match(appJs, /policyReport: true/);
 assert.match(harnessLabels, /최근 정책 리포트/);
@@ -197,6 +203,7 @@ async function main() {
           harnessPolicyReportUiRoute: {
             route: '/api/harness/operator-action/run',
             actionMode: payload.harnessExecution.actionMode,
+            namedValues: ['harnessRunPolicyReportPreviewActionMarkup'],
             outputExists: payload.harnessExecution.outputExists,
           },
         },

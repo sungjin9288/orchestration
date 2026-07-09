@@ -27,7 +27,13 @@ assert.match(serveUi, /kind: 'run-harness-operator-action'/);
 assert.match(serveUi, /const harnessExecution = runHarnessOperatorAction\(input\);/);
 
 assert.match(appJs, /data-form="run-harness-operator-action"/);
+assert.match(appJs, /const harnessRunSubmitActionMarkup = `/);
+assert.match(appJs, /\$\{harnessRunSubmitActionMarkup\}/);
 assert.match(appJs, /data-harness-run-submit="true"/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-run-action-shelf="true"[\s\S]{0,1600}<button[\s\S]*?data-harness-run-submit="true"/,
+);
 assert.match(appJs, /await postJson\('\/api\/harness\/operator-action\/run', \{/);
 assert.match(appJs, /상대 경로는 현재 프로젝트 경로 기준으로 풀고/);
 
@@ -142,6 +148,7 @@ async function main() {
           harnessExecutionMutation: {
             insertionPoint: 'executionOperatorActionShelf->explicitExecutionForm->localOnlyRoute',
             route: '/api/harness/operator-action/run',
+            namedValues: ['harnessRunSubmitActionMarkup'],
             harnessId: runPayload.harnessExecution.harnessId,
             outputPath: runPayload.harnessExecution.resolvedOutputPath,
           },
