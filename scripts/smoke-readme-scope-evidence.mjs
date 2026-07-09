@@ -293,10 +293,14 @@ assert.match(
 assert.match(appJs, /data-growth-learning-surface="read-only"/);
 assert.match(appJs, /from '\.\/harness-execution-tokens\.js'/);
 assert.match(harnessExecutionTokens, /export function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/);
+assert.match(harnessExecutionTokens, /export function getHarnessExecutionRequestId\(execution\) \{/);
 assert.match(harnessExecutionTokens, /export function getHarnessHistoryRequestLabel\(requestId, index\) \{/);
 assert.match(harnessExecutionTokens, /export function getHarnessOutputSummaryValue\(outputPath\) \{/);
 assert.match(harnessExecutionTokens, /export function getHarnessInputSummaryValue\(inputPath\) \{/);
 assert.match(harnessExecutionTokens, /export function getHarnessStatusSummaryValue\(value\) \{/);
+assert.match(appJs, /const visibleHarnessRequestId = getHarnessExecutionRequestId\(visibleHarnessExecutionResult\);/);
+assert.match(appJs, /const hiddenHarnessRequestId = getHarnessExecutionRequestId\(hiddenHarnessExecutionResult\);/);
+assert.match(appJs, /const historyHarnessRequestId = getHarnessExecutionRequestId\(execution\);/);
 assert.match(harnessExecutionTokens, /export function isHarnessPolicyReportExecution\(execution\) \{/);
 assert.match(harnessLabels, /export function getHarnessExecutionCompletionLead\(execution, harnessId\) \{/);
 assert.match(harnessLabels, /export function getHarnessExecutionCompletionOutputCopy\(execution, fallbackOutputCopy\) \{/);

@@ -28,12 +28,15 @@ assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harn
 assert.match(appJs, /const renderHarnessHistorySummaryRow = \(label, value\) => `/);
 assert.match(harnessExecutionTokens, /export function getHarnessHistoryRequestLabel\(requestId, index\) \{/);
 assert.match(harnessExecutionTokens, /return requestId \|\| `최근 \$\{index \+ 1\}`;/);
+assert.match(harnessExecutionTokens, /export function getHarnessExecutionRequestId\(execution\) \{/);
 assert.match(appJs, /const historyHarnessModeLabel = getHarnessExecutionModeLabel\(execution\);/);
 assert.match(appJs, /const historyHarnessExecutedAtLabel =\s+getHarnessExecutionTimestampLabel\(execution\);/);
+assert.match(appJs, /const historyHarnessRequestId = getHarnessExecutionRequestId\(execution\);/);
 assert.match(
   appJs,
   /const historyHarnessRequestLabel =\s+getHarnessHistoryRequestLabel\(historyHarnessRequestId, index\);/,
 );
+assert.doesNotMatch(appJs, /const historyHarnessRequestId = execution\.requestId \|\| execution\.executionId \|\| '';/);
 assert.doesNotMatch(appJs, /const historyHarnessRequestLabel =\s+historyHarnessRequestId \|\| `최근 \$\{index \+ 1\}`;/);
 assert.match(appJs, /const historyHarnessRequestSummaryMarkup =\s+renderHarnessHistorySummaryRow\('요청', historyHarnessRequestLabel\);/);
 assert.match(appJs, /const historyHarnessExecutedAtSummaryMarkup =\s+renderHarnessHistorySummaryRow\('실행', historyHarnessExecutedAtLabel\);/);

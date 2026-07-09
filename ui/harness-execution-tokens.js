@@ -24,6 +24,10 @@ export function getHarnessPrimaryTokenLabel(execution) {
   return `대표:${execution.harnessId}`;
 }
 
+export function getHarnessExecutionRequestId(execution) {
+  return execution?.requestId || execution?.executionId || '';
+}
+
 export function getHarnessRequestTokenLabel(requestId) {
   if (!requestId) {
     return '';

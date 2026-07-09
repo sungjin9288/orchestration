@@ -187,6 +187,7 @@ import {
 } from './harness-brief-labels.js';
 import {
   getHarnessExecutedAtTokenLabel,
+  getHarnessExecutionRequestId,
   getHarnessExecutionPreviewText,
   getHarnessExecutionTimestampLabel,
   getHarnessHistoryInputPath,
@@ -1560,10 +1561,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     hiddenHarnessExecutionResult?.harnessId === primaryHarnessId;
   const visibleHarnessExecutionKey = getHarnessExecutionResultKey(visibleHarnessExecutionResult);
   const hiddenHarnessExecutionKey = getHarnessExecutionResultKey(hiddenHarnessExecutionResult);
-  const visibleHarnessRequestId =
-    visibleHarnessExecutionResult?.requestId || visibleHarnessExecutionResult?.executionId || '';
-  const hiddenHarnessRequestId =
-    hiddenHarnessExecutionResult?.requestId || hiddenHarnessExecutionResult?.executionId || '';
+  const visibleHarnessRequestId = getHarnessExecutionRequestId(visibleHarnessExecutionResult);
+  const hiddenHarnessRequestId = getHarnessExecutionRequestId(hiddenHarnessExecutionResult);
   const visibleHarnessInputSummaryPath =
     visibleHarnessExecutionResult?.resolvedInputPath || visibleHarnessExecutionResult?.inputPath || '';
   const visibleHarnessInputPath = visibleHarnessExecutionResult?.resolvedInputPath || '';
@@ -2313,7 +2312,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           .map(
                             (execution, index) => {
                               const historyHarnessExecutionKey = getHarnessExecutionResultKey(execution);
-                              const historyHarnessRequestId = execution.requestId || execution.executionId || '';
+                              const historyHarnessRequestId = getHarnessExecutionRequestId(execution);
                               const historyHarnessInputPath = getHarnessHistoryInputPath(execution);
                               const historyHarnessOutputPath = getHarnessHistoryOutputPath(execution);
                               const canRenderHistoryHarnessInputPathCopy = Boolean(historyHarnessInputPath);
@@ -13908,7 +13907,7 @@ function getHarnessExecutionOutputCopy(execution) {
 
 function getHarnessExecutionCompletionCopy({ execution, fallbackHarnessId }) {
   const executionHarnessId = execution?.harnessId || fallbackHarnessId;
-  const executionRequestId = execution?.requestId || execution?.executionId || '';
+  const executionRequestId = getHarnessExecutionRequestId(execution);
   const executionRequestCopy = executionRequestId ? `요청: ${executionRequestId}. ` : '';
   const executionOutputCopy = getHarnessExecutionOutputCopy(execution);
   const executionCompletionLead = getHarnessExecutionCompletionLead(
