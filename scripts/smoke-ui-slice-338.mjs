@@ -24,6 +24,15 @@ assert.match(appJs, /data-harness-result-hidden-harness-context="true"/);
 assert.match(appJs, /data-harness-result-hidden-operator-context="true"/);
 assert.match(appJs, /<strong>하네스 컨텍스트<\/strong>/);
 assert.match(appJs, /<strong>운영 컨텍스트<\/strong>/);
+assert.match(
+  appJs,
+  /const hiddenHarnessContextSummaryMarkup = `\s+\$\{hiddenHarnessIdSummaryMarkup\}\s+\$\{hiddenHarnessKindSummaryMarkup\}\s+\$\{hiddenHarnessPrimaryCommandSummaryMarkup\}\s+\$\{hiddenHarnessPrimaryRunnerSummaryMarkup\}\s+\$\{hiddenHarnessPostureSummaryMarkup\}\s+\$\{hiddenHarnessStateSummaryMarkup\}\s+\$\{hiddenHarnessHostSummaryMarkup\}/,
+);
+assert.match(appJs, /\$\{hiddenHarnessContextSummaryMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-result-hidden-harness-context="true">\s+[\s\S]{0,260}<strong>하네스 컨텍스트<\/strong>[\s\S]{0,260}\$\{hiddenHarnessIdSummaryMarkup\}\s+\$\{hiddenHarnessKindSummaryMarkup\}/,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -110,6 +119,7 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenMetadataGroups->harnessContext+operatorContext',
             harnessMarker: 'data-harness-result-hidden-harness-context',
             operatorMarker: 'data-harness-result-hidden-operator-context',
+            namedValues: ['hiddenHarnessContextSummaryMarkup'],
             route: '/api/harness/operator-action/run',
             primaryHarnessId: harnessConsumerStatus.statusCard.primaryHarnessId,
             primaryRunner: harnessConsumerStatus.statusCard.primaryRunner,

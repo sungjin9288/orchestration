@@ -1729,6 +1729,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessPostureSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-posture-summary="true">대표 정책: <code>${escapeHtml(hiddenHarnessPostureValue)}</code></p>`;
   const hiddenHarnessStateSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-state-summary="true">현재 상태: <code>${escapeHtml(hiddenHarnessStateValue)}</code></p>`;
   const hiddenHarnessHostSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(harnessHostStateLabel)}</code></p>`;
+  const hiddenHarnessContextSummaryMarkup = `
+    ${hiddenHarnessIdSummaryMarkup}
+    ${hiddenHarnessKindSummaryMarkup}
+    ${hiddenHarnessPrimaryCommandSummaryMarkup}
+    ${hiddenHarnessPrimaryRunnerSummaryMarkup}
+    ${hiddenHarnessPostureSummaryMarkup}
+    ${hiddenHarnessStateSummaryMarkup}
+    ${hiddenHarnessHostSummaryMarkup}
+  `;
   const hiddenHarnessOperatorActionLabel = harnessOperatorActionLabel;
   const operatorActionCommand = getHarnessOperatorActionCommand(operatorAction);
   const operatorActionMessage = getHarnessOperatorActionMessage(operatorAction);
@@ -2325,13 +2334,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <div class="card-title-row card-title-row-tight">
                         <strong>하네스 컨텍스트</strong>
                       </div>
-                      ${hiddenHarnessIdSummaryMarkup}
-                      ${hiddenHarnessKindSummaryMarkup}
-                      ${hiddenHarnessPrimaryCommandSummaryMarkup}
-                      ${hiddenHarnessPrimaryRunnerSummaryMarkup}
-                      ${hiddenHarnessPostureSummaryMarkup}
-                      ${hiddenHarnessStateSummaryMarkup}
-                      ${hiddenHarnessHostSummaryMarkup}
+                      ${hiddenHarnessContextSummaryMarkup}
                     </section>
                     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-operator-context="true">
                       <div class="card-title-row card-title-row-tight">
