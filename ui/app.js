@@ -2633,15 +2633,19 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   </div>
                                 </div>
                               `;
-
-                              return `
-                              <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
+                              const historyHarnessItemRegisterMarkup = `
                                 <div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">
                                   ${historyHarnessSummaryRackFrameMarkup}
                                   ${historyHarnessActionShelfFrameMarkup}
                                 </div>
-                              </div>
-                            `;
+                              `;
+                              const historyHarnessItemPacketMarkup = `
+                                <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
+                                  ${historyHarnessItemRegisterMarkup}
+                                </div>
+                              `;
+
+                              return historyHarnessItemPacketMarkup;
                             },
                           )
                           .join('')}

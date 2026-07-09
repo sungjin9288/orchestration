@@ -123,6 +123,8 @@ assert.match(readme, /history action shelf markup/);
 assert.match(readme, /history action shelf frame markup/);
 assert.match(readme, /history summary rack markup/);
 assert.match(readme, /history summary rack frame markup/);
+assert.match(readme, /history item register markup/);
+assert.match(readme, /history item packet markup/);
 assert.match(readme, /history restore preview/);
 assert.match(readme, /execution packet copy/);
 assert.match(readme, /output-brief copy/);
@@ -162,6 +164,8 @@ assert.match(readme, /history action shelf markup handoff/);
 assert.match(readme, /history action shelf frame markup handoff/);
 assert.match(readme, /history summary rack markup handoff/);
 assert.match(readme, /history summary rack frame markup handoff/);
+assert.match(readme, /history item register markup handoff/);
+assert.match(readme, /history item packet markup handoff/);
 assert.match(readme, /execution\s+packet copy fallback formatting/);
 assert.match(readme, /execution packet copy markup handoff/);
 assert.match(readme, /hidden action markup handoff/);
@@ -456,6 +460,19 @@ assert.doesNotMatch(
 assert.doesNotMatch(
   appJs,
   /data-harness-execution-history-summary-rack="true">\s+\$\{historyHarnessSummaryRackMarkup\}\s+<\/div>\s+<div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessItemRegisterMarkup = `\s+<div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">\s+\$\{historyHarnessSummaryRackFrameMarkup\}\s+\$\{historyHarnessActionShelfFrameMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessItemPacketMarkup = `\s+<div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">\s+\$\{historyHarnessItemRegisterMarkup\}/,
+);
+assert.match(appJs, /return historyHarnessItemPacketMarkup;/);
+assert.doesNotMatch(
+  appJs,
+  /return `\s+<div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">\s+<div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">/,
 );
 assert.match(appJs, /const visibleHarnessPreviewCopyActionMarkup =\s+canRenderVisibleHarnessPreview/);
 assert.match(appJs, /const visibleHarnessOutputBriefActionMarkup =\s+canRenderVisibleHarnessPreview/);

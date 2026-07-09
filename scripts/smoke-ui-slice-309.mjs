@@ -33,6 +33,19 @@ assert.match(harnessState, /export function hasHarnessExecutionHistory\(executio
 assert.match(appJs, /hasHarnessExecutionHistory\(\s*\n\s+harnessExecutionResult,\s*\n\s+recentHarnessExecutions,\s*\n\s+statusPayload,\s*\n\s+\)/);
 assert.match(appJs, /data-harness-execution-history="true"/);
 assert.match(appJs, /data-harness-execution-history-item="true"/);
+assert.match(
+  appJs,
+  /const historyHarnessItemRegisterMarkup = `\s+<div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">\s+\$\{historyHarnessSummaryRackFrameMarkup\}\s+\$\{historyHarnessActionShelfFrameMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessItemPacketMarkup = `\s+<div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">\s+\$\{historyHarnessItemRegisterMarkup\}/,
+);
+assert.match(appJs, /return historyHarnessItemPacketMarkup;/);
+assert.doesNotMatch(
+  appJs,
+  /return `\s+<div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">\s+<div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">/,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
