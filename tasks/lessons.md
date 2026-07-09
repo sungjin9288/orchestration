@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness hidden preview excerpts should consume named preview markup once the hidden preview predicate is selected. Keep `canRenderHiddenHarnessPreview` as the render gate, but avoid building the `<pre data-harness-result-hidden-preview>` block directly inside the hidden result template.
+
 - Harness execution history header chips should consume named count token markup once the recent execution count is selected. Keep the `${count}건/neutral` wording unchanged, but avoid calling `createToken` with `recentHarnessExecutions.length` directly inside the history title row.
 
 - Harness hidden result header chips should consume named token markup once the fixed hidden state copy is selected. Keep `숨김/neutral` wording unchanged, but avoid calling `createToken('숨김', 'neutral')` directly inside the hidden result title row.

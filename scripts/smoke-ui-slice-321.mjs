@@ -35,7 +35,10 @@ assert.doesNotMatch(
   /const hiddenHarnessPreviewText =\s+hiddenHarnessExecutionResult\?\.outputPreview \|\| hiddenHarnessExecutionResult\?\.stdoutPreview \|\| '';/,
 );
 assert.match(appJs, /const canRenderHiddenHarnessPreview = Boolean\(hiddenHarnessPreviewText\);/);
-assert.match(appJs, /canRenderHiddenHarnessPreview\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">/);
+assert.match(appJs, /const hiddenHarnessPreviewMarkup = canRenderHiddenHarnessPreview/);
+assert.match(appJs, /\$\{hiddenHarnessPreviewMarkup\}/);
+assert.match(appJs, /data-harness-result-hidden-preview="true">\$\{escapeHtml\(hiddenHarnessPreviewText\)\}<\/pre>/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderHiddenHarnessPreview\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessPreviewText\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">/);
 
 async function fetchJson(url, options = {}) {
@@ -123,7 +126,7 @@ async function main() {
           harnessExecutionHiddenPreview: {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenPreviewExcerpt->localLatestExecutionPayload',
             sourceMarker: 'data-harness-result-hidden-preview',
-            namedValues: ['canRenderHiddenHarnessPreview'],
+            namedValues: ['canRenderHiddenHarnessPreview', 'hiddenHarnessPreviewMarkup'],
             route: '/api/harness/operator-action/run',
             previewLength: String(latestHarnessExecution.outputPreview || latestHarnessExecution.stdoutPreview || '').length,
           },

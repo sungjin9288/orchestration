@@ -1737,6 +1737,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     getHarnessExecutionPreviewText(hiddenHarnessExecutionResult);
   const canRenderHiddenHarnessPreview = Boolean(hiddenHarnessPreviewText);
   const canRenderVisibleHarnessPreview = Boolean(visibleHarnessPreviewText);
+  const hiddenHarnessPreviewMarkup = canRenderHiddenHarnessPreview
+    ? `<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">${escapeHtml(hiddenHarnessPreviewText)}</pre>`
+    : '';
   const hiddenHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(hiddenHarnessExecutionResult);
   const visibleHarnessOutputBrief = getHarnessOutputBriefResult(
     visibleHarnessExecutionResult,
@@ -2262,11 +2265,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           : ''
                       }
                     </div>
-                    ${
-                      canRenderHiddenHarnessPreview
-                        ? `<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">${escapeHtml(hiddenHarnessPreviewText)}</pre>`
-                        : ''
-                    }
+                    ${hiddenHarnessPreviewMarkup}
                     </div>
                   </section>
                 `
