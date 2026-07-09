@@ -103,6 +103,7 @@ assert.match(readme, /hidden preview action markup/);
 assert.match(readme, /hidden input path action markup/);
 assert.match(readme, /hidden run context summary markup/);
 assert.match(readme, /hidden harness context summary markup/);
+assert.match(readme, /hidden operator context summary markup/);
 assert.match(readme, /visible token label\/tone markup/);
 assert.match(readme, /latest state token label\/tone markup/);
 assert.match(readme, /hidden state token label\/tone markup/);
@@ -135,6 +136,7 @@ assert.match(readme, /hidden preview action markup handoff/);
 assert.match(readme, /hidden input path action markup handoff/);
 assert.match(readme, /hidden run context summary markup handoff/);
 assert.match(readme, /hidden harness context summary markup handoff/);
+assert.match(readme, /hidden operator context summary markup handoff/);
 assert.match(readme, /history count token label\/tone markup handoff/);
 assert.match(readme, /history input path copy markup handoff/);
 assert.match(readme, /history path reuse\/rerun action markup handoff/);
@@ -338,6 +340,15 @@ assert.match(appJs, /\$\{hiddenHarnessContextSummaryMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /data-harness-result-hidden-harness-context="true">\s+[\s\S]{0,260}<strong>하네스 컨텍스트<\/strong>[\s\S]{0,260}\$\{hiddenHarnessIdSummaryMarkup\}\s+\$\{hiddenHarnessKindSummaryMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessOperatorContextSummaryMarkup = `\s+\$\{hiddenHarnessOperatorActionSummaryMarkup\}\s+\$\{hiddenHarnessOperatorCommandSummaryMarkup\}\s+\$\{hiddenHarnessOperatorMessageSummaryMarkup\}/,
+);
+assert.match(appJs, /\$\{hiddenHarnessOperatorContextSummaryMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-result-hidden-operator-context="true">\s+[\s\S]{0,260}<strong>운영 컨텍스트<\/strong>[\s\S]{0,260}\$\{hiddenHarnessOperatorActionSummaryMarkup\}\s+\$\{hiddenHarnessOperatorCommandSummaryMarkup\}/,
 );
 assert.match(appJs, /const visibleHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(hiddenHarnessExecutionResult\);/);

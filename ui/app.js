@@ -1763,6 +1763,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessOperatorMessageSummaryMarkup = canRenderHiddenHarnessOperatorMessageSummary
     ? `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-message-summary="true">운영 메모: ${escapeHtml(hiddenHarnessOperatorMessage)}</p>`
     : '';
+  const hiddenHarnessOperatorContextSummaryMarkup = `
+    ${hiddenHarnessOperatorActionSummaryMarkup}
+    ${hiddenHarnessOperatorCommandSummaryMarkup}
+    ${hiddenHarnessOperatorMessageSummaryMarkup}
+  `;
   const visibleHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
     visibleHarnessExecutionResult,
   );
@@ -2340,9 +2345,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <div class="card-title-row card-title-row-tight">
                         <strong>운영 컨텍스트</strong>
                       </div>
-                      ${hiddenHarnessOperatorActionSummaryMarkup}
-                      ${hiddenHarnessOperatorCommandSummaryMarkup}
-                      ${hiddenHarnessOperatorMessageSummaryMarkup}
+                      ${hiddenHarnessOperatorContextSummaryMarkup}
                     </section>
                     <div class="form-actions form-actions-inline form-actions-hidden-compact">
                       ${hiddenHarnessActionShelfMarkup}
