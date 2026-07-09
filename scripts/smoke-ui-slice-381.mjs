@@ -22,7 +22,16 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /<section class="relation-strip relation-strip-compact" data-harness-execution-result="true">[\s\S]*?\$\{visibleHarnessResultStateTokenMarkup\}/s,
+  /const visibleHarnessTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>\s+\$\{visibleHarnessResultStateTokenMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const visibleHarnessHeaderMarkup = `\s+\$\{visibleHarnessTitleRowMarkup\}\s+\$\{visibleHarnessTokenRowFrameMarkup\}/,
+);
+assert.match(appJs, /\$\{visibleHarnessHeaderMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-packet="true"[\s\S]{0,320}\$\{visibleHarnessResultStateTokenMarkup\}/,
 );
 assert.match(
   appJs,
@@ -126,6 +135,8 @@ async function main() {
               'visibleHarnessResultStateTokenLabel',
               'visibleHarnessResultStateTokenTone',
               'visibleHarnessResultStateTokenMarkup',
+              'visibleHarnessTitleRowMarkup',
+              'visibleHarnessHeaderMarkup',
             ],
             stateTokenMarkup: 'visibleHarnessResultStateTokenMarkup',
             route: '/api/harness/operator-action/run',

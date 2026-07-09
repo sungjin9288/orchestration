@@ -96,6 +96,7 @@ assert.match(readme, /Advanced Ops harness evidence/);
 assert.match(readme, /run action markup/);
 assert.match(readme, /run action shelf markup/);
 assert.match(readme, /operator action token label\/tone markup/);
+assert.match(readme, /visible header markup/);
 assert.match(readme, /visible token row markup/);
 assert.match(readme, /visible preview markup/);
 assert.match(readme, /visible preview action markup/);
@@ -135,6 +136,7 @@ assert.match(readme, /node scripts\/smoke-ui-slice-381\.mjs/);
 assert.match(readme, /run action shelf markup handoff/);
 assert.match(readme, /operator action token label\/tone markup handoff/);
 assert.match(readme, /visible token label\/tone markup handoff/);
+assert.match(readme, /visible header markup handoff/);
 assert.match(readme, /visible token row markup handoff/);
 assert.match(readme, /latest state token label\/tone markup handoff/);
 assert.match(readme, /visible preview markup handoff/);
@@ -348,6 +350,23 @@ assert.match(
   /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}\s+\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
 );
 assert.match(appJs, /\$\{visibleHarnessSummaryRackMarkup\}/);
+assert.match(
+  appJs,
+  /const visibleHarnessTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>\s+\$\{visibleHarnessResultStateTokenMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const visibleHarnessTokenRowFrameMarkup = `\s+<div class="token-row token-row-compact">\s+\$\{visibleHarnessTokenRowMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const visibleHarnessHeaderMarkup = `\s+\$\{visibleHarnessTitleRowMarkup\}\s+\$\{visibleHarnessTokenRowFrameMarkup\}/,
+);
+assert.match(appJs, /\$\{visibleHarnessHeaderMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-packet="true"[\s\S]{0,320}<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>/,
+);
 assert.doesNotMatch(
   appJs,
   /data-harness-execution-result="true">\s+[\s\S]{0,340}<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>[\s\S]{0,520}\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}/,

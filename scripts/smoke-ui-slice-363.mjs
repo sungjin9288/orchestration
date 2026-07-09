@@ -23,13 +23,18 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 assert.match(appJs, /data-harness-execution-result="true"/);
 assert.match(
   appJs,
-  /data-harness-execution-result="true"[\s\S]*?<div class="token-row token-row-compact">/,
+  /const visibleHarnessTokenRowFrameMarkup = `\s+<div class="token-row token-row-compact">\s+\$\{visibleHarnessTokenRowMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const visibleHarnessHeaderMarkup = `\s+\$\{visibleHarnessTitleRowMarkup\}\s+\$\{visibleHarnessTokenRowFrameMarkup\}/,
 );
 assert.match(
   appJs,
   /const visibleHarnessTokenRowMarkup = `\s+\$\{visibleHarnessPrimaryTokenMarkup\}\s+\$\{visibleHarnessPolicyReportTokenMarkup\}\s+\$\{visibleHarnessRequestTokenMarkup\}\s+\$\{visibleHarnessOutputChannelTokenMarkup\}\s+\$\{visibleHarnessExecutedAtTokenMarkup\}/,
 );
 assert.match(appJs, /\$\{visibleHarnessTokenRowMarkup\}/);
+assert.match(appJs, /\$\{visibleHarnessHeaderMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /<div class="token-row token-row-compact">\s+\$\{visibleHarnessPrimaryTokenMarkup\}\s+\$\{visibleHarnessPolicyReportTokenMarkup\}/,
@@ -119,7 +124,11 @@ async function main() {
           harnessExecutionResultTokenDensity: {
             insertionPoint: 'executionResultRegister->visibleTokenDensity->compactTokenRow',
             rowClass: 'token-row-compact',
-            namedValues: ['visibleHarnessTokenRowMarkup'],
+            namedValues: [
+              'visibleHarnessTokenRowMarkup',
+              'visibleHarnessTokenRowFrameMarkup',
+              'visibleHarnessHeaderMarkup',
+            ],
             route: '/api/harness/operator-action/run',
           },
         },

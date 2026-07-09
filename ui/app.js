@@ -1673,6 +1673,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessResultStateTokenLabel,
     visibleHarnessResultStateTokenTone,
   );
+  const visibleHarnessTitleRowMarkup = `
+    <div class="card-title-row card-title-row-tight">
+      <strong>${escapeHtml(visibleHarnessResultTitle)}</strong>
+      ${visibleHarnessResultStateTokenMarkup}
+    </div>
+  `;
   const hiddenHarnessResultStateLabel = '숨김';
   const hiddenHarnessResultStateTone = 'neutral';
   const hiddenHarnessResultStateTokenMarkup = createToken(
@@ -1705,6 +1711,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ${visibleHarnessRequestTokenMarkup}
     ${visibleHarnessOutputChannelTokenMarkup}
     ${visibleHarnessExecutedAtTokenMarkup}
+  `;
+  const visibleHarnessTokenRowFrameMarkup = `
+    <div class="token-row token-row-compact">
+      ${visibleHarnessTokenRowMarkup}
+    </div>
+  `;
+  const visibleHarnessHeaderMarkup = `
+    ${visibleHarnessTitleRowMarkup}
+    ${visibleHarnessTokenRowFrameMarkup}
   `;
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
@@ -2342,13 +2357,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                 ? `
                   <section class="relation-strip relation-strip-compact" data-harness-execution-result="true">
                     <div class="harness-execution-result-packet" data-harness-execution-result-packet="true">
-                      <div class="card-title-row card-title-row-tight">
-                        <strong>${escapeHtml(visibleHarnessResultTitle)}</strong>
-                        ${visibleHarnessResultStateTokenMarkup}
-                      </div>
-                      <div class="token-row token-row-compact">
-                        ${visibleHarnessTokenRowMarkup}
-                      </div>
+                      ${visibleHarnessHeaderMarkup}
                       ${visibleHarnessSummaryRackMarkup}
                       ${
                         canRenderVisibleHarnessPathActionShelf
