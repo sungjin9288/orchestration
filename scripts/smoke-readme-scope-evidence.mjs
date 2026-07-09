@@ -98,6 +98,7 @@ assert.match(readme, /operator action token label\/tone markup/);
 assert.match(readme, /visible preview markup/);
 assert.match(readme, /visible preview action markup/);
 assert.match(readme, /visible input path action markup/);
+assert.match(readme, /visible summary rack markup/);
 assert.match(readme, /hidden preview markup/);
 assert.match(readme, /hidden preview action markup/);
 assert.match(readme, /hidden input path action markup/);
@@ -124,6 +125,7 @@ assert.match(readme, /node scripts\/smoke-ui-slice-306\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-310\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-329\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-331\.mjs/);
+assert.match(readme, /`361`/);
 assert.match(readme, /node scripts\/smoke-ui-slice-375\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-381\.mjs/);
 assert.match(readme, /operator action token label\/tone markup handoff/);
@@ -132,6 +134,7 @@ assert.match(readme, /latest state token label\/tone markup handoff/);
 assert.match(readme, /visible preview markup handoff/);
 assert.match(readme, /visible preview action markup handoff/);
 assert.match(readme, /visible input path action markup handoff/);
+assert.match(readme, /visible summary rack markup handoff/);
 assert.match(readme, /hidden preview action markup handoff/);
 assert.match(readme, /hidden input path action markup handoff/);
 assert.match(readme, /hidden run context summary markup handoff/);
@@ -323,6 +326,15 @@ assert.match(harnessExecutionTokens, /export function getHarnessStatusSummaryVal
 assert.match(appJs, /const visibleHarnessRequestId = getHarnessExecutionRequestId\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessRequestId = getHarnessExecutionRequestId\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /const historyHarnessRequestId = getHarnessExecutionRequestId\(execution\);/);
+assert.match(
+  appJs,
+  /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}\s+\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
+);
+assert.match(appJs, /\$\{visibleHarnessSummaryRackMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result="true">\s+[\s\S]{0,340}<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>[\s\S]{0,520}\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}/,
+);
 assert.match(
   appJs,
   /const hiddenHarnessRunContextSummaryMarkup = `\s+\$\{hiddenHarnessRequestSummaryMarkup\}\s+\$\{hiddenHarnessExecutedAtSummaryMarkup\}\s+\$\{hiddenHarnessModeSummaryMarkup\}\s+\$\{hiddenHarnessHandoffSummaryMarkup\}\s+\$\{hiddenHarnessInputSummaryMarkup\}\s+\$\{hiddenHarnessOutputSummaryMarkup\}/,

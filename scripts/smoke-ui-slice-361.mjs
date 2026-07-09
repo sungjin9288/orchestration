@@ -29,8 +29,11 @@ assert.match(
   appJs,
   /const visibleHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">\$\{escapeHtml\(visibleHarnessOutputLabel\)\}:/,
 );
-assert.match(appJs, /\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}/);
-assert.match(appJs, /\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}/);
+assert.match(
+  appJs,
+  /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}\s+\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
+);
+assert.match(appJs, /\$\{visibleHarnessSummaryRackMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact" data-harness-execution-input-summary="true">입력:/,
@@ -38,6 +41,10 @@ assert.doesNotMatch(
 assert.doesNotMatch(
   appJs,
   /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">\$\{escapeHtml\(visibleHarnessOutputLabel\)\}:/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result="true">\s+[\s\S]{0,340}<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>[\s\S]{0,520}\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}/,
 );
 
 async function fetchJson(url, options = {}) {
@@ -124,6 +131,7 @@ async function main() {
           harnessExecutionResultDetailDensity: {
             insertionPoint: 'executionResultRegister->visibleDetailDensity->compactPathRows',
             copyClass: 'detail-copy-compact',
+            namedValues: ['visibleHarnessSummaryRackMarkup'],
             route: '/api/harness/operator-action/run',
           },
         },

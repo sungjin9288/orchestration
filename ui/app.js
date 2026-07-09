@@ -2134,6 +2134,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessOutputBriefSummaryMarkup = renderHarnessOutputBriefSummary(
     visibleHarnessExecutionResult,
   );
+  const visibleHarnessSummaryRackMarkup = `
+    ${visibleHarnessInputSummaryMarkup}
+    ${visibleHarnessModeSummaryMarkup}
+    ${visibleHarnessHandoffSummaryMarkup}
+    ${visibleHarnessOutputSummaryMarkup}
+    ${visibleHarnessRequestSummaryMarkup}
+    ${visibleHarnessPolicyReportSummaryMarkup}
+    ${visibleHarnessOutputBriefSummaryMarkup}
+  `;
   const renderHarnessHistorySummaryRow = (label, value) => `
     <div class="control-overview-register-row">
       <span class="control-overview-register-label">${escapeHtml(label)}</span>
@@ -2294,13 +2303,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         ${visibleHarnessOutputChannelTokenMarkup}
                         ${visibleHarnessExecutedAtTokenMarkup}
                       </div>
-                      ${visibleHarnessInputSummaryMarkup}
-                      ${visibleHarnessModeSummaryMarkup}
-                      ${visibleHarnessHandoffSummaryMarkup}
-                      ${visibleHarnessOutputSummaryMarkup}
-                      ${visibleHarnessRequestSummaryMarkup}
-                      ${visibleHarnessPolicyReportSummaryMarkup}
-                      ${visibleHarnessOutputBriefSummaryMarkup}
+                      ${visibleHarnessSummaryRackMarkup}
                       ${
                         canRenderVisibleHarnessPathActionShelf
                           ? `

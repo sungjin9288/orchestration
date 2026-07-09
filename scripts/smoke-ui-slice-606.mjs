@@ -69,7 +69,7 @@ assert.doesNotMatch(appJs, /\$\{escapeHtml\(markitdown\.available \?/);
 assert.match(appJs, /function getHarnessExecutionOutputCopy\(execution\) \{/);
 assert.match(appJs, /function getHarnessExecutionCompletionCopy\(\{ execution, fallbackHarnessId \}\) \{/);
 assert.match(appJs, /const executionHarnessId = execution\?\.harnessId \|\| fallbackHarnessId;/);
-assert.match(appJs, /const executionRequestId = execution\?\.requestId \|\| execution\?\.executionId \|\| '';/);
+assert.match(appJs, /const executionRequestId = getHarnessExecutionRequestId\(execution\);/);
 assert.match(appJs, /const executionRequestCopy = executionRequestId \? `요청: \$\{executionRequestId\}\. ` : '';/);
 assert.match(appJs, /const executionOutputCopy = getHarnessExecutionOutputCopy\(execution\);/);
 assert.match(harnessExecutionTokens, /export function isHarnessPolicyReportExecution\(execution\) \{/);
