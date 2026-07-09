@@ -93,7 +93,9 @@ assert.match(readme, /Reference-driven operator shell/);
 assert.match(readme, /Read-only growth evidence/);
 assert.match(readme, /Local-only personalization/);
 assert.match(readme, /Advanced Ops harness evidence/);
+assert.match(readme, /execution packet copy/);
 assert.match(readme, /policy-report copy/);
+assert.match(readme, /execution packet copy fallback formatting/);
 assert.match(readme, /policy-report copy fallback formatting/);
 assert.match(readme, /completion status/);
 assert.match(readme, /`ui\/harness-labels\.js`/);
@@ -146,6 +148,9 @@ assert.match(readme, /redaction, export, expiry/);
 assert.match(readme, /orchestration\.ui-preferences\.v1/);
 assert.match(readme, /node scripts\/smoke-ui-slice-649\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-612\.mjs/);
+assert.match(readme, /node scripts\/smoke-ui-slice-614\.mjs/);
+assert.match(readme, /node scripts\/smoke-ui-slice-615\.mjs/);
+assert.match(readme, /node scripts\/smoke-ui-slice-619\.mjs/);
 assert.match(readme, /output\/playwright\/vnext-desktop-top-final\.png/);
 assert.match(readme, /output\/playwright\/vnext-mobile\.png/);
 
@@ -248,6 +253,8 @@ assert.match(harnessLabels, /export function getHarnessExecutionCompletionLead\(
 assert.match(harnessLabels, /export function getHarnessExecutionCompletionOutputCopy\(execution, fallbackOutputCopy\) \{/);
 assert.match(harnessLabels, /export function formatHarnessPolicyReportForCopy\(payload\) \{/);
 assert.match(harnessLabels, /if \(!payload\) \{\s+return '';\s+\}/);
+assert.match(harnessLabels, /export function formatHarnessExecutionPacketForCopy\(execution, context = \{\}\) \{/);
+assert.match(harnessLabels, /if \(!execution\?\.harnessId\) \{\s+return '';\s+\}/);
 assert.match(appJs, /data-personalization-scope="local-only"/);
 assert.match(growthPanels, /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/);
 assert.match(growthPanels, /data-proposal-record-persistence-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordPersistenceAllowed\}"/);

@@ -22,13 +22,14 @@ assert.match(harnessLabels, /정책 리포트:/);
 assert.match(appJs, /data-action="copy-harness-execution-packet"/);
 assert.match(appJs, /const canCopyVisibleHarnessExecutionPacket = Boolean\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const canCopyHiddenHarnessExecutionPacket = Boolean\(hiddenHarnessExecutionResult\);/);
+assert.match(harnessLabels, /if \(!execution\?\.harnessId\) \{\s+return '';\s+\}/);
 assert.match(
   appJs,
-  /const visibleHarnessExecutionPacketText = canCopyVisibleHarnessExecutionPacket\s+\? formatHarnessExecutionPacketForCopy\(visibleHarnessExecutionResult\)\s+: '';/,
+  /const visibleHarnessExecutionPacketText =\s+formatHarnessExecutionPacketForCopy\(visibleHarnessExecutionResult\);/,
 );
 assert.match(
   appJs,
-  /const hiddenHarnessExecutionPacketText = canCopyHiddenHarnessExecutionPacket\s+\? formatHarnessExecutionPacketForCopy\(hiddenHarnessExecutionResult\)\s+: '';/,
+  /const hiddenHarnessExecutionPacketText =\s+formatHarnessExecutionPacketForCopy\(hiddenHarnessExecutionResult\);/,
 );
 assert.match(
   appJs,
@@ -49,6 +50,8 @@ assert.match(appJs, /copiedMessage: copiedPacketMessage/);
 assert.match(appJs, /unsupportedMessage: unsupportedPacketCopyMessage/);
 assert.doesNotMatch(appJs, /const visibleHarnessExecutionPacketText = visibleHarnessExecutionResult/);
 assert.doesNotMatch(appJs, /const hiddenHarnessExecutionPacketText = hiddenHarnessExecutionResult/);
+assert.doesNotMatch(appJs, /const visibleHarnessExecutionPacketText = canCopyVisibleHarnessExecutionPacket/);
+assert.doesNotMatch(appJs, /const hiddenHarnessExecutionPacketText = canCopyHiddenHarnessExecutionPacket/);
 assert.doesNotMatch(appJs, /copiedMessage: \(\) => '하네스 실행 패킷을 복사했습니다\.'/);
 assert.match(appJs, /copyHarnessExecutionPacket\(actionButton\.dataset\.executionPacketText\)/);
 assert.match(appJs, />\s*패킷 복사\s*</);
@@ -63,6 +66,7 @@ console.log(
           'canCopyVisibleHarnessExecutionPacket',
           'canCopyHiddenHarnessExecutionPacket',
         ],
+        formatterFallback: 'formatHarnessExecutionPacketForCopy',
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],
       },
     },

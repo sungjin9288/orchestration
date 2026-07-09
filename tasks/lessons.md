@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness execution packet copy text should flow through the packet formatter fallback directly once visible and hidden copy predicates are already named. Keep `canCopyVisibleHarnessExecutionPacket` and `canCopyHiddenHarnessExecutionPacket` for button markup, but avoid repeating `canCopy ? format(...) : ''` when `formatHarnessExecutionPacketForCopy(...)` already returns empty text without an execution. When README names that lane, pin the public claim to the focused packet smokes and formatter fallback in `scripts/smoke-readme-scope-evidence.mjs`.
+
 - Harness output-brief copy text should flow through the formatter fallback directly once the button render predicate is already named. Keep `canRenderVisibleHarnessOutputBriefCopy` for markup, but avoid repeating `canRender ? format(...) : ''` when `formatHarnessOutputBriefForCopy(...)` already returns empty text without a brief.
 
 - README harness evidence lists should include the newly closed focused smoke in both the representative command block and the evidence summary. Pin that claim in `scripts/smoke-readme-scope-evidence.mjs` before treating the README as current.

@@ -1703,12 +1703,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessShowActionLabel = getHarnessExecutionShowActionLabel(hiddenHarnessExecutionResult);
   const canCopyVisibleHarnessExecutionPacket = Boolean(visibleHarnessExecutionResult);
   const canCopyHiddenHarnessExecutionPacket = Boolean(hiddenHarnessExecutionResult);
-  const visibleHarnessExecutionPacketText = canCopyVisibleHarnessExecutionPacket
-    ? formatHarnessExecutionPacketForCopy(visibleHarnessExecutionResult)
-    : '';
-  const hiddenHarnessExecutionPacketText = canCopyHiddenHarnessExecutionPacket
-    ? formatHarnessExecutionPacketForCopy(hiddenHarnessExecutionResult)
-    : '';
+  const visibleHarnessExecutionPacketText =
+    formatHarnessExecutionPacketForCopy(visibleHarnessExecutionResult);
+  const hiddenHarnessExecutionPacketText =
+    formatHarnessExecutionPacketForCopy(hiddenHarnessExecutionResult);
   const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload(hiddenHarnessExecutionResult);
   const canRenderHiddenHarnessPolicyReportCopy = Boolean(hiddenHarnessPolicyReportPayload);
   const hiddenHarnessPolicyReportCopyText =
