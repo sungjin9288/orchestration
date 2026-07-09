@@ -14,12 +14,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-311');
 const port = 4611;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 
 assert.match(appJs, /harnessExecutionDraftInputPath: ''/);
@@ -28,14 +30,20 @@ assert.match(appJs, /value="\$\{escapeHtml\(state\.harnessExecutionDraftInputPat
 assert.match(appJs, /value="\$\{escapeHtml\(state\.harnessExecutionDraftOutputPath\)\}"/);
 assert.match(appJs, /data-action="reuse-harness-execution-paths"/);
 assert.match(appJs, /data-harness-history-reuse="true"/);
-assert.match(appJs, /const historyHarnessInputPath = execution\.inputPath \|\| execution\.resolvedInputPath \|\| '';/);
-assert.match(appJs, /const historyHarnessOutputPath = execution\.outputPath \|\| execution\.resolvedOutputPath \|\| '';/);
+assert.match(harnessExecutionTokens, /export function getHarnessHistoryInputPath\(execution\) \{/);
+assert.match(harnessExecutionTokens, /return execution\?\.inputPath \|\| execution\?\.resolvedInputPath \|\| '';/);
+assert.match(harnessExecutionTokens, /export function getHarnessHistoryOutputPath\(execution\) \{/);
+assert.match(harnessExecutionTokens, /return execution\?\.outputPath \|\| execution\?\.resolvedOutputPath \|\| '';/);
+assert.match(appJs, /const historyHarnessInputPath = getHarnessHistoryInputPath\(execution\);/);
+assert.match(appJs, /const historyHarnessOutputPath = getHarnessHistoryOutputPath\(execution\);/);
 assert.match(appJs, /data-input-path="\$\{escapeHtml\(historyHarnessInputPath\)\}"/);
 assert.match(appJs, /data-output-path="\$\{escapeHtml\(historyHarnessOutputPath\)\}"/);
 assert.match(appJs, /function reuseHarnessExecutionPaths\(actionButton\)/);
 assert.match(appJs, /state\.harnessExecutionDraftInputPath = event\.target\.value;/);
 assert.match(appJs, /state\.harnessExecutionDraftOutputPath = event\.target\.value;/);
 assert.match(serveUi, /recentHarnessExecutions,/);
+assert.doesNotMatch(appJs, /const historyHarnessInputPath = execution\.inputPath \|\| execution\.resolvedInputPath \|\| '';/);
+assert.doesNotMatch(appJs, /const historyHarnessOutputPath = execution\.outputPath \|\| execution\.resolvedOutputPath \|\| '';/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

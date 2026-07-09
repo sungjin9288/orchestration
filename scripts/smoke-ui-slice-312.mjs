@@ -14,21 +14,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-312');
 const port = 4612;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 
 assert.match(appJs, /data-action="rerun-harness-execution-paths"/);
 assert.match(appJs, /data-harness-history-rerun="true"/);
-assert.match(appJs, /const historyHarnessInputPath = execution\.inputPath \|\| execution\.resolvedInputPath \|\| '';/);
-assert.match(appJs, /const historyHarnessOutputPath = execution\.outputPath \|\| execution\.resolvedOutputPath \|\| '';/);
+assert.match(harnessExecutionTokens, /export function getHarnessHistoryInputPath\(execution\) \{/);
+assert.match(harnessExecutionTokens, /export function getHarnessHistoryOutputPath\(execution\) \{/);
+assert.match(appJs, /const historyHarnessInputPath = getHarnessHistoryInputPath\(execution\);/);
+assert.match(appJs, /const historyHarnessOutputPath = getHarnessHistoryOutputPath\(execution\);/);
 assert.match(appJs, /data-input-path="\$\{escapeHtml\(historyHarnessInputPath\)\}"/);
 assert.match(appJs, /data-output-path="\$\{escapeHtml\(historyHarnessOutputPath\)\}"/);
 assert.match(appJs, /async function executeHarnessOperatorAction\(\{\s+inputPath,\s+outputPath,\s+statusPayload,\s+pendingMessage,\s+policyReport = false,\s+\}\)/);
 assert.match(appJs, /async function rerunHarnessExecutionPaths\(actionButton\)/);
 assert.match(appJs, /await executeHarnessOperatorAction\(\{/);
+assert.doesNotMatch(appJs, /const historyHarnessInputPath = execution\.inputPath \|\| execution\.resolvedInputPath \|\| '';/);
+assert.doesNotMatch(appJs, /const historyHarnessOutputPath = execution\.outputPath \|\| execution\.resolvedOutputPath \|\| '';/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

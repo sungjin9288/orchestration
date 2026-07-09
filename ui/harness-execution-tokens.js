@@ -36,6 +36,14 @@ export function getHarnessHistoryRequestLabel(requestId, index) {
   return requestId || `최근 ${index + 1}`;
 }
 
+export function getHarnessHistoryInputPath(execution) {
+  return execution?.inputPath || execution?.resolvedInputPath || '';
+}
+
+export function getHarnessHistoryOutputPath(execution) {
+  return execution?.outputPath || execution?.resolvedOutputPath || '';
+}
+
 export function getHarnessPolicyReportTokenLabel(isPolicyReport) {
   return isPolicyReport ? '정책 리포트' : '';
 }

@@ -189,6 +189,8 @@ import {
   getHarnessExecutedAtTokenLabel,
   getHarnessExecutionPreviewText,
   getHarnessExecutionTimestampLabel,
+  getHarnessHistoryInputPath,
+  getHarnessHistoryOutputPath,
   getHarnessHistoryRequestLabel,
   getHarnessInputSummaryValue,
   getHarnessOutputChannelToken,
@@ -2280,8 +2282,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                             (execution, index) => {
                               const historyHarnessExecutionKey = getHarnessExecutionResultKey(execution);
                               const historyHarnessRequestId = execution.requestId || execution.executionId || '';
-                              const historyHarnessInputPath = execution.inputPath || execution.resolvedInputPath || '';
-                              const historyHarnessOutputPath = execution.outputPath || execution.resolvedOutputPath || '';
+                              const historyHarnessInputPath = getHarnessHistoryInputPath(execution);
+                              const historyHarnessOutputPath = getHarnessHistoryOutputPath(execution);
                               const canRenderHistoryHarnessInputPathCopy = Boolean(historyHarnessInputPath);
                               const canRenderHistoryHarnessOutputPathCopy = Boolean(historyHarnessOutputPath);
                               const historyHarnessOutputPathActionLabel =

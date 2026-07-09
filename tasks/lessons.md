@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness history path fallback should be named before history copy/reuse/rerun actions consume it. Preserve the existing history priority order, but avoid choosing `inputPath || resolvedInputPath` or `outputPath || resolvedOutputPath` inline inside the history row template.
+
 - Harness operator action command/message fallbacks should live beside the harness action labels. Keep run-form predicates and hidden summary rendering in `ui/app.js`, but avoid choosing `repoNativeCommand`, raw operator message, or display fallback copy inline in the render function.
 
 - Harness completion status copy should be assembled through label helpers after app-shell output fallback selection. Keep request-id and output-path fallback logic near the execution route, but avoid choosing policy-report completion lead or stdout-preview copy in `ui/app.js`.
