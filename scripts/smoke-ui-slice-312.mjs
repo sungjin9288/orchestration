@@ -24,6 +24,11 @@ const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8
 
 assert.match(appJs, /data-action="rerun-harness-execution-paths"/);
 assert.match(appJs, /data-harness-history-rerun="true"/);
+assert.match(
+  appJs,
+  /const historyHarnessPathActionsMarkup = `\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"[\s\S]*?data-action="rerun-harness-execution-paths"/,
+);
+assert.match(appJs, /\$\{historyHarnessPathActionsMarkup\}/);
 assert.match(harnessExecutionTokens, /export function getHarnessHistoryInputPath\(execution\) \{/);
 assert.match(harnessExecutionTokens, /export function getHarnessHistoryOutputPath\(execution\) \{/);
 assert.match(appJs, /const historyHarnessInputPath = getHarnessHistoryInputPath\(execution\);/);
@@ -35,6 +40,10 @@ assert.match(appJs, /async function rerunHarnessExecutionPaths\(actionButton\)/)
 assert.match(appJs, /await executeHarnessOperatorAction\(\{/);
 assert.doesNotMatch(appJs, /const historyHarnessInputPath = execution\.inputPath \|\| execution\.resolvedInputPath \|\| '';/);
 assert.doesNotMatch(appJs, /const historyHarnessOutputPath = execution\.outputPath \|\| execution\.resolvedOutputPath \|\| '';/);
+assert.doesNotMatch(
+  appJs,
+  /\$\{historyHarnessPolicyReportCopyMarkup\}\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"[\s\S]*?data-action="rerun-harness-execution-paths"/,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

@@ -30,6 +30,11 @@ assert.match(appJs, /value="\$\{escapeHtml\(state\.harnessExecutionDraftInputPat
 assert.match(appJs, /value="\$\{escapeHtml\(state\.harnessExecutionDraftOutputPath\)\}"/);
 assert.match(appJs, /data-action="reuse-harness-execution-paths"/);
 assert.match(appJs, /data-harness-history-reuse="true"/);
+assert.match(
+  appJs,
+  /const historyHarnessPathActionsMarkup = `\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"[\s\S]*?data-action="rerun-harness-execution-paths"/,
+);
+assert.match(appJs, /\$\{historyHarnessPathActionsMarkup\}/);
 assert.match(harnessExecutionTokens, /export function getHarnessHistoryInputPath\(execution\) \{/);
 assert.match(harnessExecutionTokens, /return execution\?\.inputPath \|\| execution\?\.resolvedInputPath \|\| '';/);
 assert.match(harnessExecutionTokens, /export function getHarnessHistoryOutputPath\(execution\) \{/);
@@ -44,6 +49,10 @@ assert.match(appJs, /state\.harnessExecutionDraftOutputPath = event\.target\.val
 assert.match(serveUi, /recentHarnessExecutions,/);
 assert.doesNotMatch(appJs, /const historyHarnessInputPath = execution\.inputPath \|\| execution\.resolvedInputPath \|\| '';/);
 assert.doesNotMatch(appJs, /const historyHarnessOutputPath = execution\.outputPath \|\| execution\.resolvedOutputPath \|\| '';/);
+assert.doesNotMatch(
+  appJs,
+  /\$\{historyHarnessPolicyReportCopyMarkup\}\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"[\s\S]*?data-action="rerun-harness-execution-paths"/,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

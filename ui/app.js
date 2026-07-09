@@ -2405,6 +2405,30 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   패킷 복사
                                 </button>
                               `;
+                              const historyHarnessPathActionsMarkup = `
+                                <button
+                                  class="secondary-button"
+                                  type="button"
+                                  data-action="reuse-harness-execution-paths"
+                                  data-input-path="${escapeHtml(historyHarnessInputPath)}"
+                                  data-output-path="${escapeHtml(historyHarnessOutputPath)}"
+                                  data-harness-history-reuse="true"
+                                >
+                                  경로 채우기
+                                </button>
+                                <button
+                                  class="secondary-button"
+                                  type="button"
+                                  data-action="rerun-harness-execution-paths"
+                                  data-input-path="${escapeHtml(historyHarnessInputPath)}"
+                                  data-output-path="${escapeHtml(historyHarnessOutputPath)}"
+                                  data-policy-report="${historyHarnessPolicyReportDataValue}"
+                                  data-harness-history-rerun="true"
+                                  ${state.loading || state.mutating ? 'disabled' : ''}
+                                >
+                                  ${escapeHtml(historyHarnessRerunActionLabel)}
+                                </button>
+                              `;
                               const historyHarnessPreviewActionsMarkup =
                                 canRenderHistoryHarnessPreview
                                   ? `
@@ -2451,28 +2475,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       ${historyHarnessRequestIdCopyMarkup}
                                       ${historyHarnessExecutionPacketCopyMarkup}
                                       ${historyHarnessPolicyReportCopyMarkup}
-                                      <button
-                                        class="secondary-button"
-                                        type="button"
-                                        data-action="reuse-harness-execution-paths"
-                                        data-input-path="${escapeHtml(historyHarnessInputPath)}"
-                                        data-output-path="${escapeHtml(historyHarnessOutputPath)}"
-                                        data-harness-history-reuse="true"
-                                      >
-                                        경로 채우기
-                                      </button>
-                                      <button
-                                        class="secondary-button"
-                                        type="button"
-                                        data-action="rerun-harness-execution-paths"
-                                        data-input-path="${escapeHtml(historyHarnessInputPath)}"
-                                        data-output-path="${escapeHtml(historyHarnessOutputPath)}"
-                                        data-policy-report="${historyHarnessPolicyReportDataValue}"
-                                        data-harness-history-rerun="true"
-                                        ${state.loading || state.mutating ? 'disabled' : ''}
-                                      >
-                                        ${escapeHtml(historyHarnessRerunActionLabel)}
-                                      </button>
+                                      ${historyHarnessPathActionsMarkup}
                                       ${historyHarnessPreviewActionsMarkup}
                                     </div>
                                   </div>

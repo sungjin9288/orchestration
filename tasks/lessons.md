@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness history path reuse/rerun buttons should consume named action markup once the history input path, output path, policy-report flag, and rerun label are selected. Keep both path action payloads unchanged, but avoid building the reuse/rerun pair directly inside the history action shelf; when README names this lane, pin the public claim to the focused history reuse/rerun smokes and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.
+
 - Harness history execution packet copy buttons should consume named markup once the history packet copy text is selected. Keep `formatHarnessExecutionPacketForCopy(...)` as the copy payload source, but avoid building the packet copy button directly inside the history action shelf.
 
 - Harness history restore preview buttons should consume named markup once the history show action label and history index are selected. Keep the restore action payload unchanged, but avoid building the restore preview button directly inside the history action shelf; when README names this lane, pin the public claim to the focused restore smoke and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.

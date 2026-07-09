@@ -28,6 +28,15 @@ assert.match(
   appJs,
   /data-harness-history-rerun="true"[\s\S]*?>\s*\$\{escapeHtml\(historyHarnessRerunActionLabel\)\}\s*<\/button>/,
 );
+assert.match(
+  appJs,
+  /const historyHarnessPathActionsMarkup = `\s+<button[\s\S]*?data-harness-history-reuse="true"[\s\S]*?data-harness-history-rerun="true"[\s\S]*?\$\{escapeHtml\(historyHarnessRerunActionLabel\)\}/,
+);
+assert.match(appJs, /\$\{historyHarnessPathActionsMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /\$\{historyHarnessPolicyReportCopyMarkup\}\s+<button[\s\S]*?data-harness-history-rerun="true"/,
+);
 assert.match(harnessLabels, /'같은 경로 재실행'/);
 
 async function fetchJson(url, options = {}) {

@@ -22,6 +22,15 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-history-reuse="true"/);
 assert.match(appJs, /data-harness-history-reuse="true"[\s\S]*?>\s*경로 채우기\s*<\/button>/);
+assert.match(
+  appJs,
+  /const historyHarnessPathActionsMarkup = `\s+<button[\s\S]*?data-harness-history-reuse="true"[\s\S]*?경로 채우기/,
+);
+assert.match(appJs, /\$\{historyHarnessPathActionsMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /\$\{historyHarnessPolicyReportCopyMarkup\}\s+<button[\s\S]*?data-harness-history-reuse="true"/,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
