@@ -24,7 +24,10 @@ assert.match(appJs, /data-action="copy-harness-input-path"/);
 assert.match(appJs, /data-harness-input-copy="true"/);
 assert.match(appJs, /const canRenderVisibleHarnessInputPathActions = Boolean\(visibleHarnessInputPath\);/);
 assert.match(appJs, /const canRenderVisibleHarnessPathActionShelf =\s+canRenderVisibleHarnessInputPathActions \|\| canRenderVisibleHarnessOutputPathCopy;/);
+assert.match(appJs, /const visibleHarnessInputPathActionsMarkup = canRenderVisibleHarnessInputPathActions/);
 assert.match(appJs, /canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
+assert.match(appJs, /\$\{visibleHarnessInputPathActionsMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessInputPath \|\| visibleHarnessOutputPath\s+\?\s+`/);
 assert.match(appJs, /입력 경로/);
@@ -133,6 +136,7 @@ async function main() {
             namedValues: [
               'canRenderVisibleHarnessPathActionShelf',
               'canRenderVisibleHarnessInputPathActions',
+              'visibleHarnessInputPathActionsMarkup',
             ],
             route: '/api/harness/operator-action/run',
             resolvedInputPath: inputPath,

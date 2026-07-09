@@ -1746,6 +1746,41 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     : '';
   const visibleHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(visibleHarnessExecutionResult);
   const hiddenHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(hiddenHarnessExecutionResult);
+  const visibleHarnessInputPathActionsMarkup = canRenderVisibleHarnessInputPathActions
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-input-path"
+        data-input-path="${escapeHtml(visibleHarnessInputPath)}"
+        data-harness-input-copy="true"
+      >
+        입력 경로
+      </button>
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="reuse-harness-execution-paths"
+        data-input-path="${escapeHtml(visibleHarnessInputPath)}"
+        data-output-path="${escapeHtml(visibleHarnessActionOutputPath)}"
+        data-harness-result-reuse="true"
+      >
+        경로 채우기
+      </button>
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="rerun-harness-execution-paths"
+        data-input-path="${escapeHtml(visibleHarnessInputPath)}"
+        data-output-path="${escapeHtml(visibleHarnessActionOutputPath)}"
+        data-policy-report="${visibleHarnessPolicyReportDataValue}"
+        data-harness-result-rerun="true"
+        ${state.loading || state.mutating ? 'disabled' : ''}
+      >
+        ${escapeHtml(visibleHarnessRerunActionLabel)}
+      </button>
+    `
+    : '';
   const visibleHarnessHideActionLabel = getHarnessExecutionHideActionLabel(visibleHarnessExecutionResult);
   const hiddenHarnessShowActionLabel = getHarnessExecutionShowActionLabel(hiddenHarnessExecutionResult);
   const canCopyVisibleHarnessExecutionPacket = Boolean(visibleHarnessExecutionResult);
@@ -2015,43 +2050,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         canRenderVisibleHarnessPathActionShelf
                           ? `
                             <div class="form-actions form-actions-inline form-actions-compact">
-                              ${
-                                canRenderVisibleHarnessInputPathActions
-                                  ? `
-                                    <button
-                                      class="secondary-button"
-                                      type="button"
-                                      data-action="copy-harness-input-path"
-                                      data-input-path="${escapeHtml(visibleHarnessInputPath)}"
-                                      data-harness-input-copy="true"
-                                    >
-                                      입력 경로
-                                    </button>
-                                    <button
-                                      class="secondary-button"
-                                      type="button"
-                                      data-action="reuse-harness-execution-paths"
-                                      data-input-path="${escapeHtml(visibleHarnessInputPath)}"
-                                      data-output-path="${escapeHtml(visibleHarnessActionOutputPath)}"
-                                      data-harness-result-reuse="true"
-                                    >
-                                      경로 채우기
-                                    </button>
-                                    <button
-                                      class="secondary-button"
-                                      type="button"
-                                      data-action="rerun-harness-execution-paths"
-                                      data-input-path="${escapeHtml(visibleHarnessInputPath)}"
-                                      data-output-path="${escapeHtml(visibleHarnessActionOutputPath)}"
-                                      data-policy-report="${visibleHarnessPolicyReportDataValue}"
-                                      data-harness-result-rerun="true"
-                                      ${state.loading || state.mutating ? 'disabled' : ''}
-                                    >
-                                      ${escapeHtml(visibleHarnessRerunActionLabel)}
-                                    </button>
-                                  `
-                                  : ''
-                              }
+                              ${visibleHarnessInputPathActionsMarkup}
                               ${visibleHarnessOutputPathCopyMarkup}
                               ${visibleHarnessRequestIdCopyMarkup}
                               <button
