@@ -21,7 +21,10 @@ assert.match(appJs, /canRenderHiddenHarnessPolicyReportCopy\s+\?\s+`\s+<button[\
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessPolicyReportPayload\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
 assert.match(appJs, /const historyHarnessPolicyReportPayload = getHarnessPolicyReportPayload\(execution\);/);
 assert.match(appJs, /const canRenderHistoryHarnessPolicyReportCopy =\s+Boolean\(historyHarnessPolicyReportPayload\);/);
+assert.match(appJs, /const historyHarnessPolicyReportCopyMarkup =\s+canRenderHistoryHarnessPolicyReportCopy/);
 assert.match(appJs, /canRenderHistoryHarnessPolicyReportCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
+assert.match(appJs, /\$\{historyHarnessPolicyReportCopyMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderHistoryHarnessPolicyReportCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
 assert.doesNotMatch(appJs, /\$\{\s*historyHarnessPolicyReportPayload\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
 assert.match(harnessLabels, /export function formatHarnessPolicyReportForCopy\(payload\) \{/);
 assert.match(harnessLabels, /if \(!payload\) \{\s+return '';\s+\}/);
@@ -57,6 +60,7 @@ console.log(
           'visibleHarnessPolicyReportCopyMarkup',
           'hiddenHarnessPolicyReportCopyText',
           'historyHarnessPolicyReportCopyText',
+          'historyHarnessPolicyReportCopyMarkup',
         ],
       },
     },

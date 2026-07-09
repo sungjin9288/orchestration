@@ -2369,6 +2369,20 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     </button>
                                   `
                                   : '';
+                              const historyHarnessPolicyReportCopyMarkup =
+                                canRenderHistoryHarnessPolicyReportCopy
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-policy-report"
+                                      data-policy-report-text="${escapeHtml(historyHarnessPolicyReportCopyText)}"
+                                      data-harness-history-policy-report-copy="true"
+                                    >
+                                      리포트 복사
+                                    </button>
+                                  `
+                                  : '';
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2404,21 +2418,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       >
                                         패킷 복사
                                       </button>
-                                      ${
-                                        canRenderHistoryHarnessPolicyReportCopy
-                                          ? `
-                                            <button
-                                              class="secondary-button"
-                                              type="button"
-                                              data-action="copy-harness-policy-report"
-                                              data-policy-report-text="${escapeHtml(historyHarnessPolicyReportCopyText)}"
-                                              data-harness-history-policy-report-copy="true"
-                                            >
-                                              리포트 복사
-                                            </button>
-                                          `
-                                          : ''
-                                      }
+                                      ${historyHarnessPolicyReportCopyMarkup}
                                       <button
                                         class="secondary-button"
                                         type="button"

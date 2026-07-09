@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness history policy-report copy buttons should consume named copy markup once the history policy-report predicate and copy text are selected. Keep `canRenderHistoryHarnessPolicyReportCopy` as the button render gate, but avoid building the policy-report copy button directly inside the history action shelf.
+
 - Harness history request ID copy buttons should consume named copy markup once the history request ID predicate is selected. Keep `canRenderHistoryHarnessRequestIdCopy` as the button render gate, but avoid building the request-id copy button directly inside the history action shelf.
 
 - Harness history output path copy buttons should consume named copy markup once the history output path predicate and action label are selected. Keep `canRenderHistoryHarnessOutputPathCopy` as the button render gate, but avoid building the output-path copy button directly inside the history action shelf.
