@@ -1634,14 +1634,17 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const canRenderVisibleHarnessPrimaryToken = Boolean(visibleHarnessPrimaryTokenLabel);
   const canRenderVisibleHarnessRequestToken = Boolean(visibleHarnessRequestTokenLabel);
   const canRenderVisibleHarnessExecutedAtToken = Boolean(visibleHarnessExecutedAtTokenLabel);
+  const visibleHarnessPrimaryTokenTone = 'neutral';
+  const visibleHarnessRequestTokenTone = 'neutral';
+  const visibleHarnessExecutedAtTokenTone = 'neutral';
   const visibleHarnessPrimaryTokenMarkup = canRenderVisibleHarnessPrimaryToken
-    ? createToken(visibleHarnessPrimaryTokenLabel, 'neutral')
+    ? createToken(visibleHarnessPrimaryTokenLabel, visibleHarnessPrimaryTokenTone)
     : '';
   const visibleHarnessRequestTokenMarkup = canRenderVisibleHarnessRequestToken
-    ? createToken(visibleHarnessRequestTokenLabel, 'neutral')
+    ? createToken(visibleHarnessRequestTokenLabel, visibleHarnessRequestTokenTone)
     : '';
   const visibleHarnessExecutedAtTokenMarkup = canRenderVisibleHarnessExecutedAtToken
-    ? createToken(visibleHarnessExecutedAtTokenLabel, 'neutral')
+    ? createToken(visibleHarnessExecutedAtTokenLabel, visibleHarnessExecutedAtTokenTone)
     : '';
   const visibleHarnessModeLabel = getHarnessExecutionModeLabel(visibleHarnessExecutionResult);
   const hiddenHarnessModeLabel = getHarnessExecutionModeLabel(hiddenHarnessExecutionResult);
@@ -1658,8 +1661,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessPolicyReportTokenLabel =
     getHarnessPolicyReportTokenLabel(visibleHarnessIsPolicyReport);
   const canRenderVisibleHarnessPolicyReportToken = Boolean(visibleHarnessPolicyReportTokenLabel);
+  const visibleHarnessPolicyReportTokenTone = 'neutral';
   const visibleHarnessPolicyReportTokenMarkup = canRenderVisibleHarnessPolicyReportToken
-    ? createToken(visibleHarnessPolicyReportTokenLabel, 'neutral')
+    ? createToken(visibleHarnessPolicyReportTokenLabel, visibleHarnessPolicyReportTokenTone)
     : '';
   const visibleHarnessResultStateToken =
     getHarnessResultStateToken(visibleHarnessIsPolicyReport);

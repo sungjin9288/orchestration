@@ -33,8 +33,9 @@ assert.match(appJs, /const visibleHarnessExecutedAtLabel = getHarnessExecutionTi
 assert.match(appJs, /const hiddenHarnessExecutedAtLabel = getHarnessExecutionTimestampLabel\(\s+hiddenHarnessExecutionResult,\s+'',\s+\);/);
 assert.match(appJs, /const visibleHarnessExecutedAtTokenLabel =\s+getHarnessExecutedAtTokenLabel\(visibleHarnessExecutedAtLabel\);/);
 assert.match(appJs, /const canRenderVisibleHarnessExecutedAtToken = Boolean\(visibleHarnessExecutedAtTokenLabel\);/);
+assert.match(appJs, /const visibleHarnessExecutedAtTokenTone = 'neutral';/);
 assert.match(appJs, /const visibleHarnessExecutedAtTokenMarkup = canRenderVisibleHarnessExecutedAtToken/);
-assert.match(appJs, /createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
+assert.match(appJs, /createToken\(visibleHarnessExecutedAtTokenLabel, visibleHarnessExecutedAtTokenTone\)/);
 assert.match(appJs, /\$\{visibleHarnessExecutedAtTokenMarkup\}/);
 assert.match(appJs, /const canRenderHiddenHarnessExecutedAtSummary = Boolean\(hiddenHarnessExecutedAtLabel\);/);
 assert.match(appJs, /const hiddenHarnessExecutedAtSummaryMarkup = canRenderHiddenHarnessExecutedAtSummary/);
@@ -42,6 +43,7 @@ assert.match(appJs, /\$\{hiddenHarnessExecutedAtSummaryMarkup\}/);
 assert.match(appJs, /data-harness-result-hidden-executed-at-summary="true">실행 시각: <code>\$\{escapeHtml\(hiddenHarnessExecutedAtLabel\)\}<\/code>/);
 assert.doesNotMatch(appJs, /escapeHtml\(formatDate\(hiddenHarnessExecutionResult\.executedAt\)\)/);
 assert.doesNotMatch(appJs, /createToken\(`실행:\$\{formatDate\(visibleHarnessExecutionResult\.executedAt\)\}`/);
+assert.doesNotMatch(appJs, /createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
 assert.doesNotMatch(appJs, /const visibleHarnessExecutedAtLabel = visibleHarnessExecutionResult\?\.executedAt/);
 assert.doesNotMatch(appJs, /const hiddenHarnessExecutedAtLabel = hiddenHarnessExecutionResult\?\.executedAt/);
 assert.doesNotMatch(appJs, /const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel\s+\?\s+`실행:\$\{visibleHarnessExecutedAtLabel\}`\s+:\s+'';/);
@@ -140,6 +142,7 @@ async function main() {
               'canRenderHiddenHarnessExecutedAtSummary',
               'hiddenHarnessExecutedAtSummaryMarkup',
               'visibleHarnessExecutedAtTokenLabel',
+              'visibleHarnessExecutedAtTokenTone',
               'visibleHarnessExecutedAtTokenMarkup',
               'canRenderVisibleHarnessExecutedAtToken',
             ],

@@ -41,6 +41,8 @@ assert.match(appJs, /const visibleHarnessPrimaryTokenLabel =\s+getHarnessPrimary
 assert.match(appJs, /const visibleHarnessRequestTokenLabel = getHarnessRequestTokenLabel\(visibleHarnessRequestId\);/);
 assert.match(appJs, /const canRenderVisibleHarnessPrimaryToken = Boolean\(visibleHarnessPrimaryTokenLabel\);/);
 assert.match(appJs, /const canRenderVisibleHarnessRequestToken = Boolean\(visibleHarnessRequestTokenLabel\);/);
+assert.match(appJs, /const visibleHarnessPrimaryTokenTone = 'neutral';/);
+assert.match(appJs, /const visibleHarnessRequestTokenTone = 'neutral';/);
 assert.match(appJs, /const visibleHarnessPrimaryTokenMarkup = canRenderVisibleHarnessPrimaryToken/);
 assert.match(appJs, /const visibleHarnessRequestTokenMarkup = canRenderVisibleHarnessRequestToken/);
 assert.match(appJs, /const canRenderVisibleHarnessRequestSummary = Boolean\(visibleHarnessRequestId\);/);
@@ -49,10 +51,11 @@ assert.match(appJs, /const visibleHarnessRequestSummaryMarkup = canRenderVisible
 assert.match(appJs, /const hiddenHarnessRequestSummaryMarkup = canRenderHiddenHarnessRequestSummary/);
 assert.match(appJs, /const visibleHarnessPolicyReportTokenLabel =\s+getHarnessPolicyReportTokenLabel\(visibleHarnessIsPolicyReport\);/);
 assert.match(appJs, /const canRenderVisibleHarnessPolicyReportToken = Boolean\(visibleHarnessPolicyReportTokenLabel\);/);
+assert.match(appJs, /const visibleHarnessPolicyReportTokenTone = 'neutral';/);
 assert.match(appJs, /const visibleHarnessPolicyReportTokenMarkup = canRenderVisibleHarnessPolicyReportToken/);
-assert.match(appJs, /createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/);
-assert.match(appJs, /createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/);
-assert.match(appJs, /createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/);
+assert.match(appJs, /createToken\(visibleHarnessPrimaryTokenLabel, visibleHarnessPrimaryTokenTone\)/);
+assert.match(appJs, /createToken\(visibleHarnessRequestTokenLabel, visibleHarnessRequestTokenTone\)/);
+assert.match(appJs, /createToken\(visibleHarnessPolicyReportTokenLabel, visibleHarnessPolicyReportTokenTone\)/);
 assert.match(appJs, /\$\{visibleHarnessPrimaryTokenMarkup\}/);
 assert.match(appJs, /\$\{visibleHarnessRequestTokenMarkup\}/);
 assert.match(appJs, /\$\{visibleHarnessPolicyReportTokenMarkup\}/);
@@ -61,6 +64,9 @@ assert.match(appJs, /\$\{hiddenHarnessRequestSummaryMarkup\}/);
 assert.doesNotMatch(appJs, /createToken\(`대표:\$\{visibleHarnessExecutionResult\.harnessId\}`/);
 assert.doesNotMatch(appJs, /createToken\(`요청:\$\{visibleHarnessRequestId\}`/);
 assert.doesNotMatch(appJs, /createToken\('정책 리포트', 'neutral'\)/);
+assert.doesNotMatch(appJs, /createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/);
+assert.doesNotMatch(appJs, /createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/);
+assert.doesNotMatch(appJs, /createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/);
 assert.doesNotMatch(appJs, /const visibleHarnessPrimaryTokenLabel = visibleHarnessExecutionResult\?\.harnessId/);
 assert.doesNotMatch(appJs, /const visibleHarnessRequestTokenLabel = visibleHarnessRequestId/);
 assert.doesNotMatch(appJs, /const visibleHarnessPolicyReportTokenLabel =\s+visibleHarnessIsPolicyReport \? '정책 리포트' : '';/);
@@ -171,7 +177,9 @@ async function main() {
             route: '/api/harness/operator-action/run',
             namedValues: [
               'visibleHarnessPrimaryTokenLabel',
+              'visibleHarnessPrimaryTokenTone',
               'visibleHarnessRequestTokenLabel',
+              'visibleHarnessRequestTokenTone',
               'getHarnessPrimaryTokenLabel',
               'getHarnessRequestTokenLabel',
               'canRenderVisibleHarnessPrimaryToken',
@@ -183,6 +191,7 @@ async function main() {
               'canRenderHiddenHarnessRequestSummary',
               'hiddenHarnessRequestSummaryMarkup',
               'visibleHarnessPolicyReportTokenLabel',
+              'visibleHarnessPolicyReportTokenTone',
               'getHarnessPolicyReportTokenLabel',
               'canRenderVisibleHarnessPolicyReportToken',
               'visibleHarnessPolicyReportTokenMarkup',
