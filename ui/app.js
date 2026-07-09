@@ -2399,6 +2399,14 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 historyHarnessOutputLabel,
                                 historyHarnessOutputSummaryValue,
                               );
+                              const historyHarnessSummaryRackMarkup = `
+                                ${historyHarnessRequestSummaryMarkup}
+                                ${historyHarnessExecutedAtSummaryMarkup}
+                                ${historyHarnessModeSummaryMarkup}
+                                ${historyHarnessHandoffSummaryMarkup}
+                                ${historyHarnessInputSummaryMarkup}
+                                ${historyHarnessOutputSummaryMarkup}
+                              `;
                               const historyHarnessExecutionPacketText =
                                 formatHarnessExecutionPacketForCopy(execution);
                               const historyHarnessPolicyReportCopyText =
@@ -2569,12 +2577,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
                                 <div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">
                                   <div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">
-                                    ${historyHarnessRequestSummaryMarkup}
-                                    ${historyHarnessExecutedAtSummaryMarkup}
-                                    ${historyHarnessModeSummaryMarkup}
-                                    ${historyHarnessHandoffSummaryMarkup}
-                                    ${historyHarnessInputSummaryMarkup}
-                                    ${historyHarnessOutputSummaryMarkup}
+                                    ${historyHarnessSummaryRackMarkup}
                                   </div>
                                   <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
                                     <div class="form-actions form-actions-inline form-actions-compact">
