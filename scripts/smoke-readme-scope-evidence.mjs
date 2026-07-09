@@ -122,6 +122,7 @@ assert.match(readme, /history preview action markup/);
 assert.match(readme, /history action shelf markup/);
 assert.match(readme, /history action shelf frame markup/);
 assert.match(readme, /history summary rack markup/);
+assert.match(readme, /history summary rack frame markup/);
 assert.match(readme, /history restore preview/);
 assert.match(readme, /execution packet copy/);
 assert.match(readme, /output-brief copy/);
@@ -160,6 +161,7 @@ assert.match(readme, /history preview action markup handoff/);
 assert.match(readme, /history action shelf markup handoff/);
 assert.match(readme, /history action shelf frame markup handoff/);
 assert.match(readme, /history summary rack markup handoff/);
+assert.match(readme, /history summary rack frame markup handoff/);
 assert.match(readme, /execution\s+packet copy fallback formatting/);
 assert.match(readme, /execution packet copy markup handoff/);
 assert.match(readme, /hidden action markup handoff/);
@@ -421,9 +423,18 @@ assert.match(
   /const historyHarnessSummaryRackMarkup = `\s+\$\{historyHarnessRequestSummaryMarkup\}\s+\$\{historyHarnessExecutedAtSummaryMarkup\}\s+\$\{historyHarnessModeSummaryMarkup\}\s+\$\{historyHarnessHandoffSummaryMarkup\}\s+\$\{historyHarnessInputSummaryMarkup\}\s+\$\{historyHarnessOutputSummaryMarkup\}/,
 );
 assert.match(appJs, /\$\{historyHarnessSummaryRackMarkup\}/);
+assert.match(
+  appJs,
+  /const historyHarnessSummaryRackFrameMarkup = `\s+<div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">\s+\$\{historyHarnessSummaryRackMarkup\}/,
+);
+assert.match(appJs, /\$\{historyHarnessSummaryRackFrameMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /data-harness-execution-history-summary-rack="true">\s+\$\{historyHarnessRequestSummaryMarkup\}\s+\$\{historyHarnessExecutedAtSummaryMarkup\}\s+\$\{historyHarnessModeSummaryMarkup\}/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-history-item="true">\s+<div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">/,
 );
 assert.match(appJs, /const historyHarnessPreviewCopyActionMarkup =\s+canRenderHistoryHarnessPreview/);
 assert.match(appJs, /const historyHarnessOutputBriefActionMarkup =\s+canRenderHistoryHarnessPreview/);

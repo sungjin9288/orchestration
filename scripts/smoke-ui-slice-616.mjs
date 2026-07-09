@@ -49,9 +49,18 @@ assert.match(appJs, /\$\{historyHarnessRequestSummaryMarkup\}/);
 assert.match(appJs, /\$\{historyHarnessExecutedAtSummaryMarkup\}/);
 assert.match(appJs, /\$\{historyHarnessModeSummaryMarkup\}/);
 assert.match(appJs, /\$\{historyHarnessSummaryRackMarkup\}/);
+assert.match(
+  appJs,
+  /const historyHarnessSummaryRackFrameMarkup = `\s+<div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">\s+\$\{historyHarnessSummaryRackMarkup\}/,
+);
+assert.match(appJs, /\$\{historyHarnessSummaryRackFrameMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /data-harness-execution-history-summary-rack="true">\s+\$\{historyHarnessRequestSummaryMarkup\}\s+\$\{historyHarnessExecutedAtSummaryMarkup\}\s+\$\{historyHarnessModeSummaryMarkup\}/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-history-item="true">\s+<div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">/,
 );
 assert.match(appJs, /data-harness-execution-history-item="true"/);
 assert.match(appJs, /data-harness-history-policy-report-copy="true"/);
@@ -78,6 +87,7 @@ console.log(
           'historyHarnessModeSummaryMarkup',
           'historyHarnessModeLabel',
           'historyHarnessSummaryRackMarkup',
+          'historyHarnessSummaryRackFrameMarkup',
         ],
         preserved: ['history policy-report copy', 'history packet copy'],
       },

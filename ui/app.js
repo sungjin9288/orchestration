@@ -2456,6 +2456,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 ${historyHarnessInputSummaryMarkup}
                                 ${historyHarnessOutputSummaryMarkup}
                               `;
+                              const historyHarnessSummaryRackFrameMarkup = `
+                                <div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">
+                                  ${historyHarnessSummaryRackMarkup}
+                                </div>
+                              `;
                               const historyHarnessExecutionPacketText =
                                 formatHarnessExecutionPacketForCopy(execution);
                               const historyHarnessPolicyReportCopyText =
@@ -2632,9 +2637,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
                                 <div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">
-                                  <div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">
-                                    ${historyHarnessSummaryRackMarkup}
-                                  </div>
+                                  ${historyHarnessSummaryRackFrameMarkup}
                                   ${historyHarnessActionShelfFrameMarkup}
                                 </div>
                               </div>
