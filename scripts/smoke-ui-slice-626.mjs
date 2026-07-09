@@ -25,11 +25,11 @@ assert.match(harnessExecutionTokens, /export function getHarnessResultStateToken
 assert.match(harnessExecutionTokens, /return \{\s+label: 'no-write',\s+tone: 'neutral',\s+\};/);
 assert.match(harnessExecutionTokens, /return \{\s+label: '완료',\s+tone: 'success',\s+\};/);
 assert.match(appJs, /const visibleHarnessResultStateToken =\s+getHarnessResultStateToken\(visibleHarnessIsPolicyReport\);/);
-assert.match(appJs, /const visibleHarnessResultStateLabel = visibleHarnessResultStateToken\.label;/);
-assert.match(appJs, /const visibleHarnessResultStateTone = visibleHarnessResultStateToken\.tone;/);
+assert.match(appJs, /const visibleHarnessResultStateTokenLabel = visibleHarnessResultStateToken\.label;/);
+assert.match(appJs, /const visibleHarnessResultStateTokenTone = visibleHarnessResultStateToken\.tone;/);
 assert.match(
   appJs,
-  /const visibleHarnessResultStateTokenMarkup = createToken\(\s+visibleHarnessResultStateLabel,\s+visibleHarnessResultStateTone,\s+\);/,
+  /const visibleHarnessResultStateTokenMarkup = createToken\(\s+visibleHarnessResultStateTokenLabel,\s+visibleHarnessResultStateTokenTone,\s+\);/,
 );
 assert.match(appJs, /\$\{visibleHarnessResultStateTokenMarkup\}/);
 assert.match(appJs, /const previewSummaryPendingMessage = '하네스 실행 미리보기를 요약하는 중…';/);
@@ -64,6 +64,7 @@ assert.doesNotMatch(appJs, /visibleHarnessPolicyReportFlag/);
 assert.doesNotMatch(appJs, /const visibleHarnessResultStateLabel =\s+visibleHarnessIsPolicyReport \? 'no-write' : '완료';/);
 assert.doesNotMatch(appJs, /const visibleHarnessResultStateTone =\s+visibleHarnessIsPolicyReport \? 'neutral' : 'success';/);
 assert.doesNotMatch(appJs, /\$\{createToken\(visibleHarnessResultStateLabel, visibleHarnessResultStateTone\)\}/);
+assert.doesNotMatch(appJs, /createToken\(\s+visibleHarnessResultStateLabel,\s+visibleHarnessResultStateTone,\s+\)/);
 assert.doesNotMatch(appJs, /숨긴 \$\{getHarnessExecutionModeLabel\(currentExecution\)\}를 다시 표시했습니다/);
 assert.doesNotMatch(appJs, /\$\{getHarnessExecutionModeLabel\(targetExecution\)\}를 다시 표시했습니다/);
 assert.doesNotMatch(appJs, /const executedAtLabel = execution\?\.executedAt \? formatDate\(execution\.executedAt\) : '최근 실행';/);
@@ -80,6 +81,12 @@ console.log(
         namedValues: ['visibleHarnessResultTitle', 'hiddenHarnessResultTitle'],
         stateTokenHelper: 'getHarnessResultStateToken',
         stateTokenMarkup: 'visibleHarnessResultStateTokenMarkup',
+        stateTokenNamedValues: [
+          'visibleHarnessResultStateToken',
+          'visibleHarnessResultStateTokenLabel',
+          'visibleHarnessResultStateTokenTone',
+          'visibleHarnessResultStateTokenMarkup',
+        ],
         namedMessages: [
           'currentExecutionDisplayStamp',
           'hideHarnessExecutionMessage',

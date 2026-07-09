@@ -97,6 +97,7 @@ assert.match(readme, /run action markup/);
 assert.match(readme, /visible preview markup/);
 assert.match(readme, /hidden preview markup/);
 assert.match(readme, /visible token markup/);
+assert.match(readme, /latest state token label\/tone markup/);
 assert.match(readme, /hidden state token label\/tone markup/);
 assert.match(readme, /history count token label\/tone markup/);
 assert.match(readme, /output path copy/);
@@ -111,6 +112,8 @@ assert.match(readme, /node scripts\/smoke-ui-slice-305\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-306\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-310\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-375\.mjs/);
+assert.match(readme, /node scripts\/smoke-ui-slice-381\.mjs/);
+assert.match(readme, /latest state token label\/tone markup handoff/);
 assert.match(readme, /visible preview markup handoff/);
 assert.match(readme, /history count token label\/tone markup handoff/);
 assert.match(readme, /history input path copy markup handoff/);
@@ -318,6 +321,15 @@ assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessOutputPathCopy\s+\?\s+
 assert.match(appJs, /const visibleHarnessHideActionMarkup = `/);
 assert.match(appJs, /\$\{visibleHarnessHideActionMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{visibleHarnessPolicyReportCopyMarkup\}\s+<button[\s\S]*?data-action="hide-harness-execution-result"/);
+assert.match(appJs, /const visibleHarnessResultStateToken =\s+getHarnessResultStateToken\(visibleHarnessIsPolicyReport\);/);
+assert.match(appJs, /const visibleHarnessResultStateTokenLabel = visibleHarnessResultStateToken\.label;/);
+assert.match(appJs, /const visibleHarnessResultStateTokenTone = visibleHarnessResultStateToken\.tone;/);
+assert.match(
+  appJs,
+  /const visibleHarnessResultStateTokenMarkup = createToken\(\s+visibleHarnessResultStateTokenLabel,\s+visibleHarnessResultStateTokenTone,\s+\);/,
+);
+assert.match(appJs, /\$\{visibleHarnessResultStateTokenMarkup\}/);
+assert.doesNotMatch(appJs, /createToken\(\s+visibleHarnessResultStateLabel,\s+visibleHarnessResultStateTone,\s+\)/);
 assert.match(appJs, /const historyHarnessInputPathCopyMarkup =\s+canRenderHistoryHarnessInputPathCopy/);
 assert.match(appJs, /\$\{historyHarnessInputPathCopyMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderHistoryHarnessInputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);

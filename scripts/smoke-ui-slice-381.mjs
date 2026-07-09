@@ -26,11 +26,15 @@ assert.match(
 );
 assert.match(
   appJs,
-  /const visibleHarnessResultStateTokenMarkup = createToken\(\s+visibleHarnessResultStateLabel,\s+visibleHarnessResultStateTone,\s+\);/,
+  /const visibleHarnessResultStateTokenMarkup = createToken\(\s+visibleHarnessResultStateTokenLabel,\s+visibleHarnessResultStateTokenTone,\s+\);/,
 );
 assert.doesNotMatch(
   appJs,
   /\$\{createToken\(visibleHarnessResultStateLabel, visibleHarnessResultStateTone\)\}/,
+);
+assert.doesNotMatch(
+  appJs,
+  /createToken\(\s+visibleHarnessResultStateLabel,\s+visibleHarnessResultStateTone,\s+\)/,
 );
 
 async function fetchJson(url, options = {}) {
@@ -117,6 +121,12 @@ async function main() {
           harnessExecutionVisibleHeaderTokenWording: {
             insertionPoint: 'executionResultRegister->visibleHeaderTokenWording->tokenLabel',
             tokenLabel: '완료',
+            namedValues: [
+              'visibleHarnessResultStateToken',
+              'visibleHarnessResultStateTokenLabel',
+              'visibleHarnessResultStateTokenTone',
+              'visibleHarnessResultStateTokenMarkup',
+            ],
             stateTokenMarkup: 'visibleHarnessResultStateTokenMarkup',
             route: '/api/harness/operator-action/run',
           },

@@ -1663,11 +1663,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     : '';
   const visibleHarnessResultStateToken =
     getHarnessResultStateToken(visibleHarnessIsPolicyReport);
-  const visibleHarnessResultStateLabel = visibleHarnessResultStateToken.label;
-  const visibleHarnessResultStateTone = visibleHarnessResultStateToken.tone;
+  const visibleHarnessResultStateTokenLabel = visibleHarnessResultStateToken.label;
+  const visibleHarnessResultStateTokenTone = visibleHarnessResultStateToken.tone;
   const visibleHarnessResultStateTokenMarkup = createToken(
-    visibleHarnessResultStateLabel,
-    visibleHarnessResultStateTone,
+    visibleHarnessResultStateTokenLabel,
+    visibleHarnessResultStateTokenTone,
   );
   const hiddenHarnessResultStateLabel = '숨김';
   const hiddenHarnessResultStateTone = 'neutral';
