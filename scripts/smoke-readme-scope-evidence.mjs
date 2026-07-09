@@ -97,7 +97,7 @@ assert.match(readme, /run action markup/);
 assert.match(readme, /visible preview markup/);
 assert.match(readme, /hidden preview markup/);
 assert.match(readme, /visible token markup/);
-assert.match(readme, /hidden state token markup/);
+assert.match(readme, /hidden state token label\/tone markup/);
 assert.match(readme, /output path copy/);
 assert.match(readme, /history input path copy/);
 assert.match(readme, /history path reuse/);
@@ -321,9 +321,15 @@ assert.doesNotMatch(appJs, /\$\{\s*canRenderHistoryHarnessInputPathCopy\s+\?\s+`
 assert.match(appJs, /const historyHarnessRestorePreviewMarkup = `\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/);
 assert.match(appJs, /\$\{historyHarnessRestorePreviewMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{historyHarnessInputPathCopyMarkup\}\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/);
-assert.match(appJs, /const hiddenHarnessResultStateTokenMarkup = createToken\('숨김', 'neutral'\);/);
+assert.match(appJs, /const hiddenHarnessResultStateLabel = '숨김';/);
+assert.match(appJs, /const hiddenHarnessResultStateTone = 'neutral';/);
+assert.match(
+  appJs,
+  /const hiddenHarnessResultStateTokenMarkup = createToken\(\s+hiddenHarnessResultStateLabel,\s+hiddenHarnessResultStateTone,\s+\);/,
+);
 assert.match(appJs, /\$\{hiddenHarnessResultStateTokenMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{createToken\('숨김', 'neutral'\)\}/);
+assert.doesNotMatch(appJs, /const hiddenHarnessResultStateTokenMarkup = createToken\('숨김', 'neutral'\);/);
 assert.match(appJs, /data-personalization-scope="local-only"/);
 assert.match(growthPanels, /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/);
 assert.match(growthPanels, /data-proposal-record-persistence-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordPersistenceAllowed\}"/);

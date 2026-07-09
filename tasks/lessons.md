@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness hidden result state tokens should name the fixed label and tone before creating token markup. Keep `숨김/neutral` wording unchanged, but avoid calling `createToken('숨김', 'neutral')` directly in `ui/app.js`; when README names this lane, pin the label/tone handoff in `scripts/smoke-readme-scope-evidence.mjs`.
+
 - Harness run form action shelf buttons should consume named markup once the command, history, loading, and mutating state are selected. Keep command copy, clear-history, policy-report preview, and submit actions in the same order, but avoid building those buttons directly inside the run form action shelf; when README names this lane, pin the claim to the focused run-form smokes and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.
 
 - Harness visible result hide buttons should consume named markup once the hide label and execution key are selected. Keep `hide-harness-execution-result`, `data-execution-key`, and `data-harness-result-hide` unchanged, but avoid building the hide button directly inside the latest result action shelf; when README names this lane, pin the public claim to focused visibility smokes and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.

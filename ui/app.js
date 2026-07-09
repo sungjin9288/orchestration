@@ -1669,7 +1669,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessResultStateLabel,
     visibleHarnessResultStateTone,
   );
-  const hiddenHarnessResultStateTokenMarkup = createToken('숨김', 'neutral');
+  const hiddenHarnessResultStateLabel = '숨김';
+  const hiddenHarnessResultStateTone = 'neutral';
+  const hiddenHarnessResultStateTokenMarkup = createToken(
+    hiddenHarnessResultStateLabel,
+    hiddenHarnessResultStateTone,
+  );
   const visibleHarnessUsesOutputFile = Boolean(visibleHarnessExecutionResult?.outputPath);
   const visibleHarnessOutputChannelToken =
     getHarnessOutputChannelToken(visibleHarnessUsesOutputFile);
