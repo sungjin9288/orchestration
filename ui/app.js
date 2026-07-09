@@ -187,6 +187,7 @@ import {
 } from './harness-brief-labels.js';
 import {
   getHarnessExecutedAtTokenLabel,
+  getHarnessExecutionActionOutputPath,
   getHarnessExecutionRequestId,
   getHarnessExecutionPreviewText,
   getHarnessExecutionTimestampLabel,
@@ -1576,9 +1577,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const canRenderHiddenHarnessInputPathActions = Boolean(hiddenHarnessInputPath);
   const canRenderHiddenHarnessOutputPathCopy = Boolean(hiddenHarnessOutputPath);
   const visibleHarnessActionOutputPath =
-    visibleHarnessExecutionResult?.resolvedOutputPath || visibleHarnessExecutionResult?.outputPath || '';
+    getHarnessExecutionActionOutputPath(visibleHarnessExecutionResult);
   const hiddenHarnessActionOutputPath =
-    hiddenHarnessExecutionResult?.resolvedOutputPath || hiddenHarnessExecutionResult?.outputPath || '';
+    getHarnessExecutionActionOutputPath(hiddenHarnessExecutionResult);
   const visibleHarnessOutputLabel = getHarnessExecutionOutputLabel(visibleHarnessExecutionResult);
   const hiddenHarnessOutputLabel = getHarnessExecutionOutputLabel(hiddenHarnessExecutionResult);
   const visibleHarnessOutputSummaryValue =

@@ -48,6 +48,10 @@ export function getHarnessHistoryOutputPath(execution) {
   return execution?.outputPath || execution?.resolvedOutputPath || '';
 }
 
+export function getHarnessExecutionActionOutputPath(execution) {
+  return execution?.resolvedOutputPath || execution?.outputPath || '';
+}
+
 export function getHarnessPolicyReportTokenLabel(isPolicyReport) {
   return isPolicyReport ? '정책 리포트' : '';
 }

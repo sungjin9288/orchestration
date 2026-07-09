@@ -14,11 +14,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-317');
 const port = 4618;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 
 assert.match(appJs, /data-action="reuse-harness-execution-paths"/);
 assert.match(appJs, /data-harness-result-reuse="true"/);
@@ -28,13 +30,21 @@ assert.match(appJs, /state\.harnessExecutionDraftOutputPath = outputPath;/);
 assert.match(appJs, /const reusePathsMessage = `최근 실행 경로를 폼에 다시 채웠습니다: \$\{inputPath\}`;/);
 assert.match(appJs, /elements\.refreshStatus\.textContent = reusePathsMessage;/);
 assert.match(appJs, /const visibleHarnessInputPath = visibleHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
+assert.match(harnessExecutionTokens, /export function getHarnessExecutionActionOutputPath\(execution\) \{/);
+assert.match(harnessExecutionTokens, /return execution\?\.resolvedOutputPath \|\| execution\?\.outputPath \|\| '';/);
+assert.match(
+  appJs,
+  /const visibleHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(visibleHarnessExecutionResult\);/,
+);
 assert.match(appJs, /const canRenderVisibleHarnessInputPathActions = Boolean\(visibleHarnessInputPath\);/);
 assert.match(appJs, /const visibleHarnessInputPathActionsMarkup = canRenderVisibleHarnessInputPathActions/);
 assert.match(appJs, /canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
 assert.match(appJs, /\$\{visibleHarnessInputPathActionsMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
+assert.doesNotMatch(appJs, /const visibleHarnessActionOutputPath =\s+visibleHarnessExecutionResult\?\.resolvedOutputPath \|\| visibleHarnessExecutionResult\?\.outputPath \|\| '';/);
 assert.match(appJs, /data-input-path="\$\{escapeHtml\(visibleHarnessInputPath\)\}"/);
+assert.match(appJs, /data-output-path="\$\{escapeHtml\(visibleHarnessActionOutputPath\)\}"/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

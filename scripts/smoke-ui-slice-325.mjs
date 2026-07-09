@@ -14,11 +14,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessExecutionTokensPath = path.join(repoRoot, 'ui', 'harness-execution-tokens.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-325');
 const port = 4626;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessExecutionTokens = fs.readFileSync(harnessExecutionTokensPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-reuse="true"/);
 assert.match(appJs, /data-action="reuse-harness-execution-paths"/);
@@ -29,7 +31,12 @@ assert.match(appJs, /canRenderHiddenHarnessInputPathActions\s+\?\s+`\s+<button[\
 assert.match(appJs, /\$\{hiddenHarnessInputPathActionsMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderHiddenHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
-assert.match(appJs, /const hiddenHarnessActionOutputPath =\s+hiddenHarnessExecutionResult\?\.resolvedOutputPath \|\| hiddenHarnessExecutionResult\?\.outputPath \|\| '';/);
+assert.match(harnessExecutionTokens, /export function getHarnessExecutionActionOutputPath\(execution\) \{/);
+assert.match(
+  appJs,
+  /const hiddenHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(hiddenHarnessExecutionResult\);/,
+);
+assert.doesNotMatch(appJs, /const hiddenHarnessActionOutputPath =\s+hiddenHarnessExecutionResult\?\.resolvedOutputPath \|\| hiddenHarnessExecutionResult\?\.outputPath \|\| '';/);
 assert.match(
   appJs,
   /data-output-path="\$\{escapeHtml\(hiddenHarnessActionOutputPath\)\}"/,
