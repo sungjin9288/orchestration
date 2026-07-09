@@ -26,8 +26,13 @@ assert.match(appJs, /data-action="show-harness-execution-result"/);
 assert.match(appJs, /data-harness-result-show="true"/);
 assert.match(appJs, /const hiddenHarnessShowActionMarkup = `/);
 assert.match(appJs, /const hiddenHarnessActionShelfMarkup = `\s+\$\{hiddenHarnessShowActionMarkup\}/);
+assert.match(
+  appJs,
+  /const hiddenHarnessActionShelfFrameMarkup = `\s+<div class="form-actions form-actions-inline form-actions-hidden-compact">\s+\$\{hiddenHarnessActionShelfMarkup\}/,
+);
 assert.match(appJs, /\$\{hiddenHarnessShowActionMarkup\}/);
 assert.match(appJs, /\$\{hiddenHarnessActionShelfMarkup\}/);
+assert.match(appJs, /\$\{hiddenHarnessActionShelfFrameMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /\$\{hiddenHarnessInputPathActionsMarkup\}[\s\S]*?<button[\s\S]*?data-action="show-harness-execution-result"/,
@@ -35,6 +40,10 @@ assert.doesNotMatch(
 assert.doesNotMatch(
   appJs,
   /form-actions-hidden-compact">\s+\$\{hiddenHarnessShowActionMarkup\}\s+\$\{hiddenHarnessInputPathActionsMarkup\}/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-hidden-packet="true"[\s\S]{0,520}<div class="form-actions form-actions-inline form-actions-hidden-compact">\s+\$\{hiddenHarnessActionShelfMarkup\}/,
 );
 assert.match(appJs, /function showHarnessExecutionResult\(actionButton, statusPayload\)/);
 assert.match(appJs, /state\.hiddenHarnessExecutionResultKey = null;/);
@@ -130,7 +139,11 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->showExecutionResultAction->latestExecutionResultRegister',
             derivedKey: 'latestHarnessExecution',
             sourceMarker: 'data-harness-result-show',
-            namedValues: ['hiddenHarnessShowActionMarkup', 'hiddenHarnessActionShelfMarkup'],
+            namedValues: [
+              'hiddenHarnessShowActionMarkup',
+              'hiddenHarnessActionShelfMarkup',
+              'hiddenHarnessActionShelfFrameMarkup',
+            ],
             latestHarnessId: latestHarnessExecution.harnessId,
             resolvedInputPath: inputPath,
             resolvedOutputPath: outputPath,

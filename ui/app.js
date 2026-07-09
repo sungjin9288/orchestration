@@ -2141,6 +2141,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ${hiddenHarnessPolicyReportCopyMarkup}
     ${hiddenHarnessPreviewActionsMarkup}
   `;
+  const hiddenHarnessActionShelfFrameMarkup = `
+    <div class="form-actions form-actions-inline form-actions-hidden-compact">
+      ${hiddenHarnessActionShelfMarkup}
+    </div>
+  `;
   const visibleHarnessOutputBriefCopyText = formatHarnessOutputBriefForCopy(
     visibleHarnessOutputBrief,
     visibleHarnessExecutionResult,
@@ -2389,9 +2394,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     >
                     ${hiddenHarnessHeaderMarkup}
                     ${hiddenHarnessContextSectionsMarkup}
-                    <div class="form-actions form-actions-inline form-actions-hidden-compact">
-                      ${hiddenHarnessActionShelfMarkup}
-                    </div>
+                    ${hiddenHarnessActionShelfFrameMarkup}
                     ${hiddenHarnessPreviewMarkup}
                     </div>
                   </section>
