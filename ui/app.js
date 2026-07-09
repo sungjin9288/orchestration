@@ -1781,6 +1781,41 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       </button>
     `
     : '';
+  const hiddenHarnessInputPathActionsMarkup = canRenderHiddenHarnessInputPathActions
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-input-path"
+        data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
+        data-harness-result-hidden-input-copy="true"
+      >
+        입력 경로
+      </button>
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="reuse-harness-execution-paths"
+        data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
+        data-output-path="${escapeHtml(hiddenHarnessActionOutputPath)}"
+        data-harness-result-hidden-reuse="true"
+      >
+        경로 채우기
+      </button>
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="rerun-harness-execution-paths"
+        data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
+        data-output-path="${escapeHtml(hiddenHarnessActionOutputPath)}"
+        data-policy-report="${hiddenHarnessPolicyReportDataValue}"
+        data-harness-result-hidden-rerun="true"
+        ${state.loading || state.mutating ? 'disabled' : ''}
+      >
+        ${escapeHtml(hiddenHarnessRerunActionLabel)}
+      </button>
+    `
+    : '';
   const visibleHarnessHideActionLabel = getHarnessExecutionHideActionLabel(visibleHarnessExecutionResult);
   const hiddenHarnessShowActionLabel = getHarnessExecutionShowActionLabel(hiddenHarnessExecutionResult);
   const canCopyVisibleHarnessExecutionPacket = Boolean(visibleHarnessExecutionResult);
@@ -2138,43 +2173,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       >
                         ${escapeHtml(hiddenHarnessShowActionLabel)}
                       </button>
-                      ${
-                        canRenderHiddenHarnessInputPathActions
-                          ? `
-                            <button
-                              class="secondary-button"
-                              type="button"
-                              data-action="copy-harness-input-path"
-                              data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
-                              data-harness-result-hidden-input-copy="true"
-                            >
-                              입력 경로
-                            </button>
-                            <button
-                              class="secondary-button"
-                              type="button"
-                              data-action="reuse-harness-execution-paths"
-                              data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
-                              data-output-path="${escapeHtml(hiddenHarnessActionOutputPath)}"
-                              data-harness-result-hidden-reuse="true"
-                            >
-                              경로 채우기
-                            </button>
-                            <button
-                              class="secondary-button"
-                              type="button"
-                              data-action="rerun-harness-execution-paths"
-                              data-input-path="${escapeHtml(hiddenHarnessInputPath)}"
-                              data-output-path="${escapeHtml(hiddenHarnessActionOutputPath)}"
-                              data-policy-report="${hiddenHarnessPolicyReportDataValue}"
-                              data-harness-result-hidden-rerun="true"
-                              ${state.loading || state.mutating ? 'disabled' : ''}
-                            >
-                              ${escapeHtml(hiddenHarnessRerunActionLabel)}
-                            </button>
-                          `
-                          : ''
-                      }
+                      ${hiddenHarnessInputPathActionsMarkup}
                       ${
                         canRenderHiddenHarnessOutputPathCopy
                           ? `

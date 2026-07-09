@@ -24,7 +24,10 @@ assert.match(appJs, /data-harness-result-hidden-input-copy="true"/);
 assert.match(appJs, /data-action="copy-harness-input-path"/);
 assert.match(appJs, /const hiddenHarnessInputPath = hiddenHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
 assert.match(appJs, /const canRenderHiddenHarnessInputPathActions = Boolean\(hiddenHarnessInputPath\);/);
+assert.match(appJs, /const hiddenHarnessInputPathActionsMarkup = canRenderHiddenHarnessInputPathActions/);
 assert.match(appJs, /canRenderHiddenHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
+assert.match(appJs, /\$\{hiddenHarnessInputPathActionsMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderHiddenHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
 assert.match(appJs, /data-input-path="\$\{escapeHtml\(hiddenHarnessInputPath\)\}"/);
 
@@ -112,7 +115,7 @@ async function main() {
           harnessExecutionHiddenInputCopy: {
             insertionPoint: 'hiddenExecutionResultRegister->copyHiddenInputPathAction->localClipboardOrStatus',
             sourceMarker: 'data-harness-result-hidden-input-copy',
-            namedValues: ['canRenderHiddenHarnessInputPathActions'],
+            namedValues: ['canRenderHiddenHarnessInputPathActions', 'hiddenHarnessInputPathActionsMarkup'],
             route: '/api/harness/operator-action/run',
             resolvedInputPath: latestHarnessExecution.resolvedInputPath,
           },
