@@ -113,6 +113,7 @@ assert.match(readme, /hidden operator context summary markup/);
 assert.match(readme, /visible token label\/tone markup/);
 assert.match(readme, /latest state token label\/tone markup/);
 assert.match(readme, /hidden state token label\/tone markup/);
+assert.match(readme, /history header markup/);
 assert.match(readme, /history count token label\/tone markup/);
 assert.match(readme, /output path copy/);
 assert.match(readme, /history input path copy/);
@@ -150,6 +151,7 @@ assert.match(readme, /hidden context sections markup handoff/);
 assert.match(readme, /hidden run context summary markup handoff/);
 assert.match(readme, /hidden harness context summary markup handoff/);
 assert.match(readme, /hidden operator context summary markup handoff/);
+assert.match(readme, /history header markup handoff/);
 assert.match(readme, /history count token label\/tone markup handoff/);
 assert.match(readme, /history input path copy markup handoff/);
 assert.match(readme, /history path reuse\/rerun action markup handoff/);
@@ -571,6 +573,18 @@ assert.match(
   /const recentHarnessExecutionCountTokenMarkup = recentHarnessExecutionCount\s+\? createToken\(\s+recentHarnessExecutionCountTokenLabel,\s+recentHarnessExecutionCountTokenTone,\s+\)\s+: '';/,
 );
 assert.match(appJs, /\$\{recentHarnessExecutionCountTokenMarkup\}/);
+assert.match(
+  appJs,
+  /const historyHarnessHeaderMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>실행 기록<\/strong>\s+\$\{recentHarnessExecutionCountTokenMarkup\}/,
+);
+assert.match(
+  appJs,
+  /data-harness-execution-history-packet="true">\s+\$\{historyHarnessHeaderMarkup\}\s+<div class="stack harness-execution-history-list-compact"/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-history-packet="true">\s+<div class="card-title-row card-title-row-tight">\s+<strong>실행 기록<\/strong>/,
+);
 assert.doesNotMatch(appJs, /createToken\(`\$\{recentHarnessExecutionCount\}건`, 'neutral'\)/);
 assert.match(appJs, /data-personalization-scope="local-only"/);
 assert.match(growthPanels, /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/);

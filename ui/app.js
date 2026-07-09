@@ -2221,6 +2221,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
         recentHarnessExecutionCountTokenTone,
       )
     : '';
+  const historyHarnessHeaderMarkup = `
+    <div class="card-title-row card-title-row-tight">
+      <strong>실행 기록</strong>
+      ${recentHarnessExecutionCountTokenMarkup}
+    </div>
+  `;
   const hasExecutionHistory = hasHarnessExecutionHistory(
     harnessExecutionResult,
     recentHarnessExecutions,
@@ -2398,10 +2404,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                 ? `
                   <section class="relation-strip relation-strip-compact" data-harness-execution-history="true">
                     <div class="harness-execution-history-packet" data-harness-execution-history-packet="true">
-                      <div class="card-title-row card-title-row-tight">
-                        <strong>실행 기록</strong>
-                        ${recentHarnessExecutionCountTokenMarkup}
-                      </div>
+                      ${historyHarnessHeaderMarkup}
                       <div class="stack harness-execution-history-list-compact" data-harness-execution-history-list="true">
                         ${recentHarnessExecutions
                           .map(

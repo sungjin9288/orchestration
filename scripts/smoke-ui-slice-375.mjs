@@ -22,7 +22,7 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(
   appJs,
-  /<section class="relation-strip relation-strip-compact" data-harness-execution-history="true">[\s\S]*?<strong>실행 기록<\/strong>/s,
+  /const historyHarnessHeaderMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>실행 기록<\/strong>\s+\$\{recentHarnessExecutionCountTokenMarkup\}/,
 );
 assert.match(appJs, /const recentHarnessExecutionCount = recentHarnessExecutions\.length;/);
 assert.match(appJs, /const recentHarnessExecutionCountTokenLabel = `\$\{recentHarnessExecutionCount\}건`;/);
@@ -32,8 +32,16 @@ assert.match(
   /const recentHarnessExecutionCountTokenMarkup = recentHarnessExecutionCount\s+\? createToken\(\s+recentHarnessExecutionCountTokenLabel,\s+recentHarnessExecutionCountTokenTone,\s+\)\s+: '';/,
 );
 assert.match(appJs, /\$\{recentHarnessExecutionCountTokenMarkup\}/);
+assert.match(
+  appJs,
+  /data-harness-execution-history-packet="true">\s+\$\{historyHarnessHeaderMarkup\}\s+<div class="stack harness-execution-history-list-compact"/,
+);
 assert.doesNotMatch(appJs, /\$\{createToken\(`\$\{recentHarnessExecutions\.length\}건`, 'neutral'\)\}/);
 assert.doesNotMatch(appJs, /createToken\(`\$\{recentHarnessExecutionCount\}건`, 'neutral'\)/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-history-packet="true">\s+<div class="card-title-row card-title-row-tight">\s+<strong>실행 기록<\/strong>/,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -125,6 +133,7 @@ async function main() {
               'recentHarnessExecutionCountTokenLabel',
               'recentHarnessExecutionCountTokenTone',
               'recentHarnessExecutionCountTokenMarkup',
+              'historyHarnessHeaderMarkup',
             ],
             route: '/api/harness/operator-action/run',
           },
