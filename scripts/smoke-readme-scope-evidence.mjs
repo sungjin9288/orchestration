@@ -110,6 +110,7 @@ assert.match(readme, /history input path copy markup handoff/);
 assert.match(readme, /history path action markup handoff/);
 assert.match(readme, /execution\s+packet copy fallback formatting/);
 assert.match(readme, /execution packet copy markup handoff/);
+assert.match(readme, /hidden action markup handoff/);
 assert.match(readme, /output path copy label\/status handoff/);
 assert.match(readme, /output-brief copy labels\/payload titles/);
 assert.match(readme, /policy-report copy fallback\s+formatting/);

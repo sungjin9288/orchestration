@@ -1744,6 +1744,20 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       </button>
     `
     : '';
+  const hiddenHarnessOutputPathCopyMarkup = canRenderHiddenHarnessOutputPathCopy
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-output-path"
+        data-output-path="${escapeHtml(hiddenHarnessOutputPath)}"
+        data-output-path-label="${escapeHtml(hiddenHarnessOutputPathActionLabel)}"
+        data-harness-result-hidden-output-copy="true"
+      >
+        ${escapeHtml(hiddenHarnessOutputPathActionLabel)}
+      </button>
+    `
+    : '';
   const visibleHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(visibleHarnessExecutionResult);
   const hiddenHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(hiddenHarnessExecutionResult);
   const visibleHarnessInputPathActionsMarkup = canRenderVisibleHarnessInputPathActions
@@ -1818,6 +1832,17 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     : '';
   const visibleHarnessHideActionLabel = getHarnessExecutionHideActionLabel(visibleHarnessExecutionResult);
   const hiddenHarnessShowActionLabel = getHarnessExecutionShowActionLabel(hiddenHarnessExecutionResult);
+  const hiddenHarnessShowActionMarkup = `
+    <button
+      class="secondary-button"
+      type="button"
+      data-action="show-harness-execution-result"
+      data-execution-key="${escapeHtml(hiddenHarnessExecutionKey || '')}"
+      data-harness-result-show="true"
+    >
+      ${escapeHtml(hiddenHarnessShowActionLabel)}
+    </button>
+  `;
   const canCopyVisibleHarnessExecutionPacket = Boolean(visibleHarnessExecutionResult);
   const canCopyHiddenHarnessExecutionPacket = Boolean(hiddenHarnessExecutionResult);
   const visibleHarnessExecutionPacketText =
@@ -1850,10 +1875,36 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       </button>
     `
     : '';
+  const hiddenHarnessRequestIdCopyMarkup = canRenderHiddenHarnessRequestIdCopy
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-request-id"
+        data-request-id="${escapeHtml(hiddenHarnessRequestId)}"
+        data-harness-result-hidden-request-id-copy="true"
+      >
+        요청 ID
+      </button>
+    `
+    : '';
   const hiddenHarnessPolicyReportPayload = getHarnessPolicyReportPayload(hiddenHarnessExecutionResult);
   const canRenderHiddenHarnessPolicyReportCopy = Boolean(hiddenHarnessPolicyReportPayload);
   const hiddenHarnessPolicyReportCopyText =
     formatHarnessPolicyReportForCopy(hiddenHarnessPolicyReportPayload);
+  const hiddenHarnessPolicyReportCopyMarkup = canRenderHiddenHarnessPolicyReportCopy
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-policy-report"
+        data-policy-report-text="${escapeHtml(hiddenHarnessPolicyReportCopyText)}"
+        data-harness-result-hidden-policy-report-copy="true"
+      >
+        리포트 복사
+      </button>
+    `
+    : '';
   const visibleHarnessPreviewText =
     getHarnessExecutionPreviewText(visibleHarnessExecutionResult);
   const hiddenHarnessPreviewText =
@@ -1894,6 +1945,31 @@ function renderHarnessExecutionActionShelf(statusPayload) {
         ${state.loading || state.mutating ? 'disabled' : ''}
       >
         ${escapeHtml(visibleHarnessBriefActionLabel)}
+      </button>
+    `
+    : '';
+  const hiddenHarnessPreviewActionsMarkup = canRenderHiddenHarnessPreview
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-execution-preview"
+        data-preview-text="${escapeHtml(hiddenHarnessPreviewText)}"
+        data-harness-result-hidden-preview-copy="true"
+      >
+        미리보기
+      </button>
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="summarize-harness-execution-preview"
+        data-execution-key="${escapeHtml(hiddenHarnessExecutionKey || '')}"
+        data-hidden-execution-key="${escapeHtml(hiddenHarnessExecutionKey || '')}"
+        data-preview-text="${escapeHtml(hiddenHarnessPreviewText)}"
+        data-harness-result-hidden-output-brief="true"
+        ${state.loading || state.mutating ? 'disabled' : ''}
+      >
+        ${escapeHtml(hiddenHarnessBriefActionLabel)}
       </button>
     `
     : '';
@@ -2182,90 +2258,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       ${hiddenHarnessOperatorMessageSummaryMarkup}
                     </section>
                     <div class="form-actions form-actions-inline form-actions-hidden-compact">
-                      <button
-                        class="secondary-button"
-                        type="button"
-                        data-action="show-harness-execution-result"
-                        data-execution-key="${escapeHtml(hiddenHarnessExecutionKey || '')}"
-                        data-harness-result-show="true"
-                      >
-                        ${escapeHtml(hiddenHarnessShowActionLabel)}
-                      </button>
+                      ${hiddenHarnessShowActionMarkup}
                       ${hiddenHarnessInputPathActionsMarkup}
-                      ${
-                        canRenderHiddenHarnessOutputPathCopy
-                          ? `
-                            <button
-                              class="secondary-button"
-                              type="button"
-                              data-action="copy-harness-output-path"
-                              data-output-path="${escapeHtml(hiddenHarnessOutputPath)}"
-                              data-output-path-label="${escapeHtml(hiddenHarnessOutputPathActionLabel)}"
-                              data-harness-result-hidden-output-copy="true"
-                            >
-                              ${escapeHtml(hiddenHarnessOutputPathActionLabel)}
-                            </button>
-                          `
-                          : ''
-                      }
-                      ${
-                        canRenderHiddenHarnessRequestIdCopy
-                          ? `
-                            <button
-                              class="secondary-button"
-                              type="button"
-                              data-action="copy-harness-request-id"
-                              data-request-id="${escapeHtml(hiddenHarnessRequestId)}"
-                              data-harness-result-hidden-request-id-copy="true"
-                            >
-                              요청 ID
-                            </button>
-                          `
-                          : ''
-                      }
+                      ${hiddenHarnessOutputPathCopyMarkup}
+                      ${hiddenHarnessRequestIdCopyMarkup}
                       ${hiddenHarnessExecutionPacketCopyMarkup}
-                      ${
-                        canRenderHiddenHarnessPolicyReportCopy
-                          ? `
-                            <button
-                              class="secondary-button"
-                              type="button"
-                              data-action="copy-harness-policy-report"
-                              data-policy-report-text="${escapeHtml(hiddenHarnessPolicyReportCopyText)}"
-                              data-harness-result-hidden-policy-report-copy="true"
-                            >
-                              리포트 복사
-                            </button>
-                          `
-                          : ''
-                      }
-                      ${
-                        canRenderHiddenHarnessPreview
-                          ? `
-                            <button
-                              class="secondary-button"
-                              type="button"
-                              data-action="copy-harness-execution-preview"
-                              data-preview-text="${escapeHtml(hiddenHarnessPreviewText)}"
-                              data-harness-result-hidden-preview-copy="true"
-                            >
-                              미리보기
-                            </button>
-                            <button
-                              class="secondary-button"
-                              type="button"
-                              data-action="summarize-harness-execution-preview"
-                              data-execution-key="${escapeHtml(hiddenHarnessExecutionKey || '')}"
-                              data-hidden-execution-key="${escapeHtml(hiddenHarnessExecutionKey || '')}"
-                              data-preview-text="${escapeHtml(hiddenHarnessPreviewText)}"
-                              data-harness-result-hidden-output-brief="true"
-                              ${state.loading || state.mutating ? 'disabled' : ''}
-                            >
-                              ${escapeHtml(hiddenHarnessBriefActionLabel)}
-                            </button>
-                          `
-                          : ''
-                      }
+                      ${hiddenHarnessPolicyReportCopyMarkup}
+                      ${hiddenHarnessPreviewActionsMarkup}
                     </div>
                     ${hiddenHarnessPreviewMarkup}
                     </div>

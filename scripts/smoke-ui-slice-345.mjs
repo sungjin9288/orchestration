@@ -24,9 +24,15 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-show="true"/);
+assert.match(appJs, /const hiddenHarnessShowActionMarkup = `/);
+assert.match(appJs, /\$\{hiddenHarnessShowActionMarkup\}/);
 assert.match(
   appJs,
   /data-harness-result-show="true"[\s\S]*?>\s*\$\{escapeHtml\(hiddenHarnessShowActionLabel\)\}\s*<\/button>/,
+);
+assert.doesNotMatch(
+  appJs,
+  /\$\{hiddenHarnessInputPathActionsMarkup\}[\s\S]*?<button[\s\S]*?data-harness-result-show="true"/,
 );
 assert.match(harnessLabels, /'결과 다시 보기'/);
 

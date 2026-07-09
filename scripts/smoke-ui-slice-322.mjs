@@ -35,7 +35,10 @@ assert.doesNotMatch(
   /const hiddenHarnessPreviewText =\s+hiddenHarnessExecutionResult\?\.outputPreview \|\| hiddenHarnessExecutionResult\?\.stdoutPreview \|\| '';/,
 );
 assert.match(appJs, /const canRenderHiddenHarnessPreview = Boolean\(hiddenHarnessPreviewText\);/);
+assert.match(appJs, /const hiddenHarnessPreviewActionsMarkup = canRenderHiddenHarnessPreview/);
 assert.match(appJs, /canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
+assert.match(appJs, /\$\{hiddenHarnessPreviewActionsMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessPreviewText\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
 assert.match(appJs, /data-preview-text="\$\{escapeHtml\(hiddenHarnessPreviewText\)\}"/);
 

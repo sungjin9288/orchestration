@@ -24,6 +24,12 @@ const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(appJs, /data-action="show-harness-execution-result"/);
 assert.match(appJs, /data-harness-result-show="true"/);
+assert.match(appJs, /const hiddenHarnessShowActionMarkup = `/);
+assert.match(appJs, /\$\{hiddenHarnessShowActionMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /\$\{hiddenHarnessInputPathActionsMarkup\}[\s\S]*?<button[\s\S]*?data-action="show-harness-execution-result"/,
+);
 assert.match(appJs, /function showHarnessExecutionResult\(actionButton, statusPayload\)/);
 assert.match(appJs, /state\.hiddenHarnessExecutionResultKey = null;/);
 assert.match(appJs, /data-harness-execution-result-hidden="true"/);

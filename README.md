@@ -453,7 +453,7 @@ Current verification evidence from this README refresh:
   harness helper-focused smokes for history restore preview, executed-at labels, hidden status summaries, output-channel
   tokens, visible token labels, visible token markup handoff, visible preview markup handoff, hidden
   state token markup handoff, history input path copy markup handoff, history path action markup handoff, policy-report predicates,
-  execution packet copy fallback formatting, execution packet copy markup handoff, output path copy label/status handoff, policy-report copy fallback formatting,
+  execution packet copy fallback formatting, execution packet copy markup handoff, hidden action markup handoff, output path copy label/status handoff, policy-report copy fallback formatting,
   completion lead/output copy, preview text, request labels, input/output summary fallback values,
   result state tokens, output-brief copy labels/payload titles, and hidden/history output-brief
   action rendering.
