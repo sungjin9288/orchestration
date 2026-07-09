@@ -41,11 +41,21 @@ assert.match(appJs, /const visibleHarnessPreviewMarkup = canRenderVisibleHarness
 assert.match(appJs, /\$\{visibleHarnessPreviewMarkup\}/);
 assert.match(appJs, /data-harness-execution-preview="true">\$\{escapeHtml\(visibleHarnessPreviewText\)\}<\/pre>/);
 assert.match(appJs, /const canRenderHistoryHarnessPreview = Boolean\(historyHarnessPreviewText\);/);
-assert.match(appJs, /const historyHarnessPreviewActionsMarkup =\s+canRenderHistoryHarnessPreview/);
+assert.match(appJs, /const historyHarnessPreviewCopyActionMarkup =\s+canRenderHistoryHarnessPreview/);
+assert.match(appJs, /const historyHarnessOutputBriefActionMarkup =\s+canRenderHistoryHarnessPreview/);
 assert.match(appJs, /canRenderHistoryHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
+assert.match(appJs, /canRenderHistoryHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="summarize-harness-execution-preview"/);
+assert.match(
+  appJs,
+  /const historyHarnessPreviewActionsMarkup = `\s+\$\{historyHarnessPreviewCopyActionMarkup\}\s+\$\{historyHarnessOutputBriefActionMarkup\}/,
+);
 assert.match(appJs, /\$\{historyHarnessPreviewActionsMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderHistoryHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
 assert.doesNotMatch(appJs, /\$\{\s*historyHarnessPreviewText\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
+assert.doesNotMatch(
+  appJs,
+  /const historyHarnessPreviewActionsMarkup =\s+canRenderHistoryHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/,
+);
 assert.match(appJs, /data-preview-text="\$\{escapeHtml\(historyHarnessPreviewText\)\}"/);
 assert.match(appJs, /copyHarnessExecutionPreview\(actionButton\.dataset\.previewText\)/);
 assert.match(appJs, /하네스 실행 미리보기를 복사했습니다/);
@@ -69,6 +79,8 @@ console.log(
           'visibleHarnessPreviewMarkup',
           'visibleHarnessPreviewActionsMarkup',
           'canRenderHistoryHarnessPreview',
+          'historyHarnessPreviewCopyActionMarkup',
+          'historyHarnessOutputBriefActionMarkup',
           'historyHarnessPreviewActionsMarkup',
         ],
       },

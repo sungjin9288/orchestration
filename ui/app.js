@@ -2471,7 +2471,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 ${historyHarnessPathReuseActionMarkup}
                                 ${historyHarnessPathRerunActionMarkup}
                               `;
-                              const historyHarnessPreviewActionsMarkup =
+                              const historyHarnessPreviewCopyActionMarkup =
                                 canRenderHistoryHarnessPreview
                                   ? `
                                     <button
@@ -2483,6 +2483,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     >
                                       미리보기
                                     </button>
+                                  `
+                                  : '';
+                              const historyHarnessOutputBriefActionMarkup =
+                                canRenderHistoryHarnessPreview
+                                  ? `
                                     <button
                                       class="secondary-button"
                                       type="button"
@@ -2497,6 +2502,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     </button>
                                   `
                                   : '';
+                              const historyHarnessPreviewActionsMarkup = `
+                                ${historyHarnessPreviewCopyActionMarkup}
+                                ${historyHarnessOutputBriefActionMarkup}
+                              `;
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
