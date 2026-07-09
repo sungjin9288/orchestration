@@ -116,16 +116,44 @@ function currentHead() {
 
 function linkState() {
   const links = readText(linksRelativePath);
-  const hasVerifiedUrl = /access verified:\s*\d{4}-\d{2}-\d{2}/.test(links);
+  const githubLine = links.match(/^- GitHub:\s*`([^`]+)`\s*—\s*(.+)$/m);
+  const githubUrl = githubLine?.[1] ?? null;
+  const githubEvidence = githubLine?.[2] ?? '';
+  const sourceRepositoryAccessVerified =
+    /reviewer 접근 검증됨/.test(githubEvidence) &&
+    /HTTP 200/.test(githubEvidence) &&
+    /private:\s*false/.test(githubEvidence) &&
+    /visibility:\s*public/.test(githubEvidence);
   const demoNone = /^- Demo:\s*없음$/m.test(links);
   const videoNone = /^- 영상 시연:\s*없음/m.test(links);
+  const shareLinkLines = links
+    .split('\n')
+    .filter((line) => /^- (영상 시연|기타 참고 링크):/.test(line));
+  const verifiedEvidencePackageUrlRecorded = shareLinkLines.some((line) => {
+    if (/없음/.test(line)) {
+      return false;
+    }
+
+    return /(checksum|SHA-256|reviewer-equivalent|access verified|접근 검증)/i.test(line);
+  });
 
   return {
     path: linksRelativePath,
-    hasVerifiedUrl,
     demoNone,
     videoNone,
-    state: hasVerifiedUrl ? 'verified-url-recorded' : 'no-verified-url-recorded',
+    sourceRepository: {
+      url: githubUrl,
+      accessVerified: sourceRepositoryAccessVerified,
+      state: sourceRepositoryAccessVerified
+        ? 'source-repository-access-verified'
+        : 'source-repository-access-unverified',
+    },
+    evidencePackage: {
+      verifiedExternalUrlRecorded: verifiedEvidencePackageUrlRecorded,
+      state: verifiedEvidencePackageUrlRecorded
+        ? 'evidence-package-share-url-recorded'
+        : 'evidence-package-share-url-not-recorded',
+    },
   };
 }
 
@@ -347,12 +375,12 @@ try {
 
   const blockers = [];
 
-  if (!links.hasVerifiedUrl) {
+  if (!links.sourceRepository.accessVerified) {
     blockers.push({
-      id: 'external-share-target-unverified',
+      id: 'source-repository-access-unverified',
       owner: 'human',
-      reason: 'No reviewer-equivalent external package URL is recorded in links.md.',
-      nextAction: 'Select a share target, upload the package, verify reviewer access, and record the verified URL with checksum match.',
+      reason: 'The GitHub repository URL in links.md is not yet recorded as reviewer-access verified.',
+      nextAction: 'Make the repository reviewer-accessible, verify anonymous access, and record the result in links.md.',
     });
   }
 
@@ -403,11 +431,25 @@ try {
     },
     readiness: {
       packagePrepublishReady: Boolean(prepublish.ok),
-      externalShareReady: links.hasVerifiedUrl,
+      sourceRepositoryAccessReady: links.sourceRepository.accessVerified,
+      evidencePackageShareReady: links.evidencePackage.verifiedExternalUrlRecorded,
+      externalShareReady: links.evidencePackage.verifiedExternalUrlRecorded,
       localSharePageReady: Boolean(localSharePage.configured && localSharePage.ok),
       localSharePageBundleReady: Boolean(localSharePage.configured && localSharePage.bundle?.ok),
       configuredEnvLiveReady: hasConfiguredEnv && liveEvidence.currentResult === 'pass',
       openBlockers: blockers,
+      optionalFollowUps: links.evidencePackage.verifiedExternalUrlRecorded
+        ? []
+        : [
+            {
+              id: 'evidence-package-share-url-not-recorded',
+              owner: 'human',
+              reason:
+                'GitHub source access is verified, but the screencast evidence package still has no reviewer-facing download URL.',
+              nextAction:
+                'If the evidence package should be shared externally, upload it, verify reviewer access and checksum, then record the URL in links.md.',
+            },
+          ],
     },
   };
 

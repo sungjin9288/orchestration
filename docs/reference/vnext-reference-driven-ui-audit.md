@@ -10,7 +10,7 @@ This audit fixes the reference boundary for the vNext shell redesign. The goal i
 | --- | --- | --- |
 | Linear | Fast navigation, low-noise hierarchy, human-and-agent workflow language | Roadmap-first team workspace, generic issue tracker posture |
 | LangSmith Studio | Agent debugging, traces, evaluation, and state inspection as one operator workspace | Generalized hosted agent IDE or broad deployment console |
-| Retool | Dense internal-tool layout, register rows, permission-aware operational framing | Broad app builder, database connector expansion, enterprise admin scope |
+| Retool | Dense internal-tool layout, register rows, permission-aware operational framing | Broad app builder, database connector expansion, broad admin scope |
 | Dify | Workflow visibility, agentic workflow structure, RAG/observability adjacency | Visual canvas as the primary surface, provider marketplace posture |
 | n8n HITL | Human approval that pauses risky tool use and shows approve/deny decisions clearly | Channel-first approval routing, chat/messenger-first flow |
 | Zapier | Governed automation, runtime reliability, audit-trail language | Generic automation marketplace and app-integration breadth |
@@ -18,7 +18,7 @@ This audit fixes the reference boundary for the vNext shell redesign. The goal i
 
 ## Implemented Design Implications
 
-- The shell uses a warm enterprise palette from `DESIGN.md` rather than a generic blue SaaS palette.
+- The shell uses a warm operational palette from `DESIGN.md` rather than a generic blue SaaS palette.
 - The first viewport centers `operator runway`, current owner, current gate, next action, and evidence location.
 - Growth learning is displayed as read-only evidence extraction, not as autonomous learning completion.
 - Personalization is local-only UI preference: recent desks, preferred project hint, and evidence density.

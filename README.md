@@ -540,6 +540,8 @@ Playwright CLI:
 - This is a local-first PoC/MVP-quality project, not a hosted service.
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
+- GitHub source repository access is reviewer-verified in `links.md`; a separate evidence-package
+  download URL is optional and not yet recorded.
 - Root `package.json` (no dependencies) and root `.env.example` are present; the project still ships with no
   third-party runtime dependencies and runs on Node.js built-in modules only.
 - Optional OpenAI live-provider verification requires visible `OPENAI_API_KEY` and
@@ -614,12 +616,16 @@ Playwright CLI:
   marketplace, and additional non-development packs beyond the explicit opt-in `knowledge-work`
   path are outside v1 scope.
 - The screenshot and screencast evidence are local artifacts, not proof of an accessible hosted app.
+- `scripts/portfolio-share-status.mjs` reports source repository access separately from a downloadable
+  evidence package URL, so a missing package URL must not be read as unverified GitHub source access.
 - Verification counts are measured file counts or command results; this README avoids unsupported
   performance, cost, accuracy, automation-rate, or adoption metrics.
 
 ## Links
 
 - GitHub: [sungjin9288/orchestration](https://github.com/sungjin9288/orchestration)
+- Reviewer source access: verified in [links.md](./links.md) with anonymous HTTP 200 and GitHub API
+  `private: false`, `visibility: public` evidence from 2026-07-04.
 - Operating rules: [AGENTS.md](./AGENTS.md)
 - Design rules: [DESIGN.md](./DESIGN.md)
 - Completion gate inventory: [docs/22_completion-gate-inventory.md](./docs/22_completion-gate-inventory.md)
@@ -628,3 +634,5 @@ Playwright CLI:
 - Screenshots: [evidence/screenshots/](./evidence/screenshots/)
 - Demo: no verified hosted public demo URL. Recorded local demo plan:
   [docs/public-demo-screencast-plan.md](./docs/public-demo-screencast-plan.md)
+- Evidence package URL: not recorded yet; package upload and checksum verification remain optional
+  follow-up steps in [docs/portfolio-share-handoff.md](./docs/portfolio-share-handoff.md).

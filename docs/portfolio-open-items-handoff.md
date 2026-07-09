@@ -9,11 +9,12 @@
 
 ## Current Open Items
 
-Run `node scripts/portfolio-share-status.mjs` to summarize current package readiness, verified-link state, optional local static page status, optional live-provider env visibility, and remaining blockers without uploading files or running configured live calls.
+Run `node scripts/portfolio-share-status.mjs` to summarize current package readiness, verified source repository access, optional evidence-package share URL state, optional local static page status, optional live-provider env visibility, and remaining blockers without uploading files or running configured live calls.
 
 | Item | Current evidence | Blocker | Completion evidence |
 |---|---|---|---|
-| External share target | `docs/external-share-verification-plan.md` defines target options and reviewer-equivalent access checks; `docs/portfolio-share-copy-template.md` defines claim-safe release and reviewer copy; `node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file>` verifies a reviewer-downloaded file against current handoff checksums | A human must choose and upload to a target | Verified reviewer-facing URL plus downloaded checksum match recorded in `links.md` |
+| GitHub source repository access | `links.md` records anonymous reviewer access as verified on 2026-07-04 with HTTP 200 and GitHub API `private: false`, `visibility: public`; `node scripts/portfolio-share-status.mjs` reports this as `sourceRepositoryAccessReady=true` | Closed unless the repository visibility or URL changes | Re-run anonymous access and GitHub API checks if the URL or visibility changes, then keep the result in `links.md` |
+| Evidence package external URL | `docs/external-share-verification-plan.md` defines target options and reviewer-equivalent access checks; `docs/portfolio-share-copy-template.md` defines claim-safe release and reviewer copy; `node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file>` verifies a reviewer-downloaded file against current handoff checksums | Optional follow-up: a human must choose and upload to a target only if a separate screencast package URL is needed | Verified reviewer-facing URL plus downloaded checksum match recorded in `links.md`; until then `readiness.evidencePackageShareReady=false` is not a source-access blocker |
 | Local static share page | Optional pre-upload staging is checked with `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs`; exact local staging proof is kept in `docs/portfolio-share-handoff.md` because the local page repo and generated site bundle are outside this evidence package | Local page or bundle readiness is not reviewer access proof and does not create a public URL | Pre-upload local staging is ready only when `readiness.localSharePageReady=true` and, for static-site upload, `readiness.localSharePageBundleReady=true`; reviewer-facing completion still requires upload, reviewer-equivalent access check, and checksum match recorded in `links.md` |
 | Configured-env optional live smoke | `docs/live-provider-verification-note.md` records `skipped_missing_env` for the current checkout at command time because required OpenAI env values were not visible | Required OpenAI env values must be visible in the current execution context | Pass/fail/skipped output from the full optional live smoke set, recorded without secret values |
 
@@ -23,7 +24,7 @@ Use this only after selecting a target such as GitHub Release asset, private att
 
 1. Run `node scripts/portfolio-rebuild-package.mjs`.
 2. Run `node scripts/portfolio-prepublish-check.mjs` and the remaining pre-publish checks in `docs/portfolio-share-handoff.md`.
-3. Run `node scripts/portfolio-share-status.mjs` to confirm package readiness and currently open human/env blockers.
+3. Run `node scripts/portfolio-share-status.mjs` to confirm package readiness, source repository access readiness, optional evidence-package URL state, and currently open human/env blockers.
 4. If a local static page is the upload source, run `PORTFOLIO_LOCAL_SHARE_PAGE_DIR=<path-to-local-share-page> node scripts/portfolio-share-status.mjs`.
 5. Upload exactly `_portfolio_export/orchestration_portfolio_pack_2026-06-22_screencast.zip`, or upload the generated static-site zip only when `localSharePageBundleReady=true`.
 6. Open the uploaded artifact from a reviewer-equivalent session.
@@ -74,7 +75,7 @@ Stop and do not update public-facing links when:
 
 Choose one of the following:
 
-- share target first: select/upload/verify a reviewer-facing package URL
+- package URL first: select/upload/verify a reviewer-facing package URL only if a separate downloadable evidence package should be shared
 - local static page first: verify `PORTFOLIO_LOCAL_SHARE_PAGE_DIR` readiness and, when applicable, generated bundle readiness, then use it only as an upload source
 - configured-env live first: expose the required OpenAI env values to this execution context and rerun the optional live smoke set
 - local-only for now: keep both items open and do not add public links or live pass claims

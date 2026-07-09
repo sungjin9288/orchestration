@@ -3,7 +3,7 @@
 ## Status
 
 - Date: 2026-06-22
-- Decision: local portfolio package is ready for external sharing, but no external URL has been published or verified.
+- Decision: local portfolio package is ready for optional external package sharing, and GitHub source repository access is already reviewer-verified; no separate evidence-package URL has been published or verified.
 - Boundary: this is a share handoff for reviewers. It does not change the product from local-first PoC to hosted deployment.
 
 ## Package
@@ -91,7 +91,7 @@ Expected handling:
 - `node scripts/portfolio-rebuild-package.mjs` should regenerate the ignored local package and update this handoff checksum.
 - `node scripts/portfolio-prepublish-check.mjs` should return `ok=true`.
 - `node scripts/portfolio-verify-uploaded-artifact.mjs --file <downloaded-file>` should return `ok=true` after the uploaded artifact is downloaded from a reviewer-equivalent session.
-- `node scripts/portfolio-share-status.mjs` should report `packagePrepublishReady=true` and list any remaining human/env blockers.
+- `node scripts/portfolio-share-status.mjs` should report `packagePrepublishReady=true`, `sourceRepositoryAccessReady=true`, the current optional evidence-package URL state, and any remaining human/env blockers.
 - With `PORTFOLIO_LOCAL_SHARE_PAGE_DIR` set, `node scripts/portfolio-share-status.mjs` should report `localSharePageReady=true` before using the local page as an upload source.
 - If the local static-site bundle has been generated, the same status output should report `localSharePageBundleReady=true` before uploading that site bundle.
 - Secret-pattern grep should return no matches.
@@ -113,7 +113,8 @@ Expected handling:
 ## Remaining Open
 
 - See `docs/portfolio-open-items-handoff.md` for the combined operator checklist.
-- Select the external share target.
-- Upload the package only after the target is selected.
+- Optional: select an external package share target if a separate downloadable screencast package URL is needed.
+- Upload the package only after that target is selected.
 - Verify reviewer access and checksum after upload.
-- Record the verified URL in `links.md` and keep the unverified local package path separate from public links.
+- Record the verified package URL in `links.md` and keep the unverified local package path separate from public links.
+- Keep GitHub source access separate from the optional package URL; the source repository is already reviewer-access verified in `links.md`.

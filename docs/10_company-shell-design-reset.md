@@ -67,7 +67,7 @@ Orchestration의 기본 shell은 앞으로 아래처럼 읽혀야 한다.
 
 ### Design-System Discipline
 - `awesome-design-md`: `DESIGN.md` pattern itself
-- `mrstack`: concise enterprise utility UI cues are useful, but Telegram-first surface is still out of scope
+- `mrstack`: concise internal-tool utility UI cues are useful, but Telegram-first surface is still out of scope
 
 ### Harness / Governance / Automation
 - `OpenHarness`: tool loop, retry/backoff, skills/plugins, permissions, delegation

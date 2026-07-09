@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Portfolio share status must keep reviewer source access, optional evidence-package URLs, and optional configured-env live provider checks as separate axes. Once GitHub source access is reviewer-verified, a missing screencast package download URL belongs in `optionalFollowUps`, not in the same blocker lane as source access.
+
 - README product-planning or current-focus claims should be pinned by `scripts/smoke-readme-scope-evidence.mjs` in the same slice. When the README names helper lanes, focused smokes, or aggregate counts, rerun the matching focused smokes and `verification_status.mjs` before committing the public claim.
 
 - Workspace playbook smoke assertions should follow the app's current shared hint model. If `ui/app.js` consolidates per-surface result or next hints into a shared fallback, update `scripts/smoke-ui-slice-637.mjs` to assert the shared copy and fallback boundary instead of stale per-surface strings.
