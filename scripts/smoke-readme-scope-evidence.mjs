@@ -101,6 +101,7 @@ assert.match(readme, /visible input path action markup/);
 assert.match(readme, /hidden preview markup/);
 assert.match(readme, /hidden preview action markup/);
 assert.match(readme, /hidden input path action markup/);
+assert.match(readme, /hidden run context summary markup/);
 assert.match(readme, /visible token label\/tone markup/);
 assert.match(readme, /latest state token label\/tone markup/);
 assert.match(readme, /hidden state token label\/tone markup/);
@@ -131,6 +132,7 @@ assert.match(readme, /visible preview action markup handoff/);
 assert.match(readme, /visible input path action markup handoff/);
 assert.match(readme, /hidden preview action markup handoff/);
 assert.match(readme, /hidden input path action markup handoff/);
+assert.match(readme, /hidden run context summary markup handoff/);
 assert.match(readme, /history count token label\/tone markup handoff/);
 assert.match(readme, /history input path copy markup handoff/);
 assert.match(readme, /history path reuse\/rerun action markup handoff/);
@@ -317,6 +319,15 @@ assert.match(harnessExecutionTokens, /export function getHarnessStatusSummaryVal
 assert.match(appJs, /const visibleHarnessRequestId = getHarnessExecutionRequestId\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessRequestId = getHarnessExecutionRequestId\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /const historyHarnessRequestId = getHarnessExecutionRequestId\(execution\);/);
+assert.match(
+  appJs,
+  /const hiddenHarnessRunContextSummaryMarkup = `\s+\$\{hiddenHarnessRequestSummaryMarkup\}\s+\$\{hiddenHarnessExecutedAtSummaryMarkup\}\s+\$\{hiddenHarnessModeSummaryMarkup\}\s+\$\{hiddenHarnessHandoffSummaryMarkup\}\s+\$\{hiddenHarnessInputSummaryMarkup\}\s+\$\{hiddenHarnessOutputSummaryMarkup\}/,
+);
+assert.match(appJs, /\$\{hiddenHarnessRunContextSummaryMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-result-hidden-run-context="true">\s+[\s\S]{0,240}<strong>실행 기록<\/strong>[\s\S]{0,240}\$\{hiddenHarnessRequestSummaryMarkup\}\s+\$\{hiddenHarnessExecutedAtSummaryMarkup\}/,
+);
 assert.match(appJs, /const visibleHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /const historyHarnessPathReuseActionMarkup = `\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);

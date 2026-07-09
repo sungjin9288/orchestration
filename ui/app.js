@@ -1707,6 +1707,14 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(visibleHarnessOutputLabel)}: <code>${escapeHtml(visibleHarnessOutputSummaryValue)}</code></p>`;
   const hiddenHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>`;
   const hiddenHarnessHandoffSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(hiddenHarnessHandoffText)}</code></p>`;
+  const hiddenHarnessRunContextSummaryMarkup = `
+    ${hiddenHarnessRequestSummaryMarkup}
+    ${hiddenHarnessExecutedAtSummaryMarkup}
+    ${hiddenHarnessModeSummaryMarkup}
+    ${hiddenHarnessHandoffSummaryMarkup}
+    ${hiddenHarnessInputSummaryMarkup}
+    ${hiddenHarnessOutputSummaryMarkup}
+  `;
   const hiddenHarnessKindValue = getHarnessStatusSummaryValue(statusCard.primaryKind);
   const hiddenHarnessPrimaryCommandValue =
     getHarnessStatusSummaryValue(statusCard.primaryCommand);
@@ -2311,12 +2319,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       <div class="card-title-row card-title-row-tight">
                         <strong>실행 기록</strong>
                       </div>
-                      ${hiddenHarnessRequestSummaryMarkup}
-                      ${hiddenHarnessExecutedAtSummaryMarkup}
-                      ${hiddenHarnessModeSummaryMarkup}
-                      ${hiddenHarnessHandoffSummaryMarkup}
-                      ${hiddenHarnessInputSummaryMarkup}
-                      ${hiddenHarnessOutputSummaryMarkup}
+                      ${hiddenHarnessRunContextSummaryMarkup}
                     </section>
                     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-harness-context="true">
                       <div class="card-title-row card-title-row-tight">
