@@ -1717,6 +1717,20 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessOutputPathActionLabel = getHarnessExecutionOutputPathActionLabel(
     hiddenHarnessExecutionResult,
   );
+  const visibleHarnessOutputPathCopyMarkup = canRenderVisibleHarnessOutputPathCopy
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-output-path"
+        data-output-path="${escapeHtml(visibleHarnessOutputPath)}"
+        data-output-path-label="${escapeHtml(visibleHarnessOutputPathActionLabel)}"
+        data-harness-output-copy="true"
+      >
+        ${escapeHtml(visibleHarnessOutputPathActionLabel)}
+      </button>
+    `
+    : '';
   const visibleHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(visibleHarnessExecutionResult);
   const hiddenHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(hiddenHarnessExecutionResult);
   const visibleHarnessHideActionLabel = getHarnessExecutionHideActionLabel(visibleHarnessExecutionResult);
@@ -2025,22 +2039,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   `
                                   : ''
                               }
-                              ${
-                                canRenderVisibleHarnessOutputPathCopy
-                                  ? `
-                                    <button
-                                      class="secondary-button"
-                                      type="button"
-                                      data-action="copy-harness-output-path"
-                                      data-output-path="${escapeHtml(visibleHarnessOutputPath)}"
-                                      data-output-path-label="${escapeHtml(visibleHarnessOutputPathActionLabel)}"
-                                      data-harness-output-copy="true"
-                                    >
-                                      ${escapeHtml(visibleHarnessOutputPathActionLabel)}
-                                    </button>
-                                  `
-                                  : ''
-                              }
+                              ${visibleHarnessOutputPathCopyMarkup}
                               ${
                                 canRenderVisibleHarnessRequestIdCopy
                                   ? `

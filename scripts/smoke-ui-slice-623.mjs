@@ -14,7 +14,10 @@ assert.match(appJs, /data-output-path-label="\$\{escapeHtml\(visibleHarnessOutpu
 assert.match(appJs, /data-output-path-label="\$\{escapeHtml\(hiddenHarnessOutputPathActionLabel\)\}"/);
 assert.match(appJs, /data-output-path-label="\$\{escapeHtml\(historyHarnessOutputPathActionLabel\)\}"/);
 assert.match(appJs, /const canRenderVisibleHarnessOutputPathCopy = Boolean\(visibleHarnessOutputPath\);/);
+assert.match(appJs, /const visibleHarnessOutputPathCopyMarkup = canRenderVisibleHarnessOutputPathCopy/);
 assert.match(appJs, /canRenderVisibleHarnessOutputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
+assert.match(appJs, /\$\{visibleHarnessOutputPathCopyMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessOutputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessOutputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
 assert.match(appJs, /const canRenderHistoryHarnessOutputPathCopy = Boolean\(historyHarnessOutputPath\);/);
 assert.match(appJs, /canRenderHistoryHarnessOutputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
@@ -39,6 +42,7 @@ console.log(
         helper: 'copyHarnessExecutionOutputPath',
         namedValues: [
           'canRenderVisibleHarnessOutputPathCopy',
+          'visibleHarnessOutputPathCopyMarkup',
           'canRenderHistoryHarnessOutputPathCopy',
         ],
       },
