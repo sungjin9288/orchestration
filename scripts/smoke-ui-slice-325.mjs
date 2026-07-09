@@ -26,11 +26,21 @@ assert.match(appJs, /data-harness-result-hidden-reuse="true"/);
 assert.match(appJs, /data-action="reuse-harness-execution-paths"/);
 assert.match(appJs, /const hiddenHarnessInputPath = hiddenHarnessExecutionResult\?\.resolvedInputPath \|\| '';/);
 assert.match(appJs, /const canRenderHiddenHarnessInputPathActions = Boolean\(hiddenHarnessInputPath\);/);
-assert.match(appJs, /const hiddenHarnessInputPathActionsMarkup = canRenderHiddenHarnessInputPathActions/);
+assert.match(appJs, /const hiddenHarnessInputPathCopyActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);
+assert.match(appJs, /const hiddenHarnessPathReuseActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);
+assert.match(appJs, /const hiddenHarnessPathRerunActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);
 assert.match(appJs, /canRenderHiddenHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
+assert.match(
+  appJs,
+  /const hiddenHarnessInputPathActionsMarkup = `\s+\$\{hiddenHarnessInputPathCopyActionMarkup\}\s+\$\{hiddenHarnessPathReuseActionMarkup\}\s+\$\{hiddenHarnessPathRerunActionMarkup\}/,
+);
 assert.match(appJs, /\$\{hiddenHarnessInputPathActionsMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderHiddenHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
+assert.doesNotMatch(
+  appJs,
+  /const hiddenHarnessInputPathActionsMarkup =\s+canRenderHiddenHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"[\s\S]*?data-action="reuse-harness-execution-paths"[\s\S]*?data-action="rerun-harness-execution-paths"/,
+);
 assert.match(harnessExecutionTokens, /export function getHarnessExecutionActionOutputPath\(execution\) \{/);
 assert.match(
   appJs,
@@ -126,7 +136,13 @@ async function main() {
           harnessExecutionHiddenReuse: {
             insertionPoint: 'hiddenExecutionResultRegister->reuseExecutionPathsAction->executionFormDraft',
             sourceMarker: 'data-harness-result-hidden-reuse',
-            namedValues: ['canRenderHiddenHarnessInputPathActions', 'hiddenHarnessInputPathActionsMarkup'],
+            namedValues: [
+              'canRenderHiddenHarnessInputPathActions',
+              'hiddenHarnessInputPathCopyActionMarkup',
+              'hiddenHarnessPathReuseActionMarkup',
+              'hiddenHarnessPathRerunActionMarkup',
+              'hiddenHarnessInputPathActionsMarkup',
+            ],
             route: '/api/harness/operator-action/run',
             resolvedInputPath: latestHarnessExecution.resolvedInputPath,
             resolvedOutputPath: latestHarnessExecution.resolvedOutputPath,
