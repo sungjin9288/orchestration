@@ -37,12 +37,18 @@ assert.match(
   appJs,
   /const historyHarnessExecutionPacketText =\s+formatHarnessExecutionPacketForCopy\(execution\);/,
 );
+assert.match(appJs, /const historyHarnessExecutionPacketCopyMarkup = `\s+<button[\s\S]*?data-action="copy-harness-execution-packet"/);
+assert.match(appJs, /\$\{historyHarnessExecutionPacketCopyMarkup\}/);
 assert.match(appJs, /data-execution-packet-text="\$\{escapeHtml\(visibleHarnessExecutionPacketText\)\}"/);
 assert.match(appJs, /data-execution-packet-text="\$\{escapeHtml\(hiddenHarnessExecutionPacketText\)\}"/);
 assert.match(appJs, /data-execution-packet-text="\$\{escapeHtml\(historyHarnessExecutionPacketText\)\}"/);
 assert.match(appJs, /data-harness-execution-packet-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-packet-copy="true"/);
 assert.match(appJs, /data-harness-history-packet-copy="true"/);
+assert.doesNotMatch(
+  appJs,
+  /\$\{historyHarnessRequestIdCopyMarkup\}\s+<button[\s\S]*?data-action="copy-harness-execution-packet"/,
+);
 
 console.log(
   JSON.stringify(
@@ -55,6 +61,7 @@ console.log(
         namedPredicates: [
           'canCopyVisibleHarnessExecutionPacket',
           'canCopyHiddenHarnessExecutionPacket',
+          'historyHarnessExecutionPacketCopyMarkup',
         ],
         includes: ['output-brief presence', 'policy-report presence'],
       },

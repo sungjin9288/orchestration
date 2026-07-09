@@ -35,6 +35,8 @@ assert.match(
   appJs,
   /const historyHarnessExecutionPacketText =\s+formatHarnessExecutionPacketForCopy\(execution\);/,
 );
+assert.match(appJs, /const historyHarnessExecutionPacketCopyMarkup = `\s+<button[\s\S]*?data-action="copy-harness-execution-packet"/);
+assert.match(appJs, /\$\{historyHarnessExecutionPacketCopyMarkup\}/);
 assert.match(appJs, /data-execution-packet-text="\$\{escapeHtml\(visibleHarnessExecutionPacketText\)\}"/);
 assert.match(appJs, /data-execution-packet-text="\$\{escapeHtml\(hiddenHarnessExecutionPacketText\)\}"/);
 assert.match(appJs, /data-execution-packet-text="\$\{escapeHtml\(historyHarnessExecutionPacketText\)\}"/);
@@ -52,6 +54,10 @@ assert.doesNotMatch(appJs, /const visibleHarnessExecutionPacketText = visibleHar
 assert.doesNotMatch(appJs, /const hiddenHarnessExecutionPacketText = hiddenHarnessExecutionResult/);
 assert.doesNotMatch(appJs, /const visibleHarnessExecutionPacketText = canCopyVisibleHarnessExecutionPacket/);
 assert.doesNotMatch(appJs, /const hiddenHarnessExecutionPacketText = canCopyHiddenHarnessExecutionPacket/);
+assert.doesNotMatch(
+  appJs,
+  /\$\{historyHarnessRequestIdCopyMarkup\}\s+<button[\s\S]*?data-action="copy-harness-execution-packet"/,
+);
 assert.doesNotMatch(appJs, /copiedMessage: \(\) => '하네스 실행 패킷을 복사했습니다\.'/);
 assert.match(appJs, /copyHarnessExecutionPacket\(actionButton\.dataset\.executionPacketText\)/);
 assert.match(appJs, />\s*패킷 복사\s*</);
@@ -65,6 +71,7 @@ console.log(
         namedPredicates: [
           'canCopyVisibleHarnessExecutionPacket',
           'canCopyHiddenHarnessExecutionPacket',
+          'historyHarnessExecutionPacketCopyMarkup',
         ],
         formatterFallback: 'formatHarnessExecutionPacketForCopy',
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],

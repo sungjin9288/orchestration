@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness history execution packet copy buttons should consume named markup once the history packet copy text is selected. Keep `formatHarnessExecutionPacketForCopy(...)` as the copy payload source, but avoid building the packet copy button directly inside the history action shelf.
+
 - Harness history restore preview buttons should consume named markup once the history show action label and history index are selected. Keep the restore action payload unchanged, but avoid building the restore preview button directly inside the history action shelf; when README names this lane, pin the public claim to the focused restore smoke and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.
 
 - Harness history preview action buttons should consume named action markup once the history preview predicate, preview text, execution key, and brief action label are selected. Keep `canRenderHistoryHarnessPreview` as the shared preview-copy/output-brief gate, but avoid building the copy and summarize preview buttons directly inside the history action shelf.

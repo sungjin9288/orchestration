@@ -2394,6 +2394,17 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   ${escapeHtml(historyHarnessShowActionLabel)}
                                 </button>
                               `;
+                              const historyHarnessExecutionPacketCopyMarkup = `
+                                <button
+                                  class="secondary-button"
+                                  type="button"
+                                  data-action="copy-harness-execution-packet"
+                                  data-execution-packet-text="${escapeHtml(historyHarnessExecutionPacketText)}"
+                                  data-harness-history-packet-copy="true"
+                                >
+                                  패킷 복사
+                                </button>
+                              `;
                               const historyHarnessPreviewActionsMarkup =
                                 canRenderHistoryHarnessPreview
                                   ? `
@@ -2438,15 +2449,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       ${historyHarnessRestorePreviewMarkup}
                                       ${historyHarnessOutputPathCopyMarkup}
                                       ${historyHarnessRequestIdCopyMarkup}
-                                      <button
-                                        class="secondary-button"
-                                        type="button"
-                                        data-action="copy-harness-execution-packet"
-                                        data-execution-packet-text="${escapeHtml(historyHarnessExecutionPacketText)}"
-                                        data-harness-history-packet-copy="true"
-                                      >
-                                        패킷 복사
-                                      </button>
+                                      ${historyHarnessExecutionPacketCopyMarkup}
                                       ${historyHarnessPolicyReportCopyMarkup}
                                       <button
                                         class="secondary-button"
