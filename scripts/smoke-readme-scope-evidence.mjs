@@ -109,6 +109,7 @@ assert.match(readme, /output path copy/);
 assert.match(readme, /history input path copy/);
 assert.match(readme, /history path reuse\/rerun action markup/);
 assert.match(readme, /history preview action markup/);
+assert.match(readme, /history action shelf markup/);
 assert.match(readme, /history restore preview/);
 assert.match(readme, /execution packet copy/);
 assert.match(readme, /output-brief copy/);
@@ -133,6 +134,7 @@ assert.match(readme, /history count token label\/tone markup handoff/);
 assert.match(readme, /history input path copy markup handoff/);
 assert.match(readme, /history path reuse\/rerun action markup handoff/);
 assert.match(readme, /history preview action markup handoff/);
+assert.match(readme, /history action shelf markup handoff/);
 assert.match(readme, /execution\s+packet copy fallback formatting/);
 assert.match(readme, /execution packet copy markup handoff/);
 assert.match(readme, /hidden action markup handoff/);
@@ -321,6 +323,15 @@ assert.match(appJs, /const historyHarnessPathActionsMarkup = `\s+\$\{historyHarn
 assert.match(appJs, /const historyHarnessPreviewCopyActionMarkup =\s+canRenderHistoryHarnessPreview/);
 assert.match(appJs, /const historyHarnessOutputBriefActionMarkup =\s+canRenderHistoryHarnessPreview/);
 assert.match(appJs, /const historyHarnessPreviewActionsMarkup = `\s+\$\{historyHarnessPreviewCopyActionMarkup\}\s+\$\{historyHarnessOutputBriefActionMarkup\}/);
+assert.match(
+  appJs,
+  /const historyHarnessActionShelfMarkup = `\s+\$\{historyHarnessInputPathCopyMarkup\}\s+\$\{historyHarnessRestorePreviewMarkup\}\s+\$\{historyHarnessOutputPathCopyMarkup\}\s+\$\{historyHarnessRequestIdCopyMarkup\}\s+\$\{historyHarnessExecutionPacketCopyMarkup\}\s+\$\{historyHarnessPolicyReportCopyMarkup\}\s+\$\{historyHarnessPathActionsMarkup\}\s+\$\{historyHarnessPreviewActionsMarkup\}/,
+);
+assert.match(appJs, /\$\{historyHarnessActionShelfMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /form-actions-compact">\s+\$\{historyHarnessInputPathCopyMarkup\}\s+\$\{historyHarnessRestorePreviewMarkup\}\s+\$\{historyHarnessOutputPathCopyMarkup\}/,
+);
 assert.match(appJs, /const visibleHarnessPreviewCopyActionMarkup =\s+canRenderVisibleHarnessPreview/);
 assert.match(appJs, /const visibleHarnessOutputBriefActionMarkup =\s+canRenderVisibleHarnessPreview/);
 assert.match(appJs, /const visibleHarnessPreviewActionsMarkup = `\s+\$\{visibleHarnessPreviewCopyActionMarkup\}\s+\$\{visibleHarnessOutputBriefActionMarkup\}/);

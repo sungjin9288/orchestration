@@ -2554,6 +2554,16 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 ${historyHarnessPreviewCopyActionMarkup}
                                 ${historyHarnessOutputBriefActionMarkup}
                               `;
+                              const historyHarnessActionShelfMarkup = `
+                                ${historyHarnessInputPathCopyMarkup}
+                                ${historyHarnessRestorePreviewMarkup}
+                                ${historyHarnessOutputPathCopyMarkup}
+                                ${historyHarnessRequestIdCopyMarkup}
+                                ${historyHarnessExecutionPacketCopyMarkup}
+                                ${historyHarnessPolicyReportCopyMarkup}
+                                ${historyHarnessPathActionsMarkup}
+                                ${historyHarnessPreviewActionsMarkup}
+                              `;
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2568,14 +2578,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   </div>
                                   <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
                                     <div class="form-actions form-actions-inline form-actions-compact">
-                                      ${historyHarnessInputPathCopyMarkup}
-                                      ${historyHarnessRestorePreviewMarkup}
-                                      ${historyHarnessOutputPathCopyMarkup}
-                                      ${historyHarnessRequestIdCopyMarkup}
-                                      ${historyHarnessExecutionPacketCopyMarkup}
-                                      ${historyHarnessPolicyReportCopyMarkup}
-                                      ${historyHarnessPathActionsMarkup}
-                                      ${historyHarnessPreviewActionsMarkup}
+                                      ${historyHarnessActionShelfMarkup}
                                     </div>
                                   </div>
                                 </div>

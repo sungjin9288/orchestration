@@ -38,9 +38,18 @@ assert.match(appJs, /const historyHarnessShowActionLabel = getHarnessExecutionSh
 assert.match(appJs, /\$\{escapeHtml\(historyHarnessShowActionLabel\)\}/);
 assert.match(appJs, /const historyHarnessRestorePreviewMarkup = `\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/);
 assert.match(appJs, /\$\{historyHarnessRestorePreviewMarkup\}/);
+assert.match(
+  appJs,
+  /const historyHarnessActionShelfMarkup = `\s+\$\{historyHarnessInputPathCopyMarkup\}\s+\$\{historyHarnessRestorePreviewMarkup\}\s+\$\{historyHarnessOutputPathCopyMarkup\}\s+\$\{historyHarnessRequestIdCopyMarkup\}\s+\$\{historyHarnessExecutionPacketCopyMarkup\}\s+\$\{historyHarnessPolicyReportCopyMarkup\}\s+\$\{historyHarnessPathActionsMarkup\}\s+\$\{historyHarnessPreviewActionsMarkup\}/,
+);
+assert.match(appJs, /\$\{historyHarnessActionShelfMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /\$\{historyHarnessInputPathCopyMarkup\}\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/,
+);
+assert.doesNotMatch(
+  appJs,
+  /form-actions-compact">\s+\$\{historyHarnessInputPathCopyMarkup\}\s+\$\{historyHarnessRestorePreviewMarkup\}\s+\$\{historyHarnessOutputPathCopyMarkup\}/,
 );
 assert.match(appJs, /data-harness-result-hide="true"/);
 assert.match(appJs, /data-harness-result-show="true"/);
@@ -58,6 +67,7 @@ console.log(
           'visibleHarnessActionShelfMarkup',
           'historyHarnessShowActionLabel',
           'historyHarnessRestorePreviewMarkup',
+          'historyHarnessActionShelfMarkup',
         ],
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],
       },
