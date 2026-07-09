@@ -96,6 +96,7 @@ assert.match(readme, /Advanced Ops harness evidence/);
 assert.match(readme, /run action markup/);
 assert.match(readme, /run action shelf markup/);
 assert.match(readme, /operator action token label\/tone markup/);
+assert.match(readme, /visible result packet markup/);
 assert.match(readme, /visible header markup/);
 assert.match(readme, /visible token row markup/);
 assert.match(readme, /visible preview markup/);
@@ -170,6 +171,7 @@ assert.match(readme, /history summary rack markup handoff/);
 assert.match(readme, /history summary rack frame markup handoff/);
 assert.match(readme, /history item register markup handoff/);
 assert.match(readme, /history item packet markup handoff/);
+assert.match(readme, /visible result packet markup handoff/);
 assert.match(readme, /execution\s+packet copy fallback formatting/);
 assert.match(readme, /execution packet copy markup handoff/);
 assert.match(readme, /hidden action markup handoff/);
@@ -379,6 +381,15 @@ assert.match(
   /const visibleHarnessHeaderMarkup = `\s+\$\{visibleHarnessTitleRowMarkup\}\s+\$\{visibleHarnessTokenRowFrameMarkup\}/,
 );
 assert.match(appJs, /\$\{visibleHarnessHeaderMarkup\}/);
+assert.match(
+  appJs,
+  /const visibleHarnessResultPacketMarkup = `\s+<div class="harness-execution-result-packet" data-harness-execution-result-packet="true">\s+\$\{visibleHarnessHeaderMarkup\}\s+\$\{visibleHarnessSummaryRackMarkup\}\s+\$\{visibleHarnessActionShelfFrameMarkup\}\s+\$\{visibleHarnessPreviewMarkup\}/,
+);
+assert.match(appJs, /\$\{visibleHarnessResultPacketMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result="true"[\s\S]{0,180}<div class="harness-execution-result-packet" data-harness-execution-result-packet="true">[\s\S]{0,260}\$\{visibleHarnessHeaderMarkup\}/,
+);
 assert.doesNotMatch(
   appJs,
   /data-harness-execution-result-packet="true"[\s\S]{0,320}<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>/,

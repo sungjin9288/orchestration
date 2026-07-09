@@ -2217,6 +2217,14 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ${visibleHarnessPolicyReportSummaryMarkup}
     ${visibleHarnessOutputBriefSummaryMarkup}
   `;
+  const visibleHarnessResultPacketMarkup = `
+    <div class="harness-execution-result-packet" data-harness-execution-result-packet="true">
+      ${visibleHarnessHeaderMarkup}
+      ${visibleHarnessSummaryRackMarkup}
+      ${visibleHarnessActionShelfFrameMarkup}
+      ${visibleHarnessPreviewMarkup}
+    </div>
+  `;
   const renderHarnessHistorySummaryRow = (label, value) => `
     <div class="control-overview-register-row">
       <span class="control-overview-register-label">${escapeHtml(label)}</span>
@@ -2374,12 +2382,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
               isVisibleHarnessResultForPrimaryHarness
                 ? `
                   <section class="relation-strip relation-strip-compact" data-harness-execution-result="true">
-                    <div class="harness-execution-result-packet" data-harness-execution-result-packet="true">
-                      ${visibleHarnessHeaderMarkup}
-                      ${visibleHarnessSummaryRackMarkup}
-                      ${visibleHarnessActionShelfFrameMarkup}
-                      ${visibleHarnessPreviewMarkup}
-                    </div>
+                    ${visibleHarnessResultPacketMarkup}
                   </section>
                 `
                 : ''

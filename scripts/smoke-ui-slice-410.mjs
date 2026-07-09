@@ -14,11 +14,16 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 assert.match(appJs, /data-harness-execution-result-packet="true"/);
 assert.match(
   appJs,
-  /data-harness-execution-result="true"[\s\S]*data-harness-execution-result-packet="true"[\s\S]*\$\{visibleHarnessHeaderMarkup\}[\s\S]*\$\{visibleHarnessSummaryRackMarkup\}[\s\S]*\$\{visibleHarnessPreviewMarkup\}/,
+  /const visibleHarnessResultPacketMarkup = `\s+<div class="harness-execution-result-packet" data-harness-execution-result-packet="true">\s+\$\{visibleHarnessHeaderMarkup\}\s+\$\{visibleHarnessSummaryRackMarkup\}\s+\$\{visibleHarnessActionShelfFrameMarkup\}\s+\$\{visibleHarnessPreviewMarkup\}/,
 );
+assert.match(appJs, /\$\{visibleHarnessResultPacketMarkup\}/);
 assert.match(
   appJs,
   /const visibleHarnessHeaderMarkup = `\s+\$\{visibleHarnessTitleRowMarkup\}\s+\$\{visibleHarnessTokenRowFrameMarkup\}/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result="true"[\s\S]{0,180}<div class="harness-execution-result-packet" data-harness-execution-result-packet="true">[\s\S]{0,260}\$\{visibleHarnessHeaderMarkup\}/,
 );
 
 assert.match(stylesCss, /\.harness-execution-result-packet\s*\{/);
@@ -34,8 +39,10 @@ console.log(
         insertionPoint: 'harnessRunDesk->latestResultPacketDesign->visibleResultSurface',
         marker: 'data-harness-execution-result-packet',
         namedValues: [
+          'visibleHarnessResultPacketMarkup',
           'visibleHarnessHeaderMarkup',
           'visibleHarnessSummaryRackMarkup',
+          'visibleHarnessActionShelfFrameMarkup',
           'visibleHarnessPreviewMarkup',
         ],
       },
