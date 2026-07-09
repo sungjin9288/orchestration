@@ -2198,6 +2198,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       하네스 실행
     </button>
   `;
+  const harnessRunActionShelfMarkup = `
+    ${harnessRunCommandCopyMarkup}
+    ${harnessRunClearHistoryActionMarkup}
+    ${harnessRunPolicyReportPreviewActionMarkup}
+    ${harnessRunSubmitActionMarkup}
+  `;
 
   if (!canShowHarnessOperatorAction) {
     return '';
@@ -2272,10 +2278,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     class="form-actions form-actions-inline harness-run-action-shelf"
                     data-harness-run-action-shelf="true"
                   >
-                    ${harnessRunCommandCopyMarkup}
-                    ${harnessRunClearHistoryActionMarkup}
-                    ${harnessRunPolicyReportPreviewActionMarkup}
-                    ${harnessRunSubmitActionMarkup}
+                    ${harnessRunActionShelfMarkup}
                   </div>
                 </div>
                 <p

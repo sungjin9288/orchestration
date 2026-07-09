@@ -15,7 +15,12 @@ assert.match(appJs, /data-harness-run-action-shelf="true"/);
 assert.match(appJs, /class="form-actions form-actions-inline harness-run-action-shelf"/);
 assert.match(
   appJs,
-  /\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}\s+\$\{harnessRunPolicyReportPreviewActionMarkup\}\s+\$\{harnessRunSubmitActionMarkup\}/,
+  /const harnessRunActionShelfMarkup = `\s+\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}\s+\$\{harnessRunPolicyReportPreviewActionMarkup\}\s+\$\{harnessRunSubmitActionMarkup\}/,
+);
+assert.match(appJs, /\$\{harnessRunActionShelfMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-run-action-shelf="true"[\s\S]{0,260}\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}/,
 );
 assert.doesNotMatch(appJs, /data-harness-run-action-shelf="true"[\s\S]{0,1800}<button/);
 
@@ -35,6 +40,7 @@ console.log(
           'harnessRunClearHistoryActionMarkup',
           'harnessRunPolicyReportPreviewActionMarkup',
           'harnessRunSubmitActionMarkup',
+          'harnessRunActionShelfMarkup',
         ],
       },
     },

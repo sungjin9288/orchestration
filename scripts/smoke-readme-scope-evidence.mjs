@@ -94,6 +94,7 @@ assert.match(readme, /Read-only growth evidence/);
 assert.match(readme, /Local-only personalization/);
 assert.match(readme, /Advanced Ops harness evidence/);
 assert.match(readme, /run action markup/);
+assert.match(readme, /run action shelf markup/);
 assert.match(readme, /operator action token label\/tone markup/);
 assert.match(readme, /visible preview markup/);
 assert.match(readme, /visible preview action markup/);
@@ -128,6 +129,7 @@ assert.match(readme, /node scripts\/smoke-ui-slice-331\.mjs/);
 assert.match(readme, /`361`/);
 assert.match(readme, /node scripts\/smoke-ui-slice-375\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-381\.mjs/);
+assert.match(readme, /run action shelf markup handoff/);
 assert.match(readme, /operator action token label\/tone markup handoff/);
 assert.match(readme, /visible token label\/tone markup handoff/);
 assert.match(readme, /latest state token label\/tone markup handoff/);
@@ -326,6 +328,15 @@ assert.match(harnessExecutionTokens, /export function getHarnessStatusSummaryVal
 assert.match(appJs, /const visibleHarnessRequestId = getHarnessExecutionRequestId\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessRequestId = getHarnessExecutionRequestId\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /const historyHarnessRequestId = getHarnessExecutionRequestId\(execution\);/);
+assert.match(
+  appJs,
+  /const harnessRunActionShelfMarkup = `\s+\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}\s+\$\{harnessRunPolicyReportPreviewActionMarkup\}\s+\$\{harnessRunSubmitActionMarkup\}/,
+);
+assert.match(appJs, /\$\{harnessRunActionShelfMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-run-action-shelf="true"[\s\S]{0,260}\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}/,
+);
 assert.match(
   appJs,
   /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}\s+\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
