@@ -1688,6 +1688,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessOutputChannelLabel,
     visibleHarnessOutputChannelTone,
   );
+  const visibleHarnessTokenRowMarkup = `
+    ${visibleHarnessPrimaryTokenMarkup}
+    ${visibleHarnessPolicyReportTokenMarkup}
+    ${visibleHarnessRequestTokenMarkup}
+    ${visibleHarnessOutputChannelTokenMarkup}
+    ${visibleHarnessExecutedAtTokenMarkup}
+  `;
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
   const harnessOperatorActionLabel = getHarnessOperatorActionLabel(operatorAction);
@@ -2300,11 +2307,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         ${visibleHarnessResultStateTokenMarkup}
                       </div>
                       <div class="token-row token-row-compact">
-                        ${visibleHarnessPrimaryTokenMarkup}
-                        ${visibleHarnessPolicyReportTokenMarkup}
-                        ${visibleHarnessRequestTokenMarkup}
-                        ${visibleHarnessOutputChannelTokenMarkup}
-                        ${visibleHarnessExecutedAtTokenMarkup}
+                        ${visibleHarnessTokenRowMarkup}
                       </div>
                       ${visibleHarnessSummaryRackMarkup}
                       ${

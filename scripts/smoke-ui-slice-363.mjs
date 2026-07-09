@@ -25,6 +25,15 @@ assert.match(
   appJs,
   /data-harness-execution-result="true"[\s\S]*?<div class="token-row token-row-compact">/,
 );
+assert.match(
+  appJs,
+  /const visibleHarnessTokenRowMarkup = `\s+\$\{visibleHarnessPrimaryTokenMarkup\}\s+\$\{visibleHarnessPolicyReportTokenMarkup\}\s+\$\{visibleHarnessRequestTokenMarkup\}\s+\$\{visibleHarnessOutputChannelTokenMarkup\}\s+\$\{visibleHarnessExecutedAtTokenMarkup\}/,
+);
+assert.match(appJs, /\$\{visibleHarnessTokenRowMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /<div class="token-row token-row-compact">\s+\$\{visibleHarnessPrimaryTokenMarkup\}\s+\$\{visibleHarnessPolicyReportTokenMarkup\}/,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -110,6 +119,7 @@ async function main() {
           harnessExecutionResultTokenDensity: {
             insertionPoint: 'executionResultRegister->visibleTokenDensity->compactTokenRow',
             rowClass: 'token-row-compact',
+            namedValues: ['visibleHarnessTokenRowMarkup'],
             route: '/api/harness/operator-action/run',
           },
         },

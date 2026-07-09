@@ -62,6 +62,15 @@ assert.match(appJs, /createToken\(visibleHarnessPolicyReportTokenLabel, visibleH
 assert.match(appJs, /\$\{visibleHarnessPrimaryTokenMarkup\}/);
 assert.match(appJs, /\$\{visibleHarnessRequestTokenMarkup\}/);
 assert.match(appJs, /\$\{visibleHarnessPolicyReportTokenMarkup\}/);
+assert.match(
+  appJs,
+  /const visibleHarnessTokenRowMarkup = `\s+\$\{visibleHarnessPrimaryTokenMarkup\}\s+\$\{visibleHarnessPolicyReportTokenMarkup\}\s+\$\{visibleHarnessRequestTokenMarkup\}\s+\$\{visibleHarnessOutputChannelTokenMarkup\}\s+\$\{visibleHarnessExecutedAtTokenMarkup\}/,
+);
+assert.match(appJs, /\$\{visibleHarnessTokenRowMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /<div class="token-row token-row-compact">\s+\$\{visibleHarnessPrimaryTokenMarkup\}\s+\$\{visibleHarnessPolicyReportTokenMarkup\}/,
+);
 assert.match(appJs, /\$\{visibleHarnessRequestSummaryMarkup\}/);
 assert.match(appJs, /\$\{hiddenHarnessRequestSummaryMarkup\}/);
 assert.doesNotMatch(appJs, /createToken\(`대표:\$\{visibleHarnessExecutionResult\.harnessId\}`/);
@@ -200,6 +209,7 @@ async function main() {
               'getHarnessPolicyReportTokenLabel',
               'canRenderVisibleHarnessPolicyReportToken',
               'visibleHarnessPolicyReportTokenMarkup',
+              'visibleHarnessTokenRowMarkup',
             ],
             firstRequestId: firstPayload.harnessExecution.requestId,
             secondRequestId: secondPayload.harnessExecution.requestId,

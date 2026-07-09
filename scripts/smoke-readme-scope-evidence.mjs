@@ -96,6 +96,7 @@ assert.match(readme, /Advanced Ops harness evidence/);
 assert.match(readme, /run action markup/);
 assert.match(readme, /run action shelf markup/);
 assert.match(readme, /operator action token label\/tone markup/);
+assert.match(readme, /visible token row markup/);
 assert.match(readme, /visible preview markup/);
 assert.match(readme, /visible preview action markup/);
 assert.match(readme, /visible input path action markup/);
@@ -132,6 +133,7 @@ assert.match(readme, /node scripts\/smoke-ui-slice-381\.mjs/);
 assert.match(readme, /run action shelf markup handoff/);
 assert.match(readme, /operator action token label\/tone markup handoff/);
 assert.match(readme, /visible token label\/tone markup handoff/);
+assert.match(readme, /visible token row markup handoff/);
 assert.match(readme, /latest state token label\/tone markup handoff/);
 assert.match(readme, /visible preview markup handoff/);
 assert.match(readme, /visible preview action markup handoff/);
@@ -421,6 +423,15 @@ assert.match(appJs, /const visibleHarnessPolicyReportTokenMarkup = canRenderVisi
 assert.match(appJs, /const visibleHarnessRequestTokenMarkup = canRenderVisibleHarnessRequestToken/);
 assert.match(appJs, /const visibleHarnessOutputChannelTokenMarkup = createToken\(\s+visibleHarnessOutputChannelLabel,\s+visibleHarnessOutputChannelTone,\s+\);/);
 assert.match(appJs, /const visibleHarnessExecutedAtTokenMarkup = canRenderVisibleHarnessExecutedAtToken/);
+assert.match(
+  appJs,
+  /const visibleHarnessTokenRowMarkup = `\s+\$\{visibleHarnessPrimaryTokenMarkup\}\s+\$\{visibleHarnessPolicyReportTokenMarkup\}\s+\$\{visibleHarnessRequestTokenMarkup\}\s+\$\{visibleHarnessOutputChannelTokenMarkup\}\s+\$\{visibleHarnessExecutedAtTokenMarkup\}/,
+);
+assert.match(appJs, /\$\{visibleHarnessTokenRowMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /<div class="token-row token-row-compact">\s+\$\{visibleHarnessPrimaryTokenMarkup\}\s+\$\{visibleHarnessPolicyReportTokenMarkup\}/,
+);
 assert.match(appJs, /createToken\(visibleHarnessPrimaryTokenLabel, visibleHarnessPrimaryTokenTone\)/);
 assert.match(appJs, /createToken\(visibleHarnessRequestTokenLabel, visibleHarnessRequestTokenTone\)/);
 assert.match(appJs, /createToken\(visibleHarnessExecutedAtTokenLabel, visibleHarnessExecutedAtTokenTone\)/);
