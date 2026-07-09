@@ -2383,6 +2383,32 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     </button>
                                   `
                                   : '';
+                              const historyHarnessPreviewActionsMarkup =
+                                canRenderHistoryHarnessPreview
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-execution-preview"
+                                      data-preview-text="${escapeHtml(historyHarnessPreviewText)}"
+                                      data-harness-history-preview-copy="true"
+                                    >
+                                      미리보기
+                                    </button>
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="summarize-harness-execution-preview"
+                                      data-execution-key="${escapeHtml(historyHarnessExecutionKey || '')}"
+                                      data-history-index="${String(index)}"
+                                      data-preview-text="${escapeHtml(historyHarnessPreviewText)}"
+                                      data-harness-history-output-brief="true"
+                                      ${state.loading || state.mutating ? 'disabled' : ''}
+                                    >
+                                      ${escapeHtml(historyHarnessBriefActionLabel)}
+                                    </button>
+                                  `
+                                  : '';
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2441,33 +2467,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       >
                                         ${escapeHtml(historyHarnessRerunActionLabel)}
                                       </button>
-                                      ${
-                                        canRenderHistoryHarnessPreview
-                                          ? `
-                                            <button
-                                              class="secondary-button"
-                                              type="button"
-                                              data-action="copy-harness-execution-preview"
-                                              data-preview-text="${escapeHtml(historyHarnessPreviewText)}"
-                                              data-harness-history-preview-copy="true"
-                                            >
-                                              미리보기
-                                            </button>
-                                            <button
-                                              class="secondary-button"
-                                              type="button"
-                                              data-action="summarize-harness-execution-preview"
-                                              data-execution-key="${escapeHtml(historyHarnessExecutionKey || '')}"
-                                              data-history-index="${String(index)}"
-                                              data-preview-text="${escapeHtml(historyHarnessPreviewText)}"
-                                              data-harness-history-output-brief="true"
-                                              ${state.loading || state.mutating ? 'disabled' : ''}
-                                            >
-                                              ${escapeHtml(historyHarnessBriefActionLabel)}
-                                            </button>
-                                          `
-                                          : ''
-                                      }
+                                      ${historyHarnessPreviewActionsMarkup}
                                     </div>
                                   </div>
                                 </div>

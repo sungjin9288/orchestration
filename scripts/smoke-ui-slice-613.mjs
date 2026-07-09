@@ -41,7 +41,10 @@ assert.match(appJs, /const visibleHarnessPreviewMarkup = canRenderVisibleHarness
 assert.match(appJs, /\$\{visibleHarnessPreviewMarkup\}/);
 assert.match(appJs, /data-harness-execution-preview="true">\$\{escapeHtml\(visibleHarnessPreviewText\)\}<\/pre>/);
 assert.match(appJs, /const canRenderHistoryHarnessPreview = Boolean\(historyHarnessPreviewText\);/);
+assert.match(appJs, /const historyHarnessPreviewActionsMarkup =\s+canRenderHistoryHarnessPreview/);
 assert.match(appJs, /canRenderHistoryHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
+assert.match(appJs, /\$\{historyHarnessPreviewActionsMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderHistoryHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
 assert.doesNotMatch(appJs, /\$\{\s*historyHarnessPreviewText\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
 assert.match(appJs, /data-preview-text="\$\{escapeHtml\(historyHarnessPreviewText\)\}"/);
 assert.match(appJs, /copyHarnessExecutionPreview\(actionButton\.dataset\.previewText\)/);
@@ -66,6 +69,7 @@ console.log(
           'visibleHarnessPreviewMarkup',
           'visibleHarnessPreviewActionsMarkup',
           'canRenderHistoryHarnessPreview',
+          'historyHarnessPreviewActionsMarkup',
         ],
       },
     },
