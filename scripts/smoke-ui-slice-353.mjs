@@ -22,7 +22,10 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-input-copy="true"/);
 assert.match(appJs, /const canRenderHistoryHarnessInputPathCopy = Boolean\(historyHarnessInputPath\);/);
+assert.match(appJs, /const historyHarnessInputPathCopyMarkup =\s+canRenderHistoryHarnessInputPathCopy/);
 assert.match(appJs, /canRenderHistoryHarnessInputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
+assert.match(appJs, /\$\{historyHarnessInputPathCopyMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderHistoryHarnessInputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
 assert.doesNotMatch(appJs, /\$\{\s*historyHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
 assert.match(appJs, /data-harness-input-copy="true"[\s\S]*?>\s*입력 경로\s*<\/button>/);
 

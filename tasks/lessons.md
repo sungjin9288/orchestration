@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness history input path copy buttons should consume named copy markup once the history input path predicate is selected. Keep `canRenderHistoryHarnessInputPathCopy` as the button render gate, but avoid building the input-path copy button directly inside the history action shelf; when README names this lane, pin the public claim to the focused history input path smoke and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.
+
 - Harness hidden input path action buttons should consume named action markup once the hidden input path predicate, hidden action output path, policy-report flag, and rerun label are selected. Keep `canRenderHiddenHarnessInputPathActions` as the shared copy/reuse/rerun render gate, but avoid building those three buttons directly inside the hidden result action shelf.
 
 - Harness visible input path action buttons should consume named action markup once the input path predicate, action output path, policy-report flag, and rerun label are selected. Keep `canRenderVisibleHarnessInputPathActions` as the shared copy/reuse/rerun render gate, but avoid building those three buttons directly inside the latest result action shelf.

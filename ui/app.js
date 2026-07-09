@@ -2326,6 +2326,20 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 isHarnessPolicyReportExecution(execution);
                               const historyHarnessPolicyReportDataValue =
                                 getHarnessPolicyReportDataValue(historyHarnessIsPolicyReport);
+                              const historyHarnessInputPathCopyMarkup =
+                                canRenderHistoryHarnessInputPathCopy
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-input-path"
+                                      data-input-path="${escapeHtml(historyHarnessInputPath)}"
+                                      data-harness-input-copy="true"
+                                    >
+                                      입력 경로
+                                    </button>
+                                  `
+                                  : '';
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2340,21 +2354,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   </div>
                                   <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
                                     <div class="form-actions form-actions-inline form-actions-compact">
-                                      ${
-                                        canRenderHistoryHarnessInputPathCopy
-                                          ? `
-                                            <button
-                                              class="secondary-button"
-                                              type="button"
-                                              data-action="copy-harness-input-path"
-                                              data-input-path="${escapeHtml(historyHarnessInputPath)}"
-                                              data-harness-input-copy="true"
-                                            >
-                                              입력 경로
-                                            </button>
-                                          `
-                                          : ''
-                                      }
+                                      ${historyHarnessInputPathCopyMarkup}
                                       <button
                                         class="secondary-button"
                                         type="button"
