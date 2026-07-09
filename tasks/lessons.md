@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness hidden result header chips should consume named token markup once the fixed hidden state copy is selected. Keep `숨김/neutral` wording unchanged, but avoid calling `createToken('숨김', 'neutral')` directly inside the hidden result title row.
+
 - Harness operator action header chips should consume named token markup after the action label and tone are already selected. Keep `getHarnessOperatorActionLabel(...)` and `getHarnessOperatorActionTone(...)` as the fallback source, but avoid calling `createToken(harnessOperatorActionLabel, harnessOperatorActionTone)` directly inside the section header.
 
 - Harness latest result state chips should consume named token markup after the state label and tone are already selected. Keep `getHarnessResultStateToken(...)` as the policy-report/completed state source, but avoid calling `createToken(visibleHarnessResultStateLabel, visibleHarnessResultStateTone)` directly inside the card title row.

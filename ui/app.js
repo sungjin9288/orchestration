@@ -1656,6 +1656,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessResultStateLabel,
     visibleHarnessResultStateTone,
   );
+  const hiddenHarnessResultStateTokenMarkup = createToken('숨김', 'neutral');
   const visibleHarnessUsesOutputFile = Boolean(visibleHarnessExecutionResult?.outputPath);
   const visibleHarnessOutputChannelToken =
     getHarnessOutputChannelToken(visibleHarnessUsesOutputFile);
@@ -2093,7 +2094,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                     >
                     <div class="card-title-row card-title-row-tight">
                       <strong>${escapeHtml(hiddenHarnessResultTitle)}가 숨겨져 있습니다</strong>
-                      ${createToken('숨김', 'neutral')}
+                      ${hiddenHarnessResultStateTokenMarkup}
                     </div>
                     <p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 ${escapeHtml(hiddenHarnessModeLabel)}를 다시 표시할 수 있습니다.</p>
                     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-run-context="true">
