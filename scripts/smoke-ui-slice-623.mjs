@@ -20,7 +20,10 @@ assert.match(appJs, /\$\{visibleHarnessOutputPathCopyMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessOutputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessOutputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
 assert.match(appJs, /const canRenderHistoryHarnessOutputPathCopy = Boolean\(historyHarnessOutputPath\);/);
+assert.match(appJs, /const historyHarnessOutputPathCopyMarkup =\s+canRenderHistoryHarnessOutputPathCopy/);
 assert.match(appJs, /canRenderHistoryHarnessOutputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
+assert.match(appJs, /\$\{historyHarnessOutputPathCopyMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderHistoryHarnessOutputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
 assert.doesNotMatch(appJs, /\$\{\s*historyHarnessOutputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);
 assert.match(appJs, /async function copyHarnessExecutionOutputPath\(outputPath, label = '출력 경로'\)/);
 assert.match(appJs, /const outputLabel = label \|\| '출력 경로'/);
@@ -44,6 +47,7 @@ console.log(
           'canRenderVisibleHarnessOutputPathCopy',
           'visibleHarnessOutputPathCopyMarkup',
           'canRenderHistoryHarnessOutputPathCopy',
+          'historyHarnessOutputPathCopyMarkup',
         ],
       },
     },

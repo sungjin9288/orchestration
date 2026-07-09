@@ -2340,6 +2340,21 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     </button>
                                   `
                                   : '';
+                              const historyHarnessOutputPathCopyMarkup =
+                                canRenderHistoryHarnessOutputPathCopy
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-output-path"
+                                      data-output-path="${escapeHtml(historyHarnessOutputPath)}"
+                                      data-output-path-label="${escapeHtml(historyHarnessOutputPathActionLabel)}"
+                                      data-harness-output-copy="true"
+                                    >
+                                      ${escapeHtml(historyHarnessOutputPathActionLabel)}
+                                    </button>
+                                  `
+                                  : '';
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2364,22 +2379,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                       >
                                         ${escapeHtml(historyHarnessShowActionLabel)}
                                       </button>
-                                      ${
-                                        canRenderHistoryHarnessOutputPathCopy
-                                          ? `
-                                            <button
-                                              class="secondary-button"
-                                              type="button"
-                                              data-action="copy-harness-output-path"
-                                              data-output-path="${escapeHtml(historyHarnessOutputPath)}"
-                                              data-output-path-label="${escapeHtml(historyHarnessOutputPathActionLabel)}"
-                                              data-harness-output-copy="true"
-                                            >
-                                              ${escapeHtml(historyHarnessOutputPathActionLabel)}
-                                            </button>
-                                          `
-                                          : ''
-                                      }
+                                      ${historyHarnessOutputPathCopyMarkup}
                                       ${
                                         canRenderHistoryHarnessRequestIdCopy
                                           ? `
