@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible result hide buttons should consume named markup once the hide label and execution key are selected. Keep `hide-harness-execution-result`, `data-execution-key`, and `data-harness-result-hide` unchanged, but avoid building the hide button directly inside the latest result action shelf; when README names this lane, pin the public claim to focused visibility smokes and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.
+
 - Harness hidden result action shelf buttons should consume named markup once their labels, payloads, and render predicates are selected. Keep show, output path copy, request-id copy, policy-report copy, packet copy, and preview/output-brief payloads unchanged, but avoid building those buttons directly inside the hidden result action shelf; when README names this lane, pin the public claim to the focused hidden action smokes and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.
 
 - Harness visible and hidden execution packet copy buttons should consume named copy markup once packet copy text is selected. Keep `canCopyVisibleHarnessExecutionPacket` and `canCopyHiddenHarnessExecutionPacket` as render gates, but avoid building packet copy buttons directly inside the latest or hidden result action shelves; when README names this lane, pin the public claim to the focused packet smokes and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.

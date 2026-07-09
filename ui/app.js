@@ -1832,6 +1832,17 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     : '';
   const visibleHarnessHideActionLabel = getHarnessExecutionHideActionLabel(visibleHarnessExecutionResult);
   const hiddenHarnessShowActionLabel = getHarnessExecutionShowActionLabel(hiddenHarnessExecutionResult);
+  const visibleHarnessHideActionMarkup = `
+    <button
+      class="secondary-button"
+      type="button"
+      data-action="hide-harness-execution-result"
+      data-execution-key="${escapeHtml(visibleHarnessExecutionKey || '')}"
+      data-harness-result-hide="true"
+    >
+      ${escapeHtml(visibleHarnessHideActionLabel)}
+    </button>
+  `;
   const hiddenHarnessShowActionMarkup = `
     <button
       class="secondary-button"
@@ -2194,15 +2205,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               ${visibleHarnessPreviewActionsMarkup}
                               ${visibleHarnessOutputBriefCopyMarkup}
                               ${visibleHarnessPolicyReportCopyMarkup}
-                              <button
-                                class="secondary-button"
-                                type="button"
-                                data-action="hide-harness-execution-result"
-                                data-execution-key="${escapeHtml(visibleHarnessExecutionKey || '')}"
-                                data-harness-result-hide="true"
-                              >
-                                ${escapeHtml(visibleHarnessHideActionLabel)}
-                              </button>
+                              ${visibleHarnessHideActionMarkup}
                             </div>
                           `
                           : ''

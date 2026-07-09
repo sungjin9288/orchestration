@@ -40,6 +40,12 @@ assert.doesNotMatch(appJs, /visibleHarnessExecutionResult\?\.harnessId === statu
 assert.doesNotMatch(appJs, /hiddenHarnessExecutionResult\?\.harnessId === statusCard\.primaryHarnessId/);
 assert.match(appJs, /data-action="hide-harness-execution-result"/);
 assert.match(appJs, /data-harness-result-hide="true"/);
+assert.match(appJs, /const visibleHarnessHideActionMarkup = `/);
+assert.match(appJs, /\$\{visibleHarnessHideActionMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /\$\{visibleHarnessPolicyReportCopyMarkup\}[\s\S]*?<button[\s\S]*?data-action="hide-harness-execution-result"/,
+);
 assert.match(appJs, /function hideHarnessExecutionResult\(actionButton\)/);
 assert.match(appJs, /state\.hiddenHarnessExecutionResultKey = executionKey;/);
 assert.match(appJs, /state\.hiddenHarnessExecutionResultKey = null;/);
@@ -134,6 +140,7 @@ async function main() {
             insertionPoint: 'executionResultRegister->hideExecutionResultAction->localVisibilityState',
             derivedKey: 'latestHarnessExecution',
             sourceMarker: 'data-harness-result-hide',
+            namedValues: ['visibleHarnessHideActionMarkup'],
             latestHarnessId: latestHarnessExecution.harnessId,
             resolvedInputPath: inputPath,
             resolvedOutputPath: outputPath,
