@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness history request ID copy buttons should consume named copy markup once the history request ID predicate is selected. Keep `canRenderHistoryHarnessRequestIdCopy` as the button render gate, but avoid building the request-id copy button directly inside the history action shelf.
+
 - Harness history output path copy buttons should consume named copy markup once the history output path predicate and action label are selected. Keep `canRenderHistoryHarnessOutputPathCopy` as the button render gate, but avoid building the output-path copy button directly inside the history action shelf.
 
 - Harness history input path copy buttons should consume named copy markup once the history input path predicate is selected. Keep `canRenderHistoryHarnessInputPathCopy` as the button render gate, but avoid building the input-path copy button directly inside the history action shelf; when README names this lane, pin the public claim to the focused history input path smoke and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.

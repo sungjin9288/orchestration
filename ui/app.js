@@ -2355,6 +2355,20 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                     </button>
                                   `
                                   : '';
+                              const historyHarnessRequestIdCopyMarkup =
+                                canRenderHistoryHarnessRequestIdCopy
+                                  ? `
+                                    <button
+                                      class="secondary-button"
+                                      type="button"
+                                      data-action="copy-harness-request-id"
+                                      data-request-id="${escapeHtml(historyHarnessRequestId)}"
+                                      data-harness-history-request-id-copy="true"
+                                    >
+                                      요청 ID
+                                    </button>
+                                  `
+                                  : '';
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2380,21 +2394,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                         ${escapeHtml(historyHarnessShowActionLabel)}
                                       </button>
                                       ${historyHarnessOutputPathCopyMarkup}
-                                      ${
-                                        canRenderHistoryHarnessRequestIdCopy
-                                          ? `
-                                            <button
-                                              class="secondary-button"
-                                              type="button"
-                                              data-action="copy-harness-request-id"
-                                              data-request-id="${escapeHtml(historyHarnessRequestId)}"
-                                              data-harness-history-request-id-copy="true"
-                                            >
-                                              요청 ID
-                                            </button>
-                                          `
-                                          : ''
-                                      }
+                                      ${historyHarnessRequestIdCopyMarkup}
                                       <button
                                         class="secondary-button"
                                         type="button"
