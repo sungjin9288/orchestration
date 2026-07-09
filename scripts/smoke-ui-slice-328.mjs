@@ -33,8 +33,9 @@ assert.match(appJs, /const visibleHarnessExecutedAtLabel = getHarnessExecutionTi
 assert.match(appJs, /const hiddenHarnessExecutedAtLabel = getHarnessExecutionTimestampLabel\(\s+hiddenHarnessExecutionResult,\s+'',\s+\);/);
 assert.match(appJs, /const visibleHarnessExecutedAtTokenLabel =\s+getHarnessExecutedAtTokenLabel\(visibleHarnessExecutedAtLabel\);/);
 assert.match(appJs, /const canRenderVisibleHarnessExecutedAtToken = Boolean\(visibleHarnessExecutedAtTokenLabel\);/);
-assert.match(appJs, /canRenderVisibleHarnessExecutedAtToken\s+\?\s+createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
+assert.match(appJs, /const visibleHarnessExecutedAtTokenMarkup = canRenderVisibleHarnessExecutedAtToken/);
 assert.match(appJs, /createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
+assert.match(appJs, /\$\{visibleHarnessExecutedAtTokenMarkup\}/);
 assert.match(appJs, /const canRenderHiddenHarnessExecutedAtSummary = Boolean\(hiddenHarnessExecutedAtLabel\);/);
 assert.match(appJs, /const hiddenHarnessExecutedAtSummaryMarkup = canRenderHiddenHarnessExecutedAtSummary/);
 assert.match(appJs, /\$\{hiddenHarnessExecutedAtSummaryMarkup\}/);
@@ -46,6 +47,7 @@ assert.doesNotMatch(appJs, /const hiddenHarnessExecutedAtLabel = hiddenHarnessEx
 assert.doesNotMatch(appJs, /const visibleHarnessExecutedAtTokenLabel = visibleHarnessExecutedAtLabel\s+\?\s+`실행:\$\{visibleHarnessExecutedAtLabel\}`\s+:\s+'';/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessExecutedAtLabel\s+\?\s+`<p class="detail-copy detail-copy-compact" data-harness-result-hidden-executed-at-summary="true">/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessExecutedAtTokenLabel\s+\?\s+createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessExecutedAtToken\s+\?\s+createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -138,6 +140,7 @@ async function main() {
               'canRenderHiddenHarnessExecutedAtSummary',
               'hiddenHarnessExecutedAtSummaryMarkup',
               'visibleHarnessExecutedAtTokenLabel',
+              'visibleHarnessExecutedAtTokenMarkup',
               'canRenderVisibleHarnessExecutedAtToken',
             ],
             route: '/api/harness/operator-action/run',

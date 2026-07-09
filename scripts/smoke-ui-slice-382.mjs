@@ -35,15 +35,21 @@ assert.match(
 assert.match(appJs, /const visibleHarnessOutputChannelToken =\s+getHarnessOutputChannelToken\(visibleHarnessUsesOutputFile\);/);
 assert.match(appJs, /const visibleHarnessOutputChannelLabel = visibleHarnessOutputChannelToken\.label;/);
 assert.match(appJs, /const visibleHarnessOutputChannelTone = visibleHarnessOutputChannelToken\.tone;/);
+assert.match(appJs, /const visibleHarnessOutputChannelTokenMarkup = createToken\(\s+visibleHarnessOutputChannelLabel,\s+visibleHarnessOutputChannelTone,\s+\);/);
 assert.doesNotMatch(appJs, /visibleHarnessExecutionResult\?\.outputPath \? '출력 파일' : '표준 출력'/);
 assert.doesNotMatch(appJs, /visibleHarnessExecutionResult\?\.outputPath \? 'accent' : 'neutral'/);
 assert.doesNotMatch(appJs, /const visibleHarnessOutputChannelLabel =\s+visibleHarnessUsesOutputFile \? '출력 파일' : '표준 출력';/);
 assert.doesNotMatch(appJs, /const visibleHarnessOutputChannelTone =\s+visibleHarnessUsesOutputFile \? 'accent' : 'neutral';/);
 assert.match(
   appJs,
-  /createToken\(visibleHarnessOutputChannelLabel, visibleHarnessOutputChannelTone\)/,
+  /createToken\(\s+visibleHarnessOutputChannelLabel,\s+visibleHarnessOutputChannelTone,\s+\)/,
 );
+assert.match(appJs, /\$\{visibleHarnessOutputChannelTokenMarkup\}/);
 assert.doesNotMatch(appJs, /createToken\('출력 파일', 'accent'\)/);
+assert.doesNotMatch(
+  appJs,
+  /\$\{createToken\(\s+visibleHarnessOutputChannelLabel,\s+visibleHarnessOutputChannelTone,\s+\)\}/,
+);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);

@@ -1621,6 +1621,15 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const canRenderVisibleHarnessPrimaryToken = Boolean(visibleHarnessPrimaryTokenLabel);
   const canRenderVisibleHarnessRequestToken = Boolean(visibleHarnessRequestTokenLabel);
   const canRenderVisibleHarnessExecutedAtToken = Boolean(visibleHarnessExecutedAtTokenLabel);
+  const visibleHarnessPrimaryTokenMarkup = canRenderVisibleHarnessPrimaryToken
+    ? createToken(visibleHarnessPrimaryTokenLabel, 'neutral')
+    : '';
+  const visibleHarnessRequestTokenMarkup = canRenderVisibleHarnessRequestToken
+    ? createToken(visibleHarnessRequestTokenLabel, 'neutral')
+    : '';
+  const visibleHarnessExecutedAtTokenMarkup = canRenderVisibleHarnessExecutedAtToken
+    ? createToken(visibleHarnessExecutedAtTokenLabel, 'neutral')
+    : '';
   const visibleHarnessModeLabel = getHarnessExecutionModeLabel(visibleHarnessExecutionResult);
   const hiddenHarnessModeLabel = getHarnessExecutionModeLabel(hiddenHarnessExecutionResult);
   const visibleHarnessResultTitle = getHarnessExecutionResultTitle(visibleHarnessExecutionResult);
@@ -1636,6 +1645,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessPolicyReportTokenLabel =
     getHarnessPolicyReportTokenLabel(visibleHarnessIsPolicyReport);
   const canRenderVisibleHarnessPolicyReportToken = Boolean(visibleHarnessPolicyReportTokenLabel);
+  const visibleHarnessPolicyReportTokenMarkup = canRenderVisibleHarnessPolicyReportToken
+    ? createToken(visibleHarnessPolicyReportTokenLabel, 'neutral')
+    : '';
   const visibleHarnessResultStateToken =
     getHarnessResultStateToken(visibleHarnessIsPolicyReport);
   const visibleHarnessResultStateLabel = visibleHarnessResultStateToken.label;
@@ -1645,6 +1657,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     getHarnessOutputChannelToken(visibleHarnessUsesOutputFile);
   const visibleHarnessOutputChannelLabel = visibleHarnessOutputChannelToken.label;
   const visibleHarnessOutputChannelTone = visibleHarnessOutputChannelToken.tone;
+  const visibleHarnessOutputChannelTokenMarkup = createToken(
+    visibleHarnessOutputChannelLabel,
+    visibleHarnessOutputChannelTone,
+  );
   const visibleHarnessHandoffText = getHarnessExecutionHandoffText(visibleHarnessExecutionResult);
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
   const harnessOperatorActionLabel = getHarnessOperatorActionLabel(operatorAction);
@@ -1885,27 +1901,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                         ${createToken(visibleHarnessResultStateLabel, visibleHarnessResultStateTone)}
                       </div>
                       <div class="token-row token-row-compact">
-                        ${
-                          canRenderVisibleHarnessPrimaryToken
-                            ? createToken(visibleHarnessPrimaryTokenLabel, 'neutral')
-                            : ''
-                        }
-                        ${
-                          canRenderVisibleHarnessPolicyReportToken
-                            ? createToken(visibleHarnessPolicyReportTokenLabel, 'neutral')
-                            : ''
-                        }
-                        ${
-                          canRenderVisibleHarnessRequestToken
-                            ? createToken(visibleHarnessRequestTokenLabel, 'neutral')
-                            : ''
-                        }
-                        ${createToken(visibleHarnessOutputChannelLabel, visibleHarnessOutputChannelTone)}
-                        ${
-                          canRenderVisibleHarnessExecutedAtToken
-                            ? createToken(visibleHarnessExecutedAtTokenLabel, 'neutral')
-                            : ''
-                        }
+                        ${visibleHarnessPrimaryTokenMarkup}
+                        ${visibleHarnessPolicyReportTokenMarkup}
+                        ${visibleHarnessRequestTokenMarkup}
+                        ${visibleHarnessOutputChannelTokenMarkup}
+                        ${visibleHarnessExecutedAtTokenMarkup}
                       </div>
                       ${visibleHarnessInputSummaryMarkup}
                       ${visibleHarnessModeSummaryMarkup}

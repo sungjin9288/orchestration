@@ -41,18 +41,21 @@ assert.match(appJs, /const visibleHarnessPrimaryTokenLabel =\s+getHarnessPrimary
 assert.match(appJs, /const visibleHarnessRequestTokenLabel = getHarnessRequestTokenLabel\(visibleHarnessRequestId\);/);
 assert.match(appJs, /const canRenderVisibleHarnessPrimaryToken = Boolean\(visibleHarnessPrimaryTokenLabel\);/);
 assert.match(appJs, /const canRenderVisibleHarnessRequestToken = Boolean\(visibleHarnessRequestTokenLabel\);/);
+assert.match(appJs, /const visibleHarnessPrimaryTokenMarkup = canRenderVisibleHarnessPrimaryToken/);
+assert.match(appJs, /const visibleHarnessRequestTokenMarkup = canRenderVisibleHarnessRequestToken/);
 assert.match(appJs, /const canRenderVisibleHarnessRequestSummary = Boolean\(visibleHarnessRequestId\);/);
 assert.match(appJs, /const canRenderHiddenHarnessRequestSummary = Boolean\(hiddenHarnessRequestId\);/);
 assert.match(appJs, /const visibleHarnessRequestSummaryMarkup = canRenderVisibleHarnessRequestSummary/);
 assert.match(appJs, /const hiddenHarnessRequestSummaryMarkup = canRenderHiddenHarnessRequestSummary/);
 assert.match(appJs, /const visibleHarnessPolicyReportTokenLabel =\s+getHarnessPolicyReportTokenLabel\(visibleHarnessIsPolicyReport\);/);
 assert.match(appJs, /const canRenderVisibleHarnessPolicyReportToken = Boolean\(visibleHarnessPolicyReportTokenLabel\);/);
-assert.match(appJs, /canRenderVisibleHarnessPrimaryToken\s+\?\s+createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/);
-assert.match(appJs, /canRenderVisibleHarnessRequestToken\s+\?\s+createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/);
-assert.match(appJs, /canRenderVisibleHarnessPolicyReportToken\s+\?\s+createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/);
+assert.match(appJs, /const visibleHarnessPolicyReportTokenMarkup = canRenderVisibleHarnessPolicyReportToken/);
 assert.match(appJs, /createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/);
 assert.match(appJs, /createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/);
 assert.match(appJs, /createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/);
+assert.match(appJs, /\$\{visibleHarnessPrimaryTokenMarkup\}/);
+assert.match(appJs, /\$\{visibleHarnessRequestTokenMarkup\}/);
+assert.match(appJs, /\$\{visibleHarnessPolicyReportTokenMarkup\}/);
 assert.match(appJs, /\$\{visibleHarnessRequestSummaryMarkup\}/);
 assert.match(appJs, /\$\{hiddenHarnessRequestSummaryMarkup\}/);
 assert.doesNotMatch(appJs, /createToken\(`대표:\$\{visibleHarnessExecutionResult\.harnessId\}`/);
@@ -64,6 +67,9 @@ assert.doesNotMatch(appJs, /const visibleHarnessPolicyReportTokenLabel =\s+visib
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessPrimaryTokenLabel\s+\?\s+createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessRequestTokenLabel\s+\?\s+createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessPolicyReportTokenLabel\s+\?\s+createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessPrimaryToken\s+\?\s+createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessRequestToken\s+\?\s+createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessPolicyReportToken\s+\?\s+createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessRequestId\s+\?\s+`<p class="detail-copy detail-copy-compact" data-harness-execution-request-summary="true">/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessRequestId\s+\?\s+`<p class="detail-copy detail-copy-compact" data-harness-result-hidden-request-summary="true">/);
 
@@ -170,6 +176,8 @@ async function main() {
               'getHarnessRequestTokenLabel',
               'canRenderVisibleHarnessPrimaryToken',
               'canRenderVisibleHarnessRequestToken',
+              'visibleHarnessPrimaryTokenMarkup',
+              'visibleHarnessRequestTokenMarkup',
               'canRenderVisibleHarnessRequestSummary',
               'visibleHarnessRequestSummaryMarkup',
               'canRenderHiddenHarnessRequestSummary',
@@ -177,6 +185,7 @@ async function main() {
               'visibleHarnessPolicyReportTokenLabel',
               'getHarnessPolicyReportTokenLabel',
               'canRenderVisibleHarnessPolicyReportToken',
+              'visibleHarnessPolicyReportTokenMarkup',
             ],
             firstRequestId: firstPayload.harnessExecution.requestId,
             secondRequestId: secondPayload.harnessExecution.requestId,
