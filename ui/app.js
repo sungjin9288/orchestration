@@ -2621,6 +2621,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 ${historyHarnessPathActionsMarkup}
                                 ${historyHarnessPreviewActionsMarkup}
                               `;
+                              const historyHarnessActionShelfFrameMarkup = `
+                                <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
+                                  <div class="form-actions form-actions-inline form-actions-compact">
+                                    ${historyHarnessActionShelfMarkup}
+                                  </div>
+                                </div>
+                              `;
 
                               return `
                               <div class="harness-execution-history-item-packet" data-harness-execution-history-item-packet="true">
@@ -2628,11 +2635,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   <div class="harness-execution-history-summary-rack" data-harness-execution-history-summary-rack="true">
                                     ${historyHarnessSummaryRackMarkup}
                                   </div>
-                                  <div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">
-                                    <div class="form-actions form-actions-inline form-actions-compact">
-                                      ${historyHarnessActionShelfMarkup}
-                                    </div>
-                                  </div>
+                                  ${historyHarnessActionShelfFrameMarkup}
                                 </div>
                               </div>
                             `;

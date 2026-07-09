@@ -43,6 +43,11 @@ assert.match(
   /const historyHarnessActionShelfMarkup = `\s+\$\{historyHarnessInputPathCopyMarkup\}\s+\$\{historyHarnessRestorePreviewMarkup\}\s+\$\{historyHarnessOutputPathCopyMarkup\}\s+\$\{historyHarnessRequestIdCopyMarkup\}\s+\$\{historyHarnessExecutionPacketCopyMarkup\}\s+\$\{historyHarnessPolicyReportCopyMarkup\}\s+\$\{historyHarnessPathActionsMarkup\}\s+\$\{historyHarnessPreviewActionsMarkup\}/,
 );
 assert.match(appJs, /\$\{historyHarnessActionShelfMarkup\}/);
+assert.match(
+  appJs,
+  /const historyHarnessActionShelfFrameMarkup = `\s+<div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">\s+<div class="form-actions form-actions-inline form-actions-compact">\s+\$\{historyHarnessActionShelfMarkup\}/,
+);
+assert.match(appJs, /\$\{historyHarnessActionShelfFrameMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /\$\{historyHarnessInputPathCopyMarkup\}\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/,
@@ -50,6 +55,10 @@ assert.doesNotMatch(
 assert.doesNotMatch(
   appJs,
   /form-actions-compact">\s+\$\{historyHarnessInputPathCopyMarkup\}\s+\$\{historyHarnessRestorePreviewMarkup\}\s+\$\{historyHarnessOutputPathCopyMarkup\}/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-history-summary-rack="true">\s+\$\{historyHarnessSummaryRackMarkup\}\s+<\/div>\s+<div class="harness-execution-history-action-shelf" data-harness-execution-history-action-shelf="true">/,
 );
 assert.match(appJs, /data-harness-result-hide="true"/);
 assert.match(appJs, /data-harness-result-show="true"/);
@@ -68,6 +77,7 @@ console.log(
           'historyHarnessShowActionLabel',
           'historyHarnessRestorePreviewMarkup',
           'historyHarnessActionShelfMarkup',
+          'historyHarnessActionShelfFrameMarkup',
         ],
         surfaces: ['latest-result', 'hidden-result', 'recent-history'],
       },
