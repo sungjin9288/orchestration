@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness operator action header chips should consume named token markup after the action label and tone are already selected. Keep `getHarnessOperatorActionLabel(...)` and `getHarnessOperatorActionTone(...)` as the fallback source, but avoid calling `createToken(harnessOperatorActionLabel, harnessOperatorActionTone)` directly inside the section header.
+
 - Harness latest result state chips should consume named token markup after the state label and tone are already selected. Keep `getHarnessResultStateToken(...)` as the policy-report/completed state source, but avoid calling `createToken(visibleHarnessResultStateLabel, visibleHarnessResultStateTone)` directly inside the card title row.
 
 - Harness latest visible token rows should consume named token markup values once labels and predicates are already named. Keep primary/request/policy-report/executed-at predicates and output-channel token selection in the render path, but avoid reopening `canRender... ? createToken(...) : ''` branches inside the token-row template. When README names this lane, pin the public claim to the focused visible token smokes and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.

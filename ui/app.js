@@ -1669,6 +1669,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
   const harnessOperatorActionLabel = getHarnessOperatorActionLabel(operatorAction);
   const harnessOperatorActionTone = getHarnessOperatorActionTone(operatorAction);
+  const harnessOperatorActionTokenMarkup = createToken(
+    harnessOperatorActionLabel,
+    harnessOperatorActionTone,
+  );
   const harnessHostStateLabel = getHarnessBriefHostStateLabel({
     currentHostState: statusCard.currentHostState,
   });
@@ -1781,7 +1785,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
           <p class="control-overview-label">Harness operator action</p>
           <h4 class="ops-section-title">하네스 실행 액션</h4>
         </div>
-        ${createToken(harnessOperatorActionLabel, harnessOperatorActionTone)}
+        ${harnessOperatorActionTokenMarkup}
       </div>
       <p class="control-overview-copy">${escapeHtml(operatorActionDisplayMessage)}</p>
       <div class="control-overview-register">

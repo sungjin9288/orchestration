@@ -26,12 +26,16 @@ assert.match(appJs, /data-harness-result-hidden-action-summary="true"/);
 assert.match(appJs, /getHarnessOperatorActionLabel\(operatorAction\)/);
 assert.match(appJs, /const harnessOperatorActionLabel = getHarnessOperatorActionLabel\(operatorAction\);/);
 assert.match(appJs, /const harnessOperatorActionTone = getHarnessOperatorActionTone\(operatorAction\);/);
+assert.match(
+  appJs,
+  /const harnessOperatorActionTokenMarkup = createToken\(\s+harnessOperatorActionLabel,\s+harnessOperatorActionTone,\s+\);/,
+);
 assert.match(harnessBriefLabels, /if \(!operatorAction\?\.kind\) \{\s+return '액션 없음';\s+\}/);
 assert.match(harnessBriefLabels, /if \(!operatorAction\?\.kind \|\| operatorAction\.kind === 'none'\) \{\s+return 'neutral';\s+\}/);
 assert.match(appJs, /const hiddenHarnessOperatorActionLabel = harnessOperatorActionLabel;/);
 assert.match(appJs, /const hiddenHarnessOperatorActionSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">/);
 assert.match(appJs, /\$\{hiddenHarnessOperatorActionSummaryMarkup\}/);
-assert.match(appJs, /createToken\(harnessOperatorActionLabel, harnessOperatorActionTone\)/);
+assert.match(appJs, /\$\{harnessOperatorActionTokenMarkup\}/);
 assert.match(appJs, /\$\{escapeHtml\(harnessOperatorActionLabel\)\}/);
 assert.doesNotMatch(appJs, /const hasHarnessOperatorAction = Boolean\(operatorAction\);/);
 assert.doesNotMatch(appJs, /const harnessOperatorActionLabel = hasHarnessOperatorAction/);
@@ -40,6 +44,7 @@ assert.doesNotMatch(appJs, /const harnessOperatorActionLabel = operatorAction/);
 assert.doesNotMatch(appJs, /const harnessOperatorActionTone = operatorAction/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>\$\{escapeHtml\(getHarnessOperatorActionLabel\(operatorAction\)\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">/);
 assert.doesNotMatch(appJs, /createToken\(getHarnessOperatorActionLabel\(operatorAction\), getHarnessOperatorActionTone\(operatorAction\)\)/);
+assert.doesNotMatch(appJs, /\$\{createToken\(harnessOperatorActionLabel, harnessOperatorActionTone\)\}/);
 assert.doesNotMatch(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(getHarnessOperatorActionLabel\(operatorAction\)\)\}<\/strong>/);
 
 async function fetchJson(url, options = {}) {
@@ -128,6 +133,7 @@ async function main() {
             namedValues: [
               'harnessOperatorActionLabel',
               'harnessOperatorActionTone',
+              'harnessOperatorActionTokenMarkup',
               'hiddenHarnessOperatorActionLabel',
               'hiddenHarnessOperatorActionSummaryMarkup',
             ],
