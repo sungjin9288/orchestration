@@ -1957,7 +1957,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   );
   const canRenderVisibleHarnessOutputBriefCopy = Boolean(visibleHarnessOutputBrief);
   const visibleHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(visibleHarnessExecutionResult);
-  const visibleHarnessPreviewActionsMarkup = canRenderVisibleHarnessPreview
+  const visibleHarnessPreviewCopyActionMarkup = canRenderVisibleHarnessPreview
     ? `
       <button
         class="secondary-button"
@@ -1968,6 +1968,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       >
         미리보기
       </button>
+    `
+    : '';
+  const visibleHarnessOutputBriefActionMarkup = canRenderVisibleHarnessPreview
+    ? `
       <button
         class="secondary-button"
         type="button"
@@ -1981,6 +1985,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       </button>
     `
     : '';
+  const visibleHarnessPreviewActionsMarkup = `
+    ${visibleHarnessPreviewCopyActionMarkup}
+    ${visibleHarnessOutputBriefActionMarkup}
+  `;
   const hiddenHarnessPreviewCopyActionMarkup = canRenderHiddenHarnessPreview
     ? `
       <button

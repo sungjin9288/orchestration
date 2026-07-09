@@ -60,9 +60,20 @@ assert.match(appJs, /data-preview-text="\$\{escapeHtml\(historyHarnessPreviewTex
 assert.match(appJs, /copyHarnessExecutionPreview\(actionButton\.dataset\.previewText\)/);
 assert.match(appJs, /하네스 실행 미리보기를 복사했습니다/);
 assert.match(appJs, />\s*미리보기\s*</);
-assert.match(appJs, /const visibleHarnessPreviewActionsMarkup = canRenderVisibleHarnessPreview/);
+assert.match(appJs, /const visibleHarnessPreviewCopyActionMarkup =\s+canRenderVisibleHarnessPreview/);
+assert.match(appJs, /const visibleHarnessOutputBriefActionMarkup =\s+canRenderVisibleHarnessPreview/);
+assert.match(appJs, /canRenderVisibleHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
+assert.match(appJs, /canRenderVisibleHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="summarize-harness-execution-preview"/);
+assert.match(
+  appJs,
+  /const visibleHarnessPreviewActionsMarkup = `\s+\$\{visibleHarnessPreviewCopyActionMarkup\}\s+\$\{visibleHarnessOutputBriefActionMarkup\}/,
+);
 assert.match(appJs, /\$\{visibleHarnessPreviewActionsMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/);
+assert.doesNotMatch(
+  appJs,
+  /const visibleHarnessPreviewActionsMarkup =\s+canRenderVisibleHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/,
+);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessPreview\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessPreviewText\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">/);
 
@@ -77,6 +88,8 @@ console.log(
           'visibleHarnessPreviewText',
           'canRenderVisibleHarnessPreview',
           'visibleHarnessPreviewMarkup',
+          'visibleHarnessPreviewCopyActionMarkup',
+          'visibleHarnessOutputBriefActionMarkup',
           'visibleHarnessPreviewActionsMarkup',
           'canRenderHistoryHarnessPreview',
           'historyHarnessPreviewCopyActionMarkup',

@@ -20,6 +20,21 @@ assert.match(appJs, /const visibleHarnessBriefActionLabel = getHarnessExecutionB
 assert.match(appJs, /const hiddenHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /\$\{escapeHtml\(visibleHarnessBriefActionLabel\)\}/);
 assert.match(appJs, /\$\{escapeHtml\(hiddenHarnessBriefActionLabel\)\}/);
+assert.match(appJs, /const canRenderVisibleHarnessPreview = Boolean\(visibleHarnessPreviewText\);/);
+assert.match(appJs, /const visibleHarnessPreviewCopyActionMarkup =\s+canRenderVisibleHarnessPreview/);
+assert.match(appJs, /const visibleHarnessOutputBriefActionMarkup =\s+canRenderVisibleHarnessPreview/);
+assert.match(appJs, /canRenderVisibleHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
+assert.match(appJs, /canRenderVisibleHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="summarize-harness-execution-preview"/);
+assert.match(
+  appJs,
+  /const visibleHarnessPreviewActionsMarkup = `\s+\$\{visibleHarnessPreviewCopyActionMarkup\}\s+\$\{visibleHarnessOutputBriefActionMarkup\}/,
+);
+assert.match(appJs, /\$\{visibleHarnessPreviewActionsMarkup\}/);
+assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/);
+assert.doesNotMatch(
+  appJs,
+  /const visibleHarnessPreviewActionsMarkup =\s+canRenderVisibleHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/,
+);
 assert.match(appJs, /const canRenderHiddenHarnessPreview = Boolean\(hiddenHarnessPreviewText\);/);
 assert.match(appJs, /const hiddenHarnessPreviewCopyActionMarkup =\s+canRenderHiddenHarnessPreview/);
 assert.match(appJs, /const hiddenHarnessOutputBriefActionMarkup =\s+canRenderHiddenHarnessPreview/);
@@ -66,6 +81,10 @@ console.log(
         helper: 'getHarnessExecutionBriefActionLabel',
         labels: ['리포트 요약', '출력 요약'],
         namedValues: [
+          'canRenderVisibleHarnessPreview',
+          'visibleHarnessPreviewCopyActionMarkup',
+          'visibleHarnessOutputBriefActionMarkup',
+          'visibleHarnessPreviewActionsMarkup',
           'canRenderHiddenHarnessPreview',
           'hiddenHarnessPreviewCopyActionMarkup',
           'hiddenHarnessOutputBriefActionMarkup',
