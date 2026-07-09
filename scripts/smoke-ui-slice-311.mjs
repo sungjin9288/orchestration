@@ -32,7 +32,15 @@ assert.match(appJs, /data-action="reuse-harness-execution-paths"/);
 assert.match(appJs, /data-harness-history-reuse="true"/);
 assert.match(
   appJs,
-  /const historyHarnessPathActionsMarkup = `\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"[\s\S]*?data-action="rerun-harness-execution-paths"/,
+  /const historyHarnessPathReuseActionMarkup = `\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessPathRerunActionMarkup = `\s+<button[\s\S]*?data-action="rerun-harness-execution-paths"/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessPathActionsMarkup = `\s+\$\{historyHarnessPathReuseActionMarkup\}\s+\$\{historyHarnessPathRerunActionMarkup\}/,
 );
 assert.match(appJs, /\$\{historyHarnessPathActionsMarkup\}/);
 assert.match(harnessExecutionTokens, /export function getHarnessHistoryInputPath\(execution\) \{/);
@@ -52,6 +60,10 @@ assert.doesNotMatch(appJs, /const historyHarnessOutputPath = execution\.outputPa
 assert.doesNotMatch(
   appJs,
   /\$\{historyHarnessPolicyReportCopyMarkup\}\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"[\s\S]*?data-action="rerun-harness-execution-paths"/,
+);
+assert.doesNotMatch(
+  appJs,
+  /const historyHarnessPathActionsMarkup = `\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"[\s\S]*?data-action="rerun-harness-execution-paths"/,
 );
 
 async function fetchJson(url, options = {}) {
@@ -149,6 +161,11 @@ async function main() {
             insertionPoint: 'executionHistoryRegister->reuseExecutionPathsAction->executionFormDraft',
             derivedKey: 'recentHarnessExecutions',
             sourceMarker: 'data-harness-history-reuse',
+            namedValues: [
+              'historyHarnessPathReuseActionMarkup',
+              'historyHarnessPathRerunActionMarkup',
+              'historyHarnessPathActionsMarkup',
+            ],
             newestInputPath: recentHarnessExecutions[0].resolvedInputPath,
             newestOutputPath: recentHarnessExecutions[0].resolvedOutputPath,
           },

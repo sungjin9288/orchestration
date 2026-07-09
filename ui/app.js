@@ -2441,7 +2441,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                   패킷 복사
                                 </button>
                               `;
-                              const historyHarnessPathActionsMarkup = `
+                              const historyHarnessPathReuseActionMarkup = `
                                 <button
                                   class="secondary-button"
                                   type="button"
@@ -2452,6 +2452,8 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 >
                                   경로 채우기
                                 </button>
+                              `;
+                              const historyHarnessPathRerunActionMarkup = `
                                 <button
                                   class="secondary-button"
                                   type="button"
@@ -2464,6 +2466,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                                 >
                                   ${escapeHtml(historyHarnessRerunActionLabel)}
                                 </button>
+                              `;
+                              const historyHarnessPathActionsMarkup = `
+                                ${historyHarnessPathReuseActionMarkup}
+                                ${historyHarnessPathRerunActionMarkup}
                               `;
                               const historyHarnessPreviewActionsMarkup =
                                 canRenderHistoryHarnessPreview
