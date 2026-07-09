@@ -37,11 +37,21 @@ assert.match(
   /const visibleHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(visibleHarnessExecutionResult\);/,
 );
 assert.match(appJs, /const canRenderVisibleHarnessInputPathActions = Boolean\(visibleHarnessInputPath\);/);
-assert.match(appJs, /const visibleHarnessInputPathActionsMarkup = canRenderVisibleHarnessInputPathActions/);
+assert.match(appJs, /const visibleHarnessInputPathCopyActionMarkup =\s+canRenderVisibleHarnessInputPathActions/);
+assert.match(appJs, /const visibleHarnessPathReuseActionMarkup =\s+canRenderVisibleHarnessInputPathActions/);
+assert.match(appJs, /const visibleHarnessPathRerunActionMarkup =\s+canRenderVisibleHarnessInputPathActions/);
 assert.match(appJs, /canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
+assert.match(
+  appJs,
+  /const visibleHarnessInputPathActionsMarkup = `\s+\$\{visibleHarnessInputPathCopyActionMarkup\}\s+\$\{visibleHarnessPathReuseActionMarkup\}\s+\$\{visibleHarnessPathRerunActionMarkup\}/,
+);
 assert.match(appJs, /\$\{visibleHarnessInputPathActionsMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
+assert.doesNotMatch(
+  appJs,
+  /const visibleHarnessInputPathActionsMarkup =\s+canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"[\s\S]*?data-action="reuse-harness-execution-paths"[\s\S]*?data-action="rerun-harness-execution-paths"/,
+);
 assert.doesNotMatch(appJs, /const visibleHarnessActionOutputPath =\s+visibleHarnessExecutionResult\?\.resolvedOutputPath \|\| visibleHarnessExecutionResult\?\.outputPath \|\| '';/);
 assert.match(appJs, /data-input-path="\$\{escapeHtml\(visibleHarnessInputPath\)\}"/);
 assert.match(appJs, /data-output-path="\$\{escapeHtml\(visibleHarnessActionOutputPath\)\}"/);
@@ -133,7 +143,13 @@ async function main() {
           harnessExecutionResultReuse: {
             insertionPoint: 'executionResultRegister->reuseExecutionPathsAction->executionFormDraft',
             sourceMarker: 'data-harness-result-reuse',
-            namedValues: ['canRenderVisibleHarnessInputPathActions', 'visibleHarnessInputPathActionsMarkup'],
+            namedValues: [
+              'canRenderVisibleHarnessInputPathActions',
+              'visibleHarnessInputPathCopyActionMarkup',
+              'visibleHarnessPathReuseActionMarkup',
+              'visibleHarnessPathRerunActionMarkup',
+              'visibleHarnessInputPathActionsMarkup',
+            ],
             route: '/api/harness/operator-action/run',
             resolvedInputPath: inputPath,
             resolvedOutputPath: outputPath,

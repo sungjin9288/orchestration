@@ -1782,7 +1782,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     : '';
   const visibleHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(visibleHarnessExecutionResult);
   const hiddenHarnessRerunActionLabel = getHarnessExecutionRerunActionLabel(hiddenHarnessExecutionResult);
-  const visibleHarnessInputPathActionsMarkup = canRenderVisibleHarnessInputPathActions
+  const visibleHarnessInputPathCopyActionMarkup = canRenderVisibleHarnessInputPathActions
     ? `
       <button
         class="secondary-button"
@@ -1793,6 +1793,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       >
         입력 경로
       </button>
+    `
+    : '';
+  const visibleHarnessPathReuseActionMarkup = canRenderVisibleHarnessInputPathActions
+    ? `
       <button
         class="secondary-button"
         type="button"
@@ -1803,6 +1807,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       >
         경로 채우기
       </button>
+    `
+    : '';
+  const visibleHarnessPathRerunActionMarkup = canRenderVisibleHarnessInputPathActions
+    ? `
       <button
         class="secondary-button"
         type="button"
@@ -1817,6 +1825,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       </button>
     `
     : '';
+  const visibleHarnessInputPathActionsMarkup = `
+    ${visibleHarnessInputPathCopyActionMarkup}
+    ${visibleHarnessPathReuseActionMarkup}
+    ${visibleHarnessPathRerunActionMarkup}
+  `;
   const hiddenHarnessInputPathActionsMarkup = canRenderHiddenHarnessInputPathActions
     ? `
       <button

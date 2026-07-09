@@ -24,12 +24,22 @@ assert.match(appJs, /data-action="copy-harness-input-path"/);
 assert.match(appJs, /data-harness-input-copy="true"/);
 assert.match(appJs, /const canRenderVisibleHarnessInputPathActions = Boolean\(visibleHarnessInputPath\);/);
 assert.match(appJs, /const canRenderVisibleHarnessPathActionShelf =\s+canRenderVisibleHarnessInputPathActions \|\| canRenderVisibleHarnessOutputPathCopy;/);
-assert.match(appJs, /const visibleHarnessInputPathActionsMarkup = canRenderVisibleHarnessInputPathActions/);
+assert.match(appJs, /const visibleHarnessInputPathCopyActionMarkup =\s+canRenderVisibleHarnessInputPathActions/);
+assert.match(appJs, /const visibleHarnessPathReuseActionMarkup =\s+canRenderVisibleHarnessInputPathActions/);
+assert.match(appJs, /const visibleHarnessPathRerunActionMarkup =\s+canRenderVisibleHarnessInputPathActions/);
 assert.match(appJs, /canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
+assert.match(
+  appJs,
+  /const visibleHarnessInputPathActionsMarkup = `\s+\$\{visibleHarnessInputPathCopyActionMarkup\}\s+\$\{visibleHarnessPathReuseActionMarkup\}\s+\$\{visibleHarnessPathRerunActionMarkup\}/,
+);
 assert.match(appJs, /\$\{visibleHarnessInputPathActionsMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessInputPath\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
 assert.doesNotMatch(appJs, /\$\{\s*visibleHarnessInputPath \|\| visibleHarnessOutputPath\s+\?\s+`/);
+assert.doesNotMatch(
+  appJs,
+  /const visibleHarnessInputPathActionsMarkup =\s+canRenderVisibleHarnessInputPathActions\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"[\s\S]*?data-action="reuse-harness-execution-paths"[\s\S]*?data-action="rerun-harness-execution-paths"/,
+);
 assert.match(appJs, /입력 경로/);
 assert.match(appJs, /async function copyHarnessExecutionInputPath\(inputPath\)/);
 assert.match(appJs, /const emptyInputPathCopyMessage = '복사할 하네스 입력 경로가 없습니다\.';/);
@@ -136,6 +146,9 @@ async function main() {
             namedValues: [
               'canRenderVisibleHarnessPathActionShelf',
               'canRenderVisibleHarnessInputPathActions',
+              'visibleHarnessInputPathCopyActionMarkup',
+              'visibleHarnessPathReuseActionMarkup',
+              'visibleHarnessPathRerunActionMarkup',
               'visibleHarnessInputPathActionsMarkup',
             ],
             route: '/api/harness/operator-action/run',
