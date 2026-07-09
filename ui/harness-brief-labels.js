@@ -105,3 +105,15 @@ export function getHarnessOperatorActionTone(operatorAction) {
 
   return 'neutral';
 }
+
+export function getHarnessOperatorActionCommand(operatorAction) {
+  return operatorAction?.repoNativeCommand || '';
+}
+
+export function getHarnessOperatorActionMessage(operatorAction) {
+  return operatorAction?.message || '';
+}
+
+export function getHarnessOperatorActionDisplayMessage(message) {
+  return message || '대표 하네스 액션이 아직 준비되지 않았습니다.';
+}

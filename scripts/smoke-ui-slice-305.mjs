@@ -13,6 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessBriefLabelsPath = path.join(repoRoot, 'ui', 'harness-brief-labels.js');
 const harnessStatePath = path.join(repoRoot, 'ui', 'harness-state.js');
 const serveUiPath = path.join(repoRoot, 'scripts', 'serve-ui-slice-01.mjs');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-305');
@@ -20,6 +21,7 @@ const port = 4605;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessBriefLabels = fs.readFileSync(harnessBriefLabelsPath, 'utf8');
 const harnessState = fs.readFileSync(harnessStatePath, 'utf8');
 const serveUi = fs.readFileSync(serveUiPath, 'utf8');
 
@@ -37,9 +39,14 @@ assert.match(appJs, /function renderHarnessExecutionActionShelf\(statusPayload\)
 assert.match(appJs, /const primaryHarnessId = statusCard\?\.primaryHarnessId \|\| '';/);
 assert.match(appJs, /const operatorActionKind = operatorAction\?\.kind \|\| '';/);
 assert.match(appJs, /const canShowHarnessOperatorAction =\s+primaryHarnessId && operatorActionKind && operatorActionKind !== 'none';/);
-assert.match(appJs, /const operatorActionCommand = operatorAction\?\.repoNativeCommand \|\| '';/);
-assert.match(appJs, /const operatorActionMessage = operatorAction\?\.message \|\| '';/);
-assert.match(appJs, /const operatorActionDisplayMessage =\s+operatorActionMessage \|\| '대표 하네스 액션이 아직 준비되지 않았습니다\.';/);
+assert.match(harnessBriefLabels, /export function getHarnessOperatorActionCommand\(operatorAction\) \{/);
+assert.match(harnessBriefLabels, /return operatorAction\?\.repoNativeCommand \|\| '';/);
+assert.match(harnessBriefLabels, /export function getHarnessOperatorActionMessage\(operatorAction\) \{/);
+assert.match(harnessBriefLabels, /return operatorAction\?\.message \|\| '';/);
+assert.match(harnessBriefLabels, /export function getHarnessOperatorActionDisplayMessage\(message\) \{/);
+assert.match(appJs, /const operatorActionCommand = getHarnessOperatorActionCommand\(operatorAction\);/);
+assert.match(appJs, /const operatorActionMessage = getHarnessOperatorActionMessage\(operatorAction\);/);
+assert.match(appJs, /const operatorActionDisplayMessage =\s+getHarnessOperatorActionDisplayMessage\(operatorActionMessage\);/);
 assert.match(appJs, /const canRenderHarnessRunForm = Boolean\(operatorActionCommand\);/);
 assert.match(appJs, /const hiddenHarnessOperatorCommand = operatorActionCommand;/);
 assert.match(appJs, /const hiddenHarnessOperatorMessage = operatorActionMessage;/);
@@ -57,6 +64,9 @@ assert.doesNotMatch(
   appJs,
   /if \(!statusCard\?\.primaryHarnessId \|\| !operatorAction\?\.kind \|\| operatorAction\.kind === 'none'\) \{/,
 );
+assert.doesNotMatch(appJs, /const operatorActionCommand = operatorAction\?\.repoNativeCommand \|\| '';/);
+assert.doesNotMatch(appJs, /const operatorActionMessage = operatorAction\?\.message \|\| '';/);
+assert.doesNotMatch(appJs, /operatorActionMessage \|\| '대표 하네스 액션이 아직 준비되지 않았습니다\.';/);
 assert.doesNotMatch(appJs, /operatorAction\.repoNativeCommand\s+\?/);
 assert.doesNotMatch(appJs, /escapeHtml\(operatorAction\.repoNativeCommand\)/);
 assert.doesNotMatch(appJs, /escapeHtml\(operatorAction\.message/);

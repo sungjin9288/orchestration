@@ -14,19 +14,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessBriefLabelsPath = path.join(repoRoot, 'ui', 'harness-brief-labels.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-333');
 const port = 4634;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessBriefLabels = fs.readFileSync(harnessBriefLabelsPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-message-summary="true"/);
-assert.match(appJs, /const operatorActionMessage = operatorAction\?\.message \|\| '';/);
-assert.match(appJs, /const operatorActionDisplayMessage =\s+operatorActionMessage \|\| '대표 하네스 액션이 아직 준비되지 않았습니다\.';/);
+assert.match(harnessBriefLabels, /export function getHarnessOperatorActionMessage\(operatorAction\) \{/);
+assert.match(harnessBriefLabels, /export function getHarnessOperatorActionDisplayMessage\(message\) \{/);
+assert.match(appJs, /const operatorActionMessage = getHarnessOperatorActionMessage\(operatorAction\);/);
+assert.match(appJs, /const operatorActionDisplayMessage =\s+getHarnessOperatorActionDisplayMessage\(operatorActionMessage\);/);
 assert.match(appJs, /const hiddenHarnessOperatorMessage = operatorActionMessage;/);
 assert.match(appJs, /const canRenderHiddenHarnessOperatorMessageSummary = Boolean\(hiddenHarnessOperatorMessage\);/);
 assert.match(appJs, /const hiddenHarnessOperatorMessageSummaryMarkup = canRenderHiddenHarnessOperatorMessageSummary/);
 assert.match(appJs, /\$\{hiddenHarnessOperatorMessageSummaryMarkup\}/);
+assert.doesNotMatch(appJs, /const operatorActionMessage = operatorAction\?\.message \|\| '';/);
+assert.doesNotMatch(appJs, /operatorActionMessage \|\| '대표 하네스 액션이 아직 준비되지 않았습니다\.';/);
 assert.doesNotMatch(appJs, /const hiddenHarnessOperatorMessageSummaryMarkup = hiddenHarnessOperatorMessage/);
 assert.doesNotMatch(appJs, /escapeHtml\(operatorAction\.message/);
 assert.doesNotMatch(appJs, /operatorAction\.message\s*\?\s*`<p class="detail-copy detail-copy-compact" data-harness-result-hidden-message-summary="true">운영 메모: \$\{escapeHtml\(operatorAction\.message\)\}<\/p>`/);

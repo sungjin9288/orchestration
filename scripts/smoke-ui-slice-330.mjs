@@ -14,17 +14,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessBriefLabelsPath = path.join(repoRoot, 'ui', 'harness-brief-labels.js');
 const runtimeRoot = path.join(repoRoot, 'var', 'runtime-ui-slice-330');
 const port = 4631;
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessBriefLabels = fs.readFileSync(harnessBriefLabelsPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-command-summary="true"/);
-assert.match(appJs, /const operatorActionCommand = operatorAction\?\.repoNativeCommand \|\| '';/);
+assert.match(harnessBriefLabels, /export function getHarnessOperatorActionCommand\(operatorAction\) \{/);
+assert.match(appJs, /const operatorActionCommand = getHarnessOperatorActionCommand\(operatorAction\);/);
 assert.match(appJs, /const hiddenHarnessOperatorCommand = operatorActionCommand;/);
 assert.match(appJs, /const hiddenHarnessOperatorCommandSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">/);
 assert.match(appJs, /\$\{hiddenHarnessOperatorCommandSummaryMarkup\}/);
+assert.doesNotMatch(appJs, /const operatorActionCommand = operatorAction\?\.repoNativeCommand \|\| '';/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">실행 템플릿: <code>\$\{escapeHtml\(operatorAction\.repoNativeCommand\)\}<\/code><\/p>\s*\$\{/);
 
 async function fetchJson(url, options = {}) {

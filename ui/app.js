@@ -178,7 +178,10 @@ import {
   getHarnessBriefActionTone,
   getHarnessBriefHostStateLabel,
   getHarnessBriefSignalValue,
+  getHarnessOperatorActionCommand,
+  getHarnessOperatorActionDisplayMessage,
   getHarnessOperatorActionLabel,
+  getHarnessOperatorActionMessage,
   getHarnessOperatorActionTone,
   getHarnessOutputBriefTypeLabel,
 } from './harness-brief-labels.js';
@@ -1673,10 +1676,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessStateSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-state-summary="true">현재 상태: <code>${escapeHtml(hiddenHarnessStateValue)}</code></p>`;
   const hiddenHarnessHostSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-host-summary="true">호스트 상태: <code>${escapeHtml(harnessHostStateLabel)}</code></p>`;
   const hiddenHarnessOperatorActionLabel = harnessOperatorActionLabel;
-  const operatorActionCommand = operatorAction?.repoNativeCommand || '';
-  const operatorActionMessage = operatorAction?.message || '';
+  const operatorActionCommand = getHarnessOperatorActionCommand(operatorAction);
+  const operatorActionMessage = getHarnessOperatorActionMessage(operatorAction);
   const operatorActionDisplayMessage =
-    operatorActionMessage || '대표 하네스 액션이 아직 준비되지 않았습니다.';
+    getHarnessOperatorActionDisplayMessage(operatorActionMessage);
   const canRenderHarnessRunForm = Boolean(operatorActionCommand);
   const hiddenHarnessOperatorCommand = operatorActionCommand;
   const hiddenHarnessOperatorMessage = operatorActionMessage;
