@@ -1981,7 +1981,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       </button>
     `
     : '';
-  const hiddenHarnessPreviewActionsMarkup = canRenderHiddenHarnessPreview
+  const hiddenHarnessPreviewCopyActionMarkup = canRenderHiddenHarnessPreview
     ? `
       <button
         class="secondary-button"
@@ -1992,6 +1992,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       >
         미리보기
       </button>
+    `
+    : '';
+  const hiddenHarnessOutputBriefActionMarkup = canRenderHiddenHarnessPreview
+    ? `
       <button
         class="secondary-button"
         type="button"
@@ -2006,6 +2010,10 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       </button>
     `
     : '';
+  const hiddenHarnessPreviewActionsMarkup = `
+    ${hiddenHarnessPreviewCopyActionMarkup}
+    ${hiddenHarnessOutputBriefActionMarkup}
+  `;
   const visibleHarnessOutputBriefCopyText = formatHarnessOutputBriefForCopy(
     visibleHarnessOutputBrief,
     visibleHarnessExecutionResult,

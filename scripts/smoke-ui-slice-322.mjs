@@ -35,11 +35,21 @@ assert.doesNotMatch(
   /const hiddenHarnessPreviewText =\s+hiddenHarnessExecutionResult\?\.outputPreview \|\| hiddenHarnessExecutionResult\?\.stdoutPreview \|\| '';/,
 );
 assert.match(appJs, /const canRenderHiddenHarnessPreview = Boolean\(hiddenHarnessPreviewText\);/);
-assert.match(appJs, /const hiddenHarnessPreviewActionsMarkup = canRenderHiddenHarnessPreview/);
+assert.match(appJs, /const hiddenHarnessPreviewCopyActionMarkup =\s+canRenderHiddenHarnessPreview/);
+assert.match(appJs, /const hiddenHarnessOutputBriefActionMarkup =\s+canRenderHiddenHarnessPreview/);
 assert.match(appJs, /canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
+assert.match(appJs, /canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="summarize-harness-execution-preview"/);
+assert.match(
+  appJs,
+  /const hiddenHarnessPreviewActionsMarkup = `\s+\$\{hiddenHarnessPreviewCopyActionMarkup\}\s+\$\{hiddenHarnessOutputBriefActionMarkup\}/,
+);
 assert.match(appJs, /\$\{hiddenHarnessPreviewActionsMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessPreviewText\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
+assert.doesNotMatch(
+  appJs,
+  /const hiddenHarnessPreviewActionsMarkup =\s+canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/,
+);
 assert.match(appJs, /data-preview-text="\$\{escapeHtml\(hiddenHarnessPreviewText\)\}"/);
 
 async function fetchJson(url, options = {}) {
@@ -127,7 +137,12 @@ async function main() {
           harnessExecutionHiddenPreviewCopy: {
             insertionPoint: 'hiddenExecutionResultRegister->copyHiddenPreviewAction->localClipboardOrStatus',
             sourceMarker: 'data-harness-result-hidden-preview-copy',
-            namedValues: ['canRenderHiddenHarnessPreview'],
+            namedValues: [
+              'canRenderHiddenHarnessPreview',
+              'hiddenHarnessPreviewCopyActionMarkup',
+              'hiddenHarnessOutputBriefActionMarkup',
+              'hiddenHarnessPreviewActionsMarkup',
+            ],
             route: '/api/harness/operator-action/run',
             previewLength: String(latestHarnessExecution.outputPreview || latestHarnessExecution.stdoutPreview || '').length,
           },

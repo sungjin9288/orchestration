@@ -21,11 +21,21 @@ assert.match(appJs, /const hiddenHarnessBriefActionLabel = getHarnessExecutionBr
 assert.match(appJs, /\$\{escapeHtml\(visibleHarnessBriefActionLabel\)\}/);
 assert.match(appJs, /\$\{escapeHtml\(hiddenHarnessBriefActionLabel\)\}/);
 assert.match(appJs, /const canRenderHiddenHarnessPreview = Boolean\(hiddenHarnessPreviewText\);/);
-assert.match(appJs, /const hiddenHarnessPreviewActionsMarkup = canRenderHiddenHarnessPreview/);
-assert.match(appJs, /canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/);
+assert.match(appJs, /const hiddenHarnessPreviewCopyActionMarkup =\s+canRenderHiddenHarnessPreview/);
+assert.match(appJs, /const hiddenHarnessOutputBriefActionMarkup =\s+canRenderHiddenHarnessPreview/);
+assert.match(appJs, /canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"/);
+assert.match(appJs, /canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="summarize-harness-execution-preview"/);
+assert.match(
+  appJs,
+  /const hiddenHarnessPreviewActionsMarkup = `\s+\$\{hiddenHarnessPreviewCopyActionMarkup\}\s+\$\{hiddenHarnessOutputBriefActionMarkup\}/,
+);
 assert.match(appJs, /\$\{hiddenHarnessPreviewActionsMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/);
 assert.doesNotMatch(appJs, /\$\{\s*hiddenHarnessPreviewText\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/);
+assert.doesNotMatch(
+  appJs,
+  /const hiddenHarnessPreviewActionsMarkup =\s+canRenderHiddenHarnessPreview\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-execution-preview"[\s\S]*?data-action="summarize-harness-execution-preview"/,
+);
 assert.match(appJs, /const historyHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel\(execution\);/);
 assert.match(appJs, /\$\{escapeHtml\(historyHarnessBriefActionLabel\)\}/);
 assert.match(appJs, /const canRenderHistoryHarnessPreview = Boolean\(historyHarnessPreviewText\);/);
@@ -57,6 +67,8 @@ console.log(
         labels: ['리포트 요약', '출력 요약'],
         namedValues: [
           'canRenderHiddenHarnessPreview',
+          'hiddenHarnessPreviewCopyActionMarkup',
+          'hiddenHarnessOutputBriefActionMarkup',
           'hiddenHarnessPreviewActionsMarkup',
           'canRenderHistoryHarnessPreview',
           'historyHarnessPreviewCopyActionMarkup',
