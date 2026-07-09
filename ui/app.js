@@ -1750,6 +1750,30 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   );
   const canRenderVisibleHarnessOutputBriefCopy = Boolean(visibleHarnessOutputBrief);
   const visibleHarnessBriefActionLabel = getHarnessExecutionBriefActionLabel(visibleHarnessExecutionResult);
+  const visibleHarnessPreviewActionsMarkup = canRenderVisibleHarnessPreview
+    ? `
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="copy-harness-execution-preview"
+        data-preview-text="${escapeHtml(visibleHarnessPreviewText)}"
+        data-harness-preview-copy="true"
+      >
+        미리보기
+      </button>
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="summarize-harness-execution-preview"
+        data-execution-key="${escapeHtml(visibleHarnessExecutionKey || '')}"
+        data-preview-text="${escapeHtml(visibleHarnessPreviewText)}"
+        data-harness-output-brief="true"
+        ${state.loading || state.mutating ? 'disabled' : ''}
+      >
+        ${escapeHtml(visibleHarnessBriefActionLabel)}
+      </button>
+    `
+    : '';
   const visibleHarnessOutputBriefCopyText = formatHarnessOutputBriefForCopy(
     visibleHarnessOutputBrief,
     visibleHarnessExecutionResult,
@@ -2014,32 +2038,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                               >
                                 패킷 복사
                               </button>
-                              ${
-                                canRenderVisibleHarnessPreview
-                                  ? `
-                                    <button
-                                      class="secondary-button"
-                                      type="button"
-                                      data-action="copy-harness-execution-preview"
-                                      data-preview-text="${escapeHtml(visibleHarnessPreviewText)}"
-                                      data-harness-preview-copy="true"
-                                    >
-                                      미리보기
-                                    </button>
-                                    <button
-                                      class="secondary-button"
-                                      type="button"
-                                      data-action="summarize-harness-execution-preview"
-                                      data-execution-key="${escapeHtml(visibleHarnessExecutionKey || '')}"
-                                      data-preview-text="${escapeHtml(visibleHarnessPreviewText)}"
-                                      data-harness-output-brief="true"
-                                      ${state.loading || state.mutating ? 'disabled' : ''}
-                                    >
-                                      ${escapeHtml(visibleHarnessBriefActionLabel)}
-                                    </button>
-                                  `
-                                  : ''
-                              }
+                              ${visibleHarnessPreviewActionsMarkup}
                               ${
                                 canRenderVisibleHarnessOutputBriefCopy
                                   ? `
