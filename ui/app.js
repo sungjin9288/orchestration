@@ -2053,8 +2053,13 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   `;
   const recentHarnessExecutions = getRecentHarnessExecutions(data, statusPayload);
   const recentHarnessExecutionCount = recentHarnessExecutions.length;
+  const recentHarnessExecutionCountTokenLabel = `${recentHarnessExecutionCount}건`;
+  const recentHarnessExecutionCountTokenTone = 'neutral';
   const recentHarnessExecutionCountTokenMarkup = recentHarnessExecutionCount
-    ? createToken(`${recentHarnessExecutionCount}건`, 'neutral')
+    ? createToken(
+        recentHarnessExecutionCountTokenLabel,
+        recentHarnessExecutionCountTokenTone,
+      )
     : '';
   const hasExecutionHistory = hasHarnessExecutionHistory(
     harnessExecutionResult,

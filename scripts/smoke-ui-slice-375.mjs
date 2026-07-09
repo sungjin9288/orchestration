@@ -25,12 +25,15 @@ assert.match(
   /<section class="relation-strip relation-strip-compact" data-harness-execution-history="true">[\s\S]*?<strong>실행 기록<\/strong>/s,
 );
 assert.match(appJs, /const recentHarnessExecutionCount = recentHarnessExecutions\.length;/);
+assert.match(appJs, /const recentHarnessExecutionCountTokenLabel = `\$\{recentHarnessExecutionCount\}건`;/);
+assert.match(appJs, /const recentHarnessExecutionCountTokenTone = 'neutral';/);
 assert.match(
   appJs,
-  /const recentHarnessExecutionCountTokenMarkup = recentHarnessExecutionCount\s+\? createToken\(`\$\{recentHarnessExecutionCount\}건`, 'neutral'\)\s+: '';/,
+  /const recentHarnessExecutionCountTokenMarkup = recentHarnessExecutionCount\s+\? createToken\(\s+recentHarnessExecutionCountTokenLabel,\s+recentHarnessExecutionCountTokenTone,\s+\)\s+: '';/,
 );
 assert.match(appJs, /\$\{recentHarnessExecutionCountTokenMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{createToken\(`\$\{recentHarnessExecutions\.length\}건`, 'neutral'\)\}/);
+assert.doesNotMatch(appJs, /createToken\(`\$\{recentHarnessExecutionCount\}건`, 'neutral'\)/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -117,7 +120,12 @@ async function main() {
           harnessExecutionHistoryTitleWording: {
             insertionPoint: 'executionHistoryRegister->historyTitleWording->sectionTitle',
             title: '실행 기록',
-            namedValues: ['recentHarnessExecutionCount', 'recentHarnessExecutionCountTokenMarkup'],
+            namedValues: [
+              'recentHarnessExecutionCount',
+              'recentHarnessExecutionCountTokenLabel',
+              'recentHarnessExecutionCountTokenTone',
+              'recentHarnessExecutionCountTokenMarkup',
+            ],
             route: '/api/harness/operator-action/run',
           },
         },

@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness execution history header count tokens should name the count label and tone before creating token markup. Keep `${count}건/neutral` wording and the nonzero render gate unchanged, but avoid calling `createToken` with the history count template directly in `ui/app.js`; when README names this lane, pin the label/tone handoff in `scripts/smoke-readme-scope-evidence.mjs`.
+
 - Harness hidden result state tokens should name the fixed label and tone before creating token markup. Keep `숨김/neutral` wording unchanged, but avoid calling `createToken('숨김', 'neutral')` directly in `ui/app.js`; when README names this lane, pin the label/tone handoff in `scripts/smoke-readme-scope-evidence.mjs`.
 
 - Harness run form action shelf buttons should consume named markup once the command, history, loading, and mutating state are selected. Keep command copy, clear-history, policy-report preview, and submit actions in the same order, but avoid building those buttons directly inside the run form action shelf; when README names this lane, pin the claim to the focused run-form smokes and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.

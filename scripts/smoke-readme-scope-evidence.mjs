@@ -98,6 +98,7 @@ assert.match(readme, /visible preview markup/);
 assert.match(readme, /hidden preview markup/);
 assert.match(readme, /visible token markup/);
 assert.match(readme, /hidden state token label\/tone markup/);
+assert.match(readme, /history count token label\/tone markup/);
 assert.match(readme, /output path copy/);
 assert.match(readme, /history input path copy/);
 assert.match(readme, /history path reuse/);
@@ -109,7 +110,9 @@ assert.match(readme, /policy-report copy/);
 assert.match(readme, /node scripts\/smoke-ui-slice-305\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-306\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-310\.mjs/);
+assert.match(readme, /node scripts\/smoke-ui-slice-375\.mjs/);
 assert.match(readme, /visible preview markup handoff/);
+assert.match(readme, /history count token label\/tone markup handoff/);
 assert.match(readme, /history input path copy markup handoff/);
 assert.match(readme, /history path action markup handoff/);
 assert.match(readme, /execution\s+packet copy fallback formatting/);
@@ -330,6 +333,15 @@ assert.match(
 assert.match(appJs, /\$\{hiddenHarnessResultStateTokenMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{createToken\('숨김', 'neutral'\)\}/);
 assert.doesNotMatch(appJs, /const hiddenHarnessResultStateTokenMarkup = createToken\('숨김', 'neutral'\);/);
+assert.match(appJs, /const recentHarnessExecutionCount = recentHarnessExecutions\.length;/);
+assert.match(appJs, /const recentHarnessExecutionCountTokenLabel = `\$\{recentHarnessExecutionCount\}건`;/);
+assert.match(appJs, /const recentHarnessExecutionCountTokenTone = 'neutral';/);
+assert.match(
+  appJs,
+  /const recentHarnessExecutionCountTokenMarkup = recentHarnessExecutionCount\s+\? createToken\(\s+recentHarnessExecutionCountTokenLabel,\s+recentHarnessExecutionCountTokenTone,\s+\)\s+: '';/,
+);
+assert.match(appJs, /\$\{recentHarnessExecutionCountTokenMarkup\}/);
+assert.doesNotMatch(appJs, /createToken\(`\$\{recentHarnessExecutionCount\}건`, 'neutral'\)/);
 assert.match(appJs, /data-personalization-scope="local-only"/);
 assert.match(growthPanels, /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/);
 assert.match(growthPanels, /data-proposal-record-persistence-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordPersistenceAllowed\}"/);
