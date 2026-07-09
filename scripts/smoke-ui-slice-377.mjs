@@ -25,7 +25,16 @@ const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(
   appJs,
-  /<section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">[\s\S]*?<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>/s,
+  /const hiddenHarnessTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessHeaderMarkup = `\s+\$\{hiddenHarnessTitleRowMarkup\}\s+\$\{hiddenHarnessRestoreHintMarkup\}/,
+);
+assert.match(appJs, /\$\{hiddenHarnessHeaderMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-hidden-packet="true"[\s\S]{0,360}<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>/,
 );
 assert.match(harnessLabels, /최근 실행 결과/);
 
@@ -111,8 +120,9 @@ async function main() {
         {
           ok: true,
           harnessExecutionHiddenTitleWording: {
-            insertionPoint: 'hiddenExecutionResultRegister->hiddenTitleWording->sectionTitle',
+            insertionPoint: 'hiddenExecutionResultRegister->hiddenTitleWording->namedHeaderMarkup',
             title: '최근 실행 결과가 숨겨져 있습니다',
+            namedValues: ['hiddenHarnessTitleRowMarkup', 'hiddenHarnessHeaderMarkup'],
             route: '/api/harness/operator-action/run',
           },
         },

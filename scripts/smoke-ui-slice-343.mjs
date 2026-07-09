@@ -26,6 +26,19 @@ const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 assert.match(appJs, /data-harness-execution-result-hidden="true"/);
 assert.match(appJs, /<div class="card-title-row card-title-row-tight">/);
 assert.match(appJs, /<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>/);
+assert.match(
+  appJs,
+  /const hiddenHarnessTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>\s+\$\{hiddenHarnessResultStateTokenMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessHeaderMarkup = `\s+\$\{hiddenHarnessTitleRowMarkup\}\s+\$\{hiddenHarnessRestoreHintMarkup\}/,
+);
+assert.match(appJs, /\$\{hiddenHarnessHeaderMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-hidden-packet="true"[\s\S]{0,360}<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>[\s\S]{0,180}\$\{hiddenHarnessResultStateTokenMarkup\}/,
+);
 assert.match(harnessLabels, /최근 실행 결과/);
 
 async function fetchJson(url, options = {}) {
@@ -110,8 +123,13 @@ async function main() {
         {
           ok: true,
           harnessExecutionHiddenHeaderDensity: {
-            insertionPoint: 'hiddenExecutionResultRegister->hiddenHeaderDensity->tightTitleRow',
+            insertionPoint: 'hiddenExecutionResultRegister->hiddenHeaderDensity->namedHeaderMarkup',
             headerClass: 'card-title-row-tight',
+            namedValues: [
+              'hiddenHarnessTitleRowMarkup',
+              'hiddenHarnessRestoreHintMarkup',
+              'hiddenHarnessHeaderMarkup',
+            ],
             route: '/api/harness/operator-action/run',
           },
         },

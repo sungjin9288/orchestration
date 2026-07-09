@@ -1679,6 +1679,17 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     hiddenHarnessResultStateLabel,
     hiddenHarnessResultStateTone,
   );
+  const hiddenHarnessTitleRowMarkup = `
+    <div class="card-title-row card-title-row-tight">
+      <strong>${escapeHtml(hiddenHarnessResultTitle)}가 숨겨져 있습니다</strong>
+      ${hiddenHarnessResultStateTokenMarkup}
+    </div>
+  `;
+  const hiddenHarnessRestoreHintMarkup = `<p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 ${escapeHtml(hiddenHarnessModeLabel)}를 다시 표시할 수 있습니다.</p>`;
+  const hiddenHarnessHeaderMarkup = `
+    ${hiddenHarnessTitleRowMarkup}
+    ${hiddenHarnessRestoreHintMarkup}
+  `;
   const visibleHarnessUsesOutputFile = Boolean(visibleHarnessExecutionResult?.outputPath);
   const visibleHarnessOutputChannelToken =
     getHarnessOutputChannelToken(visibleHarnessUsesOutputFile);
@@ -2362,11 +2373,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                       class="harness-execution-result-hidden-packet"
                       data-harness-execution-result-hidden-packet="true"
                     >
-                    <div class="card-title-row card-title-row-tight">
-                      <strong>${escapeHtml(hiddenHarnessResultTitle)}가 숨겨져 있습니다</strong>
-                      ${hiddenHarnessResultStateTokenMarkup}
-                    </div>
-                    <p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 ${escapeHtml(hiddenHarnessModeLabel)}를 다시 표시할 수 있습니다.</p>
+                    ${hiddenHarnessHeaderMarkup}
                     ${hiddenHarnessContextSectionsMarkup}
                     <div class="form-actions form-actions-inline form-actions-hidden-compact">
                       ${hiddenHarnessActionShelfMarkup}

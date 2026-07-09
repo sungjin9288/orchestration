@@ -21,6 +21,15 @@ assert.match(appJs, /const visibleHarnessResultTitle = getHarnessExecutionResult
 assert.match(appJs, /const hiddenHarnessResultTitle = getHarnessExecutionResultTitle\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>/);
 assert.match(appJs, /<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>/);
+assert.match(
+  appJs,
+  /const hiddenHarnessTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>\s+\$\{hiddenHarnessResultStateTokenMarkup\}/,
+);
+assert.match(appJs, /\$\{hiddenHarnessHeaderMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-hidden-packet="true"[\s\S]{0,360}<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>/,
+);
 assert.match(harnessExecutionTokens, /export function getHarnessResultStateToken\(isPolicyReport\) \{/);
 assert.match(harnessExecutionTokens, /return \{\s+label: 'no-write',\s+tone: 'neutral',\s+\};/);
 assert.match(harnessExecutionTokens, /return \{\s+label: '완료',\s+tone: 'success',\s+\};/);
@@ -78,7 +87,12 @@ console.log(
       harnessExecutionHiddenResultTitle: {
         helper: 'getHarnessExecutionResultTitle',
         labels: ['최근 정책 리포트', '최근 실행 결과'],
-        namedValues: ['visibleHarnessResultTitle', 'hiddenHarnessResultTitle'],
+        namedValues: [
+          'visibleHarnessResultTitle',
+          'hiddenHarnessResultTitle',
+          'hiddenHarnessTitleRowMarkup',
+          'hiddenHarnessHeaderMarkup',
+        ],
         stateTokenHelper: 'getHarnessResultStateToken',
         stateTokenMarkup: 'visibleHarnessResultStateTokenMarkup',
         stateTokenNamedValues: [

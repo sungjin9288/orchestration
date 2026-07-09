@@ -104,6 +104,7 @@ assert.match(readme, /visible summary rack markup/);
 assert.match(readme, /hidden preview markup/);
 assert.match(readme, /hidden preview action markup/);
 assert.match(readme, /hidden input path action markup/);
+assert.match(readme, /hidden header markup/);
 assert.match(readme, /hidden context sections markup/);
 assert.match(readme, /hidden run context summary markup/);
 assert.match(readme, /hidden harness context summary markup/);
@@ -142,6 +143,7 @@ assert.match(readme, /visible input path action markup handoff/);
 assert.match(readme, /visible summary rack markup handoff/);
 assert.match(readme, /hidden preview action markup handoff/);
 assert.match(readme, /hidden input path action markup handoff/);
+assert.match(readme, /hidden header markup handoff/);
 assert.match(readme, /hidden context sections markup handoff/);
 assert.match(readme, /hidden run context summary markup handoff/);
 assert.match(readme, /hidden harness context summary markup handoff/);
@@ -529,6 +531,19 @@ assert.match(
 assert.match(appJs, /\$\{hiddenHarnessResultStateTokenMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{createToken\('숨김', 'neutral'\)\}/);
 assert.doesNotMatch(appJs, /const hiddenHarnessResultStateTokenMarkup = createToken\('숨김', 'neutral'\);/);
+assert.match(
+  appJs,
+  /const hiddenHarnessTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>\s+\$\{hiddenHarnessResultStateTokenMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessHeaderMarkup = `\s+\$\{hiddenHarnessTitleRowMarkup\}\s+\$\{hiddenHarnessRestoreHintMarkup\}/,
+);
+assert.match(appJs, /\$\{hiddenHarnessHeaderMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-hidden-packet="true"[\s\S]{0,360}<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>/,
+);
 assert.match(appJs, /const recentHarnessExecutionCount = recentHarnessExecutions\.length;/);
 assert.match(appJs, /const recentHarnessExecutionCountTokenLabel = `\$\{recentHarnessExecutionCount\}건`;/);
 assert.match(appJs, /const recentHarnessExecutionCountTokenTone = 'neutral';/);

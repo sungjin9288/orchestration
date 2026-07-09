@@ -14,7 +14,15 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 assert.match(appJs, /data-harness-execution-result-hidden-packet="true"/);
 assert.match(
   appJs,
-  /data-harness-execution-result-hidden="true"[\s\S]*data-harness-execution-result-hidden-packet="true"[\s\S]*data-harness-result-hidden-run-context="true"/,
+  /data-harness-execution-result-hidden="true"[\s\S]*data-harness-execution-result-hidden-packet="true"[\s\S]*\$\{hiddenHarnessHeaderMarkup\}[\s\S]*\$\{hiddenHarnessContextSectionsMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessHeaderMarkup = `\s+\$\{hiddenHarnessTitleRowMarkup\}\s+\$\{hiddenHarnessRestoreHintMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessContextSectionsMarkup = `\s+\$\{hiddenHarnessRunContextSectionMarkup\}\s+\$\{hiddenHarnessHarnessContextSectionMarkup\}\s+\$\{hiddenHarnessOperatorContextSectionMarkup\}/,
 );
 
 assert.match(stylesCss, /\.harness-execution-result-hidden-packet\s*\{/);
@@ -28,6 +36,7 @@ console.log(
       harnessExecutionHiddenPacketDesign: {
         insertionPoint: 'harnessRunDesk->hiddenResultPacketDesign->hiddenResultSurface',
         marker: 'data-harness-execution-result-hidden-packet',
+        namedValues: ['hiddenHarnessHeaderMarkup', 'hiddenHarnessContextSectionsMarkup'],
       },
     },
     null,
