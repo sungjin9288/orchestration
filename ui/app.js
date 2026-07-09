@@ -1688,9 +1688,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessHandoffText = getHarnessExecutionHandoffText(hiddenHarnessExecutionResult);
   const harnessOperatorActionLabel = getHarnessOperatorActionLabel(operatorAction);
   const harnessOperatorActionTone = getHarnessOperatorActionTone(operatorAction);
+  const harnessOperatorActionTokenLabel = harnessOperatorActionLabel;
+  const harnessOperatorActionTokenTone = harnessOperatorActionTone;
   const harnessOperatorActionTokenMarkup = createToken(
-    harnessOperatorActionLabel,
-    harnessOperatorActionTone,
+    harnessOperatorActionTokenLabel,
+    harnessOperatorActionTokenTone,
   );
   const harnessHostStateLabel = getHarnessBriefHostStateLabel({
     currentHostState: statusCard.currentHostState,

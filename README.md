@@ -95,7 +95,7 @@ Current source-backed evidence:
 | Reference-driven operator shell | `docs/reference/vnext-reference-driven-ui-audit.md` records what was adopted or rejected from Linear, LangSmith Studio, Retool, Dify, n8n HITL, Zapier, and NN/g before the UI refresh. |
 | Read-only growth evidence | The shell exposes `성장 증거 원장`, `개선 후보 대기열` drilldown, grouped failure patterns, current-snapshot regression comparison, rollback evidence links, and a blocked `제안 검토 게이트` as evidence-derived views; `scripts/smoke-ui-slice-649.mjs` pins that they do not call providers, persist memory, create/persist durable proposal records, mutate source, generate/apply proposals, commit, or push. |
 | Local-only personalization | Recent desks, evidence density, preferred project hints, copyable preference review, preference reset/set controls, and a blocked long-term memory readiness gate stay local-only; browser `localStorage` under `orchestration.ui-preferences.v1` only changes shell convenience and the review packet is not an import/apply path. |
-| Advanced Ops harness evidence | Harness execution output, input, run action markup, visible preview markup, visible hide action markup, hidden preview markup, preview copy, request, visible token markup, latest state token label/tone markup, hidden state token label/tone markup, history count token label/tone markup, output path copy, history input path copy, history path reuse, history path rerun, history restore preview, execution packet copy, output-brief copy, policy-report copy, executed-at, output-channel, completion status, and hidden status summaries use named helper flows across `ui/app.js`, `ui/harness-execution-tokens.js`, and `ui/harness-labels.js` while the focused `smoke-ui-slice-*` scripts keep action, runtime, provider, source mutation, commit, and push boundaries unchanged. |
+| Advanced Ops harness evidence | Harness execution output, input, run action markup, operator action token label/tone markup, visible preview markup, visible hide action markup, hidden preview markup, preview copy, request, visible token markup, latest state token label/tone markup, hidden state token label/tone markup, history count token label/tone markup, output path copy, history input path copy, history path reuse, history path rerun, history restore preview, execution packet copy, output-brief copy, policy-report copy, executed-at, output-channel, completion status, and hidden status summaries use named helper flows across `ui/app.js`, `ui/harness-execution-tokens.js`, and `ui/harness-labels.js` while the focused `smoke-ui-slice-*` scripts keep action, runtime, provider, source mutation, commit, and push boundaries unchanged. |
 | Authority expansion review | `docs/26_authority-expansion-review-spec.md` records the shared read-only request contract for future durable proposal records, memory persistence, provider calls, or source mutation; it does not approve implementation or open any authority. |
 | Development pack loop | The implemented pack flow is documented in `packs/development/pack.md`: planner, architect, task-breaker, builder preflight, builder live mutation, reviewer, commit-package, local commit, release-package, close-out. |
 | Opt-in knowledge-work pack | `packs/knowledge-work/pack.md` defines an explicit opt-in path for bounded non-coding deliverables such as decision memos, plans, checklists, and research briefs; it does not replace the `development` pack or open a pack marketplace. |
@@ -388,6 +388,7 @@ node scripts/smoke-ui-slice-311.mjs
 node scripts/smoke-ui-slice-312.mjs
 node scripts/smoke-ui-slice-314.mjs
 node scripts/smoke-ui-slice-328.mjs
+node scripts/smoke-ui-slice-331.mjs
 node scripts/smoke-ui-slice-334.mjs
 node scripts/smoke-ui-slice-335.mjs
 node scripts/smoke-ui-slice-336.mjs
@@ -452,11 +453,11 @@ node scripts/smoke-qa-slice-07.mjs
 
 Current verification evidence from this README refresh:
 
-- `node scripts/smoke-ui-slice-305.mjs`, `306`, `310`, `311`, `312`, `314`, `328`, `334`, `335`, `336`, `337`, `344`, `351`, `352`, `353`, `375`, `380`, `381`, `382`, `383`, `384`,
+- `node scripts/smoke-ui-slice-305.mjs`, `306`, `310`, `311`, `312`, `314`, `328`, `331`, `334`, `335`, `336`, `337`, `344`, `351`, `352`, `353`, `375`, `380`, `381`, `382`, `383`, `384`,
   `385`, `386`, `387`, `388`, `605`, `606`, `612`, `613`, `614`, `615`, `616`, `619`, `620`,
   `621`, `623`, `625`, `626`, `627`, `628`, `629`, and `630`:
   harness helper-focused smokes for run action markup, history restore preview, executed-at labels, hidden status summaries, output-channel
-  tokens, visible token labels, visible token markup handoff, latest state token label/tone markup handoff, visible preview markup handoff, hidden
+  tokens, visible token labels, visible token markup handoff, operator action token label/tone markup handoff, latest state token label/tone markup handoff, visible preview markup handoff, hidden
   state token label/tone markup handoff, history count token label/tone markup handoff, history input path copy markup handoff, history path action markup handoff, policy-report predicates,
   execution packet copy fallback formatting, execution packet copy markup handoff, hidden action markup handoff, visible hide action markup handoff, output path copy label/status handoff, policy-report copy fallback formatting,
   completion lead/output copy, preview text, request labels, input/output summary fallback values,

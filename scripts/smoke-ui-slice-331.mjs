@@ -26,9 +26,11 @@ assert.match(appJs, /data-harness-result-hidden-action-summary="true"/);
 assert.match(appJs, /getHarnessOperatorActionLabel\(operatorAction\)/);
 assert.match(appJs, /const harnessOperatorActionLabel = getHarnessOperatorActionLabel\(operatorAction\);/);
 assert.match(appJs, /const harnessOperatorActionTone = getHarnessOperatorActionTone\(operatorAction\);/);
+assert.match(appJs, /const harnessOperatorActionTokenLabel = harnessOperatorActionLabel;/);
+assert.match(appJs, /const harnessOperatorActionTokenTone = harnessOperatorActionTone;/);
 assert.match(
   appJs,
-  /const harnessOperatorActionTokenMarkup = createToken\(\s+harnessOperatorActionLabel,\s+harnessOperatorActionTone,\s+\);/,
+  /const harnessOperatorActionTokenMarkup = createToken\(\s+harnessOperatorActionTokenLabel,\s+harnessOperatorActionTokenTone,\s+\);/,
 );
 assert.match(harnessBriefLabels, /if \(!operatorAction\?\.kind\) \{\s+return '액션 없음';\s+\}/);
 assert.match(harnessBriefLabels, /if \(!operatorAction\?\.kind \|\| operatorAction\.kind === 'none'\) \{\s+return 'neutral';\s+\}/);
@@ -44,6 +46,7 @@ assert.doesNotMatch(appJs, /const harnessOperatorActionLabel = operatorAction/);
 assert.doesNotMatch(appJs, /const harnessOperatorActionTone = operatorAction/);
 assert.doesNotMatch(appJs, /<p class="detail-copy detail-copy-compact" data-harness-result-hidden-action-summary="true">권장 액션: <code>\$\{escapeHtml\(getHarnessOperatorActionLabel\(operatorAction\)\)\}<\/code><\/p>\s*<p class="detail-copy detail-copy-compact" data-harness-result-hidden-command-summary="true">/);
 assert.doesNotMatch(appJs, /createToken\(getHarnessOperatorActionLabel\(operatorAction\), getHarnessOperatorActionTone\(operatorAction\)\)/);
+assert.doesNotMatch(appJs, /createToken\(\s+harnessOperatorActionLabel,\s+harnessOperatorActionTone,\s+\)/);
 assert.doesNotMatch(appJs, /\$\{createToken\(harnessOperatorActionLabel, harnessOperatorActionTone\)\}/);
 assert.doesNotMatch(appJs, /<strong class="control-overview-register-value">\$\{escapeHtml\(getHarnessOperatorActionLabel\(operatorAction\)\)\}<\/strong>/);
 
@@ -133,6 +136,8 @@ async function main() {
             namedValues: [
               'harnessOperatorActionLabel',
               'harnessOperatorActionTone',
+              'harnessOperatorActionTokenLabel',
+              'harnessOperatorActionTokenTone',
               'harnessOperatorActionTokenMarkup',
               'hiddenHarnessOperatorActionLabel',
               'hiddenHarnessOperatorActionSummaryMarkup',

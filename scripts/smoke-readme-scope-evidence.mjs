@@ -94,6 +94,7 @@ assert.match(readme, /Read-only growth evidence/);
 assert.match(readme, /Local-only personalization/);
 assert.match(readme, /Advanced Ops harness evidence/);
 assert.match(readme, /run action markup/);
+assert.match(readme, /operator action token label\/tone markup/);
 assert.match(readme, /visible preview markup/);
 assert.match(readme, /hidden preview markup/);
 assert.match(readme, /visible token markup/);
@@ -111,8 +112,10 @@ assert.match(readme, /policy-report copy/);
 assert.match(readme, /node scripts\/smoke-ui-slice-305\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-306\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-310\.mjs/);
+assert.match(readme, /node scripts\/smoke-ui-slice-331\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-375\.mjs/);
 assert.match(readme, /node scripts\/smoke-ui-slice-381\.mjs/);
+assert.match(readme, /operator action token label\/tone markup handoff/);
 assert.match(readme, /latest state token label\/tone markup handoff/);
 assert.match(readme, /visible preview markup handoff/);
 assert.match(readme, /history count token label\/tone markup handoff/);
@@ -321,6 +324,16 @@ assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessOutputPathCopy\s+\?\s+
 assert.match(appJs, /const visibleHarnessHideActionMarkup = `/);
 assert.match(appJs, /\$\{visibleHarnessHideActionMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{visibleHarnessPolicyReportCopyMarkup\}\s+<button[\s\S]*?data-action="hide-harness-execution-result"/);
+assert.match(appJs, /const harnessOperatorActionLabel = getHarnessOperatorActionLabel\(operatorAction\);/);
+assert.match(appJs, /const harnessOperatorActionTone = getHarnessOperatorActionTone\(operatorAction\);/);
+assert.match(appJs, /const harnessOperatorActionTokenLabel = harnessOperatorActionLabel;/);
+assert.match(appJs, /const harnessOperatorActionTokenTone = harnessOperatorActionTone;/);
+assert.match(
+  appJs,
+  /const harnessOperatorActionTokenMarkup = createToken\(\s+harnessOperatorActionTokenLabel,\s+harnessOperatorActionTokenTone,\s+\);/,
+);
+assert.match(appJs, /\$\{harnessOperatorActionTokenMarkup\}/);
+assert.doesNotMatch(appJs, /createToken\(\s+harnessOperatorActionLabel,\s+harnessOperatorActionTone,\s+\)/);
 assert.match(appJs, /const visibleHarnessResultStateToken =\s+getHarnessResultStateToken\(visibleHarnessIsPolicyReport\);/);
 assert.match(appJs, /const visibleHarnessResultStateTokenLabel = visibleHarnessResultStateToken\.label;/);
 assert.match(appJs, /const visibleHarnessResultStateTokenTone = visibleHarnessResultStateToken\.tone;/);

@@ -52,7 +52,7 @@
 
 - Harness hidden result header chips should consume named token markup once the fixed hidden state copy is selected. Keep `숨김/neutral` wording unchanged, but avoid calling `createToken('숨김', 'neutral')` directly inside the hidden result title row.
 
-- Harness operator action header chips should consume named token markup after the action label and tone are already selected. Keep `getHarnessOperatorActionLabel(...)` and `getHarnessOperatorActionTone(...)` as the fallback source, but avoid calling `createToken(harnessOperatorActionLabel, harnessOperatorActionTone)` directly inside the section header.
+- Harness operator action header chips should name the token label and tone before creating token markup. Keep `getHarnessOperatorActionLabel(...)` and `getHarnessOperatorActionTone(...)` as the fallback source for the visible label and tone, but avoid carrying generic `harnessOperatorActionLabel` and `harnessOperatorActionTone` names directly into `createToken(...)`; when README names this lane, pin the label/tone handoff in `scripts/smoke-readme-scope-evidence.mjs`.
 
 - Harness latest result state chips should name the state token label and tone before creating token markup. Keep `getHarnessResultStateToken(...)` as the policy-report/completed state source, but avoid carrying generic `visibleHarnessResultStateLabel` and `visibleHarnessResultStateTone` names into `createToken(...)`; when README names this lane, pin the label/tone handoff in `scripts/smoke-readme-scope-evidence.mjs`.
 
