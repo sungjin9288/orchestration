@@ -1713,7 +1713,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const hiddenHarnessPrimaryRunnerValue =
     getHarnessStatusSummaryValue(statusCard.primaryRunner);
   const hiddenHarnessPostureValue = getHarnessStatusSummaryValue(statusCard.primaryPosture);
-  const hiddenHarnessStateValue = statusCard.primaryHarnessState;
+  const hiddenHarnessStateValue = getHarnessStatusSummaryValue(statusCard.primaryHarnessState);
   const hiddenHarnessIdSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-harness-summary="true">대표 하네스: <code>${escapeHtml(primaryHarnessId)}</code></p>`;
   const hiddenHarnessKindSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-kind-summary="true">하네스 종류: <code>${escapeHtml(hiddenHarnessKindValue)}</code></p>`;
   const hiddenHarnessPrimaryCommandSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-primary-command-summary="true">대표 명령: <code>${escapeHtml(hiddenHarnessPrimaryCommandValue)}</code></p>`;
