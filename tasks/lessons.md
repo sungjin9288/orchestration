@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness policy-report copy text should flow through the formatter fallback directly. Keep button render predicates separate, but avoid repeating `canRender ? format(...) : ''` copy-text ternaries when the formatter already owns the empty-payload result.
+
 - Harness history path fallback should be named before history copy/reuse/rerun actions consume it. Preserve the existing history priority order, but avoid choosing `inputPath || resolvedInputPath` or `outputPath || resolvedOutputPath` inline inside the history row template.
 
 - Harness operator action command/message fallbacks should live beside the harness action labels. Keep run-form predicates and hidden summary rendering in `ui/app.js`, but avoid choosing `repoNativeCommand`, raw operator message, or display fallback copy inline in the render function.

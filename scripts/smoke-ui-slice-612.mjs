@@ -7,8 +7,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const appPath = path.join(repoRoot, 'ui', 'app.js');
+const harnessLabelsPath = path.join(repoRoot, 'ui', 'harness-labels.js');
 
 const appJs = fs.readFileSync(appPath, 'utf8');
+const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(appJs, /data-harness-policy-report-copy="true"/);
 assert.match(appJs, /data-harness-result-hidden-policy-report-copy="true"/);
@@ -21,14 +23,14 @@ assert.match(appJs, /const historyHarnessPolicyReportPayload = getHarnessPolicyR
 assert.match(appJs, /const canRenderHistoryHarnessPolicyReportCopy =\s+Boolean\(historyHarnessPolicyReportPayload\);/);
 assert.match(appJs, /canRenderHistoryHarnessPolicyReportCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
 assert.doesNotMatch(appJs, /\$\{\s*historyHarnessPolicyReportPayload\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-policy-report"/);
-assert.match(
-  appJs,
-  /const hiddenHarnessPolicyReportCopyText = canRenderHiddenHarnessPolicyReportCopy\s+\? formatHarnessPolicyReportForCopy\(hiddenHarnessPolicyReportPayload\)\s+: '';/,
-);
-assert.match(
-  appJs,
-  /const historyHarnessPolicyReportCopyText = canRenderHistoryHarnessPolicyReportCopy\s+\? formatHarnessPolicyReportForCopy\(historyHarnessPolicyReportPayload\)\s+: '';/,
-);
+assert.match(harnessLabels, /export function formatHarnessPolicyReportForCopy\(payload\) \{/);
+assert.match(harnessLabels, /if \(!payload\) \{\s+return '';\s+\}/);
+assert.match(appJs, /const hiddenHarnessPolicyReportCopyText =\s+formatHarnessPolicyReportForCopy\(hiddenHarnessPolicyReportPayload\);/);
+assert.match(appJs, /const visibleHarnessPolicyReportCopyText =\s+formatHarnessPolicyReportForCopy\(visibleHarnessPolicyReportPayload\);/);
+assert.match(appJs, /const historyHarnessPolicyReportCopyText =\s+formatHarnessPolicyReportForCopy\(historyHarnessPolicyReportPayload\);/);
+assert.doesNotMatch(appJs, /const hiddenHarnessPolicyReportCopyText = canRenderHiddenHarnessPolicyReportCopy/);
+assert.doesNotMatch(appJs, /const visibleHarnessPolicyReportCopyText = canRenderVisibleHarnessPolicyReportCopy/);
+assert.doesNotMatch(appJs, /const historyHarnessPolicyReportCopyText = canRenderHistoryHarnessPolicyReportCopy/);
 assert.doesNotMatch(appJs, /const hiddenHarnessPolicyReportCopyText = hiddenHarnessPolicyReportPayload/);
 assert.doesNotMatch(appJs, /const historyHarnessPolicyReportCopyText = historyHarnessPolicyReportPayload/);
 assert.match(appJs, /data-policy-report-text="\$\{escapeHtml\(visibleHarnessPolicyReportCopyText\)\}"/);
@@ -48,6 +50,7 @@ console.log(
         namedValues: [
           'canRenderHiddenHarnessPolicyReportCopy',
           'canRenderHistoryHarnessPolicyReportCopy',
+          'visibleHarnessPolicyReportCopyText',
           'hiddenHarnessPolicyReportCopyText',
           'historyHarnessPolicyReportCopyText',
         ],
