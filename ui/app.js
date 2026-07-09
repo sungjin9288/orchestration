@@ -1737,6 +1737,9 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     getHarnessExecutionPreviewText(hiddenHarnessExecutionResult);
   const canRenderHiddenHarnessPreview = Boolean(hiddenHarnessPreviewText);
   const canRenderVisibleHarnessPreview = Boolean(visibleHarnessPreviewText);
+  const visibleHarnessPreviewMarkup = canRenderVisibleHarnessPreview
+    ? `<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">${escapeHtml(visibleHarnessPreviewText)}</pre>`
+    : '<p class="detail-copy detail-copy-compact">미리보기 가능한 출력이 없습니다.</p>';
   const hiddenHarnessPreviewMarkup = canRenderHiddenHarnessPreview
     ? `<pre class="log-viewer log-viewer-compact" data-harness-result-hidden-preview="true">${escapeHtml(hiddenHarnessPreviewText)}</pre>`
     : '';
@@ -2081,11 +2084,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
                           `
                           : ''
                       }
-                      ${
-                        canRenderVisibleHarnessPreview
-                          ? `<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">${escapeHtml(visibleHarnessPreviewText)}</pre>`
-                          : '<p class="detail-copy detail-copy-compact">미리보기 가능한 출력이 없습니다.</p>'
-                      }
+                      ${visibleHarnessPreviewMarkup}
                     </div>
                   </section>
                 `

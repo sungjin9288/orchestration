@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Harness visible preview excerpts should consume named preview markup once the visible preview predicate is selected. Keep `canRenderVisibleHarnessPreview` as the render gate and the no-preview fallback copy unchanged, but avoid building the `<pre data-harness-execution-preview>` block directly inside the latest result template. When README names this lane, pin the public claim to the focused visible preview smoke and app marker assertions in `scripts/smoke-readme-scope-evidence.mjs`.
+
 - Harness hidden preview excerpts should consume named preview markup once the hidden preview predicate is selected. Keep `canRenderHiddenHarnessPreview` as the render gate, but avoid building the `<pre data-harness-result-hidden-preview>` block directly inside the hidden result template.
 
 - Harness execution history header chips should consume named count token markup once the recent execution count is selected. Keep the `${count}건/neutral` wording unchanged, but avoid calling `createToken` with `recentHarnessExecutions.length` directly inside the history title row.
