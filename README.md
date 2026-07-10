@@ -54,21 +54,33 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is the read-only Growth Evidence Ledger proposal-record lifecycle
-review guard. The `growth-reflection-*` route-table/readability pass already normalizes repeated
-review/acceptance/finalization suffixes into the shorter
-`growth-evidence-ledger-proposal-record-lifecycle-review` alias; the current status slice proves that
-alias directly, preserves the long route as `sourceCandidate`, and prevents the default backlog from
-growing another lifecycle suffix when no engine/reflection evidence has drifted. The focused growth
-reflection smoke still pins the route invariants behind that alias: 39 lifecycle transition helper
-calls, 62 top-level read-only route helper calls, one direct finding-map implementation, 2/71/45
-contract-finding guard/advanced/base routes, 26/102 aggregate base/advanced routes, 4/122/1
-next-candidate guard/advanced/base routes, 129 read-only next candidates, 26 base post-completion
-candidates, 23 post-completion candidate/finding-update rows, and 11/11 post-completion copy rows.
-This pass changes read-only lifecycle-review status evidence, focused smoke coverage, README
-evidence, docs inventory, and task ledgers; it does not change runtime write paths, UI behavior,
-provider calls, memory persistence, proposal generation or application, source mutation authority,
-product commit authority, or product push authority.
+The current development focus is completion-gate evidence close-out. The default completion baseline
+is closed for implementation work: `tasks/todo.md` has zero unchecked task lines,
+`docs/22_completion-gate-inventory.md` records the current gate table, and
+`scripts/smoke-completion-gate-inventory-current-evidence.mjs` pins the README smoke counts,
+aggregate registration, UI QA registration, zero-open backlog, post-completion router, and
+proposal-record lifecycle review alias evidence together. The latest checked aggregate evidence is
+required `1/1`, informational `168/168`, total `169/169`; UI QA is required `28/28`.
+
+Follow-up work now enters only from an explicit operator request, a concrete regression, a usability
+issue, or an accepted vNext decision. The first posture for that follow-up remains
+read-only/status-or-doc-smoke-first until current evidence justifies runtime or UI mutation.
+
+The immediately preceding growth evidence focus normalized repeated review/acceptance/finalization
+suffixes into the shorter `growth-evidence-ledger-proposal-record-lifecycle-review` alias. The
+current status slice proves that alias directly, preserves the long route as `sourceCandidate`, and
+prevents the default backlog from growing another lifecycle suffix when no engine/reflection evidence
+has drifted. The focused growth reflection smoke still pins the route invariants behind that alias:
+39 lifecycle transition helper calls, 62 top-level read-only route helper calls, one direct
+finding-map implementation, 2/71/45 contract-finding guard/advanced/base routes, 26/102 aggregate
+base/advanced routes, 4/122/1 next-candidate guard/advanced/base routes, 129 read-only next
+candidates, 26 base post-completion candidates, 23 post-completion candidate/finding-update rows,
+and 11/11 post-completion copy rows.
+
+This close-out pass changes README evidence, completion inventory wording, focused smoke coverage,
+and task ledgers; it does not change runtime write paths, UI behavior, provider calls, memory
+persistence, proposal generation or application, source mutation authority, product commit
+authority, or product push authority.
 
 The immediately preceding development arc concluded a behavior-preserving module extraction campaign
 that pulled pure logic out of the three largest files into single-responsibility leaf modules,
@@ -90,6 +102,10 @@ the single approved source mutation path.
 
 Current source-backed evidence:
 
+- Completion gate inventory: `docs/22_completion-gate-inventory.md` and
+  `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
+  aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate registration, UI QA registration, and proposal-record lifecycle review alias boundaries.
 - Growth proposal-record lifecycle review: `scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs`
   and `scripts/smoke-growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs` prove the
   current short alias, preserved `sourceCandidate`, blocked write/provider/memory/proposal/source/
@@ -494,8 +510,12 @@ node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
 ```
 
-Current verification evidence from this README refresh:
+Current verification evidence from this README and completion close-out refresh:
 
+- `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
+  aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate registration, UI QA registration, and proposal-record lifecycle review alias evidence
+  stay aligned.
 - `node scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs`: current
   read-only lifecycle review output proves the growth engine and reflection evaluator both route to
   `growth-evidence-ledger-proposal-record-lifecycle-review`, preserves the repeated
@@ -599,7 +619,7 @@ Current verification evidence from this README refresh:
   plan, implementation decision requirement, and still-blocked provider/memory/source/commit/push
   authority before any source mutation implementation can open.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
-  list, missing env-template/package notes, and honesty patterns.
+  list, package/env visibility, and honesty patterns.
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
@@ -634,6 +654,8 @@ Playwright CLI:
 - This is a local-first PoC/MVP-quality project, not a hosted service.
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
+- The current completion gate is evidence-closed, not a claim of hosted production readiness:
+  aggregate `169/169`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
 - Growth proposal-record lifecycle review is read-only evidence. It preserves the long repeated
   route as `sourceCandidate` but does not create proposal records, apply proposals, mutate queues,
   call providers, persist memory, mutate source, commit, or push.

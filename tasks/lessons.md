@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README close-out after a completion gate refresh should name the closed evidence surface as the current focus, not the prior route that fed it. Pin the README claim to the completion inventory smoke, keep follow-up entry conditions explicit, and correct stale environment visibility in the inventory when current source files prove it.
+
 - Completion gate inventory refreshes should be pinned by a focused source smoke whenever aggregate counts, UI QA counts, or growth-routing summaries change. Record explicit checked evidence such as `169/169` and a checked head instead of vague latest-main wording, and keep README smoke counts, inventory rows, aggregate registration, and task ledger evidence in the same slice.
 
 - Proposal record lifecycle review should stop repeated suffix growth once the same review, acceptance, and finalization grammar is proven. Keep the long route as `sourceCandidate` evidence, route operator-facing next work through one short read-only alias, and reopen the suffix chain only when engine or reflection evidence actually drifts.

@@ -196,17 +196,31 @@ assert.match(readme, /completion status/);
 assert.match(readme, /`ui\/harness-labels\.js`/);
 assert.match(
   readme,
-  /The current development focus is the read-only Growth Evidence Ledger proposal-record lifecycle\s+review guard/,
+  /The current development focus is completion-gate evidence close-out/,
 );
+assert.match(readme, /default completion baseline\s+is closed for implementation work/);
+assert.match(readme, /docs\/22_completion-gate-inventory\.md/);
+assert.match(readme, /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/);
+assert.match(readme, /aggregate registration, UI QA registration, zero-open backlog/);
+assert.match(readme, /required `1\/1`, informational `168\/168`, total `169\/169`/);
+assert.match(readme, /UI QA is required `28\/28`/);
+assert.match(
+  readme,
+  /Follow-up work now enters only from an explicit operator request, a concrete regression, a usability\s+issue, or an accepted vNext decision/,
+);
+assert.match(readme, /read-only\/status-or-doc-smoke-first/);
+assert.match(readme, /The immediately preceding growth evidence focus normalized repeated/);
 assert.match(readme, /preserves the long route as `sourceCandidate`/);
 assert.match(readme, /39 lifecycle transition helper\s+calls/);
 assert.match(readme, /62\s+top-level read-only route helper calls/);
 assert.match(readme, /2\/71\/45\s+contract-finding guard\/advanced\/base routes/);
-assert.match(readme, /26\/102 aggregate base\/advanced routes/);
+assert.match(readme, /26\/102 aggregate\s+base\/advanced routes/);
 assert.match(readme, /4\/122\/1\s+next-candidate guard\/advanced\/base routes/);
-assert.match(readme, /129 read-only next candidates/);
+assert.match(readme, /129 read-only next\s+candidates/);
 assert.match(readme, /23 post-completion candidate\/finding-update rows/);
 assert.match(readme, /11\/11 post-completion copy rows/);
+assert.match(readme, /Completion gate inventory:/);
+assert.match(readme, /aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/);
 assert.match(readme, /Growth reflection close-out:/);
 assert.match(readme, /Growth proposal-record lifecycle review:/);
 assert.match(
@@ -307,6 +321,8 @@ assert.match(readme, /node scripts\/run-smoke\.mjs --list/);
 assert.match(readme, /node scripts\/run-smoke\.mjs --filter smoke-readme-scope-evidence/);
 assert.match(readme, /node scripts\/run-smoke\.mjs --all --fail-fast/);
 assert.match(readme, /node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/);
+assert.match(readme, /Current verification evidence from this README and completion close-out refresh/);
+assert.match(readme, /completion inventory counts,\s+aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/);
 assert.doesNotMatch(readme, /838\s+\(smoke-slice/);
 
 const forbiddenClaimPatterns = [

@@ -123,12 +123,12 @@ gaps, and currently missing or failed evidence.
 ## Environment Visibility
 - `OPENAI_API_KEY`: missing in this shell.
 - `OPENAI_RESPONSES_MODEL`: missing in this shell.
-- `.env.example`: not present at repo root.
-- `package.json`: not present at repo root.
+- `.env.example`: present at repo root for optional live-provider variable names.
+- `package.json`: present at repo root with no third-party dependencies.
 
 The absence of live-provider env means optional real-live verification is skipped, not failed. The
-absence of `.env.example` and `package.json` is now stated directly in README instead of inventing
-environment or install claims.
+presence of `.env.example` and `package.json` is stated directly in README from current source files
+instead of inventing environment or install claims.
 
 ## Completion Readiness Judgment
 The current required completion baseline is closed for default implementation work.
