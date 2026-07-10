@@ -2234,11 +2234,14 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessOutputBriefSummaryMarkup = renderHarnessOutputBriefSummary(
     visibleHarnessExecutionResult,
   );
-  const visibleHarnessSummaryRackMarkup = `
-    ${visibleHarnessExecutionSummaryMarkup}
+  const visibleHarnessSupplementalSummaryMarkup = `
     ${visibleHarnessRequestSummaryMarkup}
     ${visibleHarnessPolicyReportSummaryMarkup}
     ${visibleHarnessOutputBriefSummaryMarkup}
+  `;
+  const visibleHarnessSummaryRackMarkup = `
+    ${visibleHarnessExecutionSummaryMarkup}
+    ${visibleHarnessSupplementalSummaryMarkup}
   `;
   const visibleHarnessResultPacketMarkup = `
     <div class="harness-execution-result-packet" data-harness-execution-result-packet="true">

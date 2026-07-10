@@ -35,7 +35,11 @@ assert.match(
 );
 assert.match(
   appJs,
-  /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessExecutionSummaryMarkup\}\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
+  /const visibleHarnessSupplementalSummaryMarkup = `\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessExecutionSummaryMarkup\}\s+\$\{visibleHarnessSupplementalSummaryMarkup\}/,
 );
 assert.match(appJs, /\$\{visibleHarnessSummaryRackMarkup\}/);
 assert.doesNotMatch(
@@ -137,6 +141,7 @@ async function main() {
             copyClass: 'detail-copy-compact',
             namedValues: [
               'visibleHarnessExecutionSummaryMarkup',
+              'visibleHarnessSupplementalSummaryMarkup',
               'visibleHarnessSummaryRackMarkup',
             ],
             route: '/api/harness/operator-action/run',
