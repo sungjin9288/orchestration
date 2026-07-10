@@ -53,10 +53,14 @@ function assertReadmeHas(pattern) {
   assert.match(readme, pattern);
 }
 
-function assertReadmeHasAll(patterns) {
+function assertTextHasAll(text, patterns) {
   for (const pattern of patterns) {
-    assertReadmeHas(pattern);
+    assert.match(text, pattern);
   }
+}
+
+function assertReadmeHasAll(patterns) {
+  assertTextHasAll(readme, patterns);
 }
 
 const smokeFileCount = countScripts((name) => /^smoke-.*\.mjs$/.test(name));
@@ -432,39 +436,46 @@ for (const pattern of sourceRouteRegexes) {
   assert.match(serveUi, pattern);
 }
 
-assert.match(readme, /`OPENAI_API_KEY`/);
-assert.match(readme, /`OPENAI_RESPONSES_MODEL`/);
-assert.match(readme, /`OPENAI_RESPONSES_TIMEOUT_MS`/);
-assert.match(readme, /`OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS`/);
-assert.match(readme, /`OPENAI_RESPONSES_RETRY_DELAY_MS`/);
-assert.match(verificationStatus, /smoke-readme-scope-evidence\.mjs/);
-assert.match(verificationStatus, /smoke-ui-slice-649\.mjs/);
-assert.match(verificationStatus, /smoke-runner-status\.mjs/);
-assert.match(verificationStatus, /knowledge-work-pack/);
-assert.match(
-  verificationStatus,
+const liveProviderEnvEvidence = [
+  /`OPENAI_API_KEY`/,
+  /`OPENAI_RESPONSES_MODEL`/,
+  /`OPENAI_RESPONSES_TIMEOUT_MS`/,
+  /`OPENAI_RESPONSES_MAX_RETRY_ATTEMPTS`/,
+  /`OPENAI_RESPONSES_RETRY_DELAY_MS`/,
+];
+
+const verificationRegistryEvidence = [
+  /smoke-readme-scope-evidence\.mjs/,
+  /smoke-ui-slice-649\.mjs/,
+  /smoke-runner-status\.mjs/,
+  /knowledge-work-pack/,
   /vnext-proposal-application-source-mutation-decision-packet-status\.mjs/,
-);
-assert.match(
-  verificationStatus,
   /vnext-proposal-application-source-mutation-operator-decision-handoff-status\.mjs/,
-);
-assert.match(
-  verificationStatus,
   /vnext-proposal-application-source-mutation-planning-plan-status\.mjs/,
-);
-assert.match(appJs, /data-growth-learning-surface="read-only"/);
-assert.match(appJs, /from '\.\/harness-execution-tokens\.js'/);
-assert.match(harnessExecutionTokens, /export function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/);
-assert.match(harnessExecutionTokens, /export function getHarnessExecutionRequestId\(execution\) \{/);
-assert.match(harnessExecutionTokens, /export function getHarnessExecutionActionOutputPath\(execution\) \{/);
-assert.match(harnessExecutionTokens, /export function getHarnessHistoryRequestLabel\(requestId, index\) \{/);
-assert.match(harnessExecutionTokens, /export function getHarnessOutputSummaryValue\(outputPath\) \{/);
-assert.match(harnessExecutionTokens, /export function getHarnessInputSummaryValue\(inputPath\) \{/);
-assert.match(harnessExecutionTokens, /export function getHarnessStatusSummaryValue\(value\) \{/);
-assert.match(appJs, /const visibleHarnessRequestId = getHarnessExecutionRequestId\(visibleHarnessExecutionResult\);/);
-assert.match(appJs, /const hiddenHarnessRequestId = getHarnessExecutionRequestId\(hiddenHarnessExecutionResult\);/);
-assert.match(appJs, /const historyHarnessRequestId = getHarnessExecutionRequestId\(execution\);/);
+];
+
+const harnessTokenSourceEvidence = [
+  /export function getHarnessExecutionTimestampLabel\(execution, fallbackLabel = '기록 없음'\) \{/,
+  /export function getHarnessExecutionRequestId\(execution\) \{/,
+  /export function getHarnessExecutionActionOutputPath\(execution\) \{/,
+  /export function getHarnessHistoryRequestLabel\(requestId, index\) \{/,
+  /export function getHarnessOutputSummaryValue\(outputPath\) \{/,
+  /export function getHarnessInputSummaryValue\(inputPath\) \{/,
+  /export function getHarnessStatusSummaryValue\(value\) \{/,
+];
+
+const harnessTokenConsumerEvidence = [
+  /data-growth-learning-surface="read-only"/,
+  /from '\.\/harness-execution-tokens\.js'/,
+  /const visibleHarnessRequestId = getHarnessExecutionRequestId\(visibleHarnessExecutionResult\);/,
+  /const hiddenHarnessRequestId = getHarnessExecutionRequestId\(hiddenHarnessExecutionResult\);/,
+  /const historyHarnessRequestId = getHarnessExecutionRequestId\(execution\);/,
+];
+
+assertReadmeHasAll(liveProviderEnvEvidence);
+assertTextHasAll(verificationStatus, verificationRegistryEvidence);
+assertTextHasAll(harnessExecutionTokens, harnessTokenSourceEvidence);
+assertTextHasAll(appJs, harnessTokenConsumerEvidence);
 assert.match(
   appJs,
   /const harnessRunActionShelfMarkup = `\s+\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}\s+\$\{harnessRunPolicyReportPreviewActionMarkup\}\s+\$\{harnessRunSubmitActionMarkup\}/,
