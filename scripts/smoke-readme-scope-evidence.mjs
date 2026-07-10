@@ -272,75 +272,83 @@ assert.match(
   readme,
   /does not create durable proposal records, apply\s+proposals, call providers, persist memory, mutate project source through the product runtime/,
 );
-assert.match(readme, /The immediately preceding development arc concluded a behavior-preserving module extraction campaign/);
-assert.match(readme, /docs\/inspection-20260703-final\.md/);
-assert.match(readme, /src\/runtime\/task-gates\.js/);
-assert.match(readme, /ui\/artifact-structured-render\.js/);
-assert.match(readme, /ui\/availability\.js/);
-assert.match(readme, /src\/runtime\/retention-policy\.js/);
-assert.match(readme, /ui\/control-snapshots\.js/);
-assert.match(readme, /Extraction verdict and metrics:/);
-assert.match(readme, /src\/execution\/coordinator\/artifact-content\.js/);
-assert.match(readme, /src\/execution\/execution-text-utils\.js/);
-assert.match(readme, /normalizeRelativePath` path-traversal/);
-assert.match(readme, /`busy`-boolean injection so its logic is state-shape independent/);
-assert.match(readme, /Opt-in knowledge-work pack/);
-assert.match(readme, /`knowledge-work` pack is explicit opt-in/);
-assert.match(readme, /does not replace the `development` pack/);
-assert.match(
-  readme,
+
+const extractionEvidence = [
+  /The immediately preceding development arc concluded a behavior-preserving module extraction campaign/,
+  /docs\/inspection-20260703-final\.md/,
+  /src\/runtime\/task-gates\.js/,
+  /ui\/artifact-structured-render\.js/,
+  /ui\/availability\.js/,
+  /src\/runtime\/retention-policy\.js/,
+  /ui\/control-snapshots\.js/,
+  /Extraction verdict and metrics:/,
+  /src\/execution\/coordinator\/artifact-content\.js/,
+  /src\/execution\/execution-text-utils\.js/,
+  /normalizeRelativePath` path-traversal/,
+  /`busy`-boolean injection so its logic is state-shape independent/,
+];
+
+const knowledgeWorkBoundaryEvidence = [
+  /Opt-in knowledge-work pack/,
+  /`knowledge-work` pack is explicit opt-in/,
+  /does not replace the `development` pack/,
   /additional non-development packs beyond the explicit opt-in `knowledge-work`/,
-);
-assert.match(readme, /성장 증거 원장/);
-assert.match(readme, /개선 후보 대기열/);
-assert.match(readme, /제안 검토 게이트/);
-assert.match(readme, /create\/persist durable proposal records/);
-assert.match(readme, /Proposal review is not proposal approval/);
-assert.match(readme, /DEC-048/);
-assert.match(readme, /Durable proposal record creation and persistence are implemented only/);
-assert.match(readme, /Proposal application source mutation decision packet is consumed planning evidence/);
-assert.match(readme, /docs\/36_proposal-application-source-mutation-decision-packet\.md/);
-assert.match(readme, /Proposal application source mutation operator handoff is consumed planning evidence/);
-assert.match(
-  readme,
+];
+
+const proposalAndMemoryBoundaryEvidence = [
+  /성장 증거 원장/,
+  /개선 후보 대기열/,
+  /제안 검토 게이트/,
+  /create\/persist durable proposal records/,
+  /Proposal review is not proposal approval/,
+  /DEC-048/,
+  /Durable proposal record creation and persistence are implemented only/,
+  /Proposal application source mutation decision packet is consumed planning evidence/,
+  /docs\/36_proposal-application-source-mutation-decision-packet\.md/,
+  /Proposal application source mutation operator handoff is consumed planning evidence/,
   /docs\/37_proposal-application-source-mutation-operator-decision-handoff\.md/,
-);
-assert.match(readme, /Proposal application source mutation planning plan is planning-only evidence/);
-assert.match(
-  readme,
+  /Proposal application source mutation planning plan is planning-only evidence/,
   /docs\/38_proposal-application-source-mutation-planning-plan\.md/,
-);
-assert.match(readme, /Long-term memory is readiness only/);
-assert.match(readme, /DEC-049/);
-assert.match(readme, /raw transcript ingestion/);
-assert.match(readme, /cross-workspace memory/);
-assert.match(readme, /skill promotion blocked/);
-assert.match(readme, /Long-term memory storage remains blocked/);
-assert.match(readme, /raw transcript exclusion/);
-assert.match(readme, /redaction, export, expiry/);
-assert.match(readme, /orchestration\.ui-preferences\.v1/);
-assert.match(readme, /node scripts\/smoke-ui-slice-311\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-312\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-314\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-328\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-344\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-351\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-352\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-353\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-380\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-382\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-605\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-623\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-649\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-612\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-614\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-615\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-619\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-629\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-630\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-627\.mjs/);
-assert.match(readme, /output\/playwright\/vnext-desktop-top-final\.png/);
-assert.match(readme, /output\/playwright\/vnext-mobile\.png/);
+  /Long-term memory is readiness only/,
+  /DEC-049/,
+  /raw transcript ingestion/,
+  /cross-workspace memory/,
+  /skill promotion blocked/,
+  /Long-term memory storage remains blocked/,
+  /raw transcript exclusion/,
+  /redaction, export, expiry/,
+  /orchestration\.ui-preferences\.v1/,
+];
+
+const uiEvidenceCommandEvidence = [
+  /node scripts\/smoke-ui-slice-311\.mjs/,
+  /node scripts\/smoke-ui-slice-312\.mjs/,
+  /node scripts\/smoke-ui-slice-314\.mjs/,
+  /node scripts\/smoke-ui-slice-328\.mjs/,
+  /node scripts\/smoke-ui-slice-344\.mjs/,
+  /node scripts\/smoke-ui-slice-351\.mjs/,
+  /node scripts\/smoke-ui-slice-352\.mjs/,
+  /node scripts\/smoke-ui-slice-353\.mjs/,
+  /node scripts\/smoke-ui-slice-380\.mjs/,
+  /node scripts\/smoke-ui-slice-382\.mjs/,
+  /node scripts\/smoke-ui-slice-605\.mjs/,
+  /node scripts\/smoke-ui-slice-623\.mjs/,
+  /node scripts\/smoke-ui-slice-649\.mjs/,
+  /node scripts\/smoke-ui-slice-612\.mjs/,
+  /node scripts\/smoke-ui-slice-614\.mjs/,
+  /node scripts\/smoke-ui-slice-615\.mjs/,
+  /node scripts\/smoke-ui-slice-619\.mjs/,
+  /node scripts\/smoke-ui-slice-629\.mjs/,
+  /node scripts\/smoke-ui-slice-630\.mjs/,
+  /node scripts\/smoke-ui-slice-627\.mjs/,
+  /output\/playwright\/vnext-desktop-top-final\.png/,
+  /output\/playwright\/vnext-mobile\.png/,
+];
+
+assertReadmeHasAll(extractionEvidence);
+assertReadmeHasAll(knowledgeWorkBoundaryEvidence);
+assertReadmeHasAll(proposalAndMemoryBoundaryEvidence);
+assertReadmeHasAll(uiEvidenceCommandEvidence);
 
 const readmeTestingCommandEvidence = [
   new RegExp(`${smokeFileCount} smoke files`),
