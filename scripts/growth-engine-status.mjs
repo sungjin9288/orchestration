@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { normalizeGrowthNextCandidate } from './growth-next-candidate.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -8116,6 +8117,8 @@ if (postCompletionRouterActive) {
   };
   payload.postCompletionRouter = inactiveRouterState;
 }
+
+setPayloadNextRecommendedSlice(normalizeGrowthNextCandidate(payload.nextRecommendedSlice));
 
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 process.exitCode = ok ? 0 : 1;

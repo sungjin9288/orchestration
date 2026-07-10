@@ -2,6 +2,10 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  isHistoricalGrowthReflectionFindingId,
+  isHistoricalGrowthReflectionReadyStatus,
+} from './growth-next-candidate.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -144,61 +148,6 @@ const READINESS_STATUSES = [
   'deferred',
 ];
 
-const PREFERRED_REFLECTION_FINDING_IDS = [
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-review-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-validation-needed',
-  'growth-evidence-ledger-proposal-record-dry-run-shape-needed',
-  'growth-evidence-ledger-proposal-record-creation-readiness-needed',
-  'growth-evidence-ledger-proposal-record-review-gate-needed',
-  'growth-evidence-ledger-proposal-record-readiness-needed',
-  'growth-evidence-ledger-proposal-queue-handoff-needed',
-  'growth-evidence-ledger-proposal-readiness-needed',
-];
-
-const PREFERRED_REFLECTION_READY_STATUS_SET = new Set(
-  PREFERRED_REFLECTION_FINDING_IDS.map((id) => `ready-for-${id.replace(/-needed$/, '')}`),
-);
-
 const REQUIRED_EVIDENCE_MAP = [
   {
     field: 'sourceFindingId',
@@ -316,13 +265,18 @@ const SOURCE_SUMMARY_MARKERS = {
   openTodoCheckbox: /^- \[ \]/m,
 };
 
-function findPreferredReflectionFinding(findings = []) {
-  for (const id of PREFERRED_REFLECTION_FINDING_IDS) {
-    const finding = findings.find((candidate) => candidate.id === id);
-    if (finding) return finding;
+function findReflectionFinding(findings = [], nextCandidateId) {
+  if (nextCandidateId) {
+    return (
+      findings.find((candidate) => candidate.id === `${nextCandidateId}-needed`) || null
+    );
   }
 
-  return null;
+  return (
+    findings.find((candidate) =>
+      isHistoricalGrowthReflectionFindingId(candidate.id),
+    ) || null
+  );
 }
 
 function candidateEnvelopeHasRequiredFields(envelope) {
@@ -395,7 +349,10 @@ function collectReadinessEnvelopeInputs({ handoffPayload, reflectionPayload, pro
   const handoffInputContract = handoffPayload?.reflectionInputContract;
 
   return {
-    primaryFinding: findPreferredReflectionFinding(reflectionPayload?.reflectionFindings),
+    primaryFinding: findReflectionFinding(
+      reflectionPayload?.reflectionFindings,
+      reflectionPayload?.nextRecommendedSlice?.id,
+    ),
     handoffBindings: handoffPayload?.handoffBindings || [],
     sourceRefs: handoffInputContract?.requiredSourceRefs || [],
     proposalQueueReadiness: proposalQueuePayload?.readiness,
@@ -624,6 +581,10 @@ function buildReadiness({
   const { candidateEnvelope, queueCompatibility } = readinessEnvelope;
   const { handoffResult, reflectionResult, proposalQueueResult } = inputStatusResults;
   const reflectionAggregateStatus = reflectionResult.payload?.aggregate?.status;
+  const reflectionNextCandidateId = reflectionResult.payload?.nextRecommendedSlice?.id;
+  const expectedReflectionStatus = reflectionNextCandidateId
+    ? `ready-for-${reflectionNextCandidateId}`
+    : null;
   const proposalQueueReadiness = proposalQueueResult.payload?.readiness;
 
   return {
@@ -632,7 +593,9 @@ function buildReadiness({
       handoffResult.payload?.readiness?.handoffBindingsDefined === true,
     reflectionEvaluatorReady:
       statusResultSucceeded(reflectionResult) &&
-      PREFERRED_REFLECTION_READY_STATUS_SET.has(reflectionAggregateStatus),
+      (expectedReflectionStatus
+        ? reflectionAggregateStatus === expectedReflectionStatus
+        : isHistoricalGrowthReflectionReadyStatus(reflectionAggregateStatus)),
     proposalQueueContractReady:
       statusResultSucceeded(proposalQueueResult) &&
       proposalQueueStaysReadOnlyAndReady(proposalQueueReadiness),

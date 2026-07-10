@@ -2,6 +2,20 @@
 
 ## direction resets
 
+- Current-state audits should not reuse a consumed decision gate as their next-step contract. Keep historical packet, handoff, and planning non-authority intact; report separately approved runtime functions through explicit positive fields, keep generic and out-of-scope authority false, and derive the next read-only candidate from live status evidence. When the raw candidate id is generated and repetitive, expose a stable human-readable slice label and retain the raw id in a separate evidence field.
+
+- A current growth route should derive its finding id and ready status from `nextRecommendedSlice.id`, not grow a hardcoded list whenever another lifecycle stage appears. Normalize only the live candidate, preserve its original id and command as source evidence, and keep historical ids as compatibility fallback rather than rewriting audit history.
+
+- Historical growth compatibility should describe the route grammar instead of copying every accumulated identifier. Keep current evidence exact, accept old lifecycle ids only when their stages follow the original order, list genuinely irregular earlier stages by name, and prove the replacement against the unique ids from the pre-change source so deduplication does not erase audit compatibility.
+
+- Repeated reflection transitions should derive status, command, read-only posture, and finding ids from route ids while leaving operator-facing reason, claim, and allowed action explicit. Refactor one contiguous ordered group at a time, capture the evaluator JSON before editing, require byte equality afterward, and pin both helper usage and the remaining direct-map count so readability work cannot quietly change routing evidence.
+
+- When a reflection transition cycle repeats the same readiness flags and route sequence after an equivalent helper-backed cycle, do not translate the duplicate into another table. Delete the redundant replay and require byte-identical evaluator output; this removes mechanical history without weakening the evidence contract or inventing another abstraction.
+
+- Evaluator snapshots that read live `var/runtime*/state.json` roots can change between consecutive runs even when code behavior is unchanged. Compare the full JSON first, isolate any differences, and normalize only evidence values proven to come from that live runtime source; status, route, finding, safety, and scorecard semantics must still match exactly before accepting a large deletion.
+
+- UI smoke assertions should follow the named markup composition contract rather than assume that rendered parent and child HTML remain physically adjacent in `ui/app.js`. When a render path extracts `...Markup` helpers, keep the semantic marker and runtime smoke, then assert the helper definition and its interpolation handoff separately so readability refactors do not create false regressions.
+
 - Harness execution history header count tokens should name the count label and tone before creating token markup. Keep `${count}건/neutral` wording and the nonzero render gate unchanged, but avoid calling `createToken` with the history count template directly in `ui/app.js`; when README names this lane, pin the label/tone handoff in `scripts/smoke-readme-scope-evidence.mjs`.
 
 - Harness hidden result state tokens should name the fixed label and tone before creating token markup. Keep `숨김/neutral` wording unchanged, but avoid calling `createToken('숨김', 'neutral')` directly in `ui/app.js`; when README names this lane, pin the label/tone handoff in `scripts/smoke-readme-scope-evidence.mjs`.

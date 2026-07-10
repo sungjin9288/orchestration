@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { normalizeGrowthNextCandidate } from './growth-next-candidate.mjs';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -10,6 +11,33 @@ const repoRoot = path.resolve(__dirname, '..');
 const varRoot = path.join(repoRoot, 'var');
 
 requireNoCliArgs(process.argv.slice(2), { mode: 'growth-reflection-evaluator' });
+
+function applyReadOnlyReflectionTransition(
+  payload,
+  { ready, fromRouteId, routeId, reason, claim, allowedNextAction },
+) {
+  if (!ready) {
+    return;
+  }
+
+  payload.aggregate.status = `ready-for-${routeId}`;
+  payload.nextRecommendedSlice = {
+    id: `growth-${routeId}`,
+    commandToAdd: `node scripts/growth-${routeId}.mjs`,
+    reason,
+    mustRemainReadOnly: true,
+  };
+  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
+    finding.id === `${fromRouteId}-needed`
+      ? {
+          ...finding,
+          id: `${routeId}-needed`,
+          claim,
+          allowedNextAction,
+        }
+      : finding,
+  );
+}
 
 const RECENT_RUNTIME_LIMIT = 12;
 const SOURCE_FILES = [
@@ -12696,2532 +12724,387 @@ if (
   );
 }
 
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle close finalization, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle close finalization review, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle close finalization review acceptance, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle close finalization acceptance, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle close finalization, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, lifecycle close finalization review acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, lifecycle close finalization acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, lifecycle close final-close, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, lifecycle close acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, lifecycle close acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, lifecycle close finalization, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, lifecycle close finalization review acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, lifecycle close finalization acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, lifecycle close final-close, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle close finalization, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id ===
-    'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
-        }
-      : finding,
-  );
-}
-
-if (
-  sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted
-) {
-  payload.aggregate.status =
-    'ready-for-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status';
-  payload.nextRecommendedSlice = {
-    id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status',
-    commandToAdd:
-      'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs',
-    reason:
-      'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
-    mustRemainReadOnly: true,
-  };
-  payload.reflectionFindings = payload.reflectionFindings.map((finding) =>
-    finding.id === 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status-needed'
-      ? {
-          ...finding,
-          id: 'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status-needed',
-          claim:
-            'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
-          allowedNextAction:
-            'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
-        }
-      : finding,
-  );
-}
+const lifecycleCloseRoute =
+  'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close';
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-status`,
+  routeId: `${lifecycleCloseRoute}-review-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-review-status`,
+  routeId: `${lifecycleCloseRoute}-review-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-review-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle close finalization, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-review-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle close finalization review, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-review-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-review-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle close finalization review acceptance, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-review-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle close finalization acceptance, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-final-close-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-final-close-status`,
+  routeId: `${lifecycleCloseRoute}-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-status`,
+  routeId: `${lifecycleCloseRoute}-review-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-review-status`,
+  routeId: `${lifecycleCloseRoute}-review-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-review-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle close finalization, lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-review-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, lifecycle close finalization review acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-review-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-review-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, lifecycle close finalization acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-review-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, lifecycle close final-close, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-final-close-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-final-close-status`,
+  routeId: `${lifecycleCloseRoute}-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-status`,
+  routeId: `${lifecycleCloseRoute}-review-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, lifecycle close acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-review-status`,
+  routeId: `${lifecycleCloseRoute}-review-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, lifecycle close acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceAfterLatestLifecycleCloseReviewCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-review-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review acceptance status command has been rechecked after the latest lifecycle close review status recheck; the next safe slice can re-check lifecycle close acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close review acceptance status has been rechecked after lifecycle close review status remains current; lifecycle close acceptance status should be rechecked without treating the lifecycle close acceptance status command as actual lifecycle closure, lifecycle close finalization, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status as read-only lifecycle close acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceAfterLatestLifecycleCloseReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close acceptance status command has been rechecked after the latest lifecycle close review acceptance status recheck; the next safe slice can re-check lifecycle close finalization status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close acceptance status has been rechecked after lifecycle close review acceptance status remains current; lifecycle close finalization status should be rechecked without treating the lifecycle close finalization status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status as read-only lifecycle close finalization status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAfterLatestLifecycleCloseAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-review-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization status command has been rechecked after the latest lifecycle close acceptance status recheck; the next safe slice can re-check lifecycle close finalization review status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization status has been rechecked after lifecycle close acceptance status remains current; lifecycle close finalization review status should be rechecked without treating the lifecycle close finalization review status command as actual lifecycle closure, lifecycle close finalization review acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status as read-only lifecycle close finalization review status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAfterLatestLifecycleCloseFinalizationCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-review-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-review-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review status command has been rechecked after the latest lifecycle close finalization status recheck; the next safe slice can re-check lifecycle close finalization review acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization review status has been rechecked after lifecycle close finalization status remains current; lifecycle close finalization review acceptance status should be rechecked without treating the lifecycle close finalization review acceptance status command as actual lifecycle closure, lifecycle close finalization acceptance, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status as read-only lifecycle close finalization review acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationReviewAcceptanceAfterLatestLifecycleCloseFinalizationReviewCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-review-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-finalization-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization review acceptance status command has been rechecked after the latest lifecycle close finalization review status recheck; the next safe slice can re-check lifecycle close finalization acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization review acceptance status has been rechecked after lifecycle close finalization review status remains current; lifecycle close finalization acceptance status should be rechecked without treating the lifecycle close finalization acceptance status command as actual lifecycle closure, lifecycle close final-close, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status as read-only lifecycle close finalization acceptance status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationAcceptanceAfterLatestLifecycleCloseFinalizationReviewAcceptanceCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-finalization-acceptance-status`,
+  routeId: `${lifecycleCloseRoute}-final-close-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close finalization acceptance status command has been rechecked after the latest lifecycle close finalization review acceptance status recheck; the next safe slice can re-check lifecycle close final-close status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close finalization acceptance status has been rechecked after lifecycle close finalization review acceptance status remains current; lifecycle close final-close status should be rechecked without treating the lifecycle close final-close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status as read-only lifecycle close final-close status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseFinalCloseAfterLatestLifecycleCloseFinalizationAcceptanceStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-final-close-status`,
+  routeId: `${lifecycleCloseRoute}-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close final-close status command has been rechecked after the latest lifecycle close finalization acceptance status recheck; the next safe slice can re-check lifecycle close status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close final-close status has been rechecked after lifecycle close finalization acceptance status remains current; lifecycle close status should be rechecked without treating the lifecycle close status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status as read-only lifecycle close status contract before source mutation',
+});
+
+
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseAfterLatestLifecycleCloseFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-status`,
+  routeId: `${lifecycleCloseRoute}-review-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close status command has been rechecked after the latest lifecycle close final-close status recheck; the next safe slice can re-check lifecycle close review status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close status has been rechecked after lifecycle close final-close status remains current; lifecycle close review status should be rechecked without treating the lifecycle close review status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status as read-only lifecycle close review status contract before source mutation',
+});
+
+applyReadOnlyReflectionTransition(payload, {
+  ready:
+    sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAfterLatestLifecycleCloseCurrentFinalCloseStatusRecheckCompleted,
+  fromRouteId: `${lifecycleCloseRoute}-review-status`,
+  routeId: `${lifecycleCloseRoute}-review-acceptance-status`,
+  reason:
+    'The existing source mutation lifecycle closeout closure lifecycle close review status command has been rechecked after the latest lifecycle close status recheck; the next safe slice can re-check lifecycle close review acceptance status before lifecycle closure, patch application, or source mutation.',
+  claim:
+    'Source mutation lifecycle closeout closure lifecycle close review status has been rechecked after lifecycle close status remains current; lifecycle close review acceptance status should be rechecked without treating the lifecycle close review acceptance status command as actual lifecycle closure, patch application, source mutation, accepted-record mutation, or remediation execution.',
+  allowedNextAction:
+    'recheck growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status as read-only lifecycle close review acceptance status contract before source mutation',
+});
 
 const postCompletionRouterActive =
   sourceSummary.zeroOpenBacklog &&
@@ -16314,6 +14197,21 @@ if (postCompletionRouterActive) {
       'The post-completion router prerequisites are not all present; keep the current reflection recommendation.',
   };
 }
+
+const normalizedNextCandidate = normalizeGrowthNextCandidate(payload.nextRecommendedSlice);
+
+if (normalizedNextCandidate.id !== payload.nextRecommendedSlice.id) {
+  payload.aggregate.status = `ready-for-${normalizedNextCandidate.id}`;
+  payload.reflectionFindings[0] = {
+    ...payload.reflectionFindings[0],
+    id: `${normalizedNextCandidate.id}-needed`,
+    claim: normalizedNextCandidate.reason,
+    allowedNextAction:
+      'review the current proposal-record evidence lifecycle without creating records, widening authority, or adding another lifecycle suffix',
+  };
+}
+
+payload.nextRecommendedSlice = normalizedNextCandidate;
 
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 process.exitCode = ok ? 0 : 1;

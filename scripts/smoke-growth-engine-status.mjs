@@ -4,11 +4,45 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  isHistoricalGrowthReflectionFindingId,
+  isHistoricalGrowthReflectionReadyStatus,
+} from './growth-next-candidate.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const skipDuplicateStatusChecks = process.env.ORCHESTRATION_VERIFICATION_STATUS === '1';
+
+const historicalLifecycleFinding =
+  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-needed';
+
+assert.equal(isHistoricalGrowthReflectionFindingId(historicalLifecycleFinding), true);
+assert.equal(
+  isHistoricalGrowthReflectionFindingId(
+    'growth-evidence-ledger-proposal-record-creation-readiness-needed',
+  ),
+  true,
+);
+assert.equal(
+  isHistoricalGrowthReflectionFindingId(
+    'growth-evidence-ledger-proposal-record-dry-run-review-finalization-needed',
+  ),
+  false,
+);
+assert.equal(isHistoricalGrowthReflectionFindingId(), false);
+assert.equal(
+  isHistoricalGrowthReflectionReadyStatus(
+    `ready-for-${historicalLifecycleFinding.replace(/-needed$/, '')}`,
+  ),
+  true,
+);
+assert.equal(
+  isHistoricalGrowthReflectionReadyStatus(
+    'ready-for-growth-evidence-ledger-proposal-record-dry-run-acceptance',
+  ),
+  false,
+);
 
 function scriptPath(fileName) {
   return path.join(repoRoot, 'scripts', fileName);
@@ -266,7 +300,7 @@ assert.equal(payload.hermesEngine.role, 'inner self-improvement engine');
 assert.match(payload.hermesEngine.currentLoop, /planner -> architect -> task-breaker/);
 assert.equal(
   payload.hermesEngine.nextEngineSlice,
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
+  'growth-evidence-ledger-proposal-record-lifecycle-review',
 );
 assert.equal(payload.hermesEngine.currentMode, 'repo-native-hermes-style-post-completion-growth-routing');
 assert.equal(payload.referencePosture.reviewedAt, '2026-06-01');
@@ -1639,9 +1673,14 @@ assert.equal(
 );
 assert.equal(
   payload.nextRecommendedSlice.id,
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
+  'growth-evidence-ledger-proposal-record-lifecycle-review',
 );
 assert.equal(payload.nextRecommendedSlice.mustRemainReadOnly, true);
+assert.match(
+  payload.nextRecommendedSlice.sourceCandidate.id,
+  /review-acceptance-finalization-review-acceptance-finalization/,
+);
+assert.equal(payload.nextRecommendedSlice.sourceCandidate.mustRemainReadOnly, true);
 assert.equal(payload.postCompletionRouter.active, true);
 assert.equal(payload.postCompletionRouter.track, 'vNext-read-only-growth-loop');
 assert.equal(payload.postCompletionRouter.firstSlice, 'post-completion-next-step-router');
@@ -1917,9 +1956,9 @@ assert.equal(
   proposalReadinessPayload.readinessEnvelope.candidateEnvelope.candidateKind,
   'proposal-queue-handoff',
 );
-assert.match(
+assert.equal(
   proposalReadinessPayload.readinessEnvelope.candidateEnvelope.sourceFindingId,
-  /^growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review[a-z-]+finalization-needed$/,
+  "growth-evidence-ledger-proposal-record-lifecycle-review-needed",
 );
 assert.equal(
   proposalReadinessPayload.nextRecommendedSlice.id,

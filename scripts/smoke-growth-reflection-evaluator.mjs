@@ -14,6 +14,20 @@ function scriptPath(fileName) {
 }
 
 const evaluatorScript = scriptPath('growth-reflection-evaluator.mjs');
+const evaluatorSource = fs.readFileSync(evaluatorScript, 'utf8');
+const lifecycleCloseTransitionCalls = evaluatorSource.match(
+  /applyReadOnlyReflectionTransition\(payload, \{/g,
+);
+const directFindingMapCalls = evaluatorSource.match(
+  /payload\.reflectionFindings = payload\.reflectionFindings\.map/g,
+);
+
+assert.equal(lifecycleCloseTransitionCalls?.length, 29);
+assert.equal(directFindingMapCalls?.length, 71);
+assert.match(
+  evaluatorSource,
+  /const lifecycleCloseRoute =\s*'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close';/,
+);
 const ledgerStatusScript = scriptPath('growth-evidence-ledger-status.mjs');
 const gatewayRoutingStatusScript = path.join(
   repoRoot,
@@ -1958,7 +1972,10 @@ assert.ok(payload.scorecard.some((criterion) => criterion.id === 'memory-safety'
 assert.ok(payload.scorecard.some((criterion) => criterion.id === 'operator-routing-clarity'));
 assert.ok(payload.aggregate.score >= 80);
 assert.equal(payload.aggregate.blockedCriteria, 0);
-assert.equal(payload.aggregate.status, 'ready-for-growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization');
+assert.equal(
+  payload.aggregate.status,
+  'ready-for-growth-evidence-ledger-proposal-record-lifecycle-review',
+);
 assert.ok(
   payload.reflectionFindings.some(
     (finding) =>
@@ -1970,15 +1987,20 @@ assert.ok(
   payload.reflectionFindings.some(
     (finding) =>
       finding.id ===
-      'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-needed',
+      'growth-evidence-ledger-proposal-record-lifecycle-review-needed',
   ),
 );
 assert.ok(payload.reflectionFindings.some((finding) => finding.id === 'proposal-generation-still-blocked'));
 assert.equal(
   payload.nextRecommendedSlice.id,
-  'growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization',
+  'growth-evidence-ledger-proposal-record-lifecycle-review',
 );
 assert.equal(payload.nextRecommendedSlice.mustRemainReadOnly, true);
+assert.match(
+  payload.nextRecommendedSlice.sourceCandidate.id,
+  /review-acceptance-finalization-review-acceptance-finalization/,
+);
+assert.equal(payload.nextRecommendedSlice.sourceCandidate.mustRemainReadOnly, true);
 assert.equal(payload.postCompletionRouter.active, true);
 assert.equal(payload.postCompletionRouter.track, 'vNext-read-only-growth-loop');
 assert.equal(payload.postCompletionRouter.growthEvidenceLedgerStatusImplemented, true);
@@ -2199,9 +2221,9 @@ assert.equal(proposalReadinessPayload.readiness.proposalQueueContractReady, true
 assert.equal(proposalReadinessPayload.readiness.candidateEnvelopeDefined, true);
 assert.equal(proposalReadinessPayload.readiness.proposalGenerationAllowed, false);
 assert.equal(proposalReadinessPayload.readiness.proposalQueueMutationAllowed, false);
-assert.match(
+assert.equal(
   proposalReadinessPayload.readinessEnvelope.candidateEnvelope.sourceFindingId,
-  /^growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review[a-z-]+finalization-needed$/,
+  "growth-evidence-ledger-proposal-record-lifecycle-review-needed",
 );
 assert.equal(
   proposalReadinessPayload.nextRecommendedSlice.id,
