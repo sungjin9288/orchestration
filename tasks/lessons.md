@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README source-evidence smokes should separate current public focus, preceding growth evidence, and backing source-script claims when the assertion block grows. This keeps public README contract checks reviewable without changing README copy or weakening honesty guards.
+
 - Evidence smoke readability should group assertions by reader question instead of leaving a long flat assertion list. Keep the exact regex contract intact, name only small local helpers, and verify the focused smoke before recording the ledger entry.
 
 - README close-out after a completion gate refresh should name the closed evidence surface as the current focus, not the prior route that fed it. Pin the README claim to the completion inventory smoke, keep follow-up entry conditions explicit, and correct stale environment visibility in the inventory when current source files prove it.

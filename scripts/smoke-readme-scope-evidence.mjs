@@ -49,6 +49,10 @@ function countScripts(predicate) {
   return fs.readdirSync(path.join(repoRoot, 'scripts')).filter(predicate).length;
 }
 
+function assertReadmeHas(pattern) {
+  assert.match(readme, pattern);
+}
+
 const smokeFileCount = countScripts((name) => /^smoke-.*\.mjs$/.test(name));
 const qaSliceFileCount = countScripts((name) => /qa-slice.*\.mjs$/.test(name));
 const uiSmokeFileCount = countScripts((name) => /^smoke-ui-slice-.*\.mjs$/.test(name));
@@ -194,52 +198,62 @@ assert.match(readme, /output-brief copy labels\/payload titles/);
 assert.match(readme, /policy-report copy fallback\s+formatting/);
 assert.match(readme, /completion status/);
 assert.match(readme, /`ui\/harness-labels\.js`/);
-assert.match(
-  readme,
+
+const completionFocusEvidence = [
   /The current development focus is completion-gate evidence close-out/,
-);
-assert.match(readme, /default completion baseline\s+is closed for implementation work/);
-assert.match(readme, /docs\/22_completion-gate-inventory\.md/);
-assert.match(readme, /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/);
-assert.match(readme, /aggregate registration, UI QA registration, zero-open backlog/);
-assert.match(readme, /required `1\/1`, informational `168\/168`, total `169\/169`/);
-assert.match(readme, /UI QA is required `28\/28`/);
-assert.match(
-  readme,
+  /default completion baseline\s+is closed for implementation work/,
+  /docs\/22_completion-gate-inventory\.md/,
+  /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
+  /aggregate registration, UI QA registration, zero-open backlog/,
+  /required `1\/1`, informational `168\/168`, total `169\/169`/,
+  /UI QA is required `28\/28`/,
   /Follow-up work now enters only from an explicit operator request, a concrete regression, a usability\s+issue, or an accepted vNext decision/,
-);
-assert.match(readme, /read-only\/status-or-doc-smoke-first/);
-assert.match(readme, /The immediately preceding growth evidence focus normalized repeated/);
-assert.match(readme, /preserves the long route as `sourceCandidate`/);
-assert.match(readme, /39 lifecycle transition helper\s+calls/);
-assert.match(readme, /62\s+top-level read-only route helper calls/);
-assert.match(readme, /2\/71\/45\s+contract-finding guard\/advanced\/base routes/);
-assert.match(readme, /26\/102 aggregate\s+base\/advanced routes/);
-assert.match(readme, /4\/122\/1\s+next-candidate guard\/advanced\/base routes/);
-assert.match(readme, /129 read-only next\s+candidates/);
-assert.match(readme, /23 post-completion candidate\/finding-update rows/);
-assert.match(readme, /11\/11 post-completion copy rows/);
-assert.match(readme, /Completion gate inventory:/);
-assert.match(readme, /aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/);
-assert.match(readme, /Growth reflection close-out:/);
-assert.match(readme, /Growth proposal-record lifecycle review:/);
-assert.match(
-  readme,
+  /read-only\/status-or-doc-smoke-first/,
+];
+
+const growthFocusEvidence = [
+  /The immediately preceding growth evidence focus normalized repeated/,
+  /preserves the long route as `sourceCandidate`/,
+  /39 lifecycle transition helper\s+calls/,
+  /62\s+top-level read-only route helper calls/,
+  /2\/71\/45\s+contract-finding guard\/advanced\/base routes/,
+  /26\/102 aggregate\s+base\/advanced routes/,
+  /4\/122\/1\s+next-candidate guard\/advanced\/base routes/,
+  /129 read-only next\s+candidates/,
+  /23 post-completion candidate\/finding-update rows/,
+  /11\/11 post-completion copy rows/,
+];
+
+const growthSourceEvidence = [
+  /Completion gate inventory:/,
+  /aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
+  /Growth reflection close-out:/,
+  /Growth proposal-record lifecycle review:/,
   /scripts\/growth-evidence-ledger-proposal-record-lifecycle-review-status\.mjs/,
-);
-assert.match(
-  readme,
   /scripts\/smoke-growth-evidence-ledger-proposal-record-lifecycle-review-status\.mjs/,
-);
-assert.match(readme, /scripts\/growth-reflection-evaluator\.mjs/);
-assert.match(readme, /scripts\/smoke-growth-reflection-evaluator\.mjs/);
-assert.match(readme, /scripts\/growth-evidence-ledger-proposal-readiness-status\.mjs/);
-assert.match(readme, /aggregate score `100`/);
-assert.match(readme, /growth-evidence-ledger-proposal-record-lifecycle-review/);
-assert.match(readme, /growth-evidence-ledger-proposal-record-lifecycle-review-maintenance/);
-assert.match(readme, /sourceCandidate/);
-assert.match(readme, /old\s+nested-marker absence/);
-assert.match(readme, /Growth reflection evaluator route\/readability work is a read-only evaluation and evidence cleanup/);
+  /scripts\/growth-reflection-evaluator\.mjs/,
+  /scripts\/smoke-growth-reflection-evaluator\.mjs/,
+  /scripts\/growth-evidence-ledger-proposal-readiness-status\.mjs/,
+  /aggregate score `100`/,
+  /growth-evidence-ledger-proposal-record-lifecycle-review/,
+  /growth-evidence-ledger-proposal-record-lifecycle-review-maintenance/,
+  /sourceCandidate/,
+  /old\s+nested-marker absence/,
+  /Growth reflection evaluator route\/readability work is a read-only evaluation and evidence cleanup/,
+];
+
+for (const pattern of completionFocusEvidence) {
+  assertReadmeHas(pattern);
+}
+
+for (const pattern of growthFocusEvidence) {
+  assertReadmeHas(pattern);
+}
+
+for (const pattern of growthSourceEvidence) {
+  assertReadmeHas(pattern);
+}
+
 assert.match(
   readme,
   /does not create durable proposal records, apply\s+proposals, call providers, persist memory, mutate project source through the product runtime/,
