@@ -579,32 +579,35 @@ assert.match(harnessLabels, /export function formatHarnessPolicyReportForCopy\(p
 assert.match(harnessLabels, /if \(!payload\) \{\s+return '';\s+\}/);
 assert.match(harnessLabels, /export function formatHarnessExecutionPacketForCopy\(execution, context = \{\}\) \{/);
 assert.match(harnessLabels, /if \(!execution\?\.harnessId\) \{\s+return '';\s+\}/);
-assert.match(appJs, /const visibleHarnessPrimaryTokenTone = 'neutral';/);
-assert.match(appJs, /const visibleHarnessRequestTokenTone = 'neutral';/);
-assert.match(appJs, /const visibleHarnessExecutedAtTokenTone = 'neutral';/);
-assert.match(appJs, /const visibleHarnessPolicyReportTokenTone = 'neutral';/);
-assert.match(appJs, /const visibleHarnessPrimaryTokenMarkup = canRenderVisibleHarnessPrimaryToken/);
-assert.match(appJs, /const visibleHarnessPolicyReportTokenMarkup = canRenderVisibleHarnessPolicyReportToken/);
-assert.match(appJs, /const visibleHarnessRequestTokenMarkup = canRenderVisibleHarnessRequestToken/);
-assert.match(appJs, /const visibleHarnessOutputChannelTokenMarkup = createToken\(\s+visibleHarnessOutputChannelLabel,\s+visibleHarnessOutputChannelTone,\s+\);/);
-assert.match(appJs, /const visibleHarnessExecutedAtTokenMarkup = canRenderVisibleHarnessExecutedAtToken/);
-assert.match(
-  appJs,
+
+const visibleHarnessTokenStructureEvidence = [
+  /const visibleHarnessPrimaryTokenTone = 'neutral';/,
+  /const visibleHarnessRequestTokenTone = 'neutral';/,
+  /const visibleHarnessExecutedAtTokenTone = 'neutral';/,
+  /const visibleHarnessPolicyReportTokenTone = 'neutral';/,
+  /const visibleHarnessPrimaryTokenMarkup = canRenderVisibleHarnessPrimaryToken/,
+  /const visibleHarnessPolicyReportTokenMarkup = canRenderVisibleHarnessPolicyReportToken/,
+  /const visibleHarnessRequestTokenMarkup = canRenderVisibleHarnessRequestToken/,
+  /const visibleHarnessOutputChannelTokenMarkup = createToken\(\s+visibleHarnessOutputChannelLabel,\s+visibleHarnessOutputChannelTone,\s+\);/,
+  /const visibleHarnessExecutedAtTokenMarkup = canRenderVisibleHarnessExecutedAtToken/,
   /const visibleHarnessTokenRowMarkup = `\s+\$\{visibleHarnessPrimaryTokenMarkup\}\s+\$\{visibleHarnessPolicyReportTokenMarkup\}\s+\$\{visibleHarnessRequestTokenMarkup\}\s+\$\{visibleHarnessOutputChannelTokenMarkup\}\s+\$\{visibleHarnessExecutedAtTokenMarkup\}/,
-);
-assert.match(appJs, /\$\{visibleHarnessTokenRowMarkup\}/);
-assert.doesNotMatch(
-  appJs,
+  /\$\{visibleHarnessTokenRowMarkup\}/,
+  /createToken\(visibleHarnessPrimaryTokenLabel, visibleHarnessPrimaryTokenTone\)/,
+  /createToken\(visibleHarnessRequestTokenLabel, visibleHarnessRequestTokenTone\)/,
+  /createToken\(visibleHarnessExecutedAtTokenLabel, visibleHarnessExecutedAtTokenTone\)/,
+  /createToken\(visibleHarnessPolicyReportTokenLabel, visibleHarnessPolicyReportTokenTone\)/,
+];
+
+const visibleHarnessTokenInlineRejections = [
   /<div class="token-row token-row-compact">\s+\$\{visibleHarnessPrimaryTokenMarkup\}\s+\$\{visibleHarnessPolicyReportTokenMarkup\}/,
-);
-assert.match(appJs, /createToken\(visibleHarnessPrimaryTokenLabel, visibleHarnessPrimaryTokenTone\)/);
-assert.match(appJs, /createToken\(visibleHarnessRequestTokenLabel, visibleHarnessRequestTokenTone\)/);
-assert.match(appJs, /createToken\(visibleHarnessExecutedAtTokenLabel, visibleHarnessExecutedAtTokenTone\)/);
-assert.match(appJs, /createToken\(visibleHarnessPolicyReportTokenLabel, visibleHarnessPolicyReportTokenTone\)/);
-assert.doesNotMatch(appJs, /createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/);
-assert.doesNotMatch(appJs, /createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/);
-assert.doesNotMatch(appJs, /createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/);
-assert.doesNotMatch(appJs, /createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/);
+  /createToken\(visibleHarnessPrimaryTokenLabel, 'neutral'\)/,
+  /createToken\(visibleHarnessRequestTokenLabel, 'neutral'\)/,
+  /createToken\(visibleHarnessExecutedAtTokenLabel, 'neutral'\)/,
+  /createToken\(visibleHarnessPolicyReportTokenLabel, 'neutral'\)/,
+];
+
+assertTextHasAll(appJs, visibleHarnessTokenStructureEvidence);
+assertTextDoesNotHaveAll(appJs, visibleHarnessTokenInlineRejections);
 assert.match(appJs, /const harnessRunCommandCopyMarkup = `/);
 assert.match(appJs, /const harnessRunClearHistoryActionMarkup = hasExecutionHistory/);
 assert.match(appJs, /const harnessRunPolicyReportPreviewActionMarkup = `/);

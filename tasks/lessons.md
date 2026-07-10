@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes that validate visible token rows should separate token structure markers from inline/literal-token rejection guards. Keep token tone locals, token markup handoffs, and row markup handoffs in one positive group, and keep old direct row assembly or literal tone calls in a separate rejection group.
+
 - README evidence smokes should treat history result structure as its own reader question once visible and hidden result structures are already grouped. Keep history helper handoffs and old-inline template rejection guards separate so the smoke identifies whether history markup composition drifted or an inline packet assembly returned.
 
 - README evidence smokes that validate app markup should separate positive structure markers from old-inline rejection guards. Keep visible and hidden harness structure in named groups so the README gate explains whether a failure came from a missing helper handoff or from an accidental return to inline template assembly.
