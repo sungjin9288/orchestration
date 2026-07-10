@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Evidence smoke readability should group assertions by reader question instead of leaving a long flat assertion list. Keep the exact regex contract intact, name only small local helpers, and verify the focused smoke before recording the ledger entry.
+
 - README close-out after a completion gate refresh should name the closed evidence surface as the current focus, not the prior route that fed it. Pin the README claim to the completion inventory smoke, keep follow-up entry conditions explicit, and correct stale environment visibility in the inventory when current source files prove it.
 
 - Completion gate inventory refreshes should be pinned by a focused source smoke whenever aggregate counts, UI QA counts, or growth-routing summaries change. Record explicit checked evidence such as `169/169` and a checked head instead of vague latest-main wording, and keep README smoke counts, inventory rows, aggregate registration, and task ledger evidence in the same slice.
