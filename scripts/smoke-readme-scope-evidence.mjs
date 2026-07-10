@@ -767,59 +767,94 @@ const historyHarnessCountTokenInlineRejections = [
 
 assertTextHasAll(appJs, historyHarnessCountTokenEvidence);
 assertTextDoesNotHaveAll(appJs, historyHarnessCountTokenInlineRejections);
-assert.match(appJs, /data-personalization-scope="local-only"/);
-assert.match(growthPanels, /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/);
-assert.match(growthPanels, /data-proposal-record-persistence-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordPersistenceAllowed\}"/);
-assert.match(appJs, /data-long-term-memory-store-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.longTermMemoryStoreAllowed\}"/);
-assert.match(appJs, /data-memory-readiness-gate="blocked"/);
-assert.match(appJs, /data-raw-transcript-ingestion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.rawTranscriptIngestionAllowed\}"/);
-assert.match(appJs, /data-cross-workspace-memory-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.crossWorkspaceMemoryAllowed\}"/);
-assert.match(appJs, /data-skill-promotion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.skillPromotionAllowed\}"/);
-assert.match(appJs, />지식 작업 \(knowledge-work\)<\/option>/);
-assert.match(appJs, /from '\.\/growth-config\.js'/);
-assert.match(appJs, /from '\.\/growth-learning\.js'/);
-assert.match(appJs, /from '\.\/preference-config\.js'/);
-assert.match(appJs, /from '\.\/personalization-snapshot\.js'/);
-assert.match(growthConfig, /export const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/);
-assert.match(growthConfig, /proposalRecordCreationAllowed: false/);
-assert.match(growthConfig, /sourceMutationAllowed: false/);
-assert.match(growthLearning, /export function getGrowthLearningSnapshot\(data, context, formatters = \{\}\) \{/);
-assert.match(personalizationSnapshot, /export function getPersonalizationSnapshot\(\{/);
-assert.match(preferenceConfig, /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/);
-assert.match(contracts, /KNOWLEDGE_WORK: 'knowledge-work'/);
-assert.match(
-  knowledgeWorkPack,
+
+const growthAuthorityBoundaryEvidence = [
+  /data-personalization-scope="local-only"/,
+  /data-long-term-memory-store-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.longTermMemoryStoreAllowed\}"/,
+  /data-memory-readiness-gate="blocked"/,
+  /data-raw-transcript-ingestion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.rawTranscriptIngestionAllowed\}"/,
+  /data-cross-workspace-memory-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.crossWorkspaceMemoryAllowed\}"/,
+  /data-skill-promotion-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.skillPromotionAllowed\}"/,
+  />지식 작업 \(knowledge-work\)<\/option>/,
+  /from '\.\/growth-config\.js'/,
+  /from '\.\/growth-learning\.js'/,
+  /from '\.\/preference-config\.js'/,
+  /from '\.\/personalization-snapshot\.js'/,
+];
+
+const growthPanelAuthorityEvidence = [
+  /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/,
+  /data-proposal-record-persistence-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordPersistenceAllowed\}"/,
+];
+
+const growthModuleBoundaryEvidence = [
+  /export const GROWTH_AUTHORITY_BOUNDARY = Object\.freeze\(\{/,
+  /proposalRecordCreationAllowed: false/,
+  /sourceMutationAllowed: false/,
+];
+
+const growthLearningModuleEvidence = [
+  /export function getGrowthLearningSnapshot\(data, context, formatters = \{\}\) \{/,
+];
+
+const personalizationSnapshotModuleEvidence = [
+  /export function getPersonalizationSnapshot\(\{/,
+];
+
+const preferenceConfigModuleEvidence = [
+  /export const UI_PREFERENCE_STORAGE_KEY = 'orchestration\.ui-preferences\.v1'/,
+];
+
+const knowledgeWorkContractEvidence = [
+  /KNOWLEDGE_WORK: 'knowledge-work'/,
+];
+
+const knowledgeWorkPackEvidence = [
   /`knowledge-work` is an explicit opt-in pack\. It does not replace the `development` pack\./,
-);
-assert.match(
-  masterBrief,
+];
+
+const masterBriefKnowledgeWorkEvidence = [
   /`DEC-066` records the code-present `knowledge-work` pack as explicit opt-in/,
-);
-assert.match(
-  decisionLog,
+];
+
+const decisionLogKnowledgeWorkEvidence = [
   /`DEC-066` records `knowledge-work` as that code-present opt-in path/,
-);
-assert.match(
-  decisionLog,
   /The code-present `knowledge-work` pack is explicit opt-in and non-default/,
-);
-assert.match(
-  architectureRoadmap,
+];
+
+const architectureRoadmapKnowledgeWorkEvidence = [
   /`DEC-066` records the code-present `knowledge-work` pack as explicit opt-in, non-default/,
-);
-assert.match(
-  agents,
+];
+
+const agentsKnowledgeWorkEvidence = [
   /`DEC-066` records the code-present `knowledge-work` pack as explicit opt-in and non-default/,
-);
-assert.match(referenceAudit, /Linear/);
-assert.match(referenceAudit, /LangSmith Studio/);
-assert.match(referenceAudit, /Retool/);
-assert.match(referenceAudit, /Dify/);
-assert.match(referenceAudit, /n8n HITL/);
-assert.match(referenceAudit, /Zapier/);
-assert.match(referenceAudit, /NN\/g 2026 UX/);
-assert.match(referenceAudit, /DEC-048/);
-assert.match(referenceAudit, /DEC-049/);
+];
+
+const referenceAuditEvidence = [
+  /Linear/,
+  /LangSmith Studio/,
+  /Retool/,
+  /Dify/,
+  /n8n HITL/,
+  /Zapier/,
+  /NN\/g 2026 UX/,
+  /DEC-048/,
+  /DEC-049/,
+];
+
+assertTextHasAll(appJs, growthAuthorityBoundaryEvidence);
+assertTextHasAll(growthPanels, growthPanelAuthorityEvidence);
+assertTextHasAll(growthConfig, growthModuleBoundaryEvidence);
+assertTextHasAll(growthLearning, growthLearningModuleEvidence);
+assertTextHasAll(personalizationSnapshot, personalizationSnapshotModuleEvidence);
+assertTextHasAll(preferenceConfig, preferenceConfigModuleEvidence);
+assertTextHasAll(contracts, knowledgeWorkContractEvidence);
+assertTextHasAll(knowledgeWorkPack, knowledgeWorkPackEvidence);
+assertTextHasAll(masterBrief, masterBriefKnowledgeWorkEvidence);
+assertTextHasAll(decisionLog, decisionLogKnowledgeWorkEvidence);
+assertTextHasAll(architectureRoadmap, architectureRoadmapKnowledgeWorkEvidence);
+assertTextHasAll(agents, agentsKnowledgeWorkEvidence);
+assertTextHasAll(referenceAudit, referenceAuditEvidence);
 
 console.log(
   JSON.stringify(

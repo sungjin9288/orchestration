@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes that validate growth authority and pack boundaries should group UI markers, growth config markers, source module exports, pack constants, repo docs, and reference-audit sources by owning file. Cross-file boundary checks are easier to review when each group answers which source-of-truth layer drifted.
+
 - README evidence smokes that validate hidden packet/header composition should group hidden packet/header handoffs separately from history count token/header handoffs. Keep old inline packet/title and direct history count token regressions in their own rejection groups so a failure says whether packet composition or history header composition drifted.
 
 - README evidence smokes that validate hidden state tokens should group the fixed hidden label/tone handoff with the token markup consumer, while keeping old literal `createToken('숨김', 'neutral')` and legacy label/tone regressions in a separate rejection group. Hidden token evidence is easier to review when current handoff shape and old direct-call regressions are not interleaved.

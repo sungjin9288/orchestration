@@ -625,7 +625,8 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, package/env visibility, visible/hidden/history Advanced Ops helper, preview, action-shelf
   composition, token handoff structure, hidden state token handoff, hidden packet/header handoff,
-  history action handoff, history count token handoff, and honesty patterns.
+  history action handoff, history count token handoff, growth authority boundary, knowledge-work
+  boundary, and honesty patterns.
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
