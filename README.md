@@ -54,8 +54,9 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is post-completion lifecycle-close-finalization-review-acceptance status evidence close-out. The
-default completion baseline is still closed for implementation work: `tasks/todo.md` has zero
+The current development focus is post-completion lifecycle-close-finalization-acceptance status
+evidence close-out. The default completion baseline is still closed for implementation work:
+`tasks/todo.md` has zero
 unchecked task lines,
 `docs/22_completion-gate-inventory.md` records the current gate table, and
 `scripts/smoke-completion-gate-inventory-current-evidence.mjs` pins the README smoke counts,
@@ -64,13 +65,13 @@ proposal-record lifecycle review alias evidence together. The latest checked agg
 required `1/1`, informational `168/168`, total `169/169`; UI QA is required `28/28`.
 
 The active close-out slice is
-`growth-lifecycle-close-finalization-review-acceptance-status-smoke-readability-post-m7-2313`. It keeps the
-lifecycle-close-finalization-review-acceptance status smoke behavior-preserving and read-only by grouping the
-former assertion wall into source summary, vocabulary, schema, readiness, next-slice, safety
-boundary, invalid-argument, plan, and cross-document evidence groups. The source
-close-finalization-review-acceptance-status script, runtime behavior, UI behavior, provider configuration, memory
-persistence, proposal generation/application, source mutation authority, commit, push, connector
-reach, automation, and lifecycle semantics remain unchanged.
+`growth-lifecycle-close-finalization-acceptance-status-smoke-readability-post-m7-2314`. It keeps
+the lifecycle-close-finalization-acceptance status smoke behavior-preserving and read-only by
+grouping the former assertion wall into source summary, vocabulary, schema, readiness, next-slice,
+safety boundary, invalid-argument, plan, and cross-document evidence groups. The source
+close-finalization-acceptance-status script, runtime behavior, UI behavior, provider configuration,
+memory persistence, proposal generation/application, source mutation authority, commit, push,
+connector reach, automation, and lifecycle semantics remain unchanged.
 
 Follow-up work still enters only from an explicit operator request, a concrete regression, a
 usability issue, or an accepted vNext decision. The first posture for that follow-up remains
@@ -116,9 +117,15 @@ Current source-backed evidence:
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
   aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias boundaries.
+- Growth lifecycle-close finalization acceptance status: `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs`
+  and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs`
+  prove the current lifecycle-close-finalization-acceptance status packet is read-only, keeps
+  lifecycle close final close, lifecycle close finalization acceptance, source mutation, and
+  remediation execution blocked, preserves the next lifecycle-close-final-close recommendation, and
+  records the assertion grouping as evidence cleanup rather than product behavior change.
 - Growth lifecycle-close finalization review acceptance status: `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`
   and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`
-  prove the current lifecycle-close-finalization-review-acceptance status packet is read-only, keeps
+  prove the preceding lifecycle-close-finalization-review-acceptance status packet is read-only, keeps
   lifecycle close finalization acceptance, lifecycle close finalization review acceptance, source
   mutation, and remediation execution blocked, preserves the next lifecycle-close-finalization-acceptance
   recommendation, and records the assertion grouping as evidence cleanup rather than product
@@ -576,6 +583,8 @@ node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifec
 node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs
 node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs
 node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs
+node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs
+node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/smoke-completion-gate-inventory-current-evidence.mjs
 node scripts/ui_qa_status.mjs
@@ -651,6 +660,15 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle-close-finalization-acceptance command.
 - `node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`:
   pins the lifecycle-close-finalization-review-acceptance status source markers, vocabulary, schema
+  required fields, readiness, safety boundary, invalid-argument rejection, growth gateway plan
+  evidence, and cross-document ledger evidence without opening runtime, UI, provider, memory,
+  proposal, source mutation, commit, or push authority.
+- `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs`:
+  reports `ok=true`, read-only lifecycle-close-final-close readiness, blocked lifecycle close final
+  close, blocked lifecycle close finalization acceptance, blocked source mutation and remediation
+  execution, and the next lifecycle-close-final-close command.
+- `node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs`:
+  pins the lifecycle-close-finalization-acceptance status source markers, vocabulary, schema
   required fields, readiness, safety boundary, invalid-argument rejection, growth gateway plan
   evidence, and cross-document ledger evidence without opening runtime, UI, provider, memory,
   proposal, source mutation, commit, or push authority.
