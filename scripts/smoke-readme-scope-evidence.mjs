@@ -105,6 +105,7 @@ assert.match(readme, /visible input path action markup/);
 assert.match(readme, /visible action shelf markup/);
 assert.match(readme, /visible action shelf frame markup/);
 assert.match(readme, /visible summary rack markup/);
+assert.match(readme, /visible execution summary markup/);
 assert.match(readme, /hidden preview markup/);
 assert.match(readme, /hidden preview action markup/);
 assert.match(readme, /hidden input path action markup/);
@@ -155,6 +156,7 @@ assert.match(readme, /visible preview markup handoff/);
 assert.match(readme, /visible preview action markup handoff/);
 assert.match(readme, /visible input path action markup handoff/);
 assert.match(readme, /visible summary rack markup handoff/);
+assert.match(readme, /visible execution summary markup handoff/);
 assert.match(readme, /hidden preview action markup handoff/);
 assert.match(readme, /hidden input path action markup handoff/);
 assert.match(readme, /hidden header markup handoff/);
@@ -369,7 +371,11 @@ assert.doesNotMatch(
 );
 assert.match(
   appJs,
-  /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}\s+\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
+  /const visibleHarnessExecutionSummaryMarkup = `\s+\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}\s+\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessExecutionSummaryMarkup\}\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
 );
 assert.match(appJs, /\$\{visibleHarnessSummaryRackMarkup\}/);
 assert.match(

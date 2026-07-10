@@ -1738,6 +1738,12 @@ function renderHarnessExecutionActionShelf(statusPayload) {
   const visibleHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-mode-summary="true">모드: <code>${escapeHtml(visibleHarnessModeLabel)}</code></p>`;
   const visibleHarnessHandoffSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-handoff-summary="true">핸드오프: <code>${escapeHtml(visibleHarnessHandoffText)}</code></p>`;
   const visibleHarnessOutputSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-execution-output-summary="true">${escapeHtml(visibleHarnessOutputLabel)}: <code>${escapeHtml(visibleHarnessOutputSummaryValue)}</code></p>`;
+  const visibleHarnessExecutionSummaryMarkup = `
+    ${visibleHarnessInputSummaryMarkup}
+    ${visibleHarnessModeSummaryMarkup}
+    ${visibleHarnessHandoffSummaryMarkup}
+    ${visibleHarnessOutputSummaryMarkup}
+  `;
   const hiddenHarnessModeSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-mode-summary="true">모드: <code>${escapeHtml(hiddenHarnessModeLabel)}</code></p>`;
   const hiddenHarnessHandoffSummaryMarkup = `<p class="detail-copy detail-copy-compact" data-harness-result-hidden-handoff-summary="true">핸드오프: <code>${escapeHtml(hiddenHarnessHandoffText)}</code></p>`;
   const hiddenHarnessRunContextSummaryMarkup = `
@@ -2229,10 +2235,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     visibleHarnessExecutionResult,
   );
   const visibleHarnessSummaryRackMarkup = `
-    ${visibleHarnessInputSummaryMarkup}
-    ${visibleHarnessModeSummaryMarkup}
-    ${visibleHarnessHandoffSummaryMarkup}
-    ${visibleHarnessOutputSummaryMarkup}
+    ${visibleHarnessExecutionSummaryMarkup}
     ${visibleHarnessRequestSummaryMarkup}
     ${visibleHarnessPolicyReportSummaryMarkup}
     ${visibleHarnessOutputBriefSummaryMarkup}

@@ -31,7 +31,11 @@ assert.match(
 );
 assert.match(
   appJs,
-  /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}\s+\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
+  /const visibleHarnessExecutionSummaryMarkup = `\s+\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}\s+\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessExecutionSummaryMarkup\}\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
 );
 assert.match(appJs, /\$\{visibleHarnessSummaryRackMarkup\}/);
 assert.doesNotMatch(
@@ -131,7 +135,10 @@ async function main() {
           harnessExecutionResultDetailDensity: {
             insertionPoint: 'executionResultRegister->visibleDetailDensity->compactPathRows',
             copyClass: 'detail-copy-compact',
-            namedValues: ['visibleHarnessSummaryRackMarkup'],
+            namedValues: [
+              'visibleHarnessExecutionSummaryMarkup',
+              'visibleHarnessSummaryRackMarkup',
+            ],
             route: '/api/harness/operator-action/run',
           },
         },
