@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes that validate action token handoffs should group operator-action label/tone handoffs with latest visible state token handoffs, and keep old direct `createToken(...)` regressions in a separate rejection group. Token evidence is easier to review when label/tone flow and direct-call regression guards are not interleaved.
+
 - README evidence smokes that validate visible action shelves should group output-path copy, hide action, and action shelf/frame handoffs together, while keeping old direct button/template regressions in a separate rejection group. Visible result action composition is easier to review when helper handoffs and inline-regression guards answer separate questions.
 
 - README evidence smokes that validate hidden action shelves should group hidden path-action handoffs with hidden action shelf/frame handoffs, and keep old inline hidden shelf guards in a separate rejection group. Hidden result structure is easier to audit when composition and regression guards answer separate questions.

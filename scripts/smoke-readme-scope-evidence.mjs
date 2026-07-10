@@ -679,25 +679,28 @@ const visibleHarnessActionShelfInlineRejections = [
 
 assertTextHasAll(appJs, visibleHarnessActionShelfEvidence);
 assertTextDoesNotHaveAll(appJs, visibleHarnessActionShelfInlineRejections);
-assert.match(appJs, /const harnessOperatorActionLabel = getHarnessOperatorActionLabel\(operatorAction\);/);
-assert.match(appJs, /const harnessOperatorActionTone = getHarnessOperatorActionTone\(operatorAction\);/);
-assert.match(appJs, /const harnessOperatorActionTokenLabel = harnessOperatorActionLabel;/);
-assert.match(appJs, /const harnessOperatorActionTokenTone = harnessOperatorActionTone;/);
-assert.match(
-  appJs,
+
+const harnessActionTokenHandoffEvidence = [
+  /const harnessOperatorActionLabel = getHarnessOperatorActionLabel\(operatorAction\);/,
+  /const harnessOperatorActionTone = getHarnessOperatorActionTone\(operatorAction\);/,
+  /const harnessOperatorActionTokenLabel = harnessOperatorActionLabel;/,
+  /const harnessOperatorActionTokenTone = harnessOperatorActionTone;/,
   /const harnessOperatorActionTokenMarkup = createToken\(\s+harnessOperatorActionTokenLabel,\s+harnessOperatorActionTokenTone,\s+\);/,
-);
-assert.match(appJs, /\$\{harnessOperatorActionTokenMarkup\}/);
-assert.doesNotMatch(appJs, /createToken\(\s+harnessOperatorActionLabel,\s+harnessOperatorActionTone,\s+\)/);
-assert.match(appJs, /const visibleHarnessResultStateToken =\s+getHarnessResultStateToken\(visibleHarnessIsPolicyReport\);/);
-assert.match(appJs, /const visibleHarnessResultStateTokenLabel = visibleHarnessResultStateToken\.label;/);
-assert.match(appJs, /const visibleHarnessResultStateTokenTone = visibleHarnessResultStateToken\.tone;/);
-assert.match(
-  appJs,
+  /\$\{harnessOperatorActionTokenMarkup\}/,
+  /const visibleHarnessResultStateToken =\s+getHarnessResultStateToken\(visibleHarnessIsPolicyReport\);/,
+  /const visibleHarnessResultStateTokenLabel = visibleHarnessResultStateToken\.label;/,
+  /const visibleHarnessResultStateTokenTone = visibleHarnessResultStateToken\.tone;/,
   /const visibleHarnessResultStateTokenMarkup = createToken\(\s+visibleHarnessResultStateTokenLabel,\s+visibleHarnessResultStateTokenTone,\s+\);/,
-);
-assert.match(appJs, /\$\{visibleHarnessResultStateTokenMarkup\}/);
-assert.doesNotMatch(appJs, /createToken\(\s+visibleHarnessResultStateLabel,\s+visibleHarnessResultStateTone,\s+\)/);
+  /\$\{visibleHarnessResultStateTokenMarkup\}/,
+];
+
+const harnessActionTokenInlineRejections = [
+  /createToken\(\s+harnessOperatorActionLabel,\s+harnessOperatorActionTone,\s+\)/,
+  /createToken\(\s+visibleHarnessResultStateLabel,\s+visibleHarnessResultStateTone,\s+\)/,
+];
+
+assertTextHasAll(appJs, harnessActionTokenHandoffEvidence);
+assertTextDoesNotHaveAll(appJs, harnessActionTokenInlineRejections);
 assert.match(appJs, /const historyHarnessInputPathCopyMarkup =\s+canRenderHistoryHarnessInputPathCopy/);
 assert.match(appJs, /\$\{historyHarnessInputPathCopyMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderHistoryHarnessInputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
