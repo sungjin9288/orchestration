@@ -15,15 +15,205 @@ function scriptPath(fileName) {
 
 const evaluatorScript = scriptPath('growth-reflection-evaluator.mjs');
 const evaluatorSource = fs.readFileSync(evaluatorScript, 'utf8');
+const nextRecommendedSliceRouteSource = evaluatorSource.slice(
+  evaluatorSource.indexOf('const nextRecommendedSliceGuardRoutes = ['),
+  evaluatorSource.indexOf('const payload = {'),
+);
+const nextRecommendedSliceGuardRouteSource = nextRecommendedSliceRouteSource.slice(
+  0,
+  nextRecommendedSliceRouteSource.indexOf('const advancedNextRecommendedSliceRoutes = ['),
+);
+const advancedNextRecommendedSliceRouteSource = nextRecommendedSliceRouteSource.slice(
+  nextRecommendedSliceRouteSource.indexOf('const advancedNextRecommendedSliceRoutes = ['),
+  nextRecommendedSliceRouteSource.indexOf('const baseNextRecommendedSliceRoutes = ['),
+);
+const baseNextRecommendedSliceRouteSource = nextRecommendedSliceRouteSource.slice(
+  nextRecommendedSliceRouteSource.indexOf('const baseNextRecommendedSliceRoutes = ['),
+  nextRecommendedSliceRouteSource.indexOf('const completedAdvancedNextRecommendedSlice = {'),
+);
+const contractFindingRouteSource = evaluatorSource.slice(
+  evaluatorSource.indexOf('const contractFindingGuardRoutes = ['),
+  evaluatorSource.indexOf(
+    '\n\n  return [',
+    evaluatorSource.indexOf('const contractFindingGuardRoutes = ['),
+  ),
+);
+const advancedContractFindingRouteSource = contractFindingRouteSource.slice(
+  contractFindingRouteSource.indexOf('const advancedContractFindingRoutes = ['),
+  contractFindingRouteSource.indexOf('const baseContractFindingRoutes = ['),
+);
+const baseContractFindingRouteSource = contractFindingRouteSource.slice(
+  contractFindingRouteSource.indexOf('const baseContractFindingRoutes = ['),
+  contractFindingRouteSource.indexOf('const completedAdvancedContractFinding = {'),
+);
+const baseAggregateStatusRouteTableSource = evaluatorSource.slice(
+  evaluatorSource.indexOf('const baseAggregateStatusRoutes = ['),
+  evaluatorSource.indexOf('const advancedAggregateStatusRoutes = ['),
+);
+const advancedAggregateStatusRouteTableSource = evaluatorSource.slice(
+  evaluatorSource.indexOf('const advancedAggregateStatusRoutes = ['),
+  evaluatorSource.indexOf('const nextRecommendedSliceGuardRoutes = ['),
+);
+const basePostCompletionRouteTableSource = evaluatorSource.slice(
+  evaluatorSource.indexOf('const basePostCompletionRoutes = ['),
+  evaluatorSource.indexOf('const postCompletionCandidateRoutes = ['),
+);
+const postCompletionFindingCopySource = evaluatorSource.slice(
+  evaluatorSource.indexOf('const advancedPostCompletionFindingCopyRoutes = ['),
+  evaluatorSource.indexOf('payload.reflectionFindings = [', evaluatorSource.indexOf('const advancedPostCompletionFindingCopyRoutes = [')),
+);
+const advancedPostCompletionFindingCopySource = postCompletionFindingCopySource.slice(
+  0,
+  postCompletionFindingCopySource.indexOf('const basePostCompletionFindingCopyRoutes = ['),
+);
+const basePostCompletionFindingCopySource = postCompletionFindingCopySource.slice(
+  postCompletionFindingCopySource.indexOf('const basePostCompletionFindingCopyRoutes = ['),
+  postCompletionFindingCopySource.indexOf('const completedAdvancedPostCompletionFindingCopy = {'),
+);
+const postCompletionRouteTableSource = evaluatorSource.slice(
+  evaluatorSource.indexOf('const postCompletionCandidateRoutes = ['),
+  evaluatorSource.indexOf('payload.postCompletionRouter = {'),
+);
 const lifecycleCloseTransitionCalls = evaluatorSource.match(
   /applyReadOnlyReflectionTransition\(payload, \{/g,
+);
+const lifecycleCloseRouteCalls = evaluatorSource.match(
+  /^applyReadOnlyReflectionRoute\(payload, \{/gm,
 );
 const directFindingMapCalls = evaluatorSource.match(
   /payload\.reflectionFindings = payload\.reflectionFindings\.map/g,
 );
 
-assert.equal(lifecycleCloseTransitionCalls?.length, 29);
-assert.equal(directFindingMapCalls?.length, 71);
+assert.equal(lifecycleCloseTransitionCalls?.length, 39);
+assert.equal(lifecycleCloseRouteCalls?.length, 62);
+assert.equal(directFindingMapCalls?.length, 1);
+assert.match(evaluatorSource, /function classifyScoreStatus\(score\) \{/);
+assert.match(evaluatorSource, /status: classifyScoreStatus\(score\),/);
+assert.doesNotMatch(
+  evaluatorSource,
+  /score >= 80 \? 'pass' : score >= 60 \? 'watch' : 'blocked'/,
+);
+assert.match(evaluatorSource, /function describeLowScoreFinding\(lowScores\) \{/);
+assert.match(evaluatorSource, /const lowScoreFinding = describeLowScoreFinding\(lowScores\);/);
+assert.doesNotMatch(evaluatorSource, /lowScores\.length > 0 \?/);
+assert.equal(nextRecommendedSliceGuardRouteSource.match(/ready:/g)?.length, 4);
+assert.equal(nextRecommendedSliceGuardRouteSource.match(/nextSlice: \{/g)?.length, 4);
+assert.equal(advancedNextRecommendedSliceRouteSource.match(/ready:/g)?.length, 122);
+assert.equal(advancedNextRecommendedSliceRouteSource.match(/nextSlice: \{/g)?.length, 122);
+assert.equal(baseNextRecommendedSliceRouteSource.match(/ready:/g)?.length, 1);
+assert.equal(baseNextRecommendedSliceRouteSource.match(/nextSlice: \{/g)?.length, 1);
+assert.equal(nextRecommendedSliceRouteSource.match(/mustRemainReadOnly: true/g)?.length, 129);
+assert.match(
+  nextRecommendedSliceRouteSource,
+  /nextRecommendedSliceGuardRoutes\.find\(\(route\) => !route\.ready\)/,
+);
+assert.match(
+  nextRecommendedSliceRouteSource,
+  /advancedNextRecommendedSliceRoutes\.find\(\(route\) => !route\.ready\)/,
+);
+assert.match(
+  nextRecommendedSliceRouteSource,
+  /baseNextRecommendedSliceRoutes\.find\(\(route\) => route\.ready\)/,
+);
+assert.match(
+  nextRecommendedSliceRouteSource,
+  /firstIncompleteNextRecommendedSliceGuard\?\.nextSlice \?\? routedNextRecommendedSlice/,
+);
+assert.doesNotMatch(
+  evaluatorSource,
+  /nextRecommendedSlice: workerEventSchemaImplemented/,
+);
+assert.match(evaluatorSource, /nextRecommendedSlice: initialNextRecommendedSlice,/);
+assert.equal(contractFindingRouteSource.match(/matches:/g)?.length, 2);
+assert.equal(advancedContractFindingRouteSource.match(/ready:/g)?.length, 71);
+assert.equal(advancedContractFindingRouteSource.match(/finding:/g)?.length, 71);
+assert.equal(baseContractFindingRouteSource.match(/ready:/g)?.length, 45);
+assert.equal(baseContractFindingRouteSource.match(/finding:/g)?.length, 45);
+assert.equal(contractFindingRouteSource.match(/allowedNextAction:/g)?.length, 106);
+assert.match(
+  contractFindingRouteSource,
+  /const matchedContractFindingGuard = contractFindingGuardRoutes\.find\(/,
+);
+assert.match(
+  contractFindingRouteSource,
+  /advancedContractFindingRoutes\.find\(\(route\) => !route\.ready\)/,
+);
+assert.match(
+  contractFindingRouteSource,
+  /const firstReadyBaseContractFindingRoute = baseContractFindingRoutes\.find\(/,
+);
+assert.match(
+  contractFindingRouteSource,
+  /matchedContractFindingGuard\?\.finding \?\? routedContractFinding/,
+);
+assert.doesNotMatch(
+  evaluatorSource,
+  /const nextContractFinding = !workerEventSchemaImplemented/,
+);
+assert.equal(baseAggregateStatusRouteTableSource.match(/ready:/g)?.length, 26);
+assert.equal(baseAggregateStatusRouteTableSource.match(/status:/g)?.length, 26);
+assert.equal(advancedAggregateStatusRouteTableSource.match(/ready:/g)?.length, 102);
+assert.equal(advancedAggregateStatusRouteTableSource.match(/status:/g)?.length, 102);
+assert.match(
+  advancedAggregateStatusRouteTableSource,
+  /const firstReadyBaseAggregateStatusRoute = baseAggregateStatusRoutes\.find\(/,
+);
+assert.match(
+  advancedAggregateStatusRouteTableSource,
+  /const firstIncompleteAdvancedAggregateStatusRoute = advancedAggregateStatusRoutes\.find\(/,
+);
+assert.match(
+  advancedAggregateStatusRouteTableSource,
+  /const aggregateStatus = sourceMutationApplyClosureStatusImplemented/,
+);
+assert.doesNotMatch(
+  evaluatorSource,
+  /status: sourceMutationApplyClosureStatusImplemented/,
+);
+assert.match(evaluatorSource, /status: aggregateStatus,/);
+assert.equal(basePostCompletionRouteTableSource.match(/nextSlice: \{/g)?.length, 26);
+assert.equal(advancedPostCompletionFindingCopySource.match(/ready:/g)?.length, 11);
+assert.equal(advancedPostCompletionFindingCopySource.match(/claim:/g)?.length, 11);
+assert.equal(advancedPostCompletionFindingCopySource.match(/allowedNextAction:/g)?.length, 11);
+assert.equal(basePostCompletionFindingCopySource.match(/ready:/g)?.length, 11);
+assert.equal(basePostCompletionFindingCopySource.match(/claim:/g)?.length, 11);
+assert.equal(basePostCompletionFindingCopySource.match(/allowedNextAction:/g)?.length, 11);
+assert.equal(postCompletionFindingCopySource.match(/claim:/g)?.length, 24);
+assert.equal(postCompletionFindingCopySource.match(/allowedNextAction:/g)?.length, 24);
+assert.match(
+  postCompletionFindingCopySource,
+  /advancedPostCompletionFindingCopyRoutes\.find\(\(route\) => !route\.ready\)/,
+);
+assert.match(
+  postCompletionFindingCopySource,
+  /basePostCompletionFindingCopyRoutes\.find\(\(route\) => route\.ready\)/,
+);
+assert.doesNotMatch(
+  evaluatorSource,
+  /claim: growthEvidenceLedgerProposalRecordDryRunReviewAcceptanceStatusImplemented/,
+);
+assert.match(evaluatorSource, /claim: postCompletionFindingCopy\.claim,/);
+assert.match(evaluatorSource, /allowedNextAction: postCompletionFindingCopy\.allowedNextAction,/);
+assert.match(evaluatorSource, /\.\.\.selectedReflectionFindingUpdate,/);
+assert.equal(
+  basePostCompletionRouteTableSource.match(/mustRemainReadOnly: true/g)?.length,
+  27,
+);
+assert.doesNotMatch(
+  basePostCompletionRouteTableSource,
+  /const routedNextSlice = growthEvidenceLedgerStatusImplemented/,
+);
+assert.match(
+  basePostCompletionRouteTableSource,
+  /const firstIncompleteBaseRoute = basePostCompletionRoutes\.find\(/,
+);
+assert.match(
+  basePostCompletionRouteTableSource,
+  /firstIncompleteBaseRoute\?\.nextSlice \?\? completedBasePostCompletionNextSlice/,
+);
+assert.equal(postCompletionRouteTableSource.match(/findingUpdate:/g)?.length, 23);
+assert.doesNotMatch(postCompletionRouteTableSource, /let selectedNextSlice =/);
+assert.doesNotMatch(postCompletionRouteTableSource, /let selectedReflectionFindingUpdate =/);
 assert.match(
   evaluatorSource,
   /const lifecycleCloseRoute =\s*'remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close';/,

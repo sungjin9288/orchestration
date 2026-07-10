@@ -54,9 +54,23 @@ Planning source files:
 
 ## Current Development Focus
 
-The most recent development arc concluded a behavior-preserving module extraction campaign that
-pulled pure logic out of the three largest files into single-responsibility leaf modules, alongside
-the operator-approved source mutation slice (`DEC-067`,
+The current development focus is the read-only growth reflection evaluator close-out. The
+`growth-reflection-*` route-table/readability pass turns repeated nested routing decisions into named
+route helpers, explicit first-incomplete route tables, score classification helpers, and one
+low-score finding summary while preserving the same aggregate status, next recommended slice,
+finding ids, finding claims/actions, safety boundary, and scorecard projection after normalization.
+The focused smoke pins the current route invariants: 39 lifecycle transition helper calls, 62
+top-level read-only route helper calls, one direct finding-map implementation, 2/71/45
+contract-finding guard/advanced/base routes, 26/102 aggregate base/advanced routes, 4/122/1
+next-candidate guard/advanced/base routes, 129 read-only next candidates, 26 base post-completion
+candidates, 23 post-completion candidate/finding-update rows, and 11/11 post-completion copy rows.
+This pass changes the evaluator, its focused smoke, README evidence, and task ledgers; it does not
+change runtime write paths, UI behavior, provider calls, memory persistence, proposal generation or
+application, source mutation authority, product commit authority, or product push authority.
+
+The immediately preceding development arc concluded a behavior-preserving module extraction campaign
+that pulled pure logic out of the three largest files into single-responsibility leaf modules,
+alongside the operator-approved source mutation slice (`DEC-067`,
 `docs/39_proposal-application-source-mutation-implementation.md`) and several regression and
 hardening fixes. Measured with `wc -l`, `ui/app.js` went from 19,335 to 14,691 lines,
 `src/execution/execution-coordinator.js` from 5,657 to 4,610, and `src/runtime/runtime-service.js`
@@ -74,6 +88,15 @@ the single approved source mutation path.
 
 Current source-backed evidence:
 
+- Growth reflection close-out: `scripts/growth-reflection-evaluator.mjs` and
+  `scripts/smoke-growth-reflection-evaluator.mjs` pin the read-only route helpers, explicit route
+  tables, score helper, low-score summary helper, old-marker absence, and route counts listed above.
+- Growth reflection runtime status: `scripts/growth-engine-status.mjs`,
+  `scripts/growth-evidence-ledger-proposal-readiness-status.mjs`,
+  `scripts/vnext-development-audit-status.mjs`, and
+  `scripts/vnext-proposal-application-source-mutation-implementation-status.mjs` recheck that the
+  evaluator remains read-only and that provider, memory, proposal, source mutation outside the
+  approved path, commit, and push authority stay blocked.
 - Extraction verdict and metrics: `docs/inspection-20260703-final.md` records the commit arc, the
   measured before/after line counts, and the confirmed no-clean-extraction-remaining state.
 - Runtime/execution leaves: `src/runtime/task-gates.js`, `src/runtime/retention-policy.js`,
@@ -381,6 +404,12 @@ node scripts/run-smoke.mjs --all --fail-fast
 Representative verification commands:
 
 ```bash
+node scripts/growth-reflection-evaluator.mjs
+node scripts/smoke-growth-reflection-evaluator.mjs
+node scripts/growth-engine-status.mjs
+node scripts/growth-evidence-ledger-proposal-readiness-status.mjs
+node scripts/vnext-development-audit-status.mjs
+node scripts/vnext-proposal-application-source-mutation-implementation-status.mjs
 node scripts/smoke-ui-slice-305.mjs
 node scripts/smoke-ui-slice-306.mjs
 node scripts/smoke-ui-slice-310.mjs
@@ -458,6 +487,18 @@ node scripts/smoke-qa-slice-07.mjs
 
 Current verification evidence from this README refresh:
 
+- `node scripts/growth-reflection-evaluator.mjs`: current read-only evaluator output reports
+  aggregate score `100`, six passing criteria, next recommended slice
+  `growth-evidence-ledger-proposal-record-lifecycle-review`, and no watched or blocked criteria.
+- `node scripts/smoke-growth-reflection-evaluator.mjs`: pins the helper/table route counts, old
+  nested-marker absence, score classification helper, low-score summary helper, read-only next
+  candidate markers, and route/finding copy invariants for the current growth reflection evaluator.
+- `node scripts/growth-engine-status.mjs`,
+  `node scripts/growth-evidence-ledger-proposal-readiness-status.mjs`,
+  `node scripts/vnext-development-audit-status.mjs`, and
+  `node scripts/vnext-proposal-application-source-mutation-implementation-status.mjs`: recheck the
+  same growth/proposal/source-mutation status surfaces with read-only/no-provider/no-memory/no-commit/
+  no-push boundaries.
 - `node scripts/smoke-ui-slice-305.mjs`, `306`, `310`, `311`, `312`, `314`, `317`, `318`, `325`, `326`, `328`, `329`, `331`, `334`, `335`, `336`, `337`, `338`, `339`, `343`, `344`, `351`, `352`, `353`, `361`, `363`, `375`, `379`, `380`, `381`, `382`, `383`, `384`,
   `385`, `386`, `387`, `388`, `411`, `605`, `606`, `612`, `613`, `614`, `615`, `616`, `619`,
   `620`, `621`, `623`, `625`, `626`, `627`, `628`, `629`, and `630`:
@@ -581,6 +622,10 @@ Playwright CLI:
 - Growth evidence and personalization are shell-level views only. Candidate drilldown and the proposal
   review preview are not proof of model learning, long-term memory, durable proposal record creation,
   autonomous proposal application, source mutation, commit, push, or external automation.
+- Growth reflection evaluator route/readability work is a read-only evaluation and evidence cleanup.
+  It may recommend the next local slice, but it does not create durable proposal records, apply
+  proposals, call providers, persist memory, mutate project source through the product runtime,
+  execute product commit, or execute product push authority.
 - Durable proposal record creation and persistence are implemented only for approved local runtime
   records under `proposalRecords` in the selected `state.json`. This does not approve proposal
   application, provider calls, memory persistence, source mutation, commit, or push.

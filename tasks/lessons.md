@@ -2,6 +2,22 @@
 
 ## direction resets
 
+- README current-focus refreshes must move the public claim and its smoke pin together. If a newer slice supersedes an older arc, rename the older arc as preceding context, add the new evidence commands and authority boundary, and teach `scripts/smoke-readme-scope-evidence.mjs` to reject stale public focus.
+
+- A multi-slice readability completion audit must compare both code semantics and evidence-driven ledger drift. Keep each slice's immediate pre/post projection equality as the code proof, then compare the first and final projections separately; if they differ, normalize only a proven source-ledger value such as the lessons line count and require every route, finding, safety, and score field to match afterward.
+
+- Small repeated conditionals should become named values only when the name exposes a real domain decision. Use early returns for threshold classification and one summary object for repeated severity/claim/action copy, but keep local binary choices, optional chaining, nullish fallbacks, and one-item map replacement expressions when they remain clearer than another abstraction.
+
+- Parallel claim and allowed-action selectors must be compared as decision trees before refactoring. When every condition and leaf position matches, store both strings in one route row, select that row once, and apply any later route-specific override afterward; this removes drift without changing override authority.
+
+- A nested candidate object spread should be audited as two decisions: the outer prerequisite guards and the inner route selector. Replace the spread with named candidate tables, keep every candidate object complete and read-only, and update existing smoke slice boundaries whenever new declarations are inserted between an older table and its former end marker.
+
+- A finding decision tree with early guard findings and one advanced/base pivot should keep those layers visible instead of collapsing every path into one formula. Preserve guard precedence first, then select the first incomplete advanced finding or first ready base finding, and serialize every finding packet exactly as it existed; optional evidence fields that were absent must remain absent rather than being normalized into invented history.
+
+- A ternary decision tree with one advanced true-spine and one base false-spine should become two route tables rather than one table with path-wide boolean formulas. Select the first incomplete advanced row when the root authority is active, select the first ready base row otherwise, and keep each terminal fallback explicit; this preserves arbitrary-flag behavior without burying priority in conjunctions.
+
+- A cumulative readiness ternary should become a forward ordered table keyed by the first incomplete condition, not a reverse search that assumes every flag is internally consistent. Pair each condition with the candidate returned when that condition is false, keep the all-true candidate separate, and select the first false row; this preserves the original result for every boolean combination while making route evidence readable.
+
 - Current-state audits should not reuse a consumed decision gate as their next-step contract. Keep historical packet, handoff, and planning non-authority intact; report separately approved runtime functions through explicit positive fields, keep generic and out-of-scope authority false, and derive the next read-only candidate from live status evidence. When the raw candidate id is generated and repetitive, expose a stable human-readable slice label and retain the raw id in a separate evidence field.
 
 - A current growth route should derive its finding id and ready status from `nextRecommendedSlice.id`, not grow a hardcoded list whenever another lifecycle stage appears. Normalize only the live candidate, preserve its original id and command as source evidence, and keep historical ids as compatibility fallback rather than rewriting audit history.
@@ -13,6 +29,12 @@
 - When a reflection transition cycle repeats the same readiness flags and route sequence after an equivalent helper-backed cycle, do not translate the duplicate into another table. Delete the redundant replay and require byte-identical evaluator output; this removes mechanical history without weakening the evidence contract or inventing another abstraction.
 
 - Evaluator snapshots that read live `var/runtime*/state.json` roots can change between consecutive runs even when code behavior is unchanged. Compare the full JSON first, isolate any differences, and normalize only evidence values proven to come from that live runtime source; status, route, finding, safety, and scorecard semantics must still match exactly before accepting a large deletion.
+
+- Large reflection-chain cleanup should classify complete finding transitions by `(readiness flag, from finding, to finding)`, convert the first unique route through the shared helper, and delete only exact replay. Top-level conditions without a complete finding transition must stay untouched until their own route contract is audited; mixing the two categories makes a large mechanical deletion impossible to review.
+
+- Next-slice-only reflection conditions should derive aggregate status, command, and read-only posture from one route id while keeping readiness flags and operator-facing reasons explicit. Treat ledger counts as hypotheses until the full source range is parsed; when the actual scope differs, correct the count before editing and classify unique routes separately from replay.
+
+- When candidate selection, finding-update selection, and later overrides express the same readiness decision, derive one ordered route table by applying sequential overrides in reverse priority, deduplicating readiness flags, and then appending the original fallback order. A few more explicit lines are preferable to shorter nested ternaries when each row makes candidate and evidence correspondence reviewable.
 
 - UI smoke assertions should follow the named markup composition contract rather than assume that rendered parent and child HTML remain physically adjacent in `ui/app.js`. When a render path extracts `...Markup` helpers, keep the semantic marker and runtime smoke, then assert the helper definition and its interpolation handoff separately so readability refactors do not create false regressions.
 
