@@ -733,49 +733,40 @@ const hiddenHarnessStateTokenInlineRejections = [
 
 assertTextHasAll(appJs, hiddenHarnessStateTokenHandoffEvidence);
 assertTextDoesNotHaveAll(appJs, hiddenHarnessStateTokenInlineRejections);
-assert.match(
-  appJs,
+
+const hiddenHarnessPacketHeaderEvidence = [
   /const hiddenHarnessResultPacketMarkup = `\s+<div\s+class="harness-execution-result-hidden-packet"\s+data-harness-execution-result-hidden-packet="true"\s+>\s+\$\{hiddenHarnessHeaderMarkup\}\s+\$\{hiddenHarnessContextSectionsMarkup\}\s+\$\{hiddenHarnessActionShelfFrameMarkup\}\s+\$\{hiddenHarnessPreviewMarkup\}/,
-);
-assert.match(appJs, /\$\{hiddenHarnessResultPacketMarkup\}/);
-assert.doesNotMatch(
-  appJs,
-  /data-harness-execution-result-hidden="true"[\s\S]{0,220}<div\s+class="harness-execution-result-hidden-packet"\s+data-harness-execution-result-hidden-packet="true"/,
-);
-assert.match(
-  appJs,
+  /\$\{hiddenHarnessResultPacketMarkup\}/,
   /const hiddenHarnessTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>\s+\$\{hiddenHarnessResultStateTokenMarkup\}/,
-);
-assert.match(
-  appJs,
   /const hiddenHarnessHeaderMarkup = `\s+\$\{hiddenHarnessTitleRowMarkup\}\s+\$\{hiddenHarnessRestoreHintMarkup\}/,
-);
-assert.match(appJs, /\$\{hiddenHarnessHeaderMarkup\}/);
-assert.doesNotMatch(
-  appJs,
+  /\$\{hiddenHarnessHeaderMarkup\}/,
+];
+
+const hiddenHarnessPacketHeaderInlineRejections = [
+  /data-harness-execution-result-hidden="true"[\s\S]{0,220}<div\s+class="harness-execution-result-hidden-packet"\s+data-harness-execution-result-hidden-packet="true"/,
   /data-harness-execution-result-hidden-packet="true"[\s\S]{0,360}<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>/,
-);
-assert.match(appJs, /const recentHarnessExecutionCount = recentHarnessExecutions\.length;/);
-assert.match(appJs, /const recentHarnessExecutionCountTokenLabel = `\$\{recentHarnessExecutionCount\}건`;/);
-assert.match(appJs, /const recentHarnessExecutionCountTokenTone = 'neutral';/);
-assert.match(
-  appJs,
+];
+
+assertTextHasAll(appJs, hiddenHarnessPacketHeaderEvidence);
+assertTextDoesNotHaveAll(appJs, hiddenHarnessPacketHeaderInlineRejections);
+
+const historyHarnessCountTokenEvidence = [
+  /const recentHarnessExecutionCount = recentHarnessExecutions\.length;/,
+  /const recentHarnessExecutionCountTokenLabel = `\$\{recentHarnessExecutionCount\}건`;/,
+  /const recentHarnessExecutionCountTokenTone = 'neutral';/,
   /const recentHarnessExecutionCountTokenMarkup = recentHarnessExecutionCount\s+\? createToken\(\s+recentHarnessExecutionCountTokenLabel,\s+recentHarnessExecutionCountTokenTone,\s+\)\s+: '';/,
-);
-assert.match(appJs, /\$\{recentHarnessExecutionCountTokenMarkup\}/);
-assert.match(
-  appJs,
+  /\$\{recentHarnessExecutionCountTokenMarkup\}/,
   /const historyHarnessHeaderMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>실행 기록<\/strong>\s+\$\{recentHarnessExecutionCountTokenMarkup\}/,
-);
-assert.match(
-  appJs,
   /data-harness-execution-history-packet="true">\s+\$\{historyHarnessHeaderMarkup\}\s+<div class="stack harness-execution-history-list-compact"/,
-);
-assert.doesNotMatch(
-  appJs,
+];
+
+const historyHarnessCountTokenInlineRejections = [
   /data-harness-execution-history-packet="true">\s+<div class="card-title-row card-title-row-tight">\s+<strong>실행 기록<\/strong>/,
-);
-assert.doesNotMatch(appJs, /createToken\(`\$\{recentHarnessExecutionCount\}건`, 'neutral'\)/);
+  /createToken\(`\$\{recentHarnessExecutionCount\}건`, 'neutral'\)/,
+];
+
+assertTextHasAll(appJs, historyHarnessCountTokenEvidence);
+assertTextDoesNotHaveAll(appJs, historyHarnessCountTokenInlineRejections);
 assert.match(appJs, /data-personalization-scope="local-only"/);
 assert.match(growthPanels, /data-proposal-record-creation-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordCreationAllowed\}"/);
 assert.match(growthPanels, /data-proposal-record-persistence-allowed="\$\{GROWTH_AUTHORITY_BOUNDARY\.proposalRecordPersistenceAllowed\}"/);

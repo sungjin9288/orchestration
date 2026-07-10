@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes that validate hidden packet/header composition should group hidden packet/header handoffs separately from history count token/header handoffs. Keep old inline packet/title and direct history count token regressions in their own rejection groups so a failure says whether packet composition or history header composition drifted.
+
 - README evidence smokes that validate hidden state tokens should group the fixed hidden label/tone handoff with the token markup consumer, while keeping old literal `createToken('숨김', 'neutral')` and legacy label/tone regressions in a separate rejection group. Hidden token evidence is easier to review when current handoff shape and old direct-call regressions are not interleaved.
 
 - README evidence smokes that validate history restore actions should group history input-path copy and restore-preview handoffs together, while keeping old inline input-path and restore-preview regressions in a separate rejection group. History action evidence is easier to audit when copy/restore composition and inline-template regression guards are not interleaved.
