@@ -54,16 +54,25 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is completion-gate evidence close-out. The default completion baseline
-is closed for implementation work: `tasks/todo.md` has zero unchecked task lines,
+The current development focus is post-completion lifecycle-close status evidence close-out. The
+default completion baseline is still closed for implementation work: `tasks/todo.md` has zero
+unchecked task lines,
 `docs/22_completion-gate-inventory.md` records the current gate table, and
 `scripts/smoke-completion-gate-inventory-current-evidence.mjs` pins the README smoke counts,
 aggregate registration, UI QA registration, zero-open backlog, post-completion router, and
 proposal-record lifecycle review alias evidence together. The latest checked aggregate evidence is
 required `1/1`, informational `168/168`, total `169/169`; UI QA is required `28/28`.
 
-Follow-up work now enters only from an explicit operator request, a concrete regression, a usability
-issue, or an accepted vNext decision. The first posture for that follow-up remains
+The active close-out slice is `growth-lifecycle-close-status-smoke-readability-post-m7-2307`. It
+keeps the lifecycle-close status smoke behavior-preserving and read-only by grouping the former
+assertion wall into source summary, vocabulary, schema, readiness, next-slice, safety boundary,
+invalid-argument, plan, and cross-document evidence groups. The source status script, runtime
+behavior, UI behavior, provider configuration, memory persistence, proposal generation/application,
+source mutation authority, commit, push, connector reach, automation, and lifecycle semantics remain
+unchanged.
+
+Follow-up work still enters only from an explicit operator request, a concrete regression, a
+usability issue, or an accepted vNext decision. The first posture for that follow-up remains
 read-only/status-or-doc-smoke-first until current evidence justifies runtime or UI mutation.
 
 The immediately preceding growth evidence focus normalized repeated review/acceptance/finalization
@@ -106,6 +115,11 @@ Current source-backed evidence:
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
   aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias boundaries.
+- Growth lifecycle-close status: `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`
+  and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`
+  prove the current lifecycle-close status packet is read-only, keeps source mutation and remediation
+  execution blocked, preserves the next lifecycle-close-review recommendation, and records the
+  assertion grouping as evidence cleanup rather than product behavior change.
 - Growth proposal-record lifecycle review: `scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs`
   and `scripts/smoke-growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs` prove the
   current short alias, preserved `sourceCandidate`, blocked write/provider/memory/proposal/source/
@@ -509,6 +523,8 @@ node scripts/vnext-proposal-application-source-mutation-operator-decision-handof
 node scripts/vnext-proposal-application-source-mutation-planning-plan-status.mjs
 node scripts/smoke-proposal-application-source-mutation.mjs
 node scripts/vnext-proposal-application-source-mutation-implementation-status.mjs
+node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs
+node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/smoke-completion-gate-inventory-current-evidence.mjs
 node scripts/ui_qa_status.mjs
@@ -522,6 +538,14 @@ Current verification evidence from this README and completion close-out refresh:
   aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias evidence
   stay aligned.
+- `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
+  reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close status readiness, blocked
+  source mutation and remediation execution, and the next lifecycle-close-review command.
+- `node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
+  pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,
+  safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document
+  ledger evidence without opening runtime, UI, provider, memory, proposal, source mutation, commit,
+  or push authority.
 - `node scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs`: current
   read-only lifecycle review output proves the growth engine and reflection evaluator both route to
   `growth-evidence-ledger-proposal-record-lifecycle-review`, preserves the repeated
@@ -665,6 +689,10 @@ Playwright CLI:
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
   aggregate `169/169`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
+- The current lifecycle-close status close-out is smoke readability and evidence cleanup only. It
+  does not change the status script contract, runtime behavior, UI behavior, lifecycle semantics,
+  provider calls, memory persistence, proposal generation/application, source mutation authority,
+  commit, or push behavior.
 - Growth proposal-record lifecycle review is read-only evidence. It preserves the long repeated
   route as `sourceCandidate` but does not create proposal records, apply proposals, mutate queues,
   call providers, persist memory, mutate source, commit, or push.

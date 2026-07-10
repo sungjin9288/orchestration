@@ -242,15 +242,22 @@ assertReadmeHasAll(advancedOpsHarnessSmokeEvidence);
 assertReadmeHasAll(advancedOpsHarnessHandoffEvidence);
 
 const completionFocusEvidence = [
-  /The current development focus is completion-gate evidence close-out/,
-  /default completion baseline\s+is closed for implementation work/,
+  /The current development focus is post-completion lifecycle-close status evidence close-out/,
+  /default completion baseline\s+is still closed for implementation work/,
   /docs\/22_completion-gate-inventory\.md/,
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate registration, UI QA registration, zero-open backlog/,
   /required `1\/1`, informational `168\/168`, total `169\/169`/,
   /UI QA is required `28\/28`/,
-  /Follow-up work now enters only from an explicit operator request, a concrete regression, a usability\s+issue, or an accepted vNext decision/,
+  /Follow-up work still enters only from an explicit operator request, a concrete regression, a\s+usability issue, or an accepted vNext decision/,
   /read-only\/status-or-doc-smoke-first/,
+];
+
+const lifecycleCloseFocusEvidence = [
+  /The active close-out slice is `growth-lifecycle-close-status-smoke-readability-post-m7-2307`/,
+  /keeps the lifecycle-close status smoke behavior-preserving and read-only/,
+  /source summary, vocabulary, schema, readiness, next-slice, safety boundary,\s+invalid-argument, plan, and cross-document evidence groups/,
+  /source status script, runtime\s+behavior, UI behavior, provider configuration, memory persistence, proposal generation\/application,\s+source mutation authority, commit, push, connector reach, automation, and lifecycle semantics remain\s+unchanged/,
 ];
 
 const growthFocusEvidence = [
@@ -269,6 +276,10 @@ const growthFocusEvidence = [
 const growthSourceEvidence = [
   /Completion gate inventory:/,
   /aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
+  /Growth lifecycle-close status:/,
+  /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status\.mjs/,
+  /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status\.mjs/,
+  /assertion grouping as evidence cleanup rather than product behavior change/,
   /Growth reflection close-out:/,
   /Growth proposal-record lifecycle review:/,
   /scripts\/growth-evidence-ledger-proposal-record-lifecycle-review-status\.mjs/,
@@ -285,6 +296,7 @@ const growthSourceEvidence = [
 ];
 
 assertReadmeHasAll(completionFocusEvidence);
+assertReadmeHasAll(lifecycleCloseFocusEvidence);
 assertReadmeHasAll(growthFocusEvidence);
 assertReadmeHasAll(growthSourceEvidence);
 
@@ -388,8 +400,12 @@ const completionVerificationEvidence = [
   /aggregate and UI QA commands confirm those\s+same counts remain registered in the wider gate/,
   /The README evidence smoke also keeps forbidden\s+public-claim patterns, route list coverage, and source-route registrations in the same checked\s+surface/,
   /node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
+  /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status\.mjs/,
+  /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
   /completion inventory counts,\s+aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
+  /reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close status readiness/,
+  /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
 ];
 
 assertReadmeHasAll(completionVerificationEvidence);
