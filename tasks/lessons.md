@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Read-only lifecycle/status smokes should group payload checks by evidence layer instead of repeating direct assertions across generated vocabulary. Keep source summary, vocabulary, schema, readiness, next-slice, safety boundary, invalid-argument, and cross-document evidence separate so a failure points to the drifted contract layer.
+
 - README evidence smokes that validate public README honesty should keep stale-count rejection,
   forbidden public-claim rejection, README route coverage, and source-route handler coverage in
   named groups. That keeps the honesty and API coverage checks reviewable without weakening the
