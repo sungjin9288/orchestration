@@ -54,7 +54,7 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is post-completion lifecycle-close-finalization-review status evidence close-out. The
+The current development focus is post-completion lifecycle-close-finalization-review-acceptance status evidence close-out. The
 default completion baseline is still closed for implementation work: `tasks/todo.md` has zero
 unchecked task lines,
 `docs/22_completion-gate-inventory.md` records the current gate table, and
@@ -64,11 +64,11 @@ proposal-record lifecycle review alias evidence together. The latest checked agg
 required `1/1`, informational `168/168`, total `169/169`; UI QA is required `28/28`.
 
 The active close-out slice is
-`growth-lifecycle-close-finalization-review-status-smoke-readability-post-m7-2312`. It keeps the
-lifecycle-close-finalization-review status smoke behavior-preserving and read-only by grouping the
+`growth-lifecycle-close-finalization-review-acceptance-status-smoke-readability-post-m7-2313`. It keeps the
+lifecycle-close-finalization-review-acceptance status smoke behavior-preserving and read-only by grouping the
 former assertion wall into source summary, vocabulary, schema, readiness, next-slice, safety
 boundary, invalid-argument, plan, and cross-document evidence groups. The source
-close-finalization-review-status script, runtime behavior, UI behavior, provider configuration, memory
+close-finalization-review-acceptance-status script, runtime behavior, UI behavior, provider configuration, memory
 persistence, proposal generation/application, source mutation authority, commit, push, connector
 reach, automation, and lifecycle semantics remain unchanged.
 
@@ -116,9 +116,16 @@ Current source-backed evidence:
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
   aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias boundaries.
+- Growth lifecycle-close finalization review acceptance status: `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`
+  and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`
+  prove the current lifecycle-close-finalization-review-acceptance status packet is read-only, keeps
+  lifecycle close finalization acceptance, lifecycle close finalization review acceptance, source
+  mutation, and remediation execution blocked, preserves the next lifecycle-close-finalization-acceptance
+  recommendation, and records the assertion grouping as evidence cleanup rather than product
+  behavior change.
 - Growth lifecycle-close finalization review status: `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs`
   and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs`
-  prove the current lifecycle-close-finalization-review status packet is read-only, keeps lifecycle
+  prove the preceding lifecycle-close-finalization-review status packet is read-only, keeps lifecycle
   close finalization review acceptance, lifecycle close finalization review, source mutation, and
   remediation execution blocked, preserves the next lifecycle-close-finalization-review-acceptance
   recommendation, and records the assertion grouping as evidence cleanup rather than product
@@ -567,6 +574,8 @@ node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifec
 node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs
 node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs
 node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs
+node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs
+node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
 node scripts/smoke-completion-gate-inventory-current-evidence.mjs
 node scripts/ui_qa_status.mjs
@@ -581,7 +590,7 @@ Current verification evidence from this README and completion close-out refresh:
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias evidence
   stay aligned.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
-  reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close status readiness, blocked
+  reports `ok=true`, read-only lifecycle-close status readiness, blocked
   source mutation and remediation execution, and the next lifecycle-close-review command.
 - `node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
   pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,
@@ -589,7 +598,7 @@ Current verification evidence from this README and completion close-out refresh:
   ledger evidence without opening runtime, UI, provider, memory, proposal, source mutation, commit,
   or push authority.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs`:
-  reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close-review acceptance readiness,
+  reports `ok=true`, read-only lifecycle-close-review acceptance readiness,
   blocked lifecycle-close-review acceptance, blocked source mutation and remediation execution, and
   the next lifecycle-close-review-acceptance command.
 - `node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs`:
@@ -598,7 +607,7 @@ Current verification evidence from this README and completion close-out refresh:
   cross-document ledger evidence without opening runtime, UI, provider, memory, proposal, source
   mutation, commit, or push authority.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs`:
-  reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close acceptance readiness, blocked
+  reports `ok=true`, read-only lifecycle-close acceptance readiness, blocked
   lifecycle-close-review acceptance, blocked lifecycle close acceptance, blocked source mutation and
   remediation execution, and the next lifecycle-close-acceptance command.
 - `node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs`:
@@ -607,7 +616,7 @@ Current verification evidence from this README and completion close-out refresh:
   cross-document ledger evidence without opening runtime, UI, provider, memory, proposal, source
   mutation, commit, or push authority.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs`:
-  reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close finalization readiness,
+  reports `ok=true`, read-only lifecycle-close finalization readiness,
   blocked lifecycle close finalization, blocked lifecycle close acceptance, blocked source mutation
   and remediation execution, and the next lifecycle-close-finalization command.
 - `node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status.mjs`:
@@ -616,7 +625,7 @@ Current verification evidence from this README and completion close-out refresh:
   cross-document ledger evidence without opening runtime, UI, provider, memory, proposal, source
   mutation, commit, or push authority.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs`:
-  reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close-finalization-review
+  reports `ok=true`, read-only lifecycle-close-finalization-review
   readiness, blocked lifecycle close finalization review, blocked lifecycle close finalization,
   blocked source mutation and remediation execution, and the next lifecycle-close-finalization-review
   command.
@@ -626,7 +635,7 @@ Current verification evidence from this README and completion close-out refresh:
   cross-document ledger evidence without opening runtime, UI, provider, memory, proposal, source
   mutation, commit, or push authority.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs`:
-  reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close-finalization-review-acceptance
+  reports `ok=true`, read-only lifecycle-close-finalization-review-acceptance
   readiness, blocked lifecycle close finalization review acceptance, blocked lifecycle close
   finalization review, blocked source mutation and remediation execution, and the next
   lifecycle-close-finalization-review-acceptance command.
@@ -635,6 +644,16 @@ Current verification evidence from this README and completion close-out refresh:
   fields, readiness, safety boundary, invalid-argument rejection, growth gateway plan evidence, and
   cross-document ledger evidence without opening runtime, UI, provider, memory, proposal, source
   mutation, commit, or push authority.
+- `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`:
+  reports `ok=true`, read-only lifecycle-close-finalization-acceptance
+  readiness, blocked lifecycle close finalization acceptance, blocked lifecycle close finalization
+  review acceptance, blocked source mutation and remediation execution, and the next
+  lifecycle-close-finalization-acceptance command.
+- `node scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`:
+  pins the lifecycle-close-finalization-review-acceptance status source markers, vocabulary, schema
+  required fields, readiness, safety boundary, invalid-argument rejection, growth gateway plan
+  evidence, and cross-document ledger evidence without opening runtime, UI, provider, memory,
+  proposal, source mutation, commit, or push authority.
 - `node scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs`: current
   read-only lifecycle review output proves the growth engine and reflection evaluator both route to
   `growth-evidence-ledger-proposal-record-lifecycle-review`, preserves the repeated
