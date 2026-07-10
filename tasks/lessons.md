@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes should treat history result structure as its own reader question once visible and hidden result structures are already grouped. Keep history helper handoffs and old-inline template rejection guards separate so the smoke identifies whether history markup composition drifted or an inline packet assembly returned.
+
 - README evidence smokes that validate app markup should separate positive structure markers from old-inline rejection guards. Keep visible and hidden harness structure in named groups so the README gate explains whether a failure came from a missing helper handoff or from an accidental return to inline template assembly.
 
 - README smoke assertions that cross source files should use a generic text assertion helper and source-specific evidence groups. Keep README env claims, verification registry membership, helper exports, and app consumers separate so a failure points to the contract layer that drifted.
