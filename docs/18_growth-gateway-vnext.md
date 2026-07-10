@@ -18884,18 +18884,24 @@ The route id remains `growth-evidence-ledger-proposal-record-dry-run-review-acce
 - Boundary: this does not approve proposals, create proposal records, persist proposal records, promote dry-run evidence to durable queue state, mutate proposal queues, execute workers, call providers, persist memory, mutate runtime, mutate UI, mutate source, commit, push, or grant gateway action authority.
 - Follow-up: route the next vNext slice through read-only `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization` via `node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs`.
 
+## Post-Completion Implemented Slice: `growth-evidence-ledger-proposal-record-lifecycle-review-status`
+
+- Status: implemented.
+- Scope: adds `scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs` and its focused smoke so the current proposal-record evidence lifecycle is reviewed as one read-only state instead of adding another review, acceptance, or finalization suffix.
+- Evidence: `node scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs`, `node scripts/smoke-growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs`, `node scripts/growth-engine-status.mjs`, `node scripts/growth-reflection-evaluator.mjs`, `node scripts/smoke-growth-engine-status.mjs`, `node scripts/smoke-growth-reflection-evaluator.mjs`, and `node scripts/verification_status.mjs`.
+- Boundary: this does not generate proposals, create proposal records outside approved runtime functions, apply proposals, mutate proposal queues, approve proposals, execute workers, call providers, persist memory, mutate runtime, mutate UI, mutate source outside the approved runtime function, commit, push, or grant gateway action authority.
+- Follow-up: keep the lifecycle-review alias as maintenance evidence only. Reopen the long proposal-record lifecycle chain only if engine or reflection evidence drifts and the focused smoke proves the alias no longer represents the current source candidate.
+
 ## Recommended Next Slice
-Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization` as the next
-read-only vNext status/doc-smoke slice, routed through
-`node scripts/growth-evidence-ledger/proposal-record-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-review-acceptance-finalization-status.mjs` and
-confirmed by `node scripts/growth-engine-status.mjs` plus
-`node scripts/growth-reflection-evaluator.mjs`.
+Maintain `growth-evidence-ledger-proposal-record-lifecycle-review-status` as the current read-only
+proposal-record lifecycle review gate.
 
-It should answer:
+It should continue to answer:
 
-- whether reviewed short-alias dry-run evidence can be accepted and finalized as read-only status evidence without approving, creating, or persisting a proposal record
-- how finalized short-alias dry-run evidence stays separate from proposal generation, proposal queue mutation, proposal application, record persistence, proposal approval, memory persistence, provider calls, runtime mutation, UI execution, commits, and pushes
-- how the next finalization lane prevents reviewed and accepted dry-run evidence from becoming hidden prioritization, execution authority, approval authority, source-mutation authority, or durable queue state
+- whether growth engine and reflection evaluator both route the proposal-record evidence lifecycle to the short lifecycle review alias
+- whether the original long route remains preserved as `sourceCandidate` evidence instead of being erased
+- how the lifecycle review stays separate from proposal generation, proposal record creation outside approved runtime functions, proposal application, queue mutation, proposal approval, memory persistence, provider calls, runtime mutation, UI execution, source mutation outside the approved runtime function, commits, and pushes
 
 The next command or doc-smoke must remain read-only/status-first. It must not reopen the default
-completion backlog or treat the source-mutation lifecycle chain as the default next product lane.
+completion backlog, grow another lifecycle suffix by default, or treat the source-mutation lifecycle
+chain as the default next product lane.

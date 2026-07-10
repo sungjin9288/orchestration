@@ -5571,7 +5571,7 @@ assert.match(
 assert.match(plan, /lifecycle close review status next gate/);
 assert.match(
   plan,
-  /Build `growth-evidence-ledger-proposal-record-dry-run-review-acceptance-finalization-review[a-z-]+finalization` as the next\s+read-only vNext status\/doc-smoke slice/,
+  /Maintain `growth-evidence-ledger-proposal-record-lifecycle-review-status` as the current read-only\s+proposal-record lifecycle review gate/,
 );
 assert.match(
   plan,

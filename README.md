@@ -54,19 +54,21 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is the read-only growth reflection evaluator close-out. The
-`growth-reflection-*` route-table/readability pass turns repeated nested routing decisions into named
-route helpers, explicit first-incomplete route tables, score classification helpers, and one
-low-score finding summary while preserving the same aggregate status, next recommended slice,
-finding ids, finding claims/actions, safety boundary, and scorecard projection after normalization.
-The focused smoke pins the current route invariants: 39 lifecycle transition helper calls, 62
-top-level read-only route helper calls, one direct finding-map implementation, 2/71/45
+The current development focus is the read-only Growth Evidence Ledger proposal-record lifecycle
+review guard. The `growth-reflection-*` route-table/readability pass already normalizes repeated
+review/acceptance/finalization suffixes into the shorter
+`growth-evidence-ledger-proposal-record-lifecycle-review` alias; the current status slice proves that
+alias directly, preserves the long route as `sourceCandidate`, and prevents the default backlog from
+growing another lifecycle suffix when no engine/reflection evidence has drifted. The focused growth
+reflection smoke still pins the route invariants behind that alias: 39 lifecycle transition helper
+calls, 62 top-level read-only route helper calls, one direct finding-map implementation, 2/71/45
 contract-finding guard/advanced/base routes, 26/102 aggregate base/advanced routes, 4/122/1
 next-candidate guard/advanced/base routes, 129 read-only next candidates, 26 base post-completion
 candidates, 23 post-completion candidate/finding-update rows, and 11/11 post-completion copy rows.
-This pass changes the evaluator, its focused smoke, README evidence, and task ledgers; it does not
-change runtime write paths, UI behavior, provider calls, memory persistence, proposal generation or
-application, source mutation authority, product commit authority, or product push authority.
+This pass changes read-only lifecycle-review status evidence, focused smoke coverage, README
+evidence, docs inventory, and task ledgers; it does not change runtime write paths, UI behavior,
+provider calls, memory persistence, proposal generation or application, source mutation authority,
+product commit authority, or product push authority.
 
 The immediately preceding development arc concluded a behavior-preserving module extraction campaign
 that pulled pure logic out of the three largest files into single-responsibility leaf modules,
@@ -88,6 +90,10 @@ the single approved source mutation path.
 
 Current source-backed evidence:
 
+- Growth proposal-record lifecycle review: `scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs`
+  and `scripts/smoke-growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs` prove the
+  current short alias, preserved `sourceCandidate`, blocked write/provider/memory/proposal/source/
+  commit/push authority, and maintenance-only next recommendation.
 - Growth reflection close-out: `scripts/growth-reflection-evaluator.mjs` and
   `scripts/smoke-growth-reflection-evaluator.mjs` pin the read-only route helpers, explicit route
   tables, score helper, low-score summary helper, old-marker absence, and route counts listed above.
@@ -387,7 +393,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 852 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 853 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 650 UI smoke files
 ```
@@ -406,6 +412,8 @@ Representative verification commands:
 ```bash
 node scripts/growth-reflection-evaluator.mjs
 node scripts/smoke-growth-reflection-evaluator.mjs
+node scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs
+node scripts/smoke-growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs
 node scripts/growth-engine-status.mjs
 node scripts/growth-evidence-ledger-proposal-readiness-status.mjs
 node scripts/vnext-development-audit-status.mjs
@@ -487,6 +495,15 @@ node scripts/smoke-qa-slice-07.mjs
 
 Current verification evidence from this README refresh:
 
+- `node scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs`: current
+  read-only lifecycle review output proves the growth engine and reflection evaluator both route to
+  `growth-evidence-ledger-proposal-record-lifecycle-review`, preserves the repeated
+  review/acceptance/finalization route as `sourceCandidate`, and recommends only
+  `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` unless evidence drifts.
+- `node scripts/smoke-growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs`: pins the
+  lifecycle review status source markers, no-write API surface, invalid-argument rejection,
+  `sourceCandidate` preservation, finding ids, and blocked provider/memory/proposal/source/commit/
+  push authority.
 - `node scripts/growth-reflection-evaluator.mjs`: current read-only evaluator output reports
   aggregate score `100`, six passing criteria, next recommended slice
   `growth-evidence-ledger-proposal-record-lifecycle-review`, and no watched or blocked criteria.
@@ -584,7 +601,7 @@ Current verification evidence from this README refresh:
   list, missing env-template/package notes, and honesty patterns.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `28/28`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `165/165`, total `166/166`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `167/167`, total `168/168`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -592,7 +609,8 @@ Current verification evidence from this README refresh:
   proposal application operator decision handoff, proposal application implementation plan, and
   proposal application implementation decision handoff, proposal application attempt creation smoke,
   proposal application implementation status, source mutation decision packet, source mutation
-  operator handoff, and source mutation planning plan checks.
+  operator handoff, source mutation planning plan checks, and the proposal-record lifecycle review
+  status/smoke checks.
 Recent local visual QA evidence for the refreshed shell was captured with the local UI server and
 Playwright CLI:
 
@@ -612,6 +630,9 @@ Playwright CLI:
 - This is a local-first PoC/MVP-quality project, not a hosted service.
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
+- Growth proposal-record lifecycle review is read-only evidence. It preserves the long repeated
+  route as `sourceCandidate` but does not create proposal records, apply proposals, mutate queues,
+  call providers, persist memory, mutate source, commit, or push.
 - GitHub source repository access is reviewer-verified in `links.md`; a separate evidence-package
   download URL is optional and not yet recorded.
 - Root `package.json` (no dependencies) and root `.env.example` are present; the project still ships with no

@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Proposal record lifecycle review should stop repeated suffix growth once the same review, acceptance, and finalization grammar is proven. Keep the long route as `sourceCandidate` evidence, route operator-facing next work through one short read-only alias, and reopen the suffix chain only when engine or reflection evidence actually drifts.
+
 - README current-focus refreshes must move the public claim and its smoke pin together. If a newer slice supersedes an older arc, rename the older arc as preceding context, add the new evidence commands and authority boundary, and teach `scripts/smoke-readme-scope-evidence.mjs` to reject stale public focus.
 
 - A multi-slice readability completion audit must compare both code semantics and evidence-driven ledger drift. Keep each slice's immediate pre/post projection equality as the code proof, then compare the first and final projections separately; if they differ, normalize only a proven source-ledger value such as the lessons line count and require every route, finding, safety, and score field to match afterward.

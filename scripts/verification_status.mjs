@@ -157,6 +157,16 @@ const informationalChecks = [
     purpose: 'Growth reflection evaluator scores local evidence with typed claims and negative evidence while staying read-only and approval-gated',
   },
   {
+    id: 'growth-evidence-ledger-proposal-record-lifecycle-review-status',
+    script: 'scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record lifecycle review status keeps the long proposal-record review/acceptance/finalization chain behind one read-only alias without creating records, approving proposals, calling providers, mutating source, committing, or pushing',
+  },
+  {
+    id: 'growth-evidence-ledger-proposal-record-lifecycle-review-smoke',
+    script: 'scripts/smoke-growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs',
+    purpose: 'Growth Evidence Ledger proposal record lifecycle review smoke pins alias normalization, sourceCandidate retention, invalid-argument rejection, and unchanged authority boundaries',
+  },
+  {
     id: 'growth-worker-event-schema',
     script: 'scripts/smoke-growth-worker-event-schema.mjs',
     purpose: 'Growth worker event schema fixes read-only lifecycle/report/status-check vocabulary before worker automation or proposal queues can act',

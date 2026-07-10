@@ -194,8 +194,12 @@ assert.match(readme, /output-brief copy labels\/payload titles/);
 assert.match(readme, /policy-report copy fallback\s+formatting/);
 assert.match(readme, /completion status/);
 assert.match(readme, /`ui\/harness-labels\.js`/);
-assert.match(readme, /The current development focus is the read-only growth reflection evaluator close-out/);
-assert.match(readme, /39 lifecycle transition helper calls/);
+assert.match(
+  readme,
+  /The current development focus is the read-only Growth Evidence Ledger proposal-record lifecycle\s+review guard/,
+);
+assert.match(readme, /preserves the long route as `sourceCandidate`/);
+assert.match(readme, /39 lifecycle transition helper\s+calls/);
 assert.match(readme, /62\s+top-level read-only route helper calls/);
 assert.match(readme, /2\/71\/45\s+contract-finding guard\/advanced\/base routes/);
 assert.match(readme, /26\/102 aggregate base\/advanced routes/);
@@ -204,11 +208,22 @@ assert.match(readme, /129 read-only next candidates/);
 assert.match(readme, /23 post-completion candidate\/finding-update rows/);
 assert.match(readme, /11\/11 post-completion copy rows/);
 assert.match(readme, /Growth reflection close-out:/);
+assert.match(readme, /Growth proposal-record lifecycle review:/);
+assert.match(
+  readme,
+  /scripts\/growth-evidence-ledger-proposal-record-lifecycle-review-status\.mjs/,
+);
+assert.match(
+  readme,
+  /scripts\/smoke-growth-evidence-ledger-proposal-record-lifecycle-review-status\.mjs/,
+);
 assert.match(readme, /scripts\/growth-reflection-evaluator\.mjs/);
 assert.match(readme, /scripts\/smoke-growth-reflection-evaluator\.mjs/);
 assert.match(readme, /scripts\/growth-evidence-ledger-proposal-readiness-status\.mjs/);
 assert.match(readme, /aggregate score `100`/);
 assert.match(readme, /growth-evidence-ledger-proposal-record-lifecycle-review/);
+assert.match(readme, /growth-evidence-ledger-proposal-record-lifecycle-review-maintenance/);
+assert.match(readme, /sourceCandidate/);
 assert.match(readme, /old\s+nested-marker absence/);
 assert.match(readme, /Growth reflection evaluator route\/readability work is a read-only evaluation and evidence cleanup/);
 assert.match(
