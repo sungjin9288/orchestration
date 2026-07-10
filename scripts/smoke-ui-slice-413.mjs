@@ -14,7 +14,11 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 assert.match(appJs, /data-harness-execution-history-item-packet="true"/);
 assert.match(
   appJs,
-  /data-harness-execution-history-item-packet="true"[\s\S]*?<div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">/,
+  /const historyHarnessItemRegisterMarkup = `[\s\S]*?<div class="control-overview-register control-overview-register-compact" data-harness-execution-history-item="true">/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessItemPacketMarkup = `[\s\S]*?data-harness-execution-history-item-packet="true"[\s\S]*?\$\{historyHarnessItemRegisterMarkup\}/,
 );
 
 assert.match(stylesCss, /\.harness-execution-history-item-packet\s*\{/);

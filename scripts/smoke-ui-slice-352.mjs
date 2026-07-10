@@ -30,7 +30,11 @@ assert.match(
 );
 assert.match(
   appJs,
-  /const historyHarnessPathActionsMarkup = `\s+<button[\s\S]*?data-harness-history-reuse="true"[\s\S]*?data-harness-history-rerun="true"[\s\S]*?\$\{escapeHtml\(historyHarnessRerunActionLabel\)\}/,
+  /const historyHarnessPathRerunActionMarkup = `[\s\S]*?data-harness-history-rerun="true"[\s\S]*?\$\{escapeHtml\(historyHarnessRerunActionLabel\)\}/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessPathActionsMarkup = `[\s\S]*?\$\{historyHarnessPathReuseActionMarkup\}[\s\S]*?\$\{historyHarnessPathRerunActionMarkup\}/,
 );
 assert.match(appJs, /\$\{historyHarnessPathActionsMarkup\}/);
 assert.doesNotMatch(

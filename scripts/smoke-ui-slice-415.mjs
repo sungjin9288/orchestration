@@ -14,7 +14,23 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 assert.match(appJs, /data-harness-execution-history-summary-rack="true"/);
 assert.match(
   appJs,
-  /renderHarnessHistorySummaryRow\('실행'[\s\S]*?renderHarnessHistorySummaryRow\('입력'[\s\S]*?historyHarnessOutputLabel[\s\S]*?data-harness-execution-history-item="true"[\s\S]*?data-harness-execution-history-summary-rack="true"[\s\S]*?data-harness-execution-history-action-shelf="true"/,
+  /const historyHarnessExecutedAtSummaryMarkup =\s+renderHarnessHistorySummaryRow\('실행', historyHarnessExecutedAtLabel\);/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessInputSummaryMarkup =\s+renderHarnessHistorySummaryRow\('입력', historyHarnessInputSummaryValue\);/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessOutputSummaryMarkup = renderHarnessHistorySummaryRow\([\s\S]*?historyHarnessOutputLabel,[\s\S]*?historyHarnessOutputSummaryValue/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessSummaryRackMarkup = `[\s\S]*?\$\{historyHarnessExecutedAtSummaryMarkup\}[\s\S]*?\$\{historyHarnessInputSummaryMarkup\}[\s\S]*?\$\{historyHarnessOutputSummaryMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessItemRegisterMarkup = `[\s\S]*?\$\{historyHarnessSummaryRackFrameMarkup\}[\s\S]*?\$\{historyHarnessActionShelfFrameMarkup\}/,
 );
 
 assert.match(stylesCss, /\.harness-execution-history-summary-rack\s*\{/);

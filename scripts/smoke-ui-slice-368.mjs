@@ -23,7 +23,11 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 assert.match(appJs, /data-harness-execution-history-item="true"/);
 assert.match(
   appJs,
-  /data-harness-execution-history-item="true"[\s\S]*?<div class="form-actions form-actions-inline form-actions-compact">/,
+  /const historyHarnessActionShelfFrameMarkup = `[\s\S]*?data-harness-execution-history-action-shelf="true"[\s\S]*?<div class="form-actions form-actions-inline form-actions-compact">[\s\S]*?\$\{historyHarnessActionShelfMarkup\}/,
+);
+assert.match(
+  appJs,
+  /const historyHarnessItemRegisterMarkup = `[\s\S]*?data-harness-execution-history-item="true"[\s\S]*?\$\{historyHarnessActionShelfFrameMarkup\}/,
 );
 
 async function fetchJson(url, options = {}) {

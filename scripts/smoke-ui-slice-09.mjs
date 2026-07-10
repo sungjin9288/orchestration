@@ -103,9 +103,10 @@ try {
   assert.match(appJsSource, /구조 요약이 없으면 원문으로 확인합니다\./);
   assert.match(appJsSource, /approval\?\.allowedNextAction === 'commit-intent'/);
   assert.match(appJsSource, /state\.surface = currentSurface;/);
+  assert.match(appJsSource, /const canPrepareCommitPackage = Boolean\(commitPackageState\.summary\.allowed\);/);
   assert.match(
     appJsSource,
-    /state\.loading \|\| state\.mutating \|\| !summary\?\.allowed/,
+    /canPrepareCommitPackage[\s\S]*?data-action="run-commit-package"[\s\S]*?state\.loading \|\| state\.mutating \? 'disabled' : ''/,
   );
 
   const project = runtime.createProject({

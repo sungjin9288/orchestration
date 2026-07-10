@@ -25,8 +25,10 @@ const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(
   appJs,
-  /<section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">[\s\S]*?필요하면 방금 숨긴 \$\{escapeHtml\(hiddenHarnessModeLabel\)\}를 다시 표시할 수 있습니다\./s,
+  /const hiddenHarnessRestoreHintMarkup = `<p class="detail-copy detail-copy-compact">필요하면 방금 숨긴 \$\{escapeHtml\(hiddenHarnessModeLabel\)\}를 다시 표시할 수 있습니다\.<\/p>`;/,
 );
+assert.match(appJs, /const hiddenHarnessHeaderMarkup = `[\s\S]*?\$\{hiddenHarnessRestoreHintMarkup\}/);
+assert.match(appJs, /data-harness-execution-result-hidden="true"[\s\S]*?\$\{hiddenHarnessResultPacketMarkup\}/);
 assert.match(harnessLabels, /실행 결과/);
 
 async function fetchJson(url, options = {}) {

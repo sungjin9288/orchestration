@@ -12,7 +12,7 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /function copyHarnessExecutionRequestId\(requestId\)/);
 assert.match(appJs, /data-action="copy-harness-request-id"/);
-assert.match(appJs, /const visibleHarnessRequestId =\s+visibleHarnessExecutionResult\?\.requestId \|\| visibleHarnessExecutionResult\?\.executionId \|\| '';/);
+assert.match(appJs, /const visibleHarnessRequestId = getHarnessExecutionRequestId\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const canRenderVisibleHarnessRequestIdCopy = Boolean\(visibleHarnessRequestId\);/);
 assert.match(appJs, /const visibleHarnessRequestIdCopyMarkup = canRenderVisibleHarnessRequestIdCopy/);
 assert.match(appJs, /canRenderVisibleHarnessRequestIdCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-request-id"/);

@@ -23,8 +23,9 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 assert.match(appJs, /data-harness-execution-result="true"/);
 assert.match(
   appJs,
-  /data-harness-execution-result="true"[\s\S]*?<p class="detail-copy detail-copy-compact">미리보기 가능한 출력이 없습니다\.<\/p>/,
+  /const visibleHarnessPreviewMarkup = canRenderVisibleHarnessPreview[\s\S]*?: '<p class="detail-copy detail-copy-compact">미리보기 가능한 출력이 없습니다\.<\/p>';/,
 );
+assert.match(appJs, /const visibleHarnessResultPacketMarkup = `[\s\S]*?\$\{visibleHarnessPreviewMarkup\}/);
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
