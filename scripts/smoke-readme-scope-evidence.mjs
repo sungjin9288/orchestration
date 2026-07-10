@@ -53,6 +53,12 @@ function assertReadmeHas(pattern) {
   assert.match(readme, pattern);
 }
 
+function assertReadmeHasAll(patterns) {
+  for (const pattern of patterns) {
+    assertReadmeHas(pattern);
+  }
+}
+
 const smokeFileCount = countScripts((name) => /^smoke-.*\.mjs$/.test(name));
 const qaSliceFileCount = countScripts((name) => /qa-slice.*\.mjs$/.test(name));
 const uiSmokeFileCount = countScripts((name) => /^smoke-ui-slice-.*\.mjs$/.test(name));
@@ -80,124 +86,140 @@ for (const section of requiredSections) {
   previousIndex = index;
 }
 
-assert.match(readme, /PoC \/ MVP-quality local project/);
-assert.match(readme, /local-first AI work operating system/);
-assert.match(readme, /Mission \/ Council \/ Execution \/ Deliverables/);
-assert.match(readme, /Taskboard \/ Logs \/ Artifacts \/ Decision Inbox/);
-assert.match(readme, /Planning source files:/);
-assert.match(readme, /docs\/06_ai-orchestration-pivot\.md/);
-assert.match(readme, /packs\/development\/pack\.md/);
-assert.match(readme, /minimal root `package\.json` is present for reviewer convenience/);
-assert.match(readme, /root `\.env\.example` lists the optional live-provider variables/);
-assert.match(readme, /No public hosted demo URL is verified/);
-assert.match(readme, /no verified hosted public demo URL/);
-assert.match(readme, /Current-head local API evidence was rechecked on 2026-06-23/);
-assert.match(readme, /"plannerArtifactId": "artifact-0001"/);
-assert.match(readme, /Reference-driven operator shell/);
-assert.match(readme, /Read-only growth evidence/);
-assert.match(readme, /Local-only personalization/);
-assert.match(readme, /Advanced Ops harness evidence/);
-assert.match(readme, /run action markup/);
-assert.match(readme, /run action shelf markup/);
-assert.match(readme, /operator action token label\/tone markup/);
-assert.match(readme, /visible result packet markup/);
-assert.match(readme, /visible header markup/);
-assert.match(readme, /visible token row markup/);
-assert.match(readme, /visible preview markup/);
-assert.match(readme, /visible preview action markup/);
-assert.match(readme, /visible input path action markup/);
-assert.match(readme, /visible action shelf markup/);
-assert.match(readme, /visible action shelf frame markup/);
-assert.match(readme, /visible summary rack markup/);
-assert.match(readme, /visible execution summary markup/);
-assert.match(readme, /visible supplemental summary markup/);
-assert.match(readme, /hidden preview markup/);
-assert.match(readme, /hidden preview action markup/);
-assert.match(readme, /hidden input path action markup/);
-assert.match(readme, /hidden action shelf markup/);
-assert.match(readme, /hidden action shelf frame markup/);
-assert.match(readme, /hidden result packet markup/);
-assert.match(readme, /hidden header markup/);
-assert.match(readme, /hidden context sections markup/);
-assert.match(readme, /hidden context title row markup/);
-assert.match(readme, /hidden run context summary markup/);
-assert.match(readme, /hidden harness context summary markup/);
-assert.match(readme, /hidden operator context summary markup/);
-assert.match(readme, /visible token label\/tone markup/);
-assert.match(readme, /latest state token label\/tone markup/);
-assert.match(readme, /hidden state token-specific label\/tone markup/);
-assert.match(readme, /history header markup/);
-assert.match(readme, /history count token label\/tone markup/);
-assert.match(readme, /output path copy/);
-assert.match(readme, /history input path copy/);
-assert.match(readme, /history path reuse\/rerun action markup/);
-assert.match(readme, /history preview action markup/);
-assert.match(readme, /history action shelf markup/);
-assert.match(readme, /history action shelf frame markup/);
-assert.match(readme, /history summary rack markup/);
-assert.match(readme, /history summary rack frame markup/);
-assert.match(readme, /history item register markup/);
-assert.match(readme, /history item packet markup/);
-assert.match(readme, /history restore preview/);
-assert.match(readme, /execution packet copy/);
-assert.match(readme, /output-brief copy/);
-assert.match(readme, /policy-report copy/);
-assert.match(readme, /hidden status summary fallback handoff/);
-assert.match(readme, /node scripts\/smoke-ui-slice-305\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-306\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-310\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-329\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-331\.mjs/);
-assert.match(readme, /`361`/);
-assert.match(readme, /node scripts\/smoke-ui-slice-375\.mjs/);
-assert.match(readme, /node scripts\/smoke-ui-slice-381\.mjs/);
-assert.match(readme, /run action shelf markup handoff/);
-assert.match(readme, /operator action token label\/tone markup handoff/);
-assert.match(readme, /visible token label\/tone markup handoff/);
-assert.match(readme, /visible header markup handoff/);
-assert.match(readme, /visible token row markup handoff/);
-assert.match(readme, /latest state token label\/tone markup handoff/);
-assert.match(readme, /hidden\s+state token-specific label\/tone markup handoff/);
-assert.match(readme, /visible preview markup handoff/);
-assert.match(readme, /visible preview action markup handoff/);
-assert.match(readme, /visible input path action markup handoff/);
-assert.match(readme, /visible summary rack markup handoff/);
-assert.match(readme, /visible execution summary markup handoff/);
-assert.match(readme, /visible supplemental summary markup handoff/);
-assert.match(readme, /hidden preview action markup handoff/);
-assert.match(readme, /hidden input path action markup handoff/);
-assert.match(readme, /hidden header markup handoff/);
-assert.match(readme, /hidden context sections markup handoff/);
-assert.match(readme, /hidden context title row markup handoff/);
-assert.match(readme, /hidden run context summary markup handoff/);
-assert.match(readme, /hidden harness context summary markup handoff/);
-assert.match(readme, /hidden operator context summary markup handoff/);
-assert.match(readme, /history header markup handoff/);
-assert.match(readme, /history count token label\/tone markup handoff/);
-assert.match(readme, /history input path copy markup handoff/);
-assert.match(readme, /history path reuse\/rerun action markup handoff/);
-assert.match(readme, /history preview action markup handoff/);
-assert.match(readme, /history action shelf markup handoff/);
-assert.match(readme, /history action shelf frame markup handoff/);
-assert.match(readme, /history summary rack markup handoff/);
-assert.match(readme, /history summary rack frame markup handoff/);
-assert.match(readme, /history item register markup handoff/);
-assert.match(readme, /history item packet markup handoff/);
-assert.match(readme, /visible result packet markup handoff/);
-assert.match(readme, /execution\s+packet copy fallback formatting/);
-assert.match(readme, /execution packet copy markup handoff/);
-assert.match(readme, /hidden action markup handoff/);
-assert.match(readme, /hidden action shelf markup handoff/);
-assert.match(readme, /hidden action shelf frame markup handoff/);
-assert.match(readme, /hidden result packet markup handoff/);
-assert.match(readme, /visible action shelf markup handoff/);
-assert.match(readme, /visible action shelf frame markup handoff/);
-assert.match(readme, /visible hide action markup handoff/);
-assert.match(readme, /output path copy label\/status handoff/);
-assert.match(readme, /output-brief copy labels\/payload titles/);
-assert.match(readme, /policy-report copy fallback\s+formatting/);
-assert.match(readme, /completion status/);
-assert.match(readme, /`ui\/harness-labels\.js`/);
+const readmePositioningEvidence = [
+  /PoC \/ MVP-quality local project/,
+  /local-first AI work operating system/,
+  /Mission \/ Council \/ Execution \/ Deliverables/,
+  /Taskboard \/ Logs \/ Artifacts \/ Decision Inbox/,
+  /Planning source files:/,
+  /docs\/06_ai-orchestration-pivot\.md/,
+  /packs\/development\/pack\.md/,
+  /minimal root `package\.json` is present for reviewer convenience/,
+  /root `\.env\.example` lists the optional live-provider variables/,
+  /No public hosted demo URL is verified/,
+  /no verified hosted public demo URL/,
+  /Current-head local API evidence was rechecked on 2026-06-23/,
+  /"plannerArtifactId": "artifact-0001"/,
+  /Reference-driven operator shell/,
+  /Read-only growth evidence/,
+  /Local-only personalization/,
+  /Advanced Ops harness evidence/,
+];
+
+const advancedOpsHarnessEvidence = [
+  /run action markup/,
+  /run action shelf markup/,
+  /operator action token label\/tone markup/,
+  /visible result packet markup/,
+  /visible header markup/,
+  /visible token row markup/,
+  /visible preview markup/,
+  /visible preview action markup/,
+  /visible input path action markup/,
+  /visible action shelf markup/,
+  /visible action shelf frame markup/,
+  /visible summary rack markup/,
+  /visible execution summary markup/,
+  /visible supplemental summary markup/,
+  /hidden preview markup/,
+  /hidden preview action markup/,
+  /hidden input path action markup/,
+  /hidden action shelf markup/,
+  /hidden action shelf frame markup/,
+  /hidden result packet markup/,
+  /hidden header markup/,
+  /hidden context sections markup/,
+  /hidden context title row markup/,
+  /hidden run context summary markup/,
+  /hidden harness context summary markup/,
+  /hidden operator context summary markup/,
+  /visible token label\/tone markup/,
+  /latest state token label\/tone markup/,
+  /hidden state token-specific label\/tone markup/,
+  /history header markup/,
+  /history count token label\/tone markup/,
+  /output path copy/,
+  /history input path copy/,
+  /history path reuse\/rerun action markup/,
+  /history preview action markup/,
+  /history action shelf markup/,
+  /history action shelf frame markup/,
+  /history summary rack markup/,
+  /history summary rack frame markup/,
+  /history item register markup/,
+  /history item packet markup/,
+  /history restore preview/,
+  /execution packet copy/,
+  /output-brief copy/,
+  /policy-report copy/,
+  /hidden status summary fallback handoff/,
+];
+
+const advancedOpsHarnessSmokeEvidence = [
+  /node scripts\/smoke-ui-slice-305\.mjs/,
+  /node scripts\/smoke-ui-slice-306\.mjs/,
+  /node scripts\/smoke-ui-slice-310\.mjs/,
+  /node scripts\/smoke-ui-slice-329\.mjs/,
+  /node scripts\/smoke-ui-slice-331\.mjs/,
+  /`361`/,
+  /node scripts\/smoke-ui-slice-375\.mjs/,
+  /node scripts\/smoke-ui-slice-381\.mjs/,
+];
+
+const advancedOpsHarnessHandoffEvidence = [
+  /run action shelf markup handoff/,
+  /operator action token label\/tone markup handoff/,
+  /visible token label\/tone markup handoff/,
+  /visible header markup handoff/,
+  /visible token row markup handoff/,
+  /latest state token label\/tone markup handoff/,
+  /hidden\s+state token-specific label\/tone markup handoff/,
+  /visible preview markup handoff/,
+  /visible preview action markup handoff/,
+  /visible input path action markup handoff/,
+  /visible summary rack markup handoff/,
+  /visible execution summary markup handoff/,
+  /visible supplemental summary markup handoff/,
+  /hidden preview action markup handoff/,
+  /hidden input path action markup handoff/,
+  /hidden header markup handoff/,
+  /hidden context sections markup handoff/,
+  /hidden context title row markup handoff/,
+  /hidden run context summary markup handoff/,
+  /hidden harness context summary markup handoff/,
+  /hidden operator context summary markup handoff/,
+  /history header markup handoff/,
+  /history count token label\/tone markup handoff/,
+  /history input path copy markup handoff/,
+  /history path reuse\/rerun action markup handoff/,
+  /history preview action markup handoff/,
+  /history action shelf markup handoff/,
+  /history action shelf frame markup handoff/,
+  /history summary rack markup handoff/,
+  /history summary rack frame markup handoff/,
+  /history item register markup handoff/,
+  /history item packet markup handoff/,
+  /visible result packet markup handoff/,
+  /execution\s+packet copy fallback formatting/,
+  /execution packet copy markup handoff/,
+  /hidden action markup handoff/,
+  /hidden action shelf markup handoff/,
+  /hidden action shelf frame markup handoff/,
+  /hidden result packet markup handoff/,
+  /visible action shelf markup handoff/,
+  /visible action shelf frame markup handoff/,
+  /visible hide action markup handoff/,
+  /output path copy label\/status handoff/,
+  /output-brief copy labels\/payload titles/,
+  /policy-report copy fallback\s+formatting/,
+  /completion status/,
+  /`ui\/harness-labels\.js`/,
+];
+
+assertReadmeHasAll(readmePositioningEvidence);
+assertReadmeHasAll(advancedOpsHarnessEvidence);
+assertReadmeHasAll(advancedOpsHarnessSmokeEvidence);
+assertReadmeHasAll(advancedOpsHarnessHandoffEvidence);
 
 const completionFocusEvidence = [
   /The current development focus is completion-gate evidence close-out/,
@@ -242,17 +264,9 @@ const growthSourceEvidence = [
   /Growth reflection evaluator route\/readability work is a read-only evaluation and evidence cleanup/,
 ];
 
-for (const pattern of completionFocusEvidence) {
-  assertReadmeHas(pattern);
-}
-
-for (const pattern of growthFocusEvidence) {
-  assertReadmeHas(pattern);
-}
-
-for (const pattern of growthSourceEvidence) {
-  assertReadmeHas(pattern);
-}
+assertReadmeHasAll(completionFocusEvidence);
+assertReadmeHasAll(growthFocusEvidence);
+assertReadmeHasAll(growthSourceEvidence);
 
 assert.match(
   readme,
@@ -337,9 +351,7 @@ const readmeTestingCommandEvidence = [
   /node scripts\/run-smoke\.mjs --all --fail-fast/,
 ];
 
-for (const pattern of readmeTestingCommandEvidence) {
-  assertReadmeHas(pattern);
-}
+assertReadmeHasAll(readmeTestingCommandEvidence);
 
 const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
@@ -350,9 +362,7 @@ const completionVerificationEvidence = [
   /completion inventory counts,\s+aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
 ];
 
-for (const pattern of completionVerificationEvidence) {
-  assertReadmeHas(pattern);
-}
+assertReadmeHasAll(completionVerificationEvidence);
 
 assert.doesNotMatch(readme, /838\s+\(smoke-slice/);
 
