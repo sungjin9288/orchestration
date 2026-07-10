@@ -393,7 +393,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 853 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 854 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 650 UI smoke files
 ```
@@ -488,6 +488,7 @@ node scripts/vnext-proposal-application-source-mutation-planning-plan-status.mjs
 node scripts/smoke-proposal-application-source-mutation.mjs
 node scripts/vnext-proposal-application-source-mutation-implementation-status.mjs
 node scripts/smoke-readme-scope-evidence.mjs
+node scripts/smoke-completion-gate-inventory-current-evidence.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 node scripts/smoke-qa-slice-07.mjs
@@ -599,9 +600,12 @@ Current verification evidence from this README refresh:
   authority before any source mutation implementation can open.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, missing env-template/package notes, and honesty patterns.
+- `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
+  UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
+  lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `28/28`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `167/167`, total `168/168`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `168/168`, total `169/169`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and

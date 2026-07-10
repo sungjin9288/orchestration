@@ -306,6 +306,7 @@ assert.match(readme, new RegExp(`${uiSmokeFileCount} UI smoke files`));
 assert.match(readme, /node scripts\/run-smoke\.mjs --list/);
 assert.match(readme, /node scripts\/run-smoke\.mjs --filter smoke-readme-scope-evidence/);
 assert.match(readme, /node scripts\/run-smoke\.mjs --all --fail-fast/);
+assert.match(readme, /node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/);
 assert.doesNotMatch(readme, /838\s+\(smoke-slice/);
 
 const forbiddenClaimPatterns = [

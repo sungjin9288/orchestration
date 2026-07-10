@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Completion gate inventory refreshes should be pinned by a focused source smoke whenever aggregate counts, UI QA counts, or growth-routing summaries change. Record explicit checked evidence such as `169/169` and a checked head instead of vague latest-main wording, and keep README smoke counts, inventory rows, aggregate registration, and task ledger evidence in the same slice.
+
 - Proposal record lifecycle review should stop repeated suffix growth once the same review, acceptance, and finalization grammar is proven. Keep the long route as `sourceCandidate` evidence, route operator-facing next work through one short read-only alias, and reopen the suffix chain only when engine or reflection evidence actually drifts.
 
 - README current-focus refreshes must move the public claim and its smoke pin together. If a newer slice supersedes an older arc, rename the older arc as preceding context, add the new evidence commands and authority boundary, and teach `scripts/smoke-readme-scope-evidence.mjs` to reject stale public focus.

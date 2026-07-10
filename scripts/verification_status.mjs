@@ -352,6 +352,11 @@ const informationalChecks = [
     purpose: 'Completion baseline stays zero-open until an explicit operator request, concrete regression, usability issue, or accepted vNext decision opens a new implementation slice',
   },
   {
+    id: 'completion-gate-inventory-current-evidence',
+    script: 'scripts/smoke-completion-gate-inventory-current-evidence.mjs',
+    purpose: 'Completion gate inventory keeps current aggregate, UI QA, zero-open backlog, post-completion router, README count, and growth routing evidence aligned with the latest verified source state',
+  },
+  {
     id: 'post-completion-next-step-status',
     script: 'scripts/post-completion-next-step-status.mjs',
     purpose: 'Post-completion follow-up routes through an explicit operator request, regression, usability issue, or accepted vNext decision before any new implementation slice opens',
