@@ -4,6 +4,9 @@ output/
 _portfolio_export/
 node_modules/
 
+# Local agent/editor tooling config (e.g. preview server launch.json). Not part of the product.
+.claude/
+
 # Local environment files may contain secrets (e.g. OPENAI_API_KEY).
 # The tracked template is .env.example; real .env files must never be committed.
 .env

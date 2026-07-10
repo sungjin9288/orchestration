@@ -9237,11 +9237,6 @@ h3 {
 }
 
 @media (max-width: 720px) {
-  .app-shell {
-    padding: 14px 12px 22px;
-    gap: 12px;
-  }
-
   .control-overview-detail-grid,
   .control-overview-queue-meta {
     grid-template-columns: 1fr;
@@ -9265,14 +9260,6 @@ h3 {
 
   .office-brand-badges {
     gap: 6px;
-  }
-
-  .office-brand-register {
-    grid-template-columns: 1fr;
-  }
-
-  .company-directory-summary-grid {
-    grid-template-columns: 1fr;
   }
 
   .ops-section-head {
