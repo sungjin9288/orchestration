@@ -242,7 +242,7 @@ assertReadmeHasAll(advancedOpsHarnessSmokeEvidence);
 assertReadmeHasAll(advancedOpsHarnessHandoffEvidence);
 
 const completionFocusEvidence = [
-  /The current development focus is post-completion lifecycle-close-finalization status evidence close-out/,
+  /The current development focus is post-completion lifecycle-close-finalization-review status evidence close-out/,
   /default completion baseline\s+is still closed for implementation work/,
   /docs\/22_completion-gate-inventory\.md/,
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
@@ -254,10 +254,10 @@ const completionFocusEvidence = [
 ];
 
 const lifecycleCloseFocusEvidence = [
-  /The active close-out slice is\s+`growth-lifecycle-close-finalization-status-smoke-readability-post-m7-2311`/,
-  /keeps the\s+lifecycle-close-finalization status smoke behavior-preserving and read-only/,
+  /The active close-out slice is\s+`growth-lifecycle-close-finalization-review-status-smoke-readability-post-m7-2312`/,
+  /keeps the\s+lifecycle-close-finalization-review status smoke behavior-preserving and read-only/,
   /source summary, vocabulary, schema, readiness, next-slice, safety\s+boundary, invalid-argument, plan, and cross-document evidence groups/,
-  /source\s+close-finalization-status script, runtime behavior, UI behavior, provider configuration, memory\s+persistence, proposal generation\/application, source mutation authority, commit, push, connector\s+reach, automation, and lifecycle semantics remain unchanged/,
+  /source\s+close-finalization-review-status script, runtime behavior, UI behavior, provider configuration, memory\s+persistence, proposal generation\/application, source mutation authority, commit, push, connector\s+reach, automation, and lifecycle semantics remain unchanged/,
 ];
 
 const growthFocusEvidence = [
@@ -276,6 +276,10 @@ const growthFocusEvidence = [
 const growthSourceEvidence = [
   /Completion gate inventory:/,
   /aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
+  /Growth lifecycle-close finalization review status:/,
+  /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status\.mjs/,
+  /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status\.mjs/,
+  /preserves the next lifecycle-close-finalization-review-acceptance\s+recommendation/,
   /Growth lifecycle-close finalization status:/,
   /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status\.mjs/,
   /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status\.mjs/,
@@ -426,6 +430,8 @@ const completionVerificationEvidence = [
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status\.mjs/,
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status\.mjs/,
+  /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status\.mjs/,
+  /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
   /completion inventory counts,\s+aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
   /reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close status readiness/,
@@ -438,6 +444,8 @@ const completionVerificationEvidence = [
   /pins the lifecycle-close-acceptance status source markers, vocabulary, schema required fields,\s+readiness, safety boundary, invalid-argument rejection, growth gateway plan evidence, and\s+cross-document ledger evidence/,
   /reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close-finalization-review\s+readiness/,
   /pins the lifecycle-close-finalization status source markers, vocabulary, schema required fields,\s+readiness, safety boundary, invalid-argument rejection, growth gateway plan evidence, and\s+cross-document ledger evidence/,
+  /reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close-finalization-review-acceptance\s+readiness/,
+  /pins the lifecycle-close-finalization-review status source markers, vocabulary, schema required\s+fields, readiness, safety boundary, invalid-argument rejection, growth gateway plan evidence, and\s+cross-document ledger evidence/,
 ];
 
 assertReadmeHasAll(completionVerificationEvidence);
