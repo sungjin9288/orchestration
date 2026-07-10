@@ -37,6 +37,30 @@ function runLifecycleCloseAcceptanceStatus(args = []) {
   };
 }
 
+function assertFlagsAreTrue(source, keys, label) {
+  for (const key of keys) {
+    assert.equal(source[key], true, `${label}.${key}`);
+  }
+}
+
+function assertIncludesAll(source, values, label) {
+  for (const value of values) {
+    assert.ok(source.includes(value), `${label}: ${value}`);
+  }
+}
+
+function assertFieldsEqual(source, expected, label) {
+  for (const [key, value] of Object.entries(expected)) {
+    assert.equal(source[key], value, `${label}.${key}`);
+  }
+}
+
+function assertTextHasAll(text, patterns) {
+  for (const pattern of patterns) {
+    assert.match(text, pattern);
+  }
+}
+
 const result = runLifecycleCloseAcceptanceStatus();
 assert.equal(
   result.status,
@@ -59,7 +83,7 @@ assert.equal(
   'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status/v0',
 );
 
-for (const key of [
+const sourceSummaryEvidence = [
   'growthGatewayPlanPresent',
   'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceDocumented',
   'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceImplemented',
@@ -91,44 +115,55 @@ for (const key of [
   'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceSeparateFromMutation',
   'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStillBlocked',
   'remediationExecutionStillBlocked',
-]) {
-  assert.equal(payload.sourceSummary[key], true, `sourceSummary.${key}`);
-}
+];
 
-for (const state of [
+assertFlagsAreTrue(payload.sourceSummary, sourceSummaryEvidence, 'sourceSummary');
+
+const lifecycleCloseAcceptanceStateVocabularyEvidence = [
   'source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-ready-for-lifecycle-close-finalization-contract',
   'needs-current-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance',
   'needs-current-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance',
   'needs-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-criteria',
   'needs-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-decision-note',
-]) {
-  assert.ok(
-    payload.vocabulary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStates.includes(
-      state,
-    ),
-    state,
-  );
-}
-assert.ok(
-  payload.vocabulary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceDecisionTypes.includes(
-    'record-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-readiness',
-  ),
+];
+
+const lifecycleCloseAcceptanceDecisionVocabularyEvidence = [
+  'record-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-readiness',
+];
+
+const lifecycleCloseAcceptanceEvidenceVocabularyEvidence = [
+  'source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-record',
+];
+
+const lifecycleCloseAcceptanceBlockerVocabularyEvidence = [
+  'source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-attempts-source-mutation',
+];
+
+assertIncludesAll(
+  payload.vocabulary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStates,
+  lifecycleCloseAcceptanceStateVocabularyEvidence,
+  'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceStates',
 );
-assert.ok(
-  payload.vocabulary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceEvidenceTypes.includes(
-    'source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-record',
-  ),
+assertIncludesAll(
+  payload.vocabulary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceDecisionTypes,
+  lifecycleCloseAcceptanceDecisionVocabularyEvidence,
+  'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceDecisionTypes',
 );
-assert.ok(
-  payload.vocabulary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceBlockerTypes.includes(
-    'source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-attempts-source-mutation',
-  ),
+assertIncludesAll(
+  payload.vocabulary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceEvidenceTypes,
+  lifecycleCloseAcceptanceEvidenceVocabularyEvidence,
+  'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceEvidenceTypes',
+);
+assertIncludesAll(
+  payload.vocabulary.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceBlockerTypes,
+  lifecycleCloseAcceptanceBlockerVocabularyEvidence,
+  'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceBlockerTypes',
 );
 
 const recordRequired =
   payload.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceSchema
     .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRecord.required;
-for (const field of [
+const lifecycleCloseAcceptanceRecordFields = [
   'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceId',
   'sourceMutationLifecycleCloseoutClosureLifecycleCloseReviewAcceptanceId',
   'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceCriteriaRefs',
@@ -138,9 +173,9 @@ for (const field of [
   'lifecycleClosed',
   'sourceMutationAllowed',
   'remediationExecutionAllowed',
-]) {
-  assert.ok(recordRequired.includes(field), `required field ${field}`);
-}
+];
+
+assertIncludesAll(recordRequired, lifecycleCloseAcceptanceRecordFields, 'required field');
 assert.ok(
   payload.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRules.some(
     (rule) =>
@@ -149,64 +184,45 @@ assert.ok(
   ),
 );
 
-assert.equal(
-  payload.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceState
-    .realSourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceFileAdopted,
-  false,
-);
-assert.equal(
-  payload.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceState
-    .lifecycleCloseFinalizationAllowed,
-  false,
-);
-assert.equal(
-  payload.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceState.lifecycleCloseAccepted,
-  false,
-);
-assert.equal(
-  payload.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceState.lifecycleClosed,
-  false,
-);
-assert.equal(
-  payload.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceState.sourceMutationAllowed,
-  false,
-);
-assert.equal(payload.readiness.requiredFieldsSatisfied, true);
-assert.equal(
-  payload.readiness.currentSourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRequired,
-  true,
-);
-assert.equal(
-  payload.readiness.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceCriteriaRequired,
-  true,
-);
-assert.equal(
-  payload.readiness
-    .sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceDecisionNoteRequired,
-  true,
-);
-assert.equal(
-  payload.readiness.readyForSourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatus,
-  true,
-);
-assert.equal(payload.readiness.lifecycleCloseFinalizationAllowed, false);
-assert.equal(payload.readiness.lifecycleCloseAccepted, false);
-assert.equal(payload.readiness.lifecycleClosed, false);
-assert.equal(payload.readiness.sourceMutationAllowed, false);
-assert.equal(payload.readiness.remediationExecutionAllowed, false);
-assert.equal(payload.readiness.memoryPersistenceAllowed, false);
-assert.equal(payload.readiness.gatewayExecutionAuthorityAllowed, false);
-assert.equal(
-  payload.nextRecommendedSlice.id,
-  'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
-);
-assert.equal(
-  payload.nextRecommendedSlice.commandToAdd,
-  'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
-);
-assert.equal(payload.nextRecommendedSlice.mustRemainReadOnly, true);
+const lifecycleCloseAcceptanceStateEvidence = {
+  realSourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceFileAdopted: false,
+  lifecycleCloseFinalizationAllowed: false,
+  lifecycleCloseAccepted: false,
+  lifecycleClosed: false,
+  sourceMutationAllowed: false,
+};
 
-for (const [key, expected] of Object.entries({
+const readinessEvidence = {
+  requiredFieldsSatisfied: true,
+  currentSourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceRequired: true,
+  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceCriteriaRequired: true,
+  sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceDecisionNoteRequired: true,
+  readyForSourceMutationLifecycleCloseoutClosureLifecycleCloseFinalizationStatus: true,
+  lifecycleCloseFinalizationAllowed: false,
+  lifecycleCloseAccepted: false,
+  lifecycleClosed: false,
+  sourceMutationAllowed: false,
+  remediationExecutionAllowed: false,
+  memoryPersistenceAllowed: false,
+  gatewayExecutionAuthorityAllowed: false,
+};
+
+const nextRecommendedSliceEvidence = {
+  id: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status',
+  commandToAdd:
+    'node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs',
+  mustRemainReadOnly: true,
+};
+
+assertFieldsEqual(
+  payload.sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceState,
+  lifecycleCloseAcceptanceStateEvidence,
+  'sourceMutationLifecycleCloseoutClosureLifecycleCloseAcceptanceState',
+);
+assertFieldsEqual(payload.readiness, readinessEvidence, 'readiness');
+assertFieldsEqual(payload.nextRecommendedSlice, nextRecommendedSliceEvidence, 'nextRecommendedSlice');
+
+const safetyBoundaryEvidence = {
   readOnly: true,
   doesNotWriteFiles: true,
   doesNotMutateRuntime: true,
@@ -233,18 +249,19 @@ for (const [key, expected] of Object.entries({
   doesNotOpenExternalChannels: true,
   doesNotCommit: true,
   doesNotPush: true,
-})) {
-  assert.equal(payload.safetyBoundary[key], expected, `safetyBoundary.${key}`);
-}
+};
+
+assertFieldsEqual(payload.safetyBoundary, safetyBoundaryEvidence, 'safetyBoundary');
 
 const typoResult = runLifecycleCloseAcceptanceStatus(['--typo']);
 assert.equal(typoResult.status, 2);
-assert.equal(typoResult.payload?.ok, false);
-assert.equal(
-  typoResult.payload?.mode,
-  'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
-);
-assert.equal(typoResult.payload?.error, 'invalid-arguments');
+const invalidArgumentEvidence = {
+  ok: false,
+  mode: 'growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status',
+  error: 'invalid-arguments',
+};
+
+assertFieldsEqual(typoResult.payload, invalidArgumentEvidence, 'invalidArgument');
 
 const plan = fs.readFileSync(path.join(repoRoot, 'docs', '18_growth-gateway-vnext.md'), 'utf8');
 const harnessBaseline = fs.readFileSync(path.join(repoRoot, 'docs', '13_harness-baseline.md'), 'utf8');
@@ -254,48 +271,34 @@ const completionReadiness = fs.readFileSync(
 );
 const taskLedger = fs.readFileSync(path.join(repoRoot, 'tasks', 'todo.md'), 'utf8');
 
-assert.match(
-  plan,
+const growthGatewayPlanEvidence = [
   /Sixty-fourth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status`/,
-);
-assert.match(
-  plan,
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status\.mjs/,
-);
-assert.match(
-  plan,
   /current source mutation lifecycle closeout closure lifecycle close acceptance record/,
-);
-assert.match(
-  plan,
   /source mutation lifecycle closeout closure lifecycle close acceptance criteria refs/,
-);
-assert.match(
-  plan,
   /source mutation lifecycle closeout closure lifecycle close acceptance decision note refs/,
-);
-assert.match(
-  plan,
   /source mutation lifecycle closeout closure lifecycle close acceptance status stays separate from actual source mutation execution/,
-);
-assert.match(
-  plan,
   /Sixty-fifth Implemented Slice: `growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status`/,
-);
-assert.match(
-  plan,
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status\.mjs/,
-);
-assert.match(
+];
+
+const crossDocumentEvidence = {
   harnessBaseline,
-  /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status/,
-);
-assert.match(
   completionReadiness,
+  taskLedger,
+};
+
+assertTextHasAll(plan, growthGatewayPlanEvidence);
+assert.match(
+  crossDocumentEvidence.harnessBaseline,
   /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status/,
 );
 assert.match(
-  taskLedger,
+  crossDocumentEvidence.completionReadiness,
+  /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status/,
+);
+assert.match(
+  crossDocumentEvidence.taskLedger,
   /growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status-readonly-post-m7-871/,
 );
 
