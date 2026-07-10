@@ -623,13 +623,22 @@ const harnessRunActionInlineRejections = [
 
 assertTextHasAll(appJs, harnessRunActionStructureEvidence);
 assertTextDoesNotHaveAll(appJs, harnessRunActionInlineRejections);
-assert.match(appJs, /const visibleHarnessPreviewMarkup = canRenderVisibleHarnessPreview/);
-assert.match(appJs, /\$\{visibleHarnessPreviewMarkup\}/);
-assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessPreview\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">/);
-assert.match(appJs, /const visibleHarnessInputPathCopyActionMarkup =\s+canRenderVisibleHarnessInputPathActions/);
-assert.match(appJs, /const visibleHarnessPathReuseActionMarkup =\s+canRenderVisibleHarnessInputPathActions/);
-assert.match(appJs, /const visibleHarnessPathRerunActionMarkup =\s+canRenderVisibleHarnessInputPathActions/);
-assert.match(appJs, /const visibleHarnessInputPathActionsMarkup = `\s+\$\{visibleHarnessInputPathCopyActionMarkup\}\s+\$\{visibleHarnessPathReuseActionMarkup\}\s+\$\{visibleHarnessPathRerunActionMarkup\}/);
+
+const visibleHarnessPreviewActionEvidence = [
+  /const visibleHarnessPreviewMarkup = canRenderVisibleHarnessPreview/,
+  /\$\{visibleHarnessPreviewMarkup\}/,
+  /const visibleHarnessInputPathCopyActionMarkup =\s+canRenderVisibleHarnessInputPathActions/,
+  /const visibleHarnessPathReuseActionMarkup =\s+canRenderVisibleHarnessInputPathActions/,
+  /const visibleHarnessPathRerunActionMarkup =\s+canRenderVisibleHarnessInputPathActions/,
+  /const visibleHarnessInputPathActionsMarkup = `\s+\$\{visibleHarnessInputPathCopyActionMarkup\}\s+\$\{visibleHarnessPathReuseActionMarkup\}\s+\$\{visibleHarnessPathRerunActionMarkup\}/,
+];
+
+const visibleHarnessPreviewInlineRejections = [
+  /\$\{\s*canRenderVisibleHarnessPreview\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">/,
+];
+
+assertTextHasAll(appJs, visibleHarnessPreviewActionEvidence);
+assertTextDoesNotHaveAll(appJs, visibleHarnessPreviewInlineRejections);
 assert.match(appJs, /const hiddenHarnessInputPathCopyActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);
 assert.match(appJs, /const hiddenHarnessPathReuseActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);
 assert.match(appJs, /const hiddenHarnessPathRerunActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);

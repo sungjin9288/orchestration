@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes that validate preview surfaces should keep preview markup handoffs and path action handoffs together, while keeping old inline preview-template guards separate. That split keeps preview regressions readable without weakening the exact source-backed contract.
+
 - README evidence smokes that validate action shelves should separate action source markers from old inline button rejection guards. Keep command/clear/history/preview/submit action markup in one positive group, and keep broad inline-button regressions in a separate rejection group so the failure describes the drift.
 
 - README evidence smokes that validate visible token rows should separate token structure markers from inline/literal-token rejection guards. Keep token tone locals, token markup handoffs, and row markup handoffs in one positive group, and keep old direct row assembly or literal tone calls in a separate rejection group.
