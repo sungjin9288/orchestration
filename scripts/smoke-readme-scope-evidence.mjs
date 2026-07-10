@@ -69,6 +69,16 @@ function assertReadmeHasAll(patterns) {
   assertTextHasAll(readme, patterns);
 }
 
+function assertReadmeDoesNotHaveAll(patterns) {
+  assertTextDoesNotHaveAll(readme, patterns);
+}
+
+function assertReadmeHasRoutes(routes) {
+  for (const route of routes) {
+    assert.ok(readme.includes(route), `README route missing: ${route}`);
+  }
+}
+
 const smokeFileCount = countScripts((name) => /^smoke-.*\.mjs$/.test(name));
 const qaSliceFileCount = countScripts((name) => /qa-slice.*\.mjs$/.test(name));
 const uiSmokeFileCount = countScripts((name) => /^smoke-ui-slice-.*\.mjs$/.test(name));
@@ -278,10 +288,11 @@ assertReadmeHasAll(completionFocusEvidence);
 assertReadmeHasAll(growthFocusEvidence);
 assertReadmeHasAll(growthSourceEvidence);
 
-assert.match(
-  readme,
+const productRuntimeBoundaryEvidence = [
   /does not create durable proposal records, apply\s+proposals, call providers, persist memory, mutate project source through the product runtime/,
-);
+];
+
+assertReadmeHasAll(productRuntimeBoundaryEvidence);
 
 const extractionEvidence = [
   /The immediately preceding development arc concluded a behavior-preserving module extraction campaign/,
@@ -375,6 +386,7 @@ const completionVerificationEvidence = [
   /Completion close-out verification is split deliberately/,
   /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
   /aggregate and UI QA commands confirm those\s+same counts remain registered in the wider gate/,
+  /The README evidence smoke also keeps forbidden\s+public-claim patterns, route list coverage, and source-route registrations in the same checked\s+surface/,
   /node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
   /completion inventory counts,\s+aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
@@ -382,9 +394,11 @@ const completionVerificationEvidence = [
 
 assertReadmeHasAll(completionVerificationEvidence);
 
-assert.doesNotMatch(readme, /838\s+\(smoke-slice/);
+const staleReadmeClaimRejections = [
+  /838\s+\(smoke-slice/,
+];
 
-const forbiddenClaimPatterns = [
+const forbiddenPublicClaimRejections = [
   /production-ready/i,
   /enterprise/i,
   /99\.8/,
@@ -395,11 +409,10 @@ const forbiddenClaimPatterns = [
   /엔터프라이즈/,
 ];
 
-for (const pattern of forbiddenClaimPatterns) {
-  assert.doesNotMatch(readme, pattern);
-}
+assertReadmeDoesNotHaveAll(staleReadmeClaimRejections);
+assertReadmeDoesNotHaveAll(forbiddenPublicClaimRejections);
 
-const routePatterns = [
+const readmeRouteEvidence = [
   '/api/snapshot',
   '/api/projects',
   '/api/projects/:projectId/select',
@@ -421,11 +434,9 @@ const routePatterns = [
   '/api/artifacts/:artifactId',
 ];
 
-for (const route of routePatterns) {
-  assert.ok(readme.includes(route), `README route missing: ${route}`);
-}
+assertReadmeHasRoutes(readmeRouteEvidence);
 
-const sourceRouteRegexes = [
+const sourceRouteHandlerEvidence = [
   /url\.pathname === '\/api\/snapshot'/,
   /url\.pathname === '\/api\/projects'/,
   /\/\^\\\/api\\\/projects\\\/\(\[\^\/\]\+\)\\\/select\$\/\)/,
@@ -438,9 +449,7 @@ const sourceRouteRegexes = [
   /\/\^\\\/api\\\/artifacts\\\/\(\[\^\/\]\+\)\$\/\)/,
 ];
 
-for (const pattern of sourceRouteRegexes) {
-  assert.match(serveUi, pattern);
-}
+assertTextHasAll(serveUi, sourceRouteHandlerEvidence);
 
 const liveProviderEnvEvidence = [
   /`OPENAI_API_KEY`/,

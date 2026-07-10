@@ -425,7 +425,9 @@ node scripts/run-smoke.mjs --all --fail-fast
 
 Completion close-out verification is split deliberately: focused README and completion-inventory
 smokes pin the public claims and inventory counts, while aggregate and UI QA commands confirm those
-same counts remain registered in the wider gate.
+same counts remain registered in the wider gate. The README evidence smoke also keeps forbidden
+public-claim patterns, route list coverage, and source-route registrations in the same checked
+surface.
 
 Representative verification commands:
 

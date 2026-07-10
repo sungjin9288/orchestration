@@ -2,6 +2,11 @@
 
 ## direction resets
 
+- README evidence smokes that validate public README honesty should keep stale-count rejection,
+  forbidden public-claim rejection, README route coverage, and source-route handler coverage in
+  named groups. That keeps the honesty and API coverage checks reviewable without weakening the
+  exact public contract.
+
 - README evidence smokes that validate preview actions and copy formatters should separate UI handoff markers from source formatter exports. Keep output-path helper use, preview action composition, token source predicates, and copy formatter guards in named groups so source drift and UI composition drift do not collapse into one assertion wall.
 
 - README evidence smokes that validate growth authority and pack boundaries should group UI markers, growth config markers, source module exports, pack constants, repo docs, and reference-audit sources by owning file. Cross-file boundary checks are easier to review when each group answers which source-of-truth layer drifted.
