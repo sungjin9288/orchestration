@@ -608,15 +608,21 @@ const visibleHarnessTokenInlineRejections = [
 
 assertTextHasAll(appJs, visibleHarnessTokenStructureEvidence);
 assertTextDoesNotHaveAll(appJs, visibleHarnessTokenInlineRejections);
-assert.match(appJs, /const harnessRunCommandCopyMarkup = `/);
-assert.match(appJs, /const harnessRunClearHistoryActionMarkup = hasExecutionHistory/);
-assert.match(appJs, /const harnessRunPolicyReportPreviewActionMarkup = `/);
-assert.match(appJs, /const harnessRunSubmitActionMarkup = `/);
-assert.match(
-  appJs,
+
+const harnessRunActionStructureEvidence = [
+  /const harnessRunCommandCopyMarkup = `/,
+  /const harnessRunClearHistoryActionMarkup = hasExecutionHistory/,
+  /const harnessRunPolicyReportPreviewActionMarkup = `/,
+  /const harnessRunSubmitActionMarkup = `/,
   /\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}\s+\$\{harnessRunPolicyReportPreviewActionMarkup\}\s+\$\{harnessRunSubmitActionMarkup\}/,
-);
-assert.doesNotMatch(appJs, /data-harness-run-action-shelf="true"[\s\S]{0,1800}<button/);
+];
+
+const harnessRunActionInlineRejections = [
+  /data-harness-run-action-shelf="true"[\s\S]{0,1800}<button/,
+];
+
+assertTextHasAll(appJs, harnessRunActionStructureEvidence);
+assertTextDoesNotHaveAll(appJs, harnessRunActionInlineRejections);
 assert.match(appJs, /const visibleHarnessPreviewMarkup = canRenderVisibleHarnessPreview/);
 assert.match(appJs, /\$\{visibleHarnessPreviewMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessPreview\s+\?\s+`<pre class="log-viewer log-viewer-compact" data-harness-execution-preview="true">/);

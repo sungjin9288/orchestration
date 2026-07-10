@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes that validate action shelves should separate action source markers from old inline button rejection guards. Keep command/clear/history/preview/submit action markup in one positive group, and keep broad inline-button regressions in a separate rejection group so the failure describes the drift.
+
 - README evidence smokes that validate visible token rows should separate token structure markers from inline/literal-token rejection guards. Keep token tone locals, token markup handoffs, and row markup handoffs in one positive group, and keep old direct row assembly or literal tone calls in a separate rejection group.
 
 - README evidence smokes should treat history result structure as its own reader question once visible and hidden result structures are already grouped. Keep history helper handoffs and old-inline template rejection guards separate so the smoke identifies whether history markup composition drifted or an inline packet assembly returned.
