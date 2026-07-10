@@ -21,7 +21,10 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-run-context="true"/);
-assert.match(appJs, /<strong>실행 기록<\/strong>/);
+assert.match(
+  appJs,
+  /const hiddenHarnessRunContextTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>실행 기록<\/strong>/,
+);
 assert.match(appJs, /data-harness-result-hidden-executed-at-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-input-summary="true"/);
 assert.match(appJs, /data-harness-result-hidden-output-summary="true"/);
@@ -33,6 +36,10 @@ assert.match(appJs, /\$\{hiddenHarnessRunContextSummaryMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /data-harness-result-hidden-run-context="true">\s+[\s\S]{0,240}<strong>실행 기록<\/strong>[\s\S]{0,240}\$\{hiddenHarnessRequestSummaryMarkup\}\s+\$\{hiddenHarnessExecutedAtSummaryMarkup\}/,
+);
+assert.match(
+  appJs,
+  /data-harness-result-hidden-run-context="true">\s+\$\{hiddenHarnessRunContextTitleRowMarkup\}\s+\$\{hiddenHarnessRunContextSummaryMarkup\}/,
 );
 
 async function fetchJson(url, options = {}) {
@@ -121,7 +128,10 @@ async function main() {
             insertionPoint: 'hiddenExecutionResultRegister->hiddenRunContextGroup->executedAt+resolvedPaths',
             sourceMarker: 'data-harness-result-hidden-run-context',
             route: '/api/harness/operator-action/run',
-            namedValues: ['hiddenHarnessRunContextSummaryMarkup'],
+            namedValues: [
+              'hiddenHarnessRunContextTitleRowMarkup',
+              'hiddenHarnessRunContextSummaryMarkup',
+            ],
             executedAt: latestHarnessExecution.executedAt,
             resolvedInputPath: latestHarnessExecution.resolvedInputPath,
             resolvedOutputPath: latestHarnessExecution.resolvedOutputPath,

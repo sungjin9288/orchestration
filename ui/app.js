@@ -1801,27 +1801,36 @@ function renderHarnessExecutionActionShelf(statusPayload) {
     ${hiddenHarnessOperatorCommandSummaryMarkup}
     ${hiddenHarnessOperatorMessageSummaryMarkup}
   `;
+  const hiddenHarnessRunContextTitleRowMarkup = `
+    <div class="card-title-row card-title-row-tight">
+      <strong>실행 기록</strong>
+    </div>
+  `;
+  const hiddenHarnessHarnessContextTitleRowMarkup = `
+    <div class="card-title-row card-title-row-tight">
+      <strong>하네스 컨텍스트</strong>
+    </div>
+  `;
+  const hiddenHarnessOperatorContextTitleRowMarkup = `
+    <div class="card-title-row card-title-row-tight">
+      <strong>운영 컨텍스트</strong>
+    </div>
+  `;
   const hiddenHarnessRunContextSectionMarkup = `
     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-run-context="true">
-      <div class="card-title-row card-title-row-tight">
-        <strong>실행 기록</strong>
-      </div>
+      ${hiddenHarnessRunContextTitleRowMarkup}
       ${hiddenHarnessRunContextSummaryMarkup}
     </section>
   `;
   const hiddenHarnessHarnessContextSectionMarkup = `
     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-harness-context="true">
-      <div class="card-title-row card-title-row-tight">
-        <strong>하네스 컨텍스트</strong>
-      </div>
+      ${hiddenHarnessHarnessContextTitleRowMarkup}
       ${hiddenHarnessContextSummaryMarkup}
     </section>
   `;
   const hiddenHarnessOperatorContextSectionMarkup = `
     <section class="relation-strip relation-strip-compact relation-strip-hidden-compact-block" data-harness-result-hidden-operator-context="true">
-      <div class="card-title-row card-title-row-tight">
-        <strong>운영 컨텍스트</strong>
-      </div>
+      ${hiddenHarnessOperatorContextTitleRowMarkup}
       ${hiddenHarnessOperatorContextSummaryMarkup}
     </section>
   `;

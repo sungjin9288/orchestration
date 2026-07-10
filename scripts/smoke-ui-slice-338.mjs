@@ -22,8 +22,14 @@ const appJs = fs.readFileSync(appPath, 'utf8');
 
 assert.match(appJs, /data-harness-result-hidden-harness-context="true"/);
 assert.match(appJs, /data-harness-result-hidden-operator-context="true"/);
-assert.match(appJs, /<strong>하네스 컨텍스트<\/strong>/);
-assert.match(appJs, /<strong>운영 컨텍스트<\/strong>/);
+assert.match(
+  appJs,
+  /const hiddenHarnessHarnessContextTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>하네스 컨텍스트<\/strong>/,
+);
+assert.match(
+  appJs,
+  /const hiddenHarnessOperatorContextTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>운영 컨텍스트<\/strong>/,
+);
 assert.match(
   appJs,
   /const hiddenHarnessContextSummaryMarkup = `\s+\$\{hiddenHarnessIdSummaryMarkup\}\s+\$\{hiddenHarnessKindSummaryMarkup\}\s+\$\{hiddenHarnessPrimaryCommandSummaryMarkup\}\s+\$\{hiddenHarnessPrimaryRunnerSummaryMarkup\}\s+\$\{hiddenHarnessPostureSummaryMarkup\}\s+\$\{hiddenHarnessStateSummaryMarkup\}\s+\$\{hiddenHarnessHostSummaryMarkup\}/,
@@ -35,12 +41,20 @@ assert.doesNotMatch(
 );
 assert.match(
   appJs,
+  /data-harness-result-hidden-harness-context="true">\s+\$\{hiddenHarnessHarnessContextTitleRowMarkup\}\s+\$\{hiddenHarnessContextSummaryMarkup\}/,
+);
+assert.match(
+  appJs,
   /const hiddenHarnessOperatorContextSummaryMarkup = `\s+\$\{hiddenHarnessOperatorActionSummaryMarkup\}\s+\$\{hiddenHarnessOperatorCommandSummaryMarkup\}\s+\$\{hiddenHarnessOperatorMessageSummaryMarkup\}/,
 );
 assert.match(appJs, /\$\{hiddenHarnessOperatorContextSummaryMarkup\}/);
 assert.doesNotMatch(
   appJs,
   /data-harness-result-hidden-operator-context="true">\s+[\s\S]{0,260}<strong>운영 컨텍스트<\/strong>[\s\S]{0,260}\$\{hiddenHarnessOperatorActionSummaryMarkup\}\s+\$\{hiddenHarnessOperatorCommandSummaryMarkup\}/,
+);
+assert.match(
+  appJs,
+  /data-harness-result-hidden-operator-context="true">\s+\$\{hiddenHarnessOperatorContextTitleRowMarkup\}\s+\$\{hiddenHarnessOperatorContextSummaryMarkup\}/,
 );
 assert.match(
   appJs,
@@ -138,7 +152,9 @@ async function main() {
             harnessMarker: 'data-harness-result-hidden-harness-context',
             operatorMarker: 'data-harness-result-hidden-operator-context',
             namedValues: [
+              'hiddenHarnessHarnessContextTitleRowMarkup',
               'hiddenHarnessContextSummaryMarkup',
+              'hiddenHarnessOperatorContextTitleRowMarkup',
               'hiddenHarnessOperatorContextSummaryMarkup',
               'hiddenHarnessContextSectionsMarkup',
             ],
