@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README Testing evidence should explain the verification layers, not just list commands. Keep focused README/completion-inventory smokes separate from aggregate/UI QA registration checks, and group those assertions in `scripts/smoke-readme-scope-evidence.mjs` so public close-out claims stay source-backed and reviewable.
+
 - README source-evidence smokes should separate current public focus, preceding growth evidence, and backing source-script claims when the assertion block grows. This keeps public README contract checks reviewable without changing README copy or weakening honesty guards.
 
 - Evidence smoke readability should group assertions by reader question instead of leaving a long flat assertion list. Keep the exact regex contract intact, name only small local helpers, and verify the focused smoke before recording the ledger entry.

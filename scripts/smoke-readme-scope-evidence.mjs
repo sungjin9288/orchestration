@@ -328,15 +328,32 @@ assert.match(readme, /node scripts\/smoke-ui-slice-627\.mjs/);
 assert.match(readme, /output\/playwright\/vnext-desktop-top-final\.png/);
 assert.match(readme, /output\/playwright\/vnext-mobile\.png/);
 
-assert.match(readme, new RegExp(`${smokeFileCount} smoke files`));
-assert.match(readme, new RegExp(`${qaSliceFileCount} QA slice files`));
-assert.match(readme, new RegExp(`${uiSmokeFileCount} UI smoke files`));
-assert.match(readme, /node scripts\/run-smoke\.mjs --list/);
-assert.match(readme, /node scripts\/run-smoke\.mjs --filter smoke-readme-scope-evidence/);
-assert.match(readme, /node scripts\/run-smoke\.mjs --all --fail-fast/);
-assert.match(readme, /node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/);
-assert.match(readme, /Current verification evidence from this README and completion close-out refresh/);
-assert.match(readme, /completion inventory counts,\s+aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/);
+const readmeTestingCommandEvidence = [
+  new RegExp(`${smokeFileCount} smoke files`),
+  new RegExp(`${qaSliceFileCount} QA slice files`),
+  new RegExp(`${uiSmokeFileCount} UI smoke files`),
+  /node scripts\/run-smoke\.mjs --list/,
+  /node scripts\/run-smoke\.mjs --filter smoke-readme-scope-evidence/,
+  /node scripts\/run-smoke\.mjs --all --fail-fast/,
+];
+
+for (const pattern of readmeTestingCommandEvidence) {
+  assertReadmeHas(pattern);
+}
+
+const completionVerificationEvidence = [
+  /Completion close-out verification is split deliberately/,
+  /focused README and completion-inventory\s+smokes pin the public claims and inventory counts/,
+  /aggregate and UI QA commands confirm those\s+same counts remain registered in the wider gate/,
+  /node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
+  /Current verification evidence from this README and completion close-out refresh/,
+  /completion inventory counts,\s+aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
+];
+
+for (const pattern of completionVerificationEvidence) {
+  assertReadmeHas(pattern);
+}
+
 assert.doesNotMatch(readme, /838\s+\(smoke-slice/);
 
 const forbiddenClaimPatterns = [
