@@ -1679,11 +1679,11 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       ${visibleHarnessResultStateTokenMarkup}
     </div>
   `;
-  const hiddenHarnessResultStateLabel = '숨김';
-  const hiddenHarnessResultStateTone = 'neutral';
+  const hiddenHarnessResultStateTokenLabel = '숨김';
+  const hiddenHarnessResultStateTokenTone = 'neutral';
   const hiddenHarnessResultStateTokenMarkup = createToken(
-    hiddenHarnessResultStateLabel,
-    hiddenHarnessResultStateTone,
+    hiddenHarnessResultStateTokenLabel,
+    hiddenHarnessResultStateTokenTone,
   );
   const hiddenHarnessTitleRowMarkup = `
     <div class="card-title-row card-title-row-tight">

@@ -25,15 +25,17 @@ const harnessLabels = fs.readFileSync(harnessLabelsPath, 'utf8');
 
 assert.match(appJs, /data-harness-execution-result-hidden="true"/);
 assert.match(appJs, /<div class="card-title-row card-title-row-tight">/);
-assert.match(appJs, /const hiddenHarnessResultStateLabel = '숨김';/);
-assert.match(appJs, /const hiddenHarnessResultStateTone = 'neutral';/);
+assert.match(appJs, /const hiddenHarnessResultStateTokenLabel = '숨김';/);
+assert.match(appJs, /const hiddenHarnessResultStateTokenTone = 'neutral';/);
 assert.match(
   appJs,
-  /const hiddenHarnessResultStateTokenMarkup = createToken\(\s+hiddenHarnessResultStateLabel,\s+hiddenHarnessResultStateTone,\s+\);/,
+  /const hiddenHarnessResultStateTokenMarkup = createToken\(\s+hiddenHarnessResultStateTokenLabel,\s+hiddenHarnessResultStateTokenTone,\s+\);/,
 );
 assert.match(appJs, /\$\{hiddenHarnessResultStateTokenMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{createToken\('숨김', 'neutral'\)\}/);
 assert.doesNotMatch(appJs, /const hiddenHarnessResultStateTokenMarkup = createToken\('숨김', 'neutral'\);/);
+assert.doesNotMatch(appJs, /const hiddenHarnessResultStateLabel = '숨김';/);
+assert.doesNotMatch(appJs, /const hiddenHarnessResultStateTone = 'neutral';/);
 assert.match(appJs, /필요하면 방금 숨긴 \$\{escapeHtml\(hiddenHarnessModeLabel\)\}를 다시 표시할 수 있습니다\./);
 assert.match(harnessLabels, /실행 결과/);
 
@@ -123,8 +125,8 @@ async function main() {
             headerClass: 'card-title-row-tight',
             tokenLabel: '숨김',
             namedValues: [
-              'hiddenHarnessResultStateLabel',
-              'hiddenHarnessResultStateTone',
+              'hiddenHarnessResultStateTokenLabel',
+              'hiddenHarnessResultStateTokenTone',
               'hiddenHarnessResultStateTokenMarkup',
             ],
             route: '/api/harness/operator-action/run',

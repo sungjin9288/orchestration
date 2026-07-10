@@ -121,7 +121,7 @@ assert.match(readme, /hidden harness context summary markup/);
 assert.match(readme, /hidden operator context summary markup/);
 assert.match(readme, /visible token label\/tone markup/);
 assert.match(readme, /latest state token label\/tone markup/);
-assert.match(readme, /hidden state token label\/tone markup/);
+assert.match(readme, /hidden state token-specific label\/tone markup/);
 assert.match(readme, /history header markup/);
 assert.match(readme, /history count token label\/tone markup/);
 assert.match(readme, /output path copy/);
@@ -153,6 +153,7 @@ assert.match(readme, /visible token label\/tone markup handoff/);
 assert.match(readme, /visible header markup handoff/);
 assert.match(readme, /visible token row markup handoff/);
 assert.match(readme, /latest state token label\/tone markup handoff/);
+assert.match(readme, /hidden\s+state token-specific label\/tone markup handoff/);
 assert.match(readme, /visible preview markup handoff/);
 assert.match(readme, /visible preview action markup handoff/);
 assert.match(readme, /visible input path action markup handoff/);
@@ -657,15 +658,17 @@ assert.doesNotMatch(appJs, /\$\{\s*canRenderHistoryHarnessInputPathCopy\s+\?\s+`
 assert.match(appJs, /const historyHarnessRestorePreviewMarkup = `\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/);
 assert.match(appJs, /\$\{historyHarnessRestorePreviewMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{historyHarnessInputPathCopyMarkup\}\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/);
-assert.match(appJs, /const hiddenHarnessResultStateLabel = '숨김';/);
-assert.match(appJs, /const hiddenHarnessResultStateTone = 'neutral';/);
+assert.match(appJs, /const hiddenHarnessResultStateTokenLabel = '숨김';/);
+assert.match(appJs, /const hiddenHarnessResultStateTokenTone = 'neutral';/);
 assert.match(
   appJs,
-  /const hiddenHarnessResultStateTokenMarkup = createToken\(\s+hiddenHarnessResultStateLabel,\s+hiddenHarnessResultStateTone,\s+\);/,
+  /const hiddenHarnessResultStateTokenMarkup = createToken\(\s+hiddenHarnessResultStateTokenLabel,\s+hiddenHarnessResultStateTokenTone,\s+\);/,
 );
 assert.match(appJs, /\$\{hiddenHarnessResultStateTokenMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{createToken\('숨김', 'neutral'\)\}/);
 assert.doesNotMatch(appJs, /const hiddenHarnessResultStateTokenMarkup = createToken\('숨김', 'neutral'\);/);
+assert.doesNotMatch(appJs, /const hiddenHarnessResultStateLabel = '숨김';/);
+assert.doesNotMatch(appJs, /const hiddenHarnessResultStateTone = 'neutral';/);
 assert.match(
   appJs,
   /const hiddenHarnessResultPacketMarkup = `\s+<div\s+class="harness-execution-result-hidden-packet"\s+data-harness-execution-result-hidden-packet="true"\s+>\s+\$\{hiddenHarnessHeaderMarkup\}\s+\$\{hiddenHarnessContextSectionsMarkup\}\s+\$\{hiddenHarnessActionShelfFrameMarkup\}\s+\$\{hiddenHarnessPreviewMarkup\}/,
