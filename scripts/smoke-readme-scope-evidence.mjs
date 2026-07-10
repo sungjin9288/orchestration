@@ -242,7 +242,7 @@ assertReadmeHasAll(advancedOpsHarnessSmokeEvidence);
 assertReadmeHasAll(advancedOpsHarnessHandoffEvidence);
 
 const completionFocusEvidence = [
-  /The current development focus is post-completion lifecycle-close status recheck\s+evidence close-out/,
+  /The current development focus is post-completion lifecycle-close-review status recheck\s+evidence close-out/,
   /default completion baseline\s+is still closed for implementation work/,
   /docs\/22_completion-gate-inventory\.md/,
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
@@ -254,10 +254,10 @@ const completionFocusEvidence = [
 ];
 
 const lifecycleCloseFocusEvidence = [
-  /The active close-out slice is\s+`growth-lifecycle-close-status-recheck-smoke-readability-post-m7-2334`/,
-  /keeps\s+the\s+lifecycle-close status evidence current without changing the already grouped focused\s+smoke/,
+  /The active close-out slice is\s+`growth-lifecycle-close-review-status-recheck-smoke-readability-post-m7-2335`/,
+  /keeps\s+the\s+lifecycle-close-review status evidence current without changing the already grouped focused\s+smoke/,
   /source summary, vocabulary, schema, readiness, next-slice, safety boundary,\s+invalid-argument, plan, and cross-document evidence remain separated/,
-  /source\s+close-status script, focused smoke, runtime behavior, UI behavior,\s+provider configuration, memory persistence, proposal generation\/application, source mutation\s+authority, commit, push, connector reach, automation, and lifecycle semantics remain unchanged/,
+  /source\s+close-review-status script, focused smoke, runtime behavior, UI behavior,\s+provider configuration, memory persistence, proposal generation\/application, source mutation\s+authority, commit, push, connector reach, automation, and lifecycle semantics remain unchanged/,
 ];
 
 const growthFocusEvidence = [
@@ -276,10 +276,15 @@ const growthFocusEvidence = [
 const growthSourceEvidence = [
   /Completion gate inventory:/,
   /aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
+  /Growth lifecycle-close-review status recheck:/,
+  /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status\.mjs/,
+  /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status\.mjs/,
+  /current lifecycle-close-review status packet remains read-only/,
+  /preserves the next lifecycle-close-review-acceptance recommendation/,
   /Growth lifecycle-close status recheck:/,
   /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status\.mjs/,
   /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status\.mjs/,
-  /current lifecycle-close status packet remains read-only/,
+  /preceding lifecycle-close status packet remains read-only/,
   /preserves the next\s+lifecycle-close-review recommendation/,
   /Growth lifecycle-close-final-close status recheck:/,
   /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-final-close-status\.mjs/,
