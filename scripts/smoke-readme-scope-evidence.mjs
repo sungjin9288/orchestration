@@ -533,8 +533,13 @@ assertTextHasAll(appJs, visibleHarnessAppStructureEvidence);
 assertTextDoesNotHaveAll(appJs, visibleHarnessInlineStructureRejections);
 assertTextHasAll(appJs, hiddenHarnessAppStructureEvidence);
 assertTextDoesNotHaveAll(appJs, hiddenHarnessInlineStructureRejections);
-assert.match(appJs, /const visibleHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(visibleHarnessExecutionResult\);/);
-assert.match(appJs, /const hiddenHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(hiddenHarnessExecutionResult\);/);
+
+const harnessActionOutputPathEvidence = [
+  /const visibleHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(visibleHarnessExecutionResult\);/,
+  /const hiddenHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(hiddenHarnessExecutionResult\);/,
+];
+
+assertTextHasAll(appJs, harnessActionOutputPathEvidence);
 
 const historyHarnessAppStructureEvidence = [
   /const historyHarnessPathReuseActionMarkup = `\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/,
@@ -566,19 +571,36 @@ const historyHarnessInlineStructureRejections = [
 
 assertTextHasAll(appJs, historyHarnessAppStructureEvidence);
 assertTextDoesNotHaveAll(appJs, historyHarnessInlineStructureRejections);
-assert.match(appJs, /const visibleHarnessPreviewCopyActionMarkup =\s+canRenderVisibleHarnessPreview/);
-assert.match(appJs, /const visibleHarnessOutputBriefActionMarkup =\s+canRenderVisibleHarnessPreview/);
-assert.match(appJs, /const visibleHarnessPreviewActionsMarkup = `\s+\$\{visibleHarnessPreviewCopyActionMarkup\}\s+\$\{visibleHarnessOutputBriefActionMarkup\}/);
-assert.match(appJs, /const hiddenHarnessPreviewCopyActionMarkup =\s+canRenderHiddenHarnessPreview/);
-assert.match(appJs, /const hiddenHarnessOutputBriefActionMarkup =\s+canRenderHiddenHarnessPreview/);
-assert.match(appJs, /const hiddenHarnessPreviewActionsMarkup = `\s+\$\{hiddenHarnessPreviewCopyActionMarkup\}\s+\$\{hiddenHarnessOutputBriefActionMarkup\}/);
-assert.match(harnessExecutionTokens, /export function isHarnessPolicyReportExecution\(execution\) \{/);
-assert.match(harnessLabels, /export function getHarnessExecutionCompletionLead\(execution, harnessId\) \{/);
-assert.match(harnessLabels, /export function getHarnessExecutionCompletionOutputCopy\(execution, fallbackOutputCopy\) \{/);
-assert.match(harnessLabels, /export function formatHarnessPolicyReportForCopy\(payload\) \{/);
-assert.match(harnessLabels, /if \(!payload\) \{\s+return '';\s+\}/);
-assert.match(harnessLabels, /export function formatHarnessExecutionPacketForCopy\(execution, context = \{\}\) \{/);
-assert.match(harnessLabels, /if \(!execution\?\.harnessId\) \{\s+return '';\s+\}/);
+
+const visibleHarnessPreviewActionHandoffEvidence = [
+  /const visibleHarnessPreviewCopyActionMarkup =\s+canRenderVisibleHarnessPreview/,
+  /const visibleHarnessOutputBriefActionMarkup =\s+canRenderVisibleHarnessPreview/,
+  /const visibleHarnessPreviewActionsMarkup = `\s+\$\{visibleHarnessPreviewCopyActionMarkup\}\s+\$\{visibleHarnessOutputBriefActionMarkup\}/,
+];
+
+const hiddenHarnessPreviewActionHandoffEvidence = [
+  /const hiddenHarnessPreviewCopyActionMarkup =\s+canRenderHiddenHarnessPreview/,
+  /const hiddenHarnessOutputBriefActionMarkup =\s+canRenderHiddenHarnessPreview/,
+  /const hiddenHarnessPreviewActionsMarkup = `\s+\$\{hiddenHarnessPreviewCopyActionMarkup\}\s+\$\{hiddenHarnessOutputBriefActionMarkup\}/,
+];
+
+const harnessExecutionTokenSourceEvidence = [
+  /export function isHarnessPolicyReportExecution\(execution\) \{/,
+];
+
+const harnessCopyFormatterSourceEvidence = [
+  /export function getHarnessExecutionCompletionLead\(execution, harnessId\) \{/,
+  /export function getHarnessExecutionCompletionOutputCopy\(execution, fallbackOutputCopy\) \{/,
+  /export function formatHarnessPolicyReportForCopy\(payload\) \{/,
+  /if \(!payload\) \{\s+return '';\s+\}/,
+  /export function formatHarnessExecutionPacketForCopy\(execution, context = \{\}\) \{/,
+  /if \(!execution\?\.harnessId\) \{\s+return '';\s+\}/,
+];
+
+assertTextHasAll(appJs, visibleHarnessPreviewActionHandoffEvidence);
+assertTextHasAll(appJs, hiddenHarnessPreviewActionHandoffEvidence);
+assertTextHasAll(harnessExecutionTokens, harnessExecutionTokenSourceEvidence);
+assertTextHasAll(harnessLabels, harnessCopyFormatterSourceEvidence);
 
 const visibleHarnessTokenStructureEvidence = [
   /const visibleHarnessPrimaryTokenTone = 'neutral';/,

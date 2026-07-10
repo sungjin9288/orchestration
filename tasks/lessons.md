@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes that validate preview actions and copy formatters should separate UI handoff markers from source formatter exports. Keep output-path helper use, preview action composition, token source predicates, and copy formatter guards in named groups so source drift and UI composition drift do not collapse into one assertion wall.
+
 - README evidence smokes that validate growth authority and pack boundaries should group UI markers, growth config markers, source module exports, pack constants, repo docs, and reference-audit sources by owning file. Cross-file boundary checks are easier to review when each group answers which source-of-truth layer drifted.
 
 - README evidence smokes that validate hidden packet/header composition should group hidden packet/header handoffs separately from history count token/header handoffs. Keep old inline packet/title and direct history count token regressions in their own rejection groups so a failure says whether packet composition or history header composition drifted.
