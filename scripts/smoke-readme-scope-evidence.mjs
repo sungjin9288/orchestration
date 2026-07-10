@@ -242,7 +242,7 @@ assertReadmeHasAll(advancedOpsHarnessSmokeEvidence);
 assertReadmeHasAll(advancedOpsHarnessHandoffEvidence);
 
 const completionFocusEvidence = [
-  /The current development focus is post-completion lifecycle-close status evidence close-out/,
+  /The current development focus is post-completion lifecycle-close-review status evidence close-out/,
   /default completion baseline\s+is still closed for implementation work/,
   /docs\/22_completion-gate-inventory\.md/,
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
@@ -254,10 +254,10 @@ const completionFocusEvidence = [
 ];
 
 const lifecycleCloseFocusEvidence = [
-  /The active close-out slice is `growth-lifecycle-close-status-smoke-readability-post-m7-2307`/,
-  /keeps the lifecycle-close status smoke behavior-preserving and read-only/,
-  /source summary, vocabulary, schema, readiness, next-slice, safety boundary,\s+invalid-argument, plan, and cross-document evidence groups/,
-  /source status script, runtime\s+behavior, UI behavior, provider configuration, memory persistence, proposal generation\/application,\s+source mutation authority, commit, push, connector reach, automation, and lifecycle semantics remain\s+unchanged/,
+  /The active close-out slice is `growth-lifecycle-close-review-status-smoke-readability-post-m7-2308`/,
+  /keeps the lifecycle-close-review status smoke behavior-preserving and read-only/,
+  /source summary, vocabulary, schema, readiness, next-slice, safety\s+boundary, invalid-argument, plan, and cross-document evidence groups/,
+  /source review-status\s+script, runtime behavior, UI behavior, provider configuration, memory persistence, proposal\s+generation\/application, source mutation authority, commit, push, connector reach, automation, and\s+lifecycle semantics remain unchanged/,
 ];
 
 const growthFocusEvidence = [
@@ -276,6 +276,10 @@ const growthFocusEvidence = [
 const growthSourceEvidence = [
   /Completion gate inventory:/,
   /aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
+  /Growth lifecycle-close review status:/,
+  /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status\.mjs/,
+  /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status\.mjs/,
+  /preserves the next\s+lifecycle-close-review-acceptance recommendation/,
   /Growth lifecycle-close status:/,
   /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status\.mjs/,
   /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status\.mjs/,
@@ -402,10 +406,14 @@ const completionVerificationEvidence = [
   /node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status\.mjs/,
   /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status\.mjs/,
+  /node scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status\.mjs/,
+  /node scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status\.mjs/,
   /Current verification evidence from this README and completion close-out refresh/,
   /completion inventory counts,\s+aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
   /reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close status readiness/,
   /pins the lifecycle-close status source markers, vocabulary, schema required fields, readiness,\s+safety boundary, invalid-argument rejection, growth gateway plan evidence, and cross-document\s+ledger evidence/,
+  /reports `ok=true`, `runtimeChanged=false`, read-only lifecycle-close-review acceptance readiness/,
+  /pins the lifecycle-close-review status source markers, vocabulary, schema required fields,\s+readiness, safety boundary, invalid-argument rejection, growth gateway plan evidence, and\s+cross-document ledger evidence/,
 ];
 
 assertReadmeHasAll(completionVerificationEvidence);
