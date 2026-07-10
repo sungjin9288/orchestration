@@ -110,6 +110,7 @@ assert.match(readme, /hidden preview action markup/);
 assert.match(readme, /hidden input path action markup/);
 assert.match(readme, /hidden action shelf markup/);
 assert.match(readme, /hidden action shelf frame markup/);
+assert.match(readme, /hidden result packet markup/);
 assert.match(readme, /hidden header markup/);
 assert.match(readme, /hidden context sections markup/);
 assert.match(readme, /hidden run context summary markup/);
@@ -177,6 +178,7 @@ assert.match(readme, /execution packet copy markup handoff/);
 assert.match(readme, /hidden action markup handoff/);
 assert.match(readme, /hidden action shelf markup handoff/);
 assert.match(readme, /hidden action shelf frame markup handoff/);
+assert.match(readme, /hidden result packet markup handoff/);
 assert.match(readme, /visible action shelf markup handoff/);
 assert.match(readme, /visible action shelf frame markup handoff/);
 assert.match(readme, /visible hide action markup handoff/);
@@ -626,6 +628,15 @@ assert.match(
 assert.match(appJs, /\$\{hiddenHarnessResultStateTokenMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{createToken\('숨김', 'neutral'\)\}/);
 assert.doesNotMatch(appJs, /const hiddenHarnessResultStateTokenMarkup = createToken\('숨김', 'neutral'\);/);
+assert.match(
+  appJs,
+  /const hiddenHarnessResultPacketMarkup = `\s+<div\s+class="harness-execution-result-hidden-packet"\s+data-harness-execution-result-hidden-packet="true"\s+>\s+\$\{hiddenHarnessHeaderMarkup\}\s+\$\{hiddenHarnessContextSectionsMarkup\}\s+\$\{hiddenHarnessActionShelfFrameMarkup\}\s+\$\{hiddenHarnessPreviewMarkup\}/,
+);
+assert.match(appJs, /\$\{hiddenHarnessResultPacketMarkup\}/);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-hidden="true"[\s\S]{0,220}<div\s+class="harness-execution-result-hidden-packet"\s+data-harness-execution-result-hidden-packet="true"/,
+);
 assert.match(
   appJs,
   /const hiddenHarnessTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>\$\{escapeHtml\(hiddenHarnessResultTitle\)\}가 숨겨져 있습니다<\/strong>\s+\$\{hiddenHarnessResultStateTokenMarkup\}/,

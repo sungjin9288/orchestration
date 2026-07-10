@@ -11,10 +11,17 @@ const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 const appJs = fs.readFileSync(appPath, 'utf8');
 const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(appJs, /data-harness-execution-result-hidden-packet="true"/);
 assert.match(
   appJs,
-  /data-harness-execution-result-hidden="true"[\s\S]*data-harness-execution-result-hidden-packet="true"[\s\S]*\$\{hiddenHarnessHeaderMarkup\}[\s\S]*\$\{hiddenHarnessContextSectionsMarkup\}/,
+  /const hiddenHarnessResultPacketMarkup = `\s+<div\s+class="harness-execution-result-hidden-packet"\s+data-harness-execution-result-hidden-packet="true"\s+>\s+\$\{hiddenHarnessHeaderMarkup\}\s+\$\{hiddenHarnessContextSectionsMarkup\}\s+\$\{hiddenHarnessActionShelfFrameMarkup\}\s+\$\{hiddenHarnessPreviewMarkup\}/,
+);
+assert.match(
+  appJs,
+  /data-harness-execution-result-hidden="true"[\s\S]*\$\{hiddenHarnessResultPacketMarkup\}/,
+);
+assert.doesNotMatch(
+  appJs,
+  /data-harness-execution-result-hidden="true"[\s\S]{0,220}<div\s+class="harness-execution-result-hidden-packet"\s+data-harness-execution-result-hidden-packet="true"/,
 );
 assert.match(
   appJs,
@@ -36,7 +43,13 @@ console.log(
       harnessExecutionHiddenPacketDesign: {
         insertionPoint: 'harnessRunDesk->hiddenResultPacketDesign->hiddenResultSurface',
         marker: 'data-harness-execution-result-hidden-packet',
-        namedValues: ['hiddenHarnessHeaderMarkup', 'hiddenHarnessContextSectionsMarkup'],
+        namedValues: [
+          'hiddenHarnessResultPacketMarkup',
+          'hiddenHarnessHeaderMarkup',
+          'hiddenHarnessContextSectionsMarkup',
+          'hiddenHarnessActionShelfFrameMarkup',
+          'hiddenHarnessPreviewMarkup',
+        ],
       },
     },
     null,

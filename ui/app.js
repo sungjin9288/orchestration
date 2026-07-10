@@ -2146,6 +2146,17 @@ function renderHarnessExecutionActionShelf(statusPayload) {
       ${hiddenHarnessActionShelfMarkup}
     </div>
   `;
+  const hiddenHarnessResultPacketMarkup = `
+    <div
+      class="harness-execution-result-hidden-packet"
+      data-harness-execution-result-hidden-packet="true"
+    >
+      ${hiddenHarnessHeaderMarkup}
+      ${hiddenHarnessContextSectionsMarkup}
+      ${hiddenHarnessActionShelfFrameMarkup}
+      ${hiddenHarnessPreviewMarkup}
+    </div>
+  `;
   const visibleHarnessOutputBriefCopyText = formatHarnessOutputBriefForCopy(
     visibleHarnessOutputBrief,
     visibleHarnessExecutionResult,
@@ -2391,15 +2402,7 @@ function renderHarnessExecutionActionShelf(statusPayload) {
               isHiddenHarnessResultForPrimaryHarness
                 ? `
                   <section class="relation-strip relation-strip-hidden-compact" data-harness-execution-result-hidden="true">
-                    <div
-                      class="harness-execution-result-hidden-packet"
-                      data-harness-execution-result-hidden-packet="true"
-                    >
-                    ${hiddenHarnessHeaderMarkup}
-                    ${hiddenHarnessContextSectionsMarkup}
-                    ${hiddenHarnessActionShelfFrameMarkup}
-                    ${hiddenHarnessPreviewMarkup}
-                    </div>
+                    ${hiddenHarnessResultPacketMarkup}
                   </section>
                 `
                 : ''
