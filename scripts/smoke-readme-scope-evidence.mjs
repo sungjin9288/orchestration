@@ -701,12 +701,21 @@ const harnessActionTokenInlineRejections = [
 
 assertTextHasAll(appJs, harnessActionTokenHandoffEvidence);
 assertTextDoesNotHaveAll(appJs, harnessActionTokenInlineRejections);
-assert.match(appJs, /const historyHarnessInputPathCopyMarkup =\s+canRenderHistoryHarnessInputPathCopy/);
-assert.match(appJs, /\$\{historyHarnessInputPathCopyMarkup\}/);
-assert.doesNotMatch(appJs, /\$\{\s*canRenderHistoryHarnessInputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/);
-assert.match(appJs, /const historyHarnessRestorePreviewMarkup = `\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/);
-assert.match(appJs, /\$\{historyHarnessRestorePreviewMarkup\}/);
-assert.doesNotMatch(appJs, /\$\{historyHarnessInputPathCopyMarkup\}\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/);
+
+const historyHarnessRestoreActionEvidence = [
+  /const historyHarnessInputPathCopyMarkup =\s+canRenderHistoryHarnessInputPathCopy/,
+  /\$\{historyHarnessInputPathCopyMarkup\}/,
+  /const historyHarnessRestorePreviewMarkup = `\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/,
+  /\$\{historyHarnessRestorePreviewMarkup\}/,
+];
+
+const historyHarnessRestoreActionInlineRejections = [
+  /\$\{\s*canRenderHistoryHarnessInputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-input-path"/,
+  /\$\{historyHarnessInputPathCopyMarkup\}\s+<button[\s\S]*?data-action="restore-harness-execution-preview"/,
+];
+
+assertTextHasAll(appJs, historyHarnessRestoreActionEvidence);
+assertTextDoesNotHaveAll(appJs, historyHarnessRestoreActionInlineRejections);
 assert.match(appJs, /const hiddenHarnessResultStateTokenLabel = '숨김';/);
 assert.match(appJs, /const hiddenHarnessResultStateTokenTone = 'neutral';/);
 assert.match(
