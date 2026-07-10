@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   proposalApplicationImplementationDecisionGate,
-  proposalApplicationSourceMutationImplementationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -195,7 +194,8 @@ const proposalApplicationImplementationDecisionHandoffSourceEvidence = {
   decisionLog: ['### DEC-060', '### DEC-061'],
   audit: [
     'Completed: `proposal application implementation decision handoff`',
-    '1. `proposal application source mutation implementation decision required`',
+    'Completed: `proposal application source mutation implementation`',
+    'Next: `current read-only growth candidate`',
   ],
   inventory: ['vNext proposal application implementation decision handoff'],
   readme: [
@@ -224,7 +224,11 @@ assert.equal(
   proposalApplicationImplementationPlanStatus.currentGate,
   proposalApplicationImplementationDecisionGate,
 );
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditStatus.authority?.sourceMutationImplementationAllowed, true);
+assert.equal(
+  vnextDevelopmentAuditStatus.authority?.sourceMutationAllowedThroughApprovedRuntimeFunction,
+  true,
+);
 assert.equal(proposalApplicationImplementationPlanStatus.authority?.implementationApproved, false);
 assert.equal(proposalApplicationImplementationPlanStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(

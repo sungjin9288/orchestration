@@ -27,19 +27,19 @@ It is not source mutation implementation approval. It does not generate proposal
 ## Current Status
 
 - Planning approval: accepted
-- Implementation approval: blocked
+- Implementation approval: accepted later under `DEC-067`
 - Target authority: `proposal application source mutation planning for one audit-only application attempt path`
 - Current proposal application authority: audit-only attempt records only
-- Current source mutation planning authority: planning only
-- Current source mutation implementation authority: blocked
-- Current source mutation authority: blocked
-- Current downstream gate: `proposal application source mutation implementation decision required`
+- Current source mutation planning authority: accepted historical plan evidence
+- Current source mutation implementation authority: accepted for exactly one named path
+- Current source mutation authority: approved runtime function only; all other paths blocked
+- Current implementation evidence: `docs/39_proposal-application-source-mutation-implementation.md`
 
 ## Mutation Plan
 
-The first source mutation implementation slice must start from existing approved audit-only `proposalApplicationAttempts` records. It may design a mutation path, but it must not write source files until a later implementation decision names the exact path.
+The first source mutation implementation slice had to start from existing approved audit-only `proposalApplicationAttempts` records. This plan did not permit source writes by itself; the later `DEC-067` decision named and approved the exact path implemented in `docs/39_proposal-application-source-mutation-implementation.md`.
 
-The later implementation plan must:
+The implementation slice had to:
 
 - identify exactly one eligible `proposalApplicationAttempts` record
 - link that attempt to one durable proposal record
@@ -52,7 +52,7 @@ The later implementation plan must:
 - record rollback proof before implementation authority can be reviewed
 - keep all non-named source mutation paths blocked
 
-The later implementation plan must not:
+The implementation slice must not:
 
 - generate proposals
 - apply more than one proposal
@@ -68,7 +68,7 @@ The later implementation plan must not:
 
 ## Source Mutation Contract
 
-The first implementation decision must point back to this planning document and must keep source mutation narrow.
+The accepted `DEC-067` implementation decision points back to this planning document and keeps source mutation narrow.
 
 | Field | Rule |
 | --- | --- |
@@ -79,7 +79,7 @@ The first implementation decision must point back to this planning document and 
 | `diffPreviewRefs` | Required dry-run preview evidence before source mutation. |
 | `rollbackRefs` | Required rollback and quarantine evidence. |
 | `focusedSmokeRefs` | Required focused smoke refs proving the named path and blocked paths. |
-| `sourceMutationImplementationAllowed` | Always `false` until a later implementation decision is accepted. |
+| `sourceMutationImplementationAllowed` | `false` in this planning-only artifact; the later `DEC-067` decision opens only its named runtime function. |
 | `sourceMutationAllowed` | Always `false` for this planning-only slice. |
 | `providerCallsAllowed` | Always `false`. |
 | `memoryPersistenceAllowed` | Always `false`. |
@@ -89,7 +89,7 @@ The first implementation decision must point back to this planning document and 
 
 ## Rollback Plan
 
-The later implementation slice must include rollback evidence for these steps:
+The approved implementation slice includes rollback evidence for these steps:
 
 1. Disable the source mutation implementation entrypoint.
 2. Preserve durable proposal record and application attempt audit evidence.
@@ -100,9 +100,9 @@ The later implementation slice must include rollback evidence for these steps:
 
 ## Focused Smoke Plan
 
-The later implementation slice must add focused smoke coverage proving:
+The approved implementation slice adds focused smoke coverage proving:
 
-- source mutation planning is accepted but implementation remains blocked until a later decision
+- source mutation planning was accepted while implementation remained blocked until `DEC-067`
 - implementation fails without explicit source mutation implementation approval
 - implementation fails when the referenced application attempt does not exist
 - implementation fails when the attempt is invalid, expired, quarantined, stale, or evidence-incomplete
@@ -116,17 +116,17 @@ The later implementation slice must add focused smoke coverage proving:
 - commit and push remain blocked
 - aggregate verification includes the new focused smoke
 
-## Implementation Decision Required
+## Implementation Decision Evidence
 
-Before implementation can start, the operator must provide a later `approve-source-mutation-implementation-slice` decision that names exactly one accepted mutation plan and exact target files or surfaces.
+Implementation started only after the operator provided `operator-decision-vnext-proposal-source-mutation-implementation-001` with `decisionStatus=approve-source-mutation-implementation-slice`, one accepted mutation plan, and exact target surfaces.
 
-That later decision must keep proposal generation, provider calls, memory persistence, commit, and push separate unless those actions are separately approved.
+That decision keeps proposal generation, provider calls, memory persistence, commit, and push separate and blocked.
 
 ## Stop Conditions
 
 Stop before implementation when any of these are true:
 
-- no later `approve-source-mutation-implementation-slice` decision exists
+- the `approve-source-mutation-implementation-slice` decision is absent or invalid
 - the implementation decision names more than one authority path
 - source mutation approval is collapsed into proposal record creation approval
 - source mutation approval is collapsed into application attempt approval
@@ -146,4 +146,4 @@ Run:
 node scripts/vnext-proposal-application-source-mutation-planning-plan-status.mjs
 ```
 
-The plan status script verifies the accepted planning-only decision, this mutation plan, rollback plan, focused smoke plan, vNext development audit, completion-gate inventory, README evidence, aggregate registration, upstream source mutation packet and handoff evidence, and blocked authority markers. It does not record implementation approval or open source mutation implementation authority.
+The plan status script verifies the accepted planning-only decision, this mutation plan, rollback plan, focused smoke plan, the separate `DEC-067` implementation evidence, vNext development audit, completion-gate inventory, README evidence, aggregate registration, upstream source mutation packet and handoff evidence, and the authorities that remain blocked. It does not record a new decision or widen the approved mutation path.

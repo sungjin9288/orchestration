@@ -9,7 +9,6 @@ import {
   durableProposalRecordDecisionId,
   proposalApplicationDecisionGate,
   proposalApplicationDecisionRequiredInput,
-  proposalApplicationSourceMutationImplementationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -238,7 +237,11 @@ assert.equal(proposalReviewDecisionSpecStatus.ok, true);
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalRecordCreationAllowed, false);
 assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalRecordPersistenceAllowed, false);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditStatus.authority?.sourceMutationImplementationAllowed, true);
+assert.equal(
+  vnextDevelopmentAuditStatus.authority?.sourceMutationAllowedThroughApprovedRuntimeFunction,
+  true,
+);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'durable proposal record implementation plan',

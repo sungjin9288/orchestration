@@ -4,10 +4,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
-import {
-  createProposalApplicationSourceMutationImplementationDecision,
-  proposalApplicationSourceMutationImplementationDecisionSlice,
-} from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -146,13 +142,6 @@ assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.app, forbiddenActions)
 assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.growthPanels, forbiddenActions);
 
 const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const vnextDevelopmentAuditNextSlice =
-  vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationSourceMutationImplementationDecision =
-  createProposalApplicationSourceMutationImplementationDecision({
-    reason:
-      'The read-only growth dashboard, approved durable proposal record creation/persistence slice, audit-only application attempt, and source mutation planning are source-backed; source mutation implementation still needs a later explicit decision, rollback evidence, focused smoke, and aggregate verification.',
-  });
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(
@@ -161,7 +150,11 @@ assert.equal(
   ),
   true,
 );
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditStatus.authority?.sourceMutationImplementationAllowed, true);
+assert.equal(
+  vnextDevelopmentAuditStatus.authority?.sourceMutationAllowedThroughApprovedRuntimeFunction,
+  true,
+);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -185,7 +178,7 @@ process.stdout.write(
         sourceMutationAllowed: false,
         commitPushAllowed: false,
       },
-      nextRecommendedDecision: proposalApplicationSourceMutationImplementationDecision,
+      nextRecommendedDecision: vnextDevelopmentAuditStatus.nextGrowthCandidate,
     },
     null,
     2,

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This packet turns the current `proposal application source mutation decision required` gate into concrete operator decision input.
+This packet turned the original `proposal application source mutation decision required` gate into concrete operator decision input.
 
 It is not source mutation approval. It does not apply proposals, generate proposals, call providers, persist memory, mutate project source files, commit, or push. It only states what must be decided before any later source-mutation planning or implementation slice can open.
 
@@ -10,11 +10,11 @@ It is not source mutation approval. It does not apply proposals, generate propos
 
 - Original gate: `proposal application source mutation decision required`
 - Source implementation: `DEC-062`
-- Current packet status: `consumed-by-source-mutation-planning-only-decision`
+- Current packet status: `consumed-by-source-mutation-implementation-decision`
 - Current proposal application authority: audit-only attempt records only
-- Current source mutation planning authority: planning only
-- Current source mutation implementation authority: blocked
-- Current source mutation authority: blocked
+- Current source mutation planning authority: accepted historical plan evidence
+- Current source mutation implementation authority: accepted for exactly one named path under `DEC-067`
+- Current source mutation authority: approved runtime function only; all other paths blocked
 - Current provider, memory, commit, and push authority: blocked
 
 ## Decision Options
@@ -68,7 +68,7 @@ The first source mutation plan is now recorded in `docs/38_proposal-application-
 
 ## Still Blocked
 
-These authorities remain blocked from this packet:
+This packet grants no authority by itself. After the later `DEC-067` implementation decision, these authorities remain blocked:
 
 - proposal generation
 - proposal application beyond approved audit-only attempt records
@@ -81,7 +81,7 @@ These authorities remain blocked from this packet:
 - skill promotion
 - runtime mutation from growth candidates
 - UI action mutation from growth candidates
-- project source mutation
+- project source mutation outside the single approved named path
 - commit
 - push
 
@@ -111,4 +111,4 @@ Run:
 node scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs
 ```
 
-The script must stay read-only. It verifies this packet, the implemented audit-only application attempt evidence, the vNext development audit, README evidence, completion-gate inventory, aggregate registration, and blocked authority markers without opening source mutation authority.
+The script must stay read-only. It verifies this packet as consumed decision evidence, the implemented audit-only application attempt, the separate `DEC-067` source mutation implementation evidence, the vNext development audit, README evidence, completion-gate inventory, aggregate registration, and the authorities that remain blocked.

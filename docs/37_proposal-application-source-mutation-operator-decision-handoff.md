@@ -6,16 +6,16 @@ This document gives the operator a copy-ready decision shape for the `proposal a
 
 It is not an operator decision. It does not approve source mutation planning or implementation. It does not apply proposals, generate proposals, call providers, persist memory, mutate source files, commit, or push.
 
-## Current Gate
+## Current State
 
-- Current gate: `proposal application source mutation implementation decision required`
-- Handoff status: `consumed-by-source-mutation-planning-only-decision`
+- Original gate: `proposal application source mutation implementation decision required`
+- Handoff status: `consumed-by-source-mutation-implementation-decision`
 - Decision packet: `docs/36_proposal-application-source-mutation-decision-packet.md`
 - Application attempt evidence: `docs/35_proposal-application-implementation.md`
 - Current proposal application authority: audit-only attempt records only
-- Current source mutation planning authority: planning only
-- Current source mutation implementation authority: blocked
-- Current source mutation authority: blocked
+- Current source mutation planning authority: accepted historical plan evidence
+- Current source mutation implementation authority: accepted for exactly one named path under `DEC-067`
+- Current source mutation authority: approved runtime function only; all other paths blocked
 - Current provider, memory, commit, and push authority: blocked
 
 ## Source Evidence
@@ -28,6 +28,8 @@ It is not an operator decision. It does not approve source mutation planning or 
 - `DEC-062`
 - `DEC-063`
 - `DEC-064`
+- `DEC-065`
+- `DEC-067`
 - `docs/24_proposal-review-decision-spec.md`
 - `docs/30_durable-proposal-record-implementation-plan.md`
 - `docs/31_proposal-application-decision-packet.md`
@@ -36,6 +38,8 @@ It is not an operator decision. It does not approve source mutation planning or 
 - `docs/34_proposal-application-implementation-decision-handoff.md`
 - `docs/35_proposal-application-implementation.md`
 - `docs/36_proposal-application-source-mutation-decision-packet.md`
+- `docs/38_proposal-application-source-mutation-planning-plan.md`
+- `docs/39_proposal-application-source-mutation-implementation.md`
 - `node scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs`
 - `node scripts/verification_status.mjs`
 
@@ -163,10 +167,9 @@ An implementation decision is acceptable only when it:
 
 ## Still Blocked
 
-These authorities remain blocked from this handoff:
+This handoff grants no authority by itself. After the later `DEC-067` implementation decision, these authorities remain blocked:
 
-- source mutation planning
-- source mutation implementation
+- source mutation outside the single approved named path
 - proposal generation
 - proposal application beyond approved audit-only attempt records
 - proposal queue mutation
@@ -203,4 +206,4 @@ Run:
 node scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs
 ```
 
-The status script verifies this handoff, the source mutation decision packet, the approved audit-only application attempt evidence, the current development audit, README evidence, completion inventory, aggregate registration, and blocked authority markers. It does not record an operator decision or open source mutation authority.
+The status script verifies this handoff as consumed decision evidence, the source mutation decision packet, the approved audit-only application attempt, the separate `DEC-067` source mutation implementation evidence, the current development audit, README evidence, completion inventory, aggregate registration, and the authorities that remain blocked. It does not record a new operator decision or widen the approved mutation path.

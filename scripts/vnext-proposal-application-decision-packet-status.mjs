@@ -7,7 +7,6 @@ import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   proposalApplicationImplementationDecisionGate,
   proposalApplicationImplementationDecisionRequiredInput,
-  proposalApplicationSourceMutationImplementationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -185,7 +184,8 @@ const proposalApplicationDecisionPacketSourceEvidence = {
   audit: [
     'Completed: `proposal application decision packet`',
     'Completed: `proposal application implementation plan`',
-    '1. `proposal application source mutation implementation decision required`',
+    'Completed: `proposal application source mutation implementation`',
+    'Next: `current read-only growth candidate`',
   ],
   inventory: ['vNext proposal application decision packet'],
   readme: [
@@ -219,7 +219,11 @@ assert.equal(
   ),
   true,
 );
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditStatus.authority?.sourceMutationImplementationAllowed, true);
+assert.equal(
+  vnextDevelopmentAuditStatus.authority?.sourceMutationAllowedThroughApprovedRuntimeFunction,
+  true,
+);
 assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(

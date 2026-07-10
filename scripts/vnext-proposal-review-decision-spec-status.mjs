@@ -10,10 +10,6 @@ import {
   readRepoFiles,
   runStatus,
 } from './vnext-status-assertions.mjs';
-import {
-  createProposalApplicationSourceMutationImplementationDecision,
-  proposalApplicationSourceMutationImplementationDecisionSlice,
-} from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -140,17 +136,12 @@ const vnextDevelopmentAuditStatus = runStatus(
   repoRoot,
   'scripts/vnext-development-audit-status.mjs',
 );
-const vnextDevelopmentAuditNextSlice =
-  vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
-const proposalApplicationSourceMutationImplementationDecision =
-  createProposalApplicationSourceMutationImplementationDecision({
-  command: 'node scripts/vnext-proposal-review-decision-spec-status.mjs',
-  reason:
-    'Proposal review, durable proposal record creation/persistence, audit-only application attempt evidence, and source mutation planning are source-backed; source mutation implementation still requires a later explicit decision.',
-  });
-
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditStatus.authority?.sourceMutationImplementationAllowed, true);
+assert.equal(
+  vnextDevelopmentAuditStatus.authority?.sourceMutationAllowedThroughApprovedRuntimeFunction,
+  true,
+);
 
 const proposalQueue = runStatus(repoRoot, 'scripts/growth-proposal-queue-status.mjs');
 const creationReadiness = runStatus(
@@ -227,7 +218,7 @@ process.stdout.write(
           dryRunOnly: creationReadiness.readiness?.dryRunOnly,
         },
       },
-      nextRecommendedSlice: proposalApplicationSourceMutationImplementationDecision,
+      nextRecommendedSlice: vnextDevelopmentAuditStatus.nextGrowthCandidate,
       authority: proposalReviewAuthorityBoundary,
     },
     null,

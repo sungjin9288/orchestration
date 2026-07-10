@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   durableProposalRecordCreationCandidate,
-  proposalApplicationSourceMutationImplementationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -182,7 +181,8 @@ const authorityExpansionReviewSourceEvidence = {
   ],
   audit: [
     'Completed: `operator-approved authority expansion review`',
-    '`proposal application source mutation implementation decision required`',
+    'Completed: `proposal application source mutation implementation`',
+    'Next: `current read-only growth candidate`',
   ],
   inventory: ['vNext authority expansion review'],
   readme: [
@@ -215,7 +215,11 @@ assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(growthDashboardEvidenceDepthStatus.ok, true);
 assert.equal(proposalReviewDecisionSpecStatus.ok, true);
 assert.equal(memoryReadinessDecisionSpecStatus.ok, true);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditStatus.authority?.sourceMutationImplementationAllowed, true);
+assert.equal(
+  vnextDevelopmentAuditStatus.authority?.sourceMutationAllowedThroughApprovedRuntimeFunction,
+  true,
+);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'operator-approved authority expansion review',

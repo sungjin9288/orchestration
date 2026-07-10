@@ -7,7 +7,6 @@ import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   proposalApplicationImplementationDecisionGate,
   proposalApplicationImplementationDecisionRequiredInput,
-  proposalApplicationSourceMutationImplementationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -194,7 +193,8 @@ const proposalApplicationOperatorHandoffSourceEvidence = {
   audit: [
     'Completed: `proposal application operator decision handoff`',
     'Completed: `proposal application implementation plan`',
-    '1. `proposal application source mutation implementation decision required`',
+    'Completed: `proposal application source mutation implementation`',
+    'Next: `current read-only growth candidate`',
   ],
   inventory: ['vNext proposal application operator decision handoff'],
   readme: [
@@ -229,7 +229,11 @@ assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(proposalApplicationDecisionPacketStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(proposalReviewDecisionSpecStatus.authority?.proposalApplicationAllowed, false);
 assert.equal(durableProposalRecordImplementationStatus.authority?.proposalApplicationAllowed, false);
-assert.equal(vnextDevelopmentAuditNextSlice, proposalApplicationSourceMutationImplementationDecisionSlice);
+assert.equal(vnextDevelopmentAuditStatus.authority?.sourceMutationImplementationAllowed, true);
+assert.equal(
+  vnextDevelopmentAuditStatus.authority?.sourceMutationAllowedThroughApprovedRuntimeFunction,
+  true,
+);
 assert.equal(
   vnextDevelopmentAuditStatus.implemented?.some(
     (entry) => entry.area === 'proposal application operator decision handoff',

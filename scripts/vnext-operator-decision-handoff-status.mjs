@@ -9,7 +9,6 @@ import {
   operatorDecisionGate,
   proposalApplicationDecisionGate,
   proposalApplicationDecisionRequiredInput,
-  proposalApplicationSourceMutationImplementationDecisionSlice,
 } from './vnext-status-constants.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -208,7 +207,8 @@ const proposalRecordOperatorHandoffSourceEvidence = {
     'Completed: `durable proposal record planning preview`',
     'Completed: `operator decision handoff`',
     'Completed: `durable proposal record implementation plan`',
-    '1. `proposal application source mutation implementation decision required`',
+    'Completed: `proposal application source mutation implementation`',
+    'Next: `current read-only growth candidate`',
   ],
   decisionLog: ['### DEC-055', '### DEC-056'],
   inventory: ['vNext operator decision handoff'],
@@ -289,7 +289,7 @@ process.stdout.write(
         },
         vnextAudit: {
           registered: true,
-          nextSlice: proposalApplicationSourceMutationImplementationDecisionSlice,
+          sourceMutationImplementation: 'accepted under DEC-067',
         },
       },
       authority: proposalRecordOperatorHandoffAuthorityBoundary,

@@ -11,12 +11,13 @@ import {
   runStatus,
 } from './vnext-status-assertions.mjs';
 import {
-  createProposalApplicationSourceMutationPlanningOnlyAuthorityBoundary,
+  createProposalApplicationSourceMutationImplementedAuthorityBoundary,
   proposalApplicationSourceMutationBlockedAuthorityMarkers,
   proposalApplicationSourceMutationDecisionRequiredFields,
   proposalApplicationSourceMutationForbiddenActionPatterns,
   proposalApplicationSourceMutationImplementationDecisionRequiredInput,
   proposalApplicationSourceMutationImplementationDecisionSlice,
+  proposalApplicationSourceMutationImplementedSlice,
   proposalApplicationSourceMutationPlanningPlanSlice,
   proposalApplicationSourceMutationInvalidShortcutPhrases,
   proposalApplicationSourceMutationOperatorHandoffSlice,
@@ -37,6 +38,7 @@ const sourceMutationOperatorHandoffFiles = {
   handoff: 'docs/37_proposal-application-source-mutation-operator-decision-handoff.md',
   decisionPacket: 'docs/36_proposal-application-source-mutation-decision-packet.md',
   planningPlan: 'docs/38_proposal-application-source-mutation-planning-plan.md',
+  implementation: 'docs/39_proposal-application-source-mutation-implementation.md',
   applicationImplementation: 'docs/35_proposal-application-implementation.md',
   applicationImplementationStatus: 'scripts/vnext-proposal-application-implementation-status.mjs',
   sourceMutationDecisionPacketStatus:
@@ -53,7 +55,7 @@ const sourceMutationOperatorHandoffFiles = {
 
 const sourceMutationOperatorHandoffSections = [
   '## Purpose',
-  '## Current Gate',
+  '## Current State',
   '## Source Evidence',
   '## Planning-Only Decision Shape',
   '## Implementation-Slice Decision Shape',
@@ -89,12 +91,12 @@ const sourceMutationOperatorHandoffSourceEvidence = {
   handoff: [
     ...proposalApplicationSourceMutationInvalidShortcutPhrases,
     'It is not an operator decision',
-    'Current gate: `proposal application source mutation implementation decision required`',
-    'Handoff status: `consumed-by-source-mutation-planning-only-decision`',
+    'Original gate: `proposal application source mutation implementation decision required`',
+    'Handoff status: `consumed-by-source-mutation-implementation-decision`',
     'Current proposal application authority: audit-only attempt records only',
-    'Current source mutation planning authority: planning only',
-    'Current source mutation implementation authority: blocked',
-    'Current source mutation authority: blocked',
+    'Current source mutation planning authority: accepted historical plan evidence',
+    'Current source mutation implementation authority: accepted for exactly one named path under `DEC-067`',
+    'Current source mutation authority: approved runtime function only; all other paths blocked',
     'decisionStatus=approve-source-mutation-planning-only',
     'targetAuthority=proposal application source mutation planning for one audit-only application attempt path',
     'decisionStatus=approve-source-mutation-implementation-slice',
@@ -108,20 +110,24 @@ const sourceMutationOperatorHandoffSourceEvidence = {
     'node scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs',
   ],
   decisionPacket: [
-    'Current packet status: `consumed-by-source-mutation-planning-only-decision`',
+    'Current packet status: `consumed-by-source-mutation-implementation-decision`',
     'Current proposal application authority: audit-only attempt records only',
-    'Current source mutation planning authority: planning only',
-    'Current source mutation implementation authority: blocked',
-    'Current source mutation authority: blocked',
+    'Current source mutation planning authority: accepted historical plan evidence',
+    'Current source mutation implementation authority: accepted for exactly one named path under `DEC-067`',
+    'Current source mutation authority: approved runtime function only; all other paths blocked',
     'approve-source-mutation-planning-only',
     'approve-source-mutation-implementation-slice',
   ],
   planningPlan: [
     'Planning approval: accepted',
-    'Implementation approval: blocked',
-    'Current source mutation planning authority: planning only',
-    'Current source mutation implementation authority: blocked',
-    'Current downstream gate: `proposal application source mutation implementation decision required`',
+    'Implementation approval: accepted later under `DEC-067`',
+    'Current source mutation planning authority: accepted historical plan evidence',
+    'Current source mutation implementation authority: accepted for exactly one named path',
+  ],
+  implementation: [
+    'Implementation approval: accepted',
+    'Runtime implementation: completed',
+    'operator-decision-vnext-proposal-source-mutation-implementation-001',
   ],
   applicationImplementation: [
     'Implementation approval: accepted',
@@ -136,11 +142,13 @@ const sourceMutationOperatorHandoffSourceEvidence = {
   ],
   sourceMutationDecisionPacketStatus: [
     'posture: \'read-only-proposal-application-source-mutation-decision-packet\'',
-    'createProposalApplicationSourceMutationPlanningOnlyAuthorityBoundary',
+    'createProposalApplicationSourceMutationImplementedAuthorityBoundary',
   ],
   statusConstants: [
     'sourceMutationPlanningAllowed: true',
-    'sourceMutationImplementationAllowed: false',
+    'sourceMutationImplementationAllowed: true',
+    'sourceMutationAllowedThroughApprovedRuntimeFunction: true',
+    'sourceMutationOutsideApprovedPathAllowed: false',
     'proposalApplicationAllowed: false',
     'proposalGenerationAllowed: false',
     'providerCallsAllowed: false',
@@ -151,22 +159,26 @@ const sourceMutationOperatorHandoffSourceEvidence = {
   decisionLog: [
     '### DEC-064',
     '### DEC-065',
+    '### DEC-067',
     'Proposal application source mutation planning-only decision is accepted as a plan artifact only',
   ],
   audit: [
     'Completed: `proposal application source mutation operator handoff`',
     'Completed: `proposal application source mutation planning plan`',
-    '1. `proposal application source mutation implementation decision required`',
+    'Completed: `proposal application source mutation implementation`',
   ],
   inventory: [
     'vNext proposal application source mutation operator handoff',
     'vNext proposal application source mutation planning plan',
+    'vNext proposal application source mutation implementation',
   ],
   readme: [
     'Proposal application source mutation operator handoff is consumed planning evidence',
     'docs/37_proposal-application-source-mutation-operator-decision-handoff.md',
     'Proposal application source mutation planning plan is planning-only evidence',
     'docs/38_proposal-application-source-mutation-planning-plan.md',
+    'Proposal application source mutation is implemented for exactly one approved path',
+    'docs/39_proposal-application-source-mutation-implementation.md',
   ],
   verification: ['vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs'],
   app: ["from './growth-config.js'"],
@@ -187,23 +199,23 @@ const applicationImplementationStatus = runStatus(
   'scripts/vnext-proposal-application-implementation-status.mjs',
 );
 const vnextAuditStatus = runStatus(repoRoot, 'scripts/vnext-development-audit-status.mjs');
+const sourceMutationImplementationStatus = runStatus(
+  repoRoot,
+  'scripts/vnext-proposal-application-source-mutation-implementation-status.mjs',
+);
 
 assert.equal(sourceMutationDecisionPacketStatus.ok, true);
 assert.equal(applicationImplementationStatus.ok, true);
 assert.equal(vnextAuditStatus.ok, true);
-assert.equal(
-  sourceMutationDecisionPacketStatus.nextRecommendedSlice,
-  proposalApplicationSourceMutationImplementationDecisionSlice,
-);
+assert.equal(sourceMutationImplementationStatus.ok, true);
 assert.equal(applicationImplementationStatus.authority?.sourceMutationAllowed, false);
-assert.equal(
-  vnextAuditStatus.recommendedDevelopmentPlan?.[0]?.slice,
-  proposalApplicationSourceMutationImplementationDecisionSlice,
-);
-assert.equal(vnextAuditStatus.nextGrowthSlice, proposalApplicationSourceMutationImplementationDecisionSlice);
+assert.equal(sourceMutationDecisionPacketStatus.currentState, proposalApplicationSourceMutationImplementedSlice);
+assert.equal(vnextAuditStatus.authority?.sourceMutationImplementationAllowed, true);
+assert.equal(vnextAuditStatus.authority?.sourceMutationAllowedThroughApprovedRuntimeFunction, true);
+assert.equal(vnextAuditStatus.authority?.sourceMutationOutsideApprovedPathAllowed, false);
 
 const sourceMutationOperatorHandoffAuthorityBoundary =
-  createProposalApplicationSourceMutationPlanningOnlyAuthorityBoundary({
+  createProposalApplicationSourceMutationImplementedAuthorityBoundary({
     handoffRecordsDecision: false,
   });
 
@@ -218,14 +230,15 @@ process.stdout.write(
       doesNotCommit: true,
       doesNotPush: true,
       originalGate: proposalApplicationSourceMutationOperatorHandoffSlice,
-      currentGate: proposalApplicationSourceMutationImplementationDecisionSlice,
-      handoffStatus: 'consumed-by-source-mutation-planning-only-decision',
+      implementationDecisionGate: proposalApplicationSourceMutationImplementationDecisionSlice,
+      currentState: proposalApplicationSourceMutationImplementedSlice,
+      handoffStatus: 'consumed-by-source-mutation-implementation-decision',
       handoff: sourceMutationOperatorHandoffFiles.handoff,
       requiredDecisionFields: proposalApplicationSourceMutationDecisionRequiredFields,
       invalidShortcutsRejected: proposalApplicationSourceMutationInvalidShortcutPhrases,
-      nextRequiredInput: proposalApplicationSourceMutationImplementationDecisionRequiredInput,
+      consumedRequiredInput: proposalApplicationSourceMutationImplementationDecisionRequiredInput,
       planningSlice: proposalApplicationSourceMutationPlanningPlanSlice,
-      nextRecommendedSlice: proposalApplicationSourceMutationImplementationDecisionSlice,
+      nextRecommendedSlice: vnextAuditStatus.nextGrowthSlice,
       upstreamStatus: {
         sourceMutationDecisionPacket: {
           ok: sourceMutationDecisionPacketStatus.ok,
@@ -238,6 +251,10 @@ process.stdout.write(
         vnextAudit: {
           ok: vnextAuditStatus.ok,
           nextSlice: vnextAuditStatus.nextGrowthSlice,
+        },
+        sourceMutationImplementation: {
+          ok: sourceMutationImplementationStatus.ok,
+          posture: sourceMutationImplementationStatus.posture,
         },
       },
       authority: sourceMutationOperatorHandoffAuthorityBoundary,

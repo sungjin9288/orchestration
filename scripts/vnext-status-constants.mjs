@@ -13,6 +13,9 @@ export const proposalApplicationSourceMutationPlanningPlanSlice =
 export const proposalApplicationSourceMutationImplementationDecisionSlice =
   'proposal application source mutation implementation decision required';
 
+export const proposalApplicationSourceMutationImplementedSlice =
+  'proposal application source mutation implemented for one approved named path';
+
 export const proposalApplicationSourceMutationPlanningDecisionId =
   'operator-decision-vnext-proposal-source-mutation-001';
 
@@ -101,6 +104,7 @@ export function createProposalApplicationSourceMutationBlockedAuthorityBoundary(
     ...extraAuthority,
     sourceMutationPlanningAllowed: false,
     sourceMutationImplementationAllowed: false,
+    sourceMutationAllowed: false,
     proposalApplicationAllowed: false,
     proposalGenerationAllowed: false,
     proposalQueueMutationAllowed: false,
@@ -121,6 +125,17 @@ export function createProposalApplicationSourceMutationPlanningOnlyAuthorityBoun
   return {
     ...createProposalApplicationSourceMutationBlockedAuthorityBoundary(extraAuthority),
     sourceMutationPlanningAllowed: true,
+  };
+}
+
+export function createProposalApplicationSourceMutationImplementedAuthorityBoundary(
+  extraAuthority = {},
+) {
+  return {
+    ...createProposalApplicationSourceMutationPlanningOnlyAuthorityBoundary(extraAuthority),
+    sourceMutationImplementationAllowed: true,
+    sourceMutationAllowedThroughApprovedRuntimeFunction: true,
+    sourceMutationOutsideApprovedPathAllowed: false,
   };
 }
 
