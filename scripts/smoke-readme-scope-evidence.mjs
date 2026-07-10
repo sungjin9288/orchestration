@@ -716,17 +716,23 @@ const historyHarnessRestoreActionInlineRejections = [
 
 assertTextHasAll(appJs, historyHarnessRestoreActionEvidence);
 assertTextDoesNotHaveAll(appJs, historyHarnessRestoreActionInlineRejections);
-assert.match(appJs, /const hiddenHarnessResultStateTokenLabel = '숨김';/);
-assert.match(appJs, /const hiddenHarnessResultStateTokenTone = 'neutral';/);
-assert.match(
-  appJs,
+
+const hiddenHarnessStateTokenHandoffEvidence = [
+  /const hiddenHarnessResultStateTokenLabel = '숨김';/,
+  /const hiddenHarnessResultStateTokenTone = 'neutral';/,
   /const hiddenHarnessResultStateTokenMarkup = createToken\(\s+hiddenHarnessResultStateTokenLabel,\s+hiddenHarnessResultStateTokenTone,\s+\);/,
-);
-assert.match(appJs, /\$\{hiddenHarnessResultStateTokenMarkup\}/);
-assert.doesNotMatch(appJs, /\$\{createToken\('숨김', 'neutral'\)\}/);
-assert.doesNotMatch(appJs, /const hiddenHarnessResultStateTokenMarkup = createToken\('숨김', 'neutral'\);/);
-assert.doesNotMatch(appJs, /const hiddenHarnessResultStateLabel = '숨김';/);
-assert.doesNotMatch(appJs, /const hiddenHarnessResultStateTone = 'neutral';/);
+  /\$\{hiddenHarnessResultStateTokenMarkup\}/,
+];
+
+const hiddenHarnessStateTokenInlineRejections = [
+  /\$\{createToken\('숨김', 'neutral'\)\}/,
+  /const hiddenHarnessResultStateTokenMarkup = createToken\('숨김', 'neutral'\);/,
+  /const hiddenHarnessResultStateLabel = '숨김';/,
+  /const hiddenHarnessResultStateTone = 'neutral';/,
+];
+
+assertTextHasAll(appJs, hiddenHarnessStateTokenHandoffEvidence);
+assertTextDoesNotHaveAll(appJs, hiddenHarnessStateTokenInlineRejections);
 assert.match(
   appJs,
   /const hiddenHarnessResultPacketMarkup = `\s+<div\s+class="harness-execution-result-hidden-packet"\s+data-harness-execution-result-hidden-packet="true"\s+>\s+\$\{hiddenHarnessHeaderMarkup\}\s+\$\{hiddenHarnessContextSectionsMarkup\}\s+\$\{hiddenHarnessActionShelfFrameMarkup\}\s+\$\{hiddenHarnessPreviewMarkup\}/,

@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes that validate hidden state tokens should group the fixed hidden label/tone handoff with the token markup consumer, while keeping old literal `createToken('숨김', 'neutral')` and legacy label/tone regressions in a separate rejection group. Hidden token evidence is easier to review when current handoff shape and old direct-call regressions are not interleaved.
+
 - README evidence smokes that validate history restore actions should group history input-path copy and restore-preview handoffs together, while keeping old inline input-path and restore-preview regressions in a separate rejection group. History action evidence is easier to audit when copy/restore composition and inline-template regression guards are not interleaved.
 
 - README evidence smokes that validate action token handoffs should group operator-action label/tone handoffs with latest visible state token handoffs, and keep old direct `createToken(...)` regressions in a separate rejection group. Token evidence is easier to review when label/tone flow and direct-call regression guards are not interleaved.
