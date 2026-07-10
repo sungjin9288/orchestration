@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes that validate app markup should separate positive structure markers from old-inline rejection guards. Keep visible and hidden harness structure in named groups so the README gate explains whether a failure came from a missing helper handoff or from an accidental return to inline template assembly.
+
 - README smoke assertions that cross source files should use a generic text assertion helper and source-specific evidence groups. Keep README env claims, verification registry membership, helper exports, and app consumers separate so a failure points to the contract layer that drifted.
 
 - README source-boundary smoke assertions should separate historical extraction evidence, pack boundary evidence, authority/memory boundary evidence, and UI command evidence. Those groups answer different reviewer questions, and keeping them named prevents a source-backed README gate from becoming another undifferentiated assertion wall.

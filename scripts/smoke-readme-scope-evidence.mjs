@@ -59,6 +59,12 @@ function assertTextHasAll(text, patterns) {
   }
 }
 
+function assertTextDoesNotHaveAll(text, patterns) {
+  for (const pattern of patterns) {
+    assert.doesNotMatch(text, pattern);
+  }
+}
+
 function assertReadmeHasAll(patterns) {
   assertTextHasAll(readme, patterns);
 }
@@ -476,118 +482,57 @@ assertReadmeHasAll(liveProviderEnvEvidence);
 assertTextHasAll(verificationStatus, verificationRegistryEvidence);
 assertTextHasAll(harnessExecutionTokens, harnessTokenSourceEvidence);
 assertTextHasAll(appJs, harnessTokenConsumerEvidence);
-assert.match(
-  appJs,
+
+const visibleHarnessAppStructureEvidence = [
   /const harnessRunActionShelfMarkup = `\s+\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}\s+\$\{harnessRunPolicyReportPreviewActionMarkup\}\s+\$\{harnessRunSubmitActionMarkup\}/,
-);
-assert.match(appJs, /\$\{harnessRunActionShelfMarkup\}/);
-assert.doesNotMatch(
-  appJs,
-  /data-harness-run-action-shelf="true"[\s\S]{0,260}\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}/,
-);
-assert.match(
-  appJs,
+  /\$\{harnessRunActionShelfMarkup\}/,
   /const visibleHarnessExecutionSummaryMarkup = `\s+\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}\s+\$\{visibleHarnessHandoffSummaryMarkup\}\s+\$\{visibleHarnessOutputSummaryMarkup\}/,
-);
-assert.match(
-  appJs,
   /const visibleHarnessSupplementalSummaryMarkup = `\s+\$\{visibleHarnessRequestSummaryMarkup\}\s+\$\{visibleHarnessPolicyReportSummaryMarkup\}\s+\$\{visibleHarnessOutputBriefSummaryMarkup\}/,
-);
-assert.match(
-  appJs,
   /const visibleHarnessSummaryRackMarkup = `\s+\$\{visibleHarnessExecutionSummaryMarkup\}\s+\$\{visibleHarnessSupplementalSummaryMarkup\}/,
-);
-assert.match(appJs, /\$\{visibleHarnessSummaryRackMarkup\}/);
-assert.match(
-  appJs,
+  /\$\{visibleHarnessSummaryRackMarkup\}/,
   /const visibleHarnessTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>\s+\$\{visibleHarnessResultStateTokenMarkup\}/,
-);
-assert.match(
-  appJs,
   /const visibleHarnessTokenRowFrameMarkup = `\s+<div class="token-row token-row-compact">\s+\$\{visibleHarnessTokenRowMarkup\}/,
-);
-assert.match(
-  appJs,
   /const visibleHarnessHeaderMarkup = `\s+\$\{visibleHarnessTitleRowMarkup\}\s+\$\{visibleHarnessTokenRowFrameMarkup\}/,
-);
-assert.match(appJs, /\$\{visibleHarnessHeaderMarkup\}/);
-assert.match(
-  appJs,
+  /\$\{visibleHarnessHeaderMarkup\}/,
   /const visibleHarnessResultPacketMarkup = `\s+<div class="harness-execution-result-packet" data-harness-execution-result-packet="true">\s+\$\{visibleHarnessHeaderMarkup\}\s+\$\{visibleHarnessSummaryRackMarkup\}\s+\$\{visibleHarnessActionShelfFrameMarkup\}\s+\$\{visibleHarnessPreviewMarkup\}/,
-);
-assert.match(appJs, /\$\{visibleHarnessResultPacketMarkup\}/);
-assert.doesNotMatch(
-  appJs,
+  /\$\{visibleHarnessResultPacketMarkup\}/,
+];
+
+const visibleHarnessInlineStructureRejections = [
+  /data-harness-run-action-shelf="true"[\s\S]{0,260}\$\{harnessRunCommandCopyMarkup\}\s+\$\{harnessRunClearHistoryActionMarkup\}/,
   /data-harness-execution-result="true"[\s\S]{0,180}<div class="harness-execution-result-packet" data-harness-execution-result-packet="true">[\s\S]{0,260}\$\{visibleHarnessHeaderMarkup\}/,
-);
-assert.doesNotMatch(
-  appJs,
   /data-harness-execution-result-packet="true"[\s\S]{0,320}<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>/,
-);
-assert.doesNotMatch(
-  appJs,
   /data-harness-execution-result="true">\s+[\s\S]{0,340}<strong>\$\{escapeHtml\(visibleHarnessResultTitle\)\}<\/strong>[\s\S]{0,520}\$\{visibleHarnessInputSummaryMarkup\}\s+\$\{visibleHarnessModeSummaryMarkup\}/,
-);
-assert.match(
-  appJs,
+];
+
+const hiddenHarnessAppStructureEvidence = [
   /const hiddenHarnessRunContextSummaryMarkup = `\s+\$\{hiddenHarnessRequestSummaryMarkup\}\s+\$\{hiddenHarnessExecutedAtSummaryMarkup\}\s+\$\{hiddenHarnessModeSummaryMarkup\}\s+\$\{hiddenHarnessHandoffSummaryMarkup\}\s+\$\{hiddenHarnessInputSummaryMarkup\}\s+\$\{hiddenHarnessOutputSummaryMarkup\}/,
-);
-assert.match(appJs, /\$\{hiddenHarnessRunContextSummaryMarkup\}/);
-assert.doesNotMatch(
-  appJs,
-  /data-harness-result-hidden-run-context="true">\s+[\s\S]{0,240}<strong>실행 기록<\/strong>[\s\S]{0,240}\$\{hiddenHarnessRequestSummaryMarkup\}\s+\$\{hiddenHarnessExecutedAtSummaryMarkup\}/,
-);
-assert.match(
-  appJs,
+  /\$\{hiddenHarnessRunContextSummaryMarkup\}/,
   /const hiddenHarnessContextSummaryMarkup = `\s+\$\{hiddenHarnessIdSummaryMarkup\}\s+\$\{hiddenHarnessKindSummaryMarkup\}\s+\$\{hiddenHarnessPrimaryCommandSummaryMarkup\}\s+\$\{hiddenHarnessPrimaryRunnerSummaryMarkup\}\s+\$\{hiddenHarnessPostureSummaryMarkup\}\s+\$\{hiddenHarnessStateSummaryMarkup\}\s+\$\{hiddenHarnessHostSummaryMarkup\}/,
-);
-assert.match(appJs, /\$\{hiddenHarnessContextSummaryMarkup\}/);
-assert.doesNotMatch(
-  appJs,
-  /data-harness-result-hidden-harness-context="true">\s+[\s\S]{0,260}<strong>하네스 컨텍스트<\/strong>[\s\S]{0,260}\$\{hiddenHarnessIdSummaryMarkup\}\s+\$\{hiddenHarnessKindSummaryMarkup\}/,
-);
-assert.match(
-  appJs,
+  /\$\{hiddenHarnessContextSummaryMarkup\}/,
   /const hiddenHarnessOperatorContextSummaryMarkup = `\s+\$\{hiddenHarnessOperatorActionSummaryMarkup\}\s+\$\{hiddenHarnessOperatorCommandSummaryMarkup\}\s+\$\{hiddenHarnessOperatorMessageSummaryMarkup\}/,
-);
-assert.match(appJs, /\$\{hiddenHarnessOperatorContextSummaryMarkup\}/);
-assert.doesNotMatch(
-  appJs,
-  /data-harness-result-hidden-operator-context="true">\s+[\s\S]{0,260}<strong>운영 컨텍스트<\/strong>[\s\S]{0,260}\$\{hiddenHarnessOperatorActionSummaryMarkup\}\s+\$\{hiddenHarnessOperatorCommandSummaryMarkup\}/,
-);
-assert.match(
-  appJs,
+  /\$\{hiddenHarnessOperatorContextSummaryMarkup\}/,
   /const hiddenHarnessContextSectionsMarkup = `\s+\$\{hiddenHarnessRunContextSectionMarkup\}\s+\$\{hiddenHarnessHarnessContextSectionMarkup\}\s+\$\{hiddenHarnessOperatorContextSectionMarkup\}/,
-);
-assert.match(appJs, /\$\{hiddenHarnessContextSectionsMarkup\}/);
-assert.match(
-  appJs,
+  /\$\{hiddenHarnessContextSectionsMarkup\}/,
   /const hiddenHarnessRunContextTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>실행 기록<\/strong>/,
-);
-assert.match(
-  appJs,
   /const hiddenHarnessHarnessContextTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>하네스 컨텍스트<\/strong>/,
-);
-assert.match(
-  appJs,
   /const hiddenHarnessOperatorContextTitleRowMarkup = `\s+<div class="card-title-row card-title-row-tight">\s+<strong>운영 컨텍스트<\/strong>/,
-);
-assert.match(
-  appJs,
   /data-harness-result-hidden-run-context="true">\s+\$\{hiddenHarnessRunContextTitleRowMarkup\}\s+\$\{hiddenHarnessRunContextSummaryMarkup\}/,
-);
-assert.match(
-  appJs,
   /data-harness-result-hidden-harness-context="true">\s+\$\{hiddenHarnessHarnessContextTitleRowMarkup\}\s+\$\{hiddenHarnessContextSummaryMarkup\}/,
-);
-assert.match(
-  appJs,
   /data-harness-result-hidden-operator-context="true">\s+\$\{hiddenHarnessOperatorContextTitleRowMarkup\}\s+\$\{hiddenHarnessOperatorContextSummaryMarkup\}/,
-);
-assert.doesNotMatch(
-  appJs,
+];
+
+const hiddenHarnessInlineStructureRejections = [
+  /data-harness-result-hidden-run-context="true">\s+[\s\S]{0,240}<strong>실행 기록<\/strong>[\s\S]{0,240}\$\{hiddenHarnessRequestSummaryMarkup\}\s+\$\{hiddenHarnessExecutedAtSummaryMarkup\}/,
+  /data-harness-result-hidden-harness-context="true">\s+[\s\S]{0,260}<strong>하네스 컨텍스트<\/strong>[\s\S]{0,260}\$\{hiddenHarnessIdSummaryMarkup\}\s+\$\{hiddenHarnessKindSummaryMarkup\}/,
+  /data-harness-result-hidden-operator-context="true">\s+[\s\S]{0,260}<strong>운영 컨텍스트<\/strong>[\s\S]{0,260}\$\{hiddenHarnessOperatorActionSummaryMarkup\}\s+\$\{hiddenHarnessOperatorCommandSummaryMarkup\}/,
   /data-harness-execution-result-hidden="true"[\s\S]{0,900}data-harness-result-hidden-run-context="true"[\s\S]{0,900}data-harness-result-hidden-harness-context="true"[\s\S]{0,900}data-harness-result-hidden-operator-context="true"/,
-);
+];
+
+assertTextHasAll(appJs, visibleHarnessAppStructureEvidence);
+assertTextDoesNotHaveAll(appJs, visibleHarnessInlineStructureRejections);
+assertTextHasAll(appJs, hiddenHarnessAppStructureEvidence);
+assertTextDoesNotHaveAll(appJs, hiddenHarnessInlineStructureRejections);
 assert.match(appJs, /const visibleHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(visibleHarnessExecutionResult\);/);
 assert.match(appJs, /const hiddenHarnessActionOutputPath =\s+getHarnessExecutionActionOutputPath\(hiddenHarnessExecutionResult\);/);
 assert.match(appJs, /const historyHarnessPathReuseActionMarkup = `\s+<button[\s\S]*?data-action="reuse-harness-execution-paths"/);
