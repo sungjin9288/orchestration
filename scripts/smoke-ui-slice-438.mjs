@@ -11,7 +11,7 @@ const stylesCss = fs.readFileSync(stylesPath, 'utf8');
 
 assert.match(
   stylesCss,
-  /\.harness-execution-result-packet \.form-actions-compact \[data-harness-result-reuse="true"\]\s*\{[\s\S]*border-color:\s*rgba\(121,\s*98,\s*47,\s*0\.(?:16|18)\);[\s\S]*background:\s*linear-gradient\(180deg,\s*rgba\(250,\s*245,\s*233,\s*0\.96\),\s*rgba\(242,\s*235,\s*219,\s*0\.98\)\);[\s\S]*color:\s*color-mix\(in srgb,\s*var\(--text\)\s*74%,\s*var\(--deliverables\)\s*26%\);[\s\S]*box-shadow:\s*[\s\S]*0 (?:7px 14px rgba\(121,\s*98,\s*47,\s*0\.08\)|8px 16px rgba\(121,\s*98,\s*47,\s*0\.09\));/s,
+  /\.harness-execution-result-packet \.form-actions-compact \[data-harness-result-reuse="true"\]\s*\{[\s\S]*border-color:\s*rgba\(121,\s*98,\s*47,\s*0\.(?:16|18)\);[\s\S]*background:\s*linear-gradient\(180deg,\s*rgba\(248,\s*250,\s*252,\s*0\.96\),\s*rgba\(234,\s*239,\s*244,\s*0\.98\)\);[\s\S]*color:\s*color-mix\(in srgb,\s*var\(--text\)\s*74%,\s*var\(--deliverables\)\s*26%\);[\s\S]*box-shadow:\s*[\s\S]*0 (?:7px 14px rgba\(121,\s*98,\s*47,\s*0\.08\)|8px 16px rgba\(121,\s*98,\s*47,\s*0\.09\));/s,
 );
 
 console.log(

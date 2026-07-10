@@ -138,10 +138,10 @@ const vnextDevelopmentAuditSourceEvidence = {
     contains: referenceSignals,
   },
   design: {
-    contains: ['warm enterprise surfaces', 'Mission / Council / Execution / Deliverables'],
+    contains: ['cool operational surfaces', 'Mission / Council / Execution / Deliverables'],
   },
   styles: {
-    contains: ['--bg-top: #f4efe6', '.intelligence-overview'],
+    contains: ['--bg-top: #f5f7f9', '.intelligence-overview'],
   },
   app: {
     contains: [

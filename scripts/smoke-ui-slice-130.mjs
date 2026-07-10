@@ -14,7 +14,7 @@ assert.match(styles, /\.mission-row-card \{[\s\S]*position:\s*relative;[\s\S]*ov
 assert.match(styles, /\.mission-row-card::before \{/);
 assert.match(styles, /\.mission-row-card:hover,\s*\.mission-row-card:focus-within \{[\s\S]*transform:\s*translateY\(-1px\);/);
 assert.match(styles, /\.mission-row-card:hover::before,\s*\.mission-row-card:focus-within::before,\s*\.mission-row-card\.is-selected::before \{[\s\S]*opacity:\s*0\.94;/);
-assert.match(styles, /\.mission-row-card\.is-selected \{[\s\S]*background:[\s\S]*rgba\(255, 249, 241, 0\.94\);[\s\S]*transform:\s*translateY\(-2px\);/);
+assert.match(styles, /\.mission-row-card\.is-selected \{[\s\S]*background:[\s\S]*rgba\(250, 252, 254, 0\.94\);[\s\S]*transform:\s*translateY\(-2px\);/);
 assert.match(styles, /\.mission-row-card\.is-selected \.mission-row-goal,\s*\.mission-row-card\.is-selected \.mission-row-next \{/);
 
 console.log(
@@ -26,7 +26,7 @@ console.log(
           'mission-row-card::before',
           'translateY(-1px)',
           'opacity: 0.94',
-          'rgba(255, 249, 241, 0.94)',
+          'rgba(250, 252, 254, 0.94)',
           'translateY(-2px)',
         ],
       },

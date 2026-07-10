@@ -15,7 +15,7 @@ assert.match(styles, /\.mission-row-head > strong \{[\s\S]*font-size:\s*1\.04rem
 assert.match(styles, /\.mission-row-head \.token-row \{[\s\S]*justify-content:\s*flex-end;[\s\S]*gap:\s*5px;/);
 assert.match(styles, /\.mission-row-head \.token \{[\s\S]*box-shadow:\s*inset 0 1px 0 rgba\(255, 255, 255, 0\.46\);/);
 assert.match(styles, /\.mission-row-card\.is-selected \.mission-row-head > strong \{/);
-assert.match(styles, /\.mission-row-card\.is-selected \.mission-row-head \.token \{[\s\S]*0 8px 18px rgba\(154, 94, 47, 0\.06\);/);
+assert.match(styles, /\.mission-row-card\.is-selected \.mission-row-head \.token \{[\s\S]*0 8px 18px rgba\(21, 94, 117, 0\.06\);/);
 
 console.log(
   JSON.stringify(
@@ -27,7 +27,7 @@ console.log(
           'font-size: 1.04rem',
           'gap: 5px',
           'inset 0 1px 0 rgba(255, 255, 255, 0.46)',
-          '0 8px 18px rgba(154, 94, 47, 0.06)',
+          '0 8px 18px rgba(21, 94, 117, 0.06)',
         ],
       },
     },

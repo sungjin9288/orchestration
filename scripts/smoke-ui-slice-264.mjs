@@ -10,7 +10,7 @@ const stylesPath = path.join(repoRoot, 'ui', 'styles.css');
 
 const styles = fs.readFileSync(stylesPath, 'utf8');
 
-assert.match(styles, /--accent:\s*#8b5a2b;/);
+assert.match(styles, /--accent:\s*#155e75;/);
 assert.match(styles, /\.office-sidebar-section:not\(\.office-sidebar-section-status\)\s*\{[\s\S]*display:\s*none;/s);
 assert.match(styles, /\.shell-window-meta\s*\{[\s\S]*?display:\s*flex;/s);
 assert.match(

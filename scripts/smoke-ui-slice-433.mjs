@@ -16,7 +16,7 @@ assert.match(
 assert.match(stylesCss, /border-color:\s*rgba\(121,\s*98,\s*47,\s*0\.(?:1|11)\);/);
 assert.match(
   stylesCss,
-  /background:\s*linear-gradient\(180deg,\s*rgba\(251,\s*249,\s*242,\s*0\.94\),\s*rgba\(246,\s*243,\s*236,\s*0\.98\)\);/,
+  /background:\s*linear-gradient\(180deg,\s*rgba\(250,\s*252,\s*254,\s*0\.94\),\s*rgba\(238,\s*242,\s*246,\s*0\.98\)\);/,
 );
 assert.match(
   stylesCss,

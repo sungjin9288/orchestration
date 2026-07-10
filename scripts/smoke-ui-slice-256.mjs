@@ -28,7 +28,7 @@ assert.match(
 );
 assert.match(
   styles,
-  /\.nav-group-tab\.is-active,\s*\.nav-button\.is-active,\s*\.company-directory-row\.is-current-surface,\s*\.company-directory-row\[data-selection-state='active'\] \{[\s\S]*?border-color: rgba\(139, 90, 43, 0\.44\);[\s\S]*?background: rgba\(139, 90, 43, 0\.1\);/s,
+  /\.nav-group-tab\.is-active,\s*\.nav-button\.is-active,\s*\.company-directory-row\.is-current-surface,\s*\.company-directory-row\[data-selection-state='active'\] \{[\s\S]*?border-color: rgba\(21, 94, 117, 0\.44\);[\s\S]*?background: rgba\(21, 94, 117, 0\.1\);/s,
 );
 assert.match(
   styles,
@@ -43,7 +43,7 @@ console.log(
         sidebar: ['rgba(252, 253, 254, 0.98)', '0 1px 2px rgba(12, 22, 30, 0.04)'],
         text: ['office-rule-list muted copy = #5a6670'],
         cards: ['office-sidebar-status-register live', 'control-overview-register flattened', 'detail-block-action flattened'],
-        activeNav: ['mission active shadow reduced to 0 1px 2px rgba(154, 94, 47, 0.05)'],
+        activeNav: ['mission active shadow reduced to 0 1px 2px rgba(21, 94, 117, 0.05)'],
       },
     },
     null,

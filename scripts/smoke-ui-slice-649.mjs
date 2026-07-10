@@ -154,8 +154,8 @@ assert.match(appJs, /function setPreferredProjectPreference\(projectId\)/);
 assert.match(appJs, /rememberSurfaceVisit\(surface\)/);
 assert.match(appJs, /document\.body\.dataset\.evidenceDensity/);
 
-assert.match(styles, /--bg-top: #f4efe6/);
-assert.match(styles, /--surface-entry-accent: #9a5e2f/);
+assert.match(styles, /--bg-top: #f5f7f9/);
+assert.match(styles, /--surface-entry-accent: #155e75/);
 assert.match(styles, /\.intelligence-overview/);
 assert.match(styles, /\.intelligence-panel-growth::before/);
 assert.match(styles, /\.growth-dashboard-depth/);

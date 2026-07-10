@@ -23,7 +23,7 @@ assert.match(app, /council-outcome-copy council-outcome-question/);
 
 assert.match(styles, /\.council-outcome-card \{[\s\S]*padding:\s*12px 13px;[\s\S]*gap:\s*8px;/);
 assert.match(styles, /\.council-outcome-card::before \{[\s\S]*height:\s*2px;[\s\S]*opacity:\s*0\.78;/);
-assert.match(styles, /\.council-outcome-card-recommendation \{[\s\S]*border-color:\s*rgba\(154, 94, 47, 0\.22\);[\s\S]*background:\s*rgba\(255, 248, 239, 0\.96\);[\s\S]*box-shadow:\s*0 6px 14px rgba\(154, 94, 47, 0\.05\);/);
+assert.match(styles, /\.council-outcome-card-recommendation \{[\s\S]*border-color:\s*rgba\(21, 94, 117, 0\.22\);[\s\S]*background:\s*rgba\(250, 252, 254, 0\.96\);[\s\S]*box-shadow:\s*0 6px 14px rgba\(21, 94, 117, 0\.05\);/);
 assert.match(styles, /\.council-outcome-title \{[\s\S]*font-size:\s*0\.93rem;[\s\S]*letter-spacing:\s*-0\.01em;/);
 assert.match(styles, /\.council-outcome-question \{[\s\S]*padding-top:\s*7px;[\s\S]*border-top:\s*1px solid rgba\(33, 57, 49, 0\.08\);/);
 

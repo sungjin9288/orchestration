@@ -7,7 +7,7 @@ Orchestration should feel like a company operating system for AI work, not a mar
 - Mood: deliberate, executive, operational, dense, calm
 - Product posture: ERP/control-plane, boardroom, assignment desk, approval line, delivery desk
 - Emotional target: "a team of AI staff is on shift and working this mission now"
-- Preferred feel: warm enterprise surfaces, ink-heavy typography, structured boards, status-rich chrome
+- Preferred feel: cool operational surfaces, ink-heavy typography, structured boards, status-rich chrome
 - Avoid: poster heroes, floating marketing cards, candy gradients, empty whitespace for its own sake, whimsical mascot tone
 
 This shell should look distributable to other operators and companies.
@@ -18,12 +18,13 @@ Use semantic colors consistently. Prefer restrained enterprise tones over startu
 
 | Token | Hex | Role |
 | --- | --- | --- |
-| `canvas` | `#f4efe6` | app background |
-| `surface` | `#fbf8f2` | default panel |
-| `surface-strong` | `#fffdf8` | elevated panel / active desk |
+| `canvas` | `#f5f7f9` | app background |
+| `surface` | `#fcfdfe` | default panel |
+| `surface-strong` | `#ffffff` | elevated panel / active desk |
 | `surface-ink` | `#1f2732` | dark ribbon / masthead band |
-| `line` | `#cdbfa9` | borders, grid separators |
-| `line-strong` | `#a99579` | active rails, desk accents |
+| `line` | `#d4dae0` | borders, grid separators |
+| `line-strong` | `#a9b5bf` | active rails, desk accents |
+| `accent` | `#155e75` | global chrome accent: selection, focus, active nav |
 | `text` | `#202733` | primary copy |
 | `text-soft` | `#5d645f` | secondary copy |
 | `mission` | `#8b5a2b` | intake / charter / mission accent |
