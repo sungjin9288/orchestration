@@ -639,28 +639,25 @@ const visibleHarnessPreviewInlineRejections = [
 
 assertTextHasAll(appJs, visibleHarnessPreviewActionEvidence);
 assertTextDoesNotHaveAll(appJs, visibleHarnessPreviewInlineRejections);
-assert.match(appJs, /const hiddenHarnessInputPathCopyActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);
-assert.match(appJs, /const hiddenHarnessPathReuseActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);
-assert.match(appJs, /const hiddenHarnessPathRerunActionMarkup =\s+canRenderHiddenHarnessInputPathActions/);
-assert.match(appJs, /const hiddenHarnessInputPathActionsMarkup = `\s+\$\{hiddenHarnessInputPathCopyActionMarkup\}\s+\$\{hiddenHarnessPathReuseActionMarkup\}\s+\$\{hiddenHarnessPathRerunActionMarkup\}/);
-assert.match(
-  appJs,
+
+const hiddenHarnessActionStructureEvidence = [
+  /const hiddenHarnessInputPathCopyActionMarkup =\s+canRenderHiddenHarnessInputPathActions/,
+  /const hiddenHarnessPathReuseActionMarkup =\s+canRenderHiddenHarnessInputPathActions/,
+  /const hiddenHarnessPathRerunActionMarkup =\s+canRenderHiddenHarnessInputPathActions/,
+  /const hiddenHarnessInputPathActionsMarkup = `\s+\$\{hiddenHarnessInputPathCopyActionMarkup\}\s+\$\{hiddenHarnessPathReuseActionMarkup\}\s+\$\{hiddenHarnessPathRerunActionMarkup\}/,
   /const hiddenHarnessActionShelfMarkup = `\s+\$\{hiddenHarnessShowActionMarkup\}\s+\$\{hiddenHarnessInputPathActionsMarkup\}\s+\$\{hiddenHarnessOutputPathCopyMarkup\}\s+\$\{hiddenHarnessRequestIdCopyMarkup\}\s+\$\{hiddenHarnessExecutionPacketCopyMarkup\}\s+\$\{hiddenHarnessPolicyReportCopyMarkup\}\s+\$\{hiddenHarnessPreviewActionsMarkup\}/,
-);
-assert.match(
-  appJs,
   /const hiddenHarnessActionShelfFrameMarkup = `\s+<div class="form-actions form-actions-inline form-actions-hidden-compact">\s+\$\{hiddenHarnessActionShelfMarkup\}/,
-);
-assert.match(appJs, /\$\{hiddenHarnessActionShelfMarkup\}/);
-assert.match(appJs, /\$\{hiddenHarnessActionShelfFrameMarkup\}/);
-assert.doesNotMatch(
-  appJs,
+  /\$\{hiddenHarnessActionShelfMarkup\}/,
+  /\$\{hiddenHarnessActionShelfFrameMarkup\}/,
+];
+
+const hiddenHarnessActionInlineRejections = [
   /form-actions-hidden-compact">\s+\$\{hiddenHarnessShowActionMarkup\}\s+\$\{hiddenHarnessInputPathActionsMarkup\}/,
-);
-assert.doesNotMatch(
-  appJs,
   /data-harness-execution-result-hidden-packet="true"[\s\S]{0,520}<div class="form-actions form-actions-inline form-actions-hidden-compact">\s+\$\{hiddenHarnessActionShelfMarkup\}/,
-);
+];
+
+assertTextHasAll(appJs, hiddenHarnessActionStructureEvidence);
+assertTextDoesNotHaveAll(appJs, hiddenHarnessActionInlineRejections);
 assert.match(appJs, /const visibleHarnessOutputPathCopyMarkup = canRenderVisibleHarnessOutputPathCopy/);
 assert.match(appJs, /\$\{visibleHarnessOutputPathCopyMarkup\}/);
 assert.doesNotMatch(appJs, /\$\{\s*canRenderVisibleHarnessOutputPathCopy\s+\?\s+`\s+<button[\s\S]*?data-action="copy-harness-output-path"/);

@@ -623,8 +623,8 @@ Current verification evidence from this README and completion close-out refresh:
   plan, implementation decision requirement, and still-blocked provider/memory/source/commit/push
   authority before any source mutation implementation can open.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
-  list, package/env visibility, visible/hidden/history Advanced Ops helper, preview, action, and
-  token structure, and honesty patterns.
+  list, package/env visibility, visible/hidden/history Advanced Ops helper, preview, action-shelf,
+  and token structure, and honesty patterns.
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.

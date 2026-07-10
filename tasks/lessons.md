@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- README evidence smokes that validate hidden action shelves should group hidden path-action handoffs with hidden action shelf/frame handoffs, and keep old inline hidden shelf guards in a separate rejection group. Hidden result structure is easier to audit when composition and regression guards answer separate questions.
+
 - README evidence smokes that validate preview surfaces should keep preview markup handoffs and path action handoffs together, while keeping old inline preview-template guards separate. That split keeps preview regressions readable without weakening the exact source-backed contract.
 
 - README evidence smokes that validate action shelves should separate action source markers from old inline button rejection guards. Keep command/clear/history/preview/submit action markup in one positive group, and keep broad inline-button regressions in a separate rejection group so the failure describes the drift.
