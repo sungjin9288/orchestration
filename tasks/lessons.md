@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- When a handoff slice is complete but the downstream authority remains blocked, public README copy should separate the completed evidence surface from the required fielded operator decision. Pin that distinction in the README smoke so broad continuation wording cannot look like planning approval later.
+
 - Broad continuation wording is not enough to open a fielded vNext planning gate when the packet rejects shortcuts. Add a read-only operator handoff that names valid decision fields, invalid shortcuts, minimum acceptance, and still-blocked authority before writing any plan.
 
 - When verified growth evidence exists but proposal generation has no accepted authority, define the first planning target as one deterministic local draft from exactly one candidate. Keep draft generation, durable record creation, application, provider-assisted generation, memory persistence, and source mutation as separate decisions so an upstream approval cannot silently open downstream writes.

@@ -70,6 +70,13 @@ shape for that gate. It rejects shortcut approvals such as `continue`, `do every
 `approve all`, and keeps planning blocked until the full
 `approve-proposal-generation-planning-only` field set is present.
 
+Close-out position: the handoff evidence is complete as a read-only product/planning surface, but
+the repository is intentionally still waiting for a separate fielded operator decision before it can
+write a proposal generation plan. That later plan must remain limited to one deterministic local
+draft from one existing Growth Evidence Ledger candidate and must carry its own rollback plan,
+focused smoke plan, and aggregate verification evidence before any implementation decision can be
+requested.
+
 The close-out evidence remains source-backed:
 `tasks/todo.md` has zero unchecked task lines,
 `docs/22_completion-gate-inventory.md` records the current gate table,
