@@ -87,7 +87,10 @@ status scripts use those shared source-evidence assertion helpers too; the helpe
 Node binary and the shared large JSON buffer, while before/after JSON diffs keep the emitted status
 payloads unchanged. The proposal application handoff and implementation planning status scripts now
 use those shared source-evidence assertion helpers as well. The operator decision handoff and
-proposal application decision packet status scripts now use the same shared assertion helpers.
+proposal application decision packet status scripts now use the same shared assertion helpers. The
+runtime implementation status scripts for durable proposal records, proposal application attempts,
+and single-path proposal source mutation now share source file loading and regex match assertion
+helpers too.
 
 The close-out evidence remains source-backed:
 `tasks/todo.md` has zero unchecked task lines,
@@ -1877,8 +1880,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/vnext-durable-proposal-record-implementation-status.mjs`: source-checks the runtime
   contract, file-store normalization, service API, read-only UI ledger, focused smoke, and aggregate
   registration for the approved creation/persistence slice. It runs the focused smoke through the
-  shared `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted
-  status payload.
+  shared `scripts/vnext-status-assertions.mjs` `runStatus` helper and reuses shared source file
+  loading, regex match, and forbidden-action assertion helpers without changing the emitted status
+  payload.
 - `node scripts/vnext-proposal-application-decision-packet-status.mjs`: source-checks the read-only
   proposal application decision packet, required application decision fields, still-blocked
   application/provider/memory/source/commit/push authority, upstream proposal review spec, and
@@ -1925,8 +1929,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/vnext-proposal-application-implementation-status.mjs`: source-checks the runtime
   contract, file-store normalization, service API, read-only UI marker, implementation doc, focused
   smoke, and aggregate registration for the approved audit-only application attempt slice. It runs
-  the focused smoke through the shared `scripts/vnext-status-assertions.mjs` `runStatus` helper
-  without changing the emitted status payload.
+  the focused smoke through the shared `scripts/vnext-status-assertions.mjs` `runStatus` helper and
+  reuses shared source file loading and regex match assertion helpers without changing the emitted
+  status payload.
 - `node scripts/vnext-proposal-application-source-mutation-decision-packet-status.mjs`: source-checks
   the read-only source mutation decision packet, required operator fields, application-attempt
   dependency, rollback refs, focused smoke refs, stop conditions, and still-blocked
@@ -1942,8 +1947,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/vnext-proposal-application-source-mutation-implementation-status.mjs`: source-checks
   the approved single-path source mutation runtime contract, focused smoke, rollback behavior, and
   still-blocked proposal/provider/memory/outside-path/commit/push authority. It runs the focused
-  smoke through the shared `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing
-  the emitted status payload.
+  smoke through the shared `scripts/vnext-status-assertions.mjs` `runStatus` helper and reuses
+  shared source file loading and regex match assertion helpers without changing the emitted status
+  payload.
 - `node scripts/smoke-readme-scope-evidence.mjs`: README structure, source-backed counts, route
   list, package/env visibility, visible/hidden/history Advanced Ops helper, preview, action-shelf
   composition, preview action handoff, copy formatter source, token handoff structure, hidden state

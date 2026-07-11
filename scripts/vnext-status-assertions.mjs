@@ -44,6 +44,12 @@ export function assertContainsBacktickedAll(source, expectedValues) {
   }
 }
 
+export function assertMatchesAll(source, patterns) {
+  for (const pattern of patterns) {
+    assert.match(source, pattern);
+  }
+}
+
 export function assertDoesNotMatchAny(source, patterns) {
   for (const pattern of patterns) {
     assert.doesNotMatch(source, pattern);

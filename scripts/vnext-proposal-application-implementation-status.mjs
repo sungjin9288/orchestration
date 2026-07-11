@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
-import { runStatus } from './vnext-status-assertions.mjs';
+import { assertMatchesAll, readRepoFiles, runStatus } from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,35 +21,25 @@ const proposalApplicationAttemptBlockedActions = [
 
 requireNoCliArgs(process.argv.slice(2), { mode: STATUS_MODE });
 
-function readFile(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function assertMatchesAll(source, patterns) {
-  for (const pattern of patterns) {
-    assert.match(source, pattern);
-  }
-}
-
 function assertAuthorityIsBlocked(authority) {
   for (const value of Object.values(authority)) {
     assert.equal(value, false);
   }
 }
 
-const applicationAttemptEvidenceSources = {
-  app: readFile('ui/app.js'),
-  contracts: readFile('src/runtime/contracts.js'),
-  decisionLog: readFile('docs/01_decision-log.md'),
-  growthConfig: readFile('ui/growth-config.js'),
-  implementationDoc: readFile('docs/35_proposal-application-implementation.md'),
-  inventory: readFile('docs/22_completion-gate-inventory.md'),
-  fileStore: readFile('src/runtime/file-store.js'),
-  readme: readFile('README.md'),
-  runtimeService: readFile('src/runtime/runtime-service.js'),
-  proposalRecords: readFile('src/runtime/proposal-records.js'),
-  verification: readFile('scripts/verification_status.mjs'),
-};
+const applicationAttemptEvidenceSources = readRepoFiles(repoRoot, {
+  app: 'ui/app.js',
+  contracts: 'src/runtime/contracts.js',
+  decisionLog: 'docs/01_decision-log.md',
+  growthConfig: 'ui/growth-config.js',
+  implementationDoc: 'docs/35_proposal-application-implementation.md',
+  inventory: 'docs/22_completion-gate-inventory.md',
+  fileStore: 'src/runtime/file-store.js',
+  readme: 'README.md',
+  runtimeService: 'src/runtime/runtime-service.js',
+  proposalRecords: 'src/runtime/proposal-records.js',
+  verification: 'scripts/verification_status.mjs',
+});
 
 assertMatchesAll(applicationAttemptEvidenceSources.contracts, [
   /PROPOSAL_APPLICATION_ATTEMPT_STATUS/,

@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
-import { runStatus } from './vnext-status-assertions.mjs';
+import {
+  assertDoesNotMatchAny,
+  assertMatchesAll,
+  readRepoFiles,
+  runStatus,
+} from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,28 +19,6 @@ const STATUS_SCHEMA_VERSION = '1.0.0';
 requireNoCliArgs(process.argv.slice(2), {
   mode: STATUS_MODE,
 });
-
-function readFile(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function assertMatchesAll(source, expectedPatterns) {
-  for (const expectedPattern of expectedPatterns) {
-    assert.match(source, expectedPattern);
-  }
-}
-
-function assertDoesNotMatchAny(source, forbiddenPatterns) {
-  for (const forbiddenPattern of forbiddenPatterns) {
-    assert.doesNotMatch(source, forbiddenPattern);
-  }
-}
-
-function assertSourceEvidence(sourcesByName, evidenceBySource) {
-  for (const [sourceName, expectedPatterns] of Object.entries(evidenceBySource)) {
-    assertMatchesAll(sourcesByName[sourceName], expectedPatterns);
-  }
-}
 
 const durableProposalRecordImplementationStatusFiles = {
   contracts: 'src/runtime/contracts.js',
@@ -52,11 +34,9 @@ const durableProposalRecordImplementationStatusFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-const durableProposalRecordImplementationStatusSources = Object.fromEntries(
-  Object.entries(durableProposalRecordImplementationStatusFiles).map(([name, relativePath]) => [
-    name,
-    readFile(relativePath),
-  ]),
+const durableProposalRecordImplementationStatusSources = readRepoFiles(
+  repoRoot,
+  durableProposalRecordImplementationStatusFiles,
 );
 
 const durableProposalRecordImplementationStatusSourceEvidence = {
@@ -106,10 +86,11 @@ const durableProposalRecordImplementationStatusSourceEvidence = {
   ],
 };
 
-assertSourceEvidence(
-  durableProposalRecordImplementationStatusSources,
+for (const [sourceName, expectedPatterns] of Object.entries(
   durableProposalRecordImplementationStatusSourceEvidence,
-);
+)) {
+  assertMatchesAll(durableProposalRecordImplementationStatusSources[sourceName], expectedPatterns);
+}
 
 assertDoesNotMatchAny(durableProposalRecordImplementationStatusSources.app, [
   /data-action="create-proposal-record"/,

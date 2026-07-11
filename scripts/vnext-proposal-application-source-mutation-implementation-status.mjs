@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
-import { runStatus } from './vnext-status-assertions.mjs';
+import { assertMatchesAll, readRepoFiles, runStatus } from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,31 +29,21 @@ const proposalSourceMutationAuthorityFlags = [
 
 requireNoCliArgs(process.argv.slice(2), { mode: STATUS_MODE });
 
-function readFile(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function assertMatchesAll(source, patterns) {
-  for (const pattern of patterns) {
-    assert.match(source, pattern);
-  }
-}
-
 function assertAuthorityIsBlocked(authority) {
   for (const value of Object.values(authority)) {
     assert.equal(value, false);
   }
 }
 
-const sourceMutationEvidenceSources = {
-  contracts: readFile('src/runtime/contracts.js'),
-  proposalRecords: readFile('src/runtime/proposal-records.js'),
-  runtimeService: readFile('src/runtime/runtime-service.js'),
-  fileStore: readFile('src/runtime/file-store.js'),
-  focusedSmoke: readFile('scripts/smoke-proposal-application-source-mutation.mjs'),
-  implementationDoc: readFile('docs/39_proposal-application-source-mutation-implementation.md'),
-  verification: readFile('scripts/verification_status.mjs'),
-};
+const sourceMutationEvidenceSources = readRepoFiles(repoRoot, {
+  contracts: 'src/runtime/contracts.js',
+  proposalRecords: 'src/runtime/proposal-records.js',
+  runtimeService: 'src/runtime/runtime-service.js',
+  fileStore: 'src/runtime/file-store.js',
+  focusedSmoke: 'scripts/smoke-proposal-application-source-mutation.mjs',
+  implementationDoc: 'docs/39_proposal-application-source-mutation-implementation.md',
+  verification: 'scripts/verification_status.mjs',
+});
 
 assertMatchesAll(sourceMutationEvidenceSources.contracts, [
   /PROPOSAL_SOURCE_MUTATION_STATUS/,
