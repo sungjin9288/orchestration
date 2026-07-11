@@ -1,9 +1,15 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+import {
+  assertContainsBacktickedAll,
+  assertDoesNotMatchAny,
+  assertMarkdownSections,
+  assertSourceEvidence,
+  readRepoFiles,
+} from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -85,26 +91,6 @@ const authority = {
   pushAllowed: false,
 };
 
-function readFile(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function assertContainsAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
-  }
-}
-
-function assertBacktickedAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
-  }
-}
-
 function runStatus(relativePath) {
   return JSON.parse(
     execFileSync(process.execPath, [relativePath], {
@@ -138,70 +124,65 @@ function assertUpstreamSafetyBoundary(statuses) {
   );
 }
 
-const sources = Object.fromEntries(
-  Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
-);
+const sources = readRepoFiles(repoRoot, files);
 
-for (const section of sections) {
-  assert.match(sources.packet, new RegExp(`^${escapeRegExp(section)}$`, 'm'));
-}
+const evidence = {
+  packet: [
+    'Current gate: `proposal generation planning decision required`',
+    'Current packet status: `awaiting-operator-planning-decision`',
+    'deterministic local proposal draft generation from exactly one existing evidence candidate',
+    'Provider-assisted generation: separately blocked',
+    'It is not planning approval, implementation approval',
+    'decisionId=operator-decision-vnext-proposal-generation-planning-001',
+    'approvalStatement=I approve planning only for one deterministic local proposal draft generation path',
+  ],
+  proposalSpec: [
+    'Proposal review, proposal record creation, and proposal application are separate gates',
+    'Review acceptance can only feed the next explicit decision',
+  ],
+  authorityReview: [
+    'proposal generation',
+    'Review acceptance can only feed the next explicit decision',
+  ],
+  authorityPacket: [
+    'targetAuthority',
+    'proposal generation',
+  ],
+  audit: [
+    'Completed: `proposal generation decision packet`',
+    'proposal generation planning decision required',
+  ],
+  decisionLog: ['### DEC-068'],
+  inventory: ['vNext proposal generation decision packet'],
+  readme: [
+    'Proposal generation decision packet:',
+    'docs/40_proposal-generation-decision-packet.md',
+  ],
+  growthConfig: [
+    'proposalGenerationAllowed: false',
+    'providerCallsAllowed: false',
+    'memoryPersistenceAllowed: false',
+    'sourceMutationAllowed: false',
+    'commitPushAllowed: false',
+  ],
+  proposalQueue: [
+    "const PROPOSAL_STATUSES = [",
+    "'candidate'",
+    "'ready-for-review'",
+    'proposal records may describe a candidate slice but cannot write files',
+  ],
+  proposalReadiness: [
+    'growth-evidence-ledger-proposal-readiness-status',
+    'doesNotGenerateProposals: true',
+  ],
+  verification: ['vnext-proposal-generation-decision-packet-status.mjs'],
+};
 
-assertBacktickedAll(sources.packet, decisionOptions);
-assertBacktickedAll(sources.packet, requiredDecisionFields);
-
-assertContainsAll(sources.packet, [
-  'Current gate: `proposal generation planning decision required`',
-  'Current packet status: `awaiting-operator-planning-decision`',
-  'deterministic local proposal draft generation from exactly one existing evidence candidate',
-  'Provider-assisted generation: separately blocked',
-  'It is not planning approval, implementation approval',
-  'decisionId=operator-decision-vnext-proposal-generation-planning-001',
-  'approvalStatement=I approve planning only for one deterministic local proposal draft generation path',
-]);
-
-assertContainsAll(sources.proposalSpec, [
-  'Proposal review, proposal record creation, and proposal application are separate gates',
-  'Review acceptance can only feed the next explicit decision',
-]);
-assertContainsAll(sources.authorityReview, [
-  'proposal generation',
-  'Review acceptance can only feed the next explicit decision',
-]);
-assertContainsAll(sources.authorityPacket, [
-  'targetAuthority',
-  'proposal generation',
-]);
-assertContainsAll(sources.audit, [
-  'Completed: `proposal generation decision packet`',
-  'proposal generation planning decision required',
-]);
-assertContainsAll(sources.decisionLog, ['### DEC-068']);
-assertContainsAll(sources.inventory, ['vNext proposal generation decision packet']);
-assertContainsAll(sources.readme, [
-  'Proposal generation decision packet:',
-  'docs/40_proposal-generation-decision-packet.md',
-]);
-assertContainsAll(sources.growthConfig, [
-  'proposalGenerationAllowed: false',
-  'providerCallsAllowed: false',
-  'memoryPersistenceAllowed: false',
-  'sourceMutationAllowed: false',
-  'commitPushAllowed: false',
-]);
-assert.doesNotMatch(sources.growthPanels, /data-action="generate-growth-proposal"/);
-assertContainsAll(sources.proposalQueue, [
-  "const PROPOSAL_STATUSES = [",
-  "'candidate'",
-  "'ready-for-review'",
-  'proposal records may describe a candidate slice but cannot write files',
-]);
-assertContainsAll(sources.proposalReadiness, [
-  'growth-evidence-ledger-proposal-readiness-status',
-  'doesNotGenerateProposals: true',
-]);
-assertContainsAll(sources.verification, [
-  'vnext-proposal-generation-decision-packet-status.mjs',
-]);
+assertMarkdownSections(sources.packet, sections);
+assertContainsBacktickedAll(sources.packet, decisionOptions);
+assertContainsBacktickedAll(sources.packet, requiredDecisionFields);
+assertSourceEvidence(sources, evidence);
+assertDoesNotMatchAny(sources.growthPanels, [/data-action="generate-growth-proposal"/]);
 
 const proposalQueueStatus = runStatus('scripts/growth-proposal-queue-status.mjs');
 const proposalReadinessStatus = runStatus(
