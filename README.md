@@ -54,7 +54,7 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is post-completion lifecycle-close-finalization status recheck
+The current development focus is post-completion lifecycle-close-finalization-review status recheck
 evidence close-out. The default completion baseline is still closed for implementation work:
 `tasks/todo.md` has zero
 unchecked task lines,
@@ -65,11 +65,11 @@ proposal-record lifecycle review alias evidence together. The latest checked agg
 required `1/1`, informational `168/168`, total `169/169`; UI QA is required `28/28`.
 
 The active close-out slice is
-`growth-lifecycle-close-finalization-status-recheck-smoke-readability-post-m7-2419`. It keeps the
-lifecycle-close-finalization status evidence current without changing the already grouped
+`growth-lifecycle-close-finalization-review-status-recheck-smoke-readability-post-m7-2420`. It keeps
+the lifecycle-close-finalization-review status evidence current without changing the already grouped
 focused smoke: source summary, vocabulary, schema, readiness, next-slice, safety boundary,
 invalid-argument, plan, and cross-document evidence remain separated. The source
-close-finalization-status script, focused smoke, runtime behavior, UI behavior,
+close-finalization-review-status script, focused smoke, runtime behavior, UI behavior,
 provider configuration, memory persistence, proposal generation/application, source mutation
 authority, commit, push, connector reach, automation, and lifecycle semantics remain unchanged.
 
@@ -116,10 +116,17 @@ Current source-backed evidence:
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
   aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias boundaries.
+- Growth lifecycle-close-finalization-review status recheck:
+  `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs`
+  and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status.mjs`
+  prove the current lifecycle-close-finalization-review status packet remains read-only, keeps
+  lifecycle close finalization review acceptance, lifecycle close finalization review, source mutation,
+  and remediation execution blocked, preserves the next lifecycle-close-finalization-review-acceptance
+  recommendation, and records this pass as evidence cleanup rather than product behavior change.
 - Growth lifecycle-close-finalization status recheck:
   `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs`
   and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status.mjs`
-  prove the current lifecycle-close-finalization status packet remains read-only, keeps lifecycle
+  prove the preceding lifecycle-close-finalization status packet remains read-only, keeps lifecycle
   close finalization review, lifecycle close finalization, source mutation, and remediation execution
   blocked, preserves the next lifecycle-close-finalization-review recommendation, and records this
   pass as evidence cleanup rather than product behavior change.
@@ -1528,7 +1535,7 @@ Playwright CLI:
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
   aggregate `169/169`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
-- The current lifecycle-close-finalization status recheck close-out is README-backed evidence cleanup
+- The current lifecycle-close-finalization-review status recheck close-out is README-backed evidence cleanup
   only. It does not change the status script contract, focused smoke contract, runtime behavior, UI
   behavior, lifecycle semantics, provider calls, memory persistence, proposal generation/application,
   source mutation authority, commit, or push behavior.
