@@ -51,5 +51,11 @@ export function assertDoesNotMatchAny(source, patterns) {
 }
 
 export function runStatus(repoRoot, script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
+  return JSON.parse(
+    execFileSync(process.execPath, [script], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    }),
+  );
 }
