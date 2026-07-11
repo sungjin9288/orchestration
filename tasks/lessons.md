@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- When verified growth evidence exists but proposal generation has no accepted authority, define the first planning target as one deterministic local draft from exactly one candidate. Keep draft generation, durable record creation, application, provider-assisted generation, memory persistence, and source mutation as separate decisions so an upstream approval cannot silently open downstream writes.
+
 - A status audit must consume the terminal status of its recommended candidate, not only the upstream candidate id. When the candidate's own status says maintenance-only, expose it as evidence with `implementationRequired=false` and route new implementation through the explicit post-completion entry gate; otherwise a completed alias silently becomes an infinite implementation queue.
 
 - Read-only lifecycle/status smokes should group payload checks by evidence layer instead of repeating direct assertions across generated vocabulary. Keep source summary, vocabulary, schema, readiness, next-slice, safety boundary, invalid-argument, and cross-document evidence separate so a failure points to the drifted contract layer.

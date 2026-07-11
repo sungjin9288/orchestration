@@ -41,6 +41,7 @@ const vnextDevelopmentAuditFiles = {
     'docs/38_proposal-application-source-mutation-planning-plan.md',
   proposalApplicationSourceMutationImplementationDoc:
     'docs/39_proposal-application-source-mutation-implementation.md',
+  proposalGenerationDecisionPacket: 'docs/40_proposal-generation-decision-packet.md',
   proposalRecordImplementationStatus: 'scripts/vnext-durable-proposal-record-implementation-status.mjs',
   proposalRecordCreationSmoke: 'scripts/smoke-durable-proposal-record-creation.mjs',
   proposalApplicationAttemptSmoke: 'scripts/smoke-proposal-application-attempt-creation.mjs',
@@ -69,6 +70,8 @@ const vnextDevelopmentAuditFiles = {
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
   lifecycleReviewStatus:
     'scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs',
+  proposalGenerationDecisionPacketStatus:
+    'scripts/vnext-proposal-generation-decision-packet-status.mjs',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -303,7 +306,9 @@ const vnextDevelopmentAuditSourceEvidence = {
       'Completed: `proposal application source mutation planning plan`',
       'Completed: `proposal application source mutation implementation`',
       'Completed: `proposal-record lifecycle review alias`',
+      'Completed: `proposal generation decision packet`',
       'Next implementation entry: `explicit entry required`',
+      'Next planning gate: `proposal generation planning decision required`',
       'proposal application implementation: audit-only attempt creation is implemented',
       'proposal application source mutation outside the single approved named path',
     ],
@@ -315,6 +320,25 @@ const vnextDevelopmentAuditSourceEvidence = {
       "id: 'growth-evidence-ledger-proposal-record-lifecycle-review-maintenance'",
       'doesNotMutateRuntime: true',
       'doesNotMutateUi: true',
+      'doesNotCommit: true',
+      'doesNotPush: true',
+    ],
+  },
+  proposalGenerationDecisionPacket: {
+    contains: [
+      '# Proposal Generation Decision Packet',
+      'Current gate: `proposal generation planning decision required`',
+      '`approve-proposal-generation-planning-only`',
+      'deterministic local proposal draft generation from exactly one existing evidence candidate',
+      'Provider-assisted generation: separately blocked',
+    ],
+  },
+  proposalGenerationDecisionPacketStatus: {
+    contains: [
+      "const STATUS_MODE = 'vnext-proposal-generation-decision-packet-status'",
+      'proposalGenerationPlanningAllowed: false',
+      'proposalGenerationImplementationAllowed: false',
+      'doesNotGenerateProposals: true',
       'doesNotCommit: true',
       'doesNotPush: true',
     ],
@@ -606,10 +630,16 @@ const sourceMutationImplementation = runStatus(
 const growthEngineNextSlice = growthEngine.nextRecommendedSlice?.id || null;
 const reflectionNextSlice = reflection.nextRecommendedSlice?.id || null;
 const proposalQueueHandoff = proposalReadiness.nextRecommendedSlice?.id || null;
-const nextGrowthSlice = 'maintenance-only growth evidence gate';
-const nextGrowthCandidate = lifecycleReview.nextRecommendedSlice;
+const lifecycleReviewMaintenance = lifecycleReview.nextRecommendedSlice;
+const nextGrowthSlice = 'proposal generation planning decision';
+const nextGrowthCandidate = {
+  id: 'deterministic-local-proposal-draft-generation-planning',
+  commandToAdd: 'node scripts/vnext-proposal-generation-decision-packet-status.mjs',
+  reason: 'The proposal-record lifecycle alias is maintenance-only, while proposal generation remains the missing link between one existing growth evidence candidate and later durable record review. The next step is a fielded planning decision, not implementation.',
+  mustRemainReadOnly: true,
+};
 const nextImplementationGate = {
-  status: 'explicit-entry-required',
+  status: 'proposal-generation-planning-decision-required',
   implementationReady: false,
   allowedEntryReasons: [
     'explicit-operator-request',
@@ -617,7 +647,9 @@ const nextImplementationGate = {
     'usability-issue',
     'accepted-vnext-decision',
   ],
-  source: 'scripts/post-completion-next-step-status.mjs',
+  targetAuthority: 'deterministic local proposal draft generation planning',
+  decisionPacket: 'docs/40_proposal-generation-decision-packet.md',
+  source: 'scripts/vnext-proposal-generation-decision-packet-status.mjs',
 };
 
 assert.equal(growthEngine.ok, true);
@@ -627,13 +659,14 @@ assert.equal(lifecycleReview.ok, true);
 assert.equal(sourceMutationImplementation.ok, true);
 assert.equal(growthEngineNextSlice, reflectionNextSlice);
 assert.equal(
-  nextGrowthCandidate?.id,
+  lifecycleReviewMaintenance?.id,
   'growth-evidence-ledger-proposal-record-lifecycle-review-maintenance',
 );
 assert.equal(lifecycleReview.readiness?.lifecycleReviewOnly, true);
 assert.equal(growthEngine.nextRecommendedSlice?.mustRemainReadOnly, true);
 assert.equal(reflection.nextRecommendedSlice?.mustRemainReadOnly, true);
-assert.equal(nextGrowthCandidate?.mustRemainReadOnly, true);
+assert.equal(lifecycleReviewMaintenance?.mustRemainReadOnly, true);
+assert.equal(nextGrowthCandidate.mustRemainReadOnly, true);
 assert.equal(proposalQueueHandoff, 'growth-evidence-ledger-proposal-queue-handoff');
 assert.equal(sourceMutationImplementation.authority?.proposalGenerationAllowed, false);
 assert.equal(sourceMutationImplementation.authority?.providerCallsAllowed, false);
@@ -816,6 +849,15 @@ const implemented = [
     status: 'implemented-single-approved-named-path',
   },
   {
+    area: 'proposal generation decision packet',
+    evidence: [
+      'docs/40_proposal-generation-decision-packet.md',
+      'docs/01_decision-log.md#DEC-068',
+      'scripts/vnext-proposal-generation-decision-packet-status.mjs',
+    ],
+    status: 'documented-read-only-planning-input',
+  },
+  {
     area: 'completion and README evidence',
     evidence: ['scripts/smoke-readme-scope-evidence.mjs', 'scripts/verification_status.mjs'],
     status: 'verified',
@@ -842,8 +884,8 @@ const recommendedDevelopmentPlan = [
     candidateId: nextGrowthCandidate.id,
     commandToAdd: nextGrowthCandidate.commandToAdd,
     implementationRequired: false,
-    scope: 'Rerun the lifecycle review alias only when engine or reflection evidence drifts.',
-    gate: 'New implementation starts only from an explicit operator request, concrete regression, usability issue, or accepted vNext decision. Proposal generation or application, provider calls, memory persistence, mutation outside the approved named path, commit, and push remain blocked.',
+    scope: 'Request one fielded planning-only decision for deterministic local proposal draft generation from one existing growth evidence candidate.',
+    gate: 'This packet does not approve planning or implementation. Provider-assisted generation, durable record creation, proposal application, provider calls, memory persistence, mutation outside the approved named path, commit, and push remain blocked.',
   },
 ];
 
@@ -857,6 +899,7 @@ process.stdout.write(
       blocked,
       nextGrowthSlice,
       nextGrowthCandidate,
+      lifecycleReviewMaintenance,
       proposalQueueHandoff,
       nextImplementationGate,
       recommendedDevelopmentPlan,

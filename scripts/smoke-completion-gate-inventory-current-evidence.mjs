@@ -37,9 +37,10 @@ function assertReadmeHas(pattern) {
 
 const inventoryGateRows = [
   /Recent evidence refresh head checked before this document update: `10301cd`/,
-  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| `ok=true`; required `1\/1`; informational `168\/168`; total `169\/169` \| Keep as the default required docs\/runtime aggregate gate\. \|/,
+  /\| Required aggregate synthetic gate \| pass \| `node scripts\/verification_status\.mjs` \| `ok=true`; required `1\/1`; informational `169\/169`; total `170\/170` \| Keep as the default required docs\/runtime aggregate gate\. \|/,
   /\| UI QA synthetic gate \| pass \| `node scripts\/ui_qa_status\.mjs` \| `ok=true`; required `28\/28`; snapshot reachability informational skipped because local UI server was not running \| Treat snapshot reachability as optional unless a UI server is intentionally started\. \|/,
-  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate `169\/169`, UI QA `28\/28`, zero-open backlog, post-completion router, and proposal-record lifecycle review alias boundaries \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| Completion gate inventory current evidence \| pass \| `node scripts\/smoke-completion-gate-inventory-current-evidence\.mjs`, `node scripts\/verification_status\.mjs` \| Current-head inventory evidence is pinned to aggregate `170\/170`, UI QA `28\/28`, zero-open backlog, post-completion router, proposal-record lifecycle review alias boundaries, and the proposal generation planning packet \| Keep this smoke in aggregate so gate inventory counts do not drift behind README, UI QA, or growth routing evidence\. \|/,
+  /\| vNext proposal generation decision packet \| pass \| `docs\/40_proposal-generation-decision-packet\.md`, `node scripts\/vnext-proposal-generation-decision-packet-status\.mjs` \|/,
 ];
 
 const lifecycleAliasEvidence = [
@@ -69,7 +70,7 @@ for (const pattern of staleInventoryEvidence) {
 
 assertReadmeHas(new RegExp(`${smokeFileCount} smoke files`));
 assertReadmeHas(new RegExp(`${uiSmokeFileCount} UI smoke files`));
-assertReadmeHas(/total `169\/169`/);
+assertReadmeHas(/total `170\/170`/);
 assert.match(verificationStatus, /completion-gate-inventory-current-evidence/);
 assert.match(verificationStatus, /smoke-completion-gate-inventory-current-evidence\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-650\.mjs/);
@@ -83,8 +84,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '168/168',
-        total: '169/169',
+        informational: '169/169',
+        total: '170/170',
       },
     },
     null,

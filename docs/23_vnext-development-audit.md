@@ -25,6 +25,7 @@ The current product posture is:
 - proposal application source mutation operator handoff: consumed decision evidence; it records no new decision by itself
 - proposal application source mutation planning plan: consumed historical plan evidence; the later `DEC-067` implementation decision approved exactly one named path
 - proposal application source mutation implementation: exactly one named target path is implemented with clean-baseline proof, diff preview, rollback, and quarantine; proposal generation, provider calls, memory persistence, mutation outside that path, commit, and push remain blocked
+- proposal generation decision packet: read-only planning input is documented for one deterministic local draft path; planning and implementation remain blocked
 
 ## Current Evidence
 
@@ -50,6 +51,7 @@ The current product posture is:
 | Proposal application source mutation operator handoff | Consumed as implementation-decision evidence. It preserves the copy-ready decision shapes that led to `DEC-067`, but records no new decision and grants no authority by itself. | `docs/01_decision-log.md#DEC-064`, `docs/37_proposal-application-source-mutation-operator-decision-handoff.md`, `scripts/vnext-proposal-application-source-mutation-operator-decision-handoff-status.mjs` |
 | Proposal application source mutation planning plan | Consumed as historical plan evidence. It records the planning-only decision, one mutation plan, rollback plan, focused smoke plan, and implementation prerequisites later accepted by `DEC-067`. | `docs/01_decision-log.md#DEC-065`, `docs/38_proposal-application-source-mutation-planning-plan.md`, `scripts/vnext-proposal-application-source-mutation-planning-plan-status.mjs` |
 | Proposal application source mutation implementation | Implemented as one approved local runtime path. It applies exactly one named target for one approved audit-only attempt, records before/after content, proves clean baseline and diff preview evidence, supports rollback and quarantine, and keeps proposal generation, provider calls, memory persistence, mutation outside the named path, commit, and push blocked. | `docs/01_decision-log.md#DEC-067`, `docs/39_proposal-application-source-mutation-implementation.md`, `src/runtime/runtime-service.js`, `src/runtime/proposal-records.js`, `src/runtime/file-store.js`, `scripts/smoke-proposal-application-source-mutation.mjs`, `scripts/vnext-proposal-application-source-mutation-implementation-status.mjs` |
+| Proposal generation decision packet | Implemented as read-only planning input. It recommends one deterministic local draft from one existing evidence candidate and keeps planning, implementation, provider-assisted generation, record creation, application, memory, source mutation, commit, and push blocked. | `docs/01_decision-log.md#DEC-068`, `docs/40_proposal-generation-decision-packet.md`, `scripts/vnext-proposal-generation-decision-packet-status.mjs` |
 
 ## Development Plan
 
@@ -121,6 +123,17 @@ maintenance-only with `implementationRequired=false`. New implementation starts 
 explicit operator request, concrete regression, usability issue, or accepted vNext decision. The
 entry does not by itself authorize proposal generation or application, provider calls, memory
 persistence, source mutation outside the approved named path, commit, or push.
+
+Completed: `proposal generation decision packet`
+`docs/40_proposal-generation-decision-packet.md` turns the explicit entry into one fielded planning
+decision for deterministic local proposal draft generation. The packet allows no planning or
+implementation by itself and keeps provider-assisted generation plus every downstream authority
+blocked.
+
+Next planning gate: `proposal generation planning decision required`
+The operator must provide the packet's full field set before one generation plan, rollback plan, or
+focused smoke plan can be written. Shortcuts such as `continue`, `approve all`, or `enable proposal
+generation` are invalid.
 
 ## Authority Boundary
 

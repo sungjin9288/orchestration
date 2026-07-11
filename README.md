@@ -54,28 +54,37 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is the post-completion vNext audit maintenance-route close-out. The
-default completion baseline is still closed for automatic implementation work:
-`tasks/todo.md` has zero
-unchecked task lines,
-`docs/22_completion-gate-inventory.md` records the current gate table, and
-`scripts/smoke-completion-gate-inventory-current-evidence.mjs` pins the README smoke counts,
-aggregate registration, UI QA registration, zero-open backlog, post-completion router, and
-proposal-record lifecycle review alias evidence together. The latest checked aggregate evidence is
-required `1/1`, informational `168/168`, total `169/169`; UI QA is required `28/28`.
+The current development focus is the read-only proposal generation planning decision packet. The
+previous post-completion explicit-entry and vNext audit maintenance-route slices are closed: the
+default completion baseline has zero automatic implementation backlog, and the first concrete next
+gate is `proposal generation planning decision required`.
 
-The active close-out slice is
-`vnext-growth-candidate-maintenance-route-closure-post-m7-2467a`. The vNext audit now consumes the
-completed proposal-record lifecycle review status and exposes
+`docs/40_proposal-generation-decision-packet.md` recommends one deterministic local proposal draft
+from exactly one existing Growth Evidence Ledger candidate. The packet is decision input only. It
+does not approve planning, implementation, provider-assisted generation, durable proposal record
+creation, proposal application, memory persistence, source mutation, commit, or push.
+
+The close-out evidence remains source-backed:
+`tasks/todo.md` has zero unchecked task lines,
+`docs/22_completion-gate-inventory.md` records the current gate table,
+`scripts/smoke-completion-gate-inventory-current-evidence.mjs` pins README smoke counts, aggregate
+registration, UI QA registration, zero-open backlog, post-completion router, and proposal-record
+lifecycle review alias evidence together, and `scripts/post-completion-next-step-status.mjs` reports
+`defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
+`1/1`, informational `169/169`, total `170/170`; UI QA is required `28/28`.
+
+The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
-`implementationRequired=false`. It no longer presents the completed alias as a new implementation
+`implementationRequired=false`. It does not present the completed alias as a new implementation
 queue. The audit reports `explicit-entry-required` for new implementation and preserves the four
 entry reasons: explicit operator request, concrete regression, usability issue, or accepted vNext
 decision.
 
-Follow-up work still enters only from an explicit operator request, a concrete regression, a
-usability issue, or an accepted vNext decision. The first posture for that follow-up remains
-read-only/status-or-doc-smoke-first until current evidence justifies runtime or UI mutation.
+The allowed explicit-entry posture is intentionally narrow. A follow-up request may open a
+read-only vNext routing/status/doc-smoke slice first, but runtime mutation, UI mutation, provider
+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push
+remain closed until a concrete regression, usability issue, or accepted vNext decision justifies a
+wider implementation slice.
 
 The immediately preceding growth evidence focus normalized repeated review/acceptance/finalization
 suffixes into the shorter `growth-evidence-ledger-proposal-record-lifecycle-review` alias. The
@@ -88,10 +97,11 @@ base/advanced routes, 4/122/1 next-candidate guard/advanced/base routes, 129 rea
 candidates, 26 base post-completion candidates, 23 post-completion candidate/finding-update rows,
 and 11/11 post-completion copy rows.
 
-This close-out pass changes the read-only vNext audit route, its source-of-truth docs, README
-evidence, README smoke coverage, and task ledgers; it does not change runtime write paths, UI
-behavior, provider calls, memory persistence, proposal generation or application, source mutation
-authority, product commit authority, or product push authority.
+This close-out pass changes read-only decision-packet documentation, the vNext audit status,
+completion inventory evidence, README evidence, README smoke coverage, aggregate registration, and
+task ledgers; it does not change runtime write paths, UI behavior, provider calls, memory
+persistence, proposal generation or application, source mutation authority, product commit
+authority, or product push authority.
 
 The immediately preceding development arc concluded a behavior-preserving module extraction campaign
 that pulled pure logic out of the three largest files into single-responsibility leaf modules,
@@ -115,8 +125,13 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `170/170`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias boundaries.
+- Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
+  `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
+  draft planning target, the full operator decision fields, rollback and focused smoke requirements,
+  copy-ready planning wording, and blocked provider/memory/record/application/source/commit/push
+  authority without approving planning or implementation.
 - vNext audit maintenance route:
   `scripts/vnext-development-audit-status.mjs` and
   `scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs` prove the completed
@@ -1617,6 +1632,7 @@ node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs
 node scripts/smoke-durable-proposal-record-creation.mjs
 node scripts/vnext-durable-proposal-record-implementation-status.mjs
 node scripts/vnext-proposal-application-decision-packet-status.mjs
+node scripts/vnext-proposal-generation-decision-packet-status.mjs
 node scripts/vnext-proposal-application-operator-decision-handoff-status.mjs
 node scripts/vnext-proposal-application-implementation-plan-status.mjs
 node scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs
@@ -1655,7 +1671,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `170/170`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias evidence
   stay aligned.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
@@ -1810,6 +1826,10 @@ Current verification evidence from this README and completion close-out refresh:
   proposal application decision packet, required application decision fields, still-blocked
   application/provider/memory/source/commit/push authority, upstream proposal review spec, and
   durable proposal record implementation evidence.
+- `node scripts/vnext-proposal-generation-decision-packet-status.mjs`: source-checks the read-only
+  proposal generation planning packet, deterministic one-candidate draft boundary, required decision
+  fields, rollback and focused smoke requirements, copy-ready planning statement, and blocked
+  provider/memory/record/application/source/commit/push authority.
 - `node scripts/vnext-proposal-application-operator-decision-handoff-status.mjs`: source-checks the
   copy-ready application decision handoff, valid planning/implementation statement shapes, invalid
   shortcuts, minimum acceptance criteria, still-blocked authority, upstream application decision
@@ -1853,7 +1873,7 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `28/28`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `168/168`, total `169/169`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `169/169`, total `170/170`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -1883,10 +1903,11 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `169/169`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
-- The current vNext audit maintenance-route close-out is README-backed evidence cleanup only. It
-  does not change runtime behavior, UI behavior, lifecycle semantics, provider calls, memory
-  persistence, proposal generation/application, source mutation authority, commit, or push behavior.
+  aggregate `170/170`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
+- The current proposal generation decision packet is read-only planning input. It does not approve
+  planning or implementation and does not change runtime behavior, UI behavior, lifecycle semantics,
+  provider calls, memory persistence, proposal generation/application, source mutation authority,
+  commit, or push behavior.
 - Growth proposal-record lifecycle review is read-only evidence. It preserves the long repeated
   route as `sourceCandidate` but does not create proposal records, apply proposals, mutate queues,
   call providers, persist memory, mutate source, commit, or push.
