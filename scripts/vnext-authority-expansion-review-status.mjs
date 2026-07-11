@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+import { runStatus } from './vnext-status-assertions.mjs';
 import {
   durableProposalRecordCreationCandidate,
 } from './vnext-status-constants.mjs';
@@ -146,10 +146,6 @@ function assertDoesNotMatchAny(source, patterns) {
   }
 }
 
-function runStatus(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
-}
-
 const authorityExpansionReviewSources = Object.fromEntries(
   Object.entries(authorityExpansionReviewFiles).map(([name, relativePath]) => [
     name,
@@ -200,14 +196,17 @@ const authorityExpansionReviewSourceEvidence = {
 
 assertSourceEvidence(authorityExpansionReviewSources, authorityExpansionReviewSourceEvidence);
 
-const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus(repoRoot, 'scripts/vnext-development-audit-status.mjs');
 const growthDashboardEvidenceDepthStatus = runStatus(
+  repoRoot,
   'scripts/vnext-growth-dashboard-evidence-depth-status.mjs',
 );
 const proposalReviewDecisionSpecStatus = runStatus(
+  repoRoot,
   'scripts/vnext-proposal-review-decision-spec-status.mjs',
 );
 const memoryReadinessDecisionSpecStatus = runStatus(
+  repoRoot,
   'scripts/vnext-memory-readiness-decision-spec-status.mjs',
 );
 const vnextDevelopmentAuditNextSlice =

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+import { runStatus } from './vnext-status-assertions.mjs';
 import {
   durableProposalRecordCreationCandidate,
   operatorDecisionGate,
@@ -110,10 +110,6 @@ function assertContainsBacktickedAll(source, expectedValues) {
   }
 }
 
-function runStatus(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
-}
-
 const proposalRecordDecisionPacketSources = Object.fromEntries(
   Object.entries(proposalRecordDecisionPacketFiles).map(([name, relativePath]) => [
     name,
@@ -169,8 +165,9 @@ const proposalRecordDecisionPacketSourceEvidence = {
 
 assertSourceEvidence(proposalRecordDecisionPacketSources, proposalRecordDecisionPacketSourceEvidence);
 
-const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus(repoRoot, 'scripts/vnext-development-audit-status.mjs');
 const authorityExpansionReviewStatus = runStatus(
+  repoRoot,
   'scripts/vnext-authority-expansion-review-status.mjs',
 );
 const vnextDevelopmentAuditNextSlice =

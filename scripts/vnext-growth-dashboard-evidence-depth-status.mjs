@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+import { runStatus } from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,10 +60,6 @@ const forbiddenActions = [
 
 function readFile(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function runStatus(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
 function assertMatchesAll(source, expectedPatterns) {
@@ -141,7 +137,7 @@ assertSourceEvidence(
 assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.app, forbiddenActions);
 assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.growthPanels, forbiddenActions);
 
-const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus(repoRoot, 'scripts/vnext-development-audit-status.mjs');
 
 assert.equal(vnextDevelopmentAuditStatus.ok, true);
 assert.equal(

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+import { runStatus } from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -107,10 +107,6 @@ function assertSourceEvidence(sourcesByName, evidenceBySource) {
       assertMatchesAll(sourcesByName[sourceName], evidence.matches);
     }
   }
-}
-
-function runStatus(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
 const vnextDevelopmentAuditSources = Object.fromEntries(
@@ -649,13 +645,18 @@ const vnextDevelopmentAuditSourceEvidence = {
 
 assertSourceEvidence(vnextDevelopmentAuditSources, vnextDevelopmentAuditSourceEvidence);
 
-const growthEngine = runStatus('scripts/growth-engine-status.mjs');
-const reflection = runStatus('scripts/growth-reflection-evaluator.mjs');
-const proposalReadiness = runStatus('scripts/growth-evidence-ledger-proposal-readiness-status.mjs');
+const growthEngine = runStatus(repoRoot, 'scripts/growth-engine-status.mjs');
+const reflection = runStatus(repoRoot, 'scripts/growth-reflection-evaluator.mjs');
+const proposalReadiness = runStatus(
+  repoRoot,
+  'scripts/growth-evidence-ledger-proposal-readiness-status.mjs',
+);
 const lifecycleReview = runStatus(
+  repoRoot,
   'scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs',
 );
 const sourceMutationImplementation = runStatus(
+  repoRoot,
   'scripts/vnext-proposal-application-source-mutation-implementation-status.mjs',
 );
 

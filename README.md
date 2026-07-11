@@ -78,11 +78,11 @@ focused smoke plan, and aggregate verification evidence before any implementatio
 requested.
 
 Recent verifier maintenance keeps this close-out evidence easier to audit without widening product
-authority. The durable proposal record planning, implementation, and proposal application status
-scripts now run upstream status checks and focused smokes through the shared
-`scripts/vnext-status-assertions.mjs` `runStatus` helper; the helper uses the current Node binary and
-the shared large JSON buffer, while before/after JSON diffs keep the emitted status payloads
-unchanged.
+authority. The vNext audit, growth dashboard evidence depth, authority review/decision packet,
+durable proposal record, and proposal application status scripts now run their status-script and
+focused-smoke dependencies through the shared `scripts/vnext-status-assertions.mjs` `runStatus`
+helper; the helper uses the current Node binary and the shared large JSON buffer, while before/after
+JSON diffs keep the emitted status payloads unchanged.
 
 The close-out evidence remains source-backed:
 `tasks/todo.md` has zero unchecked task lines,
@@ -1806,7 +1806,10 @@ Current verification evidence from this README and completion close-out refresh:
   `node scripts/vnext-development-audit-status.mjs`, and
   `node scripts/vnext-proposal-application-source-mutation-implementation-status.mjs`: recheck the
   same growth/proposal/source-mutation status surfaces with read-only/no-provider/no-memory/no-commit/
-  no-push boundaries.
+  no-push boundaries. The vNext audit status runs its upstream growth, reflection, proposal
+  readiness, lifecycle review, and source mutation implementation checks through the shared
+  `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted status
+  payload.
 - `node scripts/smoke-ui-slice-305.mjs`, `306`, `310`, `311`, `312`, `314`, `317`, `318`, `325`, `326`, `328`, `329`, `331`, `334`, `335`, `336`, `337`, `338`, `339`, `343`, `344`, `351`, `352`, `353`, `361`, `363`, `375`, `379`, `380`, `381`, `382`, `383`, `384`,
   `385`, `386`, `387`, `388`, `411`, `605`, `606`, `612`, `613`, `614`, `615`, `616`, `619`,
   `620`, `621`, `623`, `625`, `626`, `627`, `628`, `629`, and `630`:
@@ -1823,16 +1826,23 @@ Current verification evidence from this README and completion close-out refresh:
   proposal-record/source/proposal/commit/push authority.
 - `node scripts/vnext-growth-dashboard-evidence-depth-status.mjs`: Growth Evidence Ledger dashboard
   depth stays display-only while grouped failure patterns, regression comparison, and rollback
-  evidence links are source-checked.
+  evidence links are source-checked. It runs the vNext audit status through the shared
+  `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted status
+  payload.
 - `node scripts/vnext-memory-readiness-decision-spec-status.mjs`: memory item contract, source and
   redaction rules, review gates, export, expiry, deletion, and blocked memory/provider/source/commit
   authority.
 - `node scripts/vnext-authority-expansion-review-status.mjs`: authority expansion request fields,
   candidate authority paths, approval separation, stop conditions, rollback refs, and focused smoke
-  requirements stay read-only.
+  requirements stay read-only. It runs upstream vNext audit, growth dashboard, proposal review, and
+  memory readiness statuses through the shared `scripts/vnext-status-assertions.mjs` `runStatus`
+  helper without changing the emitted status payload.
 - `node scripts/vnext-authority-implementation-decision-packet-status.mjs`: operator decision
   outcomes, required decision fields, recommended first candidate, still-blocked authority, rollback
-  refs, focused smoke refs, and aggregate verification ref stay read-only.
+  refs, focused smoke refs, and aggregate verification ref stay read-only. It runs upstream vNext
+  audit and authority expansion review statuses through the shared
+  `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted status
+  payload.
 - `node scripts/vnext-durable-proposal-record-planning-preview-status.mjs`: durable proposal record
   shape, local-first storage candidate, focused smoke preview, rollback preview, and stop conditions
   stay planning input only and do not open record creation, persistence, proposal application,
