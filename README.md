@@ -54,7 +54,7 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is post-completion lifecycle-close-finalization-review-acceptance status recheck
+The current development focus is post-completion lifecycle-close-finalization-acceptance status recheck
 evidence close-out. The default completion baseline is still closed for implementation work:
 `tasks/todo.md` has zero
 unchecked task lines,
@@ -65,11 +65,11 @@ proposal-record lifecycle review alias evidence together. The latest checked agg
 required `1/1`, informational `168/168`, total `169/169`; UI QA is required `28/28`.
 
 The active close-out slice is
-`growth-lifecycle-close-finalization-review-acceptance-status-recheck-smoke-readability-post-m7-2367`. It keeps the
-lifecycle-close-finalization-review-acceptance status evidence current without changing the already grouped
+`growth-lifecycle-close-finalization-acceptance-status-recheck-smoke-readability-post-m7-2368`. It keeps the
+lifecycle-close-finalization-acceptance status evidence current without changing the already grouped
 focused smoke: source summary, vocabulary, schema, readiness, next-slice, safety boundary,
 invalid-argument, plan, and cross-document evidence remain separated. The source
-close-finalization-review-acceptance-status script, focused smoke, runtime behavior, UI behavior,
+close-finalization-acceptance-status script, focused smoke, runtime behavior, UI behavior,
 provider configuration, memory persistence, proposal generation/application, source mutation
 authority, commit, push, connector reach, automation, and lifecycle semantics remain unchanged.
 
@@ -116,10 +116,17 @@ Current source-backed evidence:
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
   aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias boundaries.
+- Growth lifecycle-close-finalization-acceptance status recheck:
+  `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs`
+  and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs`
+  prove the current lifecycle-close-finalization-acceptance status packet remains read-only, keeps
+  lifecycle close final close, lifecycle close finalization acceptance, source mutation, and
+  remediation execution blocked, preserves the next lifecycle-close-final-close recommendation, and
+  records this pass as evidence cleanup rather than product behavior change.
 - Growth lifecycle-close-finalization-review-acceptance status recheck:
   `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`
   and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`
-  prove the current lifecycle-close-finalization-review-acceptance status packet remains read-only,
+  prove the preceding lifecycle-close-finalization-review-acceptance status packet remains read-only,
   keeps lifecycle close finalization acceptance, lifecycle close finalization review acceptance,
   source mutation, and remediation execution blocked, preserves the next
   lifecycle-close-finalization-acceptance recommendation, and records this pass as evidence cleanup
@@ -1155,7 +1162,7 @@ Playwright CLI:
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
   aggregate `169/169`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
-- The current lifecycle-close-finalization-review-acceptance status recheck close-out is README-backed evidence cleanup
+- The current lifecycle-close-finalization-acceptance status recheck close-out is README-backed evidence cleanup
   only. It does not change the status script contract, focused smoke contract, runtime behavior, UI
   behavior, lifecycle semantics, provider calls, memory persistence, proposal generation/application,
   source mutation authority, commit, or push behavior.
