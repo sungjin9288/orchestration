@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
@@ -9,6 +8,7 @@ import {
   assertMarkdownSections,
   assertSourceEvidence,
   readRepoFiles,
+  runStatus,
 } from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -90,16 +90,6 @@ const authority = {
   commitAllowed: false,
   pushAllowed: false,
 };
-
-function runStatus(relativePath) {
-  return JSON.parse(
-    execFileSync(process.execPath, [relativePath], {
-      cwd: repoRoot,
-      encoding: 'utf8',
-      maxBuffer: 64 * 1024 * 1024,
-    }),
-  );
-}
 
 function assertUpstreamStatusesReady(statuses) {
   assert.equal(statuses.proposalQueue.ok, true, 'proposal queue status should pass');
@@ -184,8 +174,9 @@ assertContainsBacktickedAll(sources.packet, requiredDecisionFields);
 assertSourceEvidence(sources, evidence);
 assertDoesNotMatchAny(sources.growthPanels, [/data-action="generate-growth-proposal"/]);
 
-const proposalQueueStatus = runStatus('scripts/growth-proposal-queue-status.mjs');
+const proposalQueueStatus = runStatus(repoRoot, 'scripts/growth-proposal-queue-status.mjs');
 const proposalReadinessStatus = runStatus(
+  repoRoot,
   'scripts/growth-evidence-ledger-proposal-readiness-status.mjs',
 );
 
