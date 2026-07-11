@@ -78,11 +78,11 @@ focused smoke plan, and aggregate verification evidence before any implementatio
 requested.
 
 Recent verifier maintenance keeps this close-out evidence easier to audit without widening product
-authority. The proposal generation packet and handoff status scripts, plus the proposal application
-decision packet through implementation and source mutation implementation status scripts, now run
-upstream status checks through the shared `scripts/vnext-status-assertions.mjs` `runStatus` helper;
-the helper uses the current Node binary and the shared large JSON buffer, while before/after JSON
-diffs keep the emitted status payloads unchanged.
+authority. The durable proposal record planning, implementation, and proposal application status
+scripts now run upstream status checks and focused smokes through the shared
+`scripts/vnext-status-assertions.mjs` `runStatus` helper; the helper uses the current Node binary and
+the shared large JSON buffer, while before/after JSON diffs keep the emitted status payloads
+unchanged.
 
 The close-out evidence remains source-backed:
 `tasks/todo.md` has zero unchecked task lines,
@@ -1836,21 +1836,27 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/vnext-durable-proposal-record-planning-preview-status.mjs`: durable proposal record
   shape, local-first storage candidate, focused smoke preview, rollback preview, and stop conditions
   stay planning input only and do not open record creation, persistence, proposal application,
-  provider, memory, source mutation, commit, or push authority.
+  provider, memory, source mutation, commit, or push authority. It runs upstream status checks
+  through the shared `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the
+  emitted status payload.
 - `node scripts/vnext-operator-decision-handoff-status.mjs`: operator decision fields, valid
   statements, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop
   conditions stay source-checked as the consumed planning-only handoff and do not open
   implementation, persistence, provider, memory, source mutation, commit, or push authority.
 - `node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs`: accepted
   planning-only decision, implementation plan, rollback plan, focused smoke plan, and record contract
-  remain source-checked as the planning artifact.
+  remain source-checked as the planning artifact. It runs upstream status checks through the shared
+  `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted status
+  payload.
 - `node scripts/smoke-durable-proposal-record-creation.mjs`: approved runtime creation requires an
   implementation approval payload and source, negative, reviewer, and approval refs; the created
   record persists to local `state.json` with `proposal-record-0001`, `applyAllowed=false`, blocked
   application/provider/memory/source/commit/push actions, and rollback quarantine evidence.
 - `node scripts/vnext-durable-proposal-record-implementation-status.mjs`: source-checks the runtime
   contract, file-store normalization, service API, read-only UI ledger, focused smoke, and aggregate
-  registration for the approved creation/persistence slice.
+  registration for the approved creation/persistence slice. It runs the focused smoke through the
+  shared `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted
+  status payload.
 - `node scripts/vnext-proposal-application-decision-packet-status.mjs`: source-checks the read-only
   proposal application decision packet, required application decision fields, still-blocked
   application/provider/memory/source/commit/push authority, upstream proposal review spec, and

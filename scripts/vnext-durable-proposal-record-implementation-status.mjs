@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+import { runStatus } from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,10 +18,6 @@ requireNoCliArgs(process.argv.slice(2), {
 
 function readFile(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function runJson(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
 function assertMatchesAll(source, expectedPatterns) {
@@ -120,7 +116,8 @@ assertDoesNotMatchAny(durableProposalRecordImplementationStatusSources.app, [
   /data-action="apply-proposal"/,
 ]);
 
-const durableProposalRecordCreationSmokeStatus = runJson(
+const durableProposalRecordCreationSmokeStatus = runStatus(
+  repoRoot,
   'scripts/smoke-durable-proposal-record-creation.mjs',
 );
 const durableProposalRecordCreationSmokeRecord =

@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +8,7 @@ import {
   operatorDecisionGate,
   proposalApplicationDecisionGate,
 } from './vnext-status-constants.mjs';
+import { runStatus } from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,10 +126,6 @@ function assertDoesNotMatchAny(source, forbiddenPatterns) {
   }
 }
 
-function runStatus(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
-}
-
 const durableProposalRecordPlanningPreviewSources = Object.fromEntries(
   Object.entries(durableProposalRecordPlanningPreviewFiles).map(([name, relativePath]) => [
     name,
@@ -184,16 +180,22 @@ const durableProposalPlanningPreviewSourceEvidence = {
 assertSourceEvidence(durableProposalRecordPlanningPreviewSources, durableProposalPlanningPreviewSourceEvidence);
 
 const proposalRecordDecisionPacketStatus = runStatus(
+  repoRoot,
   'scripts/vnext-authority-implementation-decision-packet-status.mjs',
 );
 const proposalReviewDecisionSpecStatus = runStatus(
+  repoRoot,
   'scripts/vnext-proposal-review-decision-spec-status.mjs',
 );
-const growthProposalQueueStatus = runStatus('scripts/growth-proposal-queue-status.mjs');
+const growthProposalQueueStatus = runStatus(repoRoot, 'scripts/growth-proposal-queue-status.mjs');
 const proposalRecordCreationReadinessStatus = runStatus(
+  repoRoot,
   'scripts/growth-evidence-ledger-proposal-record-creation-readiness-status.mjs',
 );
-const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus(
+  repoRoot,
+  'scripts/vnext-development-audit-status.mjs',
+);
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 assert.equal(proposalRecordDecisionPacketStatus.ok, true);
