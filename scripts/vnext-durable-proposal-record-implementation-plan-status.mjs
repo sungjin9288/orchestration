@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
@@ -9,7 +8,14 @@ import {
   proposalApplicationDecisionGate,
   proposalApplicationDecisionRequiredInput,
 } from './vnext-status-constants.mjs';
-import { runStatus } from './vnext-status-assertions.mjs';
+import {
+  assertContainsBacktickedAll,
+  assertDoesNotMatchAny,
+  assertMarkdownSections,
+  assertSourceEvidence,
+  readRepoFiles,
+  runStatus,
+} from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -116,51 +122,15 @@ const forbiddenActionPatterns = [
   /proposalApplicationAllowed: true/,
 ];
 
-function readFile(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function assertContainsAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
-  }
-}
-
-function assertSourceEvidence(sourcesByName, evidenceBySource) {
-  for (const [sourceName, expectedValues] of Object.entries(evidenceBySource)) {
-    assertContainsAll(sourcesByName[sourceName], expectedValues);
-  }
-}
-
-function assertContainsBacktickedAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
-  }
-}
-
-function assertDoesNotMatchAny(source, forbiddenPatterns) {
-  for (const forbiddenPattern of forbiddenPatterns) {
-    assert.doesNotMatch(source, forbiddenPattern);
-  }
-}
-
-const durableProposalRecordImplementationPlanSources = Object.fromEntries(
-  Object.entries(durableProposalRecordImplementationPlanFiles).map(([name, relativePath]) => [
-    name,
-    readFile(relativePath),
-  ]),
+const durableProposalRecordImplementationPlanSources = readRepoFiles(
+  repoRoot,
+  durableProposalRecordImplementationPlanFiles,
 );
 
-for (const section of durableProposalRecordImplementationPlanSections) {
-  assert.match(
-    durableProposalRecordImplementationPlanSources.plan,
-    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
-  );
-}
+assertMarkdownSections(
+  durableProposalRecordImplementationPlanSources.plan,
+  durableProposalRecordImplementationPlanSections,
+);
 
 assertContainsBacktickedAll(
   durableProposalRecordImplementationPlanSources.plan,
