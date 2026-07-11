@@ -54,8 +54,8 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is post-completion lifecycle-close-finalization-review-acceptance
-status recheck evidence close-out. The default completion baseline is still closed for implementation work:
+The current development focus is the post-completion vNext audit maintenance-route close-out. The
+default completion baseline is still closed for automatic implementation work:
 `tasks/todo.md` has zero
 unchecked task lines,
 `docs/22_completion-gate-inventory.md` records the current gate table, and
@@ -65,13 +65,13 @@ proposal-record lifecycle review alias evidence together. The latest checked agg
 required `1/1`, informational `168/168`, total `169/169`; UI QA is required `28/28`.
 
 The active close-out slice is
-`growth-lifecycle-close-finalization-review-acceptance-status-recheck-smoke-readability-post-m7-2466`.
-It keeps the lifecycle-close-finalization-review-acceptance status evidence current without changing
-the already grouped focused smoke: source summary, vocabulary, schema, readiness, next-slice, safety
-boundary, invalid-argument, plan, and cross-document evidence remain separated. The source
-lifecycle-close-finalization-review-acceptance-status script, focused smoke, runtime behavior, UI behavior,
-provider configuration, memory persistence, proposal generation/application, source mutation
-authority, commit, push, connector reach, automation, and lifecycle semantics remain unchanged.
+`vnext-growth-candidate-maintenance-route-closure-post-m7-2467a`. The vNext audit now consumes the
+completed proposal-record lifecycle review status and exposes
+`growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
+`implementationRequired=false`. It no longer presents the completed alias as a new implementation
+queue. The audit reports `explicit-entry-required` for new implementation and preserves the four
+entry reasons: explicit operator request, concrete regression, usability issue, or accepted vNext
+decision.
 
 Follow-up work still enters only from an explicit operator request, a concrete regression, a
 usability issue, or an accepted vNext decision. The first posture for that follow-up remains
@@ -88,9 +88,10 @@ base/advanced routes, 4/122/1 next-candidate guard/advanced/base routes, 129 rea
 candidates, 26 base post-completion candidates, 23 post-completion candidate/finding-update rows,
 and 11/11 post-completion copy rows.
 
-This close-out pass changes README evidence, README smoke coverage, and task ledgers; it does not
-change runtime write paths, UI behavior, provider calls, memory persistence, proposal generation or
-application, source mutation authority, product commit authority, or product push authority.
+This close-out pass changes the read-only vNext audit route, its source-of-truth docs, README
+evidence, README smoke coverage, and task ledgers; it does not change runtime write paths, UI
+behavior, provider calls, memory persistence, proposal generation or application, source mutation
+authority, product commit authority, or product push authority.
 
 The immediately preceding development arc concluded a behavior-preserving module extraction campaign
 that pulled pure logic out of the three largest files into single-responsibility leaf modules,
@@ -116,10 +117,25 @@ Current source-backed evidence:
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
   aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias boundaries.
+- vNext audit maintenance route:
+  `scripts/vnext-development-audit-status.mjs` and
+  `scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs` prove the completed
+  proposal-record lifecycle review alias is now maintenance evidence, not a new implementation
+  queue. New implementation requires an explicit operator request, concrete regression, usability
+  issue, or accepted vNext decision, and the route keeps proposal generation/application, provider
+  calls, memory persistence, source mutation outside the approved named path, commit, and push
+  blocked.
+- Growth lifecycle-close-finalization-acceptance status recheck:
+  `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs`
+  and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status.mjs`
+  prove the current lifecycle-close-finalization-acceptance status packet remains read-only, keeps
+  lifecycle close final close, lifecycle close finalization acceptance, source mutation, and
+  remediation execution blocked, preserves the next lifecycle-close-final-close recommendation, and
+  records this pass as evidence cleanup rather than product behavior change.
 - Growth lifecycle-close-finalization-review-acceptance status recheck:
   `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`
   and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status.mjs`
-  prove the current lifecycle-close-finalization-review-acceptance status packet remains read-only,
+  prove the preceding lifecycle-close-finalization-review-acceptance status packet remains read-only,
   keeps lifecycle close finalization acceptance, lifecycle close finalization review acceptance,
   source mutation, and remediation execution blocked, preserves the next
   lifecycle-close-finalization-acceptance recommendation, and records this pass as evidence cleanup
@@ -1868,10 +1884,9 @@ Playwright CLI:
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
   aggregate `169/169`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
-- The current lifecycle-close-finalization-review-acceptance status recheck close-out is README-backed
-  evidence cleanup only. It does not change the status script contract, focused smoke contract,
-  runtime behavior, UI behavior, lifecycle semantics, provider calls, memory persistence, proposal
-  generation/application, source mutation authority, commit, or push behavior.
+- The current vNext audit maintenance-route close-out is README-backed evidence cleanup only. It
+  does not change runtime behavior, UI behavior, lifecycle semantics, provider calls, memory
+  persistence, proposal generation/application, source mutation authority, commit, or push behavior.
 - Growth proposal-record lifecycle review is read-only evidence. It preserves the long repeated
   route as `sourceCandidate` but does not create proposal records, apply proposals, mutate queues,
   call providers, persist memory, mutate source, commit, or push.

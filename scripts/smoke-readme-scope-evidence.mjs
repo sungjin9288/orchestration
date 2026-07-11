@@ -242,8 +242,8 @@ assertReadmeHasAll(advancedOpsHarnessSmokeEvidence);
 assertReadmeHasAll(advancedOpsHarnessHandoffEvidence);
 
 const completionFocusEvidence = [
-  /The current development focus is post-completion lifecycle-close-finalization-review-acceptance\s+status recheck evidence close-out/,
-  /default completion baseline\s+is still closed for implementation work/,
+  /The current development focus is the post-completion vNext audit maintenance-route close-out/,
+  /default completion baseline is still closed for automatic implementation work/,
   /docs\/22_completion-gate-inventory\.md/,
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
   /aggregate registration, UI QA registration, zero-open backlog/,
@@ -254,10 +254,11 @@ const completionFocusEvidence = [
 ];
 
 const lifecycleCloseFocusEvidence = [
-  /The active close-out slice is\s+`growth-lifecycle-close-finalization-review-acceptance-status-recheck-smoke-readability-post-m7-2466`/,
-  /keeps\s+the\s+lifecycle-close-finalization-review-acceptance status evidence current without changing\s+the already grouped focused smoke/,
-  /source summary, vocabulary, schema, readiness, next-slice, safety\s+boundary, invalid-argument, plan, and cross-document evidence remain separated/,
-  /source\s+lifecycle-close-finalization-review-acceptance-status script, focused smoke, runtime behavior, UI behavior,\s+provider configuration, memory persistence, proposal generation\/application, source mutation\s+authority, commit, push, connector reach, automation, and lifecycle semantics remain unchanged/,
+  /The active close-out slice is\s+`vnext-growth-candidate-maintenance-route-closure-post-m7-2467a`/,
+  /growth-evidence-ledger-proposal-record-lifecycle-review-maintenance/,
+  /maintenance evidence with\s+`implementationRequired=false`/,
+  /reports `explicit-entry-required` for new implementation/,
+  /explicit operator request, concrete regression, usability issue, or accepted vNext\s+decision/,
 ];
 
 const growthFocusEvidence = [
@@ -276,10 +277,21 @@ const growthFocusEvidence = [
 const growthSourceEvidence = [
   /Completion gate inventory:/,
   /aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
+  /vNext audit maintenance route:/,
+  /scripts\/vnext-development-audit-status\.mjs/,
+  /scripts\/growth-evidence-ledger-proposal-record-lifecycle-review-status\.mjs/,
+  /completed\s+proposal-record lifecycle review alias is now maintenance evidence, not a new implementation\s+queue/,
+  /New implementation requires an explicit operator request, concrete regression, usability\s+issue, or accepted vNext decision/,
+  /proposal generation\/application, provider\s+calls, memory persistence, source mutation outside the approved named path, commit, and push\s+blocked/,
+  /Growth lifecycle-close-finalization-acceptance status recheck:/,
+  /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status\.mjs/,
+  /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-acceptance-status\.mjs/,
+  /current lifecycle-close-finalization-acceptance status packet remains read-only/,
+  /preserves the next lifecycle-close-final-close recommendation/,
   /Growth lifecycle-close-finalization-review-acceptance status recheck:/,
   /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status\.mjs/,
   /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-acceptance-status\.mjs/,
-  /current lifecycle-close-finalization-review-acceptance status packet remains read-only/,
+  /preceding lifecycle-close-finalization-review-acceptance status packet remains read-only/,
   /preserves the next\s+lifecycle-close-finalization-acceptance recommendation/,
   /Growth lifecycle-close-finalization-review status recheck:/,
   /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status\.mjs/,

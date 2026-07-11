@@ -182,7 +182,8 @@ const authorityExpansionReviewSourceEvidence = {
   audit: [
     'Completed: `operator-approved authority expansion review`',
     'Completed: `proposal application source mutation implementation`',
-    'Next: `current read-only growth candidate`',
+    'Completed: `proposal-record lifecycle review alias`',
+    'Next implementation entry: `explicit entry required`',
   ],
   inventory: ['vNext authority expansion review'],
   readme: [

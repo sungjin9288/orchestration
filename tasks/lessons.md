@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- A status audit must consume the terminal status of its recommended candidate, not only the upstream candidate id. When the candidate's own status says maintenance-only, expose it as evidence with `implementationRequired=false` and route new implementation through the explicit post-completion entry gate; otherwise a completed alias silently becomes an infinite implementation queue.
+
 - Read-only lifecycle/status smokes should group payload checks by evidence layer instead of repeating direct assertions across generated vocabulary. Keep source summary, vocabulary, schema, readiness, next-slice, safety boundary, invalid-argument, and cross-document evidence separate so a failure points to the drifted contract layer.
 
 - README evidence smokes that validate public README honesty should keep stale-count rejection,

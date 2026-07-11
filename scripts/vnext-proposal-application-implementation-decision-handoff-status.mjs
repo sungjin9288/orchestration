@@ -195,7 +195,8 @@ const proposalApplicationImplementationDecisionHandoffSourceEvidence = {
   audit: [
     'Completed: `proposal application implementation decision handoff`',
     'Completed: `proposal application source mutation implementation`',
-    'Next: `current read-only growth candidate`',
+    'Completed: `proposal-record lifecycle review alias`',
+    'Next implementation entry: `explicit entry required`',
   ],
   inventory: ['vNext proposal application implementation decision handoff'],
   readme: [

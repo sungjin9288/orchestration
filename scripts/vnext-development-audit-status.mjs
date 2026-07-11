@@ -67,6 +67,8 @@ const vnextDevelopmentAuditFiles = {
   preferenceConfig: 'ui/preference-config.js',
   styles: 'ui/styles.css',
   uiSmoke: 'scripts/smoke-ui-slice-649.mjs',
+  lifecycleReviewStatus:
+    'scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -300,11 +302,22 @@ const vnextDevelopmentAuditSourceEvidence = {
       'Completed: `proposal application source mutation operator handoff`',
       'Completed: `proposal application source mutation planning plan`',
       'Completed: `proposal application source mutation implementation`',
-      'Next: `current read-only growth candidate`',
+      'Completed: `proposal-record lifecycle review alias`',
+      'Next implementation entry: `explicit entry required`',
       'proposal application implementation: audit-only attempt creation is implemented',
       'proposal application source mutation outside the single approved named path',
     ],
     matches: [/^# vNext Development Audit/m],
+  },
+  lifecycleReviewStatus: {
+    contains: [
+      "const MODE = 'growth-evidence-ledger-proposal-record-lifecycle-review-status'",
+      "id: 'growth-evidence-ledger-proposal-record-lifecycle-review-maintenance'",
+      'doesNotMutateRuntime: true',
+      'doesNotMutateUi: true',
+      'doesNotCommit: true',
+      'doesNotPush: true',
+    ],
   },
   proposalDecisionSpec: {
     contains: [
@@ -583,6 +596,9 @@ assertSourceEvidence(vnextDevelopmentAuditSources, vnextDevelopmentAuditSourceEv
 const growthEngine = runStatus('scripts/growth-engine-status.mjs');
 const reflection = runStatus('scripts/growth-reflection-evaluator.mjs');
 const proposalReadiness = runStatus('scripts/growth-evidence-ledger-proposal-readiness-status.mjs');
+const lifecycleReview = runStatus(
+  'scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs',
+);
 const sourceMutationImplementation = runStatus(
   'scripts/vnext-proposal-application-source-mutation-implementation-status.mjs',
 );
@@ -590,17 +606,34 @@ const sourceMutationImplementation = runStatus(
 const growthEngineNextSlice = growthEngine.nextRecommendedSlice?.id || null;
 const reflectionNextSlice = reflection.nextRecommendedSlice?.id || null;
 const proposalQueueHandoff = proposalReadiness.nextRecommendedSlice?.id || null;
-const nextGrowthSlice = 'current read-only growth evidence candidate';
-const nextGrowthCandidate = growthEngine.nextRecommendedSlice;
+const nextGrowthSlice = 'maintenance-only growth evidence gate';
+const nextGrowthCandidate = lifecycleReview.nextRecommendedSlice;
+const nextImplementationGate = {
+  status: 'explicit-entry-required',
+  implementationReady: false,
+  allowedEntryReasons: [
+    'explicit-operator-request',
+    'concrete-regression',
+    'usability-issue',
+    'accepted-vnext-decision',
+  ],
+  source: 'scripts/post-completion-next-step-status.mjs',
+};
 
 assert.equal(growthEngine.ok, true);
 assert.equal(reflection.ok, true);
 assert.equal(proposalReadiness.ok, true);
+assert.equal(lifecycleReview.ok, true);
 assert.equal(sourceMutationImplementation.ok, true);
 assert.equal(growthEngineNextSlice, reflectionNextSlice);
-assert.ok(nextGrowthCandidate?.id);
+assert.equal(
+  nextGrowthCandidate?.id,
+  'growth-evidence-ledger-proposal-record-lifecycle-review-maintenance',
+);
+assert.equal(lifecycleReview.readiness?.lifecycleReviewOnly, true);
 assert.equal(growthEngine.nextRecommendedSlice?.mustRemainReadOnly, true);
 assert.equal(reflection.nextRecommendedSlice?.mustRemainReadOnly, true);
+assert.equal(nextGrowthCandidate?.mustRemainReadOnly, true);
 assert.equal(proposalQueueHandoff, 'growth-evidence-ledger-proposal-queue-handoff');
 assert.equal(sourceMutationImplementation.authority?.proposalGenerationAllowed, false);
 assert.equal(sourceMutationImplementation.authority?.providerCallsAllowed, false);
@@ -808,8 +841,9 @@ const recommendedDevelopmentPlan = [
     slice: nextGrowthSlice,
     candidateId: nextGrowthCandidate.id,
     commandToAdd: nextGrowthCandidate.commandToAdd,
-    scope: 'Continue only the current read-only growth evidence candidate selected by matching engine and reflection status.',
-    gate: 'Proposal generation or application, provider calls, memory persistence, mutation outside the approved named path, commit, and push remain blocked.',
+    implementationRequired: false,
+    scope: 'Rerun the lifecycle review alias only when engine or reflection evidence drifts.',
+    gate: 'New implementation starts only from an explicit operator request, concrete regression, usability issue, or accepted vNext decision. Proposal generation or application, provider calls, memory persistence, mutation outside the approved named path, commit, and push remain blocked.',
   },
 ];
 
@@ -824,6 +858,7 @@ process.stdout.write(
       nextGrowthSlice,
       nextGrowthCandidate,
       proposalQueueHandoff,
+      nextImplementationGate,
       recommendedDevelopmentPlan,
       authority: {
         planningApproved: true,

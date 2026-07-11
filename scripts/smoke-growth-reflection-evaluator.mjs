@@ -5571,7 +5571,7 @@ assert.match(
 assert.match(plan, /lifecycle close review status next gate/);
 assert.match(
   plan,
-  /Maintain `growth-evidence-ledger-proposal-record-lifecycle-review-status` as the current read-only\s+proposal-record lifecycle review gate/,
+  /There is no default implementation slice after the proposal-record lifecycle review alias closes/,
 );
 assert.match(
   plan,

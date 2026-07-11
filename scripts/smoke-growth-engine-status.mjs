@@ -5716,11 +5716,11 @@ assert.match(
 );
 assert.match(
   plan,
-  /Maintain `growth-evidence-ledger-proposal-record-lifecycle-review-status` as the current read-only\s+proposal-record lifecycle review gate/,
+  /There is no default implementation slice after the proposal-record lifecycle review alias closes/,
 );
 assert.match(
   plan,
-  /must not reopen the default\s+completion backlog, grow another lifecycle suffix by default, or treat the source-mutation lifecycle\s+chain as the default next product lane/,
+  /must not reopen the default\s+completion backlog, grow another lifecycle\s+suffix by default, or treat the source-mutation lifecycle\s+chain as the default next product lane/,
 );
 assert.match(
   plan,
@@ -5742,7 +5742,7 @@ assert.match(
 assert.match(plan, /lifecycle close review status next gate/);
 assert.match(
   plan,
-  /Maintain `growth-evidence-ledger-proposal-record-lifecycle-review-status` as the current read-only\s+proposal-record lifecycle review gate/,
+  /There is no default implementation slice after the proposal-record lifecycle review alias closes/,
 );
 assert.match(
   plan,

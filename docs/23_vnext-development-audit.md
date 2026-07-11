@@ -110,8 +110,17 @@ Completed: `proposal application source mutation planning plan`
 Completed: `proposal application source mutation implementation`
 `DEC-067` and `docs/39_proposal-application-source-mutation-implementation.md` record the approved runtime path for exactly one named target and one approved audit-only attempt. The focused smoke proves approval separation, project-path containment, clean baseline proof, diff preview evidence, expected-content matching, one mutation per attempt, rollback, quarantine, and persisted false authority flags.
 
-Next: `current read-only growth candidate`
-`scripts/vnext-development-audit-status.mjs` derives this value from the matching `growth-engine-status` and `growth-reflection-evaluator` outputs at runtime. The candidate must remain read-only. It cannot generate or apply proposals, call providers, persist memory, widen source mutation, commit, or push.
+Completed: `proposal-record lifecycle review alias`
+`scripts/growth-evidence-ledger-proposal-record-lifecycle-review-status.mjs` consumes the matching
+`growth-engine-status` and `growth-reflection-evaluator` route as one maintenance-only review gate.
+The long generated candidate remains source evidence, but it is not another implementation queue.
+
+Next implementation entry: `explicit entry required`
+`scripts/vnext-development-audit-status.mjs` now reports the lifecycle review alias as
+maintenance-only with `implementationRequired=false`. New implementation starts only from an
+explicit operator request, concrete regression, usability issue, or accepted vNext decision. The
+entry does not by itself authorize proposal generation or application, provider calls, memory
+persistence, source mutation outside the approved named path, commit, or push.
 
 ## Authority Boundary
 

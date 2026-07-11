@@ -143,7 +143,8 @@ const sourceMutationPlanningPlanSourceEvidence = {
   audit: [
     'Completed: `proposal application source mutation planning plan`',
     'Completed: `proposal application source mutation implementation`',
-    'Next: `current read-only growth candidate`',
+    'Completed: `proposal-record lifecycle review alias`',
+    'Next implementation entry: `explicit entry required`',
   ],
   inventory: [
     'vNext proposal application source mutation planning plan',

@@ -185,7 +185,8 @@ const proposalApplicationDecisionPacketSourceEvidence = {
     'Completed: `proposal application decision packet`',
     'Completed: `proposal application implementation plan`',
     'Completed: `proposal application source mutation implementation`',
-    'Next: `current read-only growth candidate`',
+    'Completed: `proposal-record lifecycle review alias`',
+    'Next implementation entry: `explicit entry required`',
   ],
   inventory: ['vNext proposal application decision packet'],
   readme: [
