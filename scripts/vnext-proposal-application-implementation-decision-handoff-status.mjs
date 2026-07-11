@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,6 +6,7 @@ import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   proposalApplicationImplementationDecisionGate,
 } from './vnext-status-constants.mjs';
+import { runStatus } from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -129,10 +129,6 @@ function assertDoesNotMatchAny(source, patterns) {
   }
 }
 
-function runStatus(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
-}
-
 const proposalApplicationImplementationDecisionHandoffSources = Object.fromEntries(
   Object.entries(proposalApplicationImplementationDecisionHandoffFiles).map(
     ([name, relativePath]) => [name, readFile(relativePath)],
@@ -214,9 +210,13 @@ assertSourceEvidence(
 );
 
 const proposalApplicationImplementationPlanStatus = runStatus(
+  repoRoot,
   'scripts/vnext-proposal-application-implementation-plan-status.mjs',
 );
-const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus(
+  repoRoot,
+  'scripts/vnext-development-audit-status.mjs',
+);
 const vnextDevelopmentAuditNextSlice =
   vnextDevelopmentAuditStatus.recommendedDevelopmentPlan?.[0]?.slice;
 assert.equal(proposalApplicationImplementationPlanStatus.ok, true);

@@ -78,11 +78,11 @@ focused smoke plan, and aggregate verification evidence before any implementatio
 requested.
 
 Recent verifier maintenance keeps this close-out evidence easier to audit without widening product
-authority. The proposal generation packet, proposal generation handoff, and proposal application
-decision packet status scripts now run upstream status checks through the shared
-`scripts/vnext-status-assertions.mjs` `runStatus` helper; the helper uses the current Node binary and
-the shared large JSON buffer, while before/after JSON diffs keep the emitted status payloads
-unchanged.
+authority. The proposal generation packet and handoff status scripts, plus the proposal application
+decision packet through implementation decision handoff status scripts, now run upstream status
+checks through the shared `scripts/vnext-status-assertions.mjs` `runStatus` helper; the helper uses
+the current Node binary and the shared large JSON buffer, while before/after JSON diffs keep the
+emitted status payloads unchanged.
 
 The close-out evidence remains source-backed:
 `tasks/todo.md` has zero unchecked task lines,
@@ -1867,15 +1867,21 @@ Current verification evidence from this README and completion close-out refresh:
   copy-ready application decision handoff, valid planning/implementation statement shapes, invalid
   shortcuts, minimum acceptance criteria, still-blocked authority, upstream application decision
   packet, durable proposal record implementation evidence, and consumed planning-only decision
-  evidence.
+  evidence. It runs upstream status checks through the shared
+  `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted status
+  payload.
 - `node scripts/vnext-proposal-application-implementation-plan-status.mjs`: source-checks the
   accepted planning-only application decision, audit-only application attempt plan, rollback plan,
   focused smoke plan, implementation prerequisites, still-blocked authority, upstream application
-  packet/handoff evidence, and aggregate registration.
+  packet/handoff evidence, and aggregate registration. It runs upstream status checks through the
+  shared `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted
+  status payload.
 - `node scripts/vnext-proposal-application-implementation-decision-handoff-status.mjs`: source-checks
   the copy-ready implementation approval and rejection statement shapes, invalid shortcuts, minimum
   acceptance criteria, still-blocked authority, upstream planning evidence, and aggregate
-  registration without recording an implementation decision.
+  registration without recording an implementation decision. It runs upstream status checks through
+  the shared `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted
+  status payload.
 - `node scripts/smoke-proposal-application-attempt-creation.mjs`: proves the approved audit-only
   runtime path creates `proposal-application-attempt-0001`, persists it under local
   `proposalApplicationAttempts`, rejects missing approval, missing records, expired or quarantined
