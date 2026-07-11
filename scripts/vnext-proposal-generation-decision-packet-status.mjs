@@ -115,6 +115,29 @@ function runStatus(relativePath) {
   );
 }
 
+function assertUpstreamStatusesReady(statuses) {
+  assert.equal(statuses.proposalQueue.ok, true, 'proposal queue status should pass');
+  assert.equal(statuses.proposalReadiness.ok, true, 'proposal readiness status should pass');
+}
+
+function assertUpstreamSafetyBoundary(statuses) {
+  assert.equal(
+    statuses.proposalQueue.safetyBoundary?.doesNotGenerateProposals,
+    true,
+    'proposal queue must remain non-generating',
+  );
+  assert.equal(
+    statuses.proposalReadiness.safetyBoundary?.doesNotGenerateProposals,
+    true,
+    'proposal readiness must remain non-generating',
+  );
+  assert.equal(
+    statuses.proposalReadiness.safetyBoundary?.doesNotApplyProposals,
+    true,
+    'proposal readiness must not apply proposals',
+  );
+}
+
 const sources = Object.fromEntries(
   Object.entries(files).map(([name, relativePath]) => [name, readFile(relativePath)]),
 );
@@ -185,11 +208,13 @@ const proposalReadinessStatus = runStatus(
   'scripts/growth-evidence-ledger-proposal-readiness-status.mjs',
 );
 
-assert.equal(proposalQueueStatus.ok, true);
-assert.equal(proposalReadinessStatus.ok, true);
-assert.equal(proposalQueueStatus.safetyBoundary?.doesNotGenerateProposals, true);
-assert.equal(proposalReadinessStatus.safetyBoundary?.doesNotGenerateProposals, true);
-assert.equal(proposalReadinessStatus.safetyBoundary?.doesNotApplyProposals, true);
+const upstreamStatuses = {
+  proposalQueue: proposalQueueStatus,
+  proposalReadiness: proposalReadinessStatus,
+};
+
+assertUpstreamStatusesReady(upstreamStatuses);
+assertUpstreamSafetyBoundary(upstreamStatuses);
 
 process.stdout.write(
   `${JSON.stringify(
