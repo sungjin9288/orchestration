@@ -1,9 +1,14 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
-import { runStatus } from './vnext-status-assertions.mjs';
+import {
+  assertContainsBacktickedAll,
+  assertMarkdownSections,
+  assertSourceEvidence,
+  readRepoFiles,
+  runStatus,
+} from './vnext-status-assertions.mjs';
 import {
   durableProposalRecordCreationCandidate,
   operatorDecisionGate,
@@ -84,45 +89,15 @@ const proposalRecordDecisionPacketBlockedAuthorityMarkers = [
   'commitPushAllowed: false',
 ];
 
-function readFile(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function assertContainsAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
-  }
-}
-
-function assertSourceEvidence(sourcesByName, evidenceBySource) {
-  for (const [sourceName, expectedValues] of Object.entries(evidenceBySource)) {
-    assertContainsAll(sourcesByName[sourceName], expectedValues);
-  }
-}
-
-function assertContainsBacktickedAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(`\\\`${escapeRegExp(expectedValue)}\\\``));
-  }
-}
-
-const proposalRecordDecisionPacketSources = Object.fromEntries(
-  Object.entries(proposalRecordDecisionPacketFiles).map(([name, relativePath]) => [
-    name,
-    readFile(relativePath),
-  ]),
+const proposalRecordDecisionPacketSources = readRepoFiles(
+  repoRoot,
+  proposalRecordDecisionPacketFiles,
 );
 
-for (const section of proposalRecordDecisionPacketSections) {
-  assert.match(
-    proposalRecordDecisionPacketSources.packet,
-    new RegExp(`^${escapeRegExp(section)}$`, 'm'),
-  );
-}
+assertMarkdownSections(
+  proposalRecordDecisionPacketSources.packet,
+  proposalRecordDecisionPacketSections,
+);
 
 assertContainsBacktickedAll(
   proposalRecordDecisionPacketSources.packet,

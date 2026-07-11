@@ -81,8 +81,9 @@ Recent verifier maintenance keeps this close-out evidence easier to audit withou
 authority. The vNext audit, growth dashboard evidence depth, authority review/decision packet,
 durable proposal record, and proposal application status scripts now run their status-script and
 focused-smoke dependencies through the shared `scripts/vnext-status-assertions.mjs` `runStatus`
-helper; the helper uses the current Node binary and the shared large JSON buffer, while before/after
-JSON diffs keep the emitted status payloads unchanged.
+helper, and the authority review/decision packet scripts also share source-evidence assertion
+helpers from the same module; the helper uses the current Node binary and the shared large JSON
+buffer, while before/after JSON diffs keep the emitted status payloads unchanged.
 
 The close-out evidence remains source-backed:
 `tasks/todo.md` has zero unchecked task lines,
@@ -1836,13 +1837,16 @@ Current verification evidence from this README and completion close-out refresh:
   candidate authority paths, approval separation, stop conditions, rollback refs, and focused smoke
   requirements stay read-only. It runs upstream vNext audit, growth dashboard, proposal review, and
   memory readiness statuses through the shared `scripts/vnext-status-assertions.mjs` `runStatus`
-  helper without changing the emitted status payload.
+  helper, and it reuses shared source file loading, markdown-section, backticked-field,
+  source-evidence, and forbidden-action assertion helpers without changing the emitted status
+  payload.
 - `node scripts/vnext-authority-implementation-decision-packet-status.mjs`: operator decision
   outcomes, required decision fields, recommended first candidate, still-blocked authority, rollback
   refs, focused smoke refs, and aggregate verification ref stay read-only. It runs upstream vNext
   audit and authority expansion review statuses through the shared
-  `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted status
-  payload.
+  `scripts/vnext-status-assertions.mjs` `runStatus` helper, and it reuses shared source file
+  loading, markdown-section, backticked-field, and source-evidence assertion helpers without
+  changing the emitted status payload.
 - `node scripts/vnext-durable-proposal-record-planning-preview-status.mjs`: durable proposal record
   shape, local-first storage candidate, focused smoke preview, rollback preview, and stop conditions
   stay planning input only and do not open record creation, persistence, proposal application,
