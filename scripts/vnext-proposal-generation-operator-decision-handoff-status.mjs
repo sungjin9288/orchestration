@@ -113,6 +113,41 @@ const forbiddenActionPatterns = [
 
 const sources = readRepoFiles(repoRoot, files);
 
+function assertUpstreamStatusesReady(statuses) {
+  assert.equal(statuses.decisionPacket.ok, true, 'decision packet status should pass');
+  assert.equal(statuses.proposalQueue.ok, true, 'proposal queue status should pass');
+  assert.equal(statuses.proposalReadiness.ok, true, 'proposal readiness status should pass');
+  assert.equal(statuses.vnextAudit.ok, true, 'vNext audit status should pass');
+}
+
+function assertUpstreamAuthorityStillBlocked(statuses) {
+  assert.equal(
+    statuses.decisionPacket.authority?.proposalGenerationPlanningAllowed,
+    false,
+    'decision packet must keep proposal generation planning blocked',
+  );
+  assert.equal(
+    statuses.decisionPacket.authority?.proposalGenerationImplementationAllowed,
+    false,
+    'decision packet must keep proposal generation implementation blocked',
+  );
+  assert.equal(
+    statuses.proposalQueue.safetyBoundary?.doesNotGenerateProposals,
+    true,
+    'proposal queue must remain non-generating',
+  );
+  assert.equal(
+    statuses.proposalReadiness.safetyBoundary?.doesNotGenerateProposals,
+    true,
+    'proposal readiness must remain non-generating',
+  );
+  assert.equal(
+    statuses.vnextAudit.nextImplementationGate?.implementationReady,
+    false,
+    'vNext audit must keep implementation gated',
+  );
+}
+
 assertMarkdownSections(sources.handoff, sections);
 assertContainsBacktickedAll(sources.handoff, requiredDecisionFields);
 assertContainsBacktickedAll(sources.handoff, decisionOptions);
@@ -181,15 +216,15 @@ const proposalReadinessStatus = runStatus(
 );
 const vnextAuditStatus = runStatus(repoRoot, 'scripts/vnext-development-audit-status.mjs');
 
-assert.equal(decisionPacketStatus.ok, true);
-assert.equal(proposalQueueStatus.ok, true);
-assert.equal(proposalReadinessStatus.ok, true);
-assert.equal(vnextAuditStatus.ok, true);
-assert.equal(decisionPacketStatus.authority?.proposalGenerationPlanningAllowed, false);
-assert.equal(decisionPacketStatus.authority?.proposalGenerationImplementationAllowed, false);
-assert.equal(proposalQueueStatus.safetyBoundary?.doesNotGenerateProposals, true);
-assert.equal(proposalReadinessStatus.safetyBoundary?.doesNotGenerateProposals, true);
-assert.equal(vnextAuditStatus.nextImplementationGate?.implementationReady, false);
+const upstreamStatuses = {
+  decisionPacket: decisionPacketStatus,
+  proposalQueue: proposalQueueStatus,
+  proposalReadiness: proposalReadinessStatus,
+  vnextAudit: vnextAuditStatus,
+};
+
+assertUpstreamStatusesReady(upstreamStatuses);
+assertUpstreamAuthorityStillBlocked(upstreamStatuses);
 
 const authority = {
   handoffRecordsDecision: false,
