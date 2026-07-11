@@ -26,7 +26,7 @@ export function assertMarkdownSections(source, sections) {
   }
 }
 
-function assertContainsAll(source, expectedValues) {
+export function assertContainsAll(source, expectedValues) {
   for (const expectedValue of expectedValues) {
     assert.match(source, new RegExp(escapeRegExp(expectedValue)));
   }

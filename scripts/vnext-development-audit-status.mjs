@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
-import { runStatus } from './vnext-status-assertions.mjs';
+import {
+  assertContainsAll,
+  assertMatchesAll,
+  readRepoFiles,
+  runStatus,
+} from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -78,43 +82,7 @@ const vnextDevelopmentAuditFiles = {
   verification: 'scripts/verification_status.mjs',
 };
 
-function readFile(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function assertContainsAll(source, expectedValues) {
-  for (const expectedValue of expectedValues) {
-    assert.match(source, new RegExp(escapeRegExp(expectedValue)));
-  }
-}
-
-function assertMatchesAll(source, expectedPatterns) {
-  for (const expectedPattern of expectedPatterns) {
-    assert.match(source, expectedPattern);
-  }
-}
-
-function assertSourceEvidence(sourcesByName, evidenceBySource) {
-  for (const [sourceName, evidence] of Object.entries(evidenceBySource)) {
-    if (evidence.contains) {
-      assertContainsAll(sourcesByName[sourceName], evidence.contains);
-    }
-    if (evidence.matches) {
-      assertMatchesAll(sourcesByName[sourceName], evidence.matches);
-    }
-  }
-}
-
-const vnextDevelopmentAuditSources = Object.fromEntries(
-  Object.entries(vnextDevelopmentAuditFiles).map(([name, relativePath]) => [
-    name,
-    readFile(relativePath),
-  ]),
-);
+const vnextDevelopmentAuditSources = readRepoFiles(repoRoot, vnextDevelopmentAuditFiles);
 
 const referenceSignals = [
   'Linear',
@@ -643,7 +611,14 @@ const vnextDevelopmentAuditSourceEvidence = {
   },
 };
 
-assertSourceEvidence(vnextDevelopmentAuditSources, vnextDevelopmentAuditSourceEvidence);
+for (const [sourceName, evidence] of Object.entries(vnextDevelopmentAuditSourceEvidence)) {
+  if (evidence.contains) {
+    assertContainsAll(vnextDevelopmentAuditSources[sourceName], evidence.contains);
+  }
+  if (evidence.matches) {
+    assertMatchesAll(vnextDevelopmentAuditSources[sourceName], evidence.matches);
+  }
+}
 
 const growthEngine = runStatus(repoRoot, 'scripts/growth-engine-status.mjs');
 const reflection = runStatus(repoRoot, 'scripts/growth-reflection-evaluator.mjs');

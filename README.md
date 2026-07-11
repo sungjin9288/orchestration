@@ -90,7 +90,9 @@ use those shared source-evidence assertion helpers as well. The operator decisio
 proposal application decision packet status scripts now use the same shared assertion helpers. The
 runtime implementation status scripts for durable proposal records, proposal application attempts,
 and single-path proposal source mutation now share source file loading and regex match assertion
-helpers too.
+helpers too. The vNext audit and growth dashboard evidence depth status scripts now share source
+file loading plus exact-string, regex-match, and forbidden-action assertion helpers from that same
+module.
 
 The close-out evidence remains source-backed:
 `tasks/todo.md` has zero unchecked task lines,
@@ -1816,8 +1818,8 @@ Current verification evidence from this README and completion close-out refresh:
   same growth/proposal/source-mutation status surfaces with read-only/no-provider/no-memory/no-commit/
   no-push boundaries. The vNext audit status runs its upstream growth, reflection, proposal
   readiness, lifecycle review, and source mutation implementation checks through the shared
-  `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted status
-  payload.
+  `scripts/vnext-status-assertions.mjs` `runStatus` helper and reuses shared source file loading,
+  exact-string, and regex-match assertion helpers without changing the emitted status payload.
 - `node scripts/smoke-ui-slice-305.mjs`, `306`, `310`, `311`, `312`, `314`, `317`, `318`, `325`, `326`, `328`, `329`, `331`, `334`, `335`, `336`, `337`, `338`, `339`, `343`, `344`, `351`, `352`, `353`, `361`, `363`, `375`, `379`, `380`, `381`, `382`, `383`, `384`,
   `385`, `386`, `387`, `388`, `411`, `605`, `606`, `612`, `613`, `614`, `615`, `616`, `619`,
   `620`, `621`, `623`, `625`, `626`, `627`, `628`, `629`, and `630`:
@@ -1835,8 +1837,8 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/vnext-growth-dashboard-evidence-depth-status.mjs`: Growth Evidence Ledger dashboard
   depth stays display-only while grouped failure patterns, regression comparison, and rollback
   evidence links are source-checked. It runs the vNext audit status through the shared
-  `scripts/vnext-status-assertions.mjs` `runStatus` helper without changing the emitted status
-  payload.
+  `scripts/vnext-status-assertions.mjs` `runStatus` helper and reuses shared source file loading,
+  regex-match, and forbidden-action assertion helpers without changing the emitted status payload.
 - `node scripts/vnext-memory-readiness-decision-spec-status.mjs`: memory item contract, source and
   redaction rules, review gates, export, expiry, deletion, and blocked memory/provider/source/commit
   authority.

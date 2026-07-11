@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
-import { runStatus } from './vnext-status-assertions.mjs';
+import {
+  assertDoesNotMatchAny,
+  assertMatchesAll,
+  readRepoFiles,
+  runStatus,
+} from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,33 +62,9 @@ const forbiddenActions = [
   /data-action="create-memory-record"/,
 ];
 
-function readFile(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function assertMatchesAll(source, expectedPatterns) {
-  for (const expectedPattern of expectedPatterns) {
-    assert.match(source, expectedPattern);
-  }
-}
-
-function assertDoesNotMatchAny(source, forbiddenPatterns) {
-  for (const forbiddenPattern of forbiddenPatterns) {
-    assert.doesNotMatch(source, forbiddenPattern);
-  }
-}
-
-function assertSourceEvidence(sourcesByName, evidenceBySource) {
-  for (const [sourceName, expectedPatterns] of Object.entries(evidenceBySource)) {
-    assertMatchesAll(sourcesByName[sourceName], expectedPatterns);
-  }
-}
-
-const growthDashboardEvidenceDepthSources = Object.fromEntries(
-  Object.entries(growthDashboardEvidenceDepthFiles).map(([name, relativePath]) => [
-    name,
-    readFile(relativePath),
-  ]),
+const growthDashboardEvidenceDepthSources = readRepoFiles(
+  repoRoot,
+  growthDashboardEvidenceDepthFiles,
 );
 
 const growthDashboardEvidenceDepthEscapedAuthorityMarkers =
@@ -129,10 +109,11 @@ const growthDashboardEvidenceDepthSourceEvidence = {
   verification: [/vnext-growth-dashboard-evidence-depth-status\.mjs/],
 };
 
-assertSourceEvidence(
-  growthDashboardEvidenceDepthSources,
+for (const [sourceName, expectedPatterns] of Object.entries(
   growthDashboardEvidenceDepthSourceEvidence,
-);
+)) {
+  assertMatchesAll(growthDashboardEvidenceDepthSources[sourceName], expectedPatterns);
+}
 
 assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.app, forbiddenActions);
 assertDoesNotMatchAny(growthDashboardEvidenceDepthSources.growthPanels, forbiddenActions);
