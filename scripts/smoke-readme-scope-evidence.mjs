@@ -242,7 +242,7 @@ assertReadmeHasAll(advancedOpsHarnessSmokeEvidence);
 assertReadmeHasAll(advancedOpsHarnessHandoffEvidence);
 
 const completionFocusEvidence = [
-  /The current development focus is post-completion lifecycle-close-finalization\s+status recheck evidence close-out/,
+  /The current development focus is post-completion lifecycle-close-finalization-review\s+status recheck evidence close-out/,
   /default completion baseline\s+is still closed for implementation work/,
   /docs\/22_completion-gate-inventory\.md/,
   /scripts\/smoke-completion-gate-inventory-current-evidence\.mjs/,
@@ -254,10 +254,10 @@ const completionFocusEvidence = [
 ];
 
 const lifecycleCloseFocusEvidence = [
-  /The active close-out slice is\s+`growth-lifecycle-close-finalization-status-recheck-smoke-readability-post-m7-2464`/,
-  /keeps\s+the\s+lifecycle-close-finalization status evidence current without changing\s+the already grouped focused smoke/,
+  /The active close-out slice is\s+`growth-lifecycle-close-finalization-review-status-recheck-smoke-readability-post-m7-2465`/,
+  /keeps\s+the\s+lifecycle-close-finalization-review status evidence current without changing\s+the already grouped focused smoke/,
   /source summary, vocabulary, schema, readiness, next-slice, safety\s+boundary, invalid-argument, plan, and cross-document evidence remain separated/,
-  /source\s+lifecycle-close-finalization-status script, focused smoke, runtime behavior, UI behavior,\s+provider configuration, memory persistence, proposal generation\/application, source mutation\s+authority, commit, push, connector reach, automation, and lifecycle semantics remain unchanged/,
+  /source\s+lifecycle-close-finalization-review-status script, focused smoke, runtime behavior, UI behavior,\s+provider configuration, memory persistence, proposal generation\/application, source mutation\s+authority, commit, push, connector reach, automation, and lifecycle semantics remain unchanged/,
 ];
 
 const growthFocusEvidence = [
@@ -276,10 +276,15 @@ const growthFocusEvidence = [
 const growthSourceEvidence = [
   /Completion gate inventory:/,
   /aggregate `169\/169`, UI QA `28\/28`, zero-open backlog/,
+  /Growth lifecycle-close-finalization-review status recheck:/,
+  /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status\.mjs/,
+  /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-review-status\.mjs/,
+  /current lifecycle-close-finalization-review status packet remains read-only/,
+  /preserves the next\s+lifecycle-close-finalization-review-acceptance recommendation/,
   /Growth lifecycle-close-finalization status recheck:/,
   /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status\.mjs/,
   /scripts\/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-finalization-status\.mjs/,
-  /current lifecycle-close-finalization status packet remains read-only/,
+  /preceding lifecycle-close-finalization status packet remains read-only/,
   /preserves the next lifecycle-close-finalization-review recommendation/,
   /Growth lifecycle-close-acceptance status recheck:/,
   /scripts\/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-acceptance-status\.mjs/,
