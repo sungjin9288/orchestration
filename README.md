@@ -54,7 +54,7 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is post-completion lifecycle-close-review status recheck
+The current development focus is post-completion lifecycle-close-review-acceptance status recheck
 evidence close-out. The default completion baseline is still closed for implementation work:
 `tasks/todo.md` has zero
 unchecked task lines,
@@ -65,11 +65,11 @@ proposal-record lifecycle review alias evidence together. The latest checked agg
 required `1/1`, informational `168/168`, total `169/169`; UI QA is required `28/28`.
 
 The active close-out slice is
-`growth-lifecycle-close-review-status-recheck-smoke-readability-post-m7-2380`. It keeps the
-lifecycle-close-review status evidence current without changing the already grouped
+`growth-lifecycle-close-review-acceptance-status-recheck-smoke-readability-post-m7-2381`. It keeps the
+lifecycle-close-review-acceptance status evidence current without changing the already grouped
 focused smoke: source summary, vocabulary, schema, readiness, next-slice, safety boundary,
 invalid-argument, plan, and cross-document evidence remain separated. The source
-close-review-status script, focused smoke, runtime behavior, UI behavior,
+close-review-acceptance-status script, focused smoke, runtime behavior, UI behavior,
 provider configuration, memory persistence, proposal generation/application, source mutation
 authority, commit, push, connector reach, automation, and lifecycle semantics remain unchanged.
 
@@ -116,10 +116,17 @@ Current source-backed evidence:
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
   aggregate `169/169`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, and proposal-record lifecycle review alias boundaries.
+- Growth lifecycle-close-review-acceptance status recheck:
+  `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs`
+  and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-acceptance-status.mjs`
+  prove the current lifecycle-close-review-acceptance status packet remains read-only, keeps
+  lifecycle close acceptance, lifecycle close review acceptance, source mutation, and remediation
+  execution blocked, preserves the next lifecycle-close-acceptance recommendation, and records this
+  pass as evidence cleanup rather than product behavior change.
 - Growth lifecycle-close-review status recheck:
   `scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs`
   and `scripts/smoke-growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-review-status.mjs`
-  prove the current lifecycle-close-review status packet remains read-only, keeps lifecycle close
+  prove the preceding lifecycle-close-review status packet remains read-only, keeps lifecycle close
   review, lifecycle close, source mutation, and remediation execution blocked, preserves the next
   lifecycle-close-review-acceptance recommendation, and records this pass as evidence cleanup rather
   than product behavior change.
@@ -1248,7 +1255,7 @@ Playwright CLI:
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
   aggregate `169/169`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
-- The current lifecycle-close-review status recheck close-out is README-backed evidence cleanup
+- The current lifecycle-close-review-acceptance status recheck close-out is README-backed evidence cleanup
   only. It does not change the status script contract, focused smoke contract, runtime behavior, UI
   behavior, lifecycle semantics, provider calls, memory persistence, proposal generation/application,
   source mutation authority, commit, or push behavior.
