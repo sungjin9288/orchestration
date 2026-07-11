@@ -86,7 +86,8 @@ helpers from the same module. The durable proposal record planning preview and i
 status scripts use those shared source-evidence assertion helpers too; the helper uses the current
 Node binary and the shared large JSON buffer, while before/after JSON diffs keep the emitted status
 payloads unchanged. The proposal application handoff and implementation planning status scripts now
-use those shared source-evidence assertion helpers as well.
+use those shared source-evidence assertion helpers as well. The operator decision handoff and
+proposal application decision packet status scripts now use the same shared assertion helpers.
 
 The close-out evidence remains source-backed:
 `tasks/todo.md` has zero unchecked task lines,
@@ -1860,7 +1861,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/vnext-operator-decision-handoff-status.mjs`: operator decision fields, valid
   statements, invalid shortcuts, minimum planning-only acceptance, still-blocked authority, and stop
   conditions stay source-checked as the consumed planning-only handoff and do not open
-  implementation, persistence, provider, memory, source mutation, commit, or push authority.
+  implementation, persistence, provider, memory, source mutation, commit, or push authority. It
+  reuses shared source file loading, markdown-section, backticked-field, source-evidence, and
+  forbidden-action assertion helpers without changing the emitted status payload.
 - `node scripts/vnext-durable-proposal-record-implementation-plan-status.mjs`: accepted
   planning-only decision, implementation plan, rollback plan, focused smoke plan, and record contract
   remain source-checked as the planning artifact. It runs upstream status checks through the shared
@@ -1881,7 +1884,9 @@ Current verification evidence from this README and completion close-out refresh:
   application/provider/memory/source/commit/push authority, upstream proposal review spec, and
   durable proposal record implementation evidence. It runs upstream status checks through the shared
   `scripts/vnext-status-assertions.mjs` `runStatus` helper, using the current Node binary and shared
-  large JSON buffer without changing the emitted status payload.
+  large JSON buffer, and it reuses shared source file loading, markdown-section, backticked-field,
+  source-evidence, and forbidden-action assertion helpers without changing the emitted status
+  payload.
 - `node scripts/vnext-proposal-generation-decision-packet-status.mjs`: source-checks the read-only
   proposal generation planning packet, deterministic one-candidate draft boundary, required decision
   fields, rollback and focused smoke requirements, copy-ready planning statement, and blocked
