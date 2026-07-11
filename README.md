@@ -77,6 +77,13 @@ draft from one existing Growth Evidence Ledger candidate and must carry its own 
 focused smoke plan, and aggregate verification evidence before any implementation decision can be
 requested.
 
+Recent verifier maintenance keeps this close-out evidence easier to audit without widening product
+authority. The proposal generation packet, proposal generation handoff, and proposal application
+decision packet status scripts now run upstream status checks through the shared
+`scripts/vnext-status-assertions.mjs` `runStatus` helper; the helper uses the current Node binary and
+the shared large JSON buffer, while before/after JSON diffs keep the emitted status payloads
+unchanged.
+
 The close-out evidence remains source-backed:
 `tasks/todo.md` has zero unchecked task lines,
 `docs/22_completion-gate-inventory.md` records the current gate table,
@@ -1845,7 +1852,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/vnext-proposal-application-decision-packet-status.mjs`: source-checks the read-only
   proposal application decision packet, required application decision fields, still-blocked
   application/provider/memory/source/commit/push authority, upstream proposal review spec, and
-  durable proposal record implementation evidence.
+  durable proposal record implementation evidence. It runs upstream status checks through the shared
+  `scripts/vnext-status-assertions.mjs` `runStatus` helper, using the current Node binary and shared
+  large JSON buffer without changing the emitted status payload.
 - `node scripts/vnext-proposal-generation-decision-packet-status.mjs`: source-checks the read-only
   proposal generation planning packet, deterministic one-candidate draft boundary, required decision
   fields, rollback and focused smoke requirements, copy-ready planning statement, and blocked

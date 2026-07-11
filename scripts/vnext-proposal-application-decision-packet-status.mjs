@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,6 +7,7 @@ import {
   proposalApplicationImplementationDecisionGate,
   proposalApplicationImplementationDecisionRequiredInput,
 } from './vnext-status-constants.mjs';
+import { runStatus } from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,10 +126,6 @@ function assertDoesNotMatchAny(source, patterns) {
   }
 }
 
-function runStatus(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
-}
-
 const proposalApplicationDecisionPacketSources = Object.fromEntries(
   Object.entries(proposalApplicationDecisionPacketFiles).map(([name, relativePath]) => [
     name,
@@ -204,9 +200,13 @@ assertSourceEvidence(
   proposalApplicationDecisionPacketSourceEvidence,
 );
 
-const vnextDevelopmentAuditStatus = runStatus('scripts/vnext-development-audit-status.mjs');
-const proposalReviewDecisionSpecStatus = runStatus('scripts/vnext-proposal-review-decision-spec-status.mjs');
+const vnextDevelopmentAuditStatus = runStatus(repoRoot, 'scripts/vnext-development-audit-status.mjs');
+const proposalReviewDecisionSpecStatus = runStatus(
+  repoRoot,
+  'scripts/vnext-proposal-review-decision-spec-status.mjs',
+);
 const durableProposalRecordImplementationStatus = runStatus(
+  repoRoot,
   'scripts/vnext-durable-proposal-record-implementation-status.mjs',
 );
 const vnextDevelopmentAuditNextSlice =
