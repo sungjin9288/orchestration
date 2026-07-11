@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+import { runStatus } from './vnext-status-assertions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,10 +24,6 @@ requireNoCliArgs(process.argv.slice(2), { mode: STATUS_MODE });
 
 function readFile(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
-}
-
-function runJson(script) {
-  return JSON.parse(execFileSync('node', [script], { cwd: repoRoot, encoding: 'utf8' }));
 }
 
 function assertMatchesAll(source, patterns) {
@@ -111,7 +107,7 @@ assertMatchesAll(applicationAttemptEvidenceSources.verification, [
   /vnext-proposal-application-implementation-status\.mjs/,
 ]);
 
-const smokeStatus = runJson('scripts/smoke-proposal-application-attempt-creation.mjs');
+const smokeStatus = runStatus(repoRoot, 'scripts/smoke-proposal-application-attempt-creation.mjs');
 const attempt = smokeStatus.applicationAttempt;
 
 assert.equal(smokeStatus.ok, true);
