@@ -398,6 +398,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/40_proposal-generation-decision-packet.md` and `scripts/vnext-proposal-generation-decision-packet-status.mjs` define and verify the planning-only decision fields, one-candidate boundary, inert draft posture, rollback requirements, focused smoke requirements, stop conditions, and copy-ready operator statement. This decision documents input only; it does not approve planning, implementation, proposal generation, provider calls, memory persistence, durable record creation, proposal application, source mutation, commit, or push.
 - Needed Before: Any proposal generation plan still requires a fielded `approve-proposal-generation-planning-only` operator decision. Implementation requires a later accepted plan, implementation decision, rollback evidence, focused smoke, aggregate verification, and separate approval for every downstream authority.
 
+### DEC-069
+- Status: `Accepted`
+- Decision: Add a read-only proposal generation operator decision handoff for the `proposal generation planning decision required` gate.
+- Why: The decision packet defines the required field set, but broad continuation phrases such as `continue`, `do everything`, or `approve all` are invalid shortcuts for opening planning authority. The next gate needs an operator-facing handoff that makes the exact decision shape reusable without treating the handoff itself as approval.
+- Impact: `docs/41_proposal-generation-operator-decision-handoff.md` and `scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs` define and verify valid planning, evidence-request, rejection, and deferral shapes; invalid shortcuts; minimum planning acceptance; upstream proposal queue/readiness evidence; and still-blocked authority. This decision records handoff evidence only; it does not record an operator decision, approve planning, approve implementation, generate proposals, call providers, persist memory, create durable records, apply proposals, mutate source, commit, or push.
+- Needed Before: Any proposal generation plan still requires the operator to provide the full fielded `approve-proposal-generation-planning-only` decision for exactly one deterministic local draft planning path from one existing Growth Evidence Ledger candidate.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

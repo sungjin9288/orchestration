@@ -342,6 +342,11 @@ const informationalChecks = [
     purpose: 'vNext proposal generation decision packet source-checks the planning-only operator input for one deterministic local draft path while keeping generation implementation, provider calls, durable record creation, proposal application, memory, source mutation, commit, and push authority blocked',
   },
   {
+    id: 'vnext-proposal-generation-operator-decision-handoff-status',
+    script: 'scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs',
+    purpose: 'vNext proposal generation operator decision handoff source-checks the fielded planning response shape, invalid shortcuts, minimum planning acceptance, upstream queue/readiness evidence, and blocked provider, memory, record, application, source mutation, commit, and push authority without recording an operator decision',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

@@ -2,6 +2,8 @@
 
 ## direction resets
 
+- Broad continuation wording is not enough to open a fielded vNext planning gate when the packet rejects shortcuts. Add a read-only operator handoff that names valid decision fields, invalid shortcuts, minimum acceptance, and still-blocked authority before writing any plan.
+
 - When verified growth evidence exists but proposal generation has no accepted authority, define the first planning target as one deterministic local draft from exactly one candidate. Keep draft generation, durable record creation, application, provider-assisted generation, memory persistence, and source mutation as separate decisions so an upstream approval cannot silently open downstream writes.
 
 - A status audit must consume the terminal status of its recommended candidate, not only the upstream candidate id. When the candidate's own status says maintenance-only, expose it as evidence with `implementationRequired=false` and route new implementation through the explicit post-completion entry gate; otherwise a completed alias silently becomes an infinite implementation queue.

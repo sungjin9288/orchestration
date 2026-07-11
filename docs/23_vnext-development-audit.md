@@ -26,6 +26,7 @@ The current product posture is:
 - proposal application source mutation planning plan: consumed historical plan evidence; the later `DEC-067` implementation decision approved exactly one named path
 - proposal application source mutation implementation: exactly one named target path is implemented with clean-baseline proof, diff preview, rollback, and quarantine; proposal generation, provider calls, memory persistence, mutation outside that path, commit, and push remain blocked
 - proposal generation decision packet: read-only planning input is documented for one deterministic local draft path; planning and implementation remain blocked
+- proposal generation operator decision handoff: read-only decision template is documented for the planning gate; it rejects broad shortcuts and still does not approve planning
 
 ## Current Evidence
 
@@ -52,6 +53,7 @@ The current product posture is:
 | Proposal application source mutation planning plan | Consumed as historical plan evidence. It records the planning-only decision, one mutation plan, rollback plan, focused smoke plan, and implementation prerequisites later accepted by `DEC-067`. | `docs/01_decision-log.md#DEC-065`, `docs/38_proposal-application-source-mutation-planning-plan.md`, `scripts/vnext-proposal-application-source-mutation-planning-plan-status.mjs` |
 | Proposal application source mutation implementation | Implemented as one approved local runtime path. It applies exactly one named target for one approved audit-only attempt, records before/after content, proves clean baseline and diff preview evidence, supports rollback and quarantine, and keeps proposal generation, provider calls, memory persistence, mutation outside the named path, commit, and push blocked. | `docs/01_decision-log.md#DEC-067`, `docs/39_proposal-application-source-mutation-implementation.md`, `src/runtime/runtime-service.js`, `src/runtime/proposal-records.js`, `src/runtime/file-store.js`, `scripts/smoke-proposal-application-source-mutation.mjs`, `scripts/vnext-proposal-application-source-mutation-implementation-status.mjs` |
 | Proposal generation decision packet | Implemented as read-only planning input. It recommends one deterministic local draft from one existing evidence candidate and keeps planning, implementation, provider-assisted generation, record creation, application, memory, source mutation, commit, and push blocked. | `docs/01_decision-log.md#DEC-068`, `docs/40_proposal-generation-decision-packet.md`, `scripts/vnext-proposal-generation-decision-packet-status.mjs` |
+| Proposal generation operator decision handoff | Implemented as a read-only decision template. It defines valid fielded planning, evidence-request, rejection, and deferral shapes, rejects broad shortcuts, and keeps planning, implementation, provider-assisted generation, record creation, application, memory, source mutation, commit, and push blocked. | `docs/01_decision-log.md#DEC-069`, `docs/41_proposal-generation-operator-decision-handoff.md`, `scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs` |
 
 ## Development Plan
 
@@ -130,6 +132,11 @@ decision for deterministic local proposal draft generation. The packet allows no
 implementation by itself and keeps provider-assisted generation plus every downstream authority
 blocked.
 
+Completed: `proposal generation operator decision handoff`
+`docs/41_proposal-generation-operator-decision-handoff.md` gives the operator a reusable fielded
+response shape for the planning gate. It rejects broad shortcuts such as `continue`, `do
+everything`, and `approve all`, and it records no decision by itself.
+
 Next planning gate: `proposal generation planning decision required`
 The operator must provide the packet's full field set before one generation plan, rollback plan, or
 focused smoke plan can be written. Shortcuts such as `continue`, `approve all`, or `enable proposal
@@ -178,6 +185,8 @@ node scripts/vnext-proposal-application-source-mutation-operator-decision-handof
 node scripts/vnext-proposal-application-source-mutation-planning-plan-status.mjs
 node scripts/smoke-proposal-application-source-mutation.mjs
 node scripts/vnext-proposal-application-source-mutation-implementation-status.mjs
+node scripts/vnext-proposal-generation-decision-packet-status.mjs
+node scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs
 ```
 
-The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, matching growth engine and reflection recommendations, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, the approved durable proposal record creation/persistence smoke, the proposal application decision packet, the proposal application operator decision handoff, the proposal application implementation plan, the proposal application implementation decision handoff, the approved audit-only proposal application attempt implementation, the source mutation decision packet, the source mutation operator handoff, the source mutation planning plan, and the approved single-path source mutation implementation.
+The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, matching growth engine and reflection recommendations, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, the approved durable proposal record creation/persistence smoke, the proposal application decision packet, the proposal application operator decision handoff, the proposal application implementation plan, the proposal application implementation decision handoff, the approved audit-only proposal application attempt implementation, the source mutation decision packet, the source mutation operator handoff, the source mutation planning plan, the approved single-path source mutation implementation, the proposal generation decision packet, and the proposal generation operator decision handoff.
