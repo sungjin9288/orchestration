@@ -54,8 +54,14 @@ Planning source files:
 
 ## Current Development Focus
 
-The current development focus is the read-only proposal generation operator decision handoff. The
-previous post-completion explicit-entry, vNext audit maintenance-route, and proposal generation
+The current close-out focus is the read-only Loop Engineering and post-completion routing evidence.
+`docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
+`scripts/loop-readiness-status.mjs` verifies that a proposed loop names a goal, boundary,
+verification gate, stop condition, human return point, source-of-truth refs, and local evidence
+posture before execution can be treated as ready.
+
+The prior proposal generation operator decision handoff remains closed as read-only decision input.
+The previous post-completion explicit-entry, vNext audit maintenance-route, and proposal generation
 decision-packet slices are closed: the default completion baseline has zero automatic
 implementation backlog, and the first concrete next gate is still
 `proposal generation planning decision required`.
@@ -116,6 +122,13 @@ read-only vNext routing/status/doc-smoke slice first, but runtime mutation, UI m
 calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push
 remain closed until a concrete regression, usability issue, or accepted vNext decision justifies a
 wider implementation slice.
+
+Loop readiness is intentionally read-only. `scripts/loop-readiness-status.mjs` does not accept
+arguments, execute work, call providers, persist memory, schedule jobs, create commits, push, or open
+external connectors; `scripts/smoke-loop-readiness-status.mjs` pins that safety boundary. The
+post-completion router keeps the next safe posture at read-only status or doc-smoke work first, so
+Loop Engineering strengthens the control plane without opening background automation or widening the
+default development pack.
 
 The immediately preceding growth evidence focus normalized repeated review/acceptance/finalization
 suffixes into the shorter `growth-evidence-ledger-proposal-record-lifecycle-review` alias. The

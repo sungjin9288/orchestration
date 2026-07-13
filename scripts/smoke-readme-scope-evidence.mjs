@@ -242,7 +242,11 @@ assertReadmeHasAll(advancedOpsHarnessSmokeEvidence);
 assertReadmeHasAll(advancedOpsHarnessHandoffEvidence);
 
 const completionFocusEvidence = [
-  /The current development focus is the read-only proposal generation operator decision handoff/,
+  /The current close-out focus is the read-only Loop Engineering and post-completion routing evidence/,
+  /docs\/20_loop-engineering-concept-review\.md/,
+  /scripts\/loop-readiness-status\.mjs/,
+  /verifies that a proposed loop names a goal, boundary,\s+verification gate, stop condition, human return point, source-of-truth refs, and local evidence\s+posture/,
+  /The prior proposal generation operator decision handoff remains closed as read-only decision input/,
   /previous post-completion explicit-entry, vNext audit maintenance-route, and proposal generation\s+decision-packet slices are closed/,
   /default completion baseline has zero automatic\s+implementation backlog/,
   /first concrete next gate is still\s+`proposal generation planning decision required`/,
@@ -267,6 +271,11 @@ const completionFocusEvidence = [
   /allowed explicit-entry posture is intentionally narrow/,
   /read-only vNext routing\/status\/doc-smoke slice first/,
   /runtime mutation, UI mutation, provider\s+calls, memory persistence, connector reach, automation, lifecycle semantic changes, commit, and push\s+remain closed/,
+  /Loop readiness is intentionally read-only/,
+  /does not accept\s+arguments, execute work, call providers, persist memory, schedule jobs, create commits, push, or open\s+external connectors/,
+  /scripts\/smoke-loop-readiness-status\.mjs/,
+  /post-completion router keeps the next safe posture at read-only status or doc-smoke work first/,
+  /without opening background automation or widening the\s+default development pack/,
 ];
 
 const lifecycleCloseFocusEvidence = [
