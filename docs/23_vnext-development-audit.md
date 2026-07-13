@@ -27,7 +27,8 @@ The current product posture is:
 - proposal application source mutation implementation: exactly one named target path is implemented with clean-baseline proof, diff preview, rollback, and quarantine; proposal generation, provider calls, memory persistence, mutation outside that path, commit, and push remain blocked
 - proposal generation decision packet: read-only planning input is documented for one deterministic local draft path; planning and implementation remain blocked
 - proposal generation operator decision handoff: consumed planning-only decision evidence; it never approved implementation
-- proposal generation planning plan: accepted planning-only evidence for one deterministic inert draft contract; implementation remains blocked
+- proposal generation planning plan: consumed historical evidence for one deterministic inert draft contract
+- proposal generation implementation: approved pure in-memory draft generator; all durable and external authority remains blocked
 
 ## Current Evidence
 
@@ -55,7 +56,8 @@ The current product posture is:
 | Proposal application source mutation implementation | Implemented as one approved local runtime path. It applies exactly one named target for one approved audit-only attempt, records before/after content, proves clean baseline and diff preview evidence, supports rollback and quarantine, and keeps proposal generation, provider calls, memory persistence, mutation outside the named path, commit, and push blocked. | `docs/01_decision-log.md#DEC-067`, `docs/39_proposal-application-source-mutation-implementation.md`, `src/runtime/runtime-service.js`, `src/runtime/proposal-records.js`, `src/runtime/file-store.js`, `scripts/smoke-proposal-application-source-mutation.mjs`, `scripts/vnext-proposal-application-source-mutation-implementation-status.mjs` |
 | Proposal generation decision packet | Implemented as read-only planning input. It recommends one deterministic local draft from one existing evidence candidate and keeps planning, implementation, provider-assisted generation, record creation, application, memory, source mutation, commit, and push blocked. | `docs/01_decision-log.md#DEC-068`, `docs/40_proposal-generation-decision-packet.md`, `scripts/vnext-proposal-generation-decision-packet-status.mjs` |
 | Proposal generation operator decision handoff | Implemented as a read-only decision template. It defines valid fielded planning, evidence-request, rejection, and deferral shapes, rejects broad shortcuts, and keeps planning, implementation, provider-assisted generation, record creation, application, memory, source mutation, commit, and push blocked. | `docs/01_decision-log.md#DEC-069`, `docs/41_proposal-generation-operator-decision-handoff.md`, `scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs` |
-| Proposal generation planning plan | Accepted planning-only evidence. It fixes one deterministic inert draft contract, stale-evidence rejection, rollback/quarantine, and focused smoke requirements while keeping implementation and all downstream authority blocked. | `docs/01_decision-log.md#DEC-070`, `docs/42_proposal-generation-planning-plan.md`, `scripts/vnext-proposal-generation-planning-plan-status.mjs` |
+| Proposal generation planning plan | Consumed historical evidence. It fixes the inert draft contract, stale-evidence rejection, rollback/quarantine, and focused smoke requirements used by `DEC-071`. | `docs/01_decision-log.md#DEC-070`, `docs/42_proposal-generation-planning-plan.md`, `scripts/vnext-proposal-generation-planning-plan-status.mjs` |
+| Proposal generation implementation | Implemented as one pure local inert draft generator. It accepts only the approved candidate and implementation decision, rejects stale/incomplete evidence, returns `draft-only` with `applyAllowed=false`, and does not persist or mutate any downstream surface. | `docs/01_decision-log.md#DEC-071`, `docs/43_proposal-generation-implementation.md`, `src/runtime/proposal-drafts.js`, `scripts/smoke-deterministic-proposal-draft-generation.mjs`, `scripts/vnext-proposal-generation-implementation-status.mjs` |
 
 ## Development Plan
 
@@ -142,12 +144,17 @@ everything`, and `approve all`, and it records no decision by itself.
 Completed: `proposal generation planning plan`
 `docs/42_proposal-generation-planning-plan.md` records the accepted fielded planning-only decision,
 one deterministic inert draft contract, stale-evidence rejection, rollback/quarantine plan, and
-focused smoke plan. It does not approve draft-generation implementation or any downstream authority.
+focused smoke plan. It is now consumed historical evidence for the approved pure implementation.
 
-Next implementation gate: `proposal generation implementation decision required`
-A later fielded implementation decision must name exactly one local entrypoint and one inert draft
-path. Provider calls, durable record creation, proposal application, memory persistence, runtime/UI/source
-mutation, commit, and push remain blocked.
+Completed: `proposal generation implementation`
+`src/runtime/proposal-drafts.js#createDeterministicProposalDraft` validates one approved candidate,
+evidence freshness, and the implementation decision before returning an in-memory `draft-only`
+object with `applyAllowed=false`. It does not persist records, mutate a queue, apply a proposal,
+call providers, persist memory, mutate runtime/UI/source state, commit, or push.
+
+Next implementation gate: `inert draft human review required`
+The draft stays review input only. Any durable record, proposal queue, application, provider, memory,
+runtime/UI/source mutation, commit, or push authority requires a separate explicit decision.
 
 ## Authority Boundary
 

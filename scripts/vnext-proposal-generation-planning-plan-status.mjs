@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url';
 import { requireNoCliArgs } from './read-only-cli-guard.mjs';
 import {
   assertContainsBacktickedAll,
-  assertDoesNotMatchAny,
   assertMarkdownSections,
   assertSourceEvidence,
   readRepoFiles,
@@ -23,6 +22,7 @@ const files = {
   decisionPacket: 'docs/40_proposal-generation-decision-packet.md',
   decisionLog: 'docs/01_decision-log.md',
   audit: 'docs/23_vnext-development-audit.md',
+  implementation: 'docs/43_proposal-generation-implementation.md',
   inventory: 'docs/22_completion-gate-inventory.md',
   readme: 'README.md',
   growthConfig: 'ui/growth-config.js',
@@ -38,7 +38,7 @@ assertMarkdownSections(sources.plan, [
   '## Inert Draft Contract',
   '## Rollback Plan',
   '## Focused Smoke Plan',
-  '## Implementation Decision Required',
+  '## Consumed Implementation Decision',
   '## Stop Conditions',
   '## Verification',
 ]);
@@ -50,14 +50,13 @@ assertContainsBacktickedAll(sources.plan, [
   'blockedActions', 'reviewQuestion', 'draftStatus', 'recordId', 'applyAllowed',
   'nonApprovalStatement',
 ]);
-assertDoesNotMatchAny(sources.plan, [/approve-proposal-generation-implementation-slice/]);
 assertSourceEvidence(sources, {
   plan: [
     'operator-decision-vnext-proposal-generation-planning-001',
     'approve-proposal-generation-planning-only',
     'Planning approval: accepted',
-    'Implementation approval: blocked',
-    'Current downstream gate: `proposal generation implementation decision required`',
+    'Implementation approval: accepted later under `DEC-071`',
+    'Current downstream gate: `inert draft human review required`',
     'exactly one existing Growth Evidence Ledger candidate',
     'deterministically maps',
     'no durable proposal id',
@@ -68,10 +67,14 @@ assertSourceEvidence(sources, {
   ],
   handoff: ['Handoff status: `consumed-by-proposal-generation-planning-only-decision`'],
   decisionPacket: ['Current gate: `proposal generation implementation decision required`'],
-  decisionLog: ['### DEC-070'],
-  audit: ['Completed: `proposal generation planning plan`'],
+  decisionLog: ['### DEC-070', '### DEC-071'],
+  audit: ['Completed: `proposal generation planning plan`', 'Completed: `proposal generation implementation`'],
   inventory: ['vNext proposal generation planning plan'],
-  readme: ['Proposal generation planning plan is accepted planning-only evidence'],
+  readme: ['Proposal generation planning plan is consumed historical evidence'],
+  implementation: [
+    'operator-decision-vnext-proposal-generation-implementation-001',
+    'src/runtime/proposal-drafts.js#createDeterministicProposalDraft',
+  ],
   growthConfig: ['proposalGenerationAllowed: false', 'providerCallsAllowed: false', 'commitPushAllowed: false'],
   verification: ['vnext-proposal-generation-planning-plan-status.mjs'],
 });
@@ -86,13 +89,13 @@ assert.equal(audit.ok, true);
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode: STATUS_MODE,
-  posture: 'planning-only-deterministic-local-proposal-draft',
+  posture: 'consumed-planning-evidence-for-deterministic-local-proposal-draft',
   readOnly: true,
   doesNotCommit: true,
   doesNotPush: true,
   acceptedDecisionId: 'operator-decision-vnext-proposal-generation-planning-001',
-  currentGate: 'proposal generation implementation decision required',
-  implementationApproved: false,
+  currentGate: 'inert draft human review required',
+  implementationApproved: true,
   authority: {
     proposalGenerationAllowed: false,
     providerCallsAllowed: false,

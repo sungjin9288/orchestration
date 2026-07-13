@@ -141,7 +141,7 @@ const evidence = {
   ],
   audit: [
     'Completed: `proposal generation decision packet`',
-    'proposal generation implementation decision required',
+    'Next implementation gate: `inert draft human review required`',
   ],
   decisionLog: ['### DEC-068'],
   inventory: ['vNext proposal generation decision packet'],

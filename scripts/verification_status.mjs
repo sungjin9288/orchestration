@@ -349,7 +349,17 @@ const informationalChecks = [
   {
     id: 'vnext-proposal-generation-planning-plan-status',
     script: 'scripts/vnext-proposal-generation-planning-plan-status.mjs',
-    purpose: 'vNext proposal generation planning plan records the accepted fielded planning-only decision, one deterministic inert draft contract, rollback/quarantine plan, focused smoke plan, and implementation decision requirement without opening generation implementation or downstream authority',
+    purpose: 'vNext proposal generation planning plan preserves the accepted deterministic inert draft contract, rollback/quarantine plan, and focused smoke plan as historical evidence consumed by the approved pure implementation',
+  },
+  {
+    id: 'deterministic-proposal-draft-generation-smoke',
+    script: 'scripts/smoke-deterministic-proposal-draft-generation.mjs',
+    purpose: 'Approved pure deterministic proposal draft generation validates one candidate, approval, required evidence, and freshness while returning only an inert in-memory draft with no durable record, queue, application, provider, memory, source, commit, or push authority',
+  },
+  {
+    id: 'vnext-proposal-generation-implementation-status',
+    script: 'scripts/vnext-proposal-generation-implementation-status.mjs',
+    purpose: 'vNext proposal generation implementation status source-checks DEC-071, the pure inert draft generator, focused smoke, and still-blocked downstream authority',
   },
   {
     id: 'coordinator-path-containment-smoke',

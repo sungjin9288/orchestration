@@ -3,9 +3,9 @@
 ## Purpose
 
 This document records the accepted planning-only operator decision for one deterministic local
-proposal draft generation path. It defines a later implementation boundary, rollback plan, and
-focused smoke plan. It is not implementation approval and does not generate drafts, create durable
-records, apply proposals, call providers, persist memory, mutate runtime, UI, or source, commit, or push.
+proposal draft generation path. The plan was later consumed by the single implementation decision
+recorded in `docs/43_proposal-generation-implementation.md`. It does not authorize durable records,
+proposal application, providers, memory persistence, runtime/UI/source mutation, commit, or push.
 
 ## Accepted Planning-Only Decision
 
@@ -27,10 +27,10 @@ records, apply proposals, call providers, persist memory, mutate runtime, UI, or
 ## Current Status
 
 - Planning approval: accepted
-- Implementation approval: blocked
-- Current downstream gate: `proposal generation implementation decision required`
+- Implementation approval: accepted later under `DEC-071`
+- Current downstream gate: `inert draft human review required`
 - Candidate input: exactly one existing Growth Evidence Ledger candidate
-- Runtime implementation: not started
+- Runtime implementation: completed as a pure in-memory generator only
 
 ## Draft Generation Plan
 
@@ -82,12 +82,16 @@ The later implementation must prove:
 - rollback or quarantine preserves source evidence
 - aggregate verification registers the focused smoke
 
-## Implementation Decision Required
+## Consumed Implementation Decision
 
-A later fielded implementation decision must name exactly one entrypoint and one inert draft path.
-It must include this plan, rollback evidence, focused smoke refs, aggregate verification, and an
-explicit statement that durable record creation, proposal application, provider calls, memory,
-source mutation, commit, and push remain blocked.
+`DEC-071` accepts exactly one implementation entrypoint:
+`src/runtime/proposal-drafts.js#createDeterministicProposalDraft`.
+
+The implementation adds only a pure in-memory mapping function. Its caller supplies a fixed
+candidate, implementation approval, evidence freshness, and evaluation timestamp. It validates
+those values and returns one inert draft without file access, runtime-service access, state
+persistence, queue mutation, provider calls, or source mutation. The implementation evidence and
+focused smoke are recorded in `docs/43_proposal-generation-implementation.md`.
 
 ## Stop Conditions
 
@@ -105,5 +109,6 @@ node scripts/vnext-development-audit-status.mjs
 node scripts/verification_status.mjs
 ```
 
-The planning status script verifies this accepted decision and plan as documentation-only evidence.
-It does not execute or authorize proposal generation.
+The planning status script verifies this accepted plan as consumed historical evidence. The separate
+implementation status script verifies the pure draft generator and its still-blocked downstream
+authority.

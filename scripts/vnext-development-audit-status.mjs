@@ -48,6 +48,9 @@ const vnextDevelopmentAuditFiles = {
   proposalGenerationDecisionPacket: 'docs/40_proposal-generation-decision-packet.md',
   proposalGenerationOperatorHandoff: 'docs/41_proposal-generation-operator-decision-handoff.md',
   proposalGenerationPlanningPlan: 'docs/42_proposal-generation-planning-plan.md',
+  proposalGenerationImplementationDoc: 'docs/43_proposal-generation-implementation.md',
+  proposalDrafts: 'src/runtime/proposal-drafts.js',
+  proposalGenerationSmoke: 'scripts/smoke-deterministic-proposal-draft-generation.mjs',
   proposalRecordImplementationStatus: 'scripts/vnext-durable-proposal-record-implementation-status.mjs',
   proposalRecordCreationSmoke: 'scripts/smoke-durable-proposal-record-creation.mjs',
   proposalApplicationAttemptSmoke: 'scripts/smoke-proposal-application-attempt-creation.mjs',
@@ -82,6 +85,8 @@ const vnextDevelopmentAuditFiles = {
     'scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs',
   proposalGenerationPlanningPlanStatus:
     'scripts/vnext-proposal-generation-planning-plan-status.mjs',
+  proposalGenerationImplementationStatus:
+    'scripts/vnext-proposal-generation-implementation-status.mjs',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -214,6 +219,7 @@ const vnextDevelopmentAuditSourceEvidence = {
       '### DEC-068',
       '### DEC-069',
       '### DEC-070',
+      '### DEC-071',
     ],
   },
   readme: {
@@ -253,8 +259,10 @@ const vnextDevelopmentAuditSourceEvidence = {
       'docs/38_proposal-application-source-mutation-planning-plan.md',
       'Proposal application source mutation is implemented for exactly one approved path',
       'docs/39_proposal-application-source-mutation-implementation.md',
-      'Proposal generation planning plan is accepted planning-only evidence',
+      'Proposal generation planning plan is consumed historical evidence',
       'docs/42_proposal-generation-planning-plan.md',
+      'Deterministic inert proposal draft generation is implemented',
+      'docs/43_proposal-generation-implementation.md',
     ],
   },
   vnextAudit: {
@@ -284,7 +292,8 @@ const vnextDevelopmentAuditSourceEvidence = {
       'Completed: `proposal generation decision packet`',
       'Completed: `proposal generation operator decision handoff`',
       'Completed: `proposal generation planning plan`',
-      'Next implementation gate: `proposal generation implementation decision required`',
+      'Completed: `proposal generation implementation`',
+      'Next implementation gate: `inert draft human review required`',
       'proposal application implementation: audit-only attempt creation is implemented',
       'proposal application source mutation outside the single approved named path',
     ],
@@ -328,11 +337,33 @@ const vnextDevelopmentAuditSourceEvidence = {
       '# Proposal Generation Planning Plan',
       'approve-proposal-generation-planning-only',
       'Planning approval: accepted',
-      'Implementation approval: blocked',
-      'Current downstream gate: `proposal generation implementation decision required`',
+      'Implementation approval: accepted later under `DEC-071`',
+      'Current downstream gate: `inert draft human review required`',
       'exactly one existing Growth Evidence Ledger candidate',
       'must not call a model or provider',
       'applyAllowed` | Always `false`',
+    ],
+  },
+  proposalGenerationImplementationDoc: {
+    contains: [
+      'Implementation Decision',
+      'operator-decision-vnext-proposal-generation-implementation-001',
+      'src/runtime/proposal-drafts.js#createDeterministicProposalDraft',
+      'does not persist a durable record',
+    ],
+  },
+  proposalDrafts: {
+    contains: [
+      'function createDeterministicProposalDraft(input = {})',
+      'evidenceFreshness is stale at evaluationAt',
+      'applyAllowed: false',
+    ],
+  },
+  proposalGenerationSmoke: {
+    contains: [
+      "mode: 'smoke-deterministic-proposal-draft-generation'",
+      "recordIdPresent: Object.hasOwn(draft, 'recordId')",
+      'proposalQueueMutationAllowed: false',
     ],
   },
   proposalGenerationDecisionPacketStatus: {
@@ -362,6 +393,14 @@ const vnextDevelopmentAuditSourceEvidence = {
       'proposalGenerationAllowed: false',
       'doesNotCommit: true',
       'doesNotPush: true',
+    ],
+  },
+  proposalGenerationImplementationStatus: {
+    contains: [
+      "const STATUS_MODE = 'vnext-proposal-generation-implementation-status'",
+      'proposalGenerationAllowed: false',
+      'durableRecordCreationAllowed: false',
+      'doesNotMatch(sources.draftModule',
     ],
   },
   proposalDecisionSpec: {
@@ -664,15 +703,15 @@ const growthEngineNextSlice = growthEngine.nextRecommendedSlice?.id || null;
 const reflectionNextSlice = reflection.nextRecommendedSlice?.id || null;
 const proposalQueueHandoff = proposalReadiness.nextRecommendedSlice?.id || null;
 const lifecycleReviewMaintenance = lifecycleReview.nextRecommendedSlice;
-const nextGrowthSlice = 'proposal generation implementation decision';
+const nextGrowthSlice = 'inert proposal draft human review';
 const nextGrowthCandidate = {
-  id: 'deterministic-local-proposal-draft-generation-implementation-decision',
-  commandToAdd: 'node scripts/vnext-proposal-generation-planning-plan-status.mjs',
-  reason: 'The accepted planning-only decision now fixes one inert draft contract. The next step is a later fielded implementation decision naming exactly one local entrypoint and one inert draft path, not implementation.',
+  id: 'deterministic-local-proposal-draft-human-review',
+  commandToAdd: 'node scripts/vnext-proposal-generation-implementation-status.mjs',
+  reason: 'The approved pure generator returns an inert draft only. Any durable record, queue, application, provider, memory, source, commit, or push follow-up still requires its own explicit authority and human review.',
   mustRemainReadOnly: true,
 };
 const nextImplementationGate = {
-  status: 'proposal-generation-implementation-decision-required',
+  status: 'proposal-generation-inert-draft-human-review-required',
   implementationReady: false,
   allowedEntryReasons: [
     'explicit-operator-request',
@@ -680,9 +719,9 @@ const nextImplementationGate = {
     'usability-issue',
     'accepted-vnext-decision',
   ],
-  targetAuthority: 'deterministic local inert proposal draft generation implementation',
-  planningPlan: 'docs/42_proposal-generation-planning-plan.md',
-  source: 'scripts/vnext-proposal-generation-planning-plan-status.mjs',
+  targetAuthority: 'human review of one deterministic local inert proposal draft',
+  planningPlan: 'docs/43_proposal-generation-implementation.md',
+  source: 'scripts/vnext-proposal-generation-implementation-status.mjs',
 };
 
 assert.equal(growthEngine.ok, true);
@@ -906,7 +945,18 @@ const implemented = [
       'docs/01_decision-log.md#DEC-070',
       'scripts/vnext-proposal-generation-planning-plan-status.mjs',
     ],
-    status: 'documented-planning-only-inert-draft-plan',
+    status: 'consumed-planning-evidence-for-inert-draft-implementation',
+  },
+  {
+    area: 'proposal generation implementation',
+    evidence: [
+      'docs/43_proposal-generation-implementation.md',
+      'docs/01_decision-log.md#DEC-071',
+      'src/runtime/proposal-drafts.js',
+      'scripts/smoke-deterministic-proposal-draft-generation.mjs',
+      'scripts/vnext-proposal-generation-implementation-status.mjs',
+    ],
+    status: 'implemented-pure-inert-draft-only',
   },
   {
     area: 'completion and README evidence',
@@ -935,8 +985,8 @@ const recommendedDevelopmentPlan = [
     candidateId: nextGrowthCandidate.id,
     commandToAdd: nextGrowthCandidate.commandToAdd,
     implementationRequired: false,
-    scope: 'Request one later fielded implementation decision naming exactly one deterministic local inert draft entrypoint for one existing Growth Evidence Ledger candidate.',
-    gate: 'The accepted plan does not approve implementation. Provider-assisted generation, durable record creation, proposal application, provider calls, memory persistence, runtime/UI/source mutation, commit, and push remain blocked.',
+    scope: 'Review one generated inert draft without turning it into a durable record, queue item, application, provider request, memory item, source mutation, commit, or push.',
+    gate: 'The generator returns an in-memory draft only. Durable record creation, proposal queue mutation, proposal application, provider calls, memory persistence, runtime/UI/source mutation, commit, and push remain blocked.',
   },
 ];
 

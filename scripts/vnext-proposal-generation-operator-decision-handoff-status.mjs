@@ -192,7 +192,7 @@ const evidence = {
   audit: [
     'Completed: `proposal generation decision packet`',
     'Completed: `proposal generation operator decision handoff`',
-    'Next implementation gate: `proposal generation implementation decision required`',
+    'Next implementation gate: `inert draft human review required`',
   ],
   inventory: ['vNext proposal generation operator decision handoff'],
   readme: [

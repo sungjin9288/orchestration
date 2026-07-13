@@ -60,16 +60,17 @@ The current close-out focus is the read-only Loop Engineering and post-completio
 verification gate, stop condition, human return point, source-of-truth refs, and local evidence
 posture before execution can be treated as ready.
 
-Proposal generation planning plan is accepted planning-only evidence. The operator's fielded
-decision is recorded in `DEC-070` and
+Proposal generation planning plan is consumed historical evidence. The operator's planning decision
+is recorded in `DEC-070` and consumed by `DEC-071`.
 `docs/42_proposal-generation-planning-plan.md` defines one deterministic local inert draft from
-exactly one existing Growth Evidence Ledger candidate, plus stale-evidence rejection, rollback,
-quarantine, focused-smoke, and aggregate-verification requirements.
+exactly one existing Growth Evidence Ledger candidate, while
+`docs/43_proposal-generation-implementation.md` records the approved pure implementation.
 
-The plan does not approve implementation. Provider-assisted generation, durable record creation,
-proposal application, memory persistence, runtime/UI/source mutation, commit, and push remain
-blocked. The next gate is `proposal generation implementation decision required` and must name one
-entrypoint and one inert draft path before code can be written.
+Deterministic inert proposal draft generation is implemented in
+`src/runtime/proposal-drafts.js#createDeterministicProposalDraft`. It rejects incomplete or stale
+evidence and returns an in-memory `draft-only` object with `applyAllowed=false`; it does not create
+durable records, mutate queues, apply proposals, call providers, persist memory, mutate runtime/UI/
+source state, commit, or push. The next gate is `inert draft human review required`.
 
 Recent verifier maintenance keeps this close-out evidence easier to audit without widening product
 authority. The vNext audit, growth dashboard evidence depth, authority review/decision packet,
@@ -93,10 +94,10 @@ The close-out evidence remains source-backed:
 `docs/22_completion-gate-inventory.md` records the current gate table,
 `scripts/smoke-completion-gate-inventory-current-evidence.mjs` pins README smoke counts, aggregate
 registration, UI QA registration, zero-open backlog, post-completion router, proposal-record
-lifecycle review alias evidence, and proposal generation handoff evidence together, and
+lifecycle review alias evidence, and proposal generation planning plus implementation evidence together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `171/171`, total `172/172`; UI QA is required `28/28`.
+`1/1`, informational `173/173`, total `174/174`; UI QA is required `28/28`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -157,9 +158,9 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `172/172`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `174/174`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
-  proposal generation handoff evidence.
+  proposal generation planning and implementation evidence.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
   `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
   draft planning target, the full operator decision fields, rollback and focused smoke requirements,
@@ -1582,7 +1583,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 854 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 855 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 650 UI smoke files
 ```
@@ -1711,9 +1712,9 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `172/172`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `174/174`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
-  proposal generation handoff evidence stay aligned.
+  proposal generation planning and implementation evidence stay aligned.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
   reports `ok=true`, read-only lifecycle-close status readiness, blocked
   source mutation and remediation execution, and the next lifecycle-close-review command.
@@ -1902,6 +1903,13 @@ Current verification evidence from this README and completion close-out refresh:
   copy-ready proposal generation planning handoff, invalid shortcuts, minimum fielded acceptance,
   upstream proposal queue/readiness evidence, and blocked provider/memory/record/application/source/
   commit/push authority without recording an operator decision.
+- `node scripts/smoke-deterministic-proposal-draft-generation.mjs`: proves the approved pure draft
+  generator returns deterministic `draft-only` output, rejects missing approval, incomplete evidence,
+  stale evidence, and an unapproved candidate, and never exposes a durable record id or application
+  authority.
+- `node scripts/vnext-proposal-generation-implementation-status.mjs`: source-checks `DEC-071`, the
+  pure generator, focused smoke, and the still-blocked durable record, queue, application, provider,
+  memory, runtime/UI/source, commit, and push boundaries.
 - `node scripts/vnext-proposal-application-operator-decision-handoff-status.mjs`: source-checks the
   copy-ready application decision handoff, valid planning/implementation statement shapes, invalid
   shortcuts, minimum acceptance criteria, still-blocked authority, upstream application decision
@@ -1963,7 +1971,7 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `28/28`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `171/171`, total `172/172`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `173/173`, total `174/174`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -1993,11 +2001,11 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `172/172`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
-- The current proposal generation decision packet and operator handoff are read-only planning input.
-  They do not approve planning or implementation and do not change runtime behavior, UI behavior,
-  lifecycle semantics, provider calls, memory persistence, proposal generation/application, source
-  mutation authority, commit, or push behavior.
+  aggregate `174/174`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
+- Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
+  `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
+  queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,
+  or push.
 - Growth proposal-record lifecycle review is read-only evidence. It preserves the long repeated
   route as `sourceCandidate` but does not create proposal records, apply proposals, mutate queues,
   call providers, persist memory, mutate source, commit, or push.
