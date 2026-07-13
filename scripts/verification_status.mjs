@@ -372,6 +372,11 @@ const informationalChecks = [
     purpose: 'vNext proposal draft human review status source-checks DEC-072, the pure pending review packet, focused smoke, and separate downstream authority',
   },
   {
+    id: 'vnext-proposal-draft-human-review-decision-packet-status',
+    script: 'scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs',
+    purpose: 'vNext proposal draft human review decision packet source-checks DEC-073, valid fielded outcome shapes, the pending review packet, and still-blocked downstream authority without recording an outcome',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

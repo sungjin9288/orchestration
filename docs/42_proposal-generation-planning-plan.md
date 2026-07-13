@@ -29,7 +29,8 @@ proposal application, providers, memory persistence, runtime/UI/source mutation,
 - Planning approval: accepted
 - Implementation approval: accepted later under `DEC-071`
 - Human-review packet: implemented later under `DEC-072`
-- Current downstream gate: `proposal draft human review decision required`
+- Human-review decision packet: implemented later under `DEC-073`
+- Current downstream gate: `fielded proposal draft human review outcome required`
 - Candidate input: exactly one existing Growth Evidence Ledger candidate
 - Runtime implementation: completed as a pure in-memory generator only
 

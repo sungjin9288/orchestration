@@ -424,6 +424,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: An inert draft needs a compact, inspectable review input before any human outcome can be considered. The review surface must preserve evidence and freshness without becoming a review decision or an implicit promotion path.
 - Impact: `src/runtime/proposal-draft-reviews.js#createProposalDraftHumanReviewPacket` accepts only fresh `draft-only` input and returns `pending-human-review` with no `reviewOutcome`. It does not create records, mutate queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit, or push. A later fielded human review decision remains required for any downstream authority.
 
+### DEC-073
+- Status: `Accepted`
+- Decision: Define a read-only fielded human-review decision packet for one deterministic inert proposal draft.
+- Why: `DEC-072` supplies pending review evidence, but a human outcome needs a complete, inspectable shape that cannot be confused with durable record creation, queue mutation, proposal application, or external authority.
+- Impact: `docs/45_proposal-draft-human-review-decision-packet.md` and `scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs` define and verify evidence-only acceptance, request-more-evidence, rejection, and deferral outcomes. They do not record an outcome, mutate state, or open durable record, queue, application, provider, memory, runtime/UI/source mutation, commit, or push authority.
+- Needed Before: Any actual human-review outcome must be provided as a complete fielded decision for exactly one fresh pending packet. Any durable or external action remains subject to a separate explicit authority decision and verification.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

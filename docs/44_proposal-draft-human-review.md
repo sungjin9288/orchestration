@@ -41,11 +41,19 @@ outcome must be recorded through a separate explicit decision; this packet has n
 - Because the packet is in-memory only, rollback is discarding the packet while preserving the draft
   and its source evidence unchanged.
 
+## Decision Follow-up
+
+`docs/45_proposal-draft-human-review-decision-packet.md` defines the later fielded human outcome.
+It permits only evidence confirmation, an evidence request, rejection, or deferral. It does not add a
+`reviewOutcome` to this packet or open durable record, queue, application, provider, memory,
+runtime/UI/source mutation, commit, or push authority.
+
 ## Verification
 
 ```bash
 node scripts/smoke-proposal-draft-human-review.mjs
 node scripts/vnext-proposal-draft-human-review-status.mjs
+node scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs
 node scripts/verification_status.mjs
 ```
 

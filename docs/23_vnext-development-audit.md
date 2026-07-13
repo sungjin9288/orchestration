@@ -30,6 +30,7 @@ The current product posture is:
 - proposal generation planning plan: consumed historical evidence for one deterministic inert draft contract
 - proposal generation implementation: approved pure in-memory draft generator; all durable and external authority remains blocked
 - proposal draft human review: read-only pending packet is implemented; it records no review outcome or downstream authority
+- proposal draft human review decision packet: read-only fielded outcome input is implemented; it records no outcome or downstream authority
 
 ## Current Evidence
 
@@ -60,6 +61,7 @@ The current product posture is:
 | Proposal generation planning plan | Consumed historical evidence. It fixes the inert draft contract, stale-evidence rejection, rollback/quarantine, and focused smoke requirements used by `DEC-071`. | `docs/01_decision-log.md#DEC-070`, `docs/42_proposal-generation-planning-plan.md`, `scripts/vnext-proposal-generation-planning-plan-status.mjs` |
 | Proposal generation implementation | Implemented as one pure local inert draft generator. It accepts only the approved candidate and implementation decision, rejects stale/incomplete evidence, returns `draft-only` with `applyAllowed=false`, and does not persist or mutate any downstream surface. | `docs/01_decision-log.md#DEC-071`, `docs/43_proposal-generation-implementation.md`, `src/runtime/proposal-drafts.js`, `scripts/smoke-deterministic-proposal-draft-generation.mjs`, `scripts/vnext-proposal-generation-implementation-status.mjs` |
 | Proposal draft human review | Implemented as a read-only pending packet. It preserves the draft's evidence, freshness, blocked actions, and review question while rejecting non-draft, stale, or promoted input and recording no review outcome. | `docs/01_decision-log.md#DEC-072`, `docs/44_proposal-draft-human-review.md`, `src/runtime/proposal-draft-reviews.js`, `scripts/smoke-proposal-draft-human-review.mjs`, `scripts/vnext-proposal-draft-human-review-status.mjs` |
+| Proposal draft human review decision packet | Implemented as read-only fielded decision input. It defines evidence-only acceptance, evidence request, rejection, and deferral for one fresh pending packet without recording an outcome or opening downstream authority. | `docs/01_decision-log.md#DEC-073`, `docs/45_proposal-draft-human-review-decision-packet.md`, `scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs` |
 
 ## Development Plan
 
@@ -159,9 +161,15 @@ Completed: `proposal draft human review`
 `draft-only` payload and returns `pending-human-review` with no review outcome. It preserves the
 review question, evidence, freshness, and blocked actions without creating a record or mutation.
 
-Next implementation gate: `proposal draft human review decision required`
-A later fielded review outcome must remain separate from durable record creation, proposal queue,
-proposal application, provider, memory, runtime/UI/source mutation, commit, and push authority.
+Completed: `proposal draft human review decision packet`
+`docs/45_proposal-draft-human-review-decision-packet.md` defines the only valid fielded outcome
+shapes for one pending packet. It does not record an outcome or open durable record, queue,
+application, provider, memory, runtime/UI/source mutation, commit, or push authority.
+
+Next implementation gate: `fielded proposal draft human review outcome required`
+The operator must still provide one complete outcome for a fresh pending packet. That outcome remains
+separate from durable record creation, proposal queue mutation, proposal application, provider,
+memory, runtime/UI/source mutation, commit, and push authority.
 
 ## Authority Boundary
 
@@ -208,6 +216,8 @@ node scripts/smoke-proposal-application-source-mutation.mjs
 node scripts/vnext-proposal-application-source-mutation-implementation-status.mjs
 node scripts/vnext-proposal-generation-decision-packet-status.mjs
 node scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs
+node scripts/vnext-proposal-draft-human-review-status.mjs
+node scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs
 ```
 
-The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, matching growth engine and reflection recommendations, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, the approved durable proposal record creation/persistence smoke, the proposal application decision packet, the proposal application operator decision handoff, the proposal application implementation plan, the proposal application implementation decision handoff, the approved audit-only proposal application attempt implementation, the source mutation decision packet, the source mutation operator handoff, the source mutation planning plan, the approved single-path source mutation implementation, the proposal generation decision packet, and the proposal generation operator decision handoff.
+The scripts check the reference audit, design rules, README claims, UI markers, grouped growth evidence depth, decision boundaries, matching growth engine and reflection recommendations, proposal-readiness handoff, memory-readiness contract, authority-expansion review contract, authority implementation decision packet, durable proposal record planning preview, operator decision handoff, durable proposal record implementation plan, the approved durable proposal record creation/persistence smoke, the proposal application decision packet, the proposal application operator decision handoff, the proposal application implementation plan, the proposal application implementation decision handoff, the approved audit-only proposal application attempt implementation, the source mutation decision packet, the source mutation operator handoff, the source mutation planning plan, the approved single-path source mutation implementation, the proposal generation decision packet, the proposal generation operator decision handoff, the pending proposal draft human review packet, and the proposal draft human-review decision packet.
