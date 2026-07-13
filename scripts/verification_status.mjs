@@ -362,6 +362,16 @@ const informationalChecks = [
     purpose: 'vNext proposal generation implementation status source-checks DEC-071, the pure inert draft generator, focused smoke, and still-blocked downstream authority',
   },
   {
+    id: 'proposal-draft-human-review-smoke',
+    script: 'scripts/smoke-proposal-draft-human-review.mjs',
+    purpose: 'Pending human review packet preserves one fresh inert draft as inspection input while rejecting promoted or stale drafts and keeping record, queue, application, provider, memory, source, commit, and push authority blocked',
+  },
+  {
+    id: 'vnext-proposal-draft-human-review-status',
+    script: 'scripts/vnext-proposal-draft-human-review-status.mjs',
+    purpose: 'vNext proposal draft human review status source-checks DEC-072, the pure pending review packet, focused smoke, and separate downstream authority',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

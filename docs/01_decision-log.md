@@ -418,6 +418,12 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Why: The accepted planning evidence now names one candidate, one pure entrypoint, explicit freshness input, rollback boundary, and focused smoke, allowing a narrowly testable implementation without opening any durable or external authority.
 - Impact: `src/runtime/proposal-drafts.js#createDeterministicProposalDraft` validates the approved candidate and evidence, then returns an in-memory `draft-only` object with `applyAllowed=false`. It does not persist records, mutate queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit, or push. `docs/43_proposal-generation-implementation.md` and its focused smoke are the current implementation evidence.
 
+### DEC-072
+- Status: `Accepted`
+- Decision: Add a read-only pending human-review packet for one deterministic inert proposal draft.
+- Why: An inert draft needs a compact, inspectable review input before any human outcome can be considered. The review surface must preserve evidence and freshness without becoming a review decision or an implicit promotion path.
+- Impact: `src/runtime/proposal-draft-reviews.js#createProposalDraftHumanReviewPacket` accepts only fresh `draft-only` input and returns `pending-human-review` with no `reviewOutcome`. It does not create records, mutate queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit, or push. A later fielded human review decision remains required for any downstream authority.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

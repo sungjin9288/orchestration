@@ -60,3 +60,9 @@ node scripts/verification_status.mjs
 ```
 
 This implementation is not a durable proposal creation or application authority.
+
+## Human Review Follow-up
+
+`docs/44_proposal-draft-human-review.md` records the read-only pending review packet for this draft.
+It preserves evidence and freshness for inspection without recording a review outcome or opening any
+downstream authority.

@@ -28,7 +28,8 @@ proposal application, providers, memory persistence, runtime/UI/source mutation,
 
 - Planning approval: accepted
 - Implementation approval: accepted later under `DEC-071`
-- Current downstream gate: `inert draft human review required`
+- Human-review packet: implemented later under `DEC-072`
+- Current downstream gate: `proposal draft human review decision required`
 - Candidate input: exactly one existing Growth Evidence Ledger candidate
 - Runtime implementation: completed as a pure in-memory generator only
 
@@ -92,6 +93,11 @@ candidate, implementation approval, evidence freshness, and evaluation timestamp
 those values and returns one inert draft without file access, runtime-service access, state
 persistence, queue mutation, provider calls, or source mutation. The implementation evidence and
 focused smoke are recorded in `docs/43_proposal-generation-implementation.md`.
+
+`DEC-072` later adds `src/runtime/proposal-draft-reviews.js#createProposalDraftHumanReviewPacket`.
+It creates a read-only `pending-human-review` packet from the inert draft, but does not record a
+review outcome or open any downstream authority. Its evidence and focused smoke are recorded in
+`docs/44_proposal-draft-human-review.md`.
 
 ## Stop Conditions
 

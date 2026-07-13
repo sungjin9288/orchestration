@@ -29,6 +29,7 @@ The current product posture is:
 - proposal generation operator decision handoff: consumed planning-only decision evidence; it never approved implementation
 - proposal generation planning plan: consumed historical evidence for one deterministic inert draft contract
 - proposal generation implementation: approved pure in-memory draft generator; all durable and external authority remains blocked
+- proposal draft human review: read-only pending packet is implemented; it records no review outcome or downstream authority
 
 ## Current Evidence
 
@@ -58,6 +59,7 @@ The current product posture is:
 | Proposal generation operator decision handoff | Implemented as a read-only decision template. It defines valid fielded planning, evidence-request, rejection, and deferral shapes, rejects broad shortcuts, and keeps planning, implementation, provider-assisted generation, record creation, application, memory, source mutation, commit, and push blocked. | `docs/01_decision-log.md#DEC-069`, `docs/41_proposal-generation-operator-decision-handoff.md`, `scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs` |
 | Proposal generation planning plan | Consumed historical evidence. It fixes the inert draft contract, stale-evidence rejection, rollback/quarantine, and focused smoke requirements used by `DEC-071`. | `docs/01_decision-log.md#DEC-070`, `docs/42_proposal-generation-planning-plan.md`, `scripts/vnext-proposal-generation-planning-plan-status.mjs` |
 | Proposal generation implementation | Implemented as one pure local inert draft generator. It accepts only the approved candidate and implementation decision, rejects stale/incomplete evidence, returns `draft-only` with `applyAllowed=false`, and does not persist or mutate any downstream surface. | `docs/01_decision-log.md#DEC-071`, `docs/43_proposal-generation-implementation.md`, `src/runtime/proposal-drafts.js`, `scripts/smoke-deterministic-proposal-draft-generation.mjs`, `scripts/vnext-proposal-generation-implementation-status.mjs` |
+| Proposal draft human review | Implemented as a read-only pending packet. It preserves the draft's evidence, freshness, blocked actions, and review question while rejecting non-draft, stale, or promoted input and recording no review outcome. | `docs/01_decision-log.md#DEC-072`, `docs/44_proposal-draft-human-review.md`, `src/runtime/proposal-draft-reviews.js`, `scripts/smoke-proposal-draft-human-review.mjs`, `scripts/vnext-proposal-draft-human-review-status.mjs` |
 
 ## Development Plan
 
@@ -152,9 +154,14 @@ evidence freshness, and the implementation decision before returning an in-memor
 object with `applyAllowed=false`. It does not persist records, mutate a queue, apply a proposal,
 call providers, persist memory, mutate runtime/UI/source state, commit, or push.
 
-Next implementation gate: `inert draft human review required`
-The draft stays review input only. Any durable record, proposal queue, application, provider, memory,
-runtime/UI/source mutation, commit, or push authority requires a separate explicit decision.
+Completed: `proposal draft human review`
+`src/runtime/proposal-draft-reviews.js#createProposalDraftHumanReviewPacket` accepts only a fresh
+`draft-only` payload and returns `pending-human-review` with no review outcome. It preserves the
+review question, evidence, freshness, and blocked actions without creating a record or mutation.
+
+Next implementation gate: `proposal draft human review decision required`
+A later fielded review outcome must remain separate from durable record creation, proposal queue,
+proposal application, provider, memory, runtime/UI/source mutation, commit, and push authority.
 
 ## Authority Boundary
 
