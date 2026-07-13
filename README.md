@@ -60,28 +60,16 @@ The current close-out focus is the read-only Loop Engineering and post-completio
 verification gate, stop condition, human return point, source-of-truth refs, and local evidence
 posture before execution can be treated as ready.
 
-The prior proposal generation operator decision handoff remains closed as read-only decision input.
-The previous post-completion explicit-entry, vNext audit maintenance-route, and proposal generation
-decision-packet slices are closed: the default completion baseline has zero automatic
-implementation backlog, and the first concrete next gate is still
-`proposal generation planning decision required`.
+Proposal generation planning plan is accepted planning-only evidence. The operator's fielded
+decision is recorded in `DEC-070` and
+`docs/42_proposal-generation-planning-plan.md` defines one deterministic local inert draft from
+exactly one existing Growth Evidence Ledger candidate, plus stale-evidence rejection, rollback,
+quarantine, focused-smoke, and aggregate-verification requirements.
 
-`docs/40_proposal-generation-decision-packet.md` recommends one deterministic local proposal draft
-from exactly one existing Growth Evidence Ledger candidate. The packet is decision input only. It
-does not approve planning, implementation, provider-assisted generation, durable proposal record
-creation, proposal application, memory persistence, source mutation, commit, or push.
-
-`docs/41_proposal-generation-operator-decision-handoff.md` gives the operator a fielded response
-shape for that gate. It rejects shortcut approvals such as `continue`, `do everything`, and
-`approve all`, and keeps planning blocked until the full
-`approve-proposal-generation-planning-only` field set is present.
-
-Close-out position: the handoff evidence is complete as a read-only product/planning surface, but
-the repository is intentionally still waiting for a separate fielded operator decision before it can
-write a proposal generation plan. That later plan must remain limited to one deterministic local
-draft from one existing Growth Evidence Ledger candidate and must carry its own rollback plan,
-focused smoke plan, and aggregate verification evidence before any implementation decision can be
-requested.
+The plan does not approve implementation. Provider-assisted generation, durable record creation,
+proposal application, memory persistence, runtime/UI/source mutation, commit, and push remain
+blocked. The next gate is `proposal generation implementation decision required` and must name one
+entrypoint and one inert draft path before code can be written.
 
 Recent verifier maintenance keeps this close-out evidence easier to audit without widening product
 authority. The vNext audit, growth dashboard evidence depth, authority review/decision packet,
@@ -108,7 +96,7 @@ registration, UI QA registration, zero-open backlog, post-completion router, pro
 lifecycle review alias evidence, and proposal generation handoff evidence together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `170/170`, total `171/171`; UI QA is required `28/28`.
+`1/1`, informational `171/171`, total `172/172`; UI QA is required `28/28`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -169,7 +157,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `171/171`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `172/172`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation handoff evidence.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
@@ -1723,7 +1711,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `171/171`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `172/172`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation handoff evidence stay aligned.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
@@ -1975,7 +1963,7 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `28/28`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `170/170`, total `171/171`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `171/171`, total `172/172`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2005,7 +1993,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `171/171`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
+  aggregate `172/172`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
 - The current proposal generation decision packet and operator handoff are read-only planning input.
   They do not approve planning or implementation and do not change runtime behavior, UI behavior,
   lifecycle semantics, provider calls, memory persistence, proposal generation/application, source

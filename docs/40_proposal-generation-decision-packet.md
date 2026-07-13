@@ -12,8 +12,9 @@ approval.
 
 ## Current Decision State
 
-- Current gate: `proposal generation planning decision required`
-- Current packet status: `awaiting-operator-planning-decision`
+- Original gate: `proposal generation planning decision required`
+- Current gate: `proposal generation implementation decision required`
+- Current packet status: `consumed-by-proposal-generation-planning-only-decision`
 - Source candidate surface: read-only Growth Evidence Ledger findings and proposal-readiness evidence
 - Current proposal generation authority: blocked
 - Recommended first path: deterministic local proposal draft generation from exactly one existing evidence candidate

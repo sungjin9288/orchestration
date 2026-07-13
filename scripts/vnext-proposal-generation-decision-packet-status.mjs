@@ -118,8 +118,9 @@ const sources = readRepoFiles(repoRoot, files);
 
 const evidence = {
   packet: [
-    'Current gate: `proposal generation planning decision required`',
-    'Current packet status: `awaiting-operator-planning-decision`',
+    'Original gate: `proposal generation planning decision required`',
+    'Current gate: `proposal generation implementation decision required`',
+    'Current packet status: `consumed-by-proposal-generation-planning-only-decision`',
     'deterministic local proposal draft generation from exactly one existing evidence candidate',
     'Provider-assisted generation: separately blocked',
     'It is not planning approval, implementation approval',
@@ -140,7 +141,7 @@ const evidence = {
   ],
   audit: [
     'Completed: `proposal generation decision packet`',
-    'proposal generation planning decision required',
+    'proposal generation implementation decision required',
   ],
   decisionLog: ['### DEC-068'],
   inventory: ['vNext proposal generation decision packet'],
@@ -195,7 +196,7 @@ process.stdout.write(
       mode: STATUS_MODE,
       posture: 'read-only-proposal-generation-decision-packet',
       packet: files.packet,
-      currentGate: 'proposal generation planning decision required',
+      currentGate: 'proposal generation implementation decision required',
       recommendedTarget: {
         authority: 'deterministic local proposal draft generation planning',
         inputCandidateCount: 1,

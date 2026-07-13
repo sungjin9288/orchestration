@@ -47,6 +47,7 @@ const vnextDevelopmentAuditFiles = {
     'docs/39_proposal-application-source-mutation-implementation.md',
   proposalGenerationDecisionPacket: 'docs/40_proposal-generation-decision-packet.md',
   proposalGenerationOperatorHandoff: 'docs/41_proposal-generation-operator-decision-handoff.md',
+  proposalGenerationPlanningPlan: 'docs/42_proposal-generation-planning-plan.md',
   proposalRecordImplementationStatus: 'scripts/vnext-durable-proposal-record-implementation-status.mjs',
   proposalRecordCreationSmoke: 'scripts/smoke-durable-proposal-record-creation.mjs',
   proposalApplicationAttemptSmoke: 'scripts/smoke-proposal-application-attempt-creation.mjs',
@@ -79,6 +80,8 @@ const vnextDevelopmentAuditFiles = {
     'scripts/vnext-proposal-generation-decision-packet-status.mjs',
   proposalGenerationOperatorHandoffStatus:
     'scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs',
+  proposalGenerationPlanningPlanStatus:
+    'scripts/vnext-proposal-generation-planning-plan-status.mjs',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -210,6 +213,7 @@ const vnextDevelopmentAuditSourceEvidence = {
       '### DEC-067',
       '### DEC-068',
       '### DEC-069',
+      '### DEC-070',
     ],
   },
   readme: {
@@ -249,8 +253,8 @@ const vnextDevelopmentAuditSourceEvidence = {
       'docs/38_proposal-application-source-mutation-planning-plan.md',
       'Proposal application source mutation is implemented for exactly one approved path',
       'docs/39_proposal-application-source-mutation-implementation.md',
-      'Proposal generation operator decision handoff is not approval',
-      'docs/41_proposal-generation-operator-decision-handoff.md',
+      'Proposal generation planning plan is accepted planning-only evidence',
+      'docs/42_proposal-generation-planning-plan.md',
     ],
   },
   vnextAudit: {
@@ -279,8 +283,8 @@ const vnextDevelopmentAuditSourceEvidence = {
       'Completed: `proposal-record lifecycle review alias`',
       'Completed: `proposal generation decision packet`',
       'Completed: `proposal generation operator decision handoff`',
-      'Next implementation entry: `explicit entry required`',
-      'Next planning gate: `proposal generation planning decision required`',
+      'Completed: `proposal generation planning plan`',
+      'Next implementation gate: `proposal generation implementation decision required`',
       'proposal application implementation: audit-only attempt creation is implemented',
       'proposal application source mutation outside the single approved named path',
     ],
@@ -299,7 +303,8 @@ const vnextDevelopmentAuditSourceEvidence = {
   proposalGenerationDecisionPacket: {
     contains: [
       '# Proposal Generation Decision Packet',
-      'Current gate: `proposal generation planning decision required`',
+      'Original gate: `proposal generation planning decision required`',
+      'Current gate: `proposal generation implementation decision required`',
       '`approve-proposal-generation-planning-only`',
       'deterministic local proposal draft generation from exactly one existing evidence candidate',
       'Provider-assisted generation: separately blocked',
@@ -309,13 +314,25 @@ const vnextDevelopmentAuditSourceEvidence = {
     contains: [
       '# Proposal Generation Operator Decision Handoff',
       'Original gate: `proposal generation planning decision required`',
-      'Handoff status: `awaiting-fielded-operator-planning-decision`',
-      'Required input: one fielded `approve-proposal-generation-planning-only` decision',
-      'Current proposal generation planning authority: blocked',
+      'Handoff status: `consumed-by-proposal-generation-planning-only-decision`',
+      'Consumed decision: `operator-decision-vnext-proposal-generation-planning-001`',
+      'Current proposal generation planning authority: accepted planning-only evidence',
       'Current proposal generation implementation authority: blocked',
       'decisionStatus=approve-proposal-generation-planning-only',
       'targetAuthority=deterministic local proposal draft generation planning',
       'It does not record a new operator decision or open proposal generation planning authority',
+    ],
+  },
+  proposalGenerationPlanningPlan: {
+    contains: [
+      '# Proposal Generation Planning Plan',
+      'approve-proposal-generation-planning-only',
+      'Planning approval: accepted',
+      'Implementation approval: blocked',
+      'Current downstream gate: `proposal generation implementation decision required`',
+      'exactly one existing Growth Evidence Ledger candidate',
+      'must not call a model or provider',
+      'applyAllowed` | Always `false`',
     ],
   },
   proposalGenerationDecisionPacketStatus: {
@@ -335,6 +352,14 @@ const vnextDevelopmentAuditSourceEvidence = {
       'proposalGenerationPlanningAllowed: false',
       'proposalGenerationImplementationAllowed: false',
       'doesNotGenerateProposals: true',
+      'doesNotCommit: true',
+      'doesNotPush: true',
+    ],
+  },
+  proposalGenerationPlanningPlanStatus: {
+    contains: [
+      "const STATUS_MODE = 'vnext-proposal-generation-planning-plan-status'",
+      'proposalGenerationAllowed: false',
       'doesNotCommit: true',
       'doesNotPush: true',
     ],
@@ -639,15 +664,15 @@ const growthEngineNextSlice = growthEngine.nextRecommendedSlice?.id || null;
 const reflectionNextSlice = reflection.nextRecommendedSlice?.id || null;
 const proposalQueueHandoff = proposalReadiness.nextRecommendedSlice?.id || null;
 const lifecycleReviewMaintenance = lifecycleReview.nextRecommendedSlice;
-const nextGrowthSlice = 'proposal generation planning decision';
+const nextGrowthSlice = 'proposal generation implementation decision';
 const nextGrowthCandidate = {
-  id: 'deterministic-local-proposal-draft-generation-planning',
-  commandToAdd: 'node scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs',
-  reason: 'The proposal-record lifecycle alias is maintenance-only, while proposal generation remains the missing link between one existing growth evidence candidate and later durable record review. The next step is a fielded planning decision through the operator handoff, not implementation.',
+  id: 'deterministic-local-proposal-draft-generation-implementation-decision',
+  commandToAdd: 'node scripts/vnext-proposal-generation-planning-plan-status.mjs',
+  reason: 'The accepted planning-only decision now fixes one inert draft contract. The next step is a later fielded implementation decision naming exactly one local entrypoint and one inert draft path, not implementation.',
   mustRemainReadOnly: true,
 };
 const nextImplementationGate = {
-  status: 'proposal-generation-planning-decision-required',
+  status: 'proposal-generation-implementation-decision-required',
   implementationReady: false,
   allowedEntryReasons: [
     'explicit-operator-request',
@@ -655,10 +680,9 @@ const nextImplementationGate = {
     'usability-issue',
     'accepted-vnext-decision',
   ],
-  targetAuthority: 'deterministic local proposal draft generation planning',
-  decisionPacket: 'docs/40_proposal-generation-decision-packet.md',
-  operatorHandoff: 'docs/41_proposal-generation-operator-decision-handoff.md',
-  source: 'scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs',
+  targetAuthority: 'deterministic local inert proposal draft generation implementation',
+  planningPlan: 'docs/42_proposal-generation-planning-plan.md',
+  source: 'scripts/vnext-proposal-generation-planning-plan-status.mjs',
 };
 
 assert.equal(growthEngine.ok, true);
@@ -876,6 +900,15 @@ const implemented = [
     status: 'documented-read-only-decision-template',
   },
   {
+    area: 'proposal generation planning plan',
+    evidence: [
+      'docs/42_proposal-generation-planning-plan.md',
+      'docs/01_decision-log.md#DEC-070',
+      'scripts/vnext-proposal-generation-planning-plan-status.mjs',
+    ],
+    status: 'documented-planning-only-inert-draft-plan',
+  },
+  {
     area: 'completion and README evidence',
     evidence: ['scripts/smoke-readme-scope-evidence.mjs', 'scripts/verification_status.mjs'],
     status: 'verified',
@@ -902,8 +935,8 @@ const recommendedDevelopmentPlan = [
     candidateId: nextGrowthCandidate.id,
     commandToAdd: nextGrowthCandidate.commandToAdd,
     implementationRequired: false,
-    scope: 'Use the operator handoff to request one fielded planning-only decision for deterministic local proposal draft generation from one existing growth evidence candidate.',
-    gate: 'The packet and handoff do not approve planning or implementation. Provider-assisted generation, durable record creation, proposal application, provider calls, memory persistence, mutation outside the approved named path, commit, and push remain blocked.',
+    scope: 'Request one later fielded implementation decision naming exactly one deterministic local inert draft entrypoint for one existing Growth Evidence Ledger candidate.',
+    gate: 'The accepted plan does not approve implementation. Provider-assisted generation, durable record creation, proposal application, provider calls, memory persistence, runtime/UI/source mutation, commit, and push remain blocked.',
   },
 ];
 

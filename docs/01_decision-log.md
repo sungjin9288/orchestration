@@ -405,6 +405,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/41_proposal-generation-operator-decision-handoff.md` and `scripts/vnext-proposal-generation-operator-decision-handoff-status.mjs` define and verify valid planning, evidence-request, rejection, and deferral shapes; invalid shortcuts; minimum planning acceptance; upstream proposal queue/readiness evidence; and still-blocked authority. This decision records handoff evidence only; it does not record an operator decision, approve planning, approve implementation, generate proposals, call providers, persist memory, create durable records, apply proposals, mutate source, commit, or push.
 - Needed Before: Any proposal generation plan still requires the operator to provide the full fielded `approve-proposal-generation-planning-only` decision for exactly one deterministic local draft planning path from one existing Growth Evidence Ledger candidate.
 
+### DEC-070
+- Status: `Accepted`
+- Decision: Accept `operator-decision-vnext-proposal-generation-planning-001` as planning-only approval for one deterministic local proposal draft generation path.
+- Why: The operator provided every required field for exactly one Growth Evidence Ledger candidate path, including positive and negative evidence, rollback, focused-smoke, aggregate-verification, and still-blocked-authority references.
+- Impact: `docs/42_proposal-generation-planning-plan.md` records one inert draft contract, deterministic mapping boundary, stale-evidence rejection, rollback/quarantine plan, and focused smoke plan. This accepts planning only; proposal generation implementation, provider calls, durable record creation, proposal application, memory persistence, runtime/UI/source mutation, commit, and push remain blocked.
+- Needed Before: A later fielded implementation decision must name exactly one entrypoint and inert draft path, carry the accepted plan plus rollback and focused-smoke evidence, and keep all downstream authority blocked.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

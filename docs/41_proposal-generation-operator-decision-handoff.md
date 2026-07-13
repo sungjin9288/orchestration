@@ -14,10 +14,10 @@ push.
 
 - Original gate: `proposal generation planning decision required`
 - Decision packet: `docs/40_proposal-generation-decision-packet.md`
-- Handoff status: `awaiting-fielded-operator-planning-decision`
+- Handoff status: `consumed-by-proposal-generation-planning-only-decision`
 - Recommended first target: deterministic local proposal draft generation planning
-- Required input: one fielded `approve-proposal-generation-planning-only` decision
-- Current proposal generation planning authority: blocked
+- Consumed decision: `operator-decision-vnext-proposal-generation-planning-001`
+- Current proposal generation planning authority: accepted planning-only evidence
 - Current proposal generation implementation authority: blocked
 - Current provider-assisted generation authority: blocked
 - Current durable proposal record creation authority: approved runtime function only; no generation path may create records

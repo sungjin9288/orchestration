@@ -347,6 +347,11 @@ const informationalChecks = [
     purpose: 'vNext proposal generation operator decision handoff source-checks the fielded planning response shape, invalid shortcuts, minimum planning acceptance, upstream queue/readiness evidence, and blocked provider, memory, record, application, source mutation, commit, and push authority without recording an operator decision',
   },
   {
+    id: 'vnext-proposal-generation-planning-plan-status',
+    script: 'scripts/vnext-proposal-generation-planning-plan-status.mjs',
+    purpose: 'vNext proposal generation planning plan records the accepted fielded planning-only decision, one deterministic inert draft contract, rollback/quarantine plan, focused smoke plan, and implementation decision requirement without opening generation implementation or downstream authority',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',
