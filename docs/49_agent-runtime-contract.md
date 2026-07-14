@@ -407,11 +407,18 @@ v6이며 company policy는 `state.json`에 저장되지 않는다. Direct runtim
 Council role execution, provider, memory, scheduling, profile mutation은 별도 fielded decision 전까지
 구현하지 않는다.
 
+`DEC-080`과 `DEC-081`은 `docs/54_ai-company-real-council-implementation-plan.md` 및
+`docs/55_ai-company-real-council-implementation-decision-handoff.md`의 Phase 2 planning evidence만
+승인한다. 계획은 schema v6와 legacy deterministic Council routes를 유지하고 새 opt-in route에만
+independent local-stub positions와 synthesis를 배치하지만, 해당 runtime/API/UI는 아직 구현되지
+않았다.
+
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
 node scripts/smoke-ai-company-runtime-blueprint.mjs
+node scripts/smoke-ai-company-real-council-planning.mjs
 node scripts/verification_status.mjs
 ```
 

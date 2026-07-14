@@ -473,6 +473,20 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `company/blueprint.json` and nine `company/roles/*.md` files now define immutable source policy. `src/runtime/company-blueprint.js` strictly rejects unknown fields, unsupported roles/modes/tools, duplicate ids, unsafe or missing role refs, malformed JSON, and forbidden authority; it returns deeply frozen policy or a secret-free invalid status. `createRuntimeService` preserves the legacy snapshot when no path is supplied and adds a read-only `companyRuntime` envelope only for the configured local server path. Persisted state remains schema v6 and stores no company policy. Current deterministic Council behavior is unchanged.
 - Needed Before: StaffingPlan runtime, independent Council positions, Conductor synthesis, provider role expansion, memory/checkpoint persistence, autonomous scheduling, WorkOrder execution, runtime profile mutation, source mutation, approval bypass, or runtime-agent commit/push/release each require later fielded decisions. The recommended next target is `Real Council for one Mission implementation planning` using local-stub roles only.
 
+### DEC-080
+- Status: `Accepted`
+- Decision: Accept `operator-delegated-ai-company-real-council-planning-001` with `decisionStatus=approve-ai-company-real-council-planning-only` for `Real Council for one Mission implementation planning using local-stub roles only`.
+- Why: The operator approved the next named gate and previously delegated non-critical self-approval. Planning is reversible documentation work, while separate role execution, persisted attempts, new API routes, and UI actions are architecture-sensitive implementation and remain separately gated. Current evidence proves a strict source-backed roster but only one synchronous deterministic Council transcript.
+- Impact: `docs/54_ai-company-real-council-implementation-plan.md` fixes one opt-in local-stub vertical slice with independent Strategist/Architect/Decomposer position requests, deterministic conflict checking, Conductor synthesis, human `approve/request-revision/stop`, schema v6 compatibility, legacy route preservation, rollback, and focused runtime/API/UI smoke plans. It authorizes planning evidence, documentation/verifier updates, verification, commit, and push only. It does not authorize Council role execution or runtime/API/UI changes.
+- Needed Before: Real Council implementation requires the complete fielded `approve-ai-company-real-council-local-stub-implementation-slice` decision in `docs/55_ai-company-real-council-implementation-decision-handoff.md`.
+
+### DEC-081
+- Status: `Accepted`
+- Decision: Define the AI Company Real Council implementation decision handoff as read-only input for the current Phase 2 implementation gate.
+- Why: The accepted planning package must not let broad continuation wording open independent role execution, new persisted state, API routes, or alignment actions. A copy-ready decision shape keeps the exact allowlist, local-stub-only execution, schema v6 compatibility, legacy route behavior, rollback, focused smoke, and downstream blocked authority explicit.
+- Impact: `docs/55_ai-company-real-council-implementation-decision-handoff.md` defines valid approval/rejection shapes, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions. It records no runtime implementation outcome and does not execute roles, create new Council records, alter APIs/UI, call providers, persist memory, schedule work, mutate source, bypass approval, or grant runtime-agent commit/push/release authority.
+- Needed Before: The operator must supply the complete fielded implementation decision. General approval and delegated non-critical self-approval do not cover the architecture-sensitive Phase 2 implementation.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

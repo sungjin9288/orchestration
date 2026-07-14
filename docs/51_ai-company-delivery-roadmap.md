@@ -135,8 +135,11 @@ Mission source evidence와 기존 task/run/artifact records는 보존한다.
 
 ### Authority Gate
 
-첫 권장 implementation decision이다. Local stub Council만 우선 승인하고 live provider role
-확장은 분리한다.
+Planning-only decision은 `DEC-080`으로 기록됐고 implementation plan은
+`docs/54_ai-company-real-council-implementation-plan.md`에 있다. `DEC-081`은 exact target,
+compatibility, rollback, focused smoke, still-blocked authority를 포함한 implementation decision
+handoff를 정의한다. Local-stub Real Council implementation은 아직 blocked이며 live provider role
+확장은 별도 Phase 3 decision으로 유지한다.
 
 ## Phase 3: Council Live Provider Opt-In
 
@@ -390,18 +393,17 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 1 runtime blueprint implementation이 검증된 뒤 권장되는 다음 planning target은 다음
-하나다.
+Phase 2 planning package가 accepted된 뒤 현재 필요한 다음 fielded decision target은 다음 하나다.
 
 ```text
-targetAuthority=Real Council for one Mission implementation planning using local-stub roles only
+targetAuthority=one Mission independent local-stub Council positions, deterministic conflict check, Conductor synthesis, and human alignment decisions
 ```
 
-Phase 2 planning은 independent Strategist/Architect/Decomposer positions, Conductor synthesis,
-required-role failure, dissent, revision, stop, alignment, rollback, focused runtime/API/UI smoke를
-정확히 제한해야 한다. Council role execution 자체와 provider calls, memory persistence,
-autonomous scheduling, source mutation, approval bypass, runtime-agent commit/push/release는 새
-fielded decision 전까지 blocked다.
+The operator decision must use every required field in
+`docs/55_ai-company-real-council-implementation-decision-handoff.md`. Independent Council role
+execution, new runtime/API/UI behavior, provider calls, memory persistence, autonomous scheduling,
+source mutation, approval bypass, runtime-agent commit/push/release remain blocked until that exact
+decision is accepted.
 
 ## Verification
 

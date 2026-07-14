@@ -68,6 +68,17 @@ Phase 1은 browser-only roster와 deterministic Council 사이의 read-only runt
 채웠다. 다음 제품 전환은 이 foundation 위에서 independent local-stub Council positions와
 Conductor synthesis를 증명하는 일이다.
 
+## Approved Real Council Planning Authority
+
+- Planning decision: `operator-delegated-ai-company-real-council-planning-001`
+- Decision status: `approve-ai-company-real-council-planning-only`
+- Recorded decisions: `DEC-080`, `DEC-081`
+- Allowed: Phase 2 implementation plan, implementation decision handoff, focused planning smoke,
+  aggregate registration, documentation/README/task evidence, commit, push
+- Still blocked: independent Council role execution, runtime/API/UI implementation, providers,
+  StaffingPlan runtime, WorkOrders, memory, scheduling, mutation, approval bypass, runtime-agent
+  commit/push/release
+
 ## Product North Star
 
 운영자는 하나의 local project와 Mission을 입력하고 다음 흐름을 끝까지 관찰하고 제어한다.
@@ -258,6 +269,11 @@ schema와 deterministic Council/browser presentation roster behavior를 유지�
 - `approve` 후에만 기존 linked task와 preflight auto-chain이 열린다.
 - Source mutation, commit, push는 기존 별도 gate에서 계속 멈춘다.
 
+이 vertical slice의 decision-complete planning과 implementation gate는
+`docs/54_ai-company-real-council-implementation-plan.md`와
+`docs/55_ai-company-real-council-implementation-decision-handoff.md`에 고정됐다. 현재는 planning
+only이며 independent positions와 synthesis는 아직 구현되지 않았다.
+
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현
@@ -269,6 +285,7 @@ Foundation 계획과 consumed implementation decision input은
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
+node scripts/smoke-ai-company-real-council-planning.mjs
 node scripts/verification_status.mjs
 ```
 

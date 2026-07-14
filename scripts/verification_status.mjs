@@ -402,6 +402,11 @@ const informationalChecks = [
     purpose: 'AI Company Phase 1 runtime smoke proves strict immutable blueprint and nine-role loading, stable identities, fail-closed invalid source handling, configured-only additive companyRuntime exposure, schema v6 non-persistence, deterministic Council compatibility, and blocked downstream authority',
   },
   {
+    id: 'ai-company-real-council-planning',
+    script: 'scripts/smoke-ai-company-real-council-planning.mjs',
+    purpose: 'AI Company Phase 2 planning pins one opt-in local-stub Real Council path with independent position isolation, deterministic conflict checking, Conductor synthesis, alignment actions, schema v6 and legacy-route compatibility, rollback, focused runtime/API/UI smoke, a fielded implementation gate, and blocked downstream authority',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

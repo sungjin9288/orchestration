@@ -295,15 +295,19 @@ Focused implementation smoke는 최소 다음을 증명해야 한다.
 
 ## Implementation Boundary
 
-이 protocol은 `DEC-076`이 승인한 계획 문서다. Council provider calls, role prompt 추가,
-schemaVersion 변경, runtime/API/UI 구현은 별도 implementation decision 없이는 시작하지 않는다.
+이 protocol의 첫 local-stub vertical slice planning은 `DEC-080`으로 accepted됐고 implementation
+decision handoff는 `DEC-081`로 고정됐다. `docs/54_ai-company-real-council-implementation-plan.md`는
+independent position isolation, deterministic conflict check, Conductor synthesis, alignment,
+schema v6 compatibility, legacy route preservation을 구체화한다. Council role execution,
+runtime/API/UI 구현, provider calls는 complete fielded implementation decision 전까지 blocked다.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
+node scripts/smoke-ai-company-real-council-planning.mjs
 node scripts/verification_status.mjs
 ```
 
-현재 focused smoke는 문서 contract만 검증한다. 위 Acceptance Scenarios의 runtime 증거는 첫
-implementation slice에서 별도 smoke로 추가해야 한다.
+현재 focused smoke는 planning contract와 blocked authority만 검증한다. 위 Acceptance
+Scenarios의 runtime 증거는 fielded implementation decision 이후 별도 smoke로 추가해야 한다.
