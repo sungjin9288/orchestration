@@ -5,8 +5,9 @@
 이 문서는 AI Company 계획을 runtime implementation으로 옮길 때 지켜야 할 domain schema,
 state machine, authority, handoff, failure, observability contract를 정의한다.
 
-현재 승인된 범위는 문서화뿐이다. 이 문서는 schema migration, API 추가, provider call,
-runtime/UI mutation을 승인하지 않는다.
+`DEC-079`는 이 contract 중 source-backed `CompanyBlueprint`/`AgentProfile` strict loading과
+configured-path additive read-only snapshot만 구현하도록 승인했다. Schema migration, StaffingPlan,
+Council role execution, provider call, memory persistence, runtime profile mutation은 승인하지 않는다.
 
 ## Contract Principles
 
@@ -20,7 +21,7 @@ runtime/UI mutation을 승인하지 않는다.
 
 ## Source Layout
 
-계획된 source-backed company layout은 다음과 같다.
+구현된 source-backed company layout은 다음과 같다.
 
 ```text
 company/
@@ -399,20 +400,21 @@ content와 derived UI preview의 source-of-truth 경계를 유지한다.
 
 ## Implementation Boundary
 
-이 문서의 모든 schema와 API는 planned contract다. 현재 runtime schema는 v6이다.
-`docs/52_ai-company-runtime-blueprint-implementation-plan.md`는 첫 foundation을 persisted state와
-분리된 read-only source loader 및 additive snapshot으로 제한하므로 schemaVersion 변경이나
-file-store migration을 계획하지 않는다. 실제 loader/runtime/API 변경은
-`docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`의 fielded implementation
-decision이 정확한 파일, compatibility, rollback, focused smoke, aggregate verification을 승인한
-뒤에만 시작한다.
+`CompanyBlueprint`와 `AgentProfile` source loading은 `DEC-079`로 구현됐다. 현재 runtime schema는
+v6이며 company policy는 `state.json`에 저장되지 않는다. Direct runtime caller가 blueprint path를
+생략하면 기존 snapshot shape를 유지하고, configured local server만 additive read-only
+`companyRuntime` envelope를 노출한다. 나머지 schema와 API는 planned contract이며 StaffingPlan,
+Council role execution, provider, memory, scheduling, profile mutation은 별도 fielded decision 전까지
+구현하지 않는다.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
+node scripts/smoke-ai-company-runtime-blueprint.mjs
 node scripts/verification_status.mjs
 ```
 
-이 검증은 runtime object가 존재한다고 주장하지 않는다. Planned contract와 blocked authority가
-문서 간 일치하는지만 확인한다.
+Focused runtime smoke는 strict source load, invalid rejection, snapshot compatibility, schema v6
+비영속성, deterministic Council 보존을 검증한다. Planned downstream contract는 구현됐다고
+주장하지 않는다.

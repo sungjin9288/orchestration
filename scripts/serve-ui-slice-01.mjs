@@ -94,7 +94,11 @@ try {
 }
 
 const store = createFileStore({ runtimeRoot: options.runtimeRoot });
-const runtime = createRuntimeService({ runtimeRoot: options.runtimeRoot });
+const runtime = createRuntimeService({
+  runtimeRoot: options.runtimeRoot,
+  companyBlueprintPath: path.join(repoRoot, 'company', 'blueprint.json'),
+  companyRepoRoot: repoRoot,
+});
 const executionCoordinator = createExecutionCoordinator({
   repoRoot,
   runtimeService: runtime,

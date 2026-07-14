@@ -23,10 +23,24 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Recorded decision: `DEC-076`
 - Allowed in this slice: 이 문서군, decision log, task ledger, focused documentation smoke,
   aggregate verification 등록, 검증, commit, push
-- Still blocked: runtime implementation, provider role expansion, memory persistence, autonomous
-  scheduling, source mutation by agents, approval bypass, unattended commit/push
+- Still blocked by `DEC-076` alone: runtime implementation, provider role expansion, memory
+  persistence, autonomous scheduling, source mutation by agents, approval bypass, unattended
+  commit/push
 
-이 문서군은 구현 계획을 승인한다. Runtime 구현을 승인하지 않는다.
+이 문서군은 구현 계획을 승인했다. 이후 `DEC-079`가 read-only runtime blueprint foundation만
+별도로 승인했으며 나머지 runtime authority는 계속 차단한다.
+
+## Approved Runtime Foundation Authority
+
+- Decision id: `operator-decision-ai-company-runtime-blueprint-implementation-001`
+- Decision status: `approve-ai-company-runtime-blueprint-implementation-slice`
+- Recorded decision: `DEC-079`
+- Allowed: strict repo-backed CompanyBlueprint/AgentProfile loading, optional runtime injection,
+  configured-path additive read-only snapshot, focused/aggregate verification
+- Compatibility: persisted state stays at schema v6; direct runtime callers without a blueprint path
+  keep the legacy snapshot shape
+- Still blocked: StaffingPlan runtime, independent Council execution, providers, memory, scheduling,
+  source mutation, approval bypass, runtime-agent commit/push/release
 
 ## Current Product Truth
 
@@ -42,13 +56,17 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
   경계가 구현돼 있다.
 - `ui/company-config.js`의 회사 구성은 browser-side presentation 설정이며 runtime authority가
   아니다.
+- `company/blueprint.json`과 `company/roles/*.md`는 strict validation을 통과한 source-backed
+  runtime identity/policy이며, configured local server snapshot의 read-only `companyRuntime`
+  envelope로 노출된다.
 - Provider 기본값은 local stub이며 live OpenAI Responses 경로는 현재 승인된 실행 역할에만
   한정된다.
 - Memory와 growth 기능은 대부분 read-only readiness/evidence 상태이며 조직 기억 자동 저장은
   승인되지 않았다.
 
-따라서 첫 제품 전환은 새 실행 엔진을 만드는 일이 아니라, browser-only roster와
-deterministic Council 사이의 빈 runtime 조직 계층을 채우는 일이다.
+Phase 1은 browser-only roster와 deterministic Council 사이의 read-only runtime identity 계층을
+채웠다. 다음 제품 전환은 이 foundation 위에서 independent local-stub Council positions와
+Conductor synthesis를 증명하는 일이다.
 
 ## Product North Star
 
@@ -226,9 +244,9 @@ multi-provider-first matrix, agent self-authorization이다.
 
 ## First Implementation Target
 
-첫 runtime foundation slice는 source-backed `CompanyBlueprint`와 `AgentProfile`을 strict하게
-load하고 read-only snapshot으로 노출하는 것이다. 이 foundation은 state schema를 변경하거나
-agent를 실행하지 않으며, 현재 deterministic Council과 browser presentation roster를 유지한다.
+첫 runtime foundation slice는 `DEC-079`로 구현됐다. Source-backed `CompanyBlueprint`와
+`AgentProfile`을 strict하게 load하고 configured path의 read-only snapshot으로 노출하며, state
+schema와 deterministic Council/browser presentation roster behavior를 유지한다.
 
 첫 behavior vertical slice는 foundation 검증 이후의 `Real Council for one Mission`이다.
 
@@ -240,7 +258,7 @@ agent를 실행하지 않으며, 현재 deterministic Council과 browser present
 - `approve` 후에만 기존 linked task와 preflight auto-chain이 열린다.
 - Source mutation, commit, push는 기존 별도 gate에서 계속 멈춘다.
 
-Foundation 계획과 implementation decision input은
+Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현
 순서와 acceptance gate는 `docs/51_ai-company-delivery-roadmap.md`를 따른다.

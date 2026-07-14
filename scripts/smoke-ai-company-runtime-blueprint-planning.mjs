@@ -43,6 +43,7 @@ const lessons = read('tasks/lessons.md');
 const verification = read('scripts/verification_status.mjs');
 const runtimeContracts = read('src/runtime/contracts.js');
 const fileStore = read('src/runtime/file-store.js');
+const companyBlueprintLoader = read('src/runtime/company-blueprint.js');
 const runtimeService = read('src/runtime/runtime-service.js');
 const server = read('scripts/serve-ui-slice-01.mjs');
 const companyConfig = read('ui/company-config.js');
@@ -59,6 +60,7 @@ assert.match(plan, /^# AI Company Runtime Blueprint Implementation Plan$/m);
 assertSections(plan, [
   'Purpose',
   'Accepted Planning-Only Decision',
+  'Implementation Outcome',
   'Current Baseline Evidence',
   'Implementation Objective',
   'Exact Target Surface',
@@ -72,7 +74,7 @@ assertSections(plan, [
   'Implementation Sequence',
   'Acceptance Criteria',
   'Exclusions',
-  'Implementation Decision Required',
+  'Implementation Decision Status',
   'Verification',
 ]);
 
@@ -92,7 +94,7 @@ assertAll(planText, [
   /Persisted state stays at `schemaVersion: 6`/,
   /do not add company policy fields/,
   /Browser company members cannot override runtime ids or authority/,
-  /Because the implementation adds a runtime loader and API snapshot envelope, it is architecture-sensitive/,
+  /architecture-sensitive implementation decision was supplied in full and accepted as `DEC-079`/,
 ]);
 
 for (const role of [
@@ -133,45 +135,53 @@ assertAll(handoffText, [
   /This does not approve StaffingPlan or Council role execution, provider calls, memory persistence/,
   /self-approve implementation/,
   /fielded operator decision이 없다/,
+  /consumed-by-DEC-079/,
+  /accepted and implemented for the exact read-only blueprint path only/,
 ]);
 
 assertAll(decisionLogText, [
   /DEC-077 .*operator-delegated-ai-company-runtime-blueprint-planning-001/s,
   /DEC-078 .*AI Company runtime blueprint implementation decision handoff/s,
-  /Broad approval or delegated self-approval does not cover this architecture-sensitive runtime slice/,
+  /DEC-079 .*operator-decision-ai-company-runtime-blueprint-implementation-001/s,
 ]);
-assert.match(masterPlan, /첫 runtime foundation slice는 source-backed `CompanyBlueprint`와 `AgentProfile`/);
+assert.match(masterPlan, /첫 runtime foundation slice는 `DEC-079`로 구현됐다/);
 assert.match(masterPlan, /첫 behavior vertical slice는 foundation 검증 이후의 `Real Council for one Mission`/);
-assert.match(runtimeContract, /docs\/52_ai-company-runtime-blueprint-implementation-plan\.md/);
-assert.match(runtimeContract, /schemaVersion 변경이나\s+file-store migration을 계획하지 않는다/);
+assert.match(runtimeContract, /`CompanyBlueprint`와 `AgentProfile` source loading은 `DEC-079`로 구현됐다/);
+assert.match(runtimeContract, /company policy는 `state\.json`에 저장되지 않는다/);
 assertAll(roadmapText, [
-  /Planning-only decision은 `DEC-077`로 기록됐고/,
-  /approve-ai-company-runtime-blueprint-implementation-slice/,
-  /targetAuthority=read-only runtime CompanyBlueprint and AgentProfile loading plus additive snapshot exposure/,
+  /decision은 `DEC-079`로 승인됐고 Phase 1 focused smoke가 current implementation evidence/,
+  /Fielded implementation decision은 `DEC-079`로 승인됐고/,
+  /targetAuthority=Real Council for one Mission implementation planning using local-stub roles only/,
 ]);
 assertAll(readmeText, [
-  /Phase 1 planning is accepted in `docs\/52_ai-company-runtime-blueprint-implementation-plan\.md`/,
-  /fielded implementation input in `docs\/53_ai-company-runtime-blueprint-implementation-decision-handoff\.md`/,
-  /current implementation still has no repo-backed blueprint or runtime agent roster/,
+  /are consumed by `DEC-079`/,
+  /strictly loads one repo-backed blueprint and nine role contracts/,
+  /exposes `companyRuntime` only as an additive read-only snapshot/,
 ]);
 assert.match(taskLedgerText, /ai-company-runtime-blueprint-planning-post-m7-1938/);
+assert.match(taskLedgerText, /ai-company-runtime-blueprint-implementation-post-m7-1939/);
 assert.match(
   lessons,
   /Source-backed company policy does not need persisted-state migration when it is immutable repository configuration/,
 );
 assert.match(completionInventoryText, /AI Company runtime blueprint planning \| pass/);
+assert.match(completionInventoryText, /AI Company runtime blueprint implementation \| pass/);
 assert.match(verification, /id: 'ai-company-runtime-blueprint-planning'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-runtime-blueprint-planning\.mjs'/);
+assert.match(verification, /id: 'ai-company-runtime-blueprint-implementation'/);
+assert.match(verification, /script: 'scripts\/smoke-ai-company-runtime-blueprint\.mjs'/);
 
-// Negative evidence: planning must not be reported as implementation.
-assert.equal(fs.existsSync(path.join(repoRoot, 'company', 'blueprint.json')), false);
-assert.equal(fs.existsSync(path.join(repoRoot, 'src', 'runtime', 'company-blueprint.js')), false);
+// Consumed planning evidence must point at the implemented, read-only foundation.
+assert.equal(fs.existsSync(path.join(repoRoot, 'company', 'blueprint.json')), true);
+assert.equal(fs.existsSync(path.join(repoRoot, 'src', 'runtime', 'company-blueprint.js')), true);
 assert.match(runtimeContracts, /schemaVersion: 6/);
 assert.doesNotMatch(runtimeContracts, /companyRuntime/);
 assert.doesNotMatch(fileStore, /companyBlueprint|companyRuntime/);
-assert.doesNotMatch(runtimeService, /companyBlueprintPath|loadCompanyBlueprint|companyRuntime/);
-assert.match(server, /createRuntimeService\(\{ runtimeRoot: options\.runtimeRoot \}\)/);
-assert.doesNotMatch(server, /companyBlueprintPath/);
+assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
+assert.match(companyBlueprintLoader, /function readCompanyBlueprintStatus/);
+assert.match(runtimeService, /companyBlueprintPath/);
+assert.match(runtimeService, /companyRuntime/);
+assert.match(server, /companyBlueprintPath: path\.join\(repoRoot, 'company', 'blueprint\.json'\)/);
 assert.match(companyConfig, /COMPANY_MEMBER_STORAGE_KEY = 'orchestration\.company-members\.v1'/);
 
 process.stdout.write(
@@ -181,8 +191,8 @@ process.stdout.write(
       mode: MODE,
       decision: {
         planning: 'accepted',
-        implementation: 'blocked',
-        nextGate: 'fielded runtime blueprint implementation decision required',
+        implementation: 'accepted-and-implemented',
+        nextGate: 'Real Council for one Mission implementation planning decision required',
       },
       compatibility: {
         currentSchemaVersion: 6,
@@ -191,13 +201,14 @@ process.stdout.write(
         snapshotChangePlanned: 'configured-path-additive-only',
       },
       currentRuntime: {
-        companyBlueprintExists: false,
-        companyBlueprintLoaderExists: false,
+        companyBlueprintExists: true,
+        companyBlueprintLoaderExists: true,
+        companyRuntime: 'configured-readonly',
         council: 'deterministic-session-record',
         browserRoster: 'presentation-only',
       },
       authority: {
-        runtimeBlueprintImplementationAllowed: false,
+        runtimeBlueprintImplementationPresent: true,
         councilRoleExecutionAllowed: false,
         providerCallsAllowed: false,
         memoryPersistenceAllowed: false,

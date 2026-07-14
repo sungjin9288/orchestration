@@ -28,9 +28,23 @@ autonomous scheduling, source mutation, commit 또는 push authority를 runtime 
 | `stillBlockedAuthorities` | runtime blueprint implementation, state schema migration, Council role execution, provider calls, memory persistence, autonomous scheduling, source mutation, approval bypass, runtime-agent commit, runtime-agent push |
 | `approvalStatement` | The operator approves planning and delegates self-approval for this non-critical planning artifact only. This allows one implementation plan, rollback plan, focused smoke plan, and implementation decision handoff. It does not approve runtime or API implementation, state schema migration, Council role execution, provider calls, memory persistence, autonomous scheduling, source mutation, approval bypass, or runtime-agent commit or push. |
 
+## Implementation Outcome
+
+- Fielded decision: `operator-decision-ai-company-runtime-blueprint-implementation-001`
+- Decision status: `approve-ai-company-runtime-blueprint-implementation-slice`
+- Recorded decision: `DEC-079`
+- Implementation: strict source loader, nine role contracts, optional runtime injection, configured
+  additive read-only `companyRuntime` snapshot
+- Compatibility: persisted schema v6, no policy persistence, legacy caller snapshot unchanged
+- Focused evidence: `node scripts/smoke-ai-company-runtime-blueprint.mjs`
+- Still blocked: StaffingPlan, Council role execution, providers, memory, scheduling, profile
+  mutation, source mutation, approval bypass, runtime-agent commit/push/release
+
 ## Current Baseline Evidence
 
-- `src/runtime/contracts.js#createEmptyState` fixes persisted state at `schemaVersion: 6`.
+The following negative evidence was captured before `DEC-079`; it is retained as planning provenance.
+
+- `src/runtime/contracts.js#createEmptyState` fixed persisted state at `schemaVersion: 6`.
 - `src/runtime/file-store.js#normalizeState` owns persisted-state compatibility and does not know
   about a company blueprint.
 - `src/runtime/runtime-service.js#buildCouncilSessionRecord` creates one deterministic Council record
@@ -39,7 +53,10 @@ autonomous scheduling, source mutation, commit 또는 push authority를 runtime 
   state snapshot.
 - `ui/company-config.js` stores editable browser presentation members under
   `orchestration.company-members.v1`; this is not runtime identity or authority.
-- No `company/blueprint.json`, `company/roles/*.md`, or `src/runtime/company-blueprint.js` exists.
+- No `company/blueprint.json`, `company/roles/*.md`, or `src/runtime/company-blueprint.js` existed.
+
+Current implementation evidence now confirms those source and loader files exist while persisted
+state remains schema v6 and deterministic Council behavior stays unchanged.
 
 ## Implementation Objective
 
@@ -241,20 +258,19 @@ This plan does not authorize:
 - source mutation or approval bypass
 - runtime-agent commit, push, release, or external action
 
-## Implementation Decision Required
+## Implementation Decision Status
 
-Implementation remains blocked until the operator supplies the full fielded decision from
-`docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`.
-
-Because the implementation adds a runtime loader and API snapshot envelope, it is architecture-sensitive
-and is not covered by delegated self-approval for non-critical work.
+The architecture-sensitive implementation decision was supplied in full and accepted as `DEC-079`.
+The handoff in `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` is consumed
+evidence. Its exact allowlist remains the implementation boundary; it does not authorize Phase 2.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-runtime-blueprint-planning.mjs
+node scripts/smoke-ai-company-runtime-blueprint.mjs
 node scripts/verification_status.mjs
 ```
 
-These commands verify planning evidence only. They do not prove that CompanyBlueprint or AgentProfile
-runtime support exists.
+These commands verify that planning evidence was consumed by exactly one implementation path and
+that current runtime support preserves the documented compatibility and blocked authority.

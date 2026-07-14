@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "companyId": "orchestration-local-company",
+  "displayName": "Orchestration AI Company",
+  "operatingPrinciples": [
+    "Repo files define policy and runtime state records execution evidence.",
+    "Every execution requires project_path and explicit authority.",
+    "Review precedes done and approval precedes mutation or commit.",
+    "Agent output is evidence, not authority."
+  ],
+  "defaultStaffingPolicy": {
+    "defaultMode": "council",
+    "requiredCouncilAgentIds": [
+      "agent-conductor",
+      "agent-strategist",
+      "agent-architect",
+      "agent-decomposer"
+    ],
+    "parallelSpecialistsAllowed": false
+  },
+  "defaultTerminationPolicy": {
+    "maxTurnsPerAgent": 4,
+    "maxProviderCalls": 0,
+    "deadlineMs": 300000,
+    "stopOnRequiredRoleFailure": true
+  },
+  "agentProfiles": [
+    {
+      "id": "agent-conductor",
+      "displayName": "Conductor",
+      "role": "conductor",
+      "objective": "Frame the mission, preserve dissent, synthesize evidence, and return decisions to the operator.",
+      "instructionsRef": "company/roles/conductor.md",
+      "supportedPacks": ["development"],
+      "skillAllowlist": [],
+      "toolPolicy": {
+        "read": ["project.read", "source.read", "artifact.read", "evidence.read", "runtime.read"],
+        "write": [],
+        "deny": ["source.write", "memory.write", "provider.call", "commit", "push", "release"]
+      },
+      "workspacePolicy": {
+        "mode": "shared-readonly",
+        "projectPathRequired": true
+      },
+      "sessionPolicy": {
+        "scope": "mission-role",
+        "resumeAllowed": false
+      },
+      "providerPolicy": {
+        "allowedModes": ["local-stub"]
+      },
+      "authority": {
+        "canRecommend": true,
+        "canCreateWorkOrderDraft": true,
+        "canRequestApproval": true,
+        "canMutateSource": false,
+        "canCommit": false,
+        "canPush": false
+      },
+      "concurrencyLimit": 1
+    },
+    {
+      "id": "agent-strategist",
+      "displayName": "Strategist",
+      "role": "strategist",
+      "objective": "Clarify outcomes, assumptions, trade-offs, and measurable acceptance evidence.",
+      "instructionsRef": "company/roles/strategist.md",
+      "supportedPacks": ["development"],
+      "skillAllowlist": [],
+      "toolPolicy": {
+        "read": ["project.read", "source.read", "artifact.read", "evidence.read", "runtime.read"],
+        "write": [],
+        "deny": ["source.write", "memory.write", "provider.call", "commit", "push", "release"]
+      },
+      "workspacePolicy": {
+        "mode": "shared-readonly",
+        "projectPathRequired": true
+      },
+      "sessionPolicy": {
+        "scope": "mission-role",
+        "resumeAllowed": false
+      },
+      "providerPolicy": {
+        "allowedModes": ["local-stub"]
+      },
+      "authority": {
+        "canRecommend": true,
+        "canCreateWorkOrderDraft": false,
+        "canRequestApproval": false,
+        "canMutateSource": false,
+        "canCommit": false,
+        "canPush": false
+      },
+      "concurrencyLimit": 1
+    },
+    {
+      "id": "agent-architect",
+      "displayName": "Architect",
+      "role": "architect",
+      "objective": "Define technical boundaries, dependencies, compatibility risks, and rollback constraints.",
+      "instructionsRef": "company/roles/architect.md",
+      "supportedPacks": ["development"],
+      "skillAllowlist": [],
+      "toolPolicy": {
+        "read": ["project.read", "source.read", "artifact.read", "evidence.read", "runtime.read"],
+        "write": [],
+        "deny": ["source.write", "memory.write", "provider.call", "commit", "push", "release"]
+      },
+      "workspacePolicy": {
+        "mode": "shared-readonly",
+        "projectPathRequired": true
+      },
+      "sessionPolicy": {
+        "scope": "mission-role",
+        "resumeAllowed": false
+      },
+      "providerPolicy": {
+        "allowedModes": ["local-stub"]
+      },
+      "authority": {
+        "canRecommend": true,
+        "canCreateWorkOrderDraft": false,
+        "canRequestApproval": false,
+        "canMutateSource": false,
+        "canCommit": false,
+        "canPush": false
+      },
+      "concurrencyLimit": 1
+    },
+    {
+      "id": "agent-decomposer",
+      "displayName": "Decomposer",
+      "role": "decomposer",
+      "objective": "Turn accepted decisions into bounded work-order drafts with dependencies and verification gates.",
+      "instructionsRef": "company/roles/decomposer.md",
+      "supportedPacks": ["development"],
+      "skillAllowlist": [],
+      "toolPolicy": {
+        "read": ["project.read", "source.read", "artifact.read", "evidence.read", "runtime.read"],
+        "write": [],
+        "deny": ["source.write", "memory.write", "provider.call", "commit", "push", "release"]
+      },
+      "workspacePolicy": {
+        "mode": "shared-readonly",
+        "projectPathRequired": true
+      },
+      "sessionPolicy": {
+        "scope": "mission-role",
+        "resumeAllowed": false
+      },
+      "providerPolicy": {
+        "allowedModes": ["local-stub"]
+      },
+      "authority": {
+        "canRecommend": true,
+        "canCreateWorkOrderDraft": true,
+        "canRequestApproval": true,
+        "canMutateSource": false,
+        "canCommit": false,
+        "canPush": false
+      },
+      "concurrencyLimit": 1
+    },
+    {
+      "id": "agent-researcher",
+      "displayName": "Researcher",
+      "role": "researcher",
+      "objective": "Collect source-backed evidence, uncertainty, and negative findings without changing project state.",
+      "instructionsRef": "company/roles/researcher.md",
+      "supportedPacks": ["development"],
+      "skillAllowlist": [],
+      "toolPolicy": {
+        "read": ["project.read", "source.read", "artifact.read", "evidence.read", "runtime.read"],
+        "write": [],
+        "deny": ["source.write", "memory.write", "provider.call", "commit", "push", "release"]
+      },
+      "workspacePolicy": {
+        "mode": "shared-readonly",
+        "projectPathRequired": true
+      },
+      "sessionPolicy": {
+        "scope": "mission-role",
+        "resumeAllowed": false
+      },
+      "providerPolicy": {
+        "allowedModes": ["local-stub"]
+      },
+      "authority": {
+        "canRecommend": true,
+        "canCreateWorkOrderDraft": false,
+        "canRequestApproval": false,
+        "canMutateSource": false,
+        "canCommit": false,
+        "canPush": false
+      },
+      "concurrencyLimit": 1
+    },
+    {
+      "id": "agent-builder",
+      "displayName": "Builder",
+      "role": "builder",
+      "objective": "Assess implementation inputs and report the approval boundary required for bounded execution.",
+      "instructionsRef": "company/roles/builder.md",
+      "supportedPacks": ["development"],
+      "skillAllowlist": [],
+      "toolPolicy": {
+        "read": ["project.read", "source.read", "artifact.read", "evidence.read", "runtime.read"],
+        "write": [],
+        "deny": ["source.write", "memory.write", "provider.call", "commit", "push", "release"]
+      },
+      "workspacePolicy": {
+        "mode": "approved-project",
+        "projectPathRequired": true
+      },
+      "sessionPolicy": {
+        "scope": "work-order",
+        "resumeAllowed": false
+      },
+      "providerPolicy": {
+        "allowedModes": ["local-stub"]
+      },
+      "authority": {
+        "canRecommend": true,
+        "canCreateWorkOrderDraft": false,
+        "canRequestApproval": true,
+        "canMutateSource": false,
+        "canCommit": false,
+        "canPush": false
+      },
+      "concurrencyLimit": 1
+    },
+    {
+      "id": "agent-reviewer",
+      "displayName": "Reviewer",
+      "role": "reviewer",
+      "objective": "Evaluate implementation evidence against accepted decisions and request changes when proof is incomplete.",
+      "instructionsRef": "company/roles/reviewer.md",
+      "supportedPacks": ["development"],
+      "skillAllowlist": [],
+      "toolPolicy": {
+        "read": ["project.read", "source.read", "artifact.read", "evidence.read", "runtime.read"],
+        "write": [],
+        "deny": ["source.write", "memory.write", "provider.call", "commit", "push", "release"]
+      },
+      "workspacePolicy": {
+        "mode": "shared-readonly",
+        "projectPathRequired": true
+      },
+      "sessionPolicy": {
+        "scope": "work-order",
+        "resumeAllowed": false
+      },
+      "providerPolicy": {
+        "allowedModes": ["local-stub"]
+      },
+      "authority": {
+        "canRecommend": true,
+        "canCreateWorkOrderDraft": false,
+        "canRequestApproval": false,
+        "canMutateSource": false,
+        "canCommit": false,
+        "canPush": false
+      },
+      "concurrencyLimit": 1
+    },
+    {
+      "id": "agent-qa",
+      "displayName": "QA",
+      "role": "qa",
+      "objective": "Check required verification evidence and report reproducible pass, fail, or blocked results.",
+      "instructionsRef": "company/roles/qa.md",
+      "supportedPacks": ["development"],
+      "skillAllowlist": [],
+      "toolPolicy": {
+        "read": ["project.read", "source.read", "artifact.read", "evidence.read", "runtime.read"],
+        "write": [],
+        "deny": ["source.write", "memory.write", "provider.call", "commit", "push", "release"]
+      },
+      "workspacePolicy": {
+        "mode": "shared-readonly",
+        "projectPathRequired": true
+      },
+      "sessionPolicy": {
+        "scope": "work-order",
+        "resumeAllowed": false
+      },
+      "providerPolicy": {
+        "allowedModes": ["local-stub"]
+      },
+      "authority": {
+        "canRecommend": true,
+        "canCreateWorkOrderDraft": false,
+        "canRequestApproval": false,
+        "canMutateSource": false,
+        "canCommit": false,
+        "canPush": false
+      },
+      "concurrencyLimit": 1
+    },
+    {
+      "id": "agent-ops",
+      "displayName": "Ops",
+      "role": "ops",
+      "objective": "Observe runtime readiness, failure, cancellation, and recovery evidence without executing work.",
+      "instructionsRef": "company/roles/ops.md",
+      "supportedPacks": ["development"],
+      "skillAllowlist": [],
+      "toolPolicy": {
+        "read": ["project.read", "source.read", "artifact.read", "evidence.read", "runtime.read"],
+        "write": [],
+        "deny": ["source.write", "memory.write", "provider.call", "commit", "push", "release"]
+      },
+      "workspacePolicy": {
+        "mode": "shared-readonly",
+        "projectPathRequired": true
+      },
+      "sessionPolicy": {
+        "scope": "work-order",
+        "resumeAllowed": false
+      },
+      "providerPolicy": {
+        "allowedModes": ["local-stub"]
+      },
+      "authority": {
+        "canRecommend": true,
+        "canCreateWorkOrderDraft": false,
+        "canRequestApproval": false,
+        "canMutateSource": false,
+        "canCommit": false,
+        "canPush": false
+      },
+      "concurrencyLimit": 1
+    }
+  ],
+  "authorityPolicy": {
+    "approvalBeforeMutation": true,
+    "reviewBeforeDone": true,
+    "commitRequiresApproval": true,
+    "runtimeAgentPushAllowed": false
+  },
+  "sourceRefs": [
+    "docs/48_ai-company-master-plan.md",
+    "docs/49_agent-runtime-contract.md",
+    "docs/52_ai-company-runtime-blueprint-implementation-plan.md"
+  ]
+}

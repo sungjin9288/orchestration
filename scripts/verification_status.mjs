@@ -394,7 +394,12 @@ const informationalChecks = [
   {
     id: 'ai-company-runtime-blueprint-planning',
     script: 'scripts/smoke-ai-company-runtime-blueprint-planning.mjs',
-    purpose: 'AI Company Phase 1 planning pins one strict repo-backed blueprint and AgentProfile loader target, optional runtime injection, additive read-only snapshot evidence, schema v6 compatibility, rollback, focused implementation smoke, and a fielded implementation gate while runtime and downstream authority remain blocked',
+    purpose: 'AI Company Phase 1 planning remains consumed provenance for DEC-079 and source-checks the implemented strict repo-backed blueprint, optional runtime injection, additive read-only snapshot, schema v6 compatibility, rollback, and still-blocked downstream authority',
+  },
+  {
+    id: 'ai-company-runtime-blueprint-implementation',
+    script: 'scripts/smoke-ai-company-runtime-blueprint.mjs',
+    purpose: 'AI Company Phase 1 runtime smoke proves strict immutable blueprint and nine-role loading, stable identities, fail-closed invalid source handling, configured-only additive companyRuntime exposure, schema v6 non-persistence, deterministic Council compatibility, and blocked downstream authority',
   },
   {
     id: 'coordinator-path-containment-smoke',

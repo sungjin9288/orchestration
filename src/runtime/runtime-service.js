@@ -31,6 +31,7 @@ const {
   TASK_LIFECYCLE,
 } = require('./contracts');
 const { createFileStore } = require('./file-store');
+const { readCompanyBlueprintStatus } = require('./company-blueprint');
 const {
   normalizeOptionalString,
   normalizeRequiredString,
@@ -90,6 +91,12 @@ const {
 
 function createRuntimeService(options = {}) {
   const store = createFileStore(options);
+  const companyRuntime = options.companyBlueprintPath
+    ? readCompanyBlueprintStatus({
+        blueprintPath: options.companyBlueprintPath,
+        repoRoot: options.companyRepoRoot,
+      })
+    : null;
   const decisionInboxKinds = new Set(Object.values(DECISION_INBOX_KIND));
   const decisionInboxSourceTypes = new Set(Object.values(DECISION_INBOX_SOURCE_TYPE));
   const proposalRecordTypes = new Set(Object.values(PROPOSAL_RECORD_TYPE));
@@ -2758,7 +2765,14 @@ function createRuntimeService(options = {}) {
   function getSnapshot() {
     const state = store.loadState();
     normalizeProjectsInState(state);
-    return normalizeMissionsInState(state);
+    const snapshot = normalizeMissionsInState(state);
+
+    return companyRuntime
+      ? {
+          ...snapshot,
+          companyRuntime,
+        }
+      : snapshot;
   }
 
   function resetRuntime() {

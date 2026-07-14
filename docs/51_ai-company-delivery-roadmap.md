@@ -82,9 +82,9 @@ AI Company entrypoint를 disable하고 기존 deterministic Council과 execution
 ### Authority Gate
 
 Planning-only decision은 `DEC-077`로 기록됐고 implementation plan은
-`docs/52_ai-company-runtime-blueprint-implementation-plan.md`에 있다. 실제 구현에는
-`docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` 형식의 별도
-`approve-ai-company-runtime-blueprint-implementation-slice` decision이 필요하다.
+`docs/52_ai-company-runtime-blueprint-implementation-plan.md`에 있다. Fielded implementation
+decision은 `DEC-079`로 승인됐고 Phase 1 focused smoke가 current implementation evidence를
+검증한다. 이 승인은 Phase 2 또는 다른 downstream authority를 열지 않는다.
 
 ## Phase 2: Real Council For One Mission
 
@@ -390,17 +390,18 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 1 planning-only decision이 승인되어 implementation plan과 decision handoff가 준비됐다.
-현재 권장되는 다음 decision target은 다음 하나다.
+Phase 1 runtime blueprint implementation이 검증된 뒤 권장되는 다음 planning target은 다음
+하나다.
 
 ```text
-targetAuthority=read-only runtime CompanyBlueprint and AgentProfile loading plus additive snapshot exposure
+targetAuthority=Real Council for one Mission implementation planning using local-stub roles only
 ```
 
-이 architecture-sensitive decision은 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`의
-전체 field를 사용해야 한다. Runtime implementation은 아직 blocked이며 Council role execution,
-provider calls, memory persistence, autonomous scheduling, source mutation, approval bypass,
-runtime-agent commit/push/release는 유효한 Phase 1 implementation approval 이후에도 blocked다.
+Phase 2 planning은 independent Strategist/Architect/Decomposer positions, Conductor synthesis,
+required-role failure, dissent, revision, stop, alignment, rollback, focused runtime/API/UI smoke를
+정확히 제한해야 한다. Council role execution 자체와 provider calls, memory persistence,
+autonomous scheduling, source mutation, approval bypass, runtime-agent commit/push/release는 새
+fielded decision 전까지 blocked다.
 
 ## Verification
 

@@ -33,6 +33,7 @@ const taskLedger = read('tasks/todo.md');
 const lessons = read('tasks/lessons.md');
 const verification = read('scripts/verification_status.mjs');
 const runtimeContracts = read('src/runtime/contracts.js');
+const companyBlueprintLoader = read('src/runtime/company-blueprint.js');
 const runtimeService = read('src/runtime/runtime-service.js');
 const companyConfig = read('ui/company-config.js');
 const masterPlanText = compact(masterPlan);
@@ -47,6 +48,7 @@ assert.match(masterPlan, /^# AI Company Master Plan$/m);
 assertSections(masterPlan, [
   'Purpose',
   'Approved Documentation Authority',
+  'Approved Runtime Foundation Authority',
   'Current Product Truth',
   'Product North Star',
   'Operating Principles',
@@ -61,7 +63,9 @@ assertSections(masterPlan, [
 assert.match(masterPlanText, /approve-ai-company-master-plan-documentation/);
 assert.match(masterPlanText, /deterministic transcript/);
 assert.match(masterPlanText, /browser-side presentation 설정이며 runtime authority가 아니다/);
-assert.match(masterPlanText, /Runtime 구현을 승인하지 않는다/);
+assert.match(masterPlanText, /read-only runtime blueprint foundation만 별도로 승인했으며 나머지 runtime authority는 계속 차단한다/);
+assert.match(masterPlanText, /Recorded decision: `DEC-079`/);
+assert.match(masterPlanText, /configured local server snapshot의 read-only `companyRuntime`/);
 assert.match(masterPlanText, /Mission Intake.*Staffing Decision.*Council Positions.*Delivery Package/);
 for (const objectName of [
   'CompanyBlueprint',
@@ -105,7 +109,7 @@ assert.match(runtimeContractText, /solo \| council \| parallel-specialists/);
 assert.match(runtimeContractText, /canCommit.*canPush/);
 assert.match(runtimeContractText, /Raw chain-of-thought를 저장하거나 전달하지 않는다/);
 assert.match(runtimeContractText, /현재 runtime schema는 v6/);
-assert.match(runtimeContractText, /schemaVersion 변경이나 file-store migration을 계획하지 않는다/);
+assert.match(runtimeContractText, /company policy는 `state\.json`에 저장되지 않는다/);
 
 assert.match(councilProtocol, /^# Council Operating Protocol$/m);
 assertSections(councilProtocol, [
@@ -155,12 +159,13 @@ assertSections(deliveryRoadmap, [
 assert.match(deliveryRoadmapText, /Roadmap 항목은 planned work다/);
 assert.match(
   deliveryRoadmapText,
-  /targetAuthority=read-only runtime CompanyBlueprint and AgentProfile loading plus additive snapshot exposure/,
+  /targetAuthority=Real Council for one Mission implementation planning using local-stub roles only/,
 );
 assert.match(deliveryRoadmapText, /각 phase를 열 때 최소 다음 필드를 제공한다/);
 assert.match(deliveryRoadmapText, /`continue`, `do everything`, `approve all` 같은 shortcut은 implementation authority가 아니다/);
 
 assert.match(decisionLog, /^### DEC-076$/m);
+assert.match(decisionLog, /^### DEC-079$/m);
 assert.match(decisionLogText, /approve-ai-company-master-plan-documentation/);
 assert.match(decisionLogText, /It does not change runtime schema or behavior/);
 assert.match(decisionLogText, /runtime CompanyBlueprint and AgentProfile implementation planning/);
@@ -169,8 +174,12 @@ assert.match(lessonsText, /AI Company planning must distinguish presentation ros
 assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
-// Pin the current baseline so Phase 0 cannot be mistaken for runtime implementation evidence.
+// Pin the current baseline and exact foundation without opening Phase 2 authority.
 assert.match(runtimeContracts, /schemaVersion: 6/);
+assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
+assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
+assert.match(runtimeService, /companyBlueprintPath/);
+assert.match(runtimeService, /companyRuntime/);
 assert.match(runtimeService, /function buildCouncilSessionRecord\(state, mission, project, now\)/);
 assert.match(runtimeService, /participants: \[[\s\S]*role: 'Conductor'[\s\S]*role: 'Strategist'[\s\S]*role: 'Architect'[\s\S]*role: 'Decomposer'/);
 assert.match(companyConfig, /COMPANY_MEMBER_STORAGE_KEY = 'orchestration\.company-members\.v1'/);
@@ -188,15 +197,17 @@ process.stdout.write(
         'docs/50_council-operating-protocol.md',
         'docs/51_ai-company-delivery-roadmap.md',
       ],
-      decision: 'DEC-076',
+      decisions: ['DEC-076', 'DEC-079'],
       currentRuntime: {
         schemaVersion: 6,
+        companyBlueprint: 'ready-readonly',
         council: 'deterministic-session-record',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
         documentationApproved: true,
-        runtimeImplementationAllowed: false,
+        runtimeBlueprintImplementationPresent: true,
+        councilRoleExecutionAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -205,7 +216,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'read-only runtime CompanyBlueprint and AgentProfile implementation decision required',
+      nextGate: 'Real Council for one Mission implementation planning decision required',
     },
     null,
     2,

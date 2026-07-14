@@ -5,19 +5,21 @@
 이 문서는 `read-only runtime CompanyBlueprint and AgentProfile implementation decision required`
 게이트를 위한 copy-ready operator input이다.
 
-이 문서는 operator decision이 아니며 runtime loader, company source files, API snapshot 또는
-schema를 변경하지 않는다. Planning package commit/push 외의 runtime implementation authority를
-열지 않는다.
+이 문서 자체는 operator decision이 아니지만, 아래 valid shape가 이후 operator에 의해 그대로
+제출되어 `DEC-079`로 accepted됐다. 이 handoff는 consumed evidence이며 Phase 2 authority를 열지
+않는다.
 
 ## Current Gate
 
 - Planning decision: `operator-delegated-ai-company-runtime-blueprint-planning-001`
 - Planning status: accepted for planning only
 - Implementation plan: `docs/52_ai-company-runtime-blueprint-implementation-plan.md`
-- Runtime implementation: blocked
+- Fielded implementation decision: `operator-decision-ai-company-runtime-blueprint-implementation-001`
+- Runtime implementation: accepted and implemented for the exact read-only blueprint path only
 - State schema migration: blocked
 - Current runtime schema: v6
-- Current downstream gate: `read-only runtime CompanyBlueprint and AgentProfile implementation decision required`
+- Handoff status: `consumed-by-DEC-079`
+- Current downstream gate: `Real Council for one Mission implementation planning decision required`
 
 ## Source Evidence
 
@@ -134,8 +136,10 @@ Implementation approval은 다음을 모두 만족해야 한다.
 
 ```bash
 node scripts/smoke-ai-company-runtime-blueprint-planning.mjs
+node scripts/smoke-ai-company-runtime-blueprint.mjs
 node scripts/verification_status.mjs
 ```
 
-Status smoke는 planning decision, exact implementation boundary, valid/reject shapes, invalid
-shortcuts, still-blocked authorities를 검증한다. Runtime implementation evidence는 만들지 않는다.
+Planning smoke는 accepted decision과 exact boundary가 current implementation에 소비됐는지
+검증하고, focused runtime smoke는 strict load와 compatibility를 검증한다. Handoff는 Council,
+provider, memory, scheduling, mutation, approval bypass, commit/push/release authority를 열지 않는다.
