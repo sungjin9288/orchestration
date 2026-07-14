@@ -387,6 +387,11 @@ const informationalChecks = [
     purpose: 'vNext proposal draft downstream authority decision packet source-checks DEC-075, one recommended local durable record planning target, valid fielded outcomes, rejected broad shortcuts, and still-blocked authority without recording a decision',
   },
   {
+    id: 'ai-company-master-plan-documentation',
+    script: 'scripts/smoke-ai-company-master-plan.mjs',
+    purpose: 'AI Company Phase 0 source contract pins current deterministic Council and browser-only roster truth, the planned runtime/Council/delivery roadmap, per-phase rollback and verification gates, and still-blocked runtime, provider, memory, autonomous scheduling, source mutation, approval bypass, unattended commit, and unattended push authority',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

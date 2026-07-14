@@ -1,0 +1,210 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { requireNoCliArgs } from './read-only-cli-guard.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const repoRoot = path.resolve(path.dirname(__filename), '..');
+const MODE = 'ai-company-master-plan-documentation-smoke';
+
+requireNoCliArgs(process.argv.slice(2), { mode: MODE });
+
+function read(relativePath) {
+  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+}
+
+function assertSections(source, sections) {
+  for (const section of sections) {
+    assert.match(source, new RegExp(`^## ${section}$`, 'm'));
+  }
+}
+
+function compact(source) {
+  return source.replace(/\s+/g, ' ').trim();
+}
+
+const masterPlan = read('docs/48_ai-company-master-plan.md');
+const runtimeContract = read('docs/49_agent-runtime-contract.md');
+const councilProtocol = read('docs/50_council-operating-protocol.md');
+const deliveryRoadmap = read('docs/51_ai-company-delivery-roadmap.md');
+const decisionLog = read('docs/01_decision-log.md');
+const taskLedger = read('tasks/todo.md');
+const lessons = read('tasks/lessons.md');
+const verification = read('scripts/verification_status.mjs');
+const runtimeContracts = read('src/runtime/contracts.js');
+const runtimeService = read('src/runtime/runtime-service.js');
+const companyConfig = read('ui/company-config.js');
+const masterPlanText = compact(masterPlan);
+const runtimeContractText = compact(runtimeContract);
+const councilProtocolText = compact(councilProtocol);
+const deliveryRoadmapText = compact(deliveryRoadmap);
+const decisionLogText = compact(decisionLog);
+const taskLedgerText = compact(taskLedger);
+const lessonsText = compact(lessons);
+
+assert.match(masterPlan, /^# AI Company Master Plan$/m);
+assertSections(masterPlan, [
+  'Purpose',
+  'Approved Documentation Authority',
+  'Current Product Truth',
+  'Product North Star',
+  'Operating Principles',
+  'Logical Organization',
+  'Core Domain Objects',
+  'External Pattern Intake',
+  'Product Success Criteria',
+  'Non-Goals',
+  'First Implementation Target',
+  'Verification',
+]);
+assert.match(masterPlanText, /approve-ai-company-master-plan-documentation/);
+assert.match(masterPlanText, /deterministic transcript/);
+assert.match(masterPlanText, /browser-side presentation 설정이며 runtime authority가 아니다/);
+assert.match(masterPlanText, /Runtime 구현을 승인하지 않는다/);
+assert.match(masterPlanText, /Mission Intake.*Staffing Decision.*Council Positions.*Delivery Package/);
+for (const objectName of [
+  'CompanyBlueprint',
+  'AgentProfile',
+  'StaffingPlan',
+  'CouncilPosition',
+  'ExecutionPlan',
+  'WorkOrder',
+  'HandoffPacket',
+  'Checkpoint',
+  'DeliveryPackage',
+  'LearningCandidate',
+]) {
+  assert.match(masterPlanText, new RegExp(`\\b${objectName}\\b`));
+}
+
+assert.match(runtimeContract, /^# Agent Runtime Contract$/m);
+assertSections(runtimeContract, [
+  'Purpose',
+  'Contract Principles',
+  'Source Layout',
+  'CompanyBlueprint',
+  'AgentProfile',
+  'StaffingPlan',
+  'CouncilSession And CouncilPosition',
+  'ExecutionPlan And WorkOrder',
+  'HandoffPacket',
+  'Checkpoint',
+  'DeliveryPackage',
+  'LearningCandidate',
+  'Provider Boundary',
+  'API Intent',
+  'Observability',
+  'Failure And Recovery Matrix',
+  'Security Invariants',
+  'Implementation Boundary',
+  'Verification',
+]);
+assert.match(runtimeContractText, /company\/blueprint\.json/);
+assert.match(runtimeContractText, /solo \| council \| parallel-specialists/);
+assert.match(runtimeContractText, /canCommit.*canPush/);
+assert.match(runtimeContractText, /Raw chain-of-thought를 저장하거나 전달하지 않는다/);
+assert.match(runtimeContractText, /현재 runtime schema는 v6/);
+assert.match(runtimeContractText, /schemaVersion을 변경하지 않는다/);
+
+assert.match(councilProtocol, /^# Council Operating Protocol$/m);
+assertSections(councilProtocol, [
+  'Purpose',
+  'Council Entry Criteria',
+  'Required Roles',
+  'Agenda Packet',
+  'Meeting Phases',
+  'Termination Policy',
+  'Quorum And Required Role Rule',
+  'Revision Protocol',
+  'Failure Handling',
+  'UI Contract',
+  'API Compatibility Intent',
+  'Acceptance Scenarios',
+  'Implementation Boundary',
+  'Verification',
+]);
+assert.match(councilProtocolText, /Independent Positions/);
+assert.match(councilProtocolText, /Evidence And Conflict Check/);
+assert.match(councilProtocolText, /Conductor Synthesis/);
+for (const action of ['approve', 'request-revision', 'stop']) {
+  assert.match(councilProtocolText, new RegExp(`\\\`${action}\\\`:`));
+}
+assert.match(councilProtocolText, /Required role 하나라도 terminal failure이면 자동 synthesis approval-ready 상태로 가지 않는다/);
+assert.match(councilProtocolText, /Raw chain-of-thought, typing simulation, decorative chatter, role ranking은 표시하지 않는다/);
+
+assert.match(deliveryRoadmap, /^# AI Company Delivery Roadmap$/m);
+assertSections(deliveryRoadmap, [
+  'Purpose',
+  'Delivery Strategy',
+  'Phase 0: Source-Of-Truth Foundation',
+  'Phase 1: Runtime Company Blueprint',
+  'Phase 2: Real Council For One Mission',
+  'Phase 3: Council Live Provider Opt-In',
+  'Phase 4: Mission Compiler And WorkOrders',
+  'Phase 5: Team Execution And Supervision',
+  'Phase 6: Reviewer, QA, And Delivery Package',
+  'Phase 7: Checkpoint, Resume, And Recovery',
+  'Phase 8: Reviewed Organizational Learning',
+  'Phase 9: Dogfood And Productization',
+  'Cross-Phase Verification Matrix',
+  'Implementation Decision Template',
+  'Immediate Next Decision',
+  'Verification',
+]);
+assert.match(deliveryRoadmapText, /Roadmap 항목은 planned work다/);
+assert.match(deliveryRoadmapText, /runtime CompanyBlueprint and AgentProfile implementation planning/);
+assert.match(deliveryRoadmapText, /각 phase를 열 때 최소 다음 필드를 제공한다/);
+assert.match(deliveryRoadmapText, /`continue`, `do everything`, `approve all` 같은 shortcut은 implementation authority가 아니다/);
+
+assert.match(decisionLog, /^### DEC-076$/m);
+assert.match(decisionLogText, /approve-ai-company-master-plan-documentation/);
+assert.match(decisionLogText, /It does not change runtime schema or behavior/);
+assert.match(decisionLogText, /runtime CompanyBlueprint and AgentProfile implementation planning/);
+assert.match(taskLedgerText, /ai-company-master-plan-documentation-post-m7-1937/);
+assert.match(lessonsText, /AI Company planning must distinguish presentation roster, runtime identity, and execution authority/);
+assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
+assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
+
+// Pin the current baseline so Phase 0 cannot be mistaken for runtime implementation evidence.
+assert.match(runtimeContracts, /schemaVersion: 6/);
+assert.match(runtimeService, /function buildCouncilSessionRecord\(state, mission, project, now\)/);
+assert.match(runtimeService, /participants: \[[\s\S]*role: 'Conductor'[\s\S]*role: 'Strategist'[\s\S]*role: 'Architect'[\s\S]*role: 'Decomposer'/);
+assert.match(companyConfig, /COMPANY_MEMBER_STORAGE_KEY = 'orchestration\.company-members\.v1'/);
+assert.match(companyConfig, /DEFAULT_COMPANY_MEMBERS/);
+
+process.stdout.write(
+  `${JSON.stringify(
+    {
+      ok: true,
+      mode: MODE,
+      phase: 'phase-0-source-of-truth-foundation',
+      documents: [
+        'docs/48_ai-company-master-plan.md',
+        'docs/49_agent-runtime-contract.md',
+        'docs/50_council-operating-protocol.md',
+        'docs/51_ai-company-delivery-roadmap.md',
+      ],
+      decision: 'DEC-076',
+      currentRuntime: {
+        schemaVersion: 6,
+        council: 'deterministic-session-record',
+        companyRoster: 'browser-presentation-config',
+      },
+      authority: {
+        documentationApproved: true,
+        runtimeImplementationAllowed: false,
+        providerRoleExpansionAllowed: false,
+        memoryPersistenceAllowed: false,
+        autonomousSchedulingAllowed: false,
+        agentSourceMutationAllowed: false,
+        approvalBypassAllowed: false,
+        unattendedCommitAllowed: false,
+        unattendedPushAllowed: false,
+      },
+      nextGate: 'runtime CompanyBlueprint and AgentProfile implementation planning decision required',
+    },
+    null,
+    2,
+  )}\n`,
+);
