@@ -10,7 +10,8 @@ decision without creating a durable record or opening any downstream authority.
 
 - Original gate: `proposal draft human review decision required`
 - Review packet: `docs/44_proposal-draft-human-review.md`
-- Current packet status: `awaiting-fielded-human-review-outcome`
+- Current packet status: `consumed-by-accept-review-evidence-only-decision`
+- Accepted evidence decision: `operator-decision-vnext-proposal-draft-human-review-001` under `DEC-074`
 - Candidate scope: exactly one existing Growth Evidence Ledger candidate
 - Allowed outcome: review evidence confirmation only; it is not proposal record creation or application
 - Durable record, queue mutation, proposal application, provider, memory, runtime/UI/source mutation,
@@ -50,7 +51,8 @@ The decision must apply to exactly one `pending-human-review` packet created by
 `src/runtime/proposal-draft-reviews.js#createProposalDraftHumanReviewPacket`.
 
 An `accept-review-evidence-only` outcome confirms only that the human has inspected the current
-evidence. It does not add `reviewOutcome` to the packet, persist a decision, create a durable
+evidence. `docs/46_proposal-draft-human-review-evidence-decision.md` records that decision as
+repository history. It does not add `reviewOutcome` to the packet, persist a runtime decision, create a durable
 proposal record, mutate the proposal queue, apply a proposal, call a provider, persist memory,
 mutate runtime/UI/source state, commit, or push.
 
@@ -127,6 +129,6 @@ node scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs
 node scripts/verification_status.mjs
 ```
 
-The status command is read-only. It verifies the decision input, pending review packet, decision log,
-audit, completion inventory, README, aggregate registration, and still-blocked authority without
-recording a human outcome or changing runtime behavior.
+The status command is read-only. It verifies the decision-input contract, pending review packet,
+accepted evidence-decision history, decision log, audit, completion inventory, README, aggregate
+registration, and still-blocked authority without changing runtime behavior.

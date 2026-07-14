@@ -43,10 +43,11 @@ outcome must be recorded through a separate explicit decision; this packet has n
 
 ## Decision Follow-up
 
-`docs/45_proposal-draft-human-review-decision-packet.md` defines the later fielded human outcome.
-It permits only evidence confirmation, an evidence request, rejection, or deferral. It does not add a
-`reviewOutcome` to this packet or open durable record, queue, application, provider, memory,
-runtime/UI/source mutation, commit, or push authority.
+`docs/45_proposal-draft-human-review-decision-packet.md` defines the fielded human outcome. `DEC-074`
+records one accepted review-evidence-only outcome in
+`docs/46_proposal-draft-human-review-evidence-decision.md`. Neither document adds a `reviewOutcome`
+to this packet or opens durable record, queue, application, provider, memory, runtime/UI/source
+mutation, commit, or push authority.
 
 ## Verification
 

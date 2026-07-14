@@ -79,9 +79,12 @@ no review outcome and cannot create a record, mutate a queue, apply a proposal, 
 persist memory, mutate runtime/UI/source state, commit, or push. The pending packet contract is in
 `docs/44_proposal-draft-human-review.md`. Proposal draft human review decision packet is implemented in `docs/45_proposal-draft-human-review-decision-packet.md`; it defines only
 evidence-only acceptance, an evidence request, rejection, or deferral for one fresh packet and also
-records no outcome. The next gate is `fielded proposal draft human review outcome required`.
-`scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs` verifies this decision input
-remains read-only.
+records no outcome. Proposal draft human review evidence decision is accepted in
+`docs/46_proposal-draft-human-review-evidence-decision.md` as repository history for
+`accept-review-evidence-only`; it does not persist a runtime decision or open downstream authority.
+The next gate is `explicit downstream authority decision required`.
+`scripts/vnext-proposal-draft-human-review-evidence-decision-status.mjs` verifies this accepted
+evidence decision remains read-only.
 
 Recent verifier maintenance keeps this close-out evidence easier to audit without widening product
 authority. The vNext audit, growth dashboard evidence depth, authority review/decision packet,
@@ -105,10 +108,10 @@ The close-out evidence remains source-backed:
 `docs/22_completion-gate-inventory.md` records the current gate table,
 `scripts/smoke-completion-gate-inventory-current-evidence.mjs` pins README smoke counts, aggregate
 registration, UI QA registration, zero-open backlog, post-completion router, proposal-record
-lifecycle review alias evidence, and proposal generation planning, implementation, pending human-review, and review-decision packet evidence together, and
+lifecycle review alias evidence, and proposal generation planning, implementation, pending human-review, review-decision packet, and accepted evidence-decision evidence together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `176/176`, total `177/177`; UI QA is required `28/28`.
+`1/1`, informational `177/177`, total `178/178`; UI QA is required `28/28`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -169,10 +172,10 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `177/177`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `178/178`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
-  proposal generation planning, implementation, pending human-review, and review-decision packet
-  evidence.
+  proposal generation planning, implementation, pending human-review, review-decision packet, and
+  accepted evidence-decision evidence.
 - Proposal generation decision packet: `docs/40_proposal-generation-decision-packet.md` and
   `scripts/vnext-proposal-generation-decision-packet-status.mjs` define one deterministic local
   draft planning target, the full operator decision fields, rollback and focused smoke requirements,
@@ -1724,10 +1727,10 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `177/177`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `178/178`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
-  proposal generation planning, implementation, pending human-review, and review-decision packet
-  evidence stay aligned.
+  proposal generation planning, implementation, pending human-review, review-decision packet, and
+  accepted evidence-decision evidence stay aligned.
 - `node scripts/growth-remediation-source-mutation-lifecycle-closeout-closure-lifecycle-close-status.mjs`:
   reports `ok=true`, read-only lifecycle-close status readiness, blocked
   source mutation and remediation execution, and the next lifecycle-close-review command.
@@ -1989,7 +1992,7 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `28/28`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `176/176`, total `177/177`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `177/177`, total `178/178`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2019,7 +2022,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `177/177`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
+  aggregate `178/178`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,
@@ -2029,6 +2032,9 @@ Playwright CLI:
   commit, or push.
 - `DEC-073` adds a fielded review-decision input only. It records no outcome and cannot open durable
   record, queue, application, provider, memory, runtime/UI/source mutation, commit, or push authority.
+- `DEC-074` records one `accept-review-evidence-only` decision as repository history only. It does not
+  persist a runtime decision or open durable record, queue, application, provider, memory,
+  runtime/UI/source mutation, commit, or push authority.
 - Growth proposal-record lifecycle review is read-only evidence. It preserves the long repeated
   route as `sourceCandidate` but does not create proposal records, apply proposals, mutate queues,
   call providers, persist memory, mutate source, commit, or push.

@@ -66,4 +66,5 @@ This implementation is not a durable proposal creation or application authority.
 `docs/44_proposal-draft-human-review.md` records the read-only pending review packet for this draft.
 It preserves evidence and freshness for inspection without recording a review outcome or opening any
 downstream authority. `docs/45_proposal-draft-human-review-decision-packet.md` separately defines
-the fielded human outcome without opening any authority.
+the fielded human outcome, while `docs/46_proposal-draft-human-review-evidence-decision.md` records
+one accepted evidence-only decision without opening any authority.

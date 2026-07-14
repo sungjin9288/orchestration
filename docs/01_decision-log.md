@@ -431,6 +431,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/45_proposal-draft-human-review-decision-packet.md` and `scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs` define and verify evidence-only acceptance, request-more-evidence, rejection, and deferral outcomes. They do not record an outcome, mutate state, or open durable record, queue, application, provider, memory, runtime/UI/source mutation, commit, or push authority.
 - Needed Before: Any actual human-review outcome must be provided as a complete fielded decision for exactly one fresh pending packet. Any durable or external action remains subject to a separate explicit authority decision and verification.
 
+### DEC-074
+- Status: `Accepted`
+- Decision: Accept `operator-decision-vnext-proposal-draft-human-review-001` as `accept-review-evidence-only` for one deterministic local inert proposal draft.
+- Why: The operator explicitly supplied the permitted `decisionStatus=accept-review-evidence-only` outcome after the fielded review packet in `DEC-073`. Recording that result as repository evidence closes the review-evidence gate without claiming a runtime packet, runtime decision record, or downstream action.
+- Impact: `docs/46_proposal-draft-human-review-evidence-decision.md` records the fixed source references, freshness rule, blocked authorities, rollback boundary, and aggregate verification. The pending packet remains in-memory with no `reviewOutcome`; durable record creation, queue mutation, proposal application, provider calls, memory persistence, runtime/UI/source mutation, commit, and push remain blocked.
+- Needed Before: Any durable or external action still needs a later fielded decision that names exactly one downstream authority, rollback evidence, focused smoke coverage, aggregate verification, and all remaining blocked authorities.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

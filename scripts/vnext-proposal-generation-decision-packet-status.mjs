@@ -141,7 +141,7 @@ const evidence = {
   ],
   audit: [
     'Completed: `proposal generation decision packet`',
-    'Next implementation gate: `fielded proposal draft human review outcome required`',
+    'Next implementation gate: `explicit downstream authority decision required`',
   ],
   decisionLog: ['### DEC-068'],
   inventory: ['vNext proposal generation decision packet'],
