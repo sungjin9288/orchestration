@@ -52,6 +52,7 @@ const inventoryGateRows = [
   /\| AI Company runtime blueprint implementation \| pass \| `company\/blueprint\.json`, `company\/roles\/\*\.md`, `src\/runtime\/company-blueprint\.js`, `node scripts\/smoke-ai-company-runtime-blueprint\.mjs` \|/,
   /\| AI Company Real Council planning \| pass \| `docs\/54_ai-company-real-council-implementation-plan\.md`, `docs\/55_ai-company-real-council-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-real-council-planning\.mjs` \|/,
   /\| AI Company Real Council implementation \| pass \| `src\/runtime\/council-sessions\.js`, `src\/execution\/council-coordinator\.js`, `src\/execution\/providers\/council-local-stub-adapter\.js`, `node scripts\/smoke-ai-company-real-council\.mjs`, `node scripts\/smoke-ui-slice-651\.mjs` \|/,
+  /\| AI Company Council live-provider planning \| pass \| `docs\/56_ai-company-council-live-provider-implementation-plan\.md`, `docs\/57_ai-company-council-live-provider-implementation-decision-handoff\.md`, `node scripts\/smoke-ai-company-council-live-provider-planning\.mjs` \|/,
 ];
 
 const lifecycleAliasEvidence = [
@@ -81,7 +82,7 @@ for (const pattern of staleInventoryEvidence) {
 
 assertReadmeHas(new RegExp(`${smokeFileCount} smoke files`));
 assertReadmeHas(new RegExp(`${uiSmokeFileCount} UI smoke files`));
-assertReadmeHas(/total `185\/185`/);
+assertReadmeHas(/total `186\/186`/);
 assert.match(verificationStatus, /completion-gate-inventory-current-evidence/);
 assert.match(verificationStatus, /smoke-completion-gate-inventory-current-evidence\.mjs/);
 assert.match(uiQaStatus, /smoke-ui-slice-651\.mjs/);
@@ -95,8 +96,8 @@ process.stdout.write(
       uiSmokeFileCount,
       aggregate: {
         required: '1/1',
-        informational: '184/184',
-        total: '185/185',
+        informational: '185/185',
+        total: '186/186',
       },
     },
     null,

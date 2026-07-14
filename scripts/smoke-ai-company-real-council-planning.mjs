@@ -141,7 +141,7 @@ assert.match(runtimeContract, /Phase 2 planning evidence는 `DEC-082`가 consume
 assert.match(councilProtocol, /complete fielded implementation outcome은 `DEC-082`로 기록됐다/);
 assertAll(roadmapText, [
   /complete fielded implementation outcome은 `DEC-082`로 기록됐다/,
-  /targetAuthority=Council live-provider opt-in implementation planning/,
+  /targetAuthority=one explicit OpenAI Responses opt-in path for the existing Real Council normalized position and synthesis contract/,
 ]);
 assert.match(completionInventory, /AI Company Real Council planning \| pass/);
 assertAll(readmeText, [
@@ -196,7 +196,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted',
         implementation: 'accepted-and-implemented',
-        nextGate: 'Council live-provider opt-in planning decision required',
+        nextGate: 'Council live-provider opt-in implementation decision required',
       },
       plannedPath: {
         requiredPositionRoles: ['strategist', 'architect', 'decomposer'],

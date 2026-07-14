@@ -14,7 +14,7 @@ copy-ready operator input이다. 이 문서 자체는 runtime/API/UI implementat
 - Real Council implementation: accepted and implemented by `DEC-082`
 - Legacy deterministic Council: preserved and still active
 - Current runtime schema: v6
-- Current gate: Phase 3 Council live-provider opt-in planning decision required
+- Current gate: Phase 3 Council live-provider opt-in implementation decision required
 
 ## Accepted Outcome
 

@@ -302,6 +302,12 @@ Focused implementation smoke는 최소 다음을 증명해야 한다.
 legacy route preservation, isolated position request, deterministic conflict, Conductor synthesis,
 approve/request-revision/stop 범위만 구현됐다. Provider calls와 모든 downstream authority는 blocked다.
 
+Phase 3 planning은 `DEC-083`과 `DEC-084`로 승인·문서화됐다. 미래 provider path는
+`real-openai-responses`를 명시적으로 선택할 때만 열 수 있고, Strategist/Architect/Decomposer
+position isolation, deterministic conflict-before-synthesis, Conductor normalized output, human
+alignment를 그대로 유지해야 한다. Local-stub synthetic gate는 authoritative하며 provider
+implementation, credential access, calls, async runtime/API/UI 변경은 아직 blocked다.
+
 ## Verification
 
 ```bash
@@ -309,6 +315,7 @@ node scripts/smoke-ai-company-master-plan.mjs
 node scripts/smoke-ai-company-real-council-planning.mjs
 node scripts/smoke-ai-company-real-council.mjs
 node scripts/smoke-ui-slice-651.mjs
+node scripts/smoke-ai-company-council-live-provider-planning.mjs
 node scripts/verification_status.mjs
 ```
 

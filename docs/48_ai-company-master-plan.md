@@ -90,6 +90,19 @@ execution과 standalone StaffingPlan은 아직 구현되지 않았다.
 - Still blocked: live providers, standalone StaffingPlan, WorkOrders, memory/checkpoint expansion,
   autonomous scheduling, profile/source mutation, approval bypass, runtime-agent commit/push/release
 
+## Approved Council Live Provider Planning Authority
+
+- Planning decision: `operator-delegated-ai-company-council-live-provider-planning-001`
+- Decision status: `approve-ai-company-council-live-provider-planning-only`
+- Recorded decisions: `DEC-083`, `DEC-084`
+- Allowed: Phase 3 implementation plan, implementation decision handoff, focused planning smoke,
+  aggregate registration, documentation/README/task evidence, commit, push
+- Planned boundary: one explicit `real-openai-responses` path for the existing normalized Council
+  position and synthesis contract; `real-local-stub` stays authoritative
+- Still blocked: provider implementation or calls, runtime/API/UI changes, provider expansion,
+  StaffingPlan, WorkOrders, memory/checkpoint expansion, scheduling, mutation, approval bypass,
+  runtime-agent commit/push/release
+
 ## Product North Star
 
 운영자는 하나의 local project와 Mission을 입력하고 다음 흐름을 끝까지 관찰하고 제어한다.

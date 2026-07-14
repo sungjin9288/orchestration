@@ -57,6 +57,8 @@ Planning source files:
 - `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`
 - `docs/54_ai-company-real-council-implementation-plan.md`
 - `docs/55_ai-company-real-council-implementation-decision-handoff.md`
+- `docs/56_ai-company-council-live-provider-implementation-plan.md`
+- `docs/57_ai-company-council-live-provider-implementation-decision-handoff.md`
 - `packs/development/pack.md`
 - `packs/knowledge-work/pack.md`
 
@@ -82,6 +84,16 @@ dissent evidence, Conductor synthesis, additive revision attempts, and explicit
 available as compatibility behavior. Live providers, standalone StaffingPlan, WorkOrders, memory
 persistence expansion, autonomous scheduling, source/profile mutation, approval bypass, and
 runtime-agent commit/push/release remain blocked.
+
+Phase 3 Council live-provider implementation planning is accepted by `DEC-083`, and the complete
+fielded implementation gate is documented by `DEC-084` in
+`docs/56_ai-company-council-live-provider-implementation-plan.md` and
+`docs/57_ai-company-council-live-provider-implementation-decision-handoff.md`. The plan defines one
+explicit `real-openai-responses` candidate for the same normalized position and synthesis contract,
+with a four-role allowlist, sequential bounded calls, retry/timeout/cancellation, redacted provider
+evidence, schema v6 compatibility, authoritative local-stub verification, and optional live proof.
+Provider implementation, credential access, calls, runtime/API/UI changes, provider expansion, and
+all downstream authority remain blocked until the complete fielded decision is accepted.
 
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
@@ -146,7 +158,7 @@ review-decision packet, accepted evidence-decision, and downstream authority dec
 evidence together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `184/184`, total `185/185`; UI QA is required `29/29`.
+`1/1`, informational `185/185`, total `186/186`; UI QA is required `29/29`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -207,7 +219,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `185/185`, UI QA `29/29`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `186/186`, UI QA `29/29`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -1637,7 +1649,7 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 862 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 863 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
 find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 651 UI smoke files
 ```
@@ -1766,7 +1778,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `185/185`, UI QA `29/29`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `186/186`, UI QA `29/29`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2031,7 +2043,7 @@ Current verification evidence from this README and completion close-out refresh:
   lifecycle review alias evidence stay aligned.
 - `node scripts/ui_qa_status.mjs`: required UI QA checks `29/29`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `184/184`, total `185/185`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `185/185`, total `186/186`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2061,7 +2073,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `185/185`, UI QA `29/29`, and zero-open backlog are local source-backed checks.
+  aggregate `186/186`, UI QA `29/29`, and zero-open backlog are local source-backed checks.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,
@@ -2088,6 +2100,9 @@ Playwright CLI:
 - Optional OpenAI live-provider verification requires visible `OPENAI_API_KEY` and
   `OPENAI_RESPONSES_MODEL`; when those env vars are missing, live-provider checks are skipped rather
   than treated as required failures.
+- `DEC-083` and `DEC-084` approve Council live-provider planning and its fielded implementation
+  handoff only. No Council provider adapter, provider mode, credential access, provider call,
+  runtime/API/UI change, or provider-specific live smoke is implemented by those decisions.
 - Growth evidence and personalization are shell-level views only. Candidate drilldown and the proposal
   review preview are not proof of model learning, long-term memory, durable proposal record creation,
   autonomous proposal application, source mutation, commit, push, or external automation.
