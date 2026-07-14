@@ -226,7 +226,11 @@ multi-provider-first matrix, agent self-authorization이다.
 
 ## First Implementation Target
 
-첫 runtime vertical slice는 `Real Council for one Mission`이다.
+첫 runtime foundation slice는 source-backed `CompanyBlueprint`와 `AgentProfile`을 strict하게
+load하고 read-only snapshot으로 노출하는 것이다. 이 foundation은 state schema를 변경하거나
+agent를 실행하지 않으며, 현재 deterministic Council과 browser presentation roster를 유지한다.
+
+첫 behavior vertical slice는 foundation 검증 이후의 `Real Council for one Mission`이다.
 
 - source-backed 네 Council role을 load한다.
 - Strategist, Architect, Decomposer position을 독립 실행한다.
@@ -236,7 +240,10 @@ multi-provider-first matrix, agent self-authorization이다.
 - `approve` 후에만 기존 linked task와 preflight auto-chain이 열린다.
 - Source mutation, commit, push는 기존 별도 gate에서 계속 멈춘다.
 
-구현 순서와 acceptance gate는 `docs/51_ai-company-delivery-roadmap.md`를 따른다.
+Foundation 계획과 implementation decision input은
+`docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
+`docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현
+순서와 acceptance gate는 `docs/51_ai-company-delivery-roadmap.md`를 따른다.
 
 ## Verification
 

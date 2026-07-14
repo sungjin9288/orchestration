@@ -105,7 +105,7 @@ assert.match(runtimeContractText, /solo \| council \| parallel-specialists/);
 assert.match(runtimeContractText, /canCommit.*canPush/);
 assert.match(runtimeContractText, /Raw chain-of-thought를 저장하거나 전달하지 않는다/);
 assert.match(runtimeContractText, /현재 runtime schema는 v6/);
-assert.match(runtimeContractText, /schemaVersion을 변경하지 않는다/);
+assert.match(runtimeContractText, /schemaVersion 변경이나 file-store migration을 계획하지 않는다/);
 
 assert.match(councilProtocol, /^# Council Operating Protocol$/m);
 assertSections(councilProtocol, [
@@ -153,7 +153,10 @@ assertSections(deliveryRoadmap, [
   'Verification',
 ]);
 assert.match(deliveryRoadmapText, /Roadmap 항목은 planned work다/);
-assert.match(deliveryRoadmapText, /runtime CompanyBlueprint and AgentProfile implementation planning/);
+assert.match(
+  deliveryRoadmapText,
+  /targetAuthority=read-only runtime CompanyBlueprint and AgentProfile loading plus additive snapshot exposure/,
+);
 assert.match(deliveryRoadmapText, /각 phase를 열 때 최소 다음 필드를 제공한다/);
 assert.match(deliveryRoadmapText, /`continue`, `do everything`, `approve all` 같은 shortcut은 implementation authority가 아니다/);
 
@@ -202,7 +205,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'runtime CompanyBlueprint and AgentProfile implementation planning decision required',
+      nextGate: 'read-only runtime CompanyBlueprint and AgentProfile implementation decision required',
     },
     null,
     2,

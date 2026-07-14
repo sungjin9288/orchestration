@@ -399,9 +399,13 @@ content와 derived UI preview의 source-of-truth 경계를 유지한다.
 
 ## Implementation Boundary
 
-이 문서의 모든 schema와 API는 planned contract다. 현재 runtime schema는 v6이며 이 문서화
-slice는 schemaVersion을 변경하지 않는다. 첫 implementation decision은 정확한 파일,
-migration/compatibility, rollback, focused smoke, aggregate verification을 다시 승인해야 한다.
+이 문서의 모든 schema와 API는 planned contract다. 현재 runtime schema는 v6이다.
+`docs/52_ai-company-runtime-blueprint-implementation-plan.md`는 첫 foundation을 persisted state와
+분리된 read-only source loader 및 additive snapshot으로 제한하므로 schemaVersion 변경이나
+file-store migration을 계획하지 않는다. 실제 loader/runtime/API 변경은
+`docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`의 fielded implementation
+decision이 정확한 파일, compatibility, rollback, focused smoke, aggregate verification을 승인한
+뒤에만 시작한다.
 
 ## Verification
 

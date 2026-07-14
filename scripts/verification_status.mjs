@@ -392,6 +392,11 @@ const informationalChecks = [
     purpose: 'AI Company Phase 0 source contract pins current deterministic Council and browser-only roster truth, the planned runtime/Council/delivery roadmap, per-phase rollback and verification gates, and still-blocked runtime, provider, memory, autonomous scheduling, source mutation, approval bypass, unattended commit, and unattended push authority',
   },
   {
+    id: 'ai-company-runtime-blueprint-planning',
+    script: 'scripts/smoke-ai-company-runtime-blueprint-planning.mjs',
+    purpose: 'AI Company Phase 1 planning pins one strict repo-backed blueprint and AgentProfile loader target, optional runtime injection, additive read-only snapshot evidence, schema v6 compatibility, rollback, focused implementation smoke, and a fielded implementation gate while runtime and downstream authority remain blocked',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

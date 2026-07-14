@@ -55,9 +55,10 @@ Browser-only company member 설정과 분리된 source-backed runtime roster를 
 - `company/blueprint.json`
 - `company/roles/*.md`
 - `src/runtime/company-blueprint.js`
-- `src/runtime/contracts.js`
-- `src/runtime/file-store.js`
-- runtime blueprint focused smoke
+- `src/runtime/runtime-service.js`
+- `scripts/serve-ui-slice-01.mjs`
+- `scripts/smoke-ai-company-runtime-blueprint.mjs`
+- `scripts/verification_status.mjs`
 
 ### Contract
 
@@ -71,7 +72,8 @@ Browser-only company member 설정과 분리된 source-backed runtime roster를 
 - Reload 후 같은 agent ids가 유지된다.
 - Unknown role/tool/authority가 거부된다.
 - Existing Mission/Task runtime smoke가 회귀하지 않는다.
-- Runtime schema migration/compatibility smoke가 통과한다.
+- Persisted state는 schema v6로 유지되고 company policy가 state에 저장되지 않는다.
+- Optional runtime injection과 additive API snapshot compatibility smoke가 통과한다.
 
 ### Rollback
 
@@ -79,7 +81,10 @@ AI Company entrypoint를 disable하고 기존 deterministic Council과 execution
 
 ### Authority Gate
 
-별도 `runtime company blueprint implementation` decision이 필요하다.
+Planning-only decision은 `DEC-077`로 기록됐고 implementation plan은
+`docs/52_ai-company-runtime-blueprint-implementation-plan.md`에 있다. 실제 구현에는
+`docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` 형식의 별도
+`approve-ai-company-runtime-blueprint-implementation-slice` decision이 필요하다.
 
 ## Phase 2: Real Council For One Mission
 
@@ -385,15 +390,17 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 0 문서화가 검증·push된 뒤 권장되는 다음 decision target은 다음 하나다.
+Phase 1 planning-only decision이 승인되어 implementation plan과 decision handoff가 준비됐다.
+현재 권장되는 다음 decision target은 다음 하나다.
 
 ```text
-targetAuthority=runtime CompanyBlueprint and AgentProfile implementation planning
+targetAuthority=read-only runtime CompanyBlueprint and AgentProfile loading plus additive snapshot exposure
 ```
 
-이 decision은 Phase 1 planning만 열어야 한다. Runtime implementation, Council provider calls,
-memory persistence, source mutation, commit, push는 fielded decision에서 명시하지 않으면 계속
-blocked다.
+이 architecture-sensitive decision은 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`의
+전체 field를 사용해야 한다. Runtime implementation은 아직 blocked이며 Council role execution,
+provider calls, memory persistence, autonomous scheduling, source mutation, approval bypass,
+runtime-agent commit/push/release는 유효한 Phase 1 implementation approval 이후에도 blocked다.
 
 ## Verification
 
