@@ -33,6 +33,16 @@ const {
 const { createFileStore } = require('./file-store');
 const { readCompanyBlueprintStatus } = require('./company-blueprint');
 const {
+  REAL_COUNCIL_MODE,
+  buildAgendaDigest,
+  buildCouncilAgenda,
+  createRealCouncilSession,
+} = require('./council-sessions');
+const { createCouncilCoordinator } = require('../execution/council-coordinator');
+const {
+  createCouncilLocalStubAdapter,
+} = require('../execution/providers/council-local-stub-adapter');
+const {
   normalizeOptionalString,
   normalizeRequiredString,
   normalizeRequiredStringArray,
@@ -97,6 +107,9 @@ function createRuntimeService(options = {}) {
         repoRoot: options.companyRepoRoot,
       })
     : null;
+  const councilCoordinator = createCouncilCoordinator({
+    adapter: options.councilAdapter || createCouncilLocalStubAdapter(),
+  });
   const decisionInboxKinds = new Set(Object.values(DECISION_INBOX_KIND));
   const decisionInboxSourceTypes = new Set(Object.values(DECISION_INBOX_SOURCE_TYPE));
   const proposalRecordTypes = new Set(Object.values(PROPOSAL_RECORD_TYPE));
@@ -1957,6 +1970,248 @@ function createRuntimeService(options = {}) {
     };
   }
 
+  function assertRealCouncilSourceCurrent(session, mission, project) {
+    const currentDigest = buildAgendaDigest(buildCouncilAgenda(mission, project));
+
+    if (currentDigest !== session.sourceDigest) {
+      const error = new Error(`Council session ${session.id} has a stale source digest`);
+      error.statusCode = 409;
+      throw error;
+    }
+  }
+
+  function startRealCouncilForMission(input) {
+    const state = store.loadState();
+    const mission = assertMission(input.missionId, state);
+    const project = assertProject(mission.projectId, state);
+    const now = new Date().toISOString();
+
+    if (input.mode && input.mode !== REAL_COUNCIL_MODE) {
+      throw new Error(`Unsupported Council mode: ${input.mode}`);
+    }
+
+    if (mission.councilSessionId && state.councilSessions[mission.councilSessionId]) {
+      const error = new Error(
+        `Mission ${mission.id} already has a council session: ${mission.councilSessionId}`,
+      );
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const councilSession = createRealCouncilSession({
+      id: nextId(state, 'councilSession'),
+      mission,
+      project,
+      companyRuntime,
+      now,
+    });
+
+    councilCoordinator.runAttempt({
+      session: councilSession,
+      blueprint: companyRuntime.blueprint,
+      projectPack: project.pack,
+      now,
+    });
+
+    state.councilSessions[councilSession.id] = councilSession;
+    mission.councilSessionId = councilSession.id;
+    mission.status = 'aligning';
+    mission.updatedAt = now;
+    state.activeProjectId = mission.projectId;
+    state.selectedMissionId = mission.id;
+    store.saveState(state);
+
+    return {
+      councilSession: state.councilSessions[councilSession.id],
+      mission: state.missions[mission.id],
+    };
+  }
+
+  function resumeRealCouncilSession(input) {
+    const state = store.loadState();
+    const councilSession = assertCouncilSession(input.councilSessionId, state);
+    const mission = assertMission(councilSession.missionId, state);
+    const project = assertProject(mission.projectId, state);
+    const now = new Date().toISOString();
+
+    if (councilSession.mode !== REAL_COUNCIL_MODE) {
+      throw new Error(`Council session ${councilSession.id} is not a Real Council session`);
+    }
+
+    if (councilSession.phase === 'terminal') {
+      const error = new Error(`Council session ${councilSession.id} is terminal`);
+      error.statusCode = 409;
+      throw error;
+    }
+
+    if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
+      throw new Error('CompanyBlueprint must be ready before Real Council resumes');
+    }
+
+    assertRealCouncilSourceCurrent(councilSession, mission, project);
+    const currentAttempt = councilSession.attempts.find(
+      (attempt) => attempt.id === councilSession.currentAttemptId,
+    );
+    const failures = currentAttempt?.conflictSummary?.requiredRoleFailures || [];
+    const unsupportedEvidenceRefs =
+      currentAttempt?.conflictSummary?.unsupportedEvidenceRefs || [];
+
+    if (
+      currentAttempt?.status !== 'failed' ||
+      (failures.length === 0 && unsupportedEvidenceRefs.length === 0)
+    ) {
+      const error = new Error(`Council session ${councilSession.id} has no failed attempt to resume`);
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const synthesisOnly =
+      failures.length > 0 && failures.every((failure) => failure.role === 'conductor');
+    const failedAgentIds = failures
+      .filter((failure) => failure.role !== 'conductor')
+      .map((failure) => failure.agentId);
+    const unsupportedAgentIds = (currentAttempt.positions || [])
+      .filter((position) =>
+        position.evidenceRefs.some((ref) => unsupportedEvidenceRefs.includes(ref)),
+      )
+      .map((position) => position.agentId);
+    const targetAgentIds = Array.isArray(input.targetAgentIds)
+      ? input.targetAgentIds
+      : [...new Set([...failedAgentIds, ...unsupportedAgentIds])];
+    const attempt = councilCoordinator.runAttempt({
+      session: councilSession,
+      blueprint: companyRuntime.blueprint,
+      projectPack: project.pack,
+      targetAgentIds,
+      synthesisOnly,
+      revisionRequest: {
+        note: 'Resume failed Council attempt',
+        targetAgentIds: synthesisOnly ? [councilSession.staffingSnapshot.conductorAgentId] : targetAgentIds,
+      },
+      now,
+    });
+
+    councilSession.alignment = {
+      action: 'resume',
+      decidedAt: now,
+      status: 'pending',
+    };
+    store.saveState(state);
+
+    return {
+      attempt,
+      councilSession: state.councilSessions[councilSession.id],
+      mission: state.missions[mission.id],
+    };
+  }
+
+  function decideRealCouncilSession(input) {
+    const state = store.loadState();
+    const councilSession = assertCouncilSession(input.councilSessionId, state);
+    const mission = assertMission(councilSession.missionId, state);
+    const project = assertProject(mission.projectId, state);
+    const action = String(input.action || '').trim();
+    const now = new Date().toISOString();
+
+    if (councilSession.mode !== REAL_COUNCIL_MODE) {
+      throw new Error(`Council session ${councilSession.id} is not a Real Council session`);
+    }
+
+    if (!['approve', 'request-revision', 'stop'].includes(action)) {
+      throw new Error('Real Council decision must be approve, request-revision, or stop');
+    }
+
+    if (councilSession.phase === 'terminal') {
+      const error = new Error(`Council session ${councilSession.id} is terminal`);
+      error.statusCode = 409;
+      throw error;
+    }
+
+    if (action === 'stop') {
+      councilSession.phase = 'terminal';
+      councilSession.status = 'stopped';
+      councilSession.terminalReason = 'operator-stopped';
+      councilSession.alignment = {
+        action,
+        decidedAt: now,
+        status: 'stopped',
+      };
+      councilSession.updatedAt = now;
+      mission.status = 'blocked';
+      mission.updatedAt = now;
+      store.saveState(state);
+      return {
+        attempt: null,
+        councilSession: state.councilSessions[councilSession.id],
+        mission: state.missions[mission.id],
+      };
+    }
+
+    if (councilSession.phase !== 'awaiting-alignment') {
+      const error = new Error(`Council session ${councilSession.id} is not awaiting alignment`);
+      error.statusCode = 409;
+      throw error;
+    }
+
+    assertRealCouncilSourceCurrent(councilSession, mission, project);
+
+    if (action === 'approve') {
+      councilSession.phase = 'terminal';
+      councilSession.status = 'approved';
+      councilSession.terminalReason = 'operator-approved';
+      councilSession.alignment = {
+        action,
+        decidedAt: now,
+        status: 'approved',
+      };
+      councilSession.updatedAt = now;
+      mission.status = mission.linkedTaskId ? 'executing' : 'aligned';
+      mission.updatedAt = now;
+      store.saveState(state);
+      return {
+        attempt: null,
+        councilSession: state.councilSessions[councilSession.id],
+        mission: state.missions[mission.id],
+      };
+    }
+
+    const note = String(input.note || '').trim();
+    const targetAgentIds = Array.isArray(input.targetAgentIds)
+      ? [...new Set(input.targetAgentIds.map((agentId) => String(agentId || '').trim()).filter(Boolean))]
+      : [];
+
+    if (!note || targetAgentIds.length === 0) {
+      throw new Error('request-revision requires a note and targetAgentIds');
+    }
+
+    const revisionRequest = {
+      note,
+      targetAgentIds,
+      requestedAt: now,
+    };
+    const attempt = councilCoordinator.runAttempt({
+      session: councilSession,
+      blueprint: companyRuntime.blueprint,
+      projectPack: project.pack,
+      targetAgentIds,
+      revisionRequest,
+      now,
+    });
+
+    councilSession.alignment = {
+      action,
+      decidedAt: now,
+      status: 'pending',
+    };
+    store.saveState(state);
+
+    return {
+      attempt,
+      councilSession: state.councilSessions[councilSession.id],
+      mission: state.missions[mission.id],
+    };
+  }
+
   function approveCouncilRecommendation(input) {
     const state = store.loadState();
     const mission = assertMission(input.missionId, state);
@@ -1967,6 +2222,14 @@ function createRuntimeService(options = {}) {
 
     const councilSession = assertCouncilSession(mission.councilSessionId, state);
     const now = new Date().toISOString();
+
+    if (councilSession.mode === REAL_COUNCIL_MODE) {
+      const error = new Error(
+        `Council session ${councilSession.id} requires the Real Council decision path`,
+      );
+      error.statusCode = 409;
+      throw error;
+    }
 
     if (councilSession.missionId !== mission.id) {
       throw new Error(
@@ -2788,6 +3051,7 @@ function createRuntimeService(options = {}) {
     completeRun,
     createApprovalPlaceholder,
     createCouncilSessionForMission,
+    decideRealCouncilSession,
     createDecisionInboxItem,
     createLinkedTaskForMission,
     createMission,
@@ -2835,8 +3099,10 @@ function createRuntimeService(options = {}) {
     setTaskWorktreeRef,
     selectMission,
     selectProject,
+    startRealCouncilForMission,
     startRun,
     startPlaceholderRun,
+    resumeRealCouncilSession,
     syncMissionExecutionStateFromTask,
     transitionTaskLifecycle,
   };

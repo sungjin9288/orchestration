@@ -11,10 +11,19 @@ copy-ready operator input이다. 이 문서 자체는 runtime/API/UI implementat
 - Phase 2 planning decision: `operator-delegated-ai-company-real-council-planning-001`
 - Planning status: accepted for planning only
 - Implementation plan: `docs/54_ai-company-real-council-implementation-plan.md`
-- Real Council implementation: blocked
+- Real Council implementation: accepted and implemented by `DEC-082`
 - Legacy deterministic Council: preserved and still active
 - Current runtime schema: v6
-- Current gate: `Real Council for one Mission local-stub implementation decision required`
+- Current gate: Phase 3 Council live-provider opt-in planning decision required
+
+## Accepted Outcome
+
+- Operator input: every field in the Valid Implementation Decision Shape approved
+- Decision id: `operator-decision-ai-company-real-council-implementation-001`
+- Decision status: `approve-ai-company-real-council-local-stub-implementation-slice`
+- Recorded decision: `DEC-082`
+- Focused evidence: `scripts/smoke-ai-company-real-council.mjs`, `scripts/smoke-ui-slice-651.mjs`
+- Downstream authority: unchanged and blocked as listed below
 
 ## Source Evidence
 
@@ -120,9 +129,10 @@ or any downstream authority opens implicitly.
 
 ```bash
 node scripts/smoke-ai-company-real-council-planning.mjs
+node scripts/smoke-ai-company-real-council.mjs
+node scripts/smoke-ui-slice-651.mjs
 node scripts/verification_status.mjs
 ```
 
-The planning smoke verifies the accepted planning decision, exact future implementation boundary,
-copy-ready decision shape, compatibility, rollback, and still-blocked authority. It does not execute
-Council roles.
+The planning smoke preserves the accepted plan and decision shape as consumed provenance. The
+runtime and UI/API smokes execute the approved local-stub path; no live provider role is executed.

@@ -783,8 +783,8 @@ function buildAutoChainStageRecord(stage, result = {}) {
   };
 }
 
-async function runMissionAlignmentAutoChain(missionId) {
-  const approved = runtime.approveCouncilRecommendation({
+async function runMissionAlignmentAutoChain(missionId, options = {}) {
+  const approved = options.alignedResult || runtime.approveCouncilRecommendation({
     missionId,
   });
   let mission = approved.mission;
@@ -1292,6 +1292,165 @@ const server = createServer(async (request, response) => {
             ? 404
             : 400;
       json(response, statusCode, { error: error.message || '협의회 초안 생성에 실패했습니다.' });
+      return;
+    }
+  }
+
+  const missionStartRealCouncilMatch = url.pathname.match(
+    /^\/api\/missions\/([^/]+)\/council\/start$/,
+  );
+
+  if (method === 'POST' && missionStartRealCouncilMatch) {
+    try {
+      const missionId = decodeURIComponent(missionStartRealCouncilMatch[1]);
+      const input = await readJsonBody(request);
+      const result = runtime.startRealCouncilForMission({
+        missionId,
+        mode: typeof input.mode === 'string' ? input.mode.trim() : undefined,
+      });
+
+      json(
+        response,
+        201,
+        buildSnapshotResponse({
+          councilSession: result.councilSession,
+          mission: result.mission,
+          mutation: {
+            councilSessionId: result.councilSession.id,
+            kind: 'start-real-council-for-mission',
+            missionId: result.mission.id,
+            mode: result.councilSession.mode,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Real Council 시작에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const realCouncilResumeMatch = url.pathname.match(
+    /^\/api\/council-sessions\/([^/]+)\/resume$/,
+  );
+
+  if (method === 'POST' && realCouncilResumeMatch) {
+    try {
+      const councilSessionId = decodeURIComponent(realCouncilResumeMatch[1]);
+      const input = await readJsonBody(request);
+      const result = runtime.resumeRealCouncilSession({
+        councilSessionId,
+        targetAgentIds: Array.isArray(input.targetAgentIds) ? input.targetAgentIds : undefined,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          attempt: result.attempt,
+          councilSession: result.councilSession,
+          mission: result.mission,
+          mutation: {
+            attemptId: result.attempt.id,
+            councilSessionId: result.councilSession.id,
+            kind: 'resume-real-council-session',
+            missionId: result.mission.id,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Real Council 재개에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const realCouncilDecisionMatch = url.pathname.match(
+    /^\/api\/council-sessions\/([^/]+)\/decision$/,
+  );
+
+  if (method === 'POST' && realCouncilDecisionMatch) {
+    try {
+      const councilSessionId = decodeURIComponent(realCouncilDecisionMatch[1]);
+      const input = await readJsonBody(request);
+      const action = String(input.action || '').trim();
+      const alignedResult = runtime.decideRealCouncilSession({
+        councilSessionId,
+        action,
+        note: input.note,
+        targetAgentIds: input.targetAgentIds,
+      });
+
+      if (action === 'approve') {
+        const result = await runMissionAlignmentAutoChain(alignedResult.mission.id, {
+          alignedResult,
+        });
+
+        json(
+          response,
+          200,
+          buildSnapshotResponse({
+            approval: result.approval ? runtime.getApproval(result.approval.id) : null,
+            councilSession: result.councilSession,
+            item: result.approvalItem,
+            mission: result.mission,
+            mutation: {
+              approvalId: result.approval?.id || null,
+              autoChain: {
+                linkedTaskCreated: result.linkedTaskCreated,
+                stageResults: result.stageResults,
+                stopReason: result.stopReason,
+                stoppedAt: result.stoppedAt,
+              },
+              councilSessionId: result.councilSession.id,
+              kind: 'decide-real-council-session',
+              action: 'approve',
+              lastArtifactId:
+                result.approval?.targetArtifactId || result.lastResult?.artifact?.id || null,
+              lastRunId: result.lastResult?.run?.id || null,
+              missionId: result.mission.id,
+              taskId: result.task?.id || null,
+            },
+            runLogs: result.lastResult?.run?.id
+              ? getRunLogsPayload(result.lastResult.run.id)
+              : null,
+            task: result.task,
+          }),
+        );
+        return;
+      }
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          attempt: alignedResult.attempt,
+          councilSession: alignedResult.councilSession,
+          mission: alignedResult.mission,
+          mutation: {
+            action,
+            attemptId: alignedResult.attempt?.id || null,
+            councilSessionId: alignedResult.councilSession.id,
+            kind: 'decide-real-council-session',
+            missionId: alignedResult.mission.id,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode =
+        error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Real Council 결정 처리에 실패했습니다.',
+      });
       return;
     }
   }

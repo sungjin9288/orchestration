@@ -284,15 +284,28 @@ This plan does not authorize:
 
 ## Implementation Decision Required
 
-Runtime/API/UI implementation remains blocked until the operator supplies the complete fielded
-decision in `docs/55_ai-company-real-council-implementation-decision-handoff.md`.
+The operator approved every field in
+`docs/55_ai-company-real-council-implementation-decision-handoff.md`. `DEC-082` records the consumed
+decision and implementation outcome within this plan's exact allowlist.
+
+## Implementation Status
+
+- Status: implemented and verified
+- Decision: `operator-decision-ai-company-real-council-implementation-001`
+- Runtime smoke: `node scripts/smoke-ai-company-real-council.mjs`
+- API/UI smoke: `node scripts/smoke-ui-slice-651.mjs`
+- Compatibility: schema v6 and legacy draft/approve routes preserved
+- Still blocked: provider Council, standalone StaffingPlan, WorkOrders, memory/checkpoint expansion,
+  scheduling, profile/source mutation, approval bypass, runtime-agent commit/push/release
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-real-council-planning.mjs
+node scripts/smoke-ai-company-real-council.mjs
+node scripts/smoke-ui-slice-651.mjs
 node scripts/verification_status.mjs
 ```
 
-These commands verify planning evidence and blocked authority only. They do not prove independent
-Council role execution exists.
+The planning smoke preserves accepted scope and authority provenance. The runtime and UI/API smokes
+prove the implemented local-stub path and legacy compatibility.

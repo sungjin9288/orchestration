@@ -160,6 +160,12 @@ const smokeChecks = [
     purpose:
       'Global click dispatcher scopes surface navigation to .nav-button so in-surface action buttons stay reachable by real operator clicks',
   },
+  {
+    id: 'ai-company-real-council-ui-api',
+    script: 'scripts/smoke-ui-slice-651.mjs',
+    purpose:
+      'Opt-in Real Council UI and API preserve independent position, conflict, synthesis, alignment, bounded handoff, and legacy route evidence',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

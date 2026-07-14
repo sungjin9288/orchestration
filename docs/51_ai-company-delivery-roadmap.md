@@ -93,20 +93,18 @@ decision은 `DEC-079`로 승인됐고 Phase 1 focused smoke가 current implement
 첫 end-to-end multi-agent capability로 independent positions, synthesis, human alignment를
 구현한다.
 
-### Planned Files
+### Implemented Files
 
 - `src/runtime/council-sessions.js`
 - `src/execution/council-coordinator.js`
-- `src/execution/coordinator/council-requests.js`
-- `src/execution/providers/local-stub-adapter.js`
-- `company/roles/conductor.md`
-- `company/roles/strategist.md`
-- `company/roles/architect.md`
-- `company/roles/decomposer.md`
+- `src/execution/providers/council-local-stub-adapter.js`
+- `src/runtime/runtime-service.js`
 - `scripts/serve-ui-slice-01.mjs`
 - `ui/council-signals.js`
 - `ui/app.js`
-- focused runtime/API/UI smokes
+- `scripts/smoke-ai-company-real-council.mjs`
+- `scripts/smoke-ui-slice-651.mjs`
+- `scripts/verification_status.mjs`
 
 ### Runtime Sequence
 
@@ -135,11 +133,10 @@ Mission source evidence와 기존 task/run/artifact records는 보존한다.
 
 ### Authority Gate
 
-Planning-only decision은 `DEC-080`으로 기록됐고 implementation plan은
-`docs/54_ai-company-real-council-implementation-plan.md`에 있다. `DEC-081`은 exact target,
-compatibility, rollback, focused smoke, still-blocked authority를 포함한 implementation decision
-handoff를 정의한다. Local-stub Real Council implementation은 아직 blocked이며 live provider role
-확장은 별도 Phase 3 decision으로 유지한다.
+Planning-only decision은 `DEC-080`, implementation handoff는 `DEC-081`, complete fielded
+implementation outcome은 `DEC-082`로 기록됐다. Local-stub Real Council은 exact target,
+compatibility, rollback, focused runtime/API/UI smoke 안에서 구현됐고, live provider role 확장은
+별도 Phase 3 decision으로 유지한다.
 
 ## Phase 3: Council Live Provider Opt-In
 
@@ -393,17 +390,16 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 2 planning package가 accepted된 뒤 현재 필요한 다음 fielded decision target은 다음 하나다.
+Phase 2 implementation이 검증된 뒤 권장되는 다음 planning target은 다음 하나다.
 
 ```text
-targetAuthority=one Mission independent local-stub Council positions, deterministic conflict check, Conductor synthesis, and human alignment decisions
+targetAuthority=Council live-provider opt-in implementation planning for the existing normalized position and synthesis contract
 ```
 
-The operator decision must use every required field in
-`docs/55_ai-company-real-council-implementation-decision-handoff.md`. Independent Council role
-execution, new runtime/API/UI behavior, provider calls, memory persistence, autonomous scheduling,
-source mutation, approval bypass, runtime-agent commit/push/release remain blocked until that exact
-decision is accepted.
+Phase 3 planning must keep the local-stub synthetic gate authoritative and define provider role
+allowlists, structured output compatibility, retry/timeout/cancellation, secret redaction, optional
+live verification, rollback, and still-blocked authority. Provider implementation and every
+downstream authority remain blocked until later complete fielded decisions are accepted.
 
 ## Verification
 

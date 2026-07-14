@@ -5,9 +5,10 @@
 이 문서는 AI Company 계획을 runtime implementation으로 옮길 때 지켜야 할 domain schema,
 state machine, authority, handoff, failure, observability contract를 정의한다.
 
-`DEC-079`는 이 contract 중 source-backed `CompanyBlueprint`/`AgentProfile` strict loading과
-configured-path additive read-only snapshot만 구현하도록 승인했다. Schema migration, StaffingPlan,
-Council role execution, provider call, memory persistence, runtime profile mutation은 승인하지 않는다.
+`DEC-079`는 source-backed `CompanyBlueprint`/`AgentProfile` strict loading과 configured-path
+additive read-only snapshot을 승인했다. `DEC-082`는 그 identity 위에서 one-Mission local-stub
+Real Council position, conflict, synthesis, alignment path만 추가 승인했다. Schema migration,
+standalone StaffingPlan, provider call, memory persistence, runtime profile mutation은 승인하지 않는다.
 
 ## Contract Principles
 
@@ -403,15 +404,13 @@ content와 derived UI preview의 source-of-truth 경계를 유지한다.
 `CompanyBlueprint`와 `AgentProfile` source loading은 `DEC-079`로 구현됐다. 현재 runtime schema는
 v6이며 company policy는 `state.json`에 저장되지 않는다. Direct runtime caller가 blueprint path를
 생략하면 기존 snapshot shape를 유지하고, configured local server만 additive read-only
-`companyRuntime` envelope를 노출한다. 나머지 schema와 API는 planned contract이며 StaffingPlan,
-Council role execution, provider, memory, scheduling, profile mutation은 별도 fielded decision 전까지
-구현하지 않는다.
+`companyRuntime` envelope를 노출한다. Standalone StaffingPlan, provider, memory, scheduling,
+profile mutation은 별도 fielded decision 전까지 구현하지 않는다.
 
-`DEC-080`과 `DEC-081`은 `docs/54_ai-company-real-council-implementation-plan.md` 및
-`docs/55_ai-company-real-council-implementation-decision-handoff.md`의 Phase 2 planning evidence만
-승인한다. 계획은 schema v6와 legacy deterministic Council routes를 유지하고 새 opt-in route에만
-independent local-stub positions와 synthesis를 배치하지만, 해당 runtime/API/UI는 아직 구현되지
-않았다.
+`DEC-080`과 `DEC-081`의 Phase 2 planning evidence는 `DEC-082`가 consume했다. 구현은 schema v6와
+legacy deterministic Council routes를 유지하고 새 opt-in route에만 independent positions,
+deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider, standalone
+StaffingPlan, WorkOrder, memory, scheduling, mutation, commit/push/release authority는 계속 blocked다.
 
 ## Verification
 
@@ -419,9 +418,12 @@ independent local-stub positions와 synthesis를 배치하지만, 해당 runtime
 node scripts/smoke-ai-company-master-plan.mjs
 node scripts/smoke-ai-company-runtime-blueprint.mjs
 node scripts/smoke-ai-company-real-council-planning.mjs
+node scripts/smoke-ai-company-real-council.mjs
+node scripts/smoke-ui-slice-651.mjs
 node scripts/verification_status.mjs
 ```
 
-Focused runtime smoke는 strict source load, invalid rejection, snapshot compatibility, schema v6
-비영속성, deterministic Council 보존을 검증한다. Planned downstream contract는 구현됐다고
-주장하지 않는다.
+Focused runtime/API/UI smoke는 strict source load, independent request isolation, invalid rejection,
+conflict/synthesis, revision/stop/resume, snapshot compatibility, schema v6 비영속성, legacy Council
+보존을 검증한다. Downstream provider, StaffingPlan, WorkOrder, memory, mutation authority는 검증
+대상이 아니라 blocked boundary다.

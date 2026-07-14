@@ -404,7 +404,17 @@ const informationalChecks = [
   {
     id: 'ai-company-real-council-planning',
     script: 'scripts/smoke-ai-company-real-council-planning.mjs',
-    purpose: 'AI Company Phase 2 planning pins one opt-in local-stub Real Council path with independent position isolation, deterministic conflict checking, Conductor synthesis, alignment actions, schema v6 and legacy-route compatibility, rollback, focused runtime/API/UI smoke, a fielded implementation gate, and blocked downstream authority',
+    purpose: 'AI Company Phase 2 planning remains consumed provenance for DEC-082 and pins the accepted local-stub Real Council allowlist, compatibility, rollback, focused smoke, and blocked downstream authority',
+  },
+  {
+    id: 'ai-company-real-council-implementation',
+    script: 'scripts/smoke-ai-company-real-council.mjs',
+    purpose: 'AI Company Phase 2 runtime smoke proves isolated Strategist Architect and Decomposer requests, strict position and synthesis validation, deterministic conflict evidence, Conductor synthesis, revision history, failure resume, schema v6 reload, stale-source rejection, legacy Council compatibility, and blocked provider memory mutation commit push and release authority',
+  },
+  {
+    id: 'ai-company-real-council-ui-api',
+    script: 'scripts/smoke-ui-slice-651.mjs',
+    purpose: 'AI Company Phase 2 UI and API smoke proves opt-in start, targeted revision, stop without task creation, approved bounded execution handoff, mode-gated position conflict dissent synthesis controls, and legacy route compatibility',
   },
   {
     id: 'coordinator-path-containment-smoke',

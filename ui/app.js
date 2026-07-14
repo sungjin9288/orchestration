@@ -132,7 +132,12 @@ import {
   ORCHESTRATION_FLOW_STEPS,
   ORCHESTRATION_RULES,
 } from './council-config.js';
-import { getCompanySignalEntries, getCouncilCastEntry } from './council-signals.js';
+import {
+  getCompanySignalEntries,
+  getCouncilCastEntry,
+  getCurrentRealCouncilAttempt,
+  getLatestRealCouncilPositions,
+} from './council-signals.js';
 import {
   getDeliverablesDeskNext,
   getDeliverablesDeskStatus as getDeliverablesDeskStatusBase,
@@ -5067,6 +5072,31 @@ async function handleSelection(action, id) {
     return;
   }
 
+  if (action === 'start-real-council-for-mission') {
+    await submitStartRealCouncilForMission(id);
+    return;
+  }
+
+  if (action === 'resume-real-council-session') {
+    await submitResumeRealCouncilSession(id);
+    return;
+  }
+
+  if (action === 'approve-real-council-session') {
+    await submitRealCouncilDecision(id, 'approve');
+    return;
+  }
+
+  if (action === 'request-revision-real-council-session') {
+    await submitRealCouncilDecision(id, 'request-revision');
+    return;
+  }
+
+  if (action === 'stop-real-council-session') {
+    await submitRealCouncilDecision(id, 'stop');
+    return;
+  }
+
   if (action === 'approve-council-for-mission') {
     await submitApproveCouncilForMission(id);
     return;
@@ -5330,7 +5360,7 @@ async function submitSelectProject(projectId) {
   }
 }
 
-async function submitCreateMission() {
+async function submitCreateMission(options = {}) {
   const data = getDerived();
 
   if (!data.activeProject) {
@@ -5344,6 +5374,7 @@ async function submitCreateMission() {
     data.activeProject.pack === 'knowledge-work'
       ? state.missionDraftDeliverableType || 'decision-memo'
       : '';
+  const realCouncilRequested = options.councilMode === 'real-local-stub';
 
   if (!title) {
     throw new Error('미션 제목이 필요합니다.');
@@ -5359,13 +5390,20 @@ async function submitCreateMission() {
   render();
 
   try {
-    const payload = await postJson('/api/missions', {
-      autoDraftCouncil: true,
+    let payload = await postJson('/api/missions', {
+      autoDraftCouncil: !realCouncilRequested,
       constraints,
       deliverableType,
       goal,
       title,
     });
+
+    if (realCouncilRequested) {
+      payload = await postJson(
+        `/api/missions/${encodeURIComponent(payload.mission.id)}/council/start`,
+        { mode: 'real-local-stub' },
+      );
+    }
 
     applySnapshotPayload(payload);
     state.error = null;
@@ -5379,7 +5417,9 @@ async function submitCreateMission() {
     state.surface = payload.councilSession?.id ? 'council' : 'mission';
     render();
     elements.refreshStatus.textContent = payload.councilSession?.id
-      ? `미션 ${payload.mission.id}을 만들고 협의회 ${payload.councilSession.id}를 초안 작성했습니다`
+      ? realCouncilRequested
+        ? `미션 ${payload.mission.id}과 Real Council ${payload.councilSession.id}를 시작했습니다`
+        : `미션 ${payload.mission.id}을 만들고 협의회 ${payload.councilSession.id}를 초안 작성했습니다`
       : `미션 ${payload.mission.id}을 만들었습니다`;
   } finally {
     state.mutating = false;
@@ -5472,6 +5512,113 @@ async function submitDraftCouncilForMission(missionId) {
     state.surface = 'council';
     render();
     elements.refreshStatus.textContent = `협의회 ${payload.councilSession.id}를 초안 작성했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitStartRealCouncilForMission(missionId) {
+  const data = getDerived();
+  const mission = data.missionMap.get(missionId) || null;
+
+  if (!mission) {
+    throw new Error('Real Council을 시작하기 전에 미션을 먼저 선택하세요.');
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `미션 ${missionId}의 독립 역할 회의를 시작하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/missions/${encodeURIComponent(missionId)}/council/start`,
+      { mode: 'real-local-stub' },
+    );
+
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(missionId);
+    await hydrateSelectedDetails();
+    state.surface = 'council';
+    render();
+    elements.refreshStatus.textContent = `Real Council ${payload.councilSession.id}가 사람 결정을 기다립니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitResumeRealCouncilSession(councilSessionId) {
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Real Council ${councilSessionId}의 실패 지점을 재개하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/council-sessions/${encodeURIComponent(councilSessionId)}/resume`,
+      {},
+    );
+
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = 'council';
+    render();
+    elements.refreshStatus.textContent = `Real Council attempt ${payload.attempt.id}를 기록했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitRealCouncilDecision(councilSessionId, action) {
+  const body = { action };
+
+  if (action === 'request-revision') {
+    const noteElement = document.querySelector('#real-council-revision-note');
+    const targetElements = [
+      ...document.querySelectorAll('input[name="real-council-revision-target"]:checked'),
+    ];
+    body.note = String(noteElement?.value || '').trim();
+    body.targetAgentIds = targetElements.map((element) => element.value);
+
+    if (!body.note || body.targetAgentIds.length === 0) {
+      throw new Error('수정 요청에는 메모와 한 명 이상의 대상 역할이 필요합니다.');
+    }
+  }
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `Real Council ${councilSessionId}에 ${action} 결정을 기록하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/council-sessions/${encodeURIComponent(councilSessionId)}/decision`,
+      body,
+    );
+
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.mission.id);
+    if (payload.task?.id) {
+      syncSelectionsFromTask(payload.task.id, {
+        applyTaskInboxPreselect: true,
+        preferredArtifactId: payload.mutation?.lastArtifactId || null,
+        preferredInboxItemId: payload.item?.id || null,
+        preferredRunId: payload.mutation?.lastRunId || null,
+      });
+    }
+    await hydrateSelectedDetails();
+    state.surface = action === 'approve' ? 'execution' : 'council';
+    render();
+    elements.refreshStatus.textContent =
+      action === 'approve'
+        ? `Real Council 결론을 승인하고 ${payload.mutation?.autoChain?.stoppedAt || 'execution'}에서 멈췄습니다`
+        : action === 'request-revision'
+          ? `수정 attempt ${payload.attempt?.id || 'pending'}를 기록했습니다`
+          : 'Real Council을 operator-stopped 상태로 닫았습니다';
   } finally {
     state.mutating = false;
     render();
@@ -9044,6 +9191,15 @@ function renderMission(data) {
             </label>
             <div class="form-actions form-actions-inline form-actions-compact mission-order-actions">
               <button class="primary-button" type="submit" ${missionCreateDisabled ? 'disabled' : ''}>안건 등록</button>
+              <button
+                class="secondary-button"
+                type="submit"
+                name="councilMode"
+                value="real-local-stub"
+                ${missionCreateDisabled || missionUsesKnowledgeWork ? 'disabled' : ''}
+              >
+                독립 역할 회의 등록
+              </button>
               <p class="form-help">
                 ${
                   missionUsesKnowledgeWork
@@ -9526,6 +9682,185 @@ function renderMission(data) {
   `;
 }
 
+function renderRealCouncilEvidence(councilSession) {
+  const attempt = getCurrentRealCouncilAttempt(councilSession);
+
+  if (!attempt) {
+    return '';
+  }
+
+  const positions = getLatestRealCouncilPositions(councilSession);
+  const positionRows = positions
+    .map((position) => {
+      const participant = (councilSession.participants || []).find(
+        (entry) => entry.agentId === position.agentId,
+      );
+
+      return `
+        <section class="relation-strip transcript-card">
+          <div class="card-title-row card-title-row-tight transcript-card-head">
+            <strong class="transcript-card-role">${escapeHtml(participant?.role || position.role)}</strong>
+            ${createToken(position.confidence, position.confidence === 'high' ? 'success' : 'neutral')}
+            ${createToken(position.id, 'neutral')}
+          </div>
+          <p class="detail-copy detail-copy-compact transcript-card-copy">${escapeHtml(position.recommendation)}</p>
+          <p class="detail-copy detail-copy-compact">다음: ${escapeHtml(position.proposedNextStep)}</p>
+        </section>
+      `;
+    })
+    .join('');
+  const conflicts = attempt.conflictSummary || {};
+  const conflictRows = [
+    ...(conflicts.requiredRoleFailures || []).map(
+      (entry) => `${entry.role}: ${entry.code}`,
+    ),
+    ...(conflicts.uniqueObjections || []),
+  ];
+  const synthesis = attempt.synthesis;
+
+  return `
+    <section class="relation-strip">
+      <div class="card-title-row card-title-row-tight">
+        <strong>Real Council 상태</strong>
+        ${createToken(`phase:${councilSession.phase}`, councilSession.status === 'failed' ? 'danger' : 'accent')}
+        ${createToken(`attempt:${attempt.sequence}`, 'neutral')}
+        ${createToken(`positions:${positions.length}`, 'neutral')}
+      </div>
+      <p class="detail-copy detail-copy-compact">${escapeHtml(councilSession.agenda?.title || '')}</p>
+      <p class="detail-copy detail-copy-compact">source ${escapeHtml(String(councilSession.sourceDigest || '').slice(0, 12))}</p>
+    </section>
+    <div class="stack">
+      ${positionRows || '<p class="detail-copy detail-copy-compact">유효한 position이 아직 없습니다.</p>'}
+    </div>
+    <section class="relation-strip council-outcome-card council-outcome-card-questions">
+      <div class="card-title-row card-title-row-tight council-outcome-head">
+        <strong class="council-outcome-title">Conflict와 dissent</strong>
+        ${createToken(conflicts.approvalReady ? 'synthesis-ready' : 'blocked', conflicts.approvalReady ? 'success' : 'danger')}
+      </div>
+      <div class="stack council-outcome-question-list">
+        ${conflictRows.length > 0
+          ? conflictRows
+              .map(
+                (entry) => `<p class="detail-copy detail-copy-compact council-outcome-copy council-outcome-question">${escapeHtml(entry)}</p>`,
+              )
+              .join('')
+          : '<p class="detail-copy detail-copy-compact">기록된 conflict가 없습니다.</p>'}
+      </div>
+    </section>
+    ${synthesis
+      ? `
+        <section class="relation-strip council-outcome-card council-outcome-card-recommendation">
+          <div class="card-title-row card-title-row-tight council-outcome-head">
+            <strong class="council-outcome-title">Conductor synthesis</strong>
+            ${createToken('human decision required', 'accent')}
+          </div>
+          <p class="detail-copy detail-copy-compact council-outcome-copy">${escapeHtml(synthesis.adoptedRecommendation)}</p>
+          <p class="detail-copy detail-copy-compact council-outcome-copy council-outcome-copy-muted">${escapeHtml(synthesis.proposedExecutionBoundary)}</p>
+        </section>
+      `
+      : ''}
+  `;
+}
+
+function renderRealCouncilAlignmentControls(councilSession) {
+  const attempt = getCurrentRealCouncilAttempt(councilSession);
+  const busy = state.loading || state.mutating;
+
+  if (councilSession.phase === 'terminal') {
+    return `
+      <p class="form-help council-approval-help">
+        ${escapeHtml(councilSession.terminalReason || councilSession.alignment?.status || 'terminal')}
+      </p>
+    `;
+  }
+
+  if (attempt?.status === 'failed') {
+    return `
+      <div class="relation-button-row">
+        <button
+          class="primary-button"
+          type="button"
+          data-action="resume-real-council-session"
+          data-id="${escapeHtml(councilSession.id)}"
+          ${busy ? 'disabled' : ''}
+        >
+          실패 지점 재개
+        </button>
+        <button
+          class="secondary-button"
+          type="button"
+          data-action="stop-real-council-session"
+          data-id="${escapeHtml(councilSession.id)}"
+          ${busy ? 'disabled' : ''}
+        >
+          회의 중지
+        </button>
+      </div>
+    `;
+  }
+
+  const targetOptions = (councilSession.participants || [])
+    .filter((participant) => participant.roleId !== 'conductor')
+    .map(
+      (participant) => `
+        <label class="form-help">
+          <input
+            type="checkbox"
+            name="real-council-revision-target"
+            value="${escapeHtml(participant.agentId)}"
+            checked
+            ${busy ? 'disabled' : ''}
+          />
+          ${escapeHtml(participant.role)}
+        </label>
+      `,
+    )
+    .join('');
+
+  return `
+    <div class="relation-button-row">
+      <button
+        class="primary-button"
+        type="button"
+        data-action="approve-real-council-session"
+        data-id="${escapeHtml(councilSession.id)}"
+        ${busy ? 'disabled' : ''}
+      >
+        synthesis 승인
+      </button>
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="stop-real-council-session"
+        data-id="${escapeHtml(councilSession.id)}"
+        ${busy ? 'disabled' : ''}
+      >
+        회의 중지
+      </button>
+    </div>
+    <label class="field-label" for="real-council-revision-note">수정 요청</label>
+    <textarea
+      id="real-council-revision-note"
+      class="text-input"
+      rows="3"
+      placeholder="수정할 판단과 근거를 기록합니다"
+      ${busy ? 'disabled' : ''}
+    ></textarea>
+    <div class="token-row token-row-compact">${targetOptions}</div>
+    <div class="relation-button-row">
+      <button
+        class="secondary-button"
+        type="button"
+        data-action="request-revision-real-council-session"
+        data-id="${escapeHtml(councilSession.id)}"
+        ${busy ? 'disabled' : ''}
+      >
+        선택 역할 재검토
+      </button>
+    </div>
+  `;
+}
+
 function renderCouncil(data) {
   if (!data.activeProject) {
     elements.surfaces.council.innerHTML = renderProjectGateSurface(
@@ -9559,6 +9894,7 @@ function renderCouncil(data) {
     selectedCouncilSession,
     linkedTask,
   );
+  const isRealCouncil = selectedCouncilSession?.mode === 'real-local-stub';
 
   if (!selectedMission) {
     elements.surfaces.council.innerHTML = `
@@ -9655,7 +9991,7 @@ function renderCouncil(data) {
     ],
   });
   const transcriptCards = selectedCouncilSession
-    ? selectedCouncilSession.transcript
+    ? (selectedCouncilSession.transcript || [])
         .map(
           (entry) => `
             <section class="relation-strip transcript-card">
@@ -9735,6 +10071,15 @@ function renderCouncil(data) {
                   <button
                     class="primary-button"
                     type="button"
+                    data-action="start-real-council-for-mission"
+                    data-id="${escapeHtml(selectedMission.id)}"
+                    ${councilDraftDisabled ? 'disabled' : ''}
+                  >
+                    독립 역할 회의
+                  </button>
+                  <button
+                    class="secondary-button"
+                    type="button"
                     data-action="draft-council-for-mission"
                     data-id="${escapeHtml(selectedMission.id)}"
                     ${councilDraftDisabled ? 'disabled' : ''}
@@ -9761,6 +10106,7 @@ function renderCouncil(data) {
                   </p>
                   ${renderCouncilCastCards(selectedCouncilSession)}
                 </section>
+                ${isRealCouncil ? renderRealCouncilEvidence(selectedCouncilSession) : ''}
                 <section class="relation-strip">
                   <div class="card-title-row">
                     <strong>회의 발언 기록</strong>
@@ -9875,52 +10221,97 @@ function renderCouncil(data) {
                     </div>
                   </div>
                   <div class="form-actions council-approval-row">
-                    <button
-                      class="primary-button"
-                      type="button"
-                      data-action="approve-council-for-mission"
-                      data-id="${escapeHtml(selectedMission.id)}"
-                      ${approveDisabled ? 'disabled' : ''}
-                    >
-                      회의 결론 승인
-                    </button>
-                    <button
-                      class="secondary-button"
-                      type="button"
-                      data-action="revise-mission"
-                      data-id="${escapeHtml(selectedMission.id)}"
-                      ${state.loading || state.mutating ? 'disabled' : ''}
-                    >
-                      안건 다시 다듬기
-                    </button>
-                    <button
-                      class="secondary-button"
-                      type="button"
-                      data-action="open-advanced-ops"
-                      data-id="${escapeHtml(selectedMission.id)}"
-                      ${state.loading || state.mutating ? 'disabled' : ''}
-                    >
-                      관제실
-                    </button>
-                    ${
-                      linkedTask
-                        ? `
-                          <button
-                            class="secondary-button"
-                            type="button"
-                          data-action="open-execution"
+                    ${isRealCouncil
+                      ? `
+                        <div class="field">
+                          ${renderRealCouncilAlignmentControls(selectedCouncilSession)}
+                          <div class="relation-button-row">
+                            <button
+                              class="secondary-button"
+                              type="button"
+                              data-action="revise-mission"
+                              data-id="${escapeHtml(selectedMission.id)}"
+                              ${state.loading || state.mutating ? 'disabled' : ''}
+                            >
+                              안건 다시 다듬기
+                            </button>
+                            <button
+                              class="secondary-button"
+                              type="button"
+                              data-action="open-advanced-ops"
+                              data-id="${escapeHtml(selectedMission.id)}"
+                              ${state.loading || state.mutating ? 'disabled' : ''}
+                            >
+                              관제실
+                            </button>
+                            ${
+                              linkedTask
+                                ? `
+                                  <button
+                                    class="secondary-button"
+                                    type="button"
+                                    data-action="open-execution"
+                                    data-id="${escapeHtml(selectedMission.id)}"
+                                    ${state.loading || state.mutating ? 'disabled' : ''}
+                                  >
+                                    실행 데스크
+                                  </button>
+                                `
+                                : ''
+                            }
+                          </div>
+                        </div>
+                      `
+                      : `
+                        <button
+                          class="primary-button"
+                          type="button"
+                          data-action="approve-council-for-mission"
+                          data-id="${escapeHtml(selectedMission.id)}"
+                          ${approveDisabled ? 'disabled' : ''}
+                        >
+                          회의 결론 승인
+                        </button>
+                        <button
+                          class="secondary-button"
+                          type="button"
+                          data-action="revise-mission"
                           data-id="${escapeHtml(selectedMission.id)}"
                           ${state.loading || state.mutating ? 'disabled' : ''}
                         >
-                          실행 데스크
+                          안건 다시 다듬기
                         </button>
-                      `
-                        : ''
-                    }
+                        <button
+                          class="secondary-button"
+                          type="button"
+                          data-action="open-advanced-ops"
+                          data-id="${escapeHtml(selectedMission.id)}"
+                          ${state.loading || state.mutating ? 'disabled' : ''}
+                        >
+                          관제실
+                        </button>
+                        ${
+                          linkedTask
+                            ? `
+                          <button
+                            class="secondary-button"
+                            type="button"
+                            data-action="open-execution"
+                            data-id="${escapeHtml(selectedMission.id)}"
+                            ${state.loading || state.mutating ? 'disabled' : ''}
+                          >
+                            실행 데스크
+                          </button>
+                        `
+                            : ''
+                        }
+                      `}
                   </div>
                   <p class="form-help council-approval-help">
                     ${
-                      selectedCouncilSession.alignment?.status === 'approved'
+                      isRealCouncil
+                        ? `mode=${escapeHtml(selectedCouncilSession.mode)} · phase=${escapeHtml(selectedCouncilSession.phase)}`
+                        : selectedCouncilSession.alignment?.status === 'approved'
                         ? escapeHtml(
                             `${formatDate(selectedCouncilSession.alignment?.decidedAt)}에 결론이 승인됐습니다. 이제 실행 지시 데스크와 관제실에서 다음 지시를 확인합니다.`,
                           )
@@ -14766,7 +15157,9 @@ document.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     try {
-      await submitCreateMission();
+      await submitCreateMission({
+        councilMode: event.submitter?.value || 'legacy-deterministic',
+      });
     } catch (error) {
       elements.refreshStatus.textContent = error.message || '미션 생성에 실패했습니다.';
       render();

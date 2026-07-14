@@ -8,8 +8,9 @@
 Council은 group chat이나 역할극이 아니다. 같은 evidence packet에 대한 bounded independent
 review와 explicit synthesis workflow다.
 
-현재 runtime의 deterministic Council transcript는 이 protocol의 UI prototype evidence일 뿐,
-실제 role run 구현이 아니다. Runtime implementation은 별도 승인 상태다.
+현재 runtime은 legacy deterministic Council transcript를 compatibility path로 유지하면서,
+`DEC-082`가 승인한 opt-in `mode=real-local-stub` path에서 독립 role position, conflict summary,
+Conductor synthesis, human alignment evidence를 기록한다. Live provider role execution은 아니다.
 
 ## Council Entry Criteria
 
@@ -295,19 +296,21 @@ Focused implementation smoke는 최소 다음을 증명해야 한다.
 
 ## Implementation Boundary
 
-이 protocol의 첫 local-stub vertical slice planning은 `DEC-080`으로 accepted됐고 implementation
-decision handoff는 `DEC-081`로 고정됐다. `docs/54_ai-company-real-council-implementation-plan.md`는
-independent position isolation, deterministic conflict check, Conductor synthesis, alignment,
-schema v6 compatibility, legacy route preservation을 구체화한다. Council role execution,
-runtime/API/UI 구현, provider calls는 complete fielded implementation decision 전까지 blocked다.
+이 protocol의 첫 local-stub vertical slice planning은 `DEC-080`, implementation handoff는
+`DEC-081`, complete fielded implementation outcome은 `DEC-082`로 기록됐다.
+`docs/54_ai-company-real-council-implementation-plan.md`의 one Mission, local-stub-only, schema v6,
+legacy route preservation, isolated position request, deterministic conflict, Conductor synthesis,
+approve/request-revision/stop 범위만 구현됐다. Provider calls와 모든 downstream authority는 blocked다.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
 node scripts/smoke-ai-company-real-council-planning.mjs
+node scripts/smoke-ai-company-real-council.mjs
+node scripts/smoke-ui-slice-651.mjs
 node scripts/verification_status.mjs
 ```
 
-현재 focused smoke는 planning contract와 blocked authority만 검증한다. 위 Acceptance
-Scenarios의 runtime 증거는 fielded implementation decision 이후 별도 smoke로 추가해야 한다.
+Runtime/API/UI smokes가 위 Acceptance Scenarios를 검증한다. Planning smoke는 consumed authority와
+exact boundary evidence로 유지한다.

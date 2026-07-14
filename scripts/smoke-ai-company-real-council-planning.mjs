@@ -48,6 +48,9 @@ const fileStore = read('src/runtime/file-store.js');
 const runtimeService = read('src/runtime/runtime-service.js');
 const server = read('scripts/serve-ui-slice-01.mjs');
 const localStubAdapter = read('src/execution/providers/local-stub-adapter.js');
+const councilLocalStubAdapter = read('src/execution/providers/council-local-stub-adapter.js');
+const councilCoordinator = read('src/execution/council-coordinator.js');
+const councilSessions = read('src/runtime/council-sessions.js');
 const councilSignals = read('ui/council-signals.js');
 
 const planText = compact(plan);
@@ -76,6 +79,7 @@ assertSections(plan, [
   'Acceptance Criteria',
   'Exclusions',
   'Implementation Decision Required',
+  'Implementation Status',
   'Verification',
 ]);
 
@@ -103,6 +107,7 @@ assert.match(handoff, /^# AI Company Real Council Implementation Decision Handof
 assertSections(handoff, [
   'Purpose',
   'Current Gate',
+  'Accepted Outcome',
   'Source Evidence',
   'Valid Implementation Decision Shape',
   'Rejection Decision Shape',
@@ -127,29 +132,30 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-080$/m);
 assert.match(decisionLog, /^### DEC-081$/m);
+assert.match(decisionLog, /^### DEC-082$/m);
 assert.match(decisionLog, /Accept `operator-delegated-ai-company-real-council-planning-001`/);
 assert.match(decisionLog, /records no runtime implementation outcome/);
 assert.match(masterPlan, /^## Approved Real Council Planning Authority$/m);
-assert.match(masterPlan, /independent positions와 synthesis는 아직 구현되지 않았다/);
-assert.match(runtimeContract, /Phase 2 planning evidence만\s+승인한다/);
-assert.match(councilProtocol, /Council role execution,\s+runtime\/API\/UI 구현, provider calls는 complete fielded implementation decision 전까지 blocked다/);
+assert.match(masterPlan, /^## Approved Real Council Implementation Authority$/m);
+assert.match(runtimeContract, /Phase 2 planning evidence는 `DEC-082`가 consume했다/);
+assert.match(councilProtocol, /complete fielded implementation outcome은 `DEC-082`로 기록됐다/);
 assertAll(roadmapText, [
-  /Planning-only decision은 `DEC-080`으로 기록됐고/,
-  /`DEC-081`은 exact target/,
-  /targetAuthority=one Mission independent local-stub Council positions, deterministic conflict check, Conductor synthesis, and human alignment decisions/,
+  /complete fielded implementation outcome은 `DEC-082`로 기록됐다/,
+  /targetAuthority=Council live-provider opt-in implementation planning/,
 ]);
 assert.match(completionInventory, /AI Company Real Council planning \| pass/);
 assertAll(readmeText, [
-  /Phase 2 Real Council planning is accepted/,
-  /This behavior is not implemented yet/,
-  /complete fielded decision is required before runtime, API, or UI changes begin/,
+  /Phase 2 Real Council implementation is accepted by `DEC-082`/,
+  /opt-in `real-local-stub` path/,
+  /Live providers, standalone StaffingPlan, WorkOrders, memory persistence expansion/,
 ]);
 assert.match(taskLedger, /ai-company-real-council-planning-post-m7-1940/);
+assert.match(taskLedger, /ai-company-real-council-implementation-post-m7-1941/);
 assert.match(lessons, /A deterministic multi-role transcript is not independent-agent evidence/);
 assert.match(verification, /id: 'ai-company-real-council-planning'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-real-council-planning\.mjs'/);
 
-// Negative evidence: planning must not be confused with the future implementation.
+// The planning allowlist is now consumed implementation provenance.
 for (const relativePath of [
   'src/runtime/council-sessions.js',
   'src/execution/council-coordinator.js',
@@ -157,7 +163,7 @@ for (const relativePath of [
   'scripts/smoke-ai-company-real-council.mjs',
   'scripts/smoke-ui-slice-651.mjs',
 ]) {
-  assert.equal(fs.existsSync(path.join(repoRoot, relativePath)), false);
+  assert.equal(fs.existsSync(path.join(repoRoot, relativePath)), true);
 }
 
 assert.match(blueprint, /"maxProviderCalls": 0/);
@@ -167,12 +173,20 @@ assert.match(fileStore, /status: councilSession\.alignment\.status \|\| 'pending
 assert.match(runtimeService, /function buildCouncilSessionRecord\(state, mission, project, now\)/);
 assert.match(runtimeService, /status: 'pending-alignment'/);
 assert.match(runtimeService, /action: 'approve-recommendation'/);
-assert.doesNotMatch(runtimeService, /real-local-stub|startRealCouncil|requestCouncilRevision/);
+assert.match(runtimeService, /function startRealCouncilForMission\(input\)/);
+assert.match(runtimeService, /function resumeRealCouncilSession\(input\)/);
+assert.match(runtimeService, /function decideRealCouncilSession\(input\)/);
 assert.equal(server.includes('/draft-council$/);'), true);
 assert.equal(server.includes('/approve-council$/,'), true);
-assert.doesNotMatch(server, /\/council\/start|\/council-sessions\//);
+assert.match(server, /council\\\/start/);
+assert.match(server, /council-sessions\\\//);
 assert.doesNotMatch(localStubAdapter, /council-local-stub|council-position|council-synthesis/);
+assert.match(councilLocalStubAdapter, /createCouncilLocalStubAdapter/);
+assert.match(councilCoordinator, /executePosition/);
+assert.match(councilCoordinator, /executeSynthesis/);
+assert.match(councilSessions, /REAL_COUNCIL_MODE = 'real-local-stub'/);
 assert.match(councilSignals, /transcriptEntry/);
+assert.match(councilSignals, /getCurrentRealCouncilAttempt/);
 
 process.stdout.write(
   `${JSON.stringify(
@@ -181,8 +195,8 @@ process.stdout.write(
       mode: MODE,
       decision: {
         planning: 'accepted',
-        implementation: 'blocked',
-        nextGate: 'fielded local-stub Real Council implementation decision required',
+        implementation: 'accepted-and-implemented',
+        nextGate: 'Council live-provider opt-in planning decision required',
       },
       plannedPath: {
         requiredPositionRoles: ['strategist', 'architect', 'decomposer'],
@@ -197,11 +211,11 @@ process.stdout.write(
         fileStoreMigrationPlanned: false,
       },
       currentRuntime: {
-        realCouncilImplementationExists: false,
-        council: 'synchronous-deterministic-transcript',
+        realCouncilImplementationExists: true,
+        council: 'opt-in-real-local-stub-with-legacy-deterministic-compatibility',
       },
       authority: {
-        realCouncilImplementationAllowed: false,
+        realCouncilImplementationAllowed: true,
         providerCallsAllowed: false,
         staffingPlanRuntimeAllowed: false,
         workOrderRuntimeAllowed: false,

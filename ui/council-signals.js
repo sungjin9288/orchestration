@@ -9,6 +9,34 @@ import {
   getTaskLifecycleDisplay,
 } from './execution-labels.js';
 
+export function getCurrentRealCouncilAttempt(councilSession) {
+  if (councilSession?.mode !== 'real-local-stub' || !Array.isArray(councilSession.attempts)) {
+    return null;
+  }
+
+  return (
+    councilSession.attempts.find(
+      (attempt) => attempt.id === councilSession.currentAttemptId,
+    ) || councilSession.attempts.at(-1) || null
+  );
+}
+
+export function getLatestRealCouncilPositions(councilSession) {
+  if (councilSession?.mode !== 'real-local-stub' || !Array.isArray(councilSession.attempts)) {
+    return [];
+  }
+
+  const positionsByAgent = new Map();
+
+  for (const attempt of councilSession.attempts) {
+    for (const position of attempt.positions || []) {
+      positionsByAgent.set(position.agentId, position);
+    }
+  }
+
+  return [...positionsByAgent.values()];
+}
+
 export function getCouncilCastEntry(role, councilSession) {
   const meta = COUNCIL_CAST_METADATA[role] || {
     archetype: '보이는 역할',
@@ -31,6 +59,13 @@ export function getCouncilCastEntry(role, councilSession) {
   const transcriptEntry = Array.isArray(councilSession?.transcript)
     ? councilSession.transcript.find((entry) => entry.role === role) || null
     : null;
+  const currentAttempt = getCurrentRealCouncilAttempt(councilSession);
+  const roleId = String(role || '').toLowerCase();
+  const position =
+    getLatestRealCouncilPositions(councilSession).find((entry) => entry.role === roleId) || null;
+  const roleFailure = Array.isArray(currentAttempt?.conflictSummary?.requiredRoleFailures)
+    ? currentAttempt.conflictSummary.requiredRoleFailures.find((entry) => entry.role === roleId) || null
+    : null;
 
   return {
     archetype: meta.archetype,
@@ -48,6 +83,8 @@ export function getCouncilCastEntry(role, councilSession) {
     previewLine: meta.previewLine,
     rank: meta.rank,
     role,
+    position,
+    positionStatus: roleFailure ? 'failed' : position ? 'ready' : councilSession ? 'waiting' : 'idle',
     tone: meta.tone,
     transcriptContent: transcriptEntry?.content || null,
     transcriptStance: transcriptEntry?.stance || null,
@@ -62,7 +99,9 @@ export function getCompanySignalEntries(options = {}) {
   const missionStatus = mission ? getMissionStatusDisplay(mission.status) : '초안 전';
   const missionTone = mission ? getMissionStatusTone(mission.status) : 'warning';
   const councilStatus = councilSession
-    ? getAlignmentStatusDisplay(councilSession.alignment?.status || 'pending')
+    ? councilSession.mode === 'real-local-stub'
+      ? councilSession.phase || councilSession.status
+      : getAlignmentStatusDisplay(councilSession.alignment?.status || 'pending')
     : '대기';
   const councilTone = councilSession
     ? getAlignmentTone(councilSession.alignment?.status || 'pending')
@@ -125,7 +164,11 @@ export function getCompanySignalEntries(options = {}) {
       surface: 'council',
       label: '회의',
       status: councilStatus,
-      copy: councilSession ? '네 역할이 같은 안건 아래에서 방향을 맞춥니다.' : '회의 준비 전이라 회의 흐름이 아직 열리지 않았습니다.',
+      copy: councilSession?.mode === 'real-local-stub'
+        ? '독립 position, conflict evidence, Conductor synthesis가 같은 세션에 기록됩니다.'
+        : councilSession
+          ? '네 역할이 같은 안건 아래에서 방향을 맞춥니다.'
+          : '회의 준비 전이라 회의 흐름이 아직 열리지 않았습니다.',
       tone: councilTone,
     },
     {

@@ -71,18 +71,17 @@ in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
 The implementation now strictly loads one repo-backed blueprint and nine role contracts, keeps
 persisted state at schema v6, and exposes `companyRuntime` only as an additive read-only snapshot on
-the configured local server path. Council remains deterministic and the editable company roster
-remains browser presentation only; StaffingPlan, independent Council role execution, providers,
-memory, scheduling, source mutation, approval bypass, and runtime-agent commit/push/release remain
-blocked.
+the configured local server path. The editable company roster remains browser presentation only.
 
-Phase 2 Real Council planning is accepted in
-`docs/54_ai-company-real-council-implementation-plan.md`, and the exact implementation decision input
-is defined in `docs/55_ai-company-real-council-implementation-decision-handoff.md`. The planned slice
-keeps legacy Council routes and schema v6, then adds a separate opt-in local-stub path for independent
-Strategist, Architect, and Decomposer positions, deterministic conflict checking, Conductor
-synthesis, and human alignment. This behavior is not implemented yet; a complete fielded decision is
-required before runtime, API, or UI changes begin.
+Phase 2 Real Council implementation is accepted by `DEC-082` against
+`docs/54_ai-company-real-council-implementation-plan.md` and the complete fielded decision in
+`docs/55_ai-company-real-council-implementation-decision-handoff.md`. The opt-in `real-local-stub`
+path records isolated Strategist, Architect, and Decomposer positions, deterministic conflict and
+dissent evidence, Conductor synthesis, additive revision attempts, and explicit
+`approve/request-revision/stop` decisions. Existing deterministic draft/approve routes remain
+available as compatibility behavior. Live providers, standalone StaffingPlan, WorkOrders, memory
+persistence expansion, autonomous scheduling, source/profile mutation, approval bypass, and
+runtime-agent commit/push/release remain blocked.
 
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
@@ -147,7 +146,7 @@ review-decision packet, accepted evidence-decision, and downstream authority dec
 evidence together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `182/182`, total `183/183`; UI QA is required `28/28`.
+`1/1`, informational `184/184`, total `185/185`; UI QA is required `29/29`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -208,7 +207,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `183/183`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `185/185`, UI QA `29/29`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -1361,6 +1360,7 @@ Current source-backed evidence:
 | --- | --- |
 | Local project registry | `project_path` is required before execution; local project state is managed by `src/runtime/runtime-service.js`. |
 | Mission-first shell | `Mission / Council / Execution / Deliverables` is the default product shell in `ui/app.js`. |
+| Opt-in Real Council | `DEC-082` permits one-Mission local-stub position isolation, deterministic conflict evidence, Conductor synthesis, revision/resume/stop, and approved handoff through the existing builder-preflight approval boundary; legacy deterministic Council remains available. |
 | Advanced Ops surfaces | `Taskboard / Logs / Artifacts / Decision Inbox` remain available as authoritative operator surfaces. |
 | Reference-driven operator shell | `docs/reference/vnext-reference-driven-ui-audit.md` records what was adopted or rejected from Linear, LangSmith Studio, Retool, Dify, n8n HITL, Zapier, and NN/g before the UI refresh. |
 | Read-only growth evidence | The shell exposes `성장 증거 원장`, `개선 후보 대기열` drilldown, grouped failure patterns, current-snapshot regression comparison, rollback evidence links, and a blocked `제안 검토 게이트` as evidence-derived views; `scripts/smoke-ui-slice-649.mjs` pins that they do not call providers, persist memory, create/persist durable proposal records, mutate source, generate/apply proposals, commit, or push. |
@@ -1604,6 +1604,9 @@ Observed result:
 | `POST` | `/api/missions/:missionId/create-linked-task` | Create the mission-linked task. |
 | `POST` | `/api/missions/:missionId/draft-council` | Draft a council session for the mission. |
 | `POST` | `/api/missions/:missionId/approve-council` | Approve council alignment and start the bounded execution chain. |
+| `POST` | `/api/missions/:missionId/council/start` | Start the opt-in local-stub Real Council path. |
+| `POST` | `/api/council-sessions/:sessionId/resume` | Resume a failed position or synthesis attempt. |
+| `POST` | `/api/council-sessions/:sessionId/decision` | Approve, request a targeted revision, or stop a Real Council session. |
 | `POST` | `/api/tasks` | Create a task under the active project. |
 | `POST` | `/api/tasks/:taskId/run-planner` | Run planner. |
 | `POST` | `/api/tasks/:taskId/run-architect` | Run architect. |
@@ -1634,9 +1637,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 860 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 862 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 650 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 651 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -1763,7 +1766,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `183/183`, UI QA `28/28`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `185/185`, UI QA `29/29`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2026,9 +2029,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `28/28`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `29/29`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `182/182`, total `183/183`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `184/184`, total `185/185`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2058,7 +2061,7 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `183/183`, UI QA `28/28`, and zero-open backlog are local source-backed checks.
+  aggregate `185/185`, UI QA `29/29`, and zero-open backlog are local source-backed checks.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

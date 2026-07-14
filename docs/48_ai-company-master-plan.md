@@ -47,9 +47,11 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 현재 구현은 AI Company의 기반이지만 완성된 AI Company는 아니다.
 
 - `Mission / Council / Execution / Deliverables` primary shell이 존재한다.
-- Mission 생성, 선택, Council 초안, Council 추천안 승인 API가 존재한다.
-- 현재 Council session은 `src/runtime/runtime-service.js`에서 정해진 네 역할과 deterministic
-  transcript를 생성한다. 독립 agent run이나 provider-backed 회의가 아니다.
+- Mission 생성, 선택, legacy Council 초안/승인 API와 opt-in Real Council start/resume/decision
+  API가 존재한다.
+- Legacy Council session은 기존 deterministic transcript를 그대로 생성한다. 별도
+  `mode=real-local-stub` session은 source-backed Strategist/Architect/Decomposer position을
+  독립 요청으로 수집하고 deterministic conflict evidence 뒤 Conductor synthesis를 기록한다.
 - 실행 엔진은 `planner -> architect -> task-breaker -> builder preflight -> builder live
   mutation -> reviewer`를 지원한다.
 - Review before done, approval before mutation/commit, provenance, artifact, log, Decision Inbox
@@ -64,9 +66,9 @@ runtime evidence로 답할 수 있는 운영체제를 만드는 것이다.
 - Memory와 growth 기능은 대부분 read-only readiness/evidence 상태이며 조직 기억 자동 저장은
   승인되지 않았다.
 
-Phase 1은 browser-only roster와 deterministic Council 사이의 read-only runtime identity 계층을
-채웠다. 다음 제품 전환은 이 foundation 위에서 independent local-stub Council positions와
-Conductor synthesis를 증명하는 일이다.
+Phase 1은 browser-only roster와 runtime 사이의 read-only identity 계층을 채웠고, Phase 2는 이
+foundation 위에서 one-Mission local-stub Real Council path를 구현했다. Provider-backed role
+execution과 standalone StaffingPlan은 아직 구현되지 않았다.
 
 ## Approved Real Council Planning Authority
 
@@ -75,9 +77,18 @@ Conductor synthesis를 증명하는 일이다.
 - Recorded decisions: `DEC-080`, `DEC-081`
 - Allowed: Phase 2 implementation plan, implementation decision handoff, focused planning smoke,
   aggregate registration, documentation/README/task evidence, commit, push
-- Still blocked: independent Council role execution, runtime/API/UI implementation, providers,
-  StaffingPlan runtime, WorkOrders, memory, scheduling, mutation, approval bypass, runtime-agent
-  commit/push/release
+- Consumed by: `DEC-082`
+
+## Approved Real Council Implementation Authority
+
+- Implementation decision: `operator-decision-ai-company-real-council-implementation-001`
+- Decision status: `approve-ai-company-real-council-local-stub-implementation-slice`
+- Recorded decision: `DEC-082`
+- Implemented: opt-in start/resume/decision routes, isolated local-stub positions, deterministic
+  conflict summary, Conductor synthesis, additive attempt history, human alignment controls,
+  schema v6 reload, and legacy route compatibility
+- Still blocked: live providers, standalone StaffingPlan, WorkOrders, memory/checkpoint expansion,
+  autonomous scheduling, profile/source mutation, approval bypass, runtime-agent commit/push/release
 
 ## Product North Star
 

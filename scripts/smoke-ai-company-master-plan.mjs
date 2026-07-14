@@ -51,6 +51,7 @@ assertSections(masterPlan, [
   'Approved Runtime Foundation Authority',
   'Current Product Truth',
   'Approved Real Council Planning Authority',
+  'Approved Real Council Implementation Authority',
   'Product North Star',
   'Operating Principles',
   'Logical Organization',
@@ -68,7 +69,7 @@ assert.match(masterPlanText, /read-only runtime blueprint foundation만 별도�
 assert.match(masterPlanText, /Recorded decision: `DEC-079`/);
 assert.match(masterPlanText, /configured local server snapshot의 read-only `companyRuntime`/);
 assert.match(masterPlanText, /Decision status: `approve-ai-company-real-council-planning-only`/);
-assert.match(masterPlanText, /independent positions와 synthesis는 아직 구현되지 않았다/);
+assert.match(masterPlanText, /Decision status: `approve-ai-company-real-council-local-stub-implementation-slice`/);
 assert.match(masterPlanText, /Mission Intake.*Staffing Decision.*Council Positions.*Delivery Package/);
 for (const objectName of [
   'CompanyBlueprint',
@@ -162,7 +163,7 @@ assertSections(deliveryRoadmap, [
 assert.match(deliveryRoadmapText, /Roadmap 항목은 planned work다/);
 assert.match(
   deliveryRoadmapText,
-  /targetAuthority=one Mission independent local-stub Council positions, deterministic conflict check, Conductor synthesis, and human alignment decisions/,
+  /targetAuthority=Council live-provider opt-in implementation planning for the existing normalized position and synthesis contract/,
 );
 assert.match(deliveryRoadmapText, /각 phase를 열 때 최소 다음 필드를 제공한다/);
 assert.match(deliveryRoadmapText, /`continue`, `do everything`, `approve all` 같은 shortcut은 implementation authority가 아니다/);
@@ -171,6 +172,7 @@ assert.match(decisionLog, /^### DEC-076$/m);
 assert.match(decisionLog, /^### DEC-079$/m);
 assert.match(decisionLog, /^### DEC-080$/m);
 assert.match(decisionLog, /^### DEC-081$/m);
+assert.match(decisionLog, /^### DEC-082$/m);
 assert.match(decisionLogText, /approve-ai-company-master-plan-documentation/);
 assert.match(decisionLogText, /It does not change runtime schema or behavior/);
 assert.match(decisionLogText, /runtime CompanyBlueprint and AgentProfile implementation planning/);
@@ -179,7 +181,7 @@ assert.match(lessonsText, /AI Company planning must distinguish presentation ros
 assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
-// Pin the current baseline and exact foundation without opening Phase 2 authority.
+// Pin the current baseline and exact Phase 2 authority without opening downstream capability.
 assert.match(runtimeContracts, /schemaVersion: 6/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
@@ -202,17 +204,17 @@ process.stdout.write(
         'docs/50_council-operating-protocol.md',
         'docs/51_ai-company-delivery-roadmap.md',
       ],
-      decisions: ['DEC-076', 'DEC-079', 'DEC-080', 'DEC-081'],
+      decisions: ['DEC-076', 'DEC-079', 'DEC-080', 'DEC-081', 'DEC-082'],
       currentRuntime: {
         schemaVersion: 6,
         companyBlueprint: 'ready-readonly',
-        council: 'deterministic-session-record',
+        council: 'opt-in-real-local-stub-with-legacy-deterministic-compatibility',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
         documentationApproved: true,
         runtimeBlueprintImplementationPresent: true,
-        councilRoleExecutionAllowed: false,
+        councilRoleExecutionAllowed: true,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -221,7 +223,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'fielded local-stub Real Council implementation decision required',
+      nextGate: 'Council live-provider opt-in planning decision required',
     },
     null,
     2,

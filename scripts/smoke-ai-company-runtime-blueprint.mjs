@@ -363,7 +363,7 @@ try {
         invalidCases: 12,
         authority: {
           staffingPlanRuntimeAllowed: false,
-          councilRoleExecutionAllowed: false,
+          councilRoleExecutionAllowed: true,
           providerCallsAllowed: false,
           memoryPersistenceAllowed: false,
           autonomousSchedulingAllowed: false,
