@@ -32,6 +32,7 @@ The current product posture is:
 - proposal draft human review: read-only pending packet is implemented; it records no review outcome or downstream authority
 - proposal draft human review decision packet: read-only fielded outcome input is implemented; it records no outcome or downstream authority
 - proposal draft human review evidence decision: `accept-review-evidence-only` is accepted as repository history; it does not persist a runtime decision or open downstream authority
+- proposal draft downstream authority decision packet: read-only fielded input is implemented; it recommends one local durable record planning target and records no outcome
 
 ## Current Evidence
 
@@ -64,6 +65,7 @@ The current product posture is:
 | Proposal draft human review | Implemented as a read-only pending packet. It preserves the draft's evidence, freshness, blocked actions, and review question while rejecting non-draft, stale, or promoted input and recording no review outcome. | `docs/01_decision-log.md#DEC-072`, `docs/44_proposal-draft-human-review.md`, `src/runtime/proposal-draft-reviews.js`, `scripts/smoke-proposal-draft-human-review.mjs`, `scripts/vnext-proposal-draft-human-review-status.mjs` |
 | Proposal draft human review decision packet | Implemented as read-only fielded decision input. It defines evidence-only acceptance, evidence request, rejection, and deferral for one fresh pending packet without recording an outcome or opening downstream authority. | `docs/01_decision-log.md#DEC-073`, `docs/45_proposal-draft-human-review-decision-packet.md`, `scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs` |
 | Proposal draft human review evidence decision | Accepted as read-only repository history. It records `accept-review-evidence-only` for the named candidate without persisting a runtime decision, creating records, mutating queues, applying proposals, or opening external authority. | `docs/01_decision-log.md#DEC-074`, `docs/46_proposal-draft-human-review-evidence-decision.md`, `scripts/vnext-proposal-draft-human-review-evidence-decision-status.mjs` |
+| Proposal draft downstream authority decision packet | Implemented as read-only fielded decision input. It recommends local durable proposal record creation planning for the reviewed inert draft, rejects broad shortcuts, and opens no planning, implementation, persistence, or external authority. | `docs/01_decision-log.md#DEC-075`, `docs/47_proposal-draft-downstream-authority-decision-packet.md`, `scripts/vnext-proposal-draft-downstream-authority-decision-packet-status.mjs` |
 
 ## Development Plan
 
@@ -174,10 +176,15 @@ Completed: `proposal draft human review evidence decision`
 persist a runtime decision or open durable record, queue, application, provider, memory,
 runtime/UI/source mutation, commit, or push authority.
 
-Next implementation gate: `explicit downstream authority decision required`
-No implementation follows by default. Any durable or external action remains separate from the
-accepted review evidence and needs one new fielded authority decision with rollback, focused smoke,
-aggregate verification, and still-blocked-authority evidence.
+Completed: `proposal draft downstream authority decision packet`
+`docs/47_proposal-draft-downstream-authority-decision-packet.md` defines one complete fielded input
+for local durable proposal record creation planning. It rejects broad shortcuts, records no
+decision, and opens no planning, implementation, persistence, or external authority.
+
+Next implementation gate: `fielded proposal draft downstream authority decision required`
+The operator must supply one complete outcome for the named candidate. Planning, implementation,
+record creation, persistence, queue mutation, proposal application, provider, memory,
+runtime/UI/source mutation, commit, and push authority remain blocked.
 
 ## Authority Boundary
 

@@ -83,7 +83,7 @@ assertSourceEvidence(sources, {
   audit: [
     'Completed: `proposal draft human review decision packet`',
     'Completed: `proposal draft human review evidence decision`',
-    'Next implementation gate: `explicit downstream authority decision required`',
+    'Next implementation gate: `fielded proposal draft downstream authority decision required`',
   ],
   inventory: [
     'vNext proposal draft human review decision packet',
@@ -111,7 +111,7 @@ process.stdout.write(`${JSON.stringify({
   ok: true,
   mode: STATUS_MODE,
   posture: 'consumed-read-only-proposal-draft-human-review-decision-input',
-  currentGate: 'explicit downstream authority decision required',
+  currentGate: 'fielded proposal draft downstream authority decision required',
   decisionOptions,
   requiredDecisionFields,
   authority: {

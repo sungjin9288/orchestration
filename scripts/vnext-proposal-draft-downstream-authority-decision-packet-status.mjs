@@ -12,14 +12,13 @@ import {
 
 const __filename = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(__filename), '..');
-const STATUS_MODE = 'vnext-proposal-draft-human-review-evidence-decision-status';
+const STATUS_MODE = 'vnext-proposal-draft-downstream-authority-decision-packet-status';
 
 requireNoCliArgs(process.argv.slice(2), { mode: STATUS_MODE });
 
 const sources = readRepoFiles(repoRoot, {
-  decision: 'docs/46_proposal-draft-human-review-evidence-decision.md',
-  downstreamPacket: 'docs/47_proposal-draft-downstream-authority-decision-packet.md',
-  packet: 'docs/45_proposal-draft-human-review-decision-packet.md',
+  packet: 'docs/47_proposal-draft-downstream-authority-decision-packet.md',
+  evidenceDecision: 'docs/46_proposal-draft-human-review-evidence-decision.md',
   reviewDoc: 'docs/44_proposal-draft-human-review.md',
   decisionLog: 'docs/01_decision-log.md',
   audit: 'docs/23_vnext-development-audit.md',
@@ -29,64 +28,63 @@ const sources = readRepoFiles(repoRoot, {
   growthConfig: 'ui/growth-config.js',
 });
 
+const decisionOptions = [
+  'approve-local-durable-record-planning-only',
+  'request-more-evidence',
+  'reject',
+  'defer',
+];
+
 const requiredDecisionFields = [
   'decisionId',
   'decisionStatus',
   'targetAuthority',
-  'reviewPacketRef',
+  'targetSurface',
   'candidateId',
   'sourceEvidenceRefs',
   'negativeEvidenceRefs',
-  'evidenceFreshnessRef',
-  'reviewOutcome',
+  'recordPlanRefs',
+  'rollbackRefs',
+  'focusedSmokeRefs',
   'aggregateVerificationRef',
   'stillBlockedAuthorities',
   'approvalStatement',
 ];
 
-assertMarkdownSections(sources.decision, [
+assertMarkdownSections(sources.packet, [
   '## Purpose',
-  '## Accepted Decision',
-  '## Decision Boundary',
-  '## Rejection And Rollback',
-  '## Next Authority Gate',
+  '## Current Decision State',
+  '## Decision Options',
+  '## Required Operator Decision',
+  '## Recommended Planning Target',
+  '## Still Blocked',
+  '## Stop Conditions',
+  '## Copy-Ready Planning Decision',
   '## Verification',
 ]);
-assertContainsBacktickedAll(sources.decision, requiredDecisionFields);
+assertContainsBacktickedAll(sources.packet, decisionOptions);
+assertContainsBacktickedAll(sources.packet, requiredDecisionFields);
 assertSourceEvidence(sources, {
-  decision: [
-    'operator-decision-vnext-proposal-draft-human-review-001',
-    'accept-review-evidence-only',
-    'human review evidence confirmation for one deterministic local inert proposal draft',
-    'growth-evidence-ledger-proposal-readiness-candidate',
-    'does not claim that a runtime packet or a runtime decision record was persisted',
-    'does not create or persist a review outcome',
-    'fielded proposal draft downstream authority decision required',
-  ],
-  downstreamPacket: [
+  packet: [
     'awaiting-fielded-downstream-authority-decision',
     'local durable proposal record creation planning for one reviewed deterministic inert draft',
+    'growth-evidence-ledger-proposal-readiness-candidate',
+    'It does not record a decision',
+    'record creation or persistence is coupled to planning approval',
   ],
-  packet: [
-    'Current packet status: `consumed-by-accept-review-evidence-only-decision`',
-    'It does not add `reviewOutcome` to the packet',
+  evidenceDecision: [
+    'accept-review-evidence-only',
+    'docs/47_proposal-draft-downstream-authority-decision-packet.md',
   ],
   reviewDoc: ['pending-human-review', 'has no `reviewOutcome`'],
   decisionLog: ['### DEC-074', '### DEC-075'],
   audit: [
-    'Completed: `proposal draft human review evidence decision`',
     'Completed: `proposal draft downstream authority decision packet`',
     'Next implementation gate: `fielded proposal draft downstream authority decision required`',
   ],
-  inventory: [
-    'vNext proposal draft human review evidence decision',
-    'vNext proposal draft downstream authority decision packet',
-  ],
-  readme: [
-    'Proposal draft human review evidence decision is accepted',
-    'Proposal draft downstream authority decision packet is implemented',
-  ],
-  verification: ['vnext-proposal-draft-human-review-evidence-decision-status.mjs'],
+  inventory: ['vNext proposal draft downstream authority decision packet'],
+  readme: ['Proposal draft downstream authority decision packet is implemented'],
+  verification: ['vnext-proposal-draft-downstream-authority-decision-packet-status.mjs'],
   growthConfig: [
     'proposalGenerationAllowed: false',
     'proposalApplicationAllowed: false',
@@ -97,21 +95,30 @@ assertSourceEvidence(sources, {
   ],
 });
 
-const packetStatus = runStatus(
+const evidenceDecisionStatus = runStatus(
   repoRoot,
-  'scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs',
+  'scripts/vnext-proposal-draft-human-review-evidence-decision-status.mjs',
 );
-assert.equal(packetStatus.ok, true);
+assert.equal(evidenceDecisionStatus.ok, true);
 
 process.stdout.write(`${JSON.stringify({
   ok: true,
   mode: STATUS_MODE,
-  posture: 'accepted-review-evidence-only-without-downstream-authority',
-  decisionStatus: 'accept-review-evidence-only',
+  posture: 'read-only-proposal-draft-downstream-authority-decision-input',
+  currentGate: 'fielded proposal draft downstream authority decision required',
+  recommendedTarget: {
+    authority: 'local durable proposal record creation planning for one reviewed deterministic inert draft',
+    candidateId: 'growth-evidence-ledger-proposal-readiness-candidate',
+    planningOnly: true,
+    implementationAllowed: false,
+  },
+  decisionOptions,
+  requiredDecisionFields,
   authority: {
-    decisionRecordedInDocs: true,
-    runtimeDecisionPersistenceAllowed: false,
+    downstreamAuthorityDecisionRecorded: false,
+    durableRecordPlanningAllowed: false,
     durableRecordCreationAllowed: false,
+    durableRecordPersistenceAllowed: false,
     proposalQueueMutationAllowed: false,
     proposalApplicationAllowed: false,
     providerCallsAllowed: false,

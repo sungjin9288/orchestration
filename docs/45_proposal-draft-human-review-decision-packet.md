@@ -59,6 +59,8 @@ mutate runtime/UI/source state, commit, or push.
 Any later proposal record creation, proposal queue mutation, proposal application, provider call,
 memory persistence, source mutation, commit, or push requires its own explicit authority and
 verification. This packet cannot supply that authority.
+`docs/47_proposal-draft-downstream-authority-decision-packet.md` defines the separate fielded input
+for that next choice without recording an outcome.
 
 ## Stop Conditions
 

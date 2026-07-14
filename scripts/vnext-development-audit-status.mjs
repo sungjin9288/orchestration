@@ -58,6 +58,8 @@ const vnextDevelopmentAuditFiles = {
     'docs/45_proposal-draft-human-review-decision-packet.md',
   proposalDraftHumanReviewEvidenceDecision:
     'docs/46_proposal-draft-human-review-evidence-decision.md',
+  proposalDraftDownstreamAuthorityDecisionPacket:
+    'docs/47_proposal-draft-downstream-authority-decision-packet.md',
   proposalRecordImplementationStatus: 'scripts/vnext-durable-proposal-record-implementation-status.mjs',
   proposalRecordCreationSmoke: 'scripts/smoke-durable-proposal-record-creation.mjs',
   proposalApplicationAttemptSmoke: 'scripts/smoke-proposal-application-attempt-creation.mjs',
@@ -99,6 +101,8 @@ const vnextDevelopmentAuditFiles = {
     'scripts/vnext-proposal-draft-human-review-decision-packet-status.mjs',
   proposalDraftHumanReviewEvidenceDecisionStatus:
     'scripts/vnext-proposal-draft-human-review-evidence-decision-status.mjs',
+  proposalDraftDownstreamAuthorityDecisionPacketStatus:
+    'scripts/vnext-proposal-draft-downstream-authority-decision-packet-status.mjs',
   verification: 'scripts/verification_status.mjs',
 };
 
@@ -308,7 +312,8 @@ const vnextDevelopmentAuditSourceEvidence = {
       'Completed: `proposal draft human review`',
       'Completed: `proposal draft human review decision packet`',
       'Completed: `proposal draft human review evidence decision`',
-      'Next implementation gate: `explicit downstream authority decision required`',
+      'Completed: `proposal draft downstream authority decision packet`',
+      'Next implementation gate: `fielded proposal draft downstream authority decision required`',
       'proposal application implementation: audit-only attempt creation is implemented',
       'proposal application source mutation outside the single approved named path',
     ],
@@ -356,7 +361,8 @@ const vnextDevelopmentAuditSourceEvidence = {
       'Human-review packet: implemented later under `DEC-072`',
       'Human-review decision packet: implemented later under `DEC-073`',
       'Human-review evidence decision: accepted later under `DEC-074`',
-      'Current downstream gate: `explicit downstream authority decision required`',
+      'Downstream authority decision packet: implemented later under `DEC-075`',
+      'Current downstream gate: `fielded proposal draft downstream authority decision required`',
       'exactly one existing Growth Evidence Ledger candidate',
       'must not call a model or provider',
       'applyAllowed` | Always `false`',
@@ -406,7 +412,17 @@ const vnextDevelopmentAuditSourceEvidence = {
       'Proposal Draft Human Review Evidence Decision',
       'accept-review-evidence-only',
       'does not persist a runtime decision',
-      'No implementation follows by default',
+      'docs/47_proposal-draft-downstream-authority-decision-packet.md',
+      'fielded proposal draft downstream authority decision required',
+    ],
+  },
+  proposalDraftDownstreamAuthorityDecisionPacket: {
+    contains: [
+      'Proposal Draft Downstream Authority Decision Packet',
+      'awaiting-fielded-downstream-authority-decision',
+      'approve-local-durable-record-planning-only',
+      'local durable proposal record creation planning for one reviewed deterministic inert draft',
+      'It does not record a decision',
     ],
   },
   proposalDrafts: {
@@ -480,6 +496,15 @@ const vnextDevelopmentAuditSourceEvidence = {
       "const STATUS_MODE = 'vnext-proposal-draft-human-review-evidence-decision-status'",
       'decisionRecordedInDocs: true',
       'runtimeDecisionPersistenceAllowed: false',
+      'proposalApplicationAllowed: false',
+    ],
+  },
+  proposalDraftDownstreamAuthorityDecisionPacketStatus: {
+    contains: [
+      "const STATUS_MODE = 'vnext-proposal-draft-downstream-authority-decision-packet-status'",
+      'downstreamAuthorityDecisionRecorded: false',
+      'durableRecordPlanningAllowed: false',
+      'durableRecordCreationAllowed: false',
       'proposalApplicationAllowed: false',
     ],
   },
@@ -783,15 +808,15 @@ const growthEngineNextSlice = growthEngine.nextRecommendedSlice?.id || null;
 const reflectionNextSlice = reflection.nextRecommendedSlice?.id || null;
 const proposalQueueHandoff = proposalReadiness.nextRecommendedSlice?.id || null;
 const lifecycleReviewMaintenance = lifecycleReview.nextRecommendedSlice;
-const nextGrowthSlice = 'explicit downstream proposal draft authority decision';
+const nextGrowthSlice = 'fielded proposal draft downstream authority decision';
 const nextGrowthCandidate = {
-  id: 'deterministic-local-proposal-draft-downstream-authority-decision',
-  commandToAdd: 'node scripts/vnext-proposal-draft-human-review-evidence-decision-status.mjs',
-  reason: 'The accepted review-evidence-only decision is repository history only. Any durable or external action needs a new fielded decision naming exactly one downstream authority.',
+  id: 'deterministic-local-proposal-draft-downstream-authority-decision-input',
+  commandToAdd: 'node scripts/vnext-proposal-draft-downstream-authority-decision-packet-status.mjs',
+  reason: 'The read-only packet recommends local durable proposal record creation planning for one reviewed inert draft, but no fielded downstream authority decision has been recorded.',
   mustRemainReadOnly: true,
 };
 const nextImplementationGate = {
-  status: 'explicit-proposal-draft-downstream-authority-decision-required',
+  status: 'fielded-proposal-draft-downstream-authority-decision-required',
   implementationReady: false,
   allowedEntryReasons: [
     'explicit-operator-request',
@@ -799,9 +824,9 @@ const nextImplementationGate = {
     'usability-issue',
     'accepted-vnext-decision',
   ],
-  targetAuthority: 'separately named downstream authority for one reviewed deterministic local inert proposal draft',
-  planningPlan: 'docs/46_proposal-draft-human-review-evidence-decision.md',
-  source: 'scripts/vnext-proposal-draft-human-review-evidence-decision-status.mjs',
+  targetAuthority: 'local durable proposal record creation planning for one reviewed deterministic inert proposal draft',
+  planningPlan: 'docs/47_proposal-draft-downstream-authority-decision-packet.md',
+  source: 'scripts/vnext-proposal-draft-downstream-authority-decision-packet-status.mjs',
 };
 
 assert.equal(growthEngine.ok, true);
@@ -1068,6 +1093,15 @@ const implemented = [
     status: 'accepted-read-only-evidence-decision',
   },
   {
+    area: 'proposal draft downstream authority decision packet',
+    evidence: [
+      'docs/47_proposal-draft-downstream-authority-decision-packet.md',
+      'docs/01_decision-log.md#DEC-075',
+      'scripts/vnext-proposal-draft-downstream-authority-decision-packet-status.mjs',
+    ],
+    status: 'implemented-read-only-decision-input',
+  },
+  {
     area: 'completion and README evidence',
     evidence: ['scripts/smoke-readme-scope-evidence.mjs', 'scripts/verification_status.mjs'],
     status: 'verified',
@@ -1094,8 +1128,8 @@ const recommendedDevelopmentPlan = [
     candidateId: nextGrowthCandidate.id,
     commandToAdd: nextGrowthCandidate.commandToAdd,
     implementationRequired: false,
-    scope: 'Wait for one new fielded decision that names exactly one downstream authority for the accepted review evidence without inferring durable record, queue, application, provider, memory, source mutation, commit, or push authority.',
-    gate: 'The accepted evidence decision is repository history only. Durable record creation, proposal queue mutation, proposal application, provider calls, memory persistence, runtime/UI/source mutation, commit, and push remain blocked.',
+    scope: 'Obtain one fielded outcome for local durable proposal record creation planning for the reviewed inert draft without inferring implementation, record creation, persistence, queue, application, provider, memory, source mutation, commit, or push authority.',
+    gate: 'The decision packet records no outcome. Planning, implementation, durable record creation and persistence, proposal queue mutation, proposal application, provider calls, memory persistence, runtime/UI/source mutation, commit, and push remain blocked.',
   },
 ];
 

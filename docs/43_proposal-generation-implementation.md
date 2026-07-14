@@ -68,3 +68,5 @@ It preserves evidence and freshness for inspection without recording a review ou
 downstream authority. `docs/45_proposal-draft-human-review-decision-packet.md` separately defines
 the fielded human outcome, while `docs/46_proposal-draft-human-review-evidence-decision.md` records
 one accepted evidence-only decision without opening any authority.
+`docs/47_proposal-draft-downstream-authority-decision-packet.md` defines the next planning-only
+operator input without recording a decision or opening record creation authority.

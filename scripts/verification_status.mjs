@@ -382,6 +382,11 @@ const informationalChecks = [
     purpose: 'vNext proposal draft human review evidence decision source-checks DEC-074, the accepted evidence-only outcome, unchanged pending packet contract, and still-blocked downstream authority without runtime decision persistence',
   },
   {
+    id: 'vnext-proposal-draft-downstream-authority-decision-packet-status',
+    script: 'scripts/vnext-proposal-draft-downstream-authority-decision-packet-status.mjs',
+    purpose: 'vNext proposal draft downstream authority decision packet source-checks DEC-075, one recommended local durable record planning target, valid fielded outcomes, rejected broad shortcuts, and still-blocked authority without recording a decision',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

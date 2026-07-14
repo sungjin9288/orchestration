@@ -48,9 +48,10 @@ memory persistence, runtime/UI/source mutation, commit, or push.
 
 ## Next Authority Gate
 
-No implementation follows by default. Any durable or external action needs a new fielded decision
-that names exactly one downstream authority, its rollback and focused-smoke evidence, aggregate
-verification, and the authorities that remain blocked.
+`docs/47_proposal-draft-downstream-authority-decision-packet.md` defines the next fielded input and
+recommends local durable proposal record creation planning for this reviewed draft. It records no
+decision and opens no implementation or persistence authority. The current gate is
+`fielded proposal draft downstream authority decision required`.
 
 ## Verification
 

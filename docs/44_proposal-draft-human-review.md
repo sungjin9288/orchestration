@@ -47,7 +47,8 @@ outcome must be recorded through a separate explicit decision; this packet has n
 records one accepted review-evidence-only outcome in
 `docs/46_proposal-draft-human-review-evidence-decision.md`. Neither document adds a `reviewOutcome`
 to this packet or opens durable record, queue, application, provider, memory, runtime/UI/source
-mutation, commit, or push authority.
+mutation, commit, or push authority. `docs/47_proposal-draft-downstream-authority-decision-packet.md`
+defines the next planning-only decision input and also opens no authority by itself.
 
 ## Verification
 

@@ -438,6 +438,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/46_proposal-draft-human-review-evidence-decision.md` records the fixed source references, freshness rule, blocked authorities, rollback boundary, and aggregate verification. The pending packet remains in-memory with no `reviewOutcome`; durable record creation, queue mutation, proposal application, provider calls, memory persistence, runtime/UI/source mutation, commit, and push remain blocked.
 - Needed Before: Any durable or external action still needs a later fielded decision that names exactly one downstream authority, rollback evidence, focused smoke coverage, aggregate verification, and all remaining blocked authorities.
 
+### DEC-075
+- Status: `Accepted`
+- Decision: Define a read-only downstream authority decision packet for one reviewed deterministic local inert proposal draft.
+- Why: `DEC-074` closes the review-evidence gate but intentionally opens no downstream authority. The next operator choice needs one complete, inspectable shape that recommends the smallest local-first planning target and rejects broad continuation wording as approval.
+- Impact: `docs/47_proposal-draft-downstream-authority-decision-packet.md` and `scripts/vnext-proposal-draft-downstream-authority-decision-packet-status.mjs` define and verify planning-only approval, evidence request, rejection, and deferral for local durable proposal record creation planning. They do not record an outcome or open implementation, record creation, persistence, queue mutation, application, provider, memory, runtime/UI/source mutation, commit, or push authority.
+- Needed Before: The operator must supply one complete fielded decision for the named candidate. Any later implementation still requires a separate accepted plan and implementation decision.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

@@ -59,7 +59,8 @@ assertSourceEvidence(sources, {
     'Human-review packet: implemented later under `DEC-072`',
     'Human-review decision packet: implemented later under `DEC-073`',
     'Human-review evidence decision: accepted later under `DEC-074`',
-    'Current downstream gate: `explicit downstream authority decision required`',
+    'Downstream authority decision packet: implemented later under `DEC-075`',
+    'Current downstream gate: `fielded proposal draft downstream authority decision required`',
     'exactly one existing Growth Evidence Ledger candidate',
     'deterministically maps',
     'no durable proposal id',
@@ -97,7 +98,7 @@ process.stdout.write(`${JSON.stringify({
   doesNotCommit: true,
   doesNotPush: true,
   acceptedDecisionId: 'operator-decision-vnext-proposal-generation-planning-001',
-  currentGate: 'explicit downstream authority decision required',
+  currentGate: 'fielded proposal draft downstream authority decision required',
   implementationApproved: true,
   authority: {
     proposalGenerationAllowed: false,
