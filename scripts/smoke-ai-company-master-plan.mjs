@@ -182,6 +182,8 @@ assert.match(decisionLog, /^### DEC-088$/m);
 assert.match(decisionLog, /^### DEC-089$/m);
 assert.match(decisionLog, /^### DEC-090$/m);
 assert.match(decisionLog, /^### DEC-091$/m);
+assert.match(decisionLog, /^### DEC-092$/m);
+assert.match(decisionLog, /^### DEC-093$/m);
 assert.match(decisionLogText, /approve-ai-company-master-plan-documentation/);
 assert.match(decisionLogText, /It does not change runtime schema or behavior/);
 assert.match(decisionLogText, /runtime CompanyBlueprint and AgentProfile implementation planning/);
@@ -228,6 +230,8 @@ process.stdout.write(
         'DEC-089',
         'DEC-090',
         'DEC-091',
+        'DEC-092',
+        'DEC-093',
       ],
       currentRuntime: {
         schemaVersion: 7,
@@ -235,6 +239,7 @@ process.stdout.write(
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
         workOrderExecution: 'local-stub-sequential-builder-to-live-mutation-approval-gate',
+        reviewedDelivery: 'planning-only-implementation-blocked',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -243,6 +248,7 @@ process.stdout.write(
         councilRoleExecutionAllowed: true,
         durableWorkOrderRecordsAllowed: true,
         sequentialBuilderPreflightAllowed: true,
+        reviewedDeliveryPlanningAllowed: true,
         builderLiveMutationAllowed: false,
         reviewerOrQaExecutionAllowed: false,
         providerRoleExpansionAllowed: false,
@@ -253,7 +259,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Builder live mutation and Reviewer or QA WorkOrder execution remain blocked pending explicit authority',
+      nextGate: 'Fielded Phase 6 approval for exact-gated local reviewed delivery remains required before Builder mutation Reviewer QA or DeliveryPackage preview implementation',
     },
     null,
     2,

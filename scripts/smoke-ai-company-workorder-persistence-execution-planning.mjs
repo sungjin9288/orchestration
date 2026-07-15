@@ -142,7 +142,7 @@ assert.match(councilProtocol, /implementation은 `DEC-091`로 accepted됐다/);
 assertAll(roadmapText, [
   /implementation은 `DEC-091`로 기록됐다/,
   /targetAuthority=one local deterministic schema-v7 durable ExecutionPlan and WorkOrder record path/,
-  /Schema migration, durable record persistence, approval creation, and one Builder preflight dispatch는 구현됐다/,
+  /첫 implementation target은 general scheduler가 아니라 additive schema v7 records/,
 ]);
 assert.match(
   completionInventory,

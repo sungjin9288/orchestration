@@ -322,6 +322,12 @@ control task에 묶이고 local-stub-only first Builder dispatch는 기존 prefl
 targeted live-mutation approval에서 멈춘다. 이 authority는 source mutation, Reviewer/QA dispatch,
 parallel scheduling, provider-backed WorkOrder execution을 열지 않는다.
 
+Phase 6 reviewed-delivery planning은 `DEC-092`, implementation handoff는 `DEC-093`으로
+기록됐다. Council alignment와 plan approval만으로 Builder source mutation이나 Reviewer/QA가
+열리지 않는다. Future pass-path는 exact terminal live-mutation approval과 explicit continue를 모두
+요구하고, existing local-stub Builder/Reviewer 뒤 shell-free allowlisted `node --check` QA와
+response-only DeliveryPackage preview에서 멈춘다. Implementation authority는 아직 blocked다.
+
 ## Verification
 
 ```bash
@@ -336,10 +342,11 @@ node scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler.mjs
 node scripts/smoke-ui-slice-653.mjs
 node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
+node scripts/smoke-ai-company-reviewed-delivery-planning.mjs
 node scripts/verification_status.mjs
 ```
 
 Runtime/API/UI smokes가 위 Acceptance Scenarios를 검증한다. Planning smokes는 consumed authority와
 exact boundary evidence로 유지하고 implementation smokes는 response-only compiler와 blocked
-downstream authority를 검증한다. Phase 5 planning smoke는 runtime 변경 없이 다음 fielded gate만
-고정한다.
+downstream authority를 검증한다. Phase 5 implementation smoke는 durable Builder stop을 고정하고,
+Phase 6 planning smoke는 runtime 변경 없이 reviewed-delivery fielded gate만 고정한다.

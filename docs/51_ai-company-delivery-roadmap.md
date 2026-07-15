@@ -291,7 +291,24 @@ DeliveryPackage composition을 disable하고 기존 artifacts/review/close-out s
 
 ### Authority Gate
 
-`DeliveryPackage and QA completion gate implementation` 별도 승인이 필요하다.
+Planning-only authority는 `DEC-092`, implementation decision handoff는 `DEC-093`으로 기록됐다.
+첫 implementation target은 general QA runner나 done gate가 아니라 one schema-v7 plan의 exact
+approved Builder live-mutation gate에서 기존 local-stub Builder와 independent Reviewer를 순차
+재사용하고, shell-free allowlisted `node --check` QA evidence 뒤 response-only DeliveryPackage
+preview를 반환하는 one pass-path다. Changes requested는 auto-rework하지 않고 멈추며 durable
+DeliveryPackage, Mission done, commit/push/release는 계속 blocked다.
+
+Accepted `DEC-092` planning provenance:
+
+```text
+targetAuthority=planning only for one explicit local-stub reviewed-delivery continuation from one schema-v7 ExecutionPlan whose Builder is waiting at the exact live-mutation approval
+```
+
+Required implementation decision target:
+
+```text
+targetAuthority=one explicit local-stub pass-path from one schema-v7 ExecutionPlan Builder waiting-gate through the exact approved live mutation, independent Reviewer, constrained node syntax QA, and one response-only DeliveryPackage preview
+```
 
 ## Phase 7: Checkpoint, Resume, And Recovery
 
@@ -421,20 +438,20 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 5 planning과 implementation handoff는 `DEC-089`, `DEC-090`, exact implementation은
-`DEC-091`로 accepted됐다. 다음 architecture-sensitive decision은 현재 blocked authority 중
-하나를 complete fielded shape로 별도 승인해야 한다.
+Phase 5 exact implementation은 `DEC-091`로 accepted됐다. Phase 6 planning과 implementation
+handoff는 `DEC-092`, `DEC-093`으로 기록됐으며, 다음 architecture-sensitive decision은
+reviewed-delivery implementation을 complete fielded shape로 별도 승인하는 것이다.
 
 ```text
-targetAuthority=one local deterministic schema-v7 durable ExecutionPlan and WorkOrder record path with one digest-bound operator approval and one sequential Builder dispatch stopping at the existing live-mutation approval gate
+targetAuthority=one explicit local-stub pass-path from one schema-v7 ExecutionPlan Builder waiting-gate through the exact approved live mutation, independent Reviewer, constrained node syntax QA, and one response-only DeliveryPackage preview
 ```
 
-Any Phase 5 implementation must preserve the `DEC-088` response-only baseline, migrate valid schema
-v6 state additively, bind approval to exact plan provenance, use only the existing local-stub gates,
-stop before live mutation, preserve rollback evidence, and keep still-blocked authority explicit.
-Schema migration, durable record persistence, approval creation, and one Builder preflight dispatch는
-구현됐다. Mutation, Reviewer/QA execution, parallel scheduling, provider-backed WorkOrders, memory
-expansion, commit, push, release, and external connectors remain blocked.
+Any Phase 6 implementation must preserve schema v7 and the `DEC-091` waiting-gate baseline, bind the
+explicit continuation to exact terminal approval and source provenance, reuse only existing local-stub
+Builder/Reviewer gates, execute QA without a shell, and keep DeliveryPackage response-only. Current
+runtime has no reviewed-delivery continuation, QA runner/evidence artifact, or package composer.
+Mutation, Reviewer/QA execution, parallel scheduling, provider-backed WorkOrders, memory expansion,
+commit, push, release, and external connectors remain blocked until the exact implementation decision.
 
 ## Verification
 
@@ -449,8 +466,10 @@ node scripts/smoke-ui-slice-653.mjs
 node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
 node scripts/smoke-ai-company-workorder-persistence-execution.mjs
 node scripts/smoke-ui-slice-654.mjs
+node scripts/smoke-ai-company-reviewed-delivery-planning.mjs
 node scripts/verification_status.mjs
 ```
 
 Phase 0 verifier와 focused smokes는 implemented Phase 1-5 evidence, schema v7 migration, durable
-approval binding, Builder live-mutation stop gate를 확인한다.
+approval binding, Builder live-mutation stop gate와 Phase 6 planning-only authority boundary를
+확인한다.
