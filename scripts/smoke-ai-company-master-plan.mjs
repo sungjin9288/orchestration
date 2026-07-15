@@ -178,6 +178,10 @@ assert.match(decisionLog, /^### DEC-084$/m);
 assert.match(decisionLog, /^### DEC-085$/m);
 assert.match(decisionLog, /^### DEC-086$/m);
 assert.match(decisionLog, /^### DEC-087$/m);
+assert.match(decisionLog, /^### DEC-088$/m);
+assert.match(decisionLog, /^### DEC-089$/m);
+assert.match(decisionLog, /^### DEC-090$/m);
+assert.match(decisionLog, /^### DEC-091$/m);
 assert.match(decisionLogText, /approve-ai-company-master-plan-documentation/);
 assert.match(decisionLogText, /It does not change runtime schema or behavior/);
 assert.match(decisionLogText, /runtime CompanyBlueprint and AgentProfile implementation planning/);
@@ -187,7 +191,7 @@ assert.match(verification, /id: 'ai-company-master-plan-documentation'/);
 assert.match(verification, /script: 'scripts\/smoke-ai-company-master-plan\.mjs'/);
 
 // Pin the current baseline and exact Phase 2 authority without opening downstream capability.
-assert.match(runtimeContracts, /schemaVersion: 6/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 7/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
 assert.match(companyBlueprintLoader, /BLUEPRINT_FORBIDDEN_AUTHORITY/);
 assert.match(runtimeService, /companyBlueprintPath/);
@@ -209,17 +213,38 @@ process.stdout.write(
         'docs/50_council-operating-protocol.md',
         'docs/51_ai-company-delivery-roadmap.md',
       ],
-      decisions: ['DEC-076', 'DEC-079', 'DEC-080', 'DEC-081', 'DEC-082', 'DEC-083', 'DEC-084', 'DEC-085', 'DEC-086', 'DEC-087'],
+      decisions: [
+        'DEC-076',
+        'DEC-079',
+        'DEC-080',
+        'DEC-081',
+        'DEC-082',
+        'DEC-083',
+        'DEC-084',
+        'DEC-085',
+        'DEC-086',
+        'DEC-087',
+        'DEC-088',
+        'DEC-089',
+        'DEC-090',
+        'DEC-091',
+      ],
       currentRuntime: {
-        schemaVersion: 6,
+        schemaVersion: 7,
         companyBlueprint: 'ready-readonly',
         council: 'opt-in-local-stub-and-openai-responses-with-legacy-deterministic-compatibility',
+        missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
+        workOrderExecution: 'local-stub-sequential-builder-to-live-mutation-approval-gate',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
         documentationApproved: true,
         runtimeBlueprintImplementationPresent: true,
         councilRoleExecutionAllowed: true,
+        durableWorkOrderRecordsAllowed: true,
+        sequentialBuilderPreflightAllowed: true,
+        builderLiveMutationAllowed: false,
+        reviewerOrQaExecutionAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -228,7 +253,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Phase 4 Mission compiler and inert WorkOrder fielded implementation decision required',
+      nextGate: 'Builder live mutation and Reviewer or QA WorkOrder execution remain blocked pending explicit authority',
     },
     null,
     2,

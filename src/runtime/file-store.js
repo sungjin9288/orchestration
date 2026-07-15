@@ -3,7 +3,118 @@
 const fs = require('fs');
 const path = require('path');
 
-const { RETENTION_CONSUMER_STATUS, REVIEW_STATUS, createEmptyState } = require('./contracts');
+const {
+  EXECUTION_PLAN_STATUS,
+  MIGRATABLE_STATE_SCHEMA_VERSION,
+  RETENTION_CONSUMER_STATUS,
+  REVIEW_STATUS,
+  STATE_SCHEMA_VERSION,
+  WORK_ORDER_STATUS,
+  createEmptyState,
+} = require('./contracts');
+
+function assertStringField(record, field, label) {
+  if (typeof record[field] !== 'string' || !record[field]) {
+    throw new Error(`${label} is missing ${field}`);
+  }
+}
+
+function assertStringArrayField(record, field, label) {
+  if (
+    !Array.isArray(record[field]) ||
+    record[field].some((value) => typeof value !== 'string')
+  ) {
+    throw new Error(`${label} has invalid ${field}`);
+  }
+}
+
+function validateDurableWorkOrderRecords(state) {
+  const planStatuses = new Set(Object.values(EXECUTION_PLAN_STATUS));
+  const workOrderStatuses = new Set(Object.values(WORK_ORDER_STATUS));
+
+  for (const [key, plan] of Object.entries(state.executionPlans)) {
+    const label = `ExecutionPlan ${key}`;
+    if (!plan || typeof plan !== 'object' || Array.isArray(plan) || plan.id !== key) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    for (const field of [
+      'projectId',
+      'missionId',
+      'councilSessionId',
+      'previewId',
+      'sourceDigest',
+      'compileSpecDigest',
+      'controlTaskId',
+      'approvalId',
+    ]) {
+      assertStringField(plan, field, label);
+    }
+    assertStringArrayField(plan, 'workOrderIds', label);
+    assertStringArrayField(plan, 'handoffPacketIds', label);
+    if (!planStatuses.has(plan.status)) throw new Error(`${label} has invalid status`);
+    if (
+      !state.projects[plan.projectId] ||
+      !state.missions[plan.missionId] ||
+      !state.councilSessions[plan.councilSessionId] ||
+      !state.tasks[plan.controlTaskId] ||
+      !state.approvals[plan.approvalId]
+    ) {
+      throw new Error(`${label} has missing source or approval references`);
+    }
+    if (plan.workOrderIds.some((id) => !state.workOrders[id])) {
+      throw new Error(`${label} has missing WorkOrder references`);
+    }
+    if (plan.handoffPacketIds.some((id) => !state.handoffPackets[id])) {
+      throw new Error(`${label} has missing HandoffPacket references`);
+    }
+  }
+
+  for (const [key, workOrder] of Object.entries(state.workOrders)) {
+    const label = `WorkOrder ${key}`;
+    if (
+      !workOrder ||
+      typeof workOrder !== 'object' ||
+      Array.isArray(workOrder) ||
+      workOrder.id !== key
+    ) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    for (const field of ['executionPlanId', 'handoffPacketId', 'role', 'sourceDigest']) {
+      assertStringField(workOrder, field, label);
+    }
+    for (const field of ['dependencyIds', 'runRefs', 'artifactRefs']) {
+      assertStringArrayField(workOrder, field, label);
+    }
+    if (!workOrderStatuses.has(workOrder.status)) throw new Error(`${label} has invalid status`);
+    const plan = state.executionPlans[workOrder.executionPlanId];
+    if (!plan || !plan.workOrderIds.includes(workOrder.id)) {
+      throw new Error(`${label} has an invalid ExecutionPlan reference`);
+    }
+    if (!state.handoffPackets[workOrder.handoffPacketId]) {
+      throw new Error(`${label} has a missing HandoffPacket reference`);
+    }
+  }
+
+  for (const [key, packet] of Object.entries(state.handoffPackets)) {
+    const label = `HandoffPacket ${key}`;
+    if (!packet || typeof packet !== 'object' || Array.isArray(packet) || packet.id !== key) {
+      throw new Error(`${label} has an invalid record identity`);
+    }
+    for (const field of ['executionPlanId', 'workOrderId', 'sourceDigest']) {
+      assertStringField(packet, field, label);
+    }
+    const plan = state.executionPlans[packet.executionPlanId];
+    const workOrder = state.workOrders[packet.workOrderId];
+    if (
+      !plan ||
+      !plan.handoffPacketIds.includes(packet.id) ||
+      !workOrder ||
+      workOrder.handoffPacketId !== packet.id
+    ) {
+      throw new Error(`${label} has invalid plan or WorkOrder references`);
+    }
+  }
+}
 
 function createFileStore(options = {}) {
   const runtimeRoot = options.runtimeRoot || path.join(process.cwd(), 'var', 'runtime');
@@ -23,6 +134,32 @@ function createFileStore(options = {}) {
   }
 
   function normalizeState(state) {
+    if (!state || typeof state !== 'object' || Array.isArray(state)) {
+      throw new Error('Runtime state must be an object');
+    }
+
+    const sourceSchemaVersion = state.schemaVersion;
+    if (
+      sourceSchemaVersion !== MIGRATABLE_STATE_SCHEMA_VERSION &&
+      sourceSchemaVersion !== STATE_SCHEMA_VERSION
+    ) {
+      throw new Error(`Unsupported runtime state schemaVersion: ${sourceSchemaVersion}`);
+    }
+
+    if (sourceSchemaVersion === STATE_SCHEMA_VERSION) {
+      const requiredSequences = ['executionPlan', 'workOrder', 'handoffPacket'];
+      const requiredMaps = ['executionPlans', 'workOrders', 'handoffPackets'];
+      if (
+        !state.sequences ||
+        requiredSequences.some((key) => !Number.isInteger(state.sequences[key])) ||
+        requiredMaps.some(
+          (key) => !state[key] || typeof state[key] !== 'object' || Array.isArray(state[key]),
+        )
+      ) {
+        throw new Error('Runtime state schemaVersion 7 is missing durable WorkOrder fields');
+      }
+    }
+
     const emptyState = createEmptyState();
     const normalizedState = {
       ...emptyState,
@@ -42,6 +179,9 @@ function createFileStore(options = {}) {
       proposalRecords: state.proposalRecords || {},
       proposalApplicationAttempts: state.proposalApplicationAttempts || {},
       proposalSourceMutations: state.proposalSourceMutations || {},
+      executionPlans: state.executionPlans || {},
+      workOrders: state.workOrders || {},
+      handoffPackets: state.handoffPackets || {},
     };
 
     for (const mission of Object.values(normalizedState.missions)) {
@@ -240,7 +380,8 @@ function createFileStore(options = {}) {
       proposalSourceMutation.pushAllowed = false;
     }
 
-    normalizedState.schemaVersion = emptyState.schemaVersion;
+    normalizedState.schemaVersion = STATE_SCHEMA_VERSION;
+    validateDurableWorkOrderRecords(normalizedState);
     return normalizedState;
   }
 
@@ -266,7 +407,9 @@ function createFileStore(options = {}) {
 
   function saveState(state) {
     ensureDirs();
-    fs.writeFileSync(statePath, `${JSON.stringify(normalizeState(state), null, 2)}\n`);
+    const temporaryStatePath = `${statePath}.tmp-${process.pid}`;
+    fs.writeFileSync(temporaryStatePath, `${JSON.stringify(normalizeState(state), null, 2)}\n`);
+    fs.renameSync(temporaryStatePath, statePath);
   }
 
   function appendLogRecord(runId, record) {

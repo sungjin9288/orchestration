@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
@@ -13,6 +14,7 @@ const {
   DECISION_INBOX_KIND,
   DECISION_INBOX_SOURCE_TYPE,
   DECISION_INBOX_STATUS,
+  EXECUTION_PLAN_STATUS,
   PACKS,
   PROVIDER_ADAPTER_ID,
   PROVIDER_MODE,
@@ -29,6 +31,8 @@ const {
   REVIEW_STATUS,
   RUN_STATUS,
   TASK_LIFECYCLE,
+  WORK_ORDER_ACTION,
+  WORK_ORDER_STATUS,
 } = require('./contracts');
 const { createFileStore } = require('./file-store');
 const { readCompanyBlueprintStatus } = require('./company-blueprint');
@@ -92,9 +96,15 @@ const {
   sameExactStringArrays,
   uniqueReasons,
 } = require('./task-gates');
-const { assertRun } = require('./assertions');
+const {
+  assertExecutionPlan,
+  assertHandoffPacket,
+  assertRun,
+  assertWorkOrder,
+} = require('./assertions');
 const {
   compileMissionWorkOrderPreview,
+  normalizeCompileSpec,
   preflightMissionWorkOrderCandidate,
 } = require('./mission-workorder-compiler');
 const {
@@ -1866,7 +1876,7 @@ function createRuntimeService(options = {}) {
     }
 
     const id = nextId(state, 'task');
-    const now = new Date().toISOString();
+    const now = input.now || new Date().toISOString();
 
     state.tasks[id] = {
       id,
@@ -2023,6 +2033,361 @@ function createRuntimeService(options = {}) {
 
   function previewMissionWorkOrders(input) {
     return compileMissionWorkOrderPreview(getMissionWorkOrderCompilerInput(input));
+  }
+
+  function conflict(message) {
+    const error = new Error(message);
+    error.statusCode = 409;
+    return error;
+  }
+
+  function digestCompileSpec(compileSpec) {
+    return crypto.createHash('sha256').update(JSON.stringify(compileSpec)).digest('hex');
+  }
+
+  function getExecutionPlanBundleFromState(state, executionPlanId) {
+    const executionPlan = assertExecutionPlan(executionPlanId, state);
+    const workOrders = executionPlan.workOrderIds.map((id) => assertWorkOrder(id, state));
+    const handoffPackets = executionPlan.handoffPacketIds.map((id) =>
+      assertHandoffPacket(id, state));
+
+    return {
+      executionPlan,
+      workOrders,
+      handoffPackets,
+      approval: assertApproval(executionPlan.approvalId, state),
+      controlTask: assertTask(executionPlan.controlTaskId, state),
+      mission: assertMission(executionPlan.missionId, state),
+      councilSession: assertCouncilSession(executionPlan.councilSessionId, state),
+    };
+  }
+
+  function getExecutionPlan(executionPlanId) {
+    return getExecutionPlanBundleFromState(store.loadState(), executionPlanId);
+  }
+
+  function persistMissionWorkOrderPlan(input) {
+    const state = store.loadState();
+    const councilSession = assertCouncilSession(input.councilSessionId, state);
+    const mission = assertMission(councilSession.missionId, state);
+    const project = assertProject(mission.projectId, state);
+
+    if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
+      throw new Error('CompanyBlueprint must be ready before WorkOrder persistence');
+    }
+    assertRealCouncilSourceCurrent(councilSession, mission, project);
+
+    const preview = compileMissionWorkOrderPreview({
+      mission,
+      project,
+      councilSession,
+      companyBlueprint: companyRuntime.blueprint,
+      compileSpec: input.compileSpec,
+    });
+    const previewId = String(input.previewId || '').trim();
+    const sourceDigest = String(input.sourceDigest || '').trim();
+    if (!previewId || previewId !== preview.previewId) {
+      throw conflict('WorkOrder previewId does not match the source-current preview');
+    }
+    if (!sourceDigest || sourceDigest !== preview.sourceDigest) {
+      throw conflict('WorkOrder sourceDigest does not match the source-current preview');
+    }
+
+    const existing = Object.values(state.executionPlans).find(
+      (entry) => entry.councilSessionId === councilSession.id,
+    );
+    if (existing) {
+      if (existing.previewId === previewId && existing.sourceDigest === sourceDigest) {
+        return { ...getExecutionPlanBundleFromState(state, existing.id), idempotent: true };
+      }
+      throw conflict(`Council session ${councilSession.id} already has a different ExecutionPlan`);
+    }
+    if (mission.linkedTaskId) {
+      throw conflict(`Mission ${mission.id} already has a linked task: ${mission.linkedTaskId}`);
+    }
+
+    const now = new Date().toISOString();
+    const compileSpec = normalizeCompileSpec(input.compileSpec);
+    const controlTask = createTaskRecord(
+      state,
+      project,
+      {
+        deliverableType: mission.deliverableType,
+        title: mission.title,
+        intent: mission.goal,
+        now,
+      },
+      mission,
+    );
+    mission.linkedTaskId = controlTask.id;
+    mission.status = 'waiting-approval';
+    mission.updatedAt = now;
+    state.activeProjectId = project.id;
+    state.selectedMissionId = mission.id;
+
+    const approval = createApprovalPlaceholderRecord(
+      state,
+      {
+        taskId: controlTask.id,
+        scope: 'execution-plan',
+        allowedNextAction: WORK_ORDER_ACTION.START_SEQUENTIAL,
+        metadata: {
+          executionPlanId: preview.executionPlan.id,
+          previewId,
+          sourceDigest,
+          controlTaskId: controlTask.id,
+        },
+        title: `ExecutionPlan 승인 필요: ${mission.title}`,
+        prompt: `ExecutionPlan ${preview.executionPlan.id}의 local sequential Builder dispatch를 승인합니다.`,
+      },
+      now,
+    );
+
+    state.sequences.executionPlan += 1;
+    state.sequences.workOrder += preview.workOrders.length;
+    state.sequences.handoffPacket += preview.handoffPackets.length;
+
+    const handoffPacketIds = preview.handoffPackets.map((packet) => packet.id);
+    const roleByPosition = ['builder', 'reviewer', 'qa'];
+    const executionPlan = {
+      ...preview.executionPlan,
+      nonGoals: [
+        'Execute Reviewer or QA WorkOrders.',
+        'Run parallel, dynamic, autonomous, retry, or provider-backed scheduling.',
+        'Mutate source, persist memory or checkpoints, commit, push, or release.',
+      ],
+      authorityBoundary: {
+        ...preview.executionPlan.authorityBoundary,
+        approvalAllowed: true,
+        executeAllowed: true,
+        persistenceAllowed: true,
+        mode: 'durable-gated',
+      },
+      projectId: project.id,
+      previewId,
+      sourceDigest,
+      compileSpecDigest: digestCompileSpec(compileSpec),
+      status: EXECUTION_PLAN_STATUS.PENDING_APPROVAL,
+      handoffPacketIds,
+      controlTaskId: controlTask.id,
+      approvalId: approval.id,
+      activeWorkOrderId: null,
+      runRefs: [],
+      artifactRefs: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.executionPlans[executionPlan.id] = executionPlan;
+
+    preview.handoffPackets.forEach((packet, index) => {
+      state.handoffPackets[packet.id] = {
+        ...packet,
+        authorityBoundary: {
+          ...packet.authorityBoundary,
+          persistenceAllowed: true,
+          mode: 'durable-gated',
+        },
+        executionPlanId: executionPlan.id,
+        workOrderId: preview.workOrders[index].id,
+        createdAt: now,
+        updatedAt: now,
+      };
+    });
+    preview.workOrders.forEach((workOrder, index) => {
+      const role = roleByPosition[index];
+      state.workOrders[workOrder.id] = {
+        ...workOrder,
+        role,
+        position: index + 1,
+        dependencies: undefined,
+        dependencyIds: [...workOrder.dependencies],
+        status:
+          index === 0
+            ? WORK_ORDER_STATUS.PENDING_APPROVAL
+            : WORK_ORDER_STATUS.BLOCKED_DEPENDENCY,
+        handoffPacketId: handoffPacketIds[index],
+        linkedTaskId: index === 0 ? controlTask.id : null,
+        runRefs: [],
+        artifactRefs: [],
+        sourceDigest,
+        authority: {
+          ...workOrder.authority,
+          mode: 'durable-gated',
+          executeAllowed: role === 'builder',
+          persistenceAllowed: true,
+        },
+        createdAt: now,
+        updatedAt: now,
+      };
+      delete state.workOrders[workOrder.id].dependencies;
+    });
+
+    recalculateTaskFlags(controlTask, state);
+    controlTask.updatedAt = now;
+    store.saveState(state);
+    return { ...getExecutionPlanBundleFromState(state, executionPlan.id), idempotent: false };
+  }
+
+  function reconcileExecutionPlanApproval(state, approval, action, now) {
+    if (approval.scope !== 'execution-plan') return;
+    if (approval.allowedNextAction !== WORK_ORDER_ACTION.START_SEQUENTIAL) {
+      throw conflict(`ExecutionPlan approval ${approval.id} has an invalid next action`);
+    }
+
+    const metadata = approval.metadata || {};
+    const executionPlan = assertExecutionPlan(metadata.executionPlanId, state);
+    if (
+      executionPlan.approvalId !== approval.id ||
+      executionPlan.controlTaskId !== approval.taskId ||
+      metadata.controlTaskId !== approval.taskId ||
+      metadata.previewId !== executionPlan.previewId ||
+      metadata.sourceDigest !== executionPlan.sourceDigest
+    ) {
+      throw conflict(`ExecutionPlan approval ${approval.id} does not match its durable plan`);
+    }
+    if (executionPlan.status !== EXECUTION_PLAN_STATUS.PENDING_APPROVAL) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} is not pending approval`);
+    }
+
+    const workOrders = executionPlan.workOrderIds.map((id) => assertWorkOrder(id, state));
+    if (action === APPROVAL_STATUS.APPROVED) {
+      executionPlan.status = EXECUTION_PLAN_STATUS.APPROVED;
+      const ready = workOrders.filter((entry) => entry.dependencyIds.length === 0);
+      if (ready.length !== 1 || ready[0].role !== 'builder') {
+        throw conflict(`ExecutionPlan ${executionPlan.id} has an invalid first WorkOrder`);
+      }
+      ready[0].status = WORK_ORDER_STATUS.QUEUED;
+      ready[0].updatedAt = now;
+    } else {
+      executionPlan.status = EXECUTION_PLAN_STATUS.REJECTED;
+      for (const workOrder of workOrders) {
+        workOrder.status = WORK_ORDER_STATUS.CANCELLED;
+        workOrder.updatedAt = now;
+      }
+    }
+    executionPlan.updatedAt = now;
+  }
+
+  function beginSequentialWorkOrderExecution(input) {
+    const state = store.loadState();
+    const executionPlan = assertExecutionPlan(input.executionPlanId, state);
+    const approval = assertApproval(input.approvalId, state);
+    const mission = assertMission(executionPlan.missionId, state);
+    const project = assertProject(executionPlan.projectId, state);
+    const councilSession = assertCouncilSession(executionPlan.councilSessionId, state);
+
+    if (executionPlan.status !== EXECUTION_PLAN_STATUS.APPROVED) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} is not approved`);
+    }
+    if (
+      approval.id !== executionPlan.approvalId ||
+      approval.status !== APPROVAL_STATUS.APPROVED ||
+      approval.allowedNextAction !== WORK_ORDER_ACTION.START_SEQUENTIAL ||
+      approval.taskId !== executionPlan.controlTaskId ||
+      approval.metadata?.executionPlanId !== executionPlan.id ||
+      approval.metadata?.controlTaskId !== executionPlan.controlTaskId ||
+      approval.metadata?.previewId !== executionPlan.previewId ||
+      approval.metadata?.sourceDigest !== executionPlan.sourceDigest
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} does not have the required approval`);
+    }
+    assertRealCouncilSourceCurrent(councilSession, mission, project);
+    if (
+      project.provider?.mode !== PROVIDER_MODE.LOCAL_STUB ||
+      project.provider?.adapter !== PROVIDER_ADAPTER_ID.LOCAL_STUB
+    ) {
+      throw conflict('Sequential WorkOrder dispatch supports local-stub only');
+    }
+
+    const ready = executionPlan.workOrderIds
+      .map((id) => assertWorkOrder(id, state))
+      .filter((entry) => entry.status === WORK_ORDER_STATUS.QUEUED);
+    if (
+      ready.length !== 1 ||
+      ready[0].role !== 'builder' ||
+      ready[0].dependencyIds.length !== 0
+    ) {
+      throw conflict(`ExecutionPlan ${executionPlan.id} does not have one ready Builder WorkOrder`);
+    }
+
+    const now = new Date().toISOString();
+    executionPlan.status = EXECUTION_PLAN_STATUS.ACTIVE;
+    executionPlan.activeWorkOrderId = ready[0].id;
+    executionPlan.startedAt = now;
+    executionPlan.updatedAt = now;
+    ready[0].status = WORK_ORDER_STATUS.ACTIVE;
+    ready[0].startedAt = now;
+    ready[0].updatedAt = now;
+    mission.status = 'executing';
+    mission.updatedAt = now;
+    store.saveState(state);
+    return getExecutionPlanBundleFromState(state, executionPlan.id);
+  }
+
+  function finalizeSequentialWorkOrderExecution(input) {
+    const state = store.loadState();
+    const executionPlan = assertExecutionPlan(input.executionPlanId, state);
+    const workOrder = assertWorkOrder(input.workOrderId, state);
+    if (
+      executionPlan.activeWorkOrderId !== workOrder.id ||
+      workOrder.status !== WORK_ORDER_STATUS.ACTIVE
+    ) {
+      throw conflict(`WorkOrder ${workOrder.id} is not the active sequential dispatch`);
+    }
+
+    const stageResults = Array.isArray(input.stageResults) ? input.stageResults : [];
+    const uniqueRefs = (key) => [...new Set(stageResults.map((entry) => entry[key]).filter(Boolean))];
+    const now = new Date().toISOString();
+    workOrder.runRefs = uniqueRefs('runId');
+    workOrder.artifactRefs = uniqueRefs('artifactId');
+    workOrder.inboxItemRefs = uniqueRefs('inboxItemId');
+    workOrder.approvalRefs = uniqueRefs('approvalId');
+    executionPlan.runRefs = [...workOrder.runRefs];
+    executionPlan.artifactRefs = [...workOrder.artifactRefs];
+    executionPlan.terminalGateApprovalId = input.terminalGateApprovalId || null;
+    executionPlan.stopReason = String(input.stopReason || '').trim() || null;
+    executionPlan.stoppedAt = String(input.stoppedAt || '').trim() || null;
+    executionPlan.updatedAt = now;
+    workOrder.updatedAt = now;
+
+    if (
+      executionPlan.stoppedAt === 'request-builder-live-mutation-approval' &&
+      executionPlan.terminalGateApprovalId
+    ) {
+      const gateApproval = assertApproval(executionPlan.terminalGateApprovalId, state);
+      if (
+        gateApproval.taskId !== executionPlan.controlTaskId ||
+        gateApproval.allowedNextAction !== BUILDER_ACTION.LIVE_MUTATION ||
+        gateApproval.status !== APPROVAL_STATUS.PENDING
+      ) {
+        throw conflict('Builder terminal gate approval does not match the control task');
+      }
+      workOrder.status = WORK_ORDER_STATUS.WAITING_GATE;
+    } else {
+      executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
+      workOrder.status = WORK_ORDER_STATUS.BLOCKED;
+    }
+
+    store.saveState(state);
+    return getExecutionPlanBundleFromState(state, executionPlan.id);
+  }
+
+  function failSequentialWorkOrderExecution(input) {
+    const state = store.loadState();
+    const executionPlan = assertExecutionPlan(input.executionPlanId, state);
+    const workOrder = executionPlan.activeWorkOrderId
+      ? assertWorkOrder(executionPlan.activeWorkOrderId, state)
+      : null;
+    const now = new Date().toISOString();
+    executionPlan.status = EXECUTION_PLAN_STATUS.BLOCKED;
+    executionPlan.stopReason = String(input.reason || 'sequential-dispatch-failed');
+    executionPlan.updatedAt = now;
+    if (workOrder && workOrder.status === WORK_ORDER_STATUS.ACTIVE) {
+      workOrder.status = WORK_ORDER_STATUS.BLOCKED;
+      workOrder.updatedAt = now;
+    }
+    store.saveState(state);
+    return getExecutionPlanBundleFromState(state, executionPlan.id);
   }
 
   function getCouncilProviderReadiness(input = {}) {
@@ -2831,6 +3196,7 @@ function createRuntimeService(options = {}) {
       approval.status = input.action;
       approval.updatedAt = now;
       approval.resolvedAt = now;
+      reconcileExecutionPlanApproval(state, approval, input.action, now);
     }
 
     recalculateTaskFlags(task, state);
@@ -3378,6 +3744,7 @@ function createRuntimeService(options = {}) {
     assertTaskCanRunBuilderPreflight,
     assertTaskCanRunTaskBreaker,
     completeRun,
+    beginSequentialWorkOrderExecution,
     createApprovalPlaceholder,
     createCouncilSessionForMission,
     decideProviderCouncilSession,
@@ -3393,12 +3760,15 @@ function createRuntimeService(options = {}) {
     applyRetentionConsumer,
     ensureCommitActionAllowed,
     finalizeBuilderLiveMutationSuccess,
+    failSequentialWorkOrderExecution,
+    finalizeSequentialWorkOrderExecution,
     finishRunWithReviewPending,
     getArtifact,
     getApproval,
     getCouncilSession,
     getCouncilProviderReadiness,
     getDecisionInboxItem,
+    getExecutionPlan,
     getLogs,
     getMission,
     getProposalApplicationAttempt,
@@ -3412,6 +3782,7 @@ function createRuntimeService(options = {}) {
     previewRetentionConsumer,
     preflightMissionWorkOrderPreview,
     previewMissionWorkOrders,
+    persistMissionWorkOrderPlan,
     listApprovals,
     listCouncilProviderReadinessSummaries,
     listDecisionInboxItems,

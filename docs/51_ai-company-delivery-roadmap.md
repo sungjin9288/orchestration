@@ -242,11 +242,12 @@ dispatch하지 않고 checkpoint에서 정지한다.
 
 ### Authority Gate
 
-Planning-only authority는 `DEC-089`, implementation decision handoff는 `DEC-090`으로 기록됐다.
+Planning-only authority는 `DEC-089`, implementation decision handoff는 `DEC-090`, exact
+implementation은 `DEC-091`로 기록됐다.
 첫 implementation target은 general scheduler가 아니라 additive schema v7 records, exact
 preview/source digest에 묶인 one task-owned approval, separate start, local-stub-only first Builder
 dispatch다. 기존 planner -> architect -> task-breaker -> builder-preflight chain을 재사용하고 targeted
-live-mutation approval에서 멈춘다. Implementation remains blocked pending a complete fielded decision.
+live-mutation approval에서 멈춘다. Reviewer/QA와 downstream authority는 계속 blocked다.
 
 Accepted `DEC-089` planning provenance:
 
@@ -420,8 +421,9 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 5 planning과 implementation handoff는 `DEC-089`, `DEC-090`으로 accepted됐다. 다음
-architecture-sensitive decision target은 다음 하나다.
+Phase 5 planning과 implementation handoff는 `DEC-089`, `DEC-090`, exact implementation은
+`DEC-091`로 accepted됐다. 다음 architecture-sensitive decision은 현재 blocked authority 중
+하나를 complete fielded shape로 별도 승인해야 한다.
 
 ```text
 targetAuthority=one local deterministic schema-v7 durable ExecutionPlan and WorkOrder record path with one digest-bound operator approval and one sequential Builder dispatch stopping at the existing live-mutation approval gate
@@ -430,9 +432,9 @@ targetAuthority=one local deterministic schema-v7 durable ExecutionPlan and Work
 Any Phase 5 implementation must preserve the `DEC-088` response-only baseline, migrate valid schema
 v6 state additively, bind approval to exact plan provenance, use only the existing local-stub gates,
 stop before live mutation, preserve rollback evidence, and keep still-blocked authority explicit.
-Schema migration, WorkOrder persistence, approval creation, dispatch, mutation, Reviewer/QA execution,
-parallel scheduling, memory expansion, commit, push, release, and external connectors remain blocked
-until that complete fielded decision.
+Schema migration, durable record persistence, approval creation, and one Builder preflight dispatch는
+구현됐다. Mutation, Reviewer/QA execution, parallel scheduling, provider-backed WorkOrders, memory
+expansion, commit, push, release, and external connectors remain blocked.
 
 ## Verification
 
@@ -445,8 +447,10 @@ node scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler.mjs
 node scripts/smoke-ui-slice-653.mjs
 node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
+node scripts/smoke-ai-company-workorder-persistence-execution.mjs
+node scripts/smoke-ui-slice-654.mjs
 node scripts/verification_status.mjs
 ```
 
-Phase 0 verifier와 focused smokes는 implemented Phase 1-4 evidence와 Phase 5 blocked gate를
-확인하며, current Phase 5 evidence는 planning-only이고 implementation은 blocked다.
+Phase 0 verifier와 focused smokes는 implemented Phase 1-5 evidence, schema v7 migration, durable
+approval binding, Builder live-mutation stop gate를 확인한다.

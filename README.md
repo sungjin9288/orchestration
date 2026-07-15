@@ -75,9 +75,10 @@ define the planned company blueprint, runtime agent identity, staffing, Council,
 handoff, checkpoint, delivery, learning, rollback, and phased authority contracts. Phase 1 planning
 in `docs/52_ai-company-runtime-blueprint-implementation-plan.md` and the fielded handoff in
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md` are consumed by `DEC-079`.
-The implementation now strictly loads one repo-backed blueprint and nine role contracts, keeps
-persisted state at schema v6, and exposes `companyRuntime` only as an additive read-only snapshot on
-the configured local server path. The editable company roster remains browser presentation only.
+The implementation now strictly loads one repo-backed blueprint and nine role contracts. Persisted
+execution state is schema v7 after the additive Phase 5 migration, while `companyRuntime` remains an
+additive read-only snapshot on the configured local server path. The editable company roster remains
+browser presentation only.
 
 Phase 2 Real Council implementation is accepted by `DEC-082` against
 `docs/54_ai-company-real-council-implementation-plan.md` and the complete fielded decision in
@@ -97,7 +98,7 @@ fielded gate documented by `DEC-083` and `DEC-084` in
 source-backed roles, executes sequential bounded calls, computes conflict deterministically before
 Conductor synthesis, and records redacted provider evidence. Project readiness gates API/UI
 selection; retry, timeout, cancellation, malformed output, and missing configuration fail closed
-without local fallback. Schema v6, authoritative `real-local-stub`, legacy Council, and human
+without local fallback. Authoritative `real-local-stub`, legacy Council, and human
 alignment remain unchanged. Provider expansion and all downstream authority remain blocked.
 
 Phase 4 Mission compiler planning and its fielded gate are recorded by `DEC-086` and `DEC-087`; the
@@ -108,18 +109,20 @@ source-current Real Council synthesis plus an exact operator `compileSpec` produ
 deterministic response-only ExecutionPlan preview with a fixed Builder -> Reviewer -> QA draft graph
 and normalized handoffs. Invalid input is rejected before Council approval persistence; explicit
 inert mode skips linked-task creation, while the default approval auto-chain remains unchanged.
-Durable plans or WorkOrders, WorkOrder approval, scheduling, execution, StaffingPlan, mutation,
-commit, push, release, and connectors remain blocked.
+The preview itself remains response-only; durable promotion is available only through the explicit
+Phase 5 path described below.
 
-Phase 5 WorkOrder persistence and sequential execution planning is accepted by `DEC-089`, and its
-implementation decision handoff is recorded by `DEC-090` in
+Phase 5 WorkOrder persistence and sequential execution planning is accepted by `DEC-089`, its
+implementation decision handoff is recorded by `DEC-090`, and the exact fielded implementation is
+accepted by `DEC-091` in
 `docs/60_ai-company-workorder-persistence-execution-plan.md` and
-`docs/61_ai-company-workorder-persistence-execution-decision-handoff.md`. The planned minimum is
-schema v7, one digest-bound plan approval, and one local sequential Builder dispatch that reuses the
+`docs/61_ai-company-workorder-persistence-execution-decision-handoff.md`. Valid v6 state now migrates
+additively to schema v7. One source-current preview plus exact digest input can persist one plan,
+three WorkOrders, three handoffs, one linked control task, and one digest-bound approval. After
+Decision Inbox approval, a separate local sequential Builder start reuses the
 existing planner -> architect -> task-breaker -> builder-preflight chain and stops at the targeted
-live-mutation approval. Implementation remains blocked pending the complete fielded decision in
-`docs/61_ai-company-workorder-persistence-execution-decision-handoff.md`; current state remains
-schema v6 with response-only previews and no durable WorkOrder records.
+live-mutation approval. Reviewer/QA execution, source mutation, broader scheduling, provider-backed
+WorkOrders, commit, push, release, and connectors remain blocked.
 
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
@@ -184,7 +187,7 @@ review-decision packet, accepted evidence-decision, and downstream authority dec
 evidence together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `191/191`, total `192/192`; UI QA is required `31/31`.
+`1/1`, informational `193/193`, total `194/194`; UI QA is required `32/32`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -245,7 +248,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `192/192`, UI QA `31/31`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `194/194`, UI QA `32/32`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -1645,6 +1648,10 @@ Observed result:
 | `POST` | `/api/missions/:missionId/council/start` | Start the opt-in local-stub Real Council path. |
 | `POST` | `/api/council-sessions/:sessionId/resume` | Resume a failed position or synthesis attempt. |
 | `POST` | `/api/council-sessions/:sessionId/decision` | Approve, request a targeted revision, or stop a Real Council session. |
+| `POST` | `/api/council-sessions/:sessionId/work-order-preview` | Recompute one response-only source-current WorkOrder preview. |
+| `POST` | `/api/council-sessions/:sessionId/work-order-plans` | Persist one exact-preview schema-v7 plan bundle and pending approval. |
+| `GET` | `/api/execution-plans/:executionPlanId` | Inspect one durable plan, WorkOrders, handoffs, approval, and control task. |
+| `POST` | `/api/execution-plans/:executionPlanId/start-sequential` | Start only the approved local Builder preflight path and stop at live-mutation approval. |
 | `POST` | `/api/tasks` | Create a task under the active project. |
 | `POST` | `/api/tasks/:taskId/run-planner` | Run planner. |
 | `POST` | `/api/tasks/:taskId/run-architect` | Run architect. |
@@ -1675,9 +1682,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 870 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 872 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 653 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 654 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -1804,7 +1811,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `192/192`, UI QA `31/31`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `194/194`, UI QA `32/32`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2067,9 +2074,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `31/31`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `32/32`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `191/191`, total `192/192`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `193/193`, total `194/194`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2099,18 +2106,17 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `192/192`, UI QA `31/31`, and zero-open backlog are local source-backed checks.
+  aggregate `194/194`, UI QA `32/32`, and zero-open backlog are local source-backed checks.
 - `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
   It requires configured project readiness and human alignment, stores only redacted provider
   evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,
   memory/profile/source mutation, approval bypass, runtime-agent commit/push/release, or connectors.
   The optional live smoke is informational and reports `skipped_missing_env` when unconfigured.
-- `DEC-088` permits only Phase 4 deterministic response-only Mission compilation and inert preview.
-  The preview is not a durable ExecutionPlan, WorkOrder, or HandoffPacket record; WorkOrder approval,
-  queueing, scheduling, execution, and checkpoint persistence remain unimplemented and blocked.
-- `DEC-089` and `DEC-090` are Phase 5 planning and decision-handoff evidence only. Current state is
-  still schema v6; schema migration, durable plan records, plan approval creation, Builder dispatch,
-  Reviewer/QA execution, parallel scheduling, and source mutation remain unimplemented and blocked.
+- `DEC-088` keeps Phase 4 deterministic Mission compilation and inert preview response-only.
+- `DEC-091` permits only exact-preview promotion to schema-v7 durable records, one digest-bound plan
+  approval, and one local sequential Builder preflight dispatch. It stops at the existing Builder
+  live-mutation approval; Reviewer/QA execution, parallel or autonomous scheduling, provider-backed
+  WorkOrders, checkpoint expansion, source mutation, commit, push, and release remain blocked.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

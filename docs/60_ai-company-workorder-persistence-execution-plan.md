@@ -291,16 +291,31 @@ commit/release coordinators, and project source files are out of scope.
 
 - Planning authority: accepted as `DEC-089`
 - Implementation decision handoff: documented as `DEC-090`
-- Runtime/API/UI/schema implementation: blocked pending a complete fielded decision
+- Runtime/API/UI/schema implementation: accepted and implemented as `DEC-091`
 - Phase 4 response-only preview: remains implemented and authoritative
 - Reviewer/QA execution and every downstream authority: still blocked
+
+## Implementation Outcome
+
+- `schemaVersion: 7` adds durable ExecutionPlan, WorkOrder, and HandoffPacket sequences/maps and
+  migrates valid v6 state additively while rejecting partial v7 and future schemas.
+- Exact source-current `previewId` and `sourceDigest` promotion persists one complete record bundle,
+  linked control task, and digest-bound Decision Inbox approval through one atomic state save.
+- Approval queues only Builder. A separate local-stub start reuses the existing execution chain and
+  stops with Builder `waiting-gate` at the targeted live-mutation approval.
+- Reviewer and QA remain `blocked-dependency`; source mutation, provider WorkOrder dispatch,
+  scheduling expansion, commit, push, release, and connectors remain unavailable.
+- Focused evidence: `scripts/smoke-ai-company-workorder-persistence-execution.mjs` and
+  `scripts/smoke-ui-slice-654.mjs`.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
+node scripts/smoke-ai-company-workorder-persistence-execution.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler.mjs
 node scripts/smoke-ui-slice-653.mjs
+node scripts/smoke-ui-slice-654.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```

@@ -1569,6 +1569,132 @@ const server = createServer(async (request, response) => {
     }
   }
 
+  const realCouncilWorkOrderPlanMatch = url.pathname.match(
+    /^\/api\/council-sessions\/([^/]+)\/work-order-plans$/,
+  );
+
+  if (method === 'POST' && realCouncilWorkOrderPlanMatch) {
+    try {
+      const councilSessionId = decodeURIComponent(realCouncilWorkOrderPlanMatch[1]);
+      const input = await readJsonBody(request);
+      const executionPlanBundle = runtime.persistMissionWorkOrderPlan({
+        councilSessionId,
+        compileSpec: input.compileSpec,
+        previewId: input.previewId,
+        sourceDigest: input.sourceDigest,
+      });
+
+      json(
+        response,
+        executionPlanBundle.idempotent ? 200 : 201,
+        buildSnapshotResponse({
+          executionPlanBundle,
+          mutation: {
+            approvalId: executionPlanBundle.approval.id,
+            councilSessionId,
+            executionPlanId: executionPlanBundle.executionPlan.id,
+            idempotent: executionPlanBundle.idempotent,
+            kind: 'persist-mission-workorder-plan',
+            taskId: executionPlanBundle.controlTask.id,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'ExecutionPlan 저장에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const executionPlanMatch = url.pathname.match(/^\/api\/execution-plans\/([^/]+)$/);
+  if (method === 'GET' && executionPlanMatch) {
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanMatch[1]);
+      json(response, 200, {
+        executionPlanBundle: runtime.getExecutionPlan(executionPlanId),
+        generatedAt: new Date().toISOString(),
+        runtimeRoot: options.runtimeRoot,
+      });
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, { error: error.message || 'ExecutionPlan 조회에 실패했습니다.' });
+      return;
+    }
+  }
+
+  const executionPlanStartMatch = url.pathname.match(
+    /^\/api\/execution-plans\/([^/]+)\/start-sequential$/,
+  );
+  if (method === 'POST' && executionPlanStartMatch) {
+    let startedBundle = null;
+    try {
+      const executionPlanId = decodeURIComponent(executionPlanStartMatch[1]);
+      const input = await readJsonBody(request);
+      startedBundle = runtime.beginSequentialWorkOrderExecution({
+        executionPlanId,
+        approvalId: input.approvalId,
+      });
+      const result = await runMissionAlignmentAutoChain(startedBundle.mission.id, {
+        alignedResult: {
+          mission: startedBundle.mission,
+          councilSession: startedBundle.councilSession,
+        },
+      });
+      const executionPlanBundle = runtime.finalizeSequentialWorkOrderExecution({
+        executionPlanId,
+        workOrderId: startedBundle.executionPlan.activeWorkOrderId,
+        stageResults: result.stageResults,
+        stopReason: result.stopReason,
+        stoppedAt: result.stoppedAt,
+        terminalGateApprovalId: result.approval?.id || null,
+      });
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          executionPlanBundle,
+          mutation: {
+            approvalId: executionPlanBundle.approval.id,
+            autoChain: {
+              linkedTaskCreated: result.linkedTaskCreated,
+              stageResults: result.stageResults,
+              stopReason: result.stopReason,
+              stoppedAt: result.stoppedAt,
+            },
+            executionPlanId,
+            kind: 'start-sequential-workorder-plan',
+            taskId: executionPlanBundle.controlTask.id,
+            terminalGateApprovalId:
+              executionPlanBundle.executionPlan.terminalGateApprovalId || null,
+            workOrderId: startedBundle.executionPlan.activeWorkOrderId,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      if (startedBundle?.executionPlan?.id) {
+        try {
+          runtime.failSequentialWorkOrderExecution({
+            executionPlanId: startedBundle.executionPlan.id,
+            reason: error.message || 'sequential-dispatch-failed',
+          });
+        } catch (_finalizeError) {
+          // Preserve the original dispatch failure for the API caller.
+        }
+      }
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'Builder WorkOrder 순차 시작에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
   const missionApproveCouncilMatch = url.pathname.match(
     /^\/api\/missions\/([^/]+)\/approve-council$/,
   );
@@ -1685,7 +1811,7 @@ const server = createServer(async (request, response) => {
       );
       return;
     } catch (error) {
-      const statusCode = /not found/i.test(error.message) ? 404 : 400;
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, {
         error: error.message || '보존 정리 미리보기에 실패했습니다.',
       });

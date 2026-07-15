@@ -73,6 +73,33 @@ export function getMissionWorkOrderPreviewSummary(preview, councilSessionId) {
   };
 }
 
+export function getMissionExecutionPlanBundle(snapshot, councilSessionId) {
+  const executionPlan = Object.values(snapshot?.executionPlans || {}).find(
+    (entry) => entry.councilSessionId === councilSessionId,
+  );
+  if (!executionPlan) return null;
+
+  const workOrders = executionPlan.workOrderIds
+    .map((id) => snapshot.workOrders?.[id] || null)
+    .filter(Boolean);
+  const handoffPackets = executionPlan.handoffPacketIds
+    .map((id) => snapshot.handoffPackets?.[id] || null)
+    .filter(Boolean);
+  const approval = snapshot.approvals?.[executionPlan.approvalId] || null;
+  const controlTask = snapshot.tasks?.[executionPlan.controlTaskId] || null;
+
+  if (
+    workOrders.length !== executionPlan.workOrderIds.length ||
+    handoffPackets.length !== executionPlan.handoffPacketIds.length ||
+    !approval ||
+    !controlTask
+  ) {
+    return null;
+  }
+
+  return { executionPlan, workOrders, handoffPackets, approval, controlTask };
+}
+
 export function getCouncilCastEntry(role, councilSession) {
   const meta = COUNCIL_CAST_METADATA[role] || {
     archetype: '보이는 역할',

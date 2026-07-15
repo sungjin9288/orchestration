@@ -66,7 +66,7 @@ function createConfiguredRuntime(name, adapter = createResolvedAdapter()) {
     projectId: project.id,
     title: `Mission compiler ${name}`,
     goal: 'Compile one deterministic response-only Builder Reviewer QA preview.',
-    constraints: 'Keep schema v6 and do not create or execute durable WorkOrders.',
+    constraints: 'Keep the response-only preview path and do not create or execute durable WorkOrders.',
   });
   const started = runtime.startRealCouncilForMission({
     missionId: mission.id,
@@ -92,9 +92,10 @@ function assertNoDownstreamRecords(snapshot) {
   for (const key of ['tasks', 'runs', 'artifacts', 'approvals']) {
     assert.equal(Object.keys(snapshot[key]).length, 0, `${key} must remain empty`);
   }
-  for (const forbiddenKey of ['executionPlans', 'workOrders', 'handoffPackets', 'checkpoints']) {
-    assert.equal(Object.hasOwn(snapshot, forbiddenKey), false);
+  for (const emptyKey of ['executionPlans', 'workOrders', 'handoffPackets']) {
+    assert.equal(Object.keys(snapshot[emptyKey] || {}).length, 0, `${emptyKey} must remain empty`);
   }
+  assert.equal(Object.hasOwn(snapshot, 'checkpoints'), false);
 }
 
 function assertGraphFailure(workOrders, pattern) {
@@ -111,7 +112,7 @@ try {
   const initialSession = initialSnapshot.councilSessions[success.session.id];
   const initialAttempt = initialSession.attempts[0];
 
-  assert.equal(initialSnapshot.schemaVersion, 6);
+  assert.equal(initialSnapshot.schemaVersion, 7);
   assert.deepEqual(initialAttempt.synthesis.unresolvedQuestions, []);
   assert.equal(initialSession.phase, 'awaiting-alignment');
   assertNoDownstreamRecords(initialSnapshot);
@@ -177,7 +178,7 @@ try {
   assert.ok(preview.workOrders.every((entry) => entry.authority.persistenceAllowed === false));
 
   const approvedSnapshot = success.runtime.getSnapshot();
-  assert.equal(approvedSnapshot.schemaVersion, 6);
+  assert.equal(approvedSnapshot.schemaVersion, 7);
   assertNoDownstreamRecords(approvedSnapshot);
   const stateBeforeReload = clone(approvedSnapshot);
   const reloaded = createRuntimeService({
@@ -331,7 +332,7 @@ try {
       providerSchemaParity: true,
     },
     compatibility: {
-      schemaVersion: 6,
+      schemaVersion: 7,
       persistedPlanRecords: 0,
       persistedWorkOrderRecords: 0,
       defaultLocalUnresolvedRejected: true,

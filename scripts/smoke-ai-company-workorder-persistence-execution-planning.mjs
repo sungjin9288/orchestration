@@ -95,7 +95,7 @@ assertAll(planText, [
   /POST \/api\/council-sessions\/:id\/work-order-plans/,
   /POST \/api\/execution-plans\/:id\/start-sequential/,
   /Do not downgrade or delete state to simulate rollback/,
-  /Runtime\/API\/UI\/schema implementation: blocked pending a complete fielded decision/,
+  /Runtime\/API\/UI\/schema implementation: accepted and implemented as `DEC-091`/,
 ]);
 
 assert.match(
@@ -130,29 +130,35 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-089$/m);
 assert.match(decisionLog, /^### DEC-090$/m);
+assert.match(decisionLog, /^### DEC-091$/m);
 assert.match(
   decisionLog,
   /Accept `operator-delegated-ai-company-workorder-persistence-execution-planning-001`/,
 );
-assert.match(decisionLog, /records no schema or runtime implementation outcome/);
-assert.match(masterPlan, /Phase 5 planning과 implementation handoff는 `DEC-089`, `DEC-090`/);
+assert.match(decisionLog, /Accept `operator-decision-ai-company-workorder-persistence-execution-implementation-001`/);
+assert.match(masterPlan, /implementation은 `DEC-091`로 accepted됐다/);
 assert.match(runtimeContract, /schema v7 durable record planning은 `DEC-089`/);
-assert.match(councilProtocol, /Phase 5 계획은 one digest-bound operator approval/);
+assert.match(councilProtocol, /implementation은 `DEC-091`로 accepted됐다/);
 assertAll(roadmapText, [
-  /Planning-only authority는 `DEC-089`, implementation decision handoff는 `DEC-090`/,
+  /implementation은 `DEC-091`로 기록됐다/,
   /targetAuthority=one local deterministic schema-v7 durable ExecutionPlan and WorkOrder record path/,
-  /Implementation remains blocked pending a complete fielded decision/,
+  /Schema migration, durable record persistence, approval creation, and one Builder preflight dispatch는 구현됐다/,
 ]);
 assert.match(
   completionInventory,
   /AI Company WorkOrder persistence and sequential execution planning \| pass/,
 );
+assert.match(
+  completionInventory,
+  /AI Company WorkOrder persistence and sequential execution implementation \| pass/,
+);
 assertAll(readmeText, [
   /Phase 5 WorkOrder persistence and sequential execution planning is accepted by `DEC-089`/,
-  /schema v7, one digest-bound plan approval, and one local sequential Builder dispatch/,
-  /Implementation remains blocked pending the complete fielded decision in `docs\/61_ai-company-workorder-persistence-execution-decision-handoff\.md`/,
+  /exact fielded implementation is accepted by `DEC-091`/,
+  /Valid v6 state now migrates additively to schema v7/,
 ]);
 assert.match(taskLedger, /ai-company-workorder-persistence-execution-planning-post-m7-1946/);
+assert.match(taskLedger, /ai-company-workorder-persistence-execution-implementation-post-m7-1947/);
 assert.match(lessons, /A durable WorkOrder slice should reuse the narrowest existing execution gate/);
 assert.match(verification, /id: 'ai-company-workorder-persistence-execution-planning'/);
 assert.match(
@@ -160,14 +166,16 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-workorder-persistence-execution-planning\.mjs'/,
 );
 
-// Planning must remain truthful about the current schema-v6 response-only baseline.
-assert.match(contracts, /schemaVersion: 6/);
-assert.doesNotMatch(contracts, /executionPlans:/);
-assert.doesNotMatch(contracts, /workOrders:/);
-assert.doesNotMatch(fileStore, /normalizedState\.executionPlans/);
-assert.doesNotMatch(runtimeService, /persistMissionWorkOrderPlan/);
+// Consumed planning must remain truthful about the current schema-v7 implementation boundary.
+assert.match(contracts, /const STATE_SCHEMA_VERSION = 7/);
+assert.match(contracts, /executionPlans: \{\}/);
+assert.match(contracts, /workOrders: \{\}/);
+assert.match(fileStore, /executionPlans: state\.executionPlans \|\| \{\}/);
+assert.match(runtimeService, /function persistMissionWorkOrderPlan\(input\)/);
+assert.match(runtimeService, /function beginSequentialWorkOrderExecution\(input\)/);
 assert.doesNotMatch(executionCoordinator, /startWorkOrderSequentialExecution/);
-assert.doesNotMatch(server, /work-order-plans/);
+assert.match(server, /work-order-plans/);
+assert.match(server, /start-sequential/);
 assert.match(server, /inert-workorder-preview/);
 
 process.stdout.write(
@@ -178,7 +186,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-089',
         handoff: 'documented-dec-090',
-        implementation: 'blocked-fielded-decision-required',
+        implementation: 'accepted-dec-091',
       },
       plannedPath: {
         schemaVersion: 7,
@@ -188,16 +196,16 @@ process.stdout.write(
         stop: 'existing-builder-live-mutation-approval',
       },
       currentBaseline: {
-        schemaVersion: 6,
-        preview: 'response-only',
-        durableWorkOrderRecords: false,
-        workOrderExecution: false,
+        schemaVersion: 7,
+        preview: 'response-only-compatible',
+        durableWorkOrderRecords: true,
+        workOrderExecution: 'builder-preflight-only',
       },
       authority: {
         planningAllowed: true,
-        implementationAllowed: false,
-        schemaMigrationAllowed: false,
-        durableRecordsAllowed: false,
+        implementationAllowed: true,
+        schemaMigrationAllowed: true,
+        durableRecordsAllowed: true,
         sourceMutationAllowed: false,
         reviewerQaExecutionAllowed: false,
         parallelSchedulingAllowed: false,

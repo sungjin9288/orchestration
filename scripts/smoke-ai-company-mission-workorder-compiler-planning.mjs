@@ -138,14 +138,15 @@ assert.match(councilProtocol, /Existing linked-task\s+auto-chain은 explicit mod
 assertAll(roadmapText, [
   /Planning-only authority는 `DEC-086`, implementation decision handoff는 `DEC-087`, exact response-only implementation은 `DEC-088`/,
   /targetAuthority=planning only for durable WorkOrder persistence, approval, and sequential execution through existing gates/,
-  /implemented Phase 1-4 evidence와 Phase 5 blocked gate/,
+  /implemented Phase 1-5 evidence, schema v7 migration, durable\s+approval binding, Builder live-mutation stop gate/,
 ]);
 assert.match(completionInventory, /AI Company Mission compiler and inert WorkOrder planning \| pass/);
 assert.match(completionInventory, /AI Company Mission compiler and inert WorkOrder implementation \| pass/);
 assertAll(readmeText, [
   /exact response-only implementation is accepted by `DEC-088`/,
   /fixed Builder -> Reviewer -> QA draft graph/,
-  /Durable plans or WorkOrders, WorkOrder approval, scheduling, execution/,
+  /The preview itself remains response-only; durable promotion is available only through the explicit\s+Phase 5 path/,
+  /Reviewer\/QA execution, source mutation, broader scheduling, provider-backed\s+WorkOrders, commit, push, release, and connectors remain blocked/,
 ]);
 assert.match(taskLedger, /ai-company-mission-workorder-compiler-planning-post-m7-1944/);
 assert.match(lessons, /A deterministic WorkOrder compiler must not invent execution-critical fields/);
@@ -187,12 +188,12 @@ process.stdout.write(
         execution: false,
       },
       compatibility: {
-        schemaVersion: 6,
+        schemaVersion: 7,
         fileStoreMigrationPlanned: false,
         defaultLinkedTaskAutoChainPreserved: true,
         providerCallsDuringCompile: false,
       },
-      authority: {
+      phase4Authority: {
         planningAllowed: true,
         compilerImplementationAllowed: true,
         workOrderPersistenceAllowed: false,
@@ -202,6 +203,12 @@ process.stdout.write(
         sourceMutationAllowed: false,
         runtimeAgentCommitAllowed: false,
         runtimeAgentPushAllowed: false,
+      },
+      currentPhase5Boundary: {
+        durableWorkOrderRecordsAllowed: true,
+        sequentialBuilderPreflightAllowed: true,
+        builderLiveMutationAllowed: false,
+        reviewerOrQaExecutionAllowed: false,
       },
     },
     null,

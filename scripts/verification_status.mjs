@@ -394,12 +394,12 @@ const informationalChecks = [
   {
     id: 'ai-company-runtime-blueprint-planning',
     script: 'scripts/smoke-ai-company-runtime-blueprint-planning.mjs',
-    purpose: 'AI Company Phase 1 planning remains consumed provenance for DEC-079 and source-checks the implemented strict repo-backed blueprint, optional runtime injection, additive read-only snapshot, schema v6 compatibility, rollback, and still-blocked downstream authority',
+    purpose: 'AI Company Phase 1 planning remains consumed provenance for DEC-079 and source-checks the implemented strict repo-backed blueprint, optional runtime injection, additive read-only snapshot, schema v7 compatibility after additive migration, rollback, and still-blocked downstream authority',
   },
   {
     id: 'ai-company-runtime-blueprint-implementation',
     script: 'scripts/smoke-ai-company-runtime-blueprint.mjs',
-    purpose: 'AI Company Phase 1 runtime smoke proves strict immutable blueprint and nine-role loading, stable identities, fail-closed invalid source handling, configured-only additive companyRuntime exposure, schema v6 non-persistence, deterministic Council compatibility, and blocked downstream authority',
+    purpose: 'AI Company Phase 1 runtime smoke proves strict immutable blueprint and nine-role loading, stable identities, fail-closed invalid source handling, configured-only additive companyRuntime exposure, schema v7 compatibility, deterministic Council compatibility, and blocked downstream authority',
   },
   {
     id: 'ai-company-real-council-planning',
@@ -409,7 +409,7 @@ const informationalChecks = [
   {
     id: 'ai-company-real-council-implementation',
     script: 'scripts/smoke-ai-company-real-council.mjs',
-    purpose: 'AI Company Phase 2 runtime smoke proves isolated Strategist Architect and Decomposer requests, strict position and synthesis validation, deterministic conflict evidence, Conductor synthesis, revision history, failure resume, schema v6 reload, stale-source rejection, legacy Council compatibility, and blocked provider memory mutation commit push and release authority',
+    purpose: 'AI Company Phase 2 runtime smoke proves isolated Strategist Architect and Decomposer requests, strict position and synthesis validation, deterministic conflict evidence, Conductor synthesis, revision history, failure resume, schema v7 reload, stale-source rejection, legacy Council compatibility, and blocked provider memory mutation commit push and release authority',
   },
   {
     id: 'ai-company-real-council-ui-api',
@@ -424,7 +424,7 @@ const informationalChecks = [
   {
     id: 'ai-company-council-live-provider-implementation',
     script: 'scripts/smoke-ai-company-council-live-provider.mjs',
-    purpose: 'AI Company Phase 3 synthetic provider smoke proves explicit OpenAI Responses Council opt-in, isolated sequential role requests, strict normalized schemas, deterministic conflict before synthesis, bounded retry timeout cancellation and call budget, redacted evidence, schema v6 reload, and local-stub plus legacy compatibility',
+    purpose: 'AI Company Phase 3 synthetic provider smoke proves explicit OpenAI Responses Council opt-in, isolated sequential role requests, strict normalized schemas, deterministic conflict before synthesis, bounded retry timeout cancellation and call budget, redacted evidence, schema v7 reload, and local-stub plus legacy compatibility',
   },
   {
     id: 'ai-company-council-live-provider-ui-api',
@@ -434,12 +434,12 @@ const informationalChecks = [
   {
     id: 'ai-company-mission-workorder-compiler-planning',
     script: 'scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs',
-    purpose: 'AI Company Phase 4 planning remains consumed provenance for DEC-088 and pins the implemented deterministic response-only Mission compiler, exact operator compile inputs, schema v6 compatibility, rollback, and still-blocked persistence execution scheduling mutation commit push release and connectors',
+    purpose: 'AI Company Phase 4 planning remains consumed provenance for DEC-088 and pins the implemented deterministic response-only Mission compiler, exact operator compile inputs, schema v7 compatibility after additive migration, rollback, and the then-blocked persistence and execution authorities later narrowed by DEC-091',
   },
   {
     id: 'ai-company-mission-workorder-compiler-implementation',
     script: 'scripts/smoke-ai-company-mission-workorder-compiler.mjs',
-    purpose: 'AI Company Phase 4 runtime smoke proves exact compileSpec validation, source-current approved Council gating, deterministic deeply frozen Builder Reviewer QA previews, graph and authority closure, schema v6 non-persistence, provider-shaped schema parity, and default local unresolved-question rejection',
+    purpose: 'AI Company Phase 4 runtime smoke proves exact compileSpec validation, source-current approved Council gating, deterministic deeply frozen Builder Reviewer QA previews, graph and authority closure, response-only non-persistence unless explicitly promoted through Phase 5, schema v7 compatibility, provider-shaped schema parity, and default local unresolved-question rejection',
   },
   {
     id: 'ai-company-mission-workorder-compiler-ui-api',
@@ -449,7 +449,17 @@ const informationalChecks = [
   {
     id: 'ai-company-workorder-persistence-execution-planning',
     script: 'scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs',
-    purpose: 'AI Company Phase 5 planning pins additive schema v7 durable plan records, exact preview and source digest promotion, one task-owned plan approval, one separate local-stub sequential Builder dispatch stopping at the existing live-mutation approval, migration and rollback evidence, and still-blocked implementation source mutation Reviewer QA scheduling provider commit push release and connectors',
+    purpose: 'AI Company Phase 5 planning remains consumed provenance for DEC-091 and pins additive schema v7 durable plan records, exact preview and source digest promotion, one task-owned plan approval, one separate local-stub sequential Builder dispatch stopping at the existing live-mutation approval, migration and rollback evidence, and still-blocked source mutation Reviewer QA scheduling provider commit push release and connectors',
+  },
+  {
+    id: 'ai-company-workorder-persistence-execution-implementation',
+    script: 'scripts/smoke-ai-company-workorder-persistence-execution.mjs',
+    purpose: 'AI Company Phase 5 runtime smoke proves additive schema v7 migration, atomic exact-digest plan persistence, idempotency, approval and rejection binding, one local sequential Builder preflight dispatch, reload evidence, and the unchanged live-mutation gate with Reviewer QA providers source mutation commit push and release still blocked',
+  },
+  {
+    id: 'ai-company-workorder-persistence-execution-ui-api',
+    script: 'scripts/smoke-ui-slice-654.mjs',
+    purpose: 'AI Company Phase 5 UI and API smoke proves explicit persist approve and start controls, stale digest refusal, Decision Inbox reconciliation, durable reload evidence, responsive layout rules, one Builder stop at live-mutation approval, and no Reviewer QA or source mutation controls',
   },
   {
     id: 'coordinator-path-containment-smoke',

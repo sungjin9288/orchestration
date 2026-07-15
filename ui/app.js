@@ -137,6 +137,7 @@ import {
   getCouncilCastEntry,
   getCurrentRealCouncilAttempt,
   getLatestRealCouncilPositions,
+  getMissionExecutionPlanBundle,
   getMissionWorkOrderPreviewSummary,
   isRealCouncilMode,
   parseMissionWorkOrderCompileList,
@@ -5113,6 +5114,16 @@ async function handleSelection(action, id) {
     return;
   }
 
+  if (action === 'persist-mission-workorder-plan') {
+    await submitMissionWorkOrderPlan(id);
+    return;
+  }
+
+  if (action === 'start-sequential-workorder-plan') {
+    await submitSequentialWorkOrderPlan(id);
+    return;
+  }
+
   if (action === 'request-revision-real-council-session') {
     await submitRealCouncilDecision(id, 'request-revision');
     return;
@@ -5663,6 +5674,67 @@ async function submitMissionWorkOrderPreview(councilSessionId) {
     state.surface = 'council';
     render();
     elements.refreshStatus.textContent = `${payload.missionWorkOrderPreview.previewId}를 응답 메모리에 다시 계산했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitMissionWorkOrderPlan(councilSessionId) {
+  const preview = state.missionWorkOrderPreview;
+  const summary = getMissionWorkOrderPreviewSummary(preview, councilSessionId);
+  if (!summary) {
+    throw new Error('먼저 source-current WorkOrder preview를 계산해야 합니다.');
+  }
+  const compileSpec = readMissionWorkOrderCompileSpec();
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `ExecutionPlan ${summary.executionPlanId}을 저장하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/council-sessions/${encodeURIComponent(councilSessionId)}/work-order-plans`,
+      {
+        compileSpec,
+        previewId: preview.previewId,
+        sourceDigest: preview.sourceDigest,
+      },
+    );
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = 'council';
+    render();
+    elements.refreshStatus.textContent = `${payload.executionPlanBundle.executionPlan.id}을 승인 대기 상태로 저장했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitSequentialWorkOrderPlan(executionPlanId) {
+  const snapshot = getActivePayload().snapshot || {};
+  const executionPlan = snapshot.executionPlans?.[executionPlanId] || null;
+  if (!executionPlan) throw new Error(`ExecutionPlan ${executionPlanId}을 찾을 수 없습니다.`);
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `ExecutionPlan ${executionPlanId}의 Builder를 시작하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/execution-plans/${encodeURIComponent(executionPlanId)}/start-sequential`,
+      { approvalId: executionPlan.approvalId },
+    );
+    applySnapshotPayload(payload);
+    syncSelectionsFromMission(payload.executionPlanBundle.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = 'council';
+    render();
+    elements.refreshStatus.textContent = `Builder WorkOrder가 ${payload.mutation.autoChain.stoppedAt}에서 멈췄습니다`;
   } finally {
     state.mutating = false;
     render();
@@ -9961,7 +10033,7 @@ function renderMissionWorkOrderCompileForm(councilSession, options = {}) {
   `;
 }
 
-function renderMissionWorkOrderPreview(preview, councilSession) {
+function renderMissionWorkOrderPreview(preview, councilSession, persistedBundle = null) {
   const summary = getMissionWorkOrderPreviewSummary(preview, councilSession?.id);
   if (!summary) return '';
 
@@ -10006,6 +10078,89 @@ function renderMissionWorkOrderPreview(preview, councilSession) {
         ${createToken(`digest:${preview.sourceDigest.slice(0, 12)}`, 'neutral')}
       </div>
       <div class="mission-workorder-list">${workOrderRows}</div>
+      ${
+        persistedBundle
+          ? ''
+          : `
+            <div class="relation-button-row mission-workorder-actions">
+              <button
+                class="primary-button"
+                type="button"
+                data-action="persist-mission-workorder-plan"
+                data-id="${escapeHtml(councilSession.id)}"
+                ${state.loading || state.mutating ? 'disabled' : ''}
+              >
+                검토 대기 계획으로 저장
+              </button>
+            </div>
+          `
+      }
+    </section>
+  `;
+}
+
+function renderMissionExecutionPlan(bundle) {
+  if (!bundle) return '';
+  const { executionPlan, workOrders, approval } = bundle;
+  const startAllowed =
+    executionPlan.status === 'approved' && approval.status === 'approved';
+  const workOrderRows = workOrders
+    .map(
+      (workOrder) => `
+        <div class="mission-workorder-row">
+          <div class="card-title-row card-title-row-tight">
+            <strong>${workOrder.position}. ${escapeHtml(workOrder.title)}</strong>
+            ${createToken(workOrder.role, workOrder.role === 'builder' ? 'accent' : 'neutral')}
+            ${createToken(workOrder.status, workOrder.status === 'waiting-gate' ? 'warning' : 'neutral')}
+          </div>
+          <div class="token-row token-row-compact">
+            ${createToken(
+              workOrder.dependencyIds.length > 0
+                ? `depends:${workOrder.dependencyIds.join(', ')}`
+                : 'depends:none',
+              'neutral',
+            )}
+            ${createToken(`runs:${workOrder.runRefs.length}`, 'neutral')}
+            ${createToken(`artifacts:${workOrder.artifactRefs.length}`, 'neutral')}
+          </div>
+        </div>
+      `,
+    )
+    .join('');
+
+  return `
+    <section class="mission-workorder-plan" aria-label="Durable ExecutionPlan">
+      <div class="card-title-row card-title-row-tight">
+        <strong>Durable ExecutionPlan</strong>
+        ${createToken(executionPlan.status, executionPlan.status === 'approved' ? 'success' : 'accent')}
+        ${createToken(`approval:${approval.status}`, approval.status === 'approved' ? 'success' : 'warning')}
+      </div>
+      <div class="token-row token-row-compact">
+        ${createToken(executionPlan.id, 'accent')}
+        ${createToken(`digest:${executionPlan.sourceDigest.slice(0, 12)}`, 'neutral')}
+        ${executionPlan.terminalGateApprovalId ? createToken('builder mutation gate', 'warning') : ''}
+      </div>
+      <div class="mission-workorder-list">${workOrderRows}</div>
+      <div class="relation-button-row mission-workorder-actions">
+        <button
+          class="primary-button"
+          type="button"
+          data-action="start-sequential-workorder-plan"
+          data-id="${escapeHtml(executionPlan.id)}"
+          ${state.loading || state.mutating || !startAllowed ? 'disabled' : ''}
+        >
+          Builder 순차 시작
+        </button>
+        <p class="form-help">${escapeHtml(
+          executionPlan.status === 'pending-approval'
+            ? 'Decision Inbox에서 digest-bound 계획 승인이 필요합니다.'
+            : executionPlan.status === 'approved'
+              ? '별도 시작 명령은 Builder preflight 뒤 live-mutation 승인에서 멈춥니다.'
+              : executionPlan.status === 'active' && executionPlan.terminalGateApprovalId
+                ? `Builder live-mutation 승인 ${executionPlan.terminalGateApprovalId}에서 대기 중입니다.`
+                : `현재 계획 상태: ${executionPlan.status}`,
+        )}</p>
+      </div>
     </section>
   `;
 }
@@ -10146,6 +10301,10 @@ function renderCouncil(data) {
     selectedMission?.linkedTaskId && data.taskMap.has(selectedMission.linkedTaskId)
       ? data.taskMap.get(selectedMission.linkedTaskId)
       : null;
+  const missionExecutionPlanBundle = getMissionExecutionPlanBundle(
+    data.snapshot,
+    selectedCouncilSession?.id,
+  );
   const selectedMissionCompletion = getMissionCompletionSummary(selectedMission, data);
   const selectedMissionCouncilPreview = getMissionCouncilPreview(selectedMission, data);
   const selectedMissionExecutionPreview = getMissionExecutionPreview(selectedMission, data);
@@ -10508,7 +10667,8 @@ function renderCouncil(data) {
                       ? `
                         <div class="field">
                           ${renderRealCouncilAlignmentControls(selectedCouncilSession)}
-                          ${renderMissionWorkOrderPreview(state.missionWorkOrderPreview, selectedCouncilSession)}
+                          ${renderMissionWorkOrderPreview(state.missionWorkOrderPreview, selectedCouncilSession, missionExecutionPlanBundle)}
+                          ${renderMissionExecutionPlan(missionExecutionPlanBundle)}
                           <div class="relation-button-row">
                             <button
                               class="secondary-button"

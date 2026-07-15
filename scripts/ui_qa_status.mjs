@@ -178,6 +178,12 @@ const smokeChecks = [
     purpose:
       'Mission compiler UI and API preserve explicit inert-preview selection, preflight-before-approval, response-only evidence, blocked downstream controls, deterministic recompute, and default linked-task compatibility',
   },
+  {
+    id: 'ai-company-workorder-persistence-execution-ui-api',
+    script: 'scripts/smoke-ui-slice-654.mjs',
+    purpose:
+      'Durable WorkOrder UI and API preserve explicit persist approve and start actions, stale digest refusal, reload evidence, responsive controls, one Builder preflight dispatch, and the existing live-mutation stop gate',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

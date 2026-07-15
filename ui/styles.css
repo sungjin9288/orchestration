@@ -8732,11 +8732,22 @@ h3 {
 }
 
 .mission-workorder-compile-form,
-.mission-workorder-preview {
+.mission-workorder-preview,
+.mission-workorder-plan {
   width: 100%;
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--surface-control-border);
+}
+
+.mission-workorder-actions {
+  align-items: center;
+  margin-top: 12px;
+}
+
+.mission-workorder-actions .form-help {
+  flex: 1 1 280px;
+  margin: 0;
 }
 
 .mission-workorder-compile-grid {

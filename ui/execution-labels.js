@@ -278,6 +278,10 @@ export function getMissionStatusTone(status) {
     return 'warning';
   }
 
+  if (status === 'waiting-approval') {
+    return 'warning';
+  }
+
   if (status === 'executing') {
     return 'accent';
   }
@@ -292,6 +296,10 @@ export function getMissionStatusTone(status) {
 export function getMissionStatusDisplay(status) {
   if (status === 'aligning') {
     return '정렬 중';
+  }
+
+  if (status === 'waiting-approval') {
+    return '계획 승인 대기';
   }
 
   if (status === 'aligned') {

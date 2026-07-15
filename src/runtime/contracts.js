@@ -198,6 +198,32 @@ const APPROVAL_STATUS = {
   REJECTED: 'rejected',
 };
 
+const STATE_SCHEMA_VERSION = 7;
+const MIGRATABLE_STATE_SCHEMA_VERSION = 6;
+
+const EXECUTION_PLAN_STATUS = {
+  PENDING_APPROVAL: 'pending-approval',
+  APPROVED: 'approved',
+  ACTIVE: 'active',
+  BLOCKED: 'blocked',
+  REJECTED: 'rejected',
+  CANCELLED: 'cancelled',
+};
+
+const WORK_ORDER_STATUS = {
+  PENDING_APPROVAL: 'pending-approval',
+  QUEUED: 'queued',
+  ACTIVE: 'active',
+  WAITING_GATE: 'waiting-gate',
+  BLOCKED_DEPENDENCY: 'blocked-dependency',
+  BLOCKED: 'blocked',
+  CANCELLED: 'cancelled',
+};
+
+const WORK_ORDER_ACTION = {
+  START_SEQUENTIAL: 'start-workorder-sequential-execution',
+};
+
 const BUILDER_ACTION = {
   LIVE_MUTATION: 'builder-live-mutation',
 };
@@ -280,7 +306,7 @@ const PROPOSAL_SOURCE_MUTATION_DEFAULT_BLOCKED_ACTIONS = Object.freeze([
 
 function createEmptyState() {
   return {
-    schemaVersion: 6,
+    schemaVersion: STATE_SCHEMA_VERSION,
     activeProjectId: null,
     selectedMissionId: null,
     sequences: {
@@ -295,6 +321,9 @@ function createEmptyState() {
       proposalRecord: 0,
       proposalApplicationAttempt: 0,
       proposalSourceMutation: 0,
+      executionPlan: 0,
+      workOrder: 0,
+      handoffPacket: 0,
     },
     missions: {},
     councilSessions: {},
@@ -307,6 +336,9 @@ function createEmptyState() {
     proposalRecords: {},
     proposalApplicationAttempts: {},
     proposalSourceMutations: {},
+    executionPlans: {},
+    workOrders: {},
+    handoffPackets: {},
   };
 }
 
@@ -341,6 +373,11 @@ module.exports = {
   RELEASE_ACTION,
   REVIEW_STATUS,
   RUN_STATUS,
+  EXECUTION_PLAN_STATUS,
+  MIGRATABLE_STATE_SCHEMA_VERSION,
+  STATE_SCHEMA_VERSION,
   TASK_LIFECYCLE,
+  WORK_ORDER_ACTION,
+  WORK_ORDER_STATUS,
   createEmptyState,
 };

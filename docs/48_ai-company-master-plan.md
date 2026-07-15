@@ -307,13 +307,12 @@ HandoffPackets를 deterministic하게 preview한다. Council synthesis에 없는
 verification commands를 추론하지 않으며, explicit inert mode는 기존 linked-task auto-chain 전에
 멈춘다. Plan/WorkOrder persistence, approval, execution, scheduling authority는 계속 blocked다.
 
-Phase 5 planning과 implementation handoff는 `DEC-089`, `DEC-090`으로 기록됐다. 계획된 최소
-vertical slice는 additive schema v7 plan/WorkOrder/handoff records, exact preview/source digest에
+Phase 5 planning과 implementation handoff는 `DEC-089`, `DEC-090`으로 기록됐고 complete fielded
+implementation은 `DEC-091`로 accepted됐다. 구현된 최소 vertical slice는 additive schema v7 plan/WorkOrder/handoff records, exact preview/source digest에
 묶인 task-owned operator approval, 별도 start command, local-stub-only Builder 순차 dispatch를
 사용한다. 기존 planner -> architect -> task-breaker -> builder-preflight chain을 재사용하고 targeted
-live-mutation approval에서 멈춘다. Schema/runtime/API/UI implementation, source mutation,
-Reviewer/QA 실행, 병렬 scheduling, provider-backed WorkOrder dispatch는 complete fielded decision
-전까지 blocked다.
+live-mutation approval에서 멈춘다. Source mutation, Reviewer/QA 실행, 병렬 scheduling,
+provider-backed WorkOrder dispatch는 여전히 blocked다.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와

@@ -93,7 +93,7 @@ async function main() {
     projectId: project.id,
     title: 'Inert WorkOrder preview',
     goal: 'Approve one response-only WorkOrder preview without downstream records.',
-    constraints: 'Keep schema v6 and the default auto-chain compatibility path.',
+    constraints: 'Keep the response-only preview and the default auto-chain compatibility path.',
   });
   const resolvedStart = resolvedRuntime.startRealCouncilForMission({
     missionId: resolvedMission.id,
@@ -203,8 +203,8 @@ async function main() {
     for (const key of ['tasks', 'runs', 'artifacts', 'approvals']) {
       assert.equal(countRecords(approved.payload.snapshot, key), 0);
     }
-    for (const forbiddenKey of ['executionPlans', 'workOrders', 'handoffPackets']) {
-      assert.equal(Object.hasOwn(approved.payload.snapshot, forbiddenKey), false);
+    for (const emptyKey of ['executionPlans', 'workOrders', 'handoffPackets']) {
+      assert.equal(countRecords(approved.payload.snapshot, emptyKey), 0);
     }
 
     const recomputed = await postJson(

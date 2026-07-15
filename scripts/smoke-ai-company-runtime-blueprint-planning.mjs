@@ -156,7 +156,7 @@ assertAll(roadmapText, [
 assertAll(readmeText, [
   /are consumed by `DEC-079`/,
   /strictly loads one repo-backed blueprint and nine role contracts/,
-  /exposes `companyRuntime` only as an additive read-only snapshot/,
+  /`companyRuntime` remains an additive read-only snapshot/,
 ]);
 assert.match(taskLedgerText, /ai-company-runtime-blueprint-planning-post-m7-1938/);
 assert.match(taskLedgerText, /ai-company-runtime-blueprint-implementation-post-m7-1939/);
@@ -174,7 +174,7 @@ assert.match(verification, /script: 'scripts\/smoke-ai-company-runtime-blueprint
 // Consumed planning evidence must point at the implemented, read-only foundation.
 assert.equal(fs.existsSync(path.join(repoRoot, 'company', 'blueprint.json')), true);
 assert.equal(fs.existsSync(path.join(repoRoot, 'src', 'runtime', 'company-blueprint.js')), true);
-assert.match(runtimeContracts, /schemaVersion: 6/);
+assert.match(runtimeContracts, /const STATE_SCHEMA_VERSION = 7/);
 assert.doesNotMatch(runtimeContracts, /companyRuntime/);
 assert.doesNotMatch(fileStore, /companyBlueprint|companyRuntime/);
 assert.match(companyBlueprintLoader, /function loadCompanyBlueprint/);
@@ -192,11 +192,11 @@ process.stdout.write(
       decision: {
         planning: 'accepted',
         implementation: 'accepted-and-implemented',
-        nextGate: 'Phase 4 Mission compiler and inert WorkOrder fielded implementation decision required',
+        provenance: 'consumed-by-dec-079',
       },
       compatibility: {
-        currentSchemaVersion: 6,
-        plannedSchemaVersion: 6,
+        currentSchemaVersion: 7,
+        plannedAtAcceptanceSchemaVersion: 6,
         policyPersistencePlanned: false,
         snapshotChangePlanned: 'configured-path-additive-only',
       },
@@ -207,9 +207,13 @@ process.stdout.write(
         council: 'opt-in-real-local-stub-with-legacy-deterministic-compatibility',
         browserRoster: 'presentation-only',
       },
-      authority: {
+      currentAuthority: {
         runtimeBlueprintImplementationPresent: true,
         councilRoleExecutionAllowed: true,
+        durableWorkOrderRecordsAllowed: true,
+        sequentialBuilderPreflightAllowed: true,
+        builderLiveMutationAllowed: false,
+        reviewerOrQaExecutionAllowed: false,
         providerCallsAllowed: 'explicit-council-opt-in-only',
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,

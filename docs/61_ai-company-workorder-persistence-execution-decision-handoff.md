@@ -1,5 +1,14 @@
 # AI Company WorkOrder Persistence And Sequential Execution Decision Handoff
 
+## Implementation Outcome
+
+The operator supplied and approved the complete fielded
+`operator-decision-ai-company-workorder-persistence-execution-implementation-001` decision. It is
+accepted as `DEC-091` and consumed by the schema-v7 durable plan plus one local sequential Builder
+dispatch implementation. This handoff remains the exact authority record; Builder live mutation,
+Reviewer/QA execution, broader scheduling, provider-backed WorkOrders, memory/checkpoint expansion,
+source mutation, approval bypass, runtime-agent commit/push/release, and connectors remain blocked.
+
 ## Purpose
 
 이 문서는 `docs/60_ai-company-workorder-persistence-execution-plan.md`의 planning-only evidence를
@@ -118,8 +127,10 @@ These are not implementation approval:
 
 ```bash
 node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
+node scripts/smoke-ai-company-workorder-persistence-execution.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler.mjs
 node scripts/smoke-ui-slice-653.mjs
+node scripts/smoke-ui-slice-654.mjs
 node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
