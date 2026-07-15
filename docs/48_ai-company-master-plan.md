@@ -322,6 +322,14 @@ Builder와 independent Reviewer를 순차 재사용한다. QA는 Builder-changed
 delivery-ready evidence에서 deterministic response-only preview로만 계산된다. Durable package,
 Mission done, auto-rework, scheduling/provider/memory expansion, commit/push/release authority는 blocked다.
 
+Phase 7 checkpoint/resume/recovery planning은 `DEC-095`, implementation decision handoff는
+`DEC-096`으로 기록됐다. Future minimum은 schema-v8 WorkflowCheckpoint를 durable
+`reviewer-ready`/`qa-ready` boundary에만 append하고 exact input/authority/checkpoint digest와 explicit
+operator action으로 기존 local-stub Reviewer 또는 QA를 한 stage만 재개하는 경로다. Interrupted
+active Builder/Reviewer/QA는 replay하지 않고 quarantine한다. Schema migration, checkpoint
+persistence, resume/cancel execution, automatic retry, provider/scheduling expansion은 complete fielded
+implementation decision 전까지 blocked다.
+
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
 `docs/53_ai-company-runtime-blueprint-implementation-decision-handoff.md`를 따른다. 전체 구현
@@ -343,9 +351,11 @@ node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
 node scripts/smoke-ai-company-reviewed-delivery-planning.mjs
 node scripts/smoke-ai-company-reviewed-delivery.mjs
 node scripts/smoke-ui-slice-655.mjs
+node scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs
 node scripts/verification_status.mjs
 ```
 
 이 검증은 source contract, local-stub Council, explicit provider opt-in, UI/API readiness gate와
 authority boundary, Phase 4 response-only compiler, Phase 5 durable Builder stop, Phase 6 exact-gated
-reviewed-delivery와 response-only package를 확인한다. Optional live-provider 결과는 별도 informational evidence다.
+reviewed-delivery와 response-only package, Phase 7 planning-only safe recovery boundary를 확인한다.
+Optional live-provider 결과는 별도 informational evidence다.

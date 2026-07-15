@@ -135,7 +135,7 @@ assert.match(councilProtocol, /exact implementation은 `DEC-094`/);
 assertAll(roadmapText, [
   /Planning-only authority는 `DEC-092`/,
   /targetAuthority=one explicit local-stub pass-path from one schema-v7 ExecutionPlan Builder waiting-gate/,
-  /Implemented Phase 6 preserves schema v7/,
+  /Phase 7 planning-only authority는 `DEC-095`/,
 ]);
 assert.match(completionInventory, /AI Company reviewed-delivery planning \| pass/);
 assertAll(readmeText, [

@@ -477,6 +477,11 @@ const informationalChecks = [
     purpose: 'AI Company Phase 6 UI and API prove approval-gated continuation, reload-safe response-only DeliveryPackage rendering, idempotent replay, and blocked downstream controls',
   },
   {
+    id: 'ai-company-checkpoint-resume-recovery-planning',
+    script: 'scripts/smoke-ai-company-checkpoint-resume-recovery-planning.mjs',
+    purpose: 'AI Company Phase 7 planning pins a future additive schema v8 checkpoint contract, exact digest-bound reviewer-ready or qa-ready resume boundaries, explicit operator resume or cancel, active-stage quarantine without replay, rollback retention, current schema v7 negative evidence, and still-blocked implementation scheduling provider Mission done commit push release and connectors',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

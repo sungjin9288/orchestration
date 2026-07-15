@@ -112,7 +112,7 @@ assert.match(runtimeContractText, /company\/blueprint\.json/);
 assert.match(runtimeContractText, /solo \| council \| parallel-specialists/);
 assert.match(runtimeContractText, /canCommit.*canPush/);
 assert.match(runtimeContractText, /Raw chain-of-thought를 저장하거나 전달하지 않는다/);
-assert.match(runtimeContractText, /현재 runtime schema는 v6/);
+assert.match(runtimeContractText, /현재 runtime은 schema v7이며 WorkflowCheckpoint persistence와 recovery routes는 없다/);
 assert.match(runtimeContractText, /company policy는 `state\.json`에 저장되지 않는다/);
 
 assert.match(councilProtocol, /^# Council Operating Protocol$/m);
@@ -185,6 +185,12 @@ assert.match(decisionLog, /^### DEC-091$/m);
 assert.match(decisionLog, /^### DEC-092$/m);
 assert.match(decisionLog, /^### DEC-093$/m);
 assert.match(decisionLog, /^### DEC-094$/m);
+assert.match(decisionLog, /^### DEC-095$/m);
+assert.match(decisionLog, /^### DEC-096$/m);
+assert.match(masterPlanText, /Phase 7 checkpoint\/resume\/recovery planning은 `DEC-095`/);
+assert.match(runtimeContractText, /Phase 7 safe-boundary recovery planning은 `DEC-095`/);
+assert.match(councilProtocolText, /Phase 7 recovery planning은 `DEC-095`/);
+assert.match(deliveryRoadmapText, /Phase 7 planning-only authority는 `DEC-095`/);
 assert.match(decisionLogText, /approve-ai-company-master-plan-documentation/);
 assert.match(decisionLogText, /It does not change runtime schema or behavior/);
 assert.match(decisionLogText, /runtime CompanyBlueprint and AgentProfile implementation planning/);
@@ -234,6 +240,8 @@ process.stdout.write(
         'DEC-092',
         'DEC-093',
         'DEC-094',
+        'DEC-095',
+        'DEC-096',
       ],
       currentRuntime: {
         schemaVersion: 7,
@@ -242,6 +250,7 @@ process.stdout.write(
         missionCompiler: 'response-only-preview-and-explicit-schema-v7-durable-promotion',
         workOrderExecution: 'local-stub-sequential-builder-to-live-mutation-approval-gate',
         reviewedDelivery: 'exact-gated-local-reviewed-delivery-response-only-package',
+        checkpointRecovery: 'planning-only-schema-v8-implementation-blocked',
         companyRoster: 'browser-presentation-config',
       },
       authority: {
@@ -253,6 +262,8 @@ process.stdout.write(
         reviewedDeliveryPlanningAllowed: true,
         reviewedDeliverySourceMutationAllowed: true,
         reviewerOrQaExecutionAllowed: true,
+        checkpointRecoveryPlanningAllowed: true,
+        checkpointPersistenceAllowed: false,
         providerRoleExpansionAllowed: false,
         memoryPersistenceAllowed: false,
         autonomousSchedulingAllowed: false,
@@ -261,7 +272,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Phase 7 checkpoint resume and recovery planning only; implementation remains separately fielded',
+      nextGate: 'Complete fielded Phase 7 checkpoint resume and recovery implementation decision required',
     },
     null,
     2,
