@@ -163,7 +163,7 @@ assertSections(deliveryRoadmap, [
 assert.match(deliveryRoadmapText, /Roadmap 항목은 planned work다/);
 assert.match(
   deliveryRoadmapText,
-  /targetAuthority=planning only for one deterministic Mission-to-ExecutionPlan and inert WorkOrder draft compiler/,
+  /targetAuthority=one deterministic in-memory Mission-to-ExecutionPlan and inert Builder Reviewer QA WorkOrder preview path/,
 );
 assert.match(deliveryRoadmapText, /각 phase를 열 때 최소 다음 필드를 제공한다/);
 assert.match(deliveryRoadmapText, /`continue`, `do everything`, `approve all` 같은 shortcut은 implementation authority가 아니다/);
@@ -176,6 +176,8 @@ assert.match(decisionLog, /^### DEC-082$/m);
 assert.match(decisionLog, /^### DEC-083$/m);
 assert.match(decisionLog, /^### DEC-084$/m);
 assert.match(decisionLog, /^### DEC-085$/m);
+assert.match(decisionLog, /^### DEC-086$/m);
+assert.match(decisionLog, /^### DEC-087$/m);
 assert.match(decisionLogText, /approve-ai-company-master-plan-documentation/);
 assert.match(decisionLogText, /It does not change runtime schema or behavior/);
 assert.match(decisionLogText, /runtime CompanyBlueprint and AgentProfile implementation planning/);
@@ -207,7 +209,7 @@ process.stdout.write(
         'docs/50_council-operating-protocol.md',
         'docs/51_ai-company-delivery-roadmap.md',
       ],
-      decisions: ['DEC-076', 'DEC-079', 'DEC-080', 'DEC-081', 'DEC-082', 'DEC-083', 'DEC-084', 'DEC-085'],
+      decisions: ['DEC-076', 'DEC-079', 'DEC-080', 'DEC-081', 'DEC-082', 'DEC-083', 'DEC-084', 'DEC-085', 'DEC-086', 'DEC-087'],
       currentRuntime: {
         schemaVersion: 6,
         companyBlueprint: 'ready-readonly',
@@ -226,7 +228,7 @@ process.stdout.write(
         unattendedCommitAllowed: false,
         unattendedPushAllowed: false,
       },
-      nextGate: 'Phase 4 Mission compiler and inert WorkOrder planning only',
+      nextGate: 'Phase 4 Mission compiler and inert WorkOrder fielded implementation decision required',
     },
     null,
     2,

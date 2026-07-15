@@ -432,6 +432,11 @@ const informationalChecks = [
     purpose: 'AI Company Phase 3 UI and API smoke proves readiness-gated provider selection, safe provider evidence, missing-configuration refusal without incomplete session persistence, alignment parity, and unchanged local-stub behavior',
   },
   {
+    id: 'ai-company-mission-workorder-compiler-planning',
+    script: 'scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs',
+    purpose: 'AI Company Phase 4 planning source-checks one explicit deterministic response-only Mission compiler and inert Builder Reviewer QA WorkOrder preview, exact operator compile inputs, graph cycle collision and authority validation, schema v6 and default linked-task compatibility, rollback, and still-blocked implementation persistence execution scheduling mutation commit push release and connectors',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

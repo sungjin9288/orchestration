@@ -141,7 +141,7 @@ assert.match(runtimeContract, /Phase 2 planning evidence는 `DEC-082`가 consume
 assert.match(councilProtocol, /complete fielded implementation outcome은 `DEC-082`로 기록됐다/);
 assertAll(roadmapText, [
   /complete fielded implementation outcome은 `DEC-082`로 기록됐다/,
-  /targetAuthority=planning only for one deterministic Mission-to-ExecutionPlan and inert WorkOrder draft compiler/,
+  /targetAuthority=one deterministic in-memory Mission-to-ExecutionPlan and inert Builder Reviewer QA WorkOrder preview path/,
 ]);
 assert.match(completionInventory, /AI Company Real Council planning \| pass/);
 assertAll(readmeText, [
@@ -196,7 +196,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted',
         implementation: 'accepted-and-implemented',
-        nextGate: 'Phase 4 Mission compiler and inert WorkOrder planning only',
+        nextGate: 'Phase 4 Mission compiler and inert WorkOrder fielded implementation decision required',
       },
       plannedPath: {
         requiredPositionRoles: ['strategist', 'architect', 'decomposer'],

@@ -418,6 +418,12 @@ Phase 3 provider 계획은 `DEC-083`과 `DEC-084`로 문서화됐고 complete fi
 execution provider behavior는 compatibility baseline으로 유지된다. Provider expansion,
 StaffingPlan, WorkOrder, memory, scheduling, mutation, commit/push/release는 계속 blocked다.
 
+Phase 4 planning은 `DEC-086`과 `DEC-087`로 문서화됐다. 미래 compiler는 approved and
+source-current Real Council synthesis에 exact operator `compileSpec`을 결합해 response-only draft
+`ExecutionPlan`, fixed Builder -> Reviewer -> QA `WorkOrder` graph, normalized `HandoffPacket`을
+만드는 explicit opt-in 후보다. Output persistence, execution, WorkOrder approval, standalone
+StaffingPlan, scheduling, schema migration은 complete fielded decision 이후에도 별도 authority다.
+
 ## Verification
 
 ```bash
@@ -429,10 +435,11 @@ node scripts/smoke-ui-slice-651.mjs
 node scripts/smoke-ai-company-council-live-provider-planning.mjs
 node scripts/smoke-ai-company-council-live-provider.mjs
 node scripts/smoke-ui-slice-652.mjs
+node scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs
 node scripts/verification_status.mjs
 ```
 
 Focused runtime/API/UI smoke는 strict source load, independent request isolation, invalid rejection,
 conflict/synthesis, revision/stop/resume, snapshot compatibility, schema v6 비영속성, legacy Council
-보존을 검증한다. Downstream provider, StaffingPlan, WorkOrder, memory, mutation authority는 검증
-대상이 아니라 blocked boundary다.
+보존을 검증한다. Phase 4 planning smoke는 future compiler boundary만 검증하며 implementation,
+StaffingPlan, WorkOrder persistence/execution, memory, mutation authority는 blocked다.

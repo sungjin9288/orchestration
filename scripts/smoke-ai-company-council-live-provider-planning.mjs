@@ -139,8 +139,8 @@ assert.match(masterPlan, /^## Accepted Council Live Provider Implementation Auth
 assert.match(runtimeContract, /complete fielded decision은\s+`DEC-085`로 accepted됐다/);
 assert.match(councilProtocol, /Local-stub synthetic gate는\s+authoritative/);
 assertAll(roadmapText, [
-  /Phase 3 provider implementation은 `DEC-085`로 accepted되고 검증됐다/,
-  /targetAuthority=planning only for one deterministic Mission-to-ExecutionPlan and inert WorkOrder draft compiler/,
+  /complete fielded implementation outcome은 `DEC-085`로 기록됐다/,
+  /targetAuthority=one deterministic in-memory Mission-to-ExecutionPlan and inert Builder Reviewer QA WorkOrder preview path/,
   /complete fielded implementation outcome은 `DEC-085`/,
 ]);
 assert.match(completionInventory, /AI Company Council live-provider implementation \| pass/);
@@ -190,7 +190,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted',
         implementation: 'accepted-dec-085',
-        nextGate: 'Phase 4 Mission compiler and inert WorkOrder planning only',
+        nextGate: 'Phase 4 Mission compiler and inert WorkOrder fielded implementation decision required',
       },
       plannedPath: {
         mode: 'real-openai-responses',
