@@ -447,6 +447,11 @@ const informationalChecks = [
     purpose: 'AI Company Phase 4 UI and API smoke proves preflight before alignment persistence, explicit inert preview selection, response-only evidence, blocked downstream controls, deterministic recompute, no object persistence, responsive layout rules, and unchanged default linked-task auto-chain behavior',
   },
   {
+    id: 'ai-company-workorder-persistence-execution-planning',
+    script: 'scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs',
+    purpose: 'AI Company Phase 5 planning pins additive schema v7 durable plan records, exact preview and source digest promotion, one task-owned plan approval, one separate local-stub sequential Builder dispatch stopping at the existing live-mutation approval, migration and rollback evidence, and still-blocked implementation source mutation Reviewer QA scheduling provider commit push release and connectors',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

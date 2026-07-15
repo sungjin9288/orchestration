@@ -316,6 +316,12 @@ Phase 4 planning과 handoff는 `DEC-086`, `DEC-087`로 문서화됐고 exact imp
 exact operator `compileSpec`을 요구하고 fixed Builder -> Reviewer -> QA draft graph를 response-only로
 반환한다. Existing linked-task auto-chain은 explicit mode가 없을 때 compatibility behavior로 유지한다.
 
+Phase 5 계획은 one digest-bound operator approval과 separate start command를 요구하며 `DEC-089`,
+`DEC-090`으로 planning/handoff evidence가 기록됐다. Approval은 exact plan, preview, source digest,
+control task에 묶이고 local-stub-only first Builder dispatch는 기존 preflight chain을 재사용한 뒤
+targeted live-mutation approval에서 멈춘다. Planning은 schema/runtime implementation, source mutation,
+Reviewer/QA dispatch, parallel scheduling, provider-backed WorkOrder execution을 열지 않는다.
+
 ## Verification
 
 ```bash
@@ -329,9 +335,11 @@ node scripts/smoke-ui-slice-652.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler.mjs
 node scripts/smoke-ui-slice-653.mjs
+node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
 node scripts/verification_status.mjs
 ```
 
 Runtime/API/UI smokes가 위 Acceptance Scenarios를 검증한다. Planning smokes는 consumed authority와
 exact boundary evidence로 유지하고 implementation smokes는 response-only compiler와 blocked
-downstream authority를 검증한다.
+downstream authority를 검증한다. Phase 5 planning smoke는 runtime 변경 없이 다음 fielded gate만
+고정한다.

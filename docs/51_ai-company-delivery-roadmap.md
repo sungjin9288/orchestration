@@ -242,7 +242,23 @@ dispatch하지 않고 checkpoint에서 정지한다.
 
 ### Authority Gate
 
-`bounded WorkOrder scheduling and specialist execution` 별도 승인이 필요하다.
+Planning-only authority는 `DEC-089`, implementation decision handoff는 `DEC-090`으로 기록됐다.
+첫 implementation target은 general scheduler가 아니라 additive schema v7 records, exact
+preview/source digest에 묶인 one task-owned approval, separate start, local-stub-only first Builder
+dispatch다. 기존 planner -> architect -> task-breaker -> builder-preflight chain을 재사용하고 targeted
+live-mutation approval에서 멈춘다. Implementation remains blocked pending a complete fielded decision.
+
+Accepted `DEC-089` planning provenance:
+
+```text
+targetAuthority=planning only for durable WorkOrder persistence, approval, and sequential execution through existing gates
+```
+
+Required implementation decision target:
+
+```text
+targetAuthority=one local deterministic schema-v7 durable ExecutionPlan and WorkOrder record path with one digest-bound operator approval and one sequential Builder dispatch stopping at the existing live-mutation approval gate
+```
 
 ## Phase 6: Reviewer, QA, And Delivery Package
 
@@ -404,17 +420,19 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 4 response-only implementation은 `DEC-088`로 accepted되고 focused runtime/API/UI evidence로
-검증됐다. 다음 architecture-sensitive decision target은 다음 하나다.
+Phase 5 planning과 implementation handoff는 `DEC-089`, `DEC-090`으로 accepted됐다. 다음
+architecture-sensitive decision target은 다음 하나다.
 
 ```text
-targetAuthority=planning only for durable WorkOrder persistence, approval, and sequential execution through existing gates
+targetAuthority=one local deterministic schema-v7 durable ExecutionPlan and WorkOrder record path with one digest-bound operator approval and one sequential Builder dispatch stopping at the existing live-mutation approval gate
 ```
 
-Any Phase 5 planning must preserve the `DEC-088` response-only baseline, schema v6 compatibility,
-explicit authority separation, existing execution gates, rollback, focused smoke, and still-blocked
-authority. WorkOrder persistence, approval, scheduling, execution, mutation, memory expansion,
-commit, push, release, and external connectors remain blocked until that later fielded decision.
+Any Phase 5 implementation must preserve the `DEC-088` response-only baseline, migrate valid schema
+v6 state additively, bind approval to exact plan provenance, use only the existing local-stub gates,
+stop before live mutation, preserve rollback evidence, and keep still-blocked authority explicit.
+Schema migration, WorkOrder persistence, approval creation, dispatch, mutation, Reviewer/QA execution,
+parallel scheduling, memory expansion, commit, push, release, and external connectors remain blocked
+until that complete fielded decision.
 
 ## Verification
 
@@ -426,8 +444,9 @@ node scripts/smoke-ui-slice-652.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler.mjs
 node scripts/smoke-ui-slice-653.mjs
+node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
 node scripts/verification_status.mjs
 ```
 
 Phase 0 verifier와 focused smokes는 implemented Phase 1-4 evidence와 Phase 5 blocked gate를
-확인한다.
+확인하며, current Phase 5 evidence는 planning-only이고 implementation은 blocked다.

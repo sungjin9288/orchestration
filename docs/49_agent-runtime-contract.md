@@ -424,6 +424,12 @@ Phase 4 planning과 handoff는 `DEC-086`, `DEC-087`로 문서화됐고 response-
 normalized `HandoffPacket`을 깊게 동결한 응답으로만 반환한다. Output persistence, execution,
 WorkOrder approval, standalone StaffingPlan, scheduling, schema migration은 별도 authority다.
 
+Phase 5 schema v7 durable record planning은 `DEC-089`, implementation decision handoff는
+`DEC-090`으로 문서화됐다. 계획은 exact preview/source digest를 재검증한 뒤 one ExecutionPlan,
+three WorkOrders, three HandoffPackets, linked control task, task-owned plan approval을 atomic하게
+저장하고, 별도 approved start에서 local-stub Builder만 기존 preflight chain으로 dispatch한 뒤
+live-mutation approval에서 멈춘다. 현재 runtime은 계속 schema v6이고 implementation은 blocked다.
+
 ## Verification
 
 ```bash
@@ -438,10 +444,11 @@ node scripts/smoke-ui-slice-652.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler.mjs
 node scripts/smoke-ui-slice-653.mjs
+node scripts/smoke-ai-company-workorder-persistence-execution-planning.mjs
 node scripts/verification_status.mjs
 ```
 
 Focused runtime/API/UI smoke는 strict source load, independent request isolation, invalid rejection,
 conflict/synthesis, revision/stop/resume, snapshot compatibility, schema v6 비영속성, legacy Council
-보존과 Phase 4 deterministic response-only compilation을 검증한다. StaffingPlan, WorkOrder
-persistence/execution, memory, mutation authority는 blocked다.
+보존과 Phase 4 deterministic response-only compilation, Phase 5 planning boundary를 검증한다.
+StaffingPlan, WorkOrder persistence/execution, memory, mutation authority는 blocked다.
