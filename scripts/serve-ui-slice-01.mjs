@@ -1410,7 +1410,21 @@ const server = createServer(async (request, response) => {
       const councilSessionId = decodeURIComponent(realCouncilDecisionMatch[1]);
       const input = await readJsonBody(request);
       const action = String(input.action || '').trim();
+      const handoffMode = String(input.handoffMode || '').trim();
       const councilSession = runtime.getCouncilSession(councilSessionId);
+      if (handoffMode && handoffMode !== 'inert-workorder-preview') {
+        throw new Error(`Unsupported Council handoff mode: ${handoffMode}`);
+      }
+      if (handoffMode && action !== 'approve') {
+        throw new Error('Council handoff mode is supported only for approve');
+      }
+      if (handoffMode === 'inert-workorder-preview') {
+        runtime.preflightMissionWorkOrderPreview({
+          councilSessionId,
+          compileSpec: input.compileSpec,
+          action,
+        });
+      }
       const decisionInput = {
         councilSessionId,
         action,
@@ -1421,6 +1435,33 @@ const server = createServer(async (request, response) => {
         ? await runAbortableCouncilProviderRequest(request, response, (signal) =>
             runtime.decideProviderCouncilSession({ ...decisionInput, signal }))
         : runtime.decideRealCouncilSession(decisionInput);
+
+      if (action === 'approve' && handoffMode === 'inert-workorder-preview') {
+        const missionWorkOrderPreview = runtime.previewMissionWorkOrders({
+          councilSessionId,
+          compileSpec: input.compileSpec,
+        });
+
+        json(
+          response,
+          200,
+          buildSnapshotResponse({
+            councilSession: alignedResult.councilSession,
+            mission: alignedResult.mission,
+            missionWorkOrderPreview,
+            mutation: {
+              action: 'approve',
+              councilSessionId,
+              handoffMode,
+              kind: 'decide-real-council-session',
+              missionId: alignedResult.mission.id,
+              persistedPreview: false,
+              taskId: null,
+            },
+          }),
+        );
+        return;
+      }
 
       if (action === 'approve') {
         const result = await runMissionAlignmentAutoChain(alignedResult.mission.id, {
@@ -1483,6 +1524,46 @@ const server = createServer(async (request, response) => {
         error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
       json(response, statusCode, {
         error: error.message || 'Real Council 결정 처리에 실패했습니다.',
+      });
+      return;
+    }
+  }
+
+  const realCouncilWorkOrderPreviewMatch = url.pathname.match(
+    /^\/api\/council-sessions\/([^/]+)\/work-order-preview$/,
+  );
+
+  if (method === 'POST' && realCouncilWorkOrderPreviewMatch) {
+    try {
+      const councilSessionId = decodeURIComponent(realCouncilWorkOrderPreviewMatch[1]);
+      const input = await readJsonBody(request);
+      const missionWorkOrderPreview = runtime.previewMissionWorkOrders({
+        councilSessionId,
+        compileSpec: input.compileSpec,
+      });
+      const councilSession = runtime.getCouncilSession(councilSessionId);
+      const mission = runtime.getMission(councilSession.missionId);
+
+      json(
+        response,
+        200,
+        buildSnapshotResponse({
+          councilSession,
+          mission,
+          missionWorkOrderPreview,
+          mutation: {
+            councilSessionId,
+            kind: 'recompute-mission-workorder-preview',
+            missionId: mission.id,
+            persistedPreview: false,
+          },
+        }),
+      );
+      return;
+    } catch (error) {
+      const statusCode = error.statusCode || (/not found/i.test(error.message) ? 404 : 400);
+      json(response, statusCode, {
+        error: error.message || 'WorkOrder preview 계산에 실패했습니다.',
       });
       return;
     }

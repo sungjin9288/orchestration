@@ -94,7 +94,8 @@ assertAll(planText, [
   /never calls `saveState`/,
   /Requests without `handoffMode=inert-workorder-preview` retain the current linked-task auto-chain/,
   /No `run`, `approve WorkOrders`, `persist`, `mutate`, `commit`, `push`, or `release` control is added/,
-  /Runtime\/API\/UI implementation: blocked/,
+  /Runtime\/API\/UI implementation: complete for the exact response-only target surface/,
+  /Downstream persistence, approval, scheduling, and execution authority: still blocked/,
 ]);
 
 assert.match(
@@ -128,21 +129,23 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-086$/m);
 assert.match(decisionLog, /^### DEC-087$/m);
+assert.match(decisionLog, /^### DEC-088$/m);
 assert.match(decisionLog, /Accept `operator-delegated-ai-company-mission-workorder-compiler-planning-001`/);
 assert.match(decisionLog, /records no implementation outcome and creates no ExecutionPlan/);
-assert.match(masterPlan, /Phase 4 planning은 `DEC-086`과 `DEC-087`로 승인·문서화됐다/);
-assert.match(runtimeContract, /exact operator `compileSpec`/);
+assert.match(masterPlan, /exact implementation은 `DEC-088`로/);
+assert.match(runtimeContract, /exact operator\s+`compileSpec`/);
 assert.match(councilProtocol, /Existing linked-task\s+auto-chain은 explicit mode가 없을 때 compatibility behavior/);
 assertAll(roadmapText, [
-  /Planning-only authority는 `DEC-086`, implementation decision handoff는 `DEC-087`/,
-  /targetAuthority=one deterministic in-memory Mission-to-ExecutionPlan and inert Builder Reviewer QA WorkOrder preview path/,
-  /Phase 4 구현 완료는 주장하지 않는다/,
+  /Planning-only authority는 `DEC-086`, implementation decision handoff는 `DEC-087`, exact response-only implementation은 `DEC-088`/,
+  /targetAuthority=planning only for durable WorkOrder persistence, approval, and sequential execution through existing gates/,
+  /implemented Phase 1-4 evidence와 Phase 5 blocked gate/,
 ]);
 assert.match(completionInventory, /AI Company Mission compiler and inert WorkOrder planning \| pass/);
+assert.match(completionInventory, /AI Company Mission compiler and inert WorkOrder implementation \| pass/);
 assertAll(readmeText, [
-  /Phase 4 Mission compiler and inert WorkOrder planning is accepted by `DEC-086`/,
+  /exact response-only implementation is accepted by `DEC-088`/,
   /fixed Builder -> Reviewer -> QA draft graph/,
-  /Compiler implementation, durable plans or WorkOrders, approval, scheduling, execution/,
+  /Durable plans or WorkOrders, WorkOrder approval, scheduling, execution/,
 ]);
 assert.match(taskLedger, /ai-company-mission-workorder-compiler-planning-post-m7-1944/);
 assert.match(lessons, /A deterministic WorkOrder compiler must not invent execution-critical fields/);
@@ -152,12 +155,12 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-mission-workorder-compiler-planning\.mjs'/,
 );
 
-// Negative evidence remains true until a later complete fielded implementation decision is accepted.
-assert.doesNotMatch(runtimeService, /mission-workorder-compiler/);
-assert.doesNotMatch(server, /inert-workorder-preview/);
+// The accepted implementation consumes this plan without widening downstream authority.
+assert.match(runtimeService, /mission-workorder-compiler/);
+assert.match(server, /inert-workorder-preview/);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'src/runtime/mission-workorder-compiler.js')),
-  false,
+  true,
 );
 assert.match(councilSessions, /SYNTHESIS_OUTPUT_KEYS/);
 assert.doesNotMatch(councilSessions, /targetPathAllowlist/);
@@ -173,7 +176,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted-dec-086',
         handoff: 'documented-dec-087',
-        implementation: 'blocked-fielded-decision-required',
+        implementation: 'accepted-dec-088',
       },
       plannedPath: {
         handoffMode: 'inert-workorder-preview',
@@ -191,7 +194,7 @@ process.stdout.write(
       },
       authority: {
         planningAllowed: true,
-        compilerImplementationAllowed: false,
+        compilerImplementationAllowed: true,
         workOrderPersistenceAllowed: false,
         workOrderExecutionAllowed: false,
         staffingPlanRuntimeAllowed: false,

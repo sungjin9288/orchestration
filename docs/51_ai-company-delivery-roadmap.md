@@ -200,11 +200,17 @@ evidence를 보존하며 기존 linked-task path를 compatibility fallback으로
 
 ### Authority Gate
 
-Planning-only authority는 `DEC-086`, implementation decision handoff는 `DEC-087`로 기록됐다.
-계획은 approved source-current Council, exact operator compile spec, response-only deterministic
-preview, fixed Builder -> Reviewer -> QA graph, dependency/cycle/collision validation, schema v6와
-default auto-chain compatibility, rollback을 고정한다. `deterministic execution plan and WorkOrder
-compilation`은 complete fielded implementation decision 전까지 blocked다.
+Planning-only authority는 `DEC-086`, implementation decision handoff는 `DEC-087`, exact
+response-only implementation은 `DEC-088`로 기록됐다. Implemented slice는 approved source-current
+Council, exact operator compile spec, fixed Builder -> Reviewer -> QA graph, dependency/cycle/collision
+validation, schema v6와 default auto-chain compatibility를 유지한다. Durable plan/WorkOrder
+persistence, approval, scheduling, execution은 별도 fielded decision 전까지 blocked다.
+
+Accepted `DEC-088` target provenance:
+
+```text
+targetAuthority=one deterministic in-memory Mission-to-ExecutionPlan and inert Builder Reviewer QA WorkOrder preview path from one operator-approved source-current Real Council synthesis
+```
 
 ## Phase 5: Team Execution And Supervision
 
@@ -398,19 +404,17 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 4 planning은 `DEC-086`으로 accepted됐고 implementation decision handoff는 `DEC-087`로
-문서화됐다. 다음 decision target은 다음 하나다.
+Phase 4 response-only implementation은 `DEC-088`로 accepted되고 focused runtime/API/UI evidence로
+검증됐다. 다음 architecture-sensitive decision target은 다음 하나다.
 
 ```text
-targetAuthority=one deterministic in-memory Mission-to-ExecutionPlan and inert Builder Reviewer QA WorkOrder preview path from one operator-approved source-current Real Council synthesis
+targetAuthority=planning only for durable WorkOrder persistence, approval, and sequential execution through existing gates
 ```
 
-The complete fielded decision in
-`docs/59_ai-company-mission-workorder-compiler-implementation-decision-handoff.md` must preserve the
-exact response-only target allowlist, operator compile spec, schema v6, default linked-task
-compatibility, no-persistence guarantee, rollback, focused runtime/API/UI smoke, and still-blocked
+Any Phase 5 planning must preserve the `DEC-088` response-only baseline, schema v6 compatibility,
+explicit authority separation, existing execution gates, rollback, focused smoke, and still-blocked
 authority. WorkOrder persistence, approval, scheduling, execution, mutation, memory expansion,
-commit, push, release, and external connectors remain blocked.
+commit, push, release, and external connectors remain blocked until that later fielded decision.
 
 ## Verification
 
@@ -420,8 +424,10 @@ node scripts/smoke-ai-company-council-live-provider-planning.mjs
 node scripts/smoke-ai-company-council-live-provider.mjs
 node scripts/smoke-ui-slice-652.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs
+node scripts/smoke-ai-company-mission-workorder-compiler.mjs
+node scripts/smoke-ui-slice-653.mjs
 node scripts/verification_status.mjs
 ```
 
-Phase 0 verifier와 focused smokes는 implemented Phase 1-3 evidence와 Phase 4 planning gate를
-확인한다. Phase 4 구현 완료는 주장하지 않는다.
+Phase 0 verifier와 focused smokes는 implemented Phase 1-4 evidence와 Phase 5 blocked gate를
+확인한다.

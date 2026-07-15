@@ -137,7 +137,9 @@ import {
   getCouncilCastEntry,
   getCurrentRealCouncilAttempt,
   getLatestRealCouncilPositions,
+  getMissionWorkOrderPreviewSummary,
   isRealCouncilMode,
+  parseMissionWorkOrderCompileList,
 } from './council-signals.js';
 import {
   getDeliverablesDeskNext,
@@ -331,6 +333,13 @@ const state = {
   missionDraftGoal: '',
   missionDraftConstraints: '',
   missionDraftDeliverableType: 'decision-memo',
+  missionWorkOrderCompileDraft: {
+    targetPathAllowlist: '',
+    expectedArtifacts: '',
+    verificationCommands: '',
+    stopConditions: '',
+  },
+  missionWorkOrderPreview: null,
   taskDraftTitle: '',
   taskDraftIntent: '',
   timerId: null,
@@ -5094,6 +5103,16 @@ async function handleSelection(action, id) {
     return;
   }
 
+  if (action === 'approve-real-council-session-inert-preview') {
+    await submitRealCouncilDecision(id, 'approve', 'inert-workorder-preview');
+    return;
+  }
+
+  if (action === 'recompute-mission-workorder-preview') {
+    await submitMissionWorkOrderPreview(id);
+    return;
+  }
+
   if (action === 'request-revision-real-council-session') {
     await submitRealCouncilDecision(id, 'request-revision');
     return;
@@ -5539,6 +5558,7 @@ async function submitStartRealCouncilForMission(missionId, mode = 'real-local-st
   render();
 
   try {
+    state.missionWorkOrderPreview = null;
     const payload = await postJson(
       `/api/missions/${encodeURIComponent(missionId)}/council/start`,
       { mode },
@@ -5586,8 +5606,76 @@ async function submitResumeRealCouncilSession(councilSessionId) {
   }
 }
 
-async function submitRealCouncilDecision(councilSessionId, action) {
+function readMissionWorkOrderCompileSpec() {
+  const readDraftValue = (selector, fallback) => {
+    const element = document.querySelector(selector);
+    return String(element ? element.value : fallback);
+  };
+  const draft = {
+    targetPathAllowlist: readDraftValue(
+      '#mission-workorder-target-paths',
+      state.missionWorkOrderCompileDraft.targetPathAllowlist,
+    ),
+    expectedArtifacts: readDraftValue(
+      '#mission-workorder-expected-artifacts',
+      state.missionWorkOrderCompileDraft.expectedArtifacts,
+    ),
+    verificationCommands: readDraftValue(
+      '#mission-workorder-verification-commands',
+      state.missionWorkOrderCompileDraft.verificationCommands,
+    ),
+    stopConditions: readDraftValue(
+      '#mission-workorder-stop-conditions',
+      state.missionWorkOrderCompileDraft.stopConditions,
+    ),
+  };
+  state.missionWorkOrderCompileDraft = draft;
+
+  const compileSpec = Object.fromEntries(
+    Object.entries(draft).map(([key, value]) => [key, parseMissionWorkOrderCompileList(value)]),
+  );
+  const missingField = Object.entries(compileSpec).find(([, value]) => value.length === 0)?.[0];
+  if (missingField) {
+    throw new Error(`WorkOrder compileSpec ${missingField} 항목이 필요합니다.`);
+  }
+
+  return compileSpec;
+}
+
+async function submitMissionWorkOrderPreview(councilSessionId) {
+  const compileSpec = readMissionWorkOrderCompileSpec();
+
+  state.error = null;
+  state.mutating = true;
+  elements.refreshStatus.textContent = `WorkOrder preview를 다시 계산하는 중…`;
+  render();
+
+  try {
+    const payload = await postJson(
+      `/api/council-sessions/${encodeURIComponent(councilSessionId)}/work-order-preview`,
+      { compileSpec },
+    );
+
+    applySnapshotPayload(payload);
+    state.missionWorkOrderPreview = payload.missionWorkOrderPreview || null;
+    syncSelectionsFromMission(payload.mission.id);
+    await hydrateSelectedDetails();
+    state.surface = 'council';
+    render();
+    elements.refreshStatus.textContent = `${payload.missionWorkOrderPreview.previewId}를 응답 메모리에 다시 계산했습니다`;
+  } finally {
+    state.mutating = false;
+    render();
+  }
+}
+
+async function submitRealCouncilDecision(councilSessionId, action, handoffMode = null) {
   const body = { action };
+
+  if (handoffMode === 'inert-workorder-preview') {
+    body.handoffMode = handoffMode;
+    body.compileSpec = readMissionWorkOrderCompileSpec();
+  }
 
   if (action === 'request-revision') {
     const noteElement = document.querySelector('#real-council-revision-note');
@@ -5614,6 +5702,7 @@ async function submitRealCouncilDecision(councilSessionId, action) {
     );
 
     applySnapshotPayload(payload);
+    state.missionWorkOrderPreview = payload.missionWorkOrderPreview || null;
     syncSelectionsFromMission(payload.mission.id);
     if (payload.task?.id) {
       syncSelectionsFromTask(payload.task.id, {
@@ -5624,11 +5713,15 @@ async function submitRealCouncilDecision(councilSessionId, action) {
       });
     }
     await hydrateSelectedDetails();
-    state.surface = action === 'approve' ? 'execution' : 'council';
+    state.surface = action === 'approve' && handoffMode !== 'inert-workorder-preview'
+      ? 'execution'
+      : 'council';
     render();
     elements.refreshStatus.textContent =
       action === 'approve'
-        ? `Real Council 결론을 승인하고 ${payload.mutation?.autoChain?.stoppedAt || 'execution'}에서 멈췄습니다`
+        ? handoffMode === 'inert-workorder-preview'
+          ? `${payload.missionWorkOrderPreview.previewId}를 만들고 실행 연결 전에 멈췄습니다`
+          : `Real Council 결론을 승인하고 ${payload.mutation?.autoChain?.stoppedAt || 'execution'}에서 멈췄습니다`
         : action === 'request-revision'
           ? `수정 attempt ${payload.attempt?.id || 'pending'}를 기록했습니다`
           : 'Real Council을 operator-stopped 상태로 닫았습니다';
@@ -9796,15 +9889,152 @@ function renderRealCouncilEvidence(councilSession) {
   `;
 }
 
+function renderMissionWorkOrderCompileForm(councilSession, options = {}) {
+  const blockedReason = String(options.blockedReason || '').trim();
+  const busy = state.loading || state.mutating || Boolean(blockedReason);
+  const recompute = options.recompute === true;
+  const draft = state.missionWorkOrderCompileDraft;
+
+  return `
+    <div class="mission-workorder-compile-form">
+      <div class="card-title-row card-title-row-tight">
+        <strong>WorkOrder compile spec</strong>
+        ${createToken('inert preview', 'neutral')}
+      </div>
+      <div class="mission-workorder-compile-grid">
+        <label class="field">
+          <span class="field-label">대상 경로 allowlist</span>
+          <textarea
+            id="mission-workorder-target-paths"
+            class="text-input"
+            rows="3"
+            placeholder="src/runtime/example.js"
+            ${busy ? 'disabled' : ''}
+          >${escapeHtml(draft.targetPathAllowlist)}</textarea>
+        </label>
+        <label class="field">
+          <span class="field-label">예상 산출물</span>
+          <textarea
+            id="mission-workorder-expected-artifacts"
+            class="text-input"
+            rows="3"
+            placeholder="focused smoke evidence"
+            ${busy ? 'disabled' : ''}
+          >${escapeHtml(draft.expectedArtifacts)}</textarea>
+        </label>
+        <label class="field">
+          <span class="field-label">검증 명령</span>
+          <textarea
+            id="mission-workorder-verification-commands"
+            class="text-input"
+            rows="3"
+            placeholder="node scripts/smoke-example.mjs"
+            ${busy ? 'disabled' : ''}
+          >${escapeHtml(draft.verificationCommands)}</textarea>
+        </label>
+        <label class="field">
+          <span class="field-label">중지 조건</span>
+          <textarea
+            id="mission-workorder-stop-conditions"
+            class="text-input"
+            rows="3"
+            placeholder="Target allowlist mismatch"
+            ${busy ? 'disabled' : ''}
+          >${escapeHtml(draft.stopConditions)}</textarea>
+        </label>
+      </div>
+      <div class="relation-button-row">
+        <button
+          class="secondary-button"
+          type="button"
+          data-action="${recompute ? 'recompute-mission-workorder-preview' : 'approve-real-council-session-inert-preview'}"
+          data-id="${escapeHtml(councilSession.id)}"
+          ${busy ? 'disabled' : ''}
+        >
+          ${recompute ? '초안 다시 계산' : '승인 후 WorkOrder 초안'}
+        </button>
+      </div>
+      <p class="form-help">${escapeHtml(
+        blockedReason || '저장·실행·WorkOrder 승인은 닫힌 상태로 유지됩니다.',
+      )}</p>
+    </div>
+  `;
+}
+
+function renderMissionWorkOrderPreview(preview, councilSession) {
+  const summary = getMissionWorkOrderPreviewSummary(preview, councilSession?.id);
+  if (!summary) return '';
+
+  const workOrderRows = preview.workOrders
+    .map(
+      (workOrder, index) => `
+        <div class="mission-workorder-row">
+          <div class="card-title-row card-title-row-tight">
+            <strong>${index + 1}. ${escapeHtml(workOrder.title)}</strong>
+            ${createToken(workOrder.status, 'neutral')}
+            ${createToken(workOrder.assignedAgentId, 'accent')}
+          </div>
+          <p class="detail-copy detail-copy-compact">${escapeHtml(workOrder.intent)}</p>
+          <div class="token-row token-row-compact">
+            ${createToken(
+              workOrder.dependencies.length > 0
+                ? `depends:${workOrder.dependencies.join(', ')}`
+                : 'depends:none',
+              'neutral',
+            )}
+            ${createToken(`targets:${workOrder.targetPathAllowlist.length}`, 'neutral')}
+            ${createToken(`checks:${workOrder.verificationCommands.length}`, 'neutral')}
+          </div>
+          <p class="form-help">${escapeHtml(workOrder.targetPathAllowlist.join(' · '))}</p>
+        </div>
+      `,
+    )
+    .join('');
+
+  return `
+    <section class="mission-workorder-preview" aria-label="Inert WorkOrder preview">
+      <div class="card-title-row card-title-row-tight">
+        <strong>ExecutionPlan 초안</strong>
+        ${createToken('response-only', 'neutral')}
+        ${createToken(summary.authorityClosed ? 'authority closed' : 'authority error', summary.authorityClosed ? 'success' : 'danger')}
+      </div>
+      <p class="detail-copy detail-copy-compact">${escapeHtml(preview.executionPlan.objective)}</p>
+      <div class="token-row token-row-compact">
+        ${createToken(summary.executionPlanId, 'accent')}
+        ${createToken(`WorkOrders:${summary.workOrderCount}`, 'neutral')}
+        ${createToken(`Handoffs:${summary.handoffCount}`, 'neutral')}
+        ${createToken(`digest:${preview.sourceDigest.slice(0, 12)}`, 'neutral')}
+      </div>
+      <div class="mission-workorder-list">${workOrderRows}</div>
+    </section>
+  `;
+}
+
 function renderRealCouncilAlignmentControls(councilSession) {
   const attempt = getCurrentRealCouncilAttempt(councilSession);
   const busy = state.loading || state.mutating;
+  const unresolvedQuestions = attempt?.synthesis?.unresolvedQuestions;
+  const previewBlockedReason = !attempt?.synthesis
+    ? 'Conductor synthesis가 있어야 WorkOrder 초안을 계산할 수 있습니다.'
+    : !Array.isArray(unresolvedQuestions) || unresolvedQuestions.length > 0
+      ? '미해결 질문을 정리한 새 Council synthesis가 필요합니다.'
+      : attempt.status !== 'awaiting-alignment' || attempt.conflictSummary?.approvalReady !== true
+        ? '승인 가능한 Council attempt가 필요합니다.'
+        : '';
 
   if (councilSession.phase === 'terminal') {
     return `
       <p class="form-help council-approval-help">
         ${escapeHtml(councilSession.terminalReason || councilSession.alignment?.status || 'terminal')}
       </p>
+      ${
+        councilSession.alignment?.status === 'approved'
+          ? renderMissionWorkOrderCompileForm(councilSession, {
+              recompute: true,
+              blockedReason: previewBlockedReason,
+            })
+          : ''
+      }
     `;
   }
 
@@ -9860,7 +10090,7 @@ function renderRealCouncilAlignmentControls(councilSession) {
         data-id="${escapeHtml(councilSession.id)}"
         ${busy ? 'disabled' : ''}
       >
-        synthesis 승인
+        기존 실행 연결 승인
       </button>
       <button
         class="secondary-button"
@@ -9872,6 +10102,9 @@ function renderRealCouncilAlignmentControls(councilSession) {
         회의 중지
       </button>
     </div>
+    ${renderMissionWorkOrderCompileForm(councilSession, {
+      blockedReason: previewBlockedReason,
+    })}
     <label class="field-label" for="real-council-revision-note">수정 요청</label>
     <textarea
       id="real-council-revision-note"
@@ -10275,6 +10508,7 @@ function renderCouncil(data) {
                       ? `
                         <div class="field">
                           ${renderRealCouncilAlignmentControls(selectedCouncilSession)}
+                          ${renderMissionWorkOrderPreview(state.missionWorkOrderPreview, selectedCouncilSession)}
                           <div class="relation-button-row">
                             <button
                               class="secondary-button"

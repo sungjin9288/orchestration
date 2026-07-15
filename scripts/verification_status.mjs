@@ -434,7 +434,17 @@ const informationalChecks = [
   {
     id: 'ai-company-mission-workorder-compiler-planning',
     script: 'scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs',
-    purpose: 'AI Company Phase 4 planning source-checks one explicit deterministic response-only Mission compiler and inert Builder Reviewer QA WorkOrder preview, exact operator compile inputs, graph cycle collision and authority validation, schema v6 and default linked-task compatibility, rollback, and still-blocked implementation persistence execution scheduling mutation commit push release and connectors',
+    purpose: 'AI Company Phase 4 planning remains consumed provenance for DEC-088 and pins the implemented deterministic response-only Mission compiler, exact operator compile inputs, schema v6 compatibility, rollback, and still-blocked persistence execution scheduling mutation commit push release and connectors',
+  },
+  {
+    id: 'ai-company-mission-workorder-compiler-implementation',
+    script: 'scripts/smoke-ai-company-mission-workorder-compiler.mjs',
+    purpose: 'AI Company Phase 4 runtime smoke proves exact compileSpec validation, source-current approved Council gating, deterministic deeply frozen Builder Reviewer QA previews, graph and authority closure, schema v6 non-persistence, provider-shaped schema parity, and default local unresolved-question rejection',
+  },
+  {
+    id: 'ai-company-mission-workorder-compiler-ui-api',
+    script: 'scripts/smoke-ui-slice-653.mjs',
+    purpose: 'AI Company Phase 4 UI and API smoke proves preflight before alignment persistence, explicit inert preview selection, response-only evidence, blocked downstream controls, deterministic recompute, no object persistence, responsive layout rules, and unchanged default linked-task auto-chain behavior',
   },
   {
     id: 'coordinator-path-containment-smoke',

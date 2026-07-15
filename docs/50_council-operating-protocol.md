@@ -310,11 +310,11 @@ Strategist/Architect/Decomposer position isolation, deterministic conflict-befor
 Conductor normalized output, human alignment를 그대로 유지한다. Local-stub synthetic gate는
 authoritative하며 provider expansion과 모든 downstream authority는 계속 blocked다.
 
-Phase 4 planning은 `DEC-086`과 `DEC-087`로 승인·문서화됐다. Council approval은 그 자체로
-WorkOrder execution authority가 아니다. 미래 `inert-workorder-preview` handoff는 approved and
-source-current synthesis, empty unresolved questions, exact operator `compileSpec`을 요구하고 fixed
-Builder -> Reviewer -> QA draft graph를 response-only로 반환해야 한다. Existing linked-task
-auto-chain은 explicit mode가 없을 때 compatibility behavior로 유지한다.
+Phase 4 planning과 handoff는 `DEC-086`, `DEC-087`로 문서화됐고 exact implementation은
+`DEC-088`로 accepted됐다. Council approval은 그 자체로 WorkOrder execution authority가 아니다.
+`inert-workorder-preview` handoff는 approved and source-current synthesis, empty unresolved questions,
+exact operator `compileSpec`을 요구하고 fixed Builder -> Reviewer -> QA draft graph를 response-only로
+반환한다. Existing linked-task auto-chain은 explicit mode가 없을 때 compatibility behavior로 유지한다.
 
 ## Verification
 
@@ -327,8 +327,11 @@ node scripts/smoke-ai-company-council-live-provider-planning.mjs
 node scripts/smoke-ai-company-council-live-provider.mjs
 node scripts/smoke-ui-slice-652.mjs
 node scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs
+node scripts/smoke-ai-company-mission-workorder-compiler.mjs
+node scripts/smoke-ui-slice-653.mjs
 node scripts/verification_status.mjs
 ```
 
 Runtime/API/UI smokes가 위 Acceptance Scenarios를 검증한다. Planning smokes는 consumed authority와
-exact boundary evidence로 유지하며 Phase 4 compiler implementation을 주장하지 않는다.
+exact boundary evidence로 유지하고 implementation smokes는 response-only compiler와 blocked
+downstream authority를 검증한다.

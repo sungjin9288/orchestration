@@ -41,6 +41,38 @@ export function getLatestRealCouncilPositions(councilSession) {
   return [...positionsByAgent.values()];
 }
 
+export function parseMissionWorkOrderCompileList(value) {
+  return [
+    ...new Set(
+      String(value || '')
+        .split(/\r?\n/)
+        .map((entry) => entry.trim())
+        .filter(Boolean),
+    ),
+  ];
+}
+
+export function getMissionWorkOrderPreviewSummary(preview, councilSessionId) {
+  if (
+    !preview ||
+    preview.councilSessionId !== councilSessionId ||
+    preview.schemaVersion !== 1
+  ) {
+    return null;
+  }
+
+  return {
+    previewId: preview.previewId,
+    executionPlanId: preview.executionPlan?.id || null,
+    workOrderCount: Array.isArray(preview.workOrders) ? preview.workOrders.length : 0,
+    handoffCount: Array.isArray(preview.handoffPackets) ? preview.handoffPackets.length : 0,
+    authorityClosed:
+      preview.approvalAllowed === false &&
+      preview.executionAllowed === false &&
+      preview.persistenceAllowed === false,
+  };
+}
+
 export function getCouncilCastEntry(role, councilSession) {
   const meta = COUNCIL_CAST_METADATA[role] || {
     archetype: '보이는 역할',

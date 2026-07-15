@@ -8731,6 +8731,56 @@ h3 {
   gap: 8px;
 }
 
+.mission-workorder-compile-form,
+.mission-workorder-preview {
+  width: 100%;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.mission-workorder-compile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.mission-workorder-compile-grid .text-input {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.mission-workorder-list {
+  display: grid;
+  gap: 0;
+  margin-top: 10px;
+  border-top: 1px solid var(--surface-control-border);
+}
+
+.mission-workorder-row {
+  min-width: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--surface-control-border);
+}
+
+.mission-workorder-row .card-title-row,
+.mission-workorder-preview > .card-title-row {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mission-workorder-row .form-help {
+  overflow-wrap: anywhere;
+}
+
+.mission-workorder-row .token-row > * {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .surface[data-surface="artifacts"] .guard-summary > .form-actions,
 .surface[data-surface="artifacts"] .breakdown-inbox-hint > .form-actions {
   padding: 12px 14px;
@@ -9832,6 +9882,14 @@ body[data-evidence-density='compact'] .control-overview-stack {
 }
 
 @media (max-width: 720px) {
+  .mission-workorder-compile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-workorder-compile-grid .text-input {
+    min-height: 76px;
+  }
+
   .app-shell {
     padding: 8px;
     gap: 8px;

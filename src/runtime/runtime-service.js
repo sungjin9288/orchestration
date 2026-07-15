@@ -94,6 +94,10 @@ const {
 } = require('./task-gates');
 const { assertRun } = require('./assertions');
 const {
+  compileMissionWorkOrderPreview,
+  preflightMissionWorkOrderCandidate,
+} = require('./mission-workorder-compiler');
+const {
   assertSupportedArtifactType,
   cloneJsonValue,
   compareByCreatedDesc,
@@ -1989,6 +1993,38 @@ function createRuntimeService(options = {}) {
     }
   }
 
+  function getMissionWorkOrderCompilerInput(input) {
+    const state = store.loadState();
+    const councilSession = assertCouncilSession(input.councilSessionId, state);
+    const mission = assertMission(councilSession.missionId, state);
+    const project = assertProject(mission.projectId, state);
+
+    if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
+      throw new Error('CompanyBlueprint must be ready before WorkOrder compilation');
+    }
+
+    assertRealCouncilSourceCurrent(councilSession, mission, project);
+
+    return {
+      mission,
+      project,
+      councilSession,
+      companyBlueprint: companyRuntime.blueprint,
+      compileSpec: input.compileSpec,
+    };
+  }
+
+  function preflightMissionWorkOrderPreview(input) {
+    return preflightMissionWorkOrderCandidate({
+      ...getMissionWorkOrderCompilerInput(input),
+      alignmentAction: input.action,
+    });
+  }
+
+  function previewMissionWorkOrders(input) {
+    return compileMissionWorkOrderPreview(getMissionWorkOrderCompilerInput(input));
+  }
+
   function getCouncilProviderReadiness(input = {}) {
     const state = store.loadState();
     const project = assertProject(input.projectId, state);
@@ -3374,6 +3410,8 @@ function createRuntimeService(options = {}) {
     getTask,
     getTaskGuardSummary,
     previewRetentionConsumer,
+    preflightMissionWorkOrderPreview,
+    previewMissionWorkOrders,
     listApprovals,
     listCouncilProviderReadinessSummaries,
     listDecisionInboxItems,

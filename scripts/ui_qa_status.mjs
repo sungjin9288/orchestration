@@ -172,6 +172,12 @@ const smokeChecks = [
     purpose:
       'OpenAI Responses Council opt-in UI and API preserve readiness-gated selection, redacted provider evidence, alignment parity, and unchanged local-stub behavior',
   },
+  {
+    id: 'ai-company-mission-workorder-compiler-ui-api',
+    script: 'scripts/smoke-ui-slice-653.mjs',
+    purpose:
+      'Mission compiler UI and API preserve explicit inert-preview selection, preflight-before-approval, response-only evidence, blocked downstream controls, deterministic recompute, and default linked-task compatibility',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

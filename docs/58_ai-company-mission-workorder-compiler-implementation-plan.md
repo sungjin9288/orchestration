@@ -4,8 +4,9 @@
 
 이 문서는 승인된 Real Council synthesis를 deterministic `ExecutionPlan`, inert `WorkOrder`,
 normalized `HandoffPacket` preview로 compile하는 Phase 4 최소 vertical slice를 정의한다.
-현재 승인은 planning only다. Runtime/API/UI 구현, preview persistence, WorkOrder execution, source
-mutation, commit, push, release authority는 열지 않는다.
+Planning-only provenance는 `DEC-086`에 보존되고 exact implementation은 `DEC-088`이 consume했다.
+Implemented preview는 response-only이며 preview persistence, WorkOrder execution, source mutation,
+commit, push, release authority는 열지 않는다.
 
 ## Accepted Planning-Only Decision
 
@@ -251,16 +252,21 @@ No persisted preview migration or cleanup is required because this slice creates
 ## Planning Status
 
 - Planning decision: accepted as `DEC-086`
-- Implementation decision handoff: documented as `DEC-087`
-- Runtime/API/UI implementation: blocked pending the complete fielded decision in
-  `docs/59_ai-company-mission-workorder-compiler-implementation-decision-handoff.md`
+- Implementation decision handoff: documented as `DEC-087` and consumed by `DEC-088`
+- Runtime/API/UI implementation: complete for the exact response-only target surface approved by
+  `operator-decision-ai-company-mission-workorder-compiler-implementation-001`
+- Downstream persistence, approval, scheduling, and execution authority: still blocked
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-mission-workorder-compiler-planning.mjs
+node scripts/smoke-ai-company-mission-workorder-compiler.mjs
+node scripts/smoke-ui-slice-653.mjs
+node scripts/ui_qa_status.mjs
 node scripts/verification_status.mjs
 ```
 
-These checks verify planning evidence and blocked authority only. They do not compile, persist,
-approve, schedule, or execute any WorkOrder.
+These checks verify consumed planning evidence, deterministic response-only compilation, UI/API
+preflight behavior, schema v6 compatibility, and blocked downstream authority. They create no
+durable ExecutionPlan or WorkOrder and do not approve, schedule, or execute WorkOrders.
