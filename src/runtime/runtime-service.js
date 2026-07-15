@@ -33,15 +33,20 @@ const {
 const { createFileStore } = require('./file-store');
 const { readCompanyBlueprintStatus } = require('./company-blueprint');
 const {
+  PROVIDER_COUNCIL_MODE,
   REAL_COUNCIL_MODE,
   buildAgendaDigest,
   buildCouncilAgenda,
   createRealCouncilSession,
+  isRealCouncilMode,
 } = require('./council-sessions');
 const { createCouncilCoordinator } = require('../execution/council-coordinator');
 const {
   createCouncilLocalStubAdapter,
 } = require('../execution/providers/council-local-stub-adapter');
+const {
+  createCouncilOpenAIResponsesAdapter,
+} = require('../execution/providers/council-openai-responses-adapter');
 const {
   normalizeOptionalString,
   normalizeRequiredString,
@@ -110,6 +115,10 @@ function createRuntimeService(options = {}) {
   const councilCoordinator = createCouncilCoordinator({
     adapter: options.councilAdapter || createCouncilLocalStubAdapter(),
   });
+  const councilLiveAdapter =
+    options.councilLiveAdapter ||
+    createCouncilOpenAIResponsesAdapter({ repoRoot: options.companyRepoRoot });
+  const councilLiveCoordinator = createCouncilCoordinator({ adapter: councilLiveAdapter });
   const decisionInboxKinds = new Set(Object.values(DECISION_INBOX_KIND));
   const decisionInboxSourceTypes = new Set(Object.values(DECISION_INBOX_SOURCE_TYPE));
   const proposalRecordTypes = new Set(Object.values(PROPOSAL_RECORD_TYPE));
@@ -1980,6 +1989,63 @@ function createRuntimeService(options = {}) {
     }
   }
 
+  function getCouncilProviderReadiness(input = {}) {
+    const state = store.loadState();
+    const project = assertProject(input.projectId, state);
+    const reasons = [];
+
+    if (project.pack !== PACKS.DEVELOPMENT) {
+      reasons.push('Council provider mode supports the development pack only');
+    }
+
+    if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
+      reasons.push('CompanyBlueprint is not ready');
+    }
+
+    const councilRoles = ['strategist', 'architect', 'decomposer', 'conductor'];
+    const roleReadiness = councilRoles.map((role) => {
+      const profile = companyRuntime?.blueprint?.agentProfiles?.find(
+        (candidate) => candidate.role === role,
+      );
+      const readiness = councilLiveAdapter.getReadiness({
+        profile,
+        providerConfig: project.provider,
+      });
+
+      if (!readiness.allowed) {
+        reasons.push(...readiness.reasons.map((reason) => `${role}: ${reason}`));
+      }
+
+      return {
+        role,
+        allowed: readiness.allowed,
+        readiness: readiness.readiness,
+        reasons: [...readiness.reasons],
+      };
+    });
+
+    return {
+      projectId: project.id,
+      mode: PROVIDER_COUNCIL_MODE,
+      adapter: 'openai-responses',
+      allowed: reasons.length === 0,
+      readiness: reasons.length === 0 ? 'ready' : 'blocked',
+      reasons: [...new Set(reasons)],
+      roles: roleReadiness,
+    };
+  }
+
+  function listCouncilProviderReadinessSummaries() {
+    const state = store.loadState();
+
+    return Object.fromEntries(
+      Object.values(state.projects).map((project) => [
+        project.id,
+        getCouncilProviderReadiness({ projectId: project.id }),
+      ]),
+    );
+  }
+
   function startRealCouncilForMission(input) {
     const state = store.loadState();
     const mission = assertMission(input.missionId, state);
@@ -2016,6 +2082,66 @@ function createRuntimeService(options = {}) {
     state.councilSessions[councilSession.id] = councilSession;
     mission.councilSessionId = councilSession.id;
     mission.status = 'aligning';
+    mission.updatedAt = now;
+    state.activeProjectId = mission.projectId;
+    state.selectedMissionId = mission.id;
+    store.saveState(state);
+
+    return {
+      councilSession: state.councilSessions[councilSession.id],
+      mission: state.missions[mission.id],
+    };
+  }
+
+  async function startProviderCouncilForMission(input) {
+    const state = store.loadState();
+    const mission = assertMission(input.missionId, state);
+    const project = assertProject(mission.projectId, state);
+    const now = new Date().toISOString();
+
+    if (input.mode !== PROVIDER_COUNCIL_MODE) {
+      throw new Error(`Unsupported Council mode: ${input.mode}`);
+    }
+
+    const readiness = getCouncilProviderReadiness({ projectId: project.id });
+
+    if (!readiness.allowed) {
+      const error = new Error('OpenAI Responses Council provider is not ready');
+      error.code = 'COUNCIL_PROVIDER_NOT_READY';
+      error.statusCode = 409;
+      error.reasons = readiness.reasons;
+      throw error;
+    }
+
+    if (mission.councilSessionId && state.councilSessions[mission.councilSessionId]) {
+      const error = new Error(
+        `Mission ${mission.id} already has a council session: ${mission.councilSessionId}`,
+      );
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const councilSession = createRealCouncilSession({
+      id: nextId(state, 'councilSession'),
+      mission,
+      project,
+      companyRuntime,
+      mode: PROVIDER_COUNCIL_MODE,
+      now,
+    });
+
+    await councilLiveCoordinator.runAsyncAttempt({
+      session: councilSession,
+      blueprint: companyRuntime.blueprint,
+      projectPack: project.pack,
+      providerConfig: project.provider,
+      signal: input.signal || null,
+      now,
+    });
+
+    state.councilSessions[councilSession.id] = councilSession;
+    mission.councilSessionId = councilSession.id;
+    mission.status = councilSession.phase === 'terminal' ? 'blocked' : 'aligning';
     mission.updatedAt = now;
     state.activeProjectId = mission.projectId;
     state.selectedMissionId = mission.id;
@@ -2096,6 +2222,91 @@ function createRuntimeService(options = {}) {
       decidedAt: now,
       status: 'pending',
     };
+    store.saveState(state);
+
+    return {
+      attempt,
+      councilSession: state.councilSessions[councilSession.id],
+      mission: state.missions[mission.id],
+    };
+  }
+
+  async function resumeProviderCouncilSession(input) {
+    const state = store.loadState();
+    const councilSession = assertCouncilSession(input.councilSessionId, state);
+    const mission = assertMission(councilSession.missionId, state);
+    const project = assertProject(mission.projectId, state);
+    const now = new Date().toISOString();
+
+    if (councilSession.mode !== PROVIDER_COUNCIL_MODE) {
+      throw new Error(`Council session ${councilSession.id} is not a provider Council session`);
+    }
+
+    if (councilSession.phase === 'terminal') {
+      const error = new Error(`Council session ${councilSession.id} is terminal`);
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const readiness = getCouncilProviderReadiness({ projectId: project.id });
+
+    if (!readiness.allowed) {
+      const error = new Error('OpenAI Responses Council provider is not ready');
+      error.code = 'COUNCIL_PROVIDER_NOT_READY';
+      error.statusCode = 409;
+      throw error;
+    }
+
+    assertRealCouncilSourceCurrent(councilSession, mission, project);
+    const currentAttempt = councilSession.attempts.find(
+      (attempt) => attempt.id === councilSession.currentAttemptId,
+    );
+    const failures = currentAttempt?.conflictSummary?.requiredRoleFailures || [];
+    const unsupportedEvidenceRefs = currentAttempt?.conflictSummary?.unsupportedEvidenceRefs || [];
+
+    if (
+      currentAttempt?.status !== 'failed' ||
+      (failures.length === 0 && unsupportedEvidenceRefs.length === 0)
+    ) {
+      const error = new Error(`Council session ${councilSession.id} has no failed attempt to resume`);
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const synthesisOnly = failures.length > 0 && failures.every(
+      (failure) => failure.role === 'conductor',
+    );
+    const failedAgentIds = failures
+      .filter((failure) => failure.role !== 'conductor')
+      .map((failure) => failure.agentId);
+    const unsupportedAgentIds = (currentAttempt.positions || [])
+      .filter((position) =>
+        position.evidenceRefs.some((ref) => unsupportedEvidenceRefs.includes(ref)),
+      )
+      .map((position) => position.agentId);
+    const targetAgentIds = Array.isArray(input.targetAgentIds)
+      ? input.targetAgentIds
+      : [...new Set([...failedAgentIds, ...unsupportedAgentIds])];
+    const attempt = await councilLiveCoordinator.runAsyncAttempt({
+      session: councilSession,
+      blueprint: companyRuntime.blueprint,
+      projectPack: project.pack,
+      providerConfig: project.provider,
+      targetAgentIds,
+      synthesisOnly,
+      revisionRequest: {
+        note: 'Resume failed Council attempt',
+        targetAgentIds: synthesisOnly
+          ? [councilSession.staffingSnapshot.conductorAgentId]
+          : targetAgentIds,
+      },
+      signal: input.signal || null,
+      now,
+    });
+
+    councilSession.alignment = { action: 'resume', decidedAt: now, status: 'pending' };
+    mission.status = councilSession.phase === 'terminal' ? 'blocked' : 'aligning';
+    mission.updatedAt = now;
     store.saveState(state);
 
     return {
@@ -2212,6 +2423,88 @@ function createRuntimeService(options = {}) {
     };
   }
 
+  async function decideProviderCouncilSession(input) {
+    const state = store.loadState();
+    const councilSession = assertCouncilSession(input.councilSessionId, state);
+    const mission = assertMission(councilSession.missionId, state);
+    const project = assertProject(mission.projectId, state);
+    const action = String(input.action || '').trim();
+    const now = new Date().toISOString();
+
+    if (councilSession.mode !== PROVIDER_COUNCIL_MODE) {
+      throw new Error(`Council session ${councilSession.id} is not a provider Council session`);
+    }
+
+    if (!['approve', 'request-revision', 'stop'].includes(action)) {
+      throw new Error('Real Council decision must be approve, request-revision, or stop');
+    }
+
+    if (councilSession.phase === 'terminal') {
+      const error = new Error(`Council session ${councilSession.id} is terminal`);
+      error.statusCode = 409;
+      throw error;
+    }
+
+    if (action === 'stop') {
+      councilSession.phase = 'terminal';
+      councilSession.status = 'stopped';
+      councilSession.terminalReason = 'operator-stopped';
+      councilSession.alignment = { action, decidedAt: now, status: 'stopped' };
+      councilSession.updatedAt = now;
+      mission.status = 'blocked';
+      mission.updatedAt = now;
+      store.saveState(state);
+      return { attempt: null, councilSession, mission };
+    }
+
+    if (councilSession.phase !== 'awaiting-alignment') {
+      const error = new Error(`Council session ${councilSession.id} is not awaiting alignment`);
+      error.statusCode = 409;
+      throw error;
+    }
+
+    assertRealCouncilSourceCurrent(councilSession, mission, project);
+
+    if (action === 'approve') {
+      councilSession.phase = 'terminal';
+      councilSession.status = 'approved';
+      councilSession.terminalReason = 'operator-approved';
+      councilSession.alignment = { action, decidedAt: now, status: 'approved' };
+      councilSession.updatedAt = now;
+      mission.status = mission.linkedTaskId ? 'executing' : 'aligned';
+      mission.updatedAt = now;
+      store.saveState(state);
+      return { attempt: null, councilSession, mission };
+    }
+
+    const note = String(input.note || '').trim();
+    const targetAgentIds = Array.isArray(input.targetAgentIds)
+      ? [...new Set(input.targetAgentIds.map((agentId) => String(agentId || '').trim()).filter(Boolean))]
+      : [];
+
+    if (!note || targetAgentIds.length === 0) {
+      throw new Error('request-revision requires a note and targetAgentIds');
+    }
+
+    const revisionRequest = { note, targetAgentIds, requestedAt: now };
+    const attempt = await councilLiveCoordinator.runAsyncAttempt({
+      session: councilSession,
+      blueprint: companyRuntime.blueprint,
+      projectPack: project.pack,
+      providerConfig: project.provider,
+      targetAgentIds,
+      revisionRequest,
+      signal: input.signal || null,
+      now,
+    });
+
+    councilSession.alignment = { action, decidedAt: now, status: 'pending' };
+    mission.status = councilSession.phase === 'terminal' ? 'blocked' : 'aligning';
+    mission.updatedAt = now;
+    store.saveState(state);
+    return { attempt, councilSession, mission };
+  }
+
   function approveCouncilRecommendation(input) {
     const state = store.loadState();
     const mission = assertMission(input.missionId, state);
@@ -2223,7 +2516,7 @@ function createRuntimeService(options = {}) {
     const councilSession = assertCouncilSession(mission.councilSessionId, state);
     const now = new Date().toISOString();
 
-    if (councilSession.mode === REAL_COUNCIL_MODE) {
+    if (isRealCouncilMode(councilSession.mode)) {
       const error = new Error(
         `Council session ${councilSession.id} requires the Real Council decision path`,
       );
@@ -3051,6 +3344,7 @@ function createRuntimeService(options = {}) {
     completeRun,
     createApprovalPlaceholder,
     createCouncilSessionForMission,
+    decideProviderCouncilSession,
     decideRealCouncilSession,
     createDecisionInboxItem,
     createLinkedTaskForMission,
@@ -3067,6 +3361,7 @@ function createRuntimeService(options = {}) {
     getArtifact,
     getApproval,
     getCouncilSession,
+    getCouncilProviderReadiness,
     getDecisionInboxItem,
     getLogs,
     getMission,
@@ -3080,6 +3375,7 @@ function createRuntimeService(options = {}) {
     getTaskGuardSummary,
     previewRetentionConsumer,
     listApprovals,
+    listCouncilProviderReadinessSummaries,
     listDecisionInboxItems,
     listProposalApplicationAttempts,
     listProposalSourceMutations,
@@ -3100,9 +3396,11 @@ function createRuntimeService(options = {}) {
     selectMission,
     selectProject,
     startRealCouncilForMission,
+    startProviderCouncilForMission,
     startRun,
     startPlaceholderRun,
     resumeRealCouncilSession,
+    resumeProviderCouncilSession,
     syncMissionExecutionStateFromTask,
     transitionTaskLifecycle,
   };

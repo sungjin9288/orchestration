@@ -422,6 +422,16 @@ const informationalChecks = [
     purpose: 'AI Company Phase 3 planning source-checks one explicit OpenAI Responses Council opt-in proposal, unchanged normalized schemas, local-stub authority, role and mode allowlists, retry timeout cancellation redaction optional live verification rollback, and still-blocked provider implementation calls runtime API UI and downstream authority',
   },
   {
+    id: 'ai-company-council-live-provider-implementation',
+    script: 'scripts/smoke-ai-company-council-live-provider.mjs',
+    purpose: 'AI Company Phase 3 synthetic provider smoke proves explicit OpenAI Responses Council opt-in, isolated sequential role requests, strict normalized schemas, deterministic conflict before synthesis, bounded retry timeout cancellation and call budget, redacted evidence, schema v6 reload, and local-stub plus legacy compatibility',
+  },
+  {
+    id: 'ai-company-council-live-provider-ui-api',
+    script: 'scripts/smoke-ui-slice-652.mjs',
+    purpose: 'AI Company Phase 3 UI and API smoke proves readiness-gated provider selection, safe provider evidence, missing-configuration refusal without incomplete session persistence, alignment parity, and unchanged local-stub behavior',
+  },
+  {
     id: 'coordinator-path-containment-smoke',
     script: 'scripts/smoke-coordinator-path-containment.mjs',
     purpose: 'Coordinator resolveProjectFilePath and restoreFileContents reject symlink-follow escapes (target or ancestor directory) so the builder-live-mutation write path cannot read or write outside the project, while still allowing in-project symlinks and normal writes and keeping lexical traversal and Windows-drive inputs blocked',

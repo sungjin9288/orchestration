@@ -60,7 +60,7 @@ assertSections(plan, [
   'Accepted Planning-Only Decision',
   'Current Baseline Evidence',
   'Implementation Objective',
-  'Exact Future Target Surface',
+  'Approved Target Surface',
   'Provider And Role Allowlist',
   'Normalized Output Contract',
   'Prompt And Data-Minimization Contract',
@@ -75,7 +75,7 @@ assertSections(plan, [
   'Implementation Sequence',
   'Acceptance Criteria',
   'Exclusions',
-  'Implementation Decision Required',
+  'Consumed Implementation Decision',
   'Implementation Status',
   'Verification',
 ]);
@@ -83,7 +83,7 @@ assertSections(plan, [
 assertAll(planText, [
   /operator-delegated-ai-company-council-live-provider-planning-001/,
   /approve-ai-company-council-live-provider-planning-only/,
-  /이 문서는 provider implementation 또는 provider call 승인이 아니다/,
+  /complete fielded decision이 `DEC-085`로 accepted/,
   /`real-local-stub` Council contract/,
   /`real-openai-responses`/,
   /OpenAI Responses provider opt-in/,
@@ -99,13 +99,14 @@ assertAll(planText, [
   /Preserve current synchronous `startRealCouncilForMission`/,
   /optional.*`skipped_missing_env`/,
   /Local-stub synthetic verification remains authoritative and unchanged/,
-  /Provider implementation, credentials, calls, runtime\/API\/UI changes, and downstream authority remain blocked/,
+  /Implemented and verified under `DEC-085`/,
 ]);
 
 assert.match(handoff, /^# AI Company Council Live Provider Implementation Decision Handoff$/m);
 assertSections(handoff, [
   'Purpose',
   'Current Gate',
+  'Accepted Outcome',
   'Source Evidence',
   'Valid Implementation Decision Shape',
   'Rejection Decision Shape',
@@ -131,21 +132,22 @@ assertAll(handoffText, [
 
 assert.match(decisionLog, /^### DEC-083$/m);
 assert.match(decisionLog, /^### DEC-084$/m);
+assert.match(decisionLog, /^### DEC-085$/m);
 assert.match(decisionLog, /Accept `operator-delegated-ai-company-council-live-provider-planning-001`/);
 assert.match(decisionLog, /records no implementation outcome, reads no credentials, calls no provider/);
-assert.match(masterPlan, /^## Approved Council Live Provider Planning Authority$/m);
-assert.match(runtimeContract, /Phase 3 provider 계획은 `DEC-083`과 `DEC-084`로 문서화됐다/);
-assert.match(councilProtocol, /Local-stub synthetic gate는 authoritative/);
+assert.match(masterPlan, /^## Accepted Council Live Provider Implementation Authority$/m);
+assert.match(runtimeContract, /complete fielded decision은\s+`DEC-085`로 accepted됐다/);
+assert.match(councilProtocol, /Local-stub synthetic gate는\s+authoritative/);
 assertAll(roadmapText, [
-  /Planning-only authority는 `DEC-083`, implementation decision handoff는 `DEC-084`/,
-  /targetAuthority=one explicit OpenAI Responses opt-in path for the existing Real Council normalized position and synthesis contract/,
-  /docs\/57_ai-company-council-live-provider-implementation-decision-handoff\.md/,
+  /Phase 3 provider implementation은 `DEC-085`로 accepted되고 검증됐다/,
+  /targetAuthority=planning only for one deterministic Mission-to-ExecutionPlan and inert WorkOrder draft compiler/,
+  /complete fielded implementation outcome은 `DEC-085`/,
 ]);
-assert.match(completionInventory, /AI Company Council live-provider planning \| pass/);
+assert.match(completionInventory, /AI Company Council live-provider implementation \| pass/);
 assertAll(readmeText, [
-  /Phase 3 Council live-provider implementation planning is accepted by `DEC-083`/,
-  /`real-openai-responses` candidate/,
-  /Provider implementation, credential access, calls, runtime\/API\/UI changes/,
+  /Phase 3 Council live-provider implementation is accepted by `DEC-085`/,
+  /One explicit `real-openai-responses` mode/,
+  /Provider expansion and all downstream authority remain blocked/,
 ]);
 assert.match(taskLedger, /ai-company-council-live-provider-planning-post-m7-1942/);
 assert.match(lessons, /A provider-backed Council plan must preserve the local normalized contract/);
@@ -155,11 +157,11 @@ assert.match(
   /script: 'scripts\/smoke-ai-company-council-live-provider-planning\.mjs'/,
 );
 
-// Planning must be grounded in the current local contract without implementing the future adapter.
-assert.match(blueprint, /"allowedModes": \["local-stub"\]/);
-assert.match(blueprint, /"maxProviderCalls": 0/);
+// Consumed planning evidence must remain aligned with the implemented narrow adapter boundary.
+assert.match(blueprint, /"allowedModes": \["local-stub", "openai-responses"\]/);
+assert.match(blueprint, /"maxProviderCalls": 5/);
 assert.match(councilSessions, /REAL_COUNCIL_MODE = 'real-local-stub'/);
-assert.doesNotMatch(councilSessions, /real-openai-responses/);
+assert.match(councilSessions, /PROVIDER_COUNCIL_MODE = 'real-openai-responses'/);
 assert.match(councilCoordinator, /executePosition/);
 assert.match(councilCoordinator, /executeSynthesis/);
 assert.match(councilLocalStubAdapter, /createCouncilLocalStubAdapter/);
@@ -169,15 +171,15 @@ assert.match(retryPolicy, /429/);
 assert.match(retryPolicy, /status >= 500/);
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'src/execution/providers/council-openai-responses-adapter.js')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-council-live-provider.mjs')),
-  false,
+  true,
 );
 assert.equal(
   fs.existsSync(path.join(repoRoot, 'scripts/smoke-ai-company-council-live-provider-live.mjs')),
-  false,
+  true,
 );
 
 process.stdout.write(
@@ -187,8 +189,8 @@ process.stdout.write(
       mode: MODE,
       decision: {
         planning: 'accepted',
-        implementation: 'blocked-fielded-decision-required',
-        nextGate: 'Council live-provider opt-in implementation decision required',
+        implementation: 'accepted-dec-085',
+        nextGate: 'Phase 4 Mission compiler and inert WorkOrder planning only',
       },
       plannedPath: {
         mode: 'real-openai-responses',
@@ -207,10 +209,10 @@ process.stdout.write(
       },
       authority: {
         planningAllowed: true,
-        providerImplementationAllowed: false,
-        providerCallsAllowed: false,
-        credentialsAllowed: false,
-        runtimeApiUiChangesAllowed: false,
+        providerImplementationAllowed: true,
+        providerCallsAllowed: 'explicit-opt-in-only',
+        credentialsAllowed: 'configured-project-reference-only',
+        runtimeApiUiChangesAllowed: true,
         staffingPlanRuntimeAllowed: false,
         workOrderRuntimeAllowed: false,
         memoryPersistenceAllowed: false,

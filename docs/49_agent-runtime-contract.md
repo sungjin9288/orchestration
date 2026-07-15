@@ -412,11 +412,11 @@ legacy deterministic Council routes를 유지하고 새 opt-in route에만 indep
 deterministic conflict check, Conductor synthesis, alignment action을 둔다. Provider, standalone
 StaffingPlan, WorkOrder, memory, scheduling, mutation, commit/push/release authority는 계속 blocked다.
 
-Phase 3 provider 계획은 `DEC-083`과 `DEC-084`로 문서화됐다. 계획은 기존 normalized position과
-synthesis schema를 변경하지 않고 `real-openai-responses`를 명시적 async opt-in 후보로만 둔다.
-현재 synchronous `real-local-stub` runtime methods, schema v6, legacy routes, execution provider
-behavior는 compatibility baseline이며 provider implementation, credential access, calls, policy
-expansion, runtime/API/UI 변경은 complete fielded decision 전까지 blocked다.
+Phase 3 provider 계획은 `DEC-083`과 `DEC-084`로 문서화됐고 complete fielded decision은
+`DEC-085`로 accepted됐다. 기존 normalized position/synthesis schema를 바꾸지 않는 명시적 async
+`real-openai-responses` path가 구현됐으며, synchronous `real-local-stub`, schema v6, legacy routes,
+execution provider behavior는 compatibility baseline으로 유지된다. Provider expansion,
+StaffingPlan, WorkOrder, memory, scheduling, mutation, commit/push/release는 계속 blocked다.
 
 ## Verification
 
@@ -427,6 +427,8 @@ node scripts/smoke-ai-company-real-council-planning.mjs
 node scripts/smoke-ai-company-real-council.mjs
 node scripts/smoke-ui-slice-651.mjs
 node scripts/smoke-ai-company-council-live-provider-planning.mjs
+node scripts/smoke-ai-company-council-live-provider.mjs
+node scripts/smoke-ui-slice-652.mjs
 node scripts/verification_status.mjs
 ```
 

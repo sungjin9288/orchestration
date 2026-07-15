@@ -112,6 +112,26 @@ function json(response, statusCode, payload) {
   response.end(`${JSON.stringify(payload, null, 2)}\n`);
 }
 
+async function runAbortableCouncilProviderRequest(request, response, execute) {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  const abortOnEarlyClose = () => {
+    if (!response.writableEnded) {
+      abort();
+    }
+  };
+
+  request.once('aborted', abort);
+  response.once('close', abortOnEarlyClose);
+
+  try {
+    return await execute(controller.signal);
+  } finally {
+    request.off('aborted', abort);
+    response.off('close', abortOnEarlyClose);
+  }
+}
+
 function text(response, statusCode, body, contentType) {
   response.writeHead(statusCode, {
     'Content-Type': contentType,
@@ -405,6 +425,8 @@ function buildDerivedSnapshotData(snapshot) {
     executionEntrySummaries: executionCoordinator.listExecutionEntryReadinessSummaries(),
     providerExecutionSummaries:
       executionCoordinator.listProviderExecutionReadinessSummaries(),
+    councilProviderReadinessSummaries:
+      runtime.listCouncilProviderReadinessSummaries(),
     releasePackageReadinessSummaries:
       executionCoordinator.listReleasePackageReadinessSummaries(),
     reviewerReadinessSummaries: executionCoordinator.listReviewerReadinessSummaries(),
@@ -1304,10 +1326,11 @@ const server = createServer(async (request, response) => {
     try {
       const missionId = decodeURIComponent(missionStartRealCouncilMatch[1]);
       const input = await readJsonBody(request);
-      const result = runtime.startRealCouncilForMission({
-        missionId,
-        mode: typeof input.mode === 'string' ? input.mode.trim() : undefined,
-      });
+      const mode = typeof input.mode === 'string' ? input.mode.trim() : undefined;
+      const result = mode === 'real-openai-responses'
+        ? await runAbortableCouncilProviderRequest(request, response, (signal) =>
+            runtime.startProviderCouncilForMission({ missionId, mode, signal }))
+        : runtime.startRealCouncilForMission({ missionId, mode });
 
       json(
         response,
@@ -1342,10 +1365,15 @@ const server = createServer(async (request, response) => {
     try {
       const councilSessionId = decodeURIComponent(realCouncilResumeMatch[1]);
       const input = await readJsonBody(request);
-      const result = runtime.resumeRealCouncilSession({
+      const councilSession = runtime.getCouncilSession(councilSessionId);
+      const resumeInput = {
         councilSessionId,
         targetAgentIds: Array.isArray(input.targetAgentIds) ? input.targetAgentIds : undefined,
-      });
+      };
+      const result = councilSession.mode === 'real-openai-responses'
+        ? await runAbortableCouncilProviderRequest(request, response, (signal) =>
+            runtime.resumeProviderCouncilSession({ ...resumeInput, signal }))
+        : runtime.resumeRealCouncilSession(resumeInput);
 
       json(
         response,
@@ -1382,12 +1410,17 @@ const server = createServer(async (request, response) => {
       const councilSessionId = decodeURIComponent(realCouncilDecisionMatch[1]);
       const input = await readJsonBody(request);
       const action = String(input.action || '').trim();
-      const alignedResult = runtime.decideRealCouncilSession({
+      const councilSession = runtime.getCouncilSession(councilSessionId);
+      const decisionInput = {
         councilSessionId,
         action,
         note: input.note,
         targetAgentIds: input.targetAgentIds,
-      });
+      };
+      const alignedResult = councilSession.mode === 'real-openai-responses'
+        ? await runAbortableCouncilProviderRequest(request, response, (signal) =>
+            runtime.decideProviderCouncilSession({ ...decisionInput, signal }))
+        : runtime.decideRealCouncilSession(decisionInput);
 
       if (action === 'approve') {
         const result = await runMissionAlignmentAutoChain(alignedResult.mission.id, {

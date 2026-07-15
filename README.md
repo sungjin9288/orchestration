@@ -85,15 +85,16 @@ available as compatibility behavior. Live providers, standalone StaffingPlan, Wo
 persistence expansion, autonomous scheduling, source/profile mutation, approval bypass, and
 runtime-agent commit/push/release remain blocked.
 
-Phase 3 Council live-provider implementation planning is accepted by `DEC-083`, and the complete
-fielded implementation gate is documented by `DEC-084` in
+Phase 3 Council live-provider implementation is accepted by `DEC-085` from the planning and complete
+fielded gate documented by `DEC-083` and `DEC-084` in
 `docs/56_ai-company-council-live-provider-implementation-plan.md` and
-`docs/57_ai-company-council-live-provider-implementation-decision-handoff.md`. The plan defines one
-explicit `real-openai-responses` candidate for the same normalized position and synthesis contract,
-with a four-role allowlist, sequential bounded calls, retry/timeout/cancellation, redacted provider
-evidence, schema v6 compatibility, authoritative local-stub verification, and optional live proof.
-Provider implementation, credential access, calls, runtime/API/UI changes, provider expansion, and
-all downstream authority remain blocked until the complete fielded decision is accepted.
+`docs/57_ai-company-council-live-provider-implementation-decision-handoff.md`. One explicit
+`real-openai-responses` mode reuses the normalized position and synthesis contract for four
+source-backed roles, executes sequential bounded calls, computes conflict deterministically before
+Conductor synthesis, and records redacted provider evidence. Project readiness gates API/UI
+selection; retry, timeout, cancellation, malformed output, and missing configuration fail closed
+without local fallback. Schema v6, authoritative `real-local-stub`, legacy Council, and human
+alignment remain unchanged. Provider expansion and all downstream authority remain blocked.
 
 Existing read-only Loop Engineering and post-completion routing evidence remains source-backed.
 `docs/20_loop-engineering-concept-review.md` defines the bounded operating concept, and
@@ -158,7 +159,7 @@ review-decision packet, accepted evidence-decision, and downstream authority dec
 evidence together, and
 `scripts/post-completion-next-step-status.mjs` reports
 `defaultCompletionImplementationOpen=false`. The latest checked aggregate evidence is required
-`1/1`, informational `185/185`, total `186/186`; UI QA is required `29/29`.
+`1/1`, informational `187/187`, total `188/188`; UI QA is required `30/30`.
 
 The vNext audit still consumes the completed proposal-record lifecycle review status and exposes
 `growth-evidence-ledger-proposal-record-lifecycle-review-maintenance` as maintenance evidence with
@@ -219,7 +220,7 @@ Current source-backed evidence:
 
 - Completion gate inventory: `docs/22_completion-gate-inventory.md` and
   `scripts/smoke-completion-gate-inventory-current-evidence.mjs` prove the current completion table,
-  aggregate `186/186`, UI QA `29/29`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `188/188`, UI QA `30/30`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias boundaries, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence.
@@ -1649,9 +1650,9 @@ This repo uses source and runtime smoke scripts rather than a conventional unit-
 counts below are file counts from current head, not a claim about passed test cases.
 
 ```bash
-find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 863 smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-*.mjs' | wc -l      # 866 smoke files
 find scripts -maxdepth 1 -type f -name '*qa-slice*.mjs' | wc -l   # 10 QA slice files
-find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 651 UI smoke files
+find scripts -maxdepth 1 -type f -name 'smoke-ui-slice-*.mjs' | wc -l # 652 UI smoke files
 ```
 
 For smoke discovery or targeted execution, use the checked runner instead of launching every smoke
@@ -1778,7 +1779,7 @@ node scripts/smoke-qa-slice-07.mjs
 Current verification evidence from this README and completion close-out refresh:
 
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
-  aggregate `186/186`, UI QA `29/29`, zero-open backlog, post-completion router, README smoke count,
+  aggregate `188/188`, UI QA `30/30`, zero-open backlog, post-completion router, README smoke count,
   aggregate registration, UI QA registration, proposal-record lifecycle review alias evidence, and
   proposal generation planning, implementation, pending human-review, review-decision packet, and
   accepted evidence-decision plus downstream authority decision-packet evidence stay aligned.
@@ -2041,9 +2042,9 @@ Current verification evidence from this README and completion close-out refresh:
 - `node scripts/smoke-completion-gate-inventory-current-evidence.mjs`: completion inventory counts,
   UI QA count, zero-open backlog, post-completion router, README smoke count, and proposal-record
   lifecycle review alias evidence stay aligned.
-- `node scripts/ui_qa_status.mjs`: required UI QA checks `29/29`; snapshot reachability is
+- `node scripts/ui_qa_status.mjs`: required UI QA checks `30/30`; snapshot reachability is
   informational and may be skipped when the local UI server is not running.
-- `node scripts/verification_status.mjs`: required `1/1`, informational `185/185`, total `186/186`;
+- `node scripts/verification_status.mjs`: required `1/1`, informational `187/187`, total `188/188`;
   the aggregate includes the README source-evidence smoke, vNext memory readiness decision spec,
   read-only growth dashboard evidence depth, authority expansion review, and authority implementation
   decision packet plus durable proposal record planning preview, operator decision handoff, and
@@ -2073,7 +2074,12 @@ Playwright CLI:
 - The default path is single-user and local-stub based.
 - No public hosted demo URL is verified for reviewer access.
 - The current completion gate is evidence-closed, not a claim of hosted production readiness:
-  aggregate `186/186`, UI QA `29/29`, and zero-open backlog are local source-backed checks.
+  aggregate `188/188`, UI QA `30/30`, and zero-open backlog are local source-backed checks.
+- `DEC-085` permits one explicit OpenAI Responses Council transport for four source-backed roles.
+  It requires configured project readiness and human alignment, stores only redacted provider
+  evidence, and does not permit provider expansion, autonomous scheduling, WorkOrder execution,
+  memory/profile/source mutation, approval bypass, runtime-agent commit/push/release, or connectors.
+  The optional live smoke is informational and reports `skipped_missing_env` when unconfigured.
 - Proposal generation planning and decision-handoff artifacts remain historical decision evidence.
   `DEC-071` approves only the pure in-memory generator; it does not create durable records, mutate
   queues, apply proposals, call providers, persist memory, mutate runtime/UI/source state, commit,

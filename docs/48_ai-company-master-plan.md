@@ -87,19 +87,19 @@ execution과 standalone StaffingPlan은 아직 구현되지 않았다.
 - Implemented: opt-in start/resume/decision routes, isolated local-stub positions, deterministic
   conflict summary, Conductor synthesis, additive attempt history, human alignment controls,
   schema v6 reload, and legacy route compatibility
-- Still blocked: live providers, standalone StaffingPlan, WorkOrders, memory/checkpoint expansion,
+- Still blocked after Phase 2: provider use until `DEC-085`, standalone StaffingPlan, WorkOrders, memory/checkpoint expansion,
   autonomous scheduling, profile/source mutation, approval bypass, runtime-agent commit/push/release
 
-## Approved Council Live Provider Planning Authority
+## Accepted Council Live Provider Implementation Authority
 
 - Planning decision: `operator-delegated-ai-company-council-live-provider-planning-001`
 - Decision status: `approve-ai-company-council-live-provider-planning-only`
-- Recorded decisions: `DEC-083`, `DEC-084`
-- Allowed: Phase 3 implementation plan, implementation decision handoff, focused planning smoke,
-  aggregate registration, documentation/README/task evidence, commit, push
-- Planned boundary: one explicit `real-openai-responses` path for the existing normalized Council
-  position and synthesis contract; `real-local-stub` stays authoritative
-- Still blocked: provider implementation or calls, runtime/API/UI changes, provider expansion,
+- Recorded decisions: `DEC-083`, `DEC-084`, `DEC-085`
+- Allowed: one explicit readiness-gated `real-openai-responses` implementation, four Council roles,
+  redacted provider evidence, focused synthetic/UI and optional live smoke, aggregate registration
+- Implemented boundary: existing normalized Council position and synthesis contract;
+  `real-local-stub` stays authoritative and there is no automatic provider fallback
+- Still blocked: provider expansion,
   StaffingPlan, WorkOrders, memory/checkpoint expansion, scheduling, mutation, approval bypass,
   runtime-agent commit/push/release
 
@@ -295,8 +295,10 @@ schema와 deterministic Council/browser presentation roster behavior를 유지�
 
 이 vertical slice의 decision-complete planning과 implementation gate는
 `docs/54_ai-company-real-council-implementation-plan.md`와
-`docs/55_ai-company-real-council-implementation-decision-handoff.md`에 고정됐다. 현재는 planning
-only이며 independent positions와 synthesis는 아직 구현되지 않았다.
+`docs/55_ai-company-real-council-implementation-decision-handoff.md`에 고정됐고 `DEC-082`로
+구현됐다. Independent positions, deterministic conflict, Conductor synthesis, human alignment가
+`real-local-stub` 경로에서 검증됐다. `DEC-085`는 같은 normalized contract에 명시적
+`real-openai-responses` transport만 추가하며 local-stub authority와 downstream gate를 유지한다.
 
 Foundation 계획과 consumed implementation decision input은
 `docs/52_ai-company-runtime-blueprint-implementation-plan.md`와
@@ -309,9 +311,11 @@ Foundation 계획과 consumed implementation decision input은
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
-node scripts/smoke-ai-company-real-council-planning.mjs
+node scripts/smoke-ai-company-real-council.mjs
+node scripts/smoke-ai-company-council-live-provider.mjs
+node scripts/smoke-ui-slice-652.mjs
 node scripts/verification_status.mjs
 ```
 
-이 검증은 계획 문서의 완전성과 authority boundary를 확인한다. Runtime AI Company 기능을
-검증하거나 구현 완료를 주장하지 않는다.
+이 검증은 source contract, local-stub Council, explicit provider opt-in, UI/API readiness gate와
+authority boundary를 확인한다. Optional live-provider 결과는 별도 informational evidence다.

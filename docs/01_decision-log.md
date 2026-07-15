@@ -508,6 +508,13 @@ This file records product and architecture decisions that shape v1. Add a new en
 - Impact: `docs/57_ai-company-council-live-provider-implementation-decision-handoff.md` defines valid approval/rejection shapes, invalid shortcuts, minimum acceptance criteria, still-blocked authority, and stop conditions. It records no implementation outcome, reads no credentials, calls no provider, and changes no runtime/API/UI/provider behavior.
 - Needed Before: The operator must supply the complete fielded implementation decision. General approval and delegated non-critical self-approval do not cover the architecture- and credential-sensitive Phase 3 implementation.
 
+### DEC-085
+- Status: `Accepted`
+- Decision: Accept `operator-decision-ai-company-council-live-provider-implementation-001` with `decisionStatus=approve-ai-company-council-live-provider-implementation-slice` for one explicit OpenAI Responses opt-in path using the existing Real Council normalized position and synthesis contract.
+- Why: The operator supplied the complete fielded decision with the exact target allowlist, one-provider and four-role boundary, local-stub authority, schema v6 compatibility, rollback, focused synthetic/UI/optional-live verification, and downstream blocked authority. Phase 2 already proves isolated normalized role contracts, so the provider slice can remain an additive transport path rather than redefining Council semantics.
+- Impact: `real-openai-responses` adds a readiness-gated async path for sequential Strategist, Architect, Decomposer, and Conductor requests. Deterministic code computes conflict before synthesis; provider evidence stores only adapter, model, provider run id, usage, attempt count, timestamps, outcome, and safe error code. HTTP 429/5xx retry, timeout, request cancellation, malformed output, missing configuration, and call budget fail closed without local fallback. `real-local-stub`, legacy routes, schema v6, existing execution provider behavior, and human `approve/request-revision/stop` remain unchanged.
+- Needed Before: Provider matrix expansion, standalone StaffingPlan, dynamic or parallel scheduling, ExecutionPlan/WorkOrder compilation or execution, memory/checkpoint schema expansion, runtime profile or source mutation, approval bypass, runtime-agent commit/push/release, and external connectors each require a later complete fielded decision. The next recommended target is Phase 4 Mission compiler and WorkOrder planning only.
+
 ### DEC-045
 - Status: `Accepted`
 - Decision: Adopt a **harness-first** posture for capability expansion: new capabilities should attach via harnesses (MCP servers, skills, local CLI wrappers) rather than expanding the core runtime, and they must remain optional and local-first.

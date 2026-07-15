@@ -70,6 +70,7 @@ const ROLE_NAMES = [
   'ops',
 ];
 const REQUIRED_COUNCIL_ROLES = ['conductor', 'strategist', 'architect', 'decomposer'];
+const COUNCIL_PROVIDER_ROLES = new Set(REQUIRED_COUNCIL_ROLES);
 const WORKSPACE_MODES = new Set(['shared-readonly', 'isolated', 'approved-project']);
 const SESSION_SCOPES = new Set(['mission-role', 'work-order']);
 const TOOL_ACTIONS = new Set([
@@ -387,13 +388,19 @@ function normalizeProfile(profile, index, context) {
       profile.providerPolicy.allowedModes,
       'BLUEPRINT_PROVIDER_MODE_INVALID',
       sourceRef,
-      new Set(['local-stub']),
+      new Set(['local-stub', 'openai-responses']),
     ),
   };
 
+  const expectedProviderModes = COUNCIL_PROVIDER_ROLES.has(normalized.role)
+    ? ['local-stub', 'openai-responses']
+    : ['local-stub'];
+
   if (
-    normalized.providerPolicy.allowedModes.length !== 1 ||
-    normalized.providerPolicy.allowedModes[0] !== 'local-stub'
+    normalized.providerPolicy.allowedModes.length !== expectedProviderModes.length ||
+    normalized.providerPolicy.allowedModes.some(
+      (mode, modeIndex) => mode !== expectedProviderModes[modeIndex],
+    )
   ) {
     fail('BLUEPRINT_PROVIDER_MODE_INVALID', sourceRef);
   }
@@ -522,7 +529,7 @@ function normalizeCompanyBlueprint(rawBlueprint, context) {
   };
 
   if (
-    normalized.defaultTerminationPolicy.maxProviderCalls !== 0 ||
+    normalized.defaultTerminationPolicy.maxProviderCalls !== 5 ||
     !normalized.defaultTerminationPolicy.stopOnRequiredRoleFailure
   ) {
     fail('BLUEPRINT_TERMINATION_POLICY_INVALID', sourceRef);

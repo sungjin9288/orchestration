@@ -2,9 +2,9 @@
 
 ## Purpose
 
-이 문서는 `Council live-provider opt-in implementation decision required` gate를 위한 copy-ready
-operator input이다. 이 문서 자체는 provider implementation, credential access, provider call,
-runtime/API/UI change authority가 아니다.
+이 문서는 `Council live-provider opt-in implementation decision required` gate를 위해 사용된
+copy-ready operator input이다. Complete fielded input은 `DEC-085`로 accepted됐고, 이 문서는
+승인 provenance와 blocked authority를 보존한다.
 
 ## Current Gate
 
@@ -16,7 +16,18 @@ runtime/API/UI change authority가 아니다.
 - Implementation handoff: documented by `DEC-084`
 - Required synthetic baseline: `real-local-stub`
 - Current runtime schema: v6
-- Current gate: complete fielded Council live-provider implementation decision required
+- Accepted implementation decision: `DEC-085`
+- Current gate: Phase 4 Mission compiler and WorkOrder planning only; implementation remains blocked
+
+## Accepted Outcome
+
+- Explicit mode: `real-openai-responses`; no implicit activation and no local fallback.
+- Roles: Strategist, Architect, Decomposer, and Conductor only.
+- Runtime: separate async start/resume/decision branch; synchronous local-stub and legacy routes stay unchanged.
+- Evidence: normalized domain records plus redacted provider metadata only.
+- Verification: network-free synthetic provider smoke and UI/API smoke are aggregate checks; optional live smoke is informational and currently reports `skipped_missing_env` when required env is absent.
+- Persisted compatibility: schema v6, no `createEmptyState` or file-store normalization change.
+- Blocked after acceptance: provider expansion, StaffingPlan, scheduling, WorkOrders, memory/profile/source mutation, approval bypass, runtime-agent commit/push/release, and external connectors.
 
 ## Source Evidence
 
@@ -119,8 +130,12 @@ authority opens implicitly.
 
 ```bash
 node scripts/smoke-ai-company-council-live-provider-planning.mjs
+node scripts/smoke-ai-company-council-live-provider.mjs
+node scripts/smoke-ai-company-council-live-provider-live.mjs
+node scripts/smoke-ui-slice-652.mjs
 node scripts/verification_status.mjs
 ```
 
-The planning smoke verifies decision evidence only. It does not read credentials, call a provider,
-or grant implementation authority.
+The planning smoke preserves decision evidence. The synthetic implementation and UI/API smokes are
+network-free. Only the optional live smoke may call the configured provider, and it exits successfully
+with `skipped_missing_env` when required configuration is absent.

@@ -9,8 +9,12 @@ import {
   getTaskLifecycleDisplay,
 } from './execution-labels.js';
 
+export function isRealCouncilMode(mode) {
+  return mode === 'real-local-stub' || mode === 'real-openai-responses';
+}
+
 export function getCurrentRealCouncilAttempt(councilSession) {
-  if (councilSession?.mode !== 'real-local-stub' || !Array.isArray(councilSession.attempts)) {
+  if (!isRealCouncilMode(councilSession?.mode) || !Array.isArray(councilSession.attempts)) {
     return null;
   }
 
@@ -22,7 +26,7 @@ export function getCurrentRealCouncilAttempt(councilSession) {
 }
 
 export function getLatestRealCouncilPositions(councilSession) {
-  if (councilSession?.mode !== 'real-local-stub' || !Array.isArray(councilSession.attempts)) {
+  if (!isRealCouncilMode(councilSession?.mode) || !Array.isArray(councilSession.attempts)) {
     return [];
   }
 
@@ -99,7 +103,7 @@ export function getCompanySignalEntries(options = {}) {
   const missionStatus = mission ? getMissionStatusDisplay(mission.status) : '초안 전';
   const missionTone = mission ? getMissionStatusTone(mission.status) : 'warning';
   const councilStatus = councilSession
-    ? councilSession.mode === 'real-local-stub'
+    ? isRealCouncilMode(councilSession.mode)
       ? councilSession.phase || councilSession.status
       : getAlignmentStatusDisplay(councilSession.alignment?.status || 'pending')
     : '대기';
@@ -164,7 +168,7 @@ export function getCompanySignalEntries(options = {}) {
       surface: 'council',
       label: '회의',
       status: councilStatus,
-      copy: councilSession?.mode === 'real-local-stub'
+      copy: isRealCouncilMode(councilSession?.mode)
         ? '독립 position, conflict evidence, Conductor synthesis가 같은 세션에 기록됩니다.'
         : councilSession
           ? '네 역할이 같은 안건 아래에서 방향을 맞춥니다.'

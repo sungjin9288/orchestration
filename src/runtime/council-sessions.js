@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 
 const REAL_COUNCIL_MODE = 'real-local-stub';
+const PROVIDER_COUNCIL_MODE = 'real-openai-responses';
 const REQUIRED_POSITION_ROLES = ['strategist', 'architect', 'decomposer'];
 const SYNTHESIS_ROLE = 'conductor';
 const POSITION_OUTPUT_KEYS = [
@@ -32,6 +33,20 @@ const SUPPORTED_EVIDENCE_REFS = new Set([
   'mission.deliverableType',
   'project.path',
   'company.blueprint',
+]);
+const PROVIDER_EVIDENCE_OUTCOMES = new Set(['succeeded', 'failed', 'cancelled']);
+const PROVIDER_EVIDENCE_ERROR_CODES = new Set([
+  'CANCELLED',
+  'HTTP_ERROR',
+  'INVALID_JSON',
+  'NETWORK_ERROR',
+  'NOT_CONFIGURED',
+  'OUTPUT_MISSING',
+  'ROLE_NOT_ALLOWED',
+  'ROLE_SOURCE_INVALID',
+  'SCHEMA_ERROR',
+  'TIMEOUT',
+  'UNAVAILABLE',
 ]);
 
 function isPlainRecord(value) {
@@ -143,7 +158,11 @@ function findProfileByRole(blueprint, role) {
   return blueprint.agentProfiles.find((profile) => profile.role === role) || null;
 }
 
-function resolveCouncilProfiles(blueprint, projectPack) {
+function isRealCouncilMode(mode) {
+  return mode === REAL_COUNCIL_MODE || mode === PROVIDER_COUNCIL_MODE;
+}
+
+function resolveCouncilProfiles(blueprint, projectPack, providerMode = 'local-stub') {
   if (!isPlainRecord(blueprint) || !Array.isArray(blueprint.agentProfiles)) {
     throw new Error('CompanyBlueprint is not ready for Real Council');
   }
@@ -159,8 +178,8 @@ function resolveCouncilProfiles(blueprint, projectPack) {
       throw new Error(`Council role ${role} does not support pack: ${projectPack}`);
     }
 
-    if (!profile.providerPolicy.allowedModes.includes('local-stub')) {
-      throw new Error(`Council role ${role} does not allow local-stub`);
+    if (!profile.providerPolicy.allowedModes.includes(providerMode)) {
+      throw new Error(`Council role ${role} does not allow ${providerMode}`);
     }
 
     return profile;
@@ -169,13 +188,25 @@ function resolveCouncilProfiles(blueprint, projectPack) {
   return Object.fromEntries(profiles.map((profile) => [profile.role, profile]));
 }
 
-function createRealCouncilSession({ id, mission, project, companyRuntime, now }) {
+function createRealCouncilSession({
+  id,
+  mission,
+  project,
+  companyRuntime,
+  mode = REAL_COUNCIL_MODE,
+  now,
+}) {
   if (companyRuntime?.status !== 'ready' || !companyRuntime.blueprint) {
     throw new Error('CompanyBlueprint must be ready before Real Council starts');
   }
 
   const blueprint = companyRuntime.blueprint;
-  const profilesByRole = resolveCouncilProfiles(blueprint, project.pack);
+  if (!isRealCouncilMode(mode)) {
+    throw new Error(`Unsupported Council mode: ${mode}`);
+  }
+
+  const providerMode = mode === PROVIDER_COUNCIL_MODE ? 'openai-responses' : 'local-stub';
+  const profilesByRole = resolveCouncilProfiles(blueprint, project.pack, providerMode);
   const agenda = buildCouncilAgenda(mission, project);
   const sourceDigest = buildAgendaDigest(agenda);
   const requiredProfiles = REQUIRED_POSITION_ROLES.map((role) => profilesByRole[role]);
@@ -184,7 +215,7 @@ function createRealCouncilSession({ id, mission, project, companyRuntime, now })
   return {
     id,
     missionId: mission.id,
-    mode: REAL_COUNCIL_MODE,
+    mode,
     status: 'collecting-positions',
     phase: 'collecting-positions',
     participants: [conductorProfile, ...requiredProfiles].map((profile) => ({
@@ -216,7 +247,7 @@ function createRealCouncilSession({ id, mission, project, companyRuntime, now })
       mode: 'council',
       requiredAgentIds: requiredProfiles.map((profile) => profile.id),
       conductorAgentId: conductorProfile.id,
-      providerMode: 'local-stub',
+      providerMode,
     },
     agenda,
     sourceDigest,
@@ -247,7 +278,49 @@ function validatePositionOutput(output) {
   };
 }
 
-function createPositionRecord({ output, session, attemptId, profile, now }) {
+function normalizeProviderEvidence(value) {
+  if (!value) {
+    return null;
+  }
+
+  const usage = value.usage && isPlainRecord(value.usage)
+    ? {
+        inputTokens: Number.isInteger(value.usage.inputTokens) ? value.usage.inputTokens : null,
+        outputTokens: Number.isInteger(value.usage.outputTokens) ? value.usage.outputTokens : null,
+        totalTokens: Number.isInteger(value.usage.totalTokens) ? value.usage.totalTokens : null,
+      }
+    : null;
+  const outcome = requiredString(value.outcome, 'providerEvidence.outcome');
+  const errorCode = typeof value.errorCode === 'string' && value.errorCode.trim()
+    ? value.errorCode.trim()
+    : null;
+
+  if (!PROVIDER_EVIDENCE_OUTCOMES.has(outcome)) {
+    throw new Error('providerEvidence.outcome is invalid');
+  }
+
+  return {
+    adapter: requiredString(value.adapter, 'providerEvidence.adapter'),
+    model: requiredString(value.model, 'providerEvidence.model'),
+    providerRunId: typeof value.providerRunId === 'string' && value.providerRunId.trim()
+      ? value.providerRunId.trim()
+      : null,
+    usage,
+    providerAttemptCount: Number.isInteger(value.providerAttemptCount) && value.providerAttemptCount > 0
+      ? value.providerAttemptCount
+      : 1,
+    startedAt: requiredString(value.startedAt, 'providerEvidence.startedAt'),
+    completedAt: requiredString(value.completedAt, 'providerEvidence.completedAt'),
+    outcome,
+    errorCode: errorCode && PROVIDER_EVIDENCE_ERROR_CODES.has(errorCode)
+      ? errorCode
+      : errorCode
+        ? 'UNAVAILABLE'
+        : null,
+  };
+}
+
+function createPositionRecord({ output, session, attemptId, profile, providerEvidence = null, now }) {
   const normalized = validatePositionOutput(output);
 
   return {
@@ -257,6 +330,7 @@ function createPositionRecord({ output, session, attemptId, profile, now }) {
     role: profile.role,
     sourceDigest: session.sourceDigest,
     ...normalized,
+    providerEvidence: normalizeProviderEvidence(providerEvidence),
     createdAt: now,
   };
 }
@@ -354,13 +428,21 @@ function validateSynthesisOutput(output, positions) {
   };
 }
 
-function createSynthesisRecord({ output, attemptId, positions, conductorProfile, now }) {
+function createSynthesisRecord({
+  output,
+  attemptId,
+  positions,
+  conductorProfile,
+  providerEvidence = null,
+  now,
+}) {
   return {
     id: `${attemptId}-${conductorProfile.id}`,
     attemptId,
     agentId: conductorProfile.id,
     role: conductorProfile.role,
     ...validateSynthesisOutput(output, positions),
+    providerEvidence: normalizeProviderEvidence(providerEvidence),
     createdAt: now,
   };
 }
@@ -404,6 +486,7 @@ function applyAttemptPresentation(session, attempt) {
 }
 
 module.exports = {
+  PROVIDER_COUNCIL_MODE,
   REAL_COUNCIL_MODE,
   REQUIRED_POSITION_ROLES,
   SYNTHESIS_ROLE,
@@ -418,5 +501,7 @@ module.exports = {
   createSynthesisRecord,
   freezeJson,
   getLatestPositionByAgent,
+  isRealCouncilMode,
+  normalizeProviderEvidence,
   resolveCouncilProfiles,
 };

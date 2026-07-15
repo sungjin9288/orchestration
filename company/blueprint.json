@@ -20,7 +20,7 @@
   },
   "defaultTerminationPolicy": {
     "maxTurnsPerAgent": 4,
-    "maxProviderCalls": 0,
+    "maxProviderCalls": 5,
     "deadlineMs": 300000,
     "stopOnRequiredRoleFailure": true
   },
@@ -47,7 +47,7 @@
         "resumeAllowed": false
       },
       "providerPolicy": {
-        "allowedModes": ["local-stub"]
+        "allowedModes": ["local-stub", "openai-responses"]
       },
       "authority": {
         "canRecommend": true,
@@ -81,7 +81,7 @@
         "resumeAllowed": false
       },
       "providerPolicy": {
-        "allowedModes": ["local-stub"]
+        "allowedModes": ["local-stub", "openai-responses"]
       },
       "authority": {
         "canRecommend": true,
@@ -115,7 +115,7 @@
         "resumeAllowed": false
       },
       "providerPolicy": {
-        "allowedModes": ["local-stub"]
+        "allowedModes": ["local-stub", "openai-responses"]
       },
       "authority": {
         "canRecommend": true,
@@ -149,7 +149,7 @@
         "resumeAllowed": false
       },
       "providerPolicy": {
-        "allowedModes": ["local-stub"]
+        "allowedModes": ["local-stub", "openai-responses"]
       },
       "authority": {
         "canRecommend": true,

@@ -120,7 +120,12 @@ try {
     assert.equal(profile.authority.canMutateSource, false);
     assert.equal(profile.authority.canCommit, false);
     assert.equal(profile.authority.canPush, false);
-    assert.deepEqual(profile.providerPolicy.allowedModes, ['local-stub']);
+    assert.deepEqual(
+      profile.providerPolicy.allowedModes,
+      ['conductor', 'strategist', 'architect', 'decomposer'].includes(profile.role)
+        ? ['local-stub', 'openai-responses']
+        : ['local-stub'],
+    );
     assert.deepEqual(profile.toolPolicy.write, []);
     assert.match(profile.instructionsRef, /^company\/roles\/[a-z]+\.md$/);
 
@@ -134,7 +139,7 @@ try {
     assert.doesNotMatch(roleSource, /OPENAI_API_KEY|Bearer\s+|sk-[A-Za-z0-9]/);
   }
 
-  assert.equal(blueprint.defaultTerminationPolicy.maxProviderCalls, 0);
+  assert.equal(blueprint.defaultTerminationPolicy.maxProviderCalls, 5);
   assert.equal(blueprint.defaultStaffingPolicy.parallelSpecialistsAllowed, false);
   assert.equal(blueprint.authorityPolicy.runtimeAgentPushAllowed, false);
 

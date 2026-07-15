@@ -141,13 +141,13 @@ assert.match(runtimeContract, /Phase 2 planning evidence는 `DEC-082`가 consume
 assert.match(councilProtocol, /complete fielded implementation outcome은 `DEC-082`로 기록됐다/);
 assertAll(roadmapText, [
   /complete fielded implementation outcome은 `DEC-082`로 기록됐다/,
-  /targetAuthority=one explicit OpenAI Responses opt-in path for the existing Real Council normalized position and synthesis contract/,
+  /targetAuthority=planning only for one deterministic Mission-to-ExecutionPlan and inert WorkOrder draft compiler/,
 ]);
 assert.match(completionInventory, /AI Company Real Council planning \| pass/);
 assertAll(readmeText, [
   /Phase 2 Real Council implementation is accepted by `DEC-082`/,
   /opt-in `real-local-stub` path/,
-  /Live providers, standalone StaffingPlan, WorkOrders, memory persistence expansion/,
+  /Provider expansion and all downstream authority remain blocked/,
 ]);
 assert.match(taskLedger, /ai-company-real-council-planning-post-m7-1940/);
 assert.match(taskLedger, /ai-company-real-council-implementation-post-m7-1941/);
@@ -166,7 +166,7 @@ for (const relativePath of [
   assert.equal(fs.existsSync(path.join(repoRoot, relativePath)), true);
 }
 
-assert.match(blueprint, /"maxProviderCalls": 0/);
+assert.match(blueprint, /"maxProviderCalls": 5/);
 assert.match(runtimeContracts, /schemaVersion: 6/);
 assert.match(fileStore, /councilSession\.transcript = Array\.isArray/);
 assert.match(fileStore, /status: councilSession\.alignment\.status \|\| 'pending'/);
@@ -196,7 +196,7 @@ process.stdout.write(
       decision: {
         planning: 'accepted',
         implementation: 'accepted-and-implemented',
-        nextGate: 'Council live-provider opt-in implementation decision required',
+        nextGate: 'Phase 4 Mission compiler and inert WorkOrder planning only',
       },
       plannedPath: {
         requiredPositionRoles: ['strategist', 'architect', 'decomposer'],
@@ -216,7 +216,7 @@ process.stdout.write(
       },
       authority: {
         realCouncilImplementationAllowed: true,
-        providerCallsAllowed: false,
+        providerCallsAllowed: 'explicit-phase-3-council-opt-in-only',
         staffingPlanRuntimeAllowed: false,
         workOrderRuntimeAllowed: false,
         memoryPersistenceAllowed: false,

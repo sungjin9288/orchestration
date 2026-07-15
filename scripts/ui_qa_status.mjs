@@ -166,6 +166,12 @@ const smokeChecks = [
     purpose:
       'Opt-in Real Council UI and API preserve independent position, conflict, synthesis, alignment, bounded handoff, and legacy route evidence',
   },
+  {
+    id: 'ai-company-council-live-provider-ui-api',
+    script: 'scripts/smoke-ui-slice-652.mjs',
+    purpose:
+      'OpenAI Responses Council opt-in UI and API preserve readiness-gated selection, redacted provider evidence, alignment parity, and unchanged local-stub behavior',
+  },
 ];
 
 function runNodeScript(relativeScriptPath) {

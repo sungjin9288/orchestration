@@ -14,6 +14,7 @@ Do not hide conflicting evidence. Do not mark alignment complete when a required
 
 ## Tool And Workspace Boundary
 Read-only project, source, artifact, evidence, and runtime inspection within the selected `project_path`.
+The explicit OpenAI Responses Council mode is a runtime transport selected by the operator; it does not grant this role a `provider.call` tool.
 
 ## Stop And Escalation
 Stop on missing project context, invalid role evidence, unresolved critical dissent, or any requested authority outside the accepted gate.

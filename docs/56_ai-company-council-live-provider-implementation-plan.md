@@ -5,9 +5,9 @@
 이 문서는 검증된 `real-local-stub` Council contract를 정확히 하나의 OpenAI Responses
 provider opt-in 경로로 확장하기 위한 Phase 3 implementation plan이다.
 
-이 문서는 provider implementation 또는 provider call 승인이 아니다. Runtime, API, UI,
-CompanyBlueprint, provider adapter, persisted state를 변경하지 않으며 실제 credential을 읽거나
-network request를 실행하지 않는다.
+이 문서는 원래 provider implementation 또는 provider call 승인이 아니었던 planning artifact다.
+이후 complete fielded decision이 `DEC-085`로 accepted되어 아래 범위가 구현됐으며, 이 문서는
+구현 계약과 rollback 기준의 source evidence로 유지된다.
 
 ## Accepted Planning-Only Decision
 
@@ -31,10 +31,10 @@ network request를 실행하지 않는다.
 - `DEC-082` implements `mode=real-local-stub` with isolated Strategist, Architect, and Decomposer
   position requests, deterministic conflict checks, Conductor synthesis, and human alignment.
 - Local-stub runtime/API/UI smokes are the authoritative synthetic gate.
-- Existing execution live-provider support is limited to its current execution-role allowlist and is
-  not a Council adapter.
-- `company/blueprint.json` currently permits only `local-stub`; role contracts deny
-  `provider.call`.
+- Existing execution live-provider support remains limited to its execution-role allowlist; the
+  Council path uses a separate adapter and does not widen it.
+- `company/blueprint.json` permits `openai-responses` only for the four Council roles. Role contracts
+  continue to deny the `provider.call` tool because runtime transport is not role tool authority.
 - `OPENAI_API_KEY` and `OPENAI_RESPONSES_MODEL` are optional environment inputs for the existing
   execution provider boundary. Missing values are reported as not configured by live smokes.
 - Persisted state remains schema v6 and stores no CompanyBlueprint policy or provider credential.
@@ -50,9 +50,9 @@ Add one explicit `mode=real-openai-responses` path that:
 5. Fails closed on readiness, authority, schema, timeout, cancellation, or malformed output errors.
 6. Leaves `real-local-stub` unchanged and authoritative for required verification.
 
-## Exact Future Target Surface
+## Approved Target Surface
 
-A later implementation decision may open only:
+The accepted implementation decision opened only:
 
 ```text
 company/blueprint.json
@@ -281,21 +281,26 @@ safe failure display, alignment parity, and unchanged local-stub/legacy UI.
 - Runtime profile editing or browser-defined role authority
 - Source mutation, approval bypass, runtime-agent commit/push/release
 
-## Implementation Decision Required
+## Consumed Implementation Decision
 
-Actual implementation requires every field in
-`docs/57_ai-company-council-live-provider-implementation-decision-handoff.md`. Broad approval,
-continuation wording, or delegated non-critical self-approval does not open provider implementation
-or calls.
+Actual implementation was opened only by every field in
+`docs/57_ai-company-council-live-provider-implementation-decision-handoff.md` and accepted as
+`DEC-085`. Broad approval, continuation wording, or delegated non-critical self-approval still does
+not open any provider expansion or downstream authority.
 
 ## Implementation Status
 
-Planning-only authority is accepted. Provider implementation, credentials, calls, runtime/API/UI
-changes, and downstream authority remain blocked.
+Implemented and verified under `DEC-085`. One explicit `real-openai-responses` path is available only
+when project provider readiness succeeds. Required local-stub verification remains authoritative;
+the optional live smoke is informational and reports `skipped_missing_env` when unconfigured.
+Provider expansion and every listed downstream authority remain blocked.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-council-live-provider-planning.mjs
+node scripts/smoke-ai-company-council-live-provider.mjs
+node scripts/smoke-ai-company-council-live-provider-live.mjs
+node scripts/smoke-ui-slice-652.mjs
 node scripts/verification_status.mjs
 ```

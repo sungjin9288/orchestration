@@ -137,6 +137,7 @@ import {
   getCouncilCastEntry,
   getCurrentRealCouncilAttempt,
   getLatestRealCouncilPositions,
+  isRealCouncilMode,
 } from './council-signals.js';
 import {
   getDeliverablesDeskNext,
@@ -1298,6 +1299,7 @@ function createEmptyDerivedState() {
     closeOutReadinessSummaries: {},
     commitExecutionReadinessSummaries: {},
     commitPackageReadinessSummaries: {},
+    councilProviderReadinessSummaries: {},
     executionEntrySummaries: {},
     harnessConsumerStatus: null,
     harnessConsumerBrief: null,
@@ -5077,6 +5079,11 @@ async function handleSelection(action, id) {
     return;
   }
 
+  if (action === 'start-provider-council-for-mission') {
+    await submitStartRealCouncilForMission(id, 'real-openai-responses');
+    return;
+  }
+
   if (action === 'resume-real-council-session') {
     await submitResumeRealCouncilSession(id);
     return;
@@ -5374,7 +5381,7 @@ async function submitCreateMission(options = {}) {
     data.activeProject.pack === 'knowledge-work'
       ? state.missionDraftDeliverableType || 'decision-memo'
       : '';
-  const realCouncilRequested = options.councilMode === 'real-local-stub';
+  const realCouncilRequested = isRealCouncilMode(options.councilMode);
 
   if (!title) {
     throw new Error('미션 제목이 필요합니다.');
@@ -5401,7 +5408,7 @@ async function submitCreateMission(options = {}) {
     if (realCouncilRequested) {
       payload = await postJson(
         `/api/missions/${encodeURIComponent(payload.mission.id)}/council/start`,
-        { mode: 'real-local-stub' },
+        { mode: options.councilMode },
       );
     }
 
@@ -5518,7 +5525,7 @@ async function submitDraftCouncilForMission(missionId) {
   }
 }
 
-async function submitStartRealCouncilForMission(missionId) {
+async function submitStartRealCouncilForMission(missionId, mode = 'real-local-stub') {
   const data = getDerived();
   const mission = data.missionMap.get(missionId) || null;
 
@@ -5534,7 +5541,7 @@ async function submitStartRealCouncilForMission(missionId) {
   try {
     const payload = await postJson(
       `/api/missions/${encodeURIComponent(missionId)}/council/start`,
-      { mode: 'real-local-stub' },
+      { mode },
     );
 
     applySnapshotPayload(payload);
@@ -5542,7 +5549,13 @@ async function submitStartRealCouncilForMission(missionId) {
     await hydrateSelectedDetails();
     state.surface = 'council';
     render();
-    elements.refreshStatus.textContent = `Real Council ${payload.councilSession.id}가 사람 결정을 기다립니다`;
+    elements.refreshStatus.textContent = payload.councilSession.status === 'pending-alignment'
+      ? `Real Council ${payload.councilSession.id}가 사람 결정을 기다립니다`
+      : payload.councilSession.status === 'failed'
+        ? `Real Council ${payload.councilSession.id}의 provider failure evidence가 기록됐습니다`
+        : payload.councilSession.status === 'cancelled'
+          ? `Real Council ${payload.councilSession.id}가 취소됐습니다`
+          : `Real Council ${payload.councilSession.id}: ${payload.councilSession.status}`;
   } finally {
     state.mutating = false;
     render();
@@ -8879,6 +8892,9 @@ function renderMission(data) {
       ];
   const missionUsesKnowledgeWork = data.activeProject?.pack === 'knowledge-work';
   const missionCreateDisabled = state.loading || state.mutating;
+  const missionCouncilProviderReadiness =
+    data.councilProviderReadinessSummaries?.[data.activeProject?.id] || null;
+  const missionCouncilProviderReady = missionCouncilProviderReadiness?.allowed === true;
   const linkedTaskCreateDisabled =
     state.loading || state.mutating || !selectedMission || Boolean(selectedMission.linkedTaskId);
   const missionEntries = data.missions.map((mission) => ({
@@ -9200,11 +9216,22 @@ function renderMission(data) {
               >
                 독립 역할 회의 등록
               </button>
+              <button
+                class="secondary-button"
+                type="submit"
+                name="councilMode"
+                value="real-openai-responses"
+                ${missionCreateDisabled || missionUsesKnowledgeWork || !missionCouncilProviderReady ? 'disabled' : ''}
+              >
+                OpenAI 역할 회의 등록
+              </button>
               <p class="form-help">
                 ${
                   missionUsesKnowledgeWork
                     ? `등록 즉시 ${getKnowledgeWorkDeliverableDisplayName(state.missionDraftDeliverableType)} 기준 회의 초안이 열리고, 승인 전까지는 실행 셀로 넘어가지 않습니다.`
-                    : '등록 즉시 회의 초안이 열리고, 승인 전까지는 실행 셀로 넘어가지 않습니다.'
+                    : missionCouncilProviderReady
+                      ? '로컬 역할 회의 또는 명시적 OpenAI 역할 회의를 선택할 수 있으며, 승인 전까지는 실행 셀로 넘어가지 않습니다.'
+                      : `OpenAI 역할 회의 차단: ${escapeHtml(missionCouncilProviderReadiness?.reasons?.[0] || 'provider readiness가 준비되지 않았습니다.')}`
                 }
               </p>
             </div>
@@ -9695,6 +9722,7 @@ function renderRealCouncilEvidence(councilSession) {
       const participant = (councilSession.participants || []).find(
         (entry) => entry.agentId === position.agentId,
       );
+      const providerEvidence = position.providerEvidence;
 
       return `
         <section class="relation-strip transcript-card">
@@ -9705,6 +9733,9 @@ function renderRealCouncilEvidence(councilSession) {
           </div>
           <p class="detail-copy detail-copy-compact transcript-card-copy">${escapeHtml(position.recommendation)}</p>
           <p class="detail-copy detail-copy-compact">다음: ${escapeHtml(position.proposedNextStep)}</p>
+          ${providerEvidence
+            ? `<p class="detail-copy detail-copy-compact">provider ${escapeHtml(providerEvidence.model)} · ${escapeHtml(providerEvidence.outcome)} · attempts ${providerEvidence.providerAttemptCount}</p>`
+            : ''}
         </section>
       `;
     })
@@ -9725,6 +9756,8 @@ function renderRealCouncilEvidence(councilSession) {
         ${createToken(`phase:${councilSession.phase}`, councilSession.status === 'failed' ? 'danger' : 'accent')}
         ${createToken(`attempt:${attempt.sequence}`, 'neutral')}
         ${createToken(`positions:${positions.length}`, 'neutral')}
+        ${createToken(councilSession.mode, councilSession.mode === 'real-openai-responses' ? 'accent' : 'neutral')}
+        ${attempt.providerCallCount ? createToken(`provider-calls:${attempt.providerCallCount}`, 'neutral') : ''}
       </div>
       <p class="detail-copy detail-copy-compact">${escapeHtml(councilSession.agenda?.title || '')}</p>
       <p class="detail-copy detail-copy-compact">source ${escapeHtml(String(councilSession.sourceDigest || '').slice(0, 12))}</p>
@@ -9753,6 +9786,7 @@ function renderRealCouncilEvidence(councilSession) {
           <div class="card-title-row card-title-row-tight council-outcome-head">
             <strong class="council-outcome-title">Conductor synthesis</strong>
             ${createToken('human decision required', 'accent')}
+            ${synthesis.providerEvidence ? createToken(`${synthesis.providerEvidence.model}:${synthesis.providerEvidence.outcome}`, 'neutral') : ''}
           </div>
           <p class="detail-copy detail-copy-compact council-outcome-copy">${escapeHtml(synthesis.adoptedRecommendation)}</p>
           <p class="detail-copy detail-copy-compact council-outcome-copy council-outcome-copy-muted">${escapeHtml(synthesis.proposedExecutionBoundary)}</p>
@@ -9894,7 +9928,10 @@ function renderCouncil(data) {
     selectedCouncilSession,
     linkedTask,
   );
-  const isRealCouncil = selectedCouncilSession?.mode === 'real-local-stub';
+  const isRealCouncil = isRealCouncilMode(selectedCouncilSession?.mode);
+  const councilProviderReadiness =
+    data.councilProviderReadinessSummaries?.[data.activeProject?.id] || null;
+  const councilProviderReady = councilProviderReadiness?.allowed === true;
 
   if (!selectedMission) {
     elements.surfaces.council.innerHTML = `
@@ -10080,13 +10117,26 @@ function renderCouncil(data) {
                   <button
                     class="secondary-button"
                     type="button"
+                    data-action="start-provider-council-for-mission"
+                    data-id="${escapeHtml(selectedMission.id)}"
+                    ${councilDraftDisabled || !councilProviderReady || data.activeProject.pack === 'knowledge-work' ? 'disabled' : ''}
+                  >
+                    OpenAI 역할 회의
+                  </button>
+                  <button
+                    class="secondary-button"
+                    type="button"
                     data-action="draft-council-for-mission"
                     data-id="${escapeHtml(selectedMission.id)}"
                     ${councilDraftDisabled ? 'disabled' : ''}
                   >
                     회의 초안
                   </button>
-                  <p class="form-help">안건이 올라온 뒤 참석자 등록과 첫 권고안을 먼저 엽니다.</p>
+                  <p class="form-help">${
+                    councilProviderReady
+                      ? '안건이 올라온 뒤 local-stub 또는 명시적 OpenAI Responses 역할 회의를 엽니다.'
+                      : `OpenAI 역할 회의 차단: ${escapeHtml(councilProviderReadiness?.reasons?.[0] || 'provider readiness가 준비되지 않았습니다.')}`
+                  }</p>
                 </div>
               `
               : ''

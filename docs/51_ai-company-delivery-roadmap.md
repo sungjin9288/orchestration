@@ -166,11 +166,11 @@ quarantine 또는 evidence-only로 보존한다.
 
 ### Authority Gate
 
-Planning-only authority는 `DEC-083`, implementation decision handoff는 `DEC-084`로 기록됐다.
-계획은 one-provider/four-role allowlist, normalized schema parity, sequential call budget,
-retry/timeout/cancellation, redaction, optional live verification, local-stub compatibility, rollback을
-고정한다. `provider-assisted Council role execution`은 complete fielded implementation decision 전까지
-blocked다.
+Planning-only authority는 `DEC-083`, implementation decision handoff는 `DEC-084`, complete fielded
+implementation outcome은 `DEC-085`로 기록됐다. One-provider/four-role allowlist, normalized schema
+parity, sequential call budget, retry/timeout/cancellation, redaction, optional live verification,
+local-stub compatibility, rollback이 구현·검증됐다. Provider expansion과 Phase 4 이후 authority는
+별도 complete fielded decision 전까지 blocked다.
 
 ## Phase 4: Mission Compiler And WorkOrders
 
@@ -394,25 +394,26 @@ approvalStatement=
 
 ## Immediate Next Decision
 
-Phase 3 planning이 검증된 뒤 필요한 다음 decision target은 다음 하나다.
+Phase 3 provider implementation은 `DEC-085`로 accepted되고 검증됐다. 다음 decision target은
+Phase 4의 Mission compiler와 inert WorkOrder planning 하나다.
 
 ```text
-targetAuthority=one explicit OpenAI Responses opt-in path for the existing Real Council normalized position and synthesis contract
+targetAuthority=planning only for one deterministic Mission-to-ExecutionPlan and inert WorkOrder draft compiler
 ```
 
-The complete fielded decision in
-`docs/57_ai-company-council-live-provider-implementation-decision-handoff.md` must preserve the
-local-stub authoritative gate, exact target allowlist, normalized schema, retry/timeout/cancellation,
-secret redaction, optional live verification, rollback, and still-blocked authority. Provider
-implementation and every downstream authority remain blocked until that decision is accepted.
+This next gate may define contracts and implementation planning only. WorkOrder persistence or
+execution, autonomous scheduling, mutation, memory expansion, commit, push, release, and external
+connectors remain blocked pending separate complete fielded decisions.
 
 ## Verification
 
 ```bash
 node scripts/smoke-ai-company-master-plan.mjs
 node scripts/smoke-ai-company-council-live-provider-planning.mjs
+node scripts/smoke-ai-company-council-live-provider.mjs
+node scripts/smoke-ui-slice-652.mjs
 node scripts/verification_status.mjs
 ```
 
-Phase 0 verifier는 planned phases와 separate authority gates를 확인한다. Phase 1 이후의 기능을
-구현됐다고 판정하지 않는다.
+Phase 0 verifier와 focused smokes는 implemented Phase 1-3 evidence와 separate authority gates를
+확인한다. Phase 4 구현 완료는 주장하지 않는다.

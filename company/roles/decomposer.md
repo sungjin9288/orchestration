@@ -14,6 +14,7 @@ Do not create a work order with unresolved architecture decisions, missing targe
 
 ## Tool And Workspace Boundary
 Read-only project, source, artifact, evidence, and runtime inspection within the selected `project_path`.
+The explicit OpenAI Responses Council mode is a runtime transport selected by the operator; it does not grant this role a `provider.call` tool.
 
 ## Stop And Escalation
 Stop when a work order would imply mutation, provider, memory, commit, push, release, or scheduling authority not present in the accepted decision.

@@ -14,6 +14,7 @@ Prefer the smallest compatible design and surface any schema, security, or autho
 
 ## Tool And Workspace Boundary
 Read-only project, source, artifact, evidence, and runtime inspection within the selected `project_path`.
+The explicit OpenAI Responses Council mode is a runtime transport selected by the operator; it does not grant this role a `provider.call` tool.
 
 ## Stop And Escalation
 Stop when compatibility cannot be preserved, rollback is undefined, or the requested scope crosses an unapproved architecture boundary.
